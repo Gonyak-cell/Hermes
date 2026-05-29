@@ -99,6 +99,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   citationRendererPath: "artifacts/citation-renderer/latest/citation-renderer.json",
   versionComparatorPath: "artifacts/version-comparator/latest/version-comparator.json",
   designSystemProfilePath: "artifacts/design-system-profile/latest/design-system-profile.json",
+  webNovelWorkflowPath: "artifacts/web-novel-workflow/latest/web-novel-workflow.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -737,6 +738,11 @@ const SOURCE_DEFINITIONS = [
     option: "designSystemProfilePath",
     source_id: "design_system_profile",
     label: "Design System Profile",
+  },
+  {
+    option: "webNovelWorkflowPath",
+    source_id: "web_novel_workflow",
+    label: "Web Novel Workflow",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1705,6 +1711,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "citation_renderer") return data.summary ?? {};
   if (sourceId === "version_comparator") return data.summary ?? {};
   if (sourceId === "design_system_profile") return data.summary ?? {};
+  if (sourceId === "web_novel_workflow") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2085,6 +2092,7 @@ function buildStageStatuses(artifacts, sources) {
     buildCitationRendererStage(artifacts.citation_renderer, sourceById.get("citation_renderer")),
     buildVersionComparatorStage(artifacts.version_comparator, sourceById.get("version_comparator")),
     buildDesignSystemProfileStage(artifacts.design_system_profile, sourceById.get("design_system_profile")),
+    buildWebNovelWorkflowStage(artifacts.web_novel_workflow, sourceById.get("web_novel_workflow")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -11597,6 +11605,113 @@ function buildDesignSystemProfileStage(artifact, source) {
   };
 }
 
+function buildWebNovelWorkflowStage(artifact, source) {
+  if (!artifact) return missingStage("web_novel_workflow", "Web Novel Workflow", source);
+  const summary = artifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.web_novel_workflow_status !== "complete"
+    || summary.source_brief_status !== "complete"
+    || summary.source_creative_document_pack_manifest_status !== "complete"
+    || summary.source_template_registry_status !== "complete"
+    || summary.source_style_registry_status !== "complete"
+    || summary.source_design_system_profile_status !== "complete"
+    || summary.source_output_delivery_contract_freeze_status !== "complete"
+    || summary.web_novel_workflow_record_count !== 1
+    || summary.complete_workflow_record_count !== summary.web_novel_workflow_record_count
+    || summary.web_novel_synopsis_count !== 1
+    || summary.draft_synopsis_count !== summary.web_novel_synopsis_count
+    || summary.web_novel_style_guide_count !== 1
+    || summary.draft_style_guide_count !== summary.web_novel_style_guide_count
+    || summary.web_novel_chapter_count < 1
+    || summary.draft_chapter_count !== summary.web_novel_chapter_count
+    || summary.web_novel_revision_packet_count !== summary.web_novel_chapter_count
+    || summary.ready_revision_packet_count !== summary.web_novel_revision_packet_count
+    || summary.web_novel_output_artifact_count !== 1
+    || summary.draft_output_artifact_count !== summary.web_novel_output_artifact_count
+    || summary.markdown_output_artifact_count !== summary.web_novel_output_artifact_count
+    || summary.human_review_required_output_count !== summary.web_novel_output_artifact_count
+    || summary.format_validation_required_output_count !== summary.web_novel_output_artifact_count
+    || summary.source_attribution_required_output_count !== summary.web_novel_output_artifact_count
+    || summary.revision_required_chapter_count !== summary.web_novel_chapter_count
+    || summary.draft_generation_only !== true
+    || summary.deterministic_generation_performed !== true
+    || summary.external_model_execution_performed === true
+    || summary.network_access_performed === true
+    || summary.template_mutation_allowed === true
+    || summary.style_mutation_allowed === true
+    || summary.asset_mutation_allowed === true
+    || summary.document_runtime_mutation_allowed === true
+    || summary.renderer_execution_allowed === true
+    || summary.artifact_write_allowed !== true
+    || summary.delivery_execution_allowed === true
+    || summary.delivery_execution_performed === true
+    || summary.protected_action_allowed === true
+    || summary.protected_action_executed === true
+    || summary.legal_advice_generated === true
+    || summary.client_facing_output_generated === true
+    || summary.client_facing_ready_count !== 0
+    || summary.failed_checkpoint_count !== 0
+    || artifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "web_novel_workflow",
+    label: "Web Novel Workflow",
+    status,
+    message: `${summary.web_novel_chapter_count ?? 0} chapter draft(s), ${summary.web_novel_revision_packet_count ?? 0} revision packet(s), ${summary.web_novel_output_artifact_count ?? 0} output artifact(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      web_novel_workflow_status: summary.web_novel_workflow_status ?? "unknown",
+      web_novel_workflow_contract_id: summary.web_novel_workflow_contract_id ?? null,
+      source_brief_status: summary.source_brief_status ?? "unknown",
+      source_creative_document_pack_manifest_status: summary.source_creative_document_pack_manifest_status ?? "unknown",
+      source_template_registry_status: summary.source_template_registry_status ?? "unknown",
+      source_style_registry_status: summary.source_style_registry_status ?? "unknown",
+      source_design_system_profile_status: summary.source_design_system_profile_status ?? "unknown",
+      source_output_delivery_contract_freeze_status: summary.source_output_delivery_contract_freeze_status ?? "unknown",
+      source_section_count: summary.source_section_count ?? 0,
+      web_novel_workflow_record_count: summary.web_novel_workflow_record_count ?? 0,
+      complete_workflow_record_count: summary.complete_workflow_record_count ?? 0,
+      web_novel_synopsis_count: summary.web_novel_synopsis_count ?? 0,
+      draft_synopsis_count: summary.draft_synopsis_count ?? 0,
+      web_novel_style_guide_count: summary.web_novel_style_guide_count ?? 0,
+      draft_style_guide_count: summary.draft_style_guide_count ?? 0,
+      web_novel_chapter_count: summary.web_novel_chapter_count ?? 0,
+      draft_chapter_count: summary.draft_chapter_count ?? 0,
+      web_novel_revision_packet_count: summary.web_novel_revision_packet_count ?? 0,
+      ready_revision_packet_count: summary.ready_revision_packet_count ?? 0,
+      web_novel_output_artifact_count: summary.web_novel_output_artifact_count ?? 0,
+      draft_output_artifact_count: summary.draft_output_artifact_count ?? 0,
+      markdown_output_artifact_count: summary.markdown_output_artifact_count ?? 0,
+      human_review_required_output_count: summary.human_review_required_output_count ?? 0,
+      format_validation_required_output_count: summary.format_validation_required_output_count ?? 0,
+      source_attribution_required_output_count: summary.source_attribution_required_output_count ?? 0,
+      revision_required_chapter_count: summary.revision_required_chapter_count ?? 0,
+      draft_generation_only: summary.draft_generation_only ?? false,
+      deterministic_generation_performed: summary.deterministic_generation_performed ?? false,
+      external_model_execution_performed: summary.external_model_execution_performed ?? false,
+      network_access_performed: summary.network_access_performed ?? false,
+      template_mutation_allowed: summary.template_mutation_allowed ?? false,
+      style_mutation_allowed: summary.style_mutation_allowed ?? false,
+      asset_mutation_allowed: summary.asset_mutation_allowed ?? false,
+      document_runtime_mutation_allowed: summary.document_runtime_mutation_allowed ?? false,
+      renderer_execution_allowed: summary.renderer_execution_allowed ?? false,
+      artifact_write_allowed: summary.artifact_write_allowed ?? false,
+      delivery_execution_allowed: summary.delivery_execution_allowed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      protected_action_allowed: summary.protected_action_allowed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      metadata_hash_count: summary.metadata_hash_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -17831,6 +17946,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.web_novel_workflow?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "web_novel_workflow";
+    items.push({
+      action_item_id: `dashboard.action.web_novel_workflow.${slugify(subjectId)}`,
+      source_stage: "web_novel_workflow",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix web novel workflow",
+      subject_ref: {
+        subject_type: "web_novel_workflow_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_web_novel_workflow", "rerun_web_novel_workflow", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -23744,6 +23877,51 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     design_system_profile_metadata_hash_count: artifacts.design_system_profile?.summary?.metadata_hash_count ?? 0,
     design_system_profile_failed_checkpoint_count: artifacts.design_system_profile?.summary?.failed_checkpoint_count ?? 0,
     design_system_profile_validation_error_count: artifacts.design_system_profile?.summary?.validation_error_count ?? artifacts.design_system_profile?.validation?.errors?.length ?? 0,
+    web_novel_workflow_status: artifacts.web_novel_workflow?.summary?.web_novel_workflow_status ?? "unknown",
+    web_novel_workflow_contract_id: artifacts.web_novel_workflow?.summary?.web_novel_workflow_contract_id ?? null,
+    web_novel_workflow_source_brief_status: artifacts.web_novel_workflow?.summary?.source_brief_status ?? "unknown",
+    web_novel_workflow_source_creative_document_pack_manifest_status: artifacts.web_novel_workflow?.summary?.source_creative_document_pack_manifest_status ?? "unknown",
+    web_novel_workflow_source_template_registry_status: artifacts.web_novel_workflow?.summary?.source_template_registry_status ?? "unknown",
+    web_novel_workflow_source_style_registry_status: artifacts.web_novel_workflow?.summary?.source_style_registry_status ?? "unknown",
+    web_novel_workflow_source_design_system_profile_status: artifacts.web_novel_workflow?.summary?.source_design_system_profile_status ?? "unknown",
+    web_novel_workflow_source_output_delivery_contract_freeze_status: artifacts.web_novel_workflow?.summary?.source_output_delivery_contract_freeze_status ?? "unknown",
+    web_novel_workflow_record_count: artifacts.web_novel_workflow?.summary?.web_novel_workflow_record_count ?? 0,
+    web_novel_workflow_complete_record_count: artifacts.web_novel_workflow?.summary?.complete_workflow_record_count ?? 0,
+    web_novel_workflow_synopsis_count: artifacts.web_novel_workflow?.summary?.web_novel_synopsis_count ?? 0,
+    web_novel_workflow_draft_synopsis_count: artifacts.web_novel_workflow?.summary?.draft_synopsis_count ?? 0,
+    web_novel_workflow_style_guide_count: artifacts.web_novel_workflow?.summary?.web_novel_style_guide_count ?? 0,
+    web_novel_workflow_draft_style_guide_count: artifacts.web_novel_workflow?.summary?.draft_style_guide_count ?? 0,
+    web_novel_workflow_chapter_count: artifacts.web_novel_workflow?.summary?.web_novel_chapter_count ?? 0,
+    web_novel_workflow_draft_chapter_count: artifacts.web_novel_workflow?.summary?.draft_chapter_count ?? 0,
+    web_novel_workflow_revision_packet_count: artifacts.web_novel_workflow?.summary?.web_novel_revision_packet_count ?? 0,
+    web_novel_workflow_ready_revision_packet_count: artifacts.web_novel_workflow?.summary?.ready_revision_packet_count ?? 0,
+    web_novel_workflow_output_artifact_count: artifacts.web_novel_workflow?.summary?.web_novel_output_artifact_count ?? 0,
+    web_novel_workflow_draft_output_artifact_count: artifacts.web_novel_workflow?.summary?.draft_output_artifact_count ?? 0,
+    web_novel_workflow_markdown_output_artifact_count: artifacts.web_novel_workflow?.summary?.markdown_output_artifact_count ?? 0,
+    web_novel_workflow_human_review_required_output_count: artifacts.web_novel_workflow?.summary?.human_review_required_output_count ?? 0,
+    web_novel_workflow_format_validation_required_output_count: artifacts.web_novel_workflow?.summary?.format_validation_required_output_count ?? 0,
+    web_novel_workflow_source_attribution_required_output_count: artifacts.web_novel_workflow?.summary?.source_attribution_required_output_count ?? 0,
+    web_novel_workflow_revision_required_chapter_count: artifacts.web_novel_workflow?.summary?.revision_required_chapter_count ?? 0,
+    web_novel_workflow_draft_generation_only: artifacts.web_novel_workflow?.summary?.draft_generation_only ?? false,
+    web_novel_workflow_deterministic_generation_performed: artifacts.web_novel_workflow?.summary?.deterministic_generation_performed ?? false,
+    web_novel_workflow_external_model_execution_performed: artifacts.web_novel_workflow?.summary?.external_model_execution_performed ?? false,
+    web_novel_workflow_network_access_performed: artifacts.web_novel_workflow?.summary?.network_access_performed ?? false,
+    web_novel_workflow_template_mutation_allowed: artifacts.web_novel_workflow?.summary?.template_mutation_allowed ?? false,
+    web_novel_workflow_style_mutation_allowed: artifacts.web_novel_workflow?.summary?.style_mutation_allowed ?? false,
+    web_novel_workflow_asset_mutation_allowed: artifacts.web_novel_workflow?.summary?.asset_mutation_allowed ?? false,
+    web_novel_workflow_document_runtime_mutation_allowed: artifacts.web_novel_workflow?.summary?.document_runtime_mutation_allowed ?? false,
+    web_novel_workflow_renderer_execution_allowed: artifacts.web_novel_workflow?.summary?.renderer_execution_allowed ?? false,
+    web_novel_workflow_artifact_write_allowed: artifacts.web_novel_workflow?.summary?.artifact_write_allowed ?? false,
+    web_novel_workflow_delivery_execution_allowed: artifacts.web_novel_workflow?.summary?.delivery_execution_allowed ?? false,
+    web_novel_workflow_delivery_execution_performed: artifacts.web_novel_workflow?.summary?.delivery_execution_performed ?? false,
+    web_novel_workflow_protected_action_allowed: artifacts.web_novel_workflow?.summary?.protected_action_allowed ?? false,
+    web_novel_workflow_protected_action_executed: artifacts.web_novel_workflow?.summary?.protected_action_executed ?? false,
+    web_novel_workflow_legal_advice_generated: artifacts.web_novel_workflow?.summary?.legal_advice_generated ?? false,
+    web_novel_workflow_client_facing_output_generated: artifacts.web_novel_workflow?.summary?.client_facing_output_generated ?? false,
+    web_novel_workflow_client_facing_ready_count: artifacts.web_novel_workflow?.summary?.client_facing_ready_count ?? 0,
+    web_novel_workflow_metadata_hash_count: artifacts.web_novel_workflow?.summary?.metadata_hash_count ?? 0,
+    web_novel_workflow_failed_checkpoint_count: artifacts.web_novel_workflow?.summary?.failed_checkpoint_count ?? 0,
+    web_novel_workflow_validation_error_count: artifacts.web_novel_workflow?.summary?.validation_error_count ?? artifacts.web_novel_workflow?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -25525,6 +25703,8 @@ function parseArgs(argv) {
     else if (arg === "--no-version-comparator") parsed.versionComparatorPath = false;
     else if (arg === "--design-system-profile") parsed.designSystemProfilePath = argv[++index];
     else if (arg === "--no-design-system-profile") parsed.designSystemProfilePath = false;
+    else if (arg === "--web-novel-workflow") parsed.webNovelWorkflowPath = argv[++index];
+    else if (arg === "--no-web-novel-workflow") parsed.webNovelWorkflowPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

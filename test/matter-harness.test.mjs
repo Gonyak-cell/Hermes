@@ -63,6 +63,7 @@ import { runLayoutValidator } from "../src/creative-document-layout-validator.mj
 import { runCitationRenderer } from "../src/creative-document-citation-renderer.mjs";
 import { runVersionComparator } from "../src/creative-document-version-comparator.mjs";
 import { runDesignSystemProfile } from "../src/creative-document-design-system-profile.mjs";
+import { runWebNovelWorkflow } from "../src/creative-document-web-novel-workflow.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1921,6 +1922,7 @@ describe("matter harness", () => {
         citationRendererPath: path.join(outDir, "citation-renderer", "citation-renderer.json"),
         versionComparatorPath: path.join(outDir, "version-comparator", "version-comparator.json"),
         designSystemProfilePath: path.join(outDir, "design-system-profile", "design-system-profile.json"),
+        webNovelWorkflowPath: path.join(outDir, "web-novel-workflow", "web-novel-workflow.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10525,6 +10527,74 @@ describe("matter harness", () => {
       assert.ok(designSystemProfile.design_review_packets.every((packet) => packet.design_review_packet_status === "ready_for_attorney_review" && packet.design_rule_count === 9 && packet.client_facing_ready === false));
       assert.match(await readFile(path.join(outDir, "design-system-profile", "summary.md"), "utf8"), /Design System Profile/);
 
+      const webNovelWorkflow = await runWebNovelWorkflow({
+        creativeDocumentBriefPath: "examples/creative-document-brief.json",
+        creativeDocumentPackPath: "packs/creative-document/pack.json",
+        creativeDocumentPackManifestPath: path.join(outDir, "creative-document-pack-manifest", "creative-document-pack-manifest.json"),
+        templateRegistryPath: path.join(outDir, "template-registry", "template-registry.json"),
+        styleRegistryPath: path.join(outDir, "style-registry", "style-registry.json"),
+        designSystemProfilePath: path.join(outDir, "design-system-profile", "design-system-profile.json"),
+        outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "web-novel-workflow"),
+        runAt: "2026-05-23T07:04:24.000Z",
+      });
+      const webNovelWorkflowSchema = JSON.parse(await readFile("schemas/web-novel-workflow.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(webNovelWorkflow, webNovelWorkflowSchema, {}, "web_novel_workflow"), [], JSON.stringify(webNovelWorkflow.validation.errors));
+      assert.equal(webNovelWorkflow.summary.web_novel_workflow_status, "complete");
+      assert.equal(webNovelWorkflow.summary.web_novel_workflow_contract_id, "web-novel-workflow.v1");
+      assert.equal(webNovelWorkflow.summary.source_brief_status, "complete");
+      assert.equal(webNovelWorkflow.summary.source_creative_document_pack_manifest_status, "complete");
+      assert.equal(webNovelWorkflow.summary.source_template_registry_status, "complete");
+      assert.equal(webNovelWorkflow.summary.source_style_registry_status, "complete");
+      assert.equal(webNovelWorkflow.summary.source_design_system_profile_status, "complete");
+      assert.equal(webNovelWorkflow.summary.source_output_delivery_contract_freeze_status, "complete");
+      assert.equal(webNovelWorkflow.summary.web_novel_workflow_record_count, 1);
+      assert.equal(webNovelWorkflow.summary.complete_workflow_record_count, 1);
+      assert.equal(webNovelWorkflow.summary.web_novel_synopsis_count, 1);
+      assert.equal(webNovelWorkflow.summary.draft_synopsis_count, 1);
+      assert.equal(webNovelWorkflow.summary.web_novel_style_guide_count, 1);
+      assert.equal(webNovelWorkflow.summary.draft_style_guide_count, 1);
+      assert.equal(webNovelWorkflow.summary.web_novel_chapter_count, 3);
+      assert.equal(webNovelWorkflow.summary.draft_chapter_count, webNovelWorkflow.summary.web_novel_chapter_count);
+      assert.equal(webNovelWorkflow.summary.web_novel_revision_packet_count, webNovelWorkflow.summary.web_novel_chapter_count);
+      assert.equal(webNovelWorkflow.summary.ready_revision_packet_count, webNovelWorkflow.summary.web_novel_revision_packet_count);
+      assert.equal(webNovelWorkflow.summary.web_novel_output_artifact_count, 1);
+      assert.equal(webNovelWorkflow.summary.draft_output_artifact_count, 1);
+      assert.equal(webNovelWorkflow.summary.markdown_output_artifact_count, 1);
+      assert.equal(webNovelWorkflow.summary.human_review_required_output_count, 1);
+      assert.equal(webNovelWorkflow.summary.format_validation_required_output_count, 1);
+      assert.equal(webNovelWorkflow.summary.source_attribution_required_output_count, 1);
+      assert.equal(webNovelWorkflow.summary.revision_required_chapter_count, webNovelWorkflow.summary.web_novel_chapter_count);
+      assert.equal(webNovelWorkflow.summary.draft_generation_only, true);
+      assert.equal(webNovelWorkflow.summary.deterministic_generation_performed, true);
+      assert.equal(webNovelWorkflow.summary.external_model_execution_performed, false);
+      assert.equal(webNovelWorkflow.summary.network_access_performed, false);
+      assert.equal(webNovelWorkflow.summary.template_mutation_allowed, false);
+      assert.equal(webNovelWorkflow.summary.style_mutation_allowed, false);
+      assert.equal(webNovelWorkflow.summary.asset_mutation_allowed, false);
+      assert.equal(webNovelWorkflow.summary.document_runtime_mutation_allowed, false);
+      assert.equal(webNovelWorkflow.summary.renderer_execution_allowed, false);
+      assert.equal(webNovelWorkflow.summary.artifact_write_allowed, true);
+      assert.equal(webNovelWorkflow.summary.delivery_execution_allowed, false);
+      assert.equal(webNovelWorkflow.summary.delivery_execution_performed, false);
+      assert.equal(webNovelWorkflow.summary.protected_action_allowed, false);
+      assert.equal(webNovelWorkflow.summary.protected_action_executed, false);
+      assert.equal(webNovelWorkflow.summary.legal_advice_generated, false);
+      assert.equal(webNovelWorkflow.summary.client_facing_output_generated, false);
+      assert.equal(webNovelWorkflow.summary.client_facing_ready_count, 0);
+      assert.equal(webNovelWorkflow.summary.failed_checkpoint_count, 0);
+      assert.equal(webNovelWorkflow.summary.validation_error_count, 0);
+      assert.ok(webNovelWorkflow.web_novel_workflows.every((workflow) => workflow.web_novel_workflow_status === "complete" && workflow.workflow_id === "workflow.creative_document.content_script.v1" && workflow.metadata_hash.startsWith("sha256:") && workflow.human_review_required && workflow.client_facing_ready === false));
+      assert.ok(webNovelWorkflow.web_novel_synopses.every((synopsis) => synopsis.synopsis_status === "draft_needs_review" && synopsis.metadata_hash.startsWith("sha256:") && synopsis.human_review_required && synopsis.client_facing_ready === false));
+      assert.ok(webNovelWorkflow.web_novel_style_guides.every((styleGuide) => styleGuide.style_guide_status === "draft_needs_review" && styleGuide.metadata_hash.startsWith("sha256:") && styleGuide.human_review_required && styleGuide.client_facing_ready === false));
+      assert.ok(webNovelWorkflow.web_novel_chapters.every((chapter) => chapter.chapter_status === "draft_needs_review" && chapter.metadata_hash.startsWith("sha256:") && chapter.source_attribution_required && chapter.human_review_required && chapter.client_facing_ready === false));
+      assert.ok(webNovelWorkflow.web_novel_revision_packets.every((packet) => packet.revision_packet_status === "ready_for_human_review" && packet.metadata_hash.startsWith("sha256:") && packet.human_review_required && packet.client_facing_ready === false));
+      assert.ok(webNovelWorkflow.web_novel_output_artifacts.every((artifact) => artifact.output_artifact_status === "draft_generated_needs_review" && artifact.output_format === "markdown" && artifact.metadata_hash.startsWith("sha256:") && artifact.human_review_required && artifact.client_facing_ready === false));
+      assert.match(await readFile(path.join(outDir, "web-novel-workflow", "summary.md"), "utf8"), /Web Novel Workflow/);
+      assert.match(await readFile(path.join(outDir, "web-novel-workflow", "web-novel-draft.md"), "utf8"), /Draft web novel workflow artifact for human review/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -10712,6 +10782,7 @@ describe("matter harness", () => {
           citation_renderer: path.join(outDir, "citation-renderer", "citation-renderer.json"),
           version_comparator: path.join(outDir, "version-comparator", "version-comparator.json"),
           design_system_profile: path.join(outDir, "design-system-profile", "design-system-profile.json"),
+          web_novel_workflow: path.join(outDir, "web-novel-workflow", "web-novel-workflow.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10763,8 +10834,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 165);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 165);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 166);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 166);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -10917,6 +10988,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "citation_renderer"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "version_comparator"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "design_system_profile"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "web_novel_workflow"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -11003,6 +11075,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:citation-renderer"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:version-comparator"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:design-system-profile"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:web-novel-workflow"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter-os:profile"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:timeline"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:document-index"));
@@ -11737,6 +11810,10 @@ describe("matter harness", () => {
       assert.equal(designSystemProfileCheckpoint?.acceptance_profile, "design_system_profile_gate");
       assert.equal(designSystemProfileCheckpoint?.status, "passed");
       assert.equal(designSystemProfileCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const webNovelWorkflowCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-web-novel-workflow");
+      assert.equal(webNovelWorkflowCheckpoint?.acceptance_profile, "web_novel_workflow_gate");
+      assert.equal(webNovelWorkflowCheckpoint?.status, "passed");
+      assert.equal(webNovelWorkflowCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -15896,6 +15973,50 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.design_system_profile_client_facing_ready_count, 0);
       assert.equal(dashboard.summary.design_system_profile_failed_checkpoint_count, 0);
       assert.equal(dashboard.summary.design_system_profile_validation_error_count, 0);
+      assert.equal(dashboard.summary.web_novel_workflow_status, "complete");
+      assert.equal(dashboard.summary.web_novel_workflow_contract_id, webNovelWorkflow.summary.web_novel_workflow_contract_id);
+      assert.equal(dashboard.summary.web_novel_workflow_source_brief_status, "complete");
+      assert.equal(dashboard.summary.web_novel_workflow_source_creative_document_pack_manifest_status, "complete");
+      assert.equal(dashboard.summary.web_novel_workflow_source_template_registry_status, "complete");
+      assert.equal(dashboard.summary.web_novel_workflow_source_style_registry_status, "complete");
+      assert.equal(dashboard.summary.web_novel_workflow_source_design_system_profile_status, "complete");
+      assert.equal(dashboard.summary.web_novel_workflow_source_output_delivery_contract_freeze_status, "complete");
+      assert.equal(dashboard.summary.web_novel_workflow_record_count, webNovelWorkflow.summary.web_novel_workflow_record_count);
+      assert.equal(dashboard.summary.web_novel_workflow_complete_record_count, webNovelWorkflow.summary.complete_workflow_record_count);
+      assert.equal(dashboard.summary.web_novel_workflow_synopsis_count, webNovelWorkflow.summary.web_novel_synopsis_count);
+      assert.equal(dashboard.summary.web_novel_workflow_draft_synopsis_count, webNovelWorkflow.summary.draft_synopsis_count);
+      assert.equal(dashboard.summary.web_novel_workflow_style_guide_count, webNovelWorkflow.summary.web_novel_style_guide_count);
+      assert.equal(dashboard.summary.web_novel_workflow_draft_style_guide_count, webNovelWorkflow.summary.draft_style_guide_count);
+      assert.equal(dashboard.summary.web_novel_workflow_chapter_count, webNovelWorkflow.summary.web_novel_chapter_count);
+      assert.equal(dashboard.summary.web_novel_workflow_draft_chapter_count, webNovelWorkflow.summary.draft_chapter_count);
+      assert.equal(dashboard.summary.web_novel_workflow_revision_packet_count, webNovelWorkflow.summary.web_novel_revision_packet_count);
+      assert.equal(dashboard.summary.web_novel_workflow_ready_revision_packet_count, webNovelWorkflow.summary.ready_revision_packet_count);
+      assert.equal(dashboard.summary.web_novel_workflow_output_artifact_count, webNovelWorkflow.summary.web_novel_output_artifact_count);
+      assert.equal(dashboard.summary.web_novel_workflow_draft_output_artifact_count, webNovelWorkflow.summary.draft_output_artifact_count);
+      assert.equal(dashboard.summary.web_novel_workflow_markdown_output_artifact_count, webNovelWorkflow.summary.markdown_output_artifact_count);
+      assert.equal(dashboard.summary.web_novel_workflow_human_review_required_output_count, webNovelWorkflow.summary.human_review_required_output_count);
+      assert.equal(dashboard.summary.web_novel_workflow_format_validation_required_output_count, webNovelWorkflow.summary.format_validation_required_output_count);
+      assert.equal(dashboard.summary.web_novel_workflow_source_attribution_required_output_count, webNovelWorkflow.summary.source_attribution_required_output_count);
+      assert.equal(dashboard.summary.web_novel_workflow_revision_required_chapter_count, webNovelWorkflow.summary.revision_required_chapter_count);
+      assert.equal(dashboard.summary.web_novel_workflow_draft_generation_only, true);
+      assert.equal(dashboard.summary.web_novel_workflow_deterministic_generation_performed, true);
+      assert.equal(dashboard.summary.web_novel_workflow_external_model_execution_performed, false);
+      assert.equal(dashboard.summary.web_novel_workflow_network_access_performed, false);
+      assert.equal(dashboard.summary.web_novel_workflow_template_mutation_allowed, false);
+      assert.equal(dashboard.summary.web_novel_workflow_style_mutation_allowed, false);
+      assert.equal(dashboard.summary.web_novel_workflow_asset_mutation_allowed, false);
+      assert.equal(dashboard.summary.web_novel_workflow_document_runtime_mutation_allowed, false);
+      assert.equal(dashboard.summary.web_novel_workflow_renderer_execution_allowed, false);
+      assert.equal(dashboard.summary.web_novel_workflow_artifact_write_allowed, true);
+      assert.equal(dashboard.summary.web_novel_workflow_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.web_novel_workflow_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.web_novel_workflow_protected_action_allowed, false);
+      assert.equal(dashboard.summary.web_novel_workflow_protected_action_executed, false);
+      assert.equal(dashboard.summary.web_novel_workflow_legal_advice_generated, false);
+      assert.equal(dashboard.summary.web_novel_workflow_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.web_novel_workflow_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.web_novel_workflow_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.web_novel_workflow_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -18486,6 +18607,52 @@ describe("matter harness", () => {
       assert.equal(designSystemProfileStage?.metrics.client_facing_ready_count, 0);
       assert.equal(designSystemProfileStage?.metrics.failed_checkpoint_count, 0);
       assert.equal(designSystemProfileStage?.metrics.validation_error_count, 0);
+      const webNovelWorkflowStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "web_novel_workflow");
+      assert.equal(webNovelWorkflowStage?.status, "passed");
+      assert.equal(webNovelWorkflowStage?.metrics.web_novel_workflow_status, "complete");
+      assert.equal(webNovelWorkflowStage?.metrics.web_novel_workflow_contract_id, webNovelWorkflow.summary.web_novel_workflow_contract_id);
+      assert.equal(webNovelWorkflowStage?.metrics.source_brief_status, "complete");
+      assert.equal(webNovelWorkflowStage?.metrics.source_creative_document_pack_manifest_status, "complete");
+      assert.equal(webNovelWorkflowStage?.metrics.source_template_registry_status, "complete");
+      assert.equal(webNovelWorkflowStage?.metrics.source_style_registry_status, "complete");
+      assert.equal(webNovelWorkflowStage?.metrics.source_design_system_profile_status, "complete");
+      assert.equal(webNovelWorkflowStage?.metrics.source_output_delivery_contract_freeze_status, "complete");
+      assert.equal(webNovelWorkflowStage?.metrics.web_novel_workflow_record_count, webNovelWorkflow.summary.web_novel_workflow_record_count);
+      assert.equal(webNovelWorkflowStage?.metrics.complete_workflow_record_count, webNovelWorkflow.summary.complete_workflow_record_count);
+      assert.equal(webNovelWorkflowStage?.metrics.web_novel_synopsis_count, webNovelWorkflow.summary.web_novel_synopsis_count);
+      assert.equal(webNovelWorkflowStage?.metrics.draft_synopsis_count, webNovelWorkflow.summary.draft_synopsis_count);
+      assert.equal(webNovelWorkflowStage?.metrics.web_novel_style_guide_count, webNovelWorkflow.summary.web_novel_style_guide_count);
+      assert.equal(webNovelWorkflowStage?.metrics.draft_style_guide_count, webNovelWorkflow.summary.draft_style_guide_count);
+      assert.equal(webNovelWorkflowStage?.metrics.web_novel_chapter_count, webNovelWorkflow.summary.web_novel_chapter_count);
+      assert.equal(webNovelWorkflowStage?.metrics.draft_chapter_count, webNovelWorkflow.summary.draft_chapter_count);
+      assert.equal(webNovelWorkflowStage?.metrics.web_novel_revision_packet_count, webNovelWorkflow.summary.web_novel_revision_packet_count);
+      assert.equal(webNovelWorkflowStage?.metrics.ready_revision_packet_count, webNovelWorkflow.summary.ready_revision_packet_count);
+      assert.equal(webNovelWorkflowStage?.metrics.web_novel_output_artifact_count, webNovelWorkflow.summary.web_novel_output_artifact_count);
+      assert.equal(webNovelWorkflowStage?.metrics.draft_output_artifact_count, webNovelWorkflow.summary.draft_output_artifact_count);
+      assert.equal(webNovelWorkflowStage?.metrics.markdown_output_artifact_count, webNovelWorkflow.summary.markdown_output_artifact_count);
+      assert.equal(webNovelWorkflowStage?.metrics.human_review_required_output_count, webNovelWorkflow.summary.human_review_required_output_count);
+      assert.equal(webNovelWorkflowStage?.metrics.format_validation_required_output_count, webNovelWorkflow.summary.format_validation_required_output_count);
+      assert.equal(webNovelWorkflowStage?.metrics.source_attribution_required_output_count, webNovelWorkflow.summary.source_attribution_required_output_count);
+      assert.equal(webNovelWorkflowStage?.metrics.revision_required_chapter_count, webNovelWorkflow.summary.revision_required_chapter_count);
+      assert.equal(webNovelWorkflowStage?.metrics.draft_generation_only, true);
+      assert.equal(webNovelWorkflowStage?.metrics.deterministic_generation_performed, true);
+      assert.equal(webNovelWorkflowStage?.metrics.external_model_execution_performed, false);
+      assert.equal(webNovelWorkflowStage?.metrics.network_access_performed, false);
+      assert.equal(webNovelWorkflowStage?.metrics.template_mutation_allowed, false);
+      assert.equal(webNovelWorkflowStage?.metrics.style_mutation_allowed, false);
+      assert.equal(webNovelWorkflowStage?.metrics.asset_mutation_allowed, false);
+      assert.equal(webNovelWorkflowStage?.metrics.document_runtime_mutation_allowed, false);
+      assert.equal(webNovelWorkflowStage?.metrics.renderer_execution_allowed, false);
+      assert.equal(webNovelWorkflowStage?.metrics.artifact_write_allowed, true);
+      assert.equal(webNovelWorkflowStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(webNovelWorkflowStage?.metrics.delivery_execution_performed, false);
+      assert.equal(webNovelWorkflowStage?.metrics.protected_action_allowed, false);
+      assert.equal(webNovelWorkflowStage?.metrics.protected_action_executed, false);
+      assert.equal(webNovelWorkflowStage?.metrics.legal_advice_generated, false);
+      assert.equal(webNovelWorkflowStage?.metrics.client_facing_output_generated, false);
+      assert.equal(webNovelWorkflowStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(webNovelWorkflowStage?.metrics.failed_checkpoint_count, 0);
+      assert.equal(webNovelWorkflowStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -20586,6 +20753,34 @@ describe("matter harness", () => {
       const designSystemProfileValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/design-system-profile-validations?status=passed", apiOptions)).body);
       assert.equal(designSystemProfileValidationsResponse.collection, "design_system_profile_validations");
       assert.equal(designSystemProfileValidationsResponse.count, designSystemProfile.summary.validation_item_count);
+
+      const webNovelWorkflowsResponse = JSON.parse((await buildReviewApiResponse("/api/web-novel-workflows?web_novel_workflow_status=complete", apiOptions)).body);
+      assert.equal(webNovelWorkflowsResponse.collection, "web_novel_workflows");
+      assert.equal(webNovelWorkflowsResponse.count, webNovelWorkflow.summary.web_novel_workflow_record_count);
+
+      const webNovelSynopsesResponse = JSON.parse((await buildReviewApiResponse("/api/web-novel-synopses?web_novel_synopsis_status=draft_needs_review", apiOptions)).body);
+      assert.equal(webNovelSynopsesResponse.collection, "web_novel_synopses");
+      assert.equal(webNovelSynopsesResponse.count, webNovelWorkflow.summary.web_novel_synopsis_count);
+
+      const webNovelStyleGuidesResponse = JSON.parse((await buildReviewApiResponse("/api/web-novel-style-guides?web_novel_style_guide_status=draft_needs_review", apiOptions)).body);
+      assert.equal(webNovelStyleGuidesResponse.collection, "web_novel_style_guides");
+      assert.equal(webNovelStyleGuidesResponse.count, webNovelWorkflow.summary.web_novel_style_guide_count);
+
+      const webNovelChaptersResponse = JSON.parse((await buildReviewApiResponse("/api/web-novel-chapters?web_novel_chapter_status=draft_needs_review", apiOptions)).body);
+      assert.equal(webNovelChaptersResponse.collection, "web_novel_chapters");
+      assert.equal(webNovelChaptersResponse.count, webNovelWorkflow.summary.web_novel_chapter_count);
+
+      const webNovelRevisionPacketsResponse = JSON.parse((await buildReviewApiResponse("/api/web-novel-revision-packets?web_novel_revision_packet_status=ready_for_human_review", apiOptions)).body);
+      assert.equal(webNovelRevisionPacketsResponse.collection, "web_novel_revision_packets");
+      assert.equal(webNovelRevisionPacketsResponse.count, webNovelWorkflow.summary.web_novel_revision_packet_count);
+
+      const webNovelOutputArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/web-novel-output-artifacts?web_novel_output_artifact_status=draft_generated_needs_review&web_novel_output_format=markdown", apiOptions)).body);
+      assert.equal(webNovelOutputArtifactsResponse.collection, "web_novel_output_artifacts");
+      assert.equal(webNovelOutputArtifactsResponse.count, webNovelWorkflow.summary.web_novel_output_artifact_count);
+
+      const webNovelWorkflowValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/web-novel-workflow-validations?status=passed", apiOptions)).body);
+      assert.equal(webNovelWorkflowValidationsResponse.collection, "web_novel_workflow_validations");
+      assert.equal(webNovelWorkflowValidationsResponse.count, webNovelWorkflow.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

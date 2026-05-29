@@ -136,6 +136,7 @@ const GOAL_ITEMS = [
   sourceItem("citation_renderer", "Citation renderer", "creative_document", "citation_renderer", "control-plane-citation-renderer", { acceptance_profile: "citation_renderer_gate" }),
   sourceItem("version_comparator", "Version comparator", "creative_document", "version_comparator", "control-plane-version-comparator", { acceptance_profile: "version_comparator_gate" }),
   sourceItem("design_system_profile", "Design system profile", "creative_document", "design_system_profile", "control-plane-design-system-profile", { acceptance_profile: "design_system_profile_gate" }),
+  sourceItem("web_novel_workflow", "Web novel workflow", "creative_document", "web_novel_workflow", "control-plane-web-novel-workflow", { acceptance_profile: "web_novel_workflow_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -631,6 +632,7 @@ function evaluateStageAcceptance(item, stage) {
     "citation_renderer_gate",
     "version_comparator_gate",
     "design_system_profile_gate",
+    "web_novel_workflow_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -4677,6 +4679,56 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.failed_checkpoint_count === 0
     ) {
       return passedWithOperationalGate(stage, "Design System Profile binds PPTX report-material templates to style, asset, renderer, and version-review evidence while preserving attorney review, metadata-only design rules, no legal advice, no mutation, and no delivery gates.");
+    }
+  }
+
+  if (item.acceptance_profile === "web_novel_workflow_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.web_novel_workflow_status === "complete"
+      && metrics.source_brief_status === "complete"
+      && metrics.source_creative_document_pack_manifest_status === "complete"
+      && metrics.source_template_registry_status === "complete"
+      && metrics.source_style_registry_status === "complete"
+      && metrics.source_design_system_profile_status === "complete"
+      && metrics.source_output_delivery_contract_freeze_status === "complete"
+      && metrics.web_novel_workflow_record_count === 1
+      && metrics.complete_workflow_record_count === metrics.web_novel_workflow_record_count
+      && metrics.web_novel_synopsis_count === 1
+      && metrics.draft_synopsis_count === metrics.web_novel_synopsis_count
+      && metrics.web_novel_style_guide_count === 1
+      && metrics.draft_style_guide_count === metrics.web_novel_style_guide_count
+      && metrics.web_novel_chapter_count >= 1
+      && metrics.draft_chapter_count === metrics.web_novel_chapter_count
+      && metrics.web_novel_revision_packet_count === metrics.web_novel_chapter_count
+      && metrics.ready_revision_packet_count === metrics.web_novel_revision_packet_count
+      && metrics.web_novel_output_artifact_count === 1
+      && metrics.draft_output_artifact_count === metrics.web_novel_output_artifact_count
+      && metrics.markdown_output_artifact_count === metrics.web_novel_output_artifact_count
+      && metrics.human_review_required_output_count === metrics.web_novel_output_artifact_count
+      && metrics.format_validation_required_output_count === metrics.web_novel_output_artifact_count
+      && metrics.source_attribution_required_output_count === metrics.web_novel_output_artifact_count
+      && metrics.revision_required_chapter_count === metrics.web_novel_chapter_count
+      && metrics.draft_generation_only === true
+      && metrics.deterministic_generation_performed === true
+      && metrics.external_model_execution_performed === false
+      && metrics.network_access_performed === false
+      && metrics.template_mutation_allowed === false
+      && metrics.style_mutation_allowed === false
+      && metrics.asset_mutation_allowed === false
+      && metrics.document_runtime_mutation_allowed === false
+      && metrics.renderer_execution_allowed === false
+      && metrics.artifact_write_allowed === true
+      && metrics.delivery_execution_allowed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.protected_action_allowed === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.client_facing_ready_count === 0
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Web Novel Workflow creates deterministic draft synopsis, style, chapter, revision, and markdown output artifacts while preserving human review, format validation, no legal advice, no protected action, and no delivery gates.");
     }
   }
 

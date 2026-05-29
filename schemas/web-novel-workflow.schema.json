@@ -1,0 +1,251 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "web-novel-workflow.schema.json",
+  "title": "Web Novel Workflow",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "web_novel_workflow_id",
+    "web_novel_workflow_status",
+    "safe_handling",
+    "web_novel_workflow_contract",
+    "web_novel_workflow_boundary",
+    "web_novel_workflows",
+    "web_novel_synopses",
+    "web_novel_style_guides",
+    "web_novel_chapters",
+    "web_novel_revision_packets",
+    "web_novel_output_artifacts",
+    "web_novel_workflow_checkpoints",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "web-novel-workflow.v1" },
+    "web_novel_workflow_id": { "type": "string", "minLength": 1 },
+    "web_novel_workflow_status": { "const": "complete" },
+    "safe_handling": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "draft_only",
+        "web_novel_workflow_generated",
+        "deterministic_draft_generation",
+        "external_model_execution_performed",
+        "network_access_performed",
+        "delivery_execution_performed",
+        "protected_mutation_performed",
+        "human_review_required",
+        "legal_advice_generated",
+        "client_facing_output_generated"
+      ],
+      "properties": {
+        "draft_only": { "const": true },
+        "web_novel_workflow_generated": { "const": true },
+        "deterministic_draft_generation": { "const": true },
+        "external_model_execution_performed": { "const": false },
+        "network_access_performed": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "protected_mutation_performed": { "const": false },
+        "human_review_required": { "const": true },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false }
+      }
+    },
+    "web_novel_workflow_boundary": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "boundary_status",
+        "draft_generation_only",
+        "deterministic_generation_only",
+        "external_model_execution_allowed",
+        "network_access_allowed",
+        "template_mutation_allowed",
+        "style_mutation_allowed",
+        "asset_mutation_allowed",
+        "document_runtime_mutation_allowed",
+        "delivery_execution_allowed",
+        "protected_action_allowed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "client_facing_ready_count"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "draft_generation_only": { "const": true },
+        "deterministic_generation_only": { "const": true },
+        "external_model_execution_allowed": { "const": false },
+        "network_access_allowed": { "const": false },
+        "template_mutation_allowed": { "const": false },
+        "style_mutation_allowed": { "const": false },
+        "asset_mutation_allowed": { "const": false },
+        "document_runtime_mutation_allowed": { "const": false },
+        "delivery_execution_allowed": { "const": false },
+        "protected_action_allowed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "client_facing_ready_count": { "const": 0 }
+      }
+    },
+    "web_novel_workflows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["web_novel_workflow_status", "workflow_id", "human_review_required", "format_validation_required", "client_facing_ready", "metadata_hash"],
+        "properties": {
+          "web_novel_workflow_status": { "const": "complete" },
+          "workflow_id": { "const": "workflow.creative_document.content_script.v1" },
+          "human_review_required": { "const": true },
+          "format_validation_required": { "const": true },
+          "client_facing_ready": { "const": false },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:" }
+        }
+      }
+    },
+    "web_novel_synopses": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["synopsis_status", "human_review_required", "format_validation_required", "client_facing_ready", "metadata_hash"],
+        "properties": {
+          "synopsis_status": { "const": "draft_needs_review" },
+          "human_review_required": { "const": true },
+          "format_validation_required": { "const": true },
+          "client_facing_ready": { "const": false },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:" }
+        }
+      }
+    },
+    "web_novel_style_guides": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["style_guide_status", "human_review_required", "format_validation_required", "client_facing_ready", "metadata_hash"],
+        "properties": {
+          "style_guide_status": { "const": "draft_needs_review" },
+          "human_review_required": { "const": true },
+          "format_validation_required": { "const": true },
+          "client_facing_ready": { "const": false },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:" }
+        }
+      }
+    },
+    "web_novel_chapters": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["chapter_status", "source_attribution_required", "human_review_required", "format_validation_required", "client_facing_ready", "metadata_hash"],
+        "properties": {
+          "chapter_status": { "const": "draft_needs_review" },
+          "source_attribution_required": { "const": true },
+          "human_review_required": { "const": true },
+          "format_validation_required": { "const": true },
+          "client_facing_ready": { "const": false },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:" }
+        }
+      }
+    },
+    "web_novel_revision_packets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["revision_packet_status", "human_review_required", "format_validation_required", "client_facing_ready", "metadata_hash"],
+        "properties": {
+          "revision_packet_status": { "const": "ready_for_human_review" },
+          "human_review_required": { "const": true },
+          "format_validation_required": { "const": true },
+          "client_facing_ready": { "const": false },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:" }
+        }
+      }
+    },
+    "web_novel_output_artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["output_artifact_status", "output_format", "source_attribution_required", "human_review_required", "format_validation_required", "client_facing_ready", "metadata_hash"],
+        "properties": {
+          "output_artifact_status": { "const": "draft_generated_needs_review" },
+          "output_format": { "const": "markdown" },
+          "source_attribution_required": { "const": true },
+          "human_review_required": { "const": true },
+          "format_validation_required": { "const": true },
+          "client_facing_ready": { "const": false },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:" }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "errors": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "web_novel_workflow_status",
+        "web_novel_workflow_contract_id",
+        "web_novel_workflow_record_count",
+        "web_novel_synopsis_count",
+        "web_novel_style_guide_count",
+        "web_novel_chapter_count",
+        "web_novel_revision_packet_count",
+        "web_novel_output_artifact_count",
+        "human_review_required_output_count",
+        "format_validation_required_output_count",
+        "source_attribution_required_output_count",
+        "revision_required_chapter_count",
+        "delivery_execution_allowed",
+        "delivery_execution_performed",
+        "protected_action_allowed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "client_facing_ready_count",
+        "failed_checkpoint_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "web_novel_workflow_status": { "const": "complete" },
+        "web_novel_workflow_contract_id": { "const": "web-novel-workflow.v1" },
+        "web_novel_workflow_record_count": { "const": 1 },
+        "web_novel_synopsis_count": { "const": 1 },
+        "web_novel_style_guide_count": { "const": 1 },
+        "web_novel_chapter_count": { "type": "integer", "minimum": 1 },
+        "web_novel_revision_packet_count": { "type": "integer", "minimum": 1 },
+        "web_novel_output_artifact_count": { "const": 1 },
+        "human_review_required_output_count": { "const": 1 },
+        "format_validation_required_output_count": { "const": 1 },
+        "source_attribution_required_output_count": { "const": 1 },
+        "delivery_execution_allowed": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "protected_action_allowed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "client_facing_ready_count": { "const": 0 },
+        "failed_checkpoint_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

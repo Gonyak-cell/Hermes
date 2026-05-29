@@ -145,6 +145,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "creative-document:citation-renderer",
   "creative-document:version-comparator",
   "creative-document:design-system-profile",
+  "creative-document:web-novel-workflow",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

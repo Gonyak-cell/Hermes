@@ -4876,6 +4876,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("design_system_profile_validations", designSystemProfileResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/web-novel-workflows") {
+    const webNovelWorkflowResult = await readDashboardSourceArtifact(dashboard, "web_novel_workflow");
+    if (!webNovelWorkflowResult.available) {
+      return jsonResponse(503, buildError("web_novel_workflow_unavailable", webNovelWorkflowResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("web_novel_workflows", webNovelWorkflowResult.artifact.web_novel_workflows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/web-novel-synopses") {
+    const webNovelWorkflowResult = await readDashboardSourceArtifact(dashboard, "web_novel_workflow");
+    if (!webNovelWorkflowResult.available) {
+      return jsonResponse(503, buildError("web_novel_workflow_unavailable", webNovelWorkflowResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("web_novel_synopses", webNovelWorkflowResult.artifact.web_novel_synopses ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/web-novel-style-guides") {
+    const webNovelWorkflowResult = await readDashboardSourceArtifact(dashboard, "web_novel_workflow");
+    if (!webNovelWorkflowResult.available) {
+      return jsonResponse(503, buildError("web_novel_workflow_unavailable", webNovelWorkflowResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("web_novel_style_guides", webNovelWorkflowResult.artifact.web_novel_style_guides ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/web-novel-chapters") {
+    const webNovelWorkflowResult = await readDashboardSourceArtifact(dashboard, "web_novel_workflow");
+    if (!webNovelWorkflowResult.available) {
+      return jsonResponse(503, buildError("web_novel_workflow_unavailable", webNovelWorkflowResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("web_novel_chapters", webNovelWorkflowResult.artifact.web_novel_chapters ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/web-novel-revision-packets") {
+    const webNovelWorkflowResult = await readDashboardSourceArtifact(dashboard, "web_novel_workflow");
+    if (!webNovelWorkflowResult.available) {
+      return jsonResponse(503, buildError("web_novel_workflow_unavailable", webNovelWorkflowResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("web_novel_revision_packets", webNovelWorkflowResult.artifact.web_novel_revision_packets ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/web-novel-output-artifacts") {
+    const webNovelWorkflowResult = await readDashboardSourceArtifact(dashboard, "web_novel_workflow");
+    if (!webNovelWorkflowResult.available) {
+      return jsonResponse(503, buildError("web_novel_workflow_unavailable", webNovelWorkflowResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("web_novel_output_artifacts", webNovelWorkflowResult.artifact.web_novel_output_artifacts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/web-novel-workflow-validations") {
+    const webNovelWorkflowResult = await readDashboardSourceArtifact(dashboard, "web_novel_workflow");
+    if (!webNovelWorkflowResult.available) {
+      return jsonResponse(503, buildError("web_novel_workflow_unavailable", webNovelWorkflowResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("web_novel_workflow_validations", webNovelWorkflowResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -11177,6 +11226,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/asset-design-bindings", "Asset design binding rows"),
       route("GET", "/api/design-review-packets", "Design review packet rows"),
       route("GET", "/api/design-system-profile-validations", "Design system profile validation rows"),
+      route("GET", "/api/web-novel-workflows", "Web novel workflow rows"),
+      route("GET", "/api/web-novel-synopses", "Web novel synopsis rows"),
+      route("GET", "/api/web-novel-style-guides", "Web novel style guide rows"),
+      route("GET", "/api/web-novel-chapters", "Web novel chapter rows"),
+      route("GET", "/api/web-novel-revision-packets", "Web novel revision packet rows"),
+      route("GET", "/api/web-novel-output-artifacts", "Web novel output artifact rows"),
+      route("GET", "/api/web-novel-workflow-validations", "Web novel workflow validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -12207,6 +12263,13 @@ function filterItems(items, searchParams) {
     "asset_design_binding_status",
     "design_review_packet_status",
     "design_system_format",
+    "web_novel_workflow_status",
+    "web_novel_synopsis_status",
+    "web_novel_style_guide_status",
+    "web_novel_chapter_status",
+    "web_novel_revision_packet_status",
+    "web_novel_output_artifact_status",
+    "web_novel_output_format",
     "matter_os_profile_status",
     "profile_card_status",
     "display_field_status",
@@ -13965,6 +14028,13 @@ function readFilterValue(item, key) {
   if (key === "asset_design_binding_status") return item.asset_design_binding_status;
   if (key === "design_review_packet_status") return item.design_review_packet_status;
   if (key === "design_system_format") return item.design_system_format;
+  if (key === "web_novel_workflow_status") return item.summary?.web_novel_workflow_status ?? item.web_novel_workflow_status;
+  if (key === "web_novel_synopsis_status") return item.synopsis_status;
+  if (key === "web_novel_style_guide_status") return item.style_guide_status;
+  if (key === "web_novel_chapter_status") return item.chapter_status;
+  if (key === "web_novel_revision_packet_status") return item.revision_packet_status;
+  if (key === "web_novel_output_artifact_status") return item.output_artifact_status;
+  if (key === "web_novel_output_format") return item.output_format;
   if (key === "matter_os_profile_status") return item.summary?.matter_os_profile_status ?? item.matter_os_profile_status;
   if (key === "profile_card_status") return item.profile_card_status;
   if (key === "display_field_status") return item.display_field_status;

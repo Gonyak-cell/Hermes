@@ -136,6 +136,7 @@
     "creative-document:citation-renderer": "node scripts/creative-document-citation-renderer.mjs",
     "creative-document:version-comparator": "node scripts/creative-document-version-comparator.mjs",
     "creative-document:design-system-profile": "node scripts/creative-document-design-system-profile.mjs",
+    "creative-document:web-novel-workflow": "node scripts/creative-document-web-novel-workflow.mjs",
     "dashboard:build": "node scripts/review-dashboard.mjs",
     "delivery:closeout": "node scripts/delivery-closeout-queue.mjs",
     "delivery:closeout:apply": "node scripts/delivery-closeout-receipt-application.mjs",

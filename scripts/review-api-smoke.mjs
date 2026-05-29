@@ -2184,6 +2184,34 @@ try {
   assert.equal(designSystemProfileValidations.collection, "design_system_profile_validations");
   assert.ok(designSystemProfileValidations.count <= 5);
 
+  const webNovelWorkflows = await fetchJson(`${url}/api/web-novel-workflows?web_novel_workflow_status=complete&limit=1`);
+  assert.equal(webNovelWorkflows.collection, "web_novel_workflows");
+  assert.ok(webNovelWorkflows.count <= 1);
+
+  const webNovelSynopses = await fetchJson(`${url}/api/web-novel-synopses?web_novel_synopsis_status=draft_needs_review&limit=5`);
+  assert.equal(webNovelSynopses.collection, "web_novel_synopses");
+  assert.ok(webNovelSynopses.count <= 5);
+
+  const webNovelStyleGuides = await fetchJson(`${url}/api/web-novel-style-guides?web_novel_style_guide_status=draft_needs_review&limit=5`);
+  assert.equal(webNovelStyleGuides.collection, "web_novel_style_guides");
+  assert.ok(webNovelStyleGuides.count <= 5);
+
+  const webNovelChapters = await fetchJson(`${url}/api/web-novel-chapters?web_novel_chapter_status=draft_needs_review&limit=5`);
+  assert.equal(webNovelChapters.collection, "web_novel_chapters");
+  assert.ok(webNovelChapters.count <= 5);
+
+  const webNovelRevisionPackets = await fetchJson(`${url}/api/web-novel-revision-packets?web_novel_revision_packet_status=ready_for_human_review&limit=5`);
+  assert.equal(webNovelRevisionPackets.collection, "web_novel_revision_packets");
+  assert.ok(webNovelRevisionPackets.count <= 5);
+
+  const webNovelOutputArtifacts = await fetchJson(`${url}/api/web-novel-output-artifacts?web_novel_output_artifact_status=draft_generated_needs_review&web_novel_output_format=markdown&limit=5`);
+  assert.equal(webNovelOutputArtifacts.collection, "web_novel_output_artifacts");
+  assert.ok(webNovelOutputArtifacts.count <= 5);
+
+  const webNovelWorkflowValidations = await fetchJson(`${url}/api/web-novel-workflow-validations?status=passed&limit=5`);
+  assert.equal(webNovelWorkflowValidations.collection, "web_novel_workflow_validations");
+  assert.ok(webNovelWorkflowValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

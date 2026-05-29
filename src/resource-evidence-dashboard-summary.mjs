@@ -753,11 +753,39 @@ function normalizeInputs(options = {}) {
 }
 
 async function readJson(filePath) {
-  return JSON.parse(await readFile(path.resolve(filePath), "utf8"));
+  const resolvedPath = path.resolve(filePath);
+  for (let attempt = 1; attempt <= 10; attempt += 1) {
+    try {
+      return JSON.parse(await readFile(resolvedPath, "utf8"));
+    } catch (error) {
+      if ((error.code === "EISDIR" || error.code === "ENOENT") && attempt < 10) {
+        await sleep(100 * attempt);
+        continue;
+      }
+      error.message = `${error.message}: ${resolvedPath}`;
+      throw error;
+    }
+  }
 }
 
 async function readText(filePath) {
-  return readFile(path.resolve(filePath), "utf8");
+  const resolvedPath = path.resolve(filePath);
+  for (let attempt = 1; attempt <= 10; attempt += 1) {
+    try {
+      return readFile(resolvedPath, "utf8");
+    } catch (error) {
+      if ((error.code === "EISDIR" || error.code === "ENOENT") && attempt < 10) {
+        await sleep(100 * attempt);
+        continue;
+      }
+      error.message = `${error.message}: ${resolvedPath}`;
+      throw error;
+    }
+  }
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function writeJson(filePath, value) {

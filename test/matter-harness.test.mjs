@@ -78,6 +78,7 @@ import { runErpDraftConnector } from "../src/erp-draft-connector.mjs";
 import { runConnectorFreeze } from "../src/connector-freeze.mjs";
 import { runBackfillJobContract } from "../src/backfill-job-contract.mjs";
 import { runExpansionCursorLedger } from "../src/expansion-cursor-ledger.mjs";
+import { runExpansionDedupLedger } from "../src/expansion-dedup-ledger.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1951,6 +1952,7 @@ describe("matter harness", () => {
         connectorFreezePath: path.join(outDir, "connector-freeze", "connector-freeze.json"),
         backfillJobContractPath: path.join(outDir, "backfill-job-contract", "backfill-job-contract.json"),
         expansionCursorLedgerPath: path.join(outDir, "expansion-cursor-ledger", "expansion-cursor-ledger.json"),
+        expansionDedupLedgerPath: path.join(outDir, "expansion-dedup-ledger", "expansion-dedup-ledger.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11508,6 +11510,60 @@ describe("matter harness", () => {
       assert.equal(expansionCursorLedger.expansion_cursor_boundary.file_content_read_performed, false);
       assert.match(await readFile(path.join(outDir, "expansion-cursor-ledger", "summary.md"), "utf8"), /Expansion Cursor Ledger/);
 
+      const expansionDedupLedger = await runExpansionDedupLedger({
+        resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
+        expansionCursorLedgerPath: path.join(outDir, "expansion-cursor-ledger", "expansion-cursor-ledger.json"),
+        backfillJobContractPath: path.join(outDir, "backfill-job-contract", "backfill-job-contract.json"),
+        outDir: path.join(outDir, "expansion-dedup-ledger"),
+        runAt: "2026-05-23T07:20:24.000Z",
+      });
+      const expansionDedupLedgerSchema = JSON.parse(await readFile("schemas/expansion-dedup-ledger.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(expansionDedupLedger, expansionDedupLedgerSchema, {}, "expansion_dedup_ledger"), [], JSON.stringify(expansionDedupLedger.validation.errors));
+      assert.equal(expansionDedupLedger.summary.expansion_dedup_ledger_status, "complete");
+      assert.equal(expansionDedupLedger.summary.phase_slot, "P279");
+      assert.equal(expansionDedupLedger.summary.previous_phase_slot, "P278");
+      assert.equal(expansionDedupLedger.summary.next_phase_slot, "P280");
+      assert.equal(expansionDedupLedger.summary.source_expansion_cursor_ledger_status, "complete");
+      assert.equal(expansionDedupLedger.summary.source_expansion_cursor_phase_slot, "P278");
+      assert.equal(expansionDedupLedger.summary.idempotency_key_count, second.items.length);
+      assert.equal(expansionDedupLedger.summary.unique_idempotency_key_count, second.items.length);
+      assert.equal(expansionDedupLedger.summary.idempotency_key_collision_count, 0);
+      assert.equal(expansionDedupLedger.summary.portable_resume_key_count, second.items.length);
+      assert.equal(expansionDedupLedger.summary.absolute_path_identity_allowed_count, 0);
+      assert.ok(expansionDedupLedger.summary.content_hash_group_count >= 1);
+      assert.equal(expansionDedupLedger.summary.duplicate_content_hash_group_count, 1);
+      assert.equal(expansionDedupLedger.summary.duplicate_decision_count, second.items.length);
+      assert.equal(expansionDedupLedger.summary.passed_duplicate_decision_count, second.items.length);
+      assert.equal(expansionDedupLedger.summary.skipped_duplicate_count, 1);
+      assert.equal(expansionDedupLedger.summary.validated_skipped_duplicate_count, 1);
+      assert.equal(expansionDedupLedger.summary.skipped_duplicate_with_duplicate_of_count, 1);
+      assert.equal(expansionDedupLedger.summary.stable_skipped_duplicate_count, 1);
+      assert.equal(expansionDedupLedger.summary.new_resource_promoted_for_duplicate_count, 0);
+      assert.equal(expansionDedupLedger.summary.raw_cursor_material_allowed, false);
+      assert.equal(expansionDedupLedger.summary.source_absolute_path_identity_allowed, false);
+      assert.equal(expansionDedupLedger.summary.backfill_execution_performed, false);
+      assert.equal(expansionDedupLedger.summary.source_ingest_performed, false);
+      assert.equal(expansionDedupLedger.summary.file_content_read_performed, false);
+      assert.equal(expansionDedupLedger.summary.source_mutation_performed, false);
+      assert.equal(expansionDedupLedger.summary.resource_mutation_performed, false);
+      assert.equal(expansionDedupLedger.summary.state_mutation_performed, false);
+      assert.equal(expansionDedupLedger.summary.dedup_state_mutation_performed, false);
+      assert.equal(expansionDedupLedger.summary.delivery_execution_performed, false);
+      assert.equal(expansionDedupLedger.summary.protected_action_executed, false);
+      assert.equal(expansionDedupLedger.summary.legal_advice_generated, false);
+      assert.equal(expansionDedupLedger.summary.client_facing_output_generated, false);
+      assert.equal(expansionDedupLedger.summary.client_facing_ready_count, 0);
+      assert.equal(expansionDedupLedger.summary.windows_baseline_stability_preserved, true);
+      assert.equal(expansionDedupLedger.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(expansionDedupLedger.summary.failed_checkpoint_count, 0);
+      assert.equal(expansionDedupLedger.summary.validation_error_count, 0);
+      assert.ok(expansionDedupLedger.idempotency_key_rows.every((row) => row.key_status === "registered" && row.portable_resume_key_present && row.source_path_used_for_dedup_identity === false && row.human_review_required && row.client_facing_ready === false));
+      assert.ok(expansionDedupLedger.duplicate_decision_rows.every((row) => row.decision_status === "passed" && row.new_resource_promoted_for_duplicate === false));
+      assert.ok(expansionDedupLedger.skipped_duplicate_rows.every((row) => row.dedup_decision === "skipped_duplicate" && row.duplicate_of && row.duplicate_of_resolved && row.status_history_contains_decision));
+      assert.ok(expansionDedupLedger.content_hash_groups.some((group) => group.group_status === "duplicate_content_hash" && group.skipped_duplicate_count === 1 && group.duplicate_link_complete));
+      assert.equal(expansionDedupLedger.expansion_dedup_boundary.file_content_read_performed, false);
+      assert.match(await readFile(path.join(outDir, "expansion-dedup-ledger", "summary.md"), "utf8"), /Expansion Dedup Ledger/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -11710,6 +11766,7 @@ describe("matter harness", () => {
           connector_freeze: path.join(outDir, "connector-freeze", "connector-freeze.json"),
           backfill_job_contract: path.join(outDir, "backfill-job-contract", "backfill-job-contract.json"),
           expansion_cursor_ledger: path.join(outDir, "expansion-cursor-ledger", "expansion-cursor-ledger.json"),
+          expansion_dedup_ledger: path.join(outDir, "expansion-dedup-ledger", "expansion-dedup-ledger.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11761,8 +11818,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 180);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 180);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 181);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 181);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -11930,6 +11987,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "connector_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "backfill_job_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "expansion_cursor_ledger"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "expansion_dedup_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -11973,6 +12031,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:validate"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:backfill-job-contract"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:expansion-cursor-ledger"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:expansion-dedup-ledger"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:runtime-interface"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:approval-matrix"));
@@ -12816,6 +12875,10 @@ describe("matter harness", () => {
       assert.equal(expansionCursorLedgerCheckpoint?.acceptance_profile, "expansion_cursor_ledger_gate");
       assert.equal(expansionCursorLedgerCheckpoint?.status, "passed");
       assert.equal(expansionCursorLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const expansionDedupLedgerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-expansion-dedup-ledger");
+      assert.equal(expansionDedupLedgerCheckpoint?.acceptance_profile, "expansion_dedup_ledger_gate");
+      assert.equal(expansionDedupLedgerCheckpoint?.status, "passed");
+      assert.equal(expansionDedupLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -17568,6 +17631,42 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.expansion_cursor_ledger_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.expansion_cursor_ledger_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.expansion_cursor_ledger_validation_error_count, 0);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_status, "complete");
+      assert.equal(dashboard.summary.expansion_dedup_ledger_phase_slot, "P279");
+      assert.equal(dashboard.summary.expansion_dedup_ledger_previous_phase_slot, "P278");
+      assert.equal(dashboard.summary.expansion_dedup_ledger_next_phase_slot, "P280");
+      assert.equal(dashboard.summary.expansion_dedup_ledger_source_expansion_cursor_ledger_status, "complete");
+      assert.equal(dashboard.summary.expansion_dedup_ledger_source_expansion_cursor_phase_slot, "P278");
+      assert.equal(dashboard.summary.expansion_dedup_ledger_idempotency_key_count, expansionDedupLedger.summary.idempotency_key_count);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_unique_idempotency_key_count, expansionDedupLedger.summary.unique_idempotency_key_count);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_idempotency_key_collision_count, 0);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_portable_resume_key_count, expansionDedupLedger.summary.portable_resume_key_count);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_absolute_path_identity_allowed_count, 0);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_content_hash_group_count, expansionDedupLedger.summary.content_hash_group_count);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_duplicate_content_hash_group_count, expansionDedupLedger.summary.duplicate_content_hash_group_count);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_duplicate_decision_count, expansionDedupLedger.summary.duplicate_decision_count);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_passed_duplicate_decision_count, expansionDedupLedger.summary.passed_duplicate_decision_count);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_skipped_duplicate_count, expansionDedupLedger.summary.skipped_duplicate_count);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_validated_skipped_duplicate_count, expansionDedupLedger.summary.validated_skipped_duplicate_count);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_new_resource_promoted_for_duplicate_count, 0);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_raw_cursor_material_allowed, false);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_source_absolute_path_identity_allowed, false);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_read_only, true);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_report_only, true);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_backfill_execution_performed, false);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_source_ingest_performed, false);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_file_content_read_performed, false);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_source_mutation_performed, false);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_resource_mutation_performed, false);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_state_mutation_performed, false);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_protected_action_executed, false);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_legal_advice_generated, false);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.expansion_dedup_ledger_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -20750,6 +20849,43 @@ describe("matter harness", () => {
       assert.equal(expansionCursorLedgerStage?.metrics.client_facing_output_generated, false);
       assert.equal(expansionCursorLedgerStage?.metrics.windows_baseline_stability_preserved, true);
       assert.equal(expansionCursorLedgerStage?.metrics.validation_error_count, 0);
+      const expansionDedupLedgerStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "expansion_dedup_ledger");
+      assert.equal(expansionDedupLedgerStage?.status, "passed");
+      assert.equal(expansionDedupLedgerStage?.metrics.expansion_dedup_ledger_status, "complete");
+      assert.equal(expansionDedupLedgerStage?.metrics.phase_slot, "P279");
+      assert.equal(expansionDedupLedgerStage?.metrics.previous_phase_slot, "P278");
+      assert.equal(expansionDedupLedgerStage?.metrics.next_phase_slot, "P280");
+      assert.equal(expansionDedupLedgerStage?.metrics.source_expansion_cursor_ledger_status, "complete");
+      assert.equal(expansionDedupLedgerStage?.metrics.source_expansion_cursor_phase_slot, "P278");
+      assert.equal(expansionDedupLedgerStage?.metrics.idempotency_key_count, expansionDedupLedger.summary.idempotency_key_count);
+      assert.equal(expansionDedupLedgerStage?.metrics.unique_idempotency_key_count, expansionDedupLedger.summary.unique_idempotency_key_count);
+      assert.equal(expansionDedupLedgerStage?.metrics.idempotency_key_collision_count, 0);
+      assert.equal(expansionDedupLedgerStage?.metrics.portable_resume_key_count, expansionDedupLedger.summary.portable_resume_key_count);
+      assert.equal(expansionDedupLedgerStage?.metrics.absolute_path_identity_allowed_count, 0);
+      assert.equal(expansionDedupLedgerStage?.metrics.content_hash_group_count, expansionDedupLedger.summary.content_hash_group_count);
+      assert.equal(expansionDedupLedgerStage?.metrics.duplicate_decision_count, expansionDedupLedger.summary.duplicate_decision_count);
+      assert.equal(expansionDedupLedgerStage?.metrics.passed_duplicate_decision_count, expansionDedupLedger.summary.passed_duplicate_decision_count);
+      assert.equal(expansionDedupLedgerStage?.metrics.skipped_duplicate_count, expansionDedupLedger.summary.skipped_duplicate_count);
+      assert.equal(expansionDedupLedgerStage?.metrics.validated_skipped_duplicate_count, expansionDedupLedger.summary.validated_skipped_duplicate_count);
+      assert.equal(expansionDedupLedgerStage?.metrics.new_resource_promoted_for_duplicate_count, 0);
+      assert.equal(expansionDedupLedgerStage?.metrics.raw_cursor_material_allowed, false);
+      assert.equal(expansionDedupLedgerStage?.metrics.source_absolute_path_identity_allowed, false);
+      assert.equal(expansionDedupLedgerStage?.metrics.read_only, true);
+      assert.equal(expansionDedupLedgerStage?.metrics.dedup_ledger_report_only, true);
+      assert.equal(expansionDedupLedgerStage?.metrics.backfill_execution_performed, false);
+      assert.equal(expansionDedupLedgerStage?.metrics.source_ingest_performed, false);
+      assert.equal(expansionDedupLedgerStage?.metrics.file_content_read_performed, false);
+      assert.equal(expansionDedupLedgerStage?.metrics.source_mutation_performed, false);
+      assert.equal(expansionDedupLedgerStage?.metrics.resource_mutation_performed, false);
+      assert.equal(expansionDedupLedgerStage?.metrics.state_mutation_performed, false);
+      assert.equal(expansionDedupLedgerStage?.metrics.dedup_state_mutation_performed, false);
+      assert.equal(expansionDedupLedgerStage?.metrics.delivery_execution_performed, false);
+      assert.equal(expansionDedupLedgerStage?.metrics.protected_action_executed, false);
+      assert.equal(expansionDedupLedgerStage?.metrics.legal_advice_generated, false);
+      assert.equal(expansionDedupLedgerStage?.metrics.client_facing_output_generated, false);
+      assert.equal(expansionDedupLedgerStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(expansionDedupLedgerStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(expansionDedupLedgerStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -20845,6 +20981,13 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-batch-item-positions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-cursor-path-portability-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-cursor-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-dedup-ledgers"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-dedup-idempotency-keys"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-content-hash-groups"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-duplicate-decisions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-skipped-duplicates"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-dedup-resume-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-dedup-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -23329,6 +23472,34 @@ describe("matter harness", () => {
       const expansionCursorValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-cursor-validations?status=passed", apiOptions)).body);
       assert.equal(expansionCursorValidationsResponse.collection, "expansion_cursor_validations");
       assert.equal(expansionCursorValidationsResponse.count, expansionCursorLedger.summary.validation_item_count);
+
+      const expansionDedupLedgersResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-dedup-ledgers?expansion_dedup_ledger_status=complete", apiOptions)).body);
+      assert.equal(expansionDedupLedgersResponse.collection, "expansion_dedup_ledgers");
+      assert.equal(expansionDedupLedgersResponse.count, 1);
+
+      const expansionDedupKeysResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-dedup-idempotency-keys?expansion_dedup_key_status=registered", apiOptions)).body);
+      assert.equal(expansionDedupKeysResponse.collection, "expansion_dedup_idempotency_keys");
+      assert.equal(expansionDedupKeysResponse.count, expansionDedupLedger.summary.idempotency_key_count);
+
+      const expansionContentHashGroupsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-content-hash-groups?expansion_content_hash_group_status=duplicate_content_hash", apiOptions)).body);
+      assert.equal(expansionContentHashGroupsResponse.collection, "expansion_content_hash_groups");
+      assert.equal(expansionContentHashGroupsResponse.count, expansionDedupLedger.summary.duplicate_content_hash_group_count);
+
+      const expansionDuplicateDecisionsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-duplicate-decisions?expansion_duplicate_decision_status=passed", apiOptions)).body);
+      assert.equal(expansionDuplicateDecisionsResponse.collection, "expansion_duplicate_decisions");
+      assert.equal(expansionDuplicateDecisionsResponse.count, expansionDedupLedger.summary.duplicate_decision_count);
+
+      const expansionSkippedDuplicatesResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-skipped-duplicates?expansion_skipped_duplicate=true", apiOptions)).body);
+      assert.equal(expansionSkippedDuplicatesResponse.collection, "expansion_skipped_duplicates");
+      assert.equal(expansionSkippedDuplicatesResponse.count, expansionDedupLedger.summary.skipped_duplicate_count);
+
+      const expansionDedupResumeChecksResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-dedup-resume-checks?expansion_dedup_check_status=passed", apiOptions)).body);
+      assert.equal(expansionDedupResumeChecksResponse.collection, "expansion_dedup_resume_checks");
+      assert.equal(expansionDedupResumeChecksResponse.count, expansionDedupLedger.summary.validation_item_count);
+
+      const expansionDedupValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-dedup-validations?status=passed", apiOptions)).body);
+      assert.equal(expansionDedupValidationsResponse.collection, "expansion_dedup_validations");
+      assert.equal(expansionDedupValidationsResponse.count, expansionDedupLedger.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

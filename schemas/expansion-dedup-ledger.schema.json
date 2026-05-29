@@ -1,0 +1,364 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/expansion-dedup-ledger.schema.json",
+  "title": "Expansion Dedup Ledger",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "expansion_dedup_ledger_id",
+    "expansion_dedup_ledger_status",
+    "phase_slot",
+    "previous_phase_slot",
+    "next_phase_slot",
+    "expansion_dedup_contract",
+    "idempotency_key_rows",
+    "content_hash_groups",
+    "duplicate_decision_rows",
+    "skipped_duplicate_rows",
+    "dedup_resume_checks",
+    "expansion_dedup_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "expansion-dedup-ledger.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "expansion_dedup_ledger_id": { "type": "string", "minLength": 1 },
+    "expansion_dedup_ledger_status": { "const": "complete" },
+    "pack_id": { "const": "resource-expansion" },
+    "capability_id": { "const": "resource.expansion_dedup_ledger" },
+    "phase_slot": { "const": "P279" },
+    "previous_phase_slot": { "const": "P278" },
+    "next_phase_slot": { "const": "P280" },
+    "source_contracts": {
+      "type": "array",
+      "minItems": 9,
+      "items": {
+        "type": "object",
+        "required": ["label", "available"],
+        "properties": {
+          "label": { "type": "string" },
+          "available": { "type": "boolean" },
+          "schema_version": { "type": ["string", "null"] },
+          "content_hash": { "type": ["string", "null"], "pattern": "^sha256:" }
+        }
+      }
+    },
+    "expansion_dedup_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "contract_id",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "duplicate_status_rule",
+        "absolute_path_identity_allowed",
+        "raw_cursor_material_allowed",
+        "source_file_content_read_allowed"
+      ],
+      "properties": {
+        "schema_version": { "const": "expansion-dedup-contract.v1" },
+        "contract_id": { "const": "expansion-dedup-ledger.v1" },
+        "phase_slot": { "const": "P279" },
+        "previous_phase_slot": { "const": "P278" },
+        "next_phase_slot": { "const": "P280" },
+        "idempotency_key_row_count": { "type": "integer", "minimum": 1 },
+        "duplicate_decision_count": { "type": "integer", "minimum": 1 },
+        "skipped_duplicate_count": { "type": "integer", "minimum": 0 },
+        "absolute_path_identity_allowed": { "const": false },
+        "raw_cursor_material_allowed": { "const": false },
+        "source_file_content_read_allowed": { "const": false }
+      }
+    },
+    "idempotency_key_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "idempotency_key_row_id",
+          "item_id",
+          "item_status",
+          "key_status",
+          "idempotency_key_hash",
+          "portable_resume_key_present",
+          "source_path_used_for_dedup_identity",
+          "absolute_path_identity_allowed",
+          "human_review_required",
+          "client_facing_ready"
+        ],
+        "properties": {
+          "idempotency_key_row_id": { "type": "string", "minLength": 1 },
+          "item_id": { "type": "string", "minLength": 1 },
+          "item_status": { "enum": ["queued", "extracted", "quarantined", "failed", "skipped_duplicate"] },
+          "key_status": { "const": "registered" },
+          "idempotency_key_hash": { "type": "string", "pattern": "^sha256:" },
+          "portable_resume_key": { "type": ["string", "null"] },
+          "portable_resume_key_present": { "const": true },
+          "duplicate_candidate": { "type": "boolean" },
+          "raw_hash_sha256_present": { "type": "boolean" },
+          "raw_hash_reference_hash": { "type": ["string", "null"], "pattern": "^sha256:" },
+          "relative_path": { "type": ["string", "null"] },
+          "source_path_reference_hash": { "type": ["string", "null"], "pattern": "^sha256:" },
+          "source_path_used_for_dedup_identity": { "const": false },
+          "absolute_path_identity_allowed": { "const": false },
+          "human_review_required": { "const": true },
+          "legal_advice_generated": { "const": false },
+          "client_facing_ready": { "const": false }
+        }
+      }
+    },
+    "content_hash_groups": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "content_hash_group_id",
+          "raw_hash_reference_hash",
+          "hash_algorithm",
+          "group_status",
+          "item_count",
+          "skipped_duplicate_count",
+          "duplicate_link_complete",
+          "extracted_owner_present",
+          "source_path_used_for_dedup_identity"
+        ],
+        "properties": {
+          "content_hash_group_id": { "type": "string", "minLength": 1 },
+          "raw_hash_reference_hash": { "type": "string", "pattern": "^sha256:" },
+          "hash_algorithm": { "const": "sha256" },
+          "group_status": { "enum": ["unique_content_hash", "duplicate_content_hash"] },
+          "canonical_resource_id": { "type": ["string", "null"] },
+          "item_ids": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "resource_ids": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "skipped_duplicate_item_ids": { "type": "array", "items": { "type": "string" } },
+          "item_count": { "type": "integer", "minimum": 1 },
+          "skipped_duplicate_count": { "type": "integer", "minimum": 0 },
+          "duplicate_link_complete": { "const": true },
+          "extracted_owner_present": { "const": true },
+          "source_path_used_for_dedup_identity": { "const": false },
+          "human_review_required": { "const": true },
+          "client_facing_ready": { "const": false }
+        }
+      }
+    },
+    "duplicate_decision_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "duplicate_decision_row_id",
+          "item_id",
+          "item_status",
+          "dedup_decision",
+          "decision_status",
+          "duplicate_detected",
+          "skipped_duplicate",
+          "duplicate_of_resolved",
+          "new_resource_promoted_for_duplicate",
+          "source_path_used_for_dedup_identity",
+          "human_review_required",
+          "client_facing_ready"
+        ],
+        "properties": {
+          "duplicate_decision_row_id": { "type": "string", "minLength": 1 },
+          "item_id": { "type": "string", "minLength": 1 },
+          "item_status": { "enum": ["queued", "extracted", "quarantined", "failed", "skipped_duplicate"] },
+          "dedup_decision": { "enum": ["primary_resource", "skipped_duplicate", "pending_backfill", "quarantine_hold", "failure_hold", "unknown"] },
+          "decision_status": { "const": "passed" },
+          "duplicate_detected": { "type": "boolean" },
+          "skipped_duplicate": { "type": "boolean" },
+          "duplicate_of": { "type": ["string", "null"] },
+          "duplicate_of_resolved": { "const": true },
+          "content_hash_group_id": { "type": ["string", "null"] },
+          "idempotency_key_hash": { "type": ["string", "null"], "pattern": "^sha256:" },
+          "portable_resume_key": { "type": ["string", "null"] },
+          "status_history_contains_decision": { "type": "boolean" },
+          "new_resource_promoted_for_duplicate": { "const": false },
+          "source_path_used_for_dedup_identity": { "const": false },
+          "human_review_required": { "const": true },
+          "legal_advice_generated": { "const": false },
+          "client_facing_ready": { "const": false }
+        }
+      }
+    },
+    "skipped_duplicate_rows": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          { "$ref": "#/properties/duplicate_decision_rows/items" },
+          {
+            "type": "object",
+            "properties": {
+              "dedup_decision": { "const": "skipped_duplicate" },
+              "duplicate_detected": { "const": true },
+              "skipped_duplicate": { "const": true },
+              "duplicate_of": { "type": "string", "minLength": 1 },
+              "status_history_contains_decision": { "const": true }
+            }
+          }
+        ]
+      }
+    },
+    "dedup_resume_checks": {
+      "type": "array",
+      "minItems": 19,
+      "items": {
+        "type": "object",
+        "required": ["checkpoint_id", "status", "message"],
+        "properties": {
+          "checkpoint_id": { "type": "string", "minLength": 1 },
+          "status": { "const": "passed" },
+          "message": { "type": "string" },
+          "human_review_required": { "const": true },
+          "client_facing_ready": { "const": false }
+        }
+      }
+    },
+    "expansion_dedup_boundary": {
+      "type": "object",
+      "required": [
+        "read_only",
+        "dedup_ledger_report_only",
+        "backfill_execution_performed",
+        "source_ingest_performed",
+        "file_content_read_performed",
+        "source_mutation_performed",
+        "resource_mutation_performed",
+        "state_mutation_performed",
+        "dedup_state_mutation_performed",
+        "delivery_execution_performed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "client_facing_ready_count",
+        "windows_baseline_stability_preserved",
+        "mac_windows_completion_instability_guard"
+      ],
+      "properties": {
+        "read_only": { "const": true },
+        "dedup_ledger_report_only": { "const": true },
+        "source_artifact_read_performed": { "const": true },
+        "backfill_execution_performed": { "const": false },
+        "source_ingest_performed": { "const": false },
+        "file_content_read_performed": { "const": false },
+        "source_mutation_performed": { "const": false },
+        "resource_mutation_performed": { "const": false },
+        "state_mutation_performed": { "const": false },
+        "dedup_state_mutation_performed": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true },
+        "client_facing_ready_count": { "const": 0 },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "minItems": 19,
+      "items": {
+        "type": "object",
+        "required": ["path", "checkpoint_id", "status", "message"],
+        "properties": {
+          "status": { "const": "passed" }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "error_count": { "const": 0 },
+        "errors": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "expansion_dedup_ledger_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "source_expansion_cursor_ledger_status",
+        "idempotency_key_count",
+        "unique_idempotency_key_count",
+        "idempotency_key_collision_count",
+        "portable_resume_key_count",
+        "absolute_path_identity_allowed_count",
+        "content_hash_group_count",
+        "duplicate_decision_count",
+        "passed_duplicate_decision_count",
+        "skipped_duplicate_count",
+        "validated_skipped_duplicate_count",
+        "new_resource_promoted_for_duplicate_count",
+        "raw_cursor_material_allowed",
+        "source_absolute_path_identity_allowed",
+        "read_only",
+        "dedup_ledger_report_only",
+        "backfill_execution_performed",
+        "source_ingest_performed",
+        "file_content_read_performed",
+        "source_mutation_performed",
+        "resource_mutation_performed",
+        "state_mutation_performed",
+        "delivery_execution_performed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "windows_baseline_stability_preserved",
+        "mac_windows_completion_instability_guard",
+        "failed_checkpoint_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "expansion_dedup_ledger_status": { "const": "complete" },
+        "phase_slot": { "const": "P279" },
+        "previous_phase_slot": { "const": "P278" },
+        "next_phase_slot": { "const": "P280" },
+        "source_expansion_cursor_ledger_status": { "const": "complete" },
+        "source_expansion_cursor_phase_slot": { "const": "P278" },
+        "source_backfill_job_contract_status": { "const": "complete" },
+        "source_backfill_job_contract_phase_slot": { "const": "P277" },
+        "idempotency_key_count": { "type": "integer", "minimum": 1 },
+        "unique_idempotency_key_count": { "type": "integer", "minimum": 1 },
+        "idempotency_key_collision_count": { "const": 0 },
+        "portable_resume_key_count": { "type": "integer", "minimum": 1 },
+        "absolute_path_identity_allowed_count": { "const": 0 },
+        "content_hash_group_count": { "type": "integer", "minimum": 1 },
+        "duplicate_decision_count": { "type": "integer", "minimum": 1 },
+        "passed_duplicate_decision_count": { "type": "integer", "minimum": 1 },
+        "skipped_duplicate_count": { "type": "integer", "minimum": 0 },
+        "validated_skipped_duplicate_count": { "type": "integer", "minimum": 0 },
+        "new_resource_promoted_for_duplicate_count": { "const": 0 },
+        "raw_cursor_material_allowed": { "const": false },
+        "source_absolute_path_identity_allowed": { "const": false },
+        "read_only": { "const": true },
+        "dedup_ledger_report_only": { "const": true },
+        "backfill_execution_performed": { "const": false },
+        "source_ingest_performed": { "const": false },
+        "file_content_read_performed": { "const": false },
+        "source_mutation_performed": { "const": false },
+        "resource_mutation_performed": { "const": false },
+        "state_mutation_performed": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "client_facing_ready_count": { "const": 0 },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true },
+        "failed_checkpoint_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

@@ -5674,6 +5674,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("expansion_cursor_validations", ledgerResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/expansion-dedup-ledgers") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "expansion_dedup_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("expansion_dedup_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_dedup_ledgers", [ledgerResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-dedup-idempotency-keys") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "expansion_dedup_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("expansion_dedup_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_dedup_idempotency_keys", ledgerResult.artifact.idempotency_key_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-content-hash-groups") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "expansion_dedup_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("expansion_dedup_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_content_hash_groups", ledgerResult.artifact.content_hash_groups ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-duplicate-decisions") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "expansion_dedup_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("expansion_dedup_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_duplicate_decisions", ledgerResult.artifact.duplicate_decision_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-skipped-duplicates") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "expansion_dedup_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("expansion_dedup_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_skipped_duplicates", ledgerResult.artifact.skipped_duplicate_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-dedup-resume-checks") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "expansion_dedup_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("expansion_dedup_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_dedup_resume_checks", ledgerResult.artifact.dedup_resume_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-dedup-validations") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "expansion_dedup_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("expansion_dedup_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_dedup_validations", ledgerResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -12089,6 +12138,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/expansion-batch-item-positions", "Expansion batch item position rows"),
       route("GET", "/api/expansion-cursor-path-portability-checks", "Expansion cursor path portability checks"),
       route("GET", "/api/expansion-cursor-validations", "Expansion cursor validation rows"),
+      route("GET", "/api/expansion-dedup-ledgers", "Expansion Dedup Ledger artifact"),
+      route("GET", "/api/expansion-dedup-idempotency-keys", "Expansion dedup idempotency key rows"),
+      route("GET", "/api/expansion-content-hash-groups", "Expansion content hash group rows"),
+      route("GET", "/api/expansion-duplicate-decisions", "Expansion duplicate decision rows"),
+      route("GET", "/api/expansion-skipped-duplicates", "Expansion skipped duplicate rows"),
+      route("GET", "/api/expansion-dedup-resume-checks", "Expansion dedup resume check rows"),
+      route("GET", "/api/expansion-dedup-validations", "Expansion dedup validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -13218,6 +13274,13 @@ function filterItems(items, searchParams) {
     "expansion_resume_key_status",
     "expansion_item_status",
     "expansion_path_portability_status",
+    "expansion_dedup_ledger_status",
+    "expansion_dedup_key_status",
+    "expansion_content_hash_group_status",
+    "expansion_duplicate_decision",
+    "expansion_duplicate_decision_status",
+    "expansion_skipped_duplicate",
+    "expansion_dedup_check_status",
     "path_kind",
     "gate_id",
     "thread_status",
@@ -15082,6 +15145,13 @@ function readFilterValue(item, key) {
   if (key === "expansion_resume_key_status") return item.resume_key_status;
   if (key === "expansion_item_status") return item.item_status;
   if (key === "expansion_path_portability_status") return item.path_portability_status;
+  if (key === "expansion_dedup_ledger_status") return item.summary?.expansion_dedup_ledger_status ?? item.expansion_dedup_ledger_status;
+  if (key === "expansion_dedup_key_status") return item.key_status;
+  if (key === "expansion_content_hash_group_status") return item.group_status;
+  if (key === "expansion_duplicate_decision") return item.dedup_decision;
+  if (key === "expansion_duplicate_decision_status") return item.decision_status;
+  if (key === "expansion_skipped_duplicate") return item.skipped_duplicate;
+  if (key === "expansion_dedup_check_status") return item.status;
   if (key === "path_kind") return item.path_kind;
   if (key === "gate_id") return item.gate_id;
   if (key === "thread_status") return item.thread_status;

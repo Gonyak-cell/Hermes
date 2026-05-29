@@ -187,6 +187,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     connector_freeze: "artifacts/connector-freeze/latest/connector-freeze.json",
     backfill_job_contract: "artifacts/backfill-job-contract/latest/backfill-job-contract.json",
     expansion_cursor_ledger: "artifacts/expansion-cursor-ledger/latest/expansion-cursor-ledger.json",
+    expansion_dedup_ledger: "artifacts/expansion-dedup-ledger/latest/expansion-dedup-ledger.json",
   },
 };
 
@@ -367,6 +368,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("connector_freeze", "Connector Freeze", "connectors", "connector-freeze.schema.json"),
   fixtureDefinition("backfill_job_contract", "Backfill Job Contract", "resource_evidence", "backfill-job-contract.schema.json"),
   fixtureDefinition("expansion_cursor_ledger", "Expansion Cursor Ledger", "resource_evidence", "expansion-cursor-ledger.schema.json"),
+  fixtureDefinition("expansion_dedup_ledger", "Expansion Dedup Ledger", "resource_evidence", "expansion-dedup-ledger.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),

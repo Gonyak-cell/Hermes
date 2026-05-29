@@ -151,6 +151,7 @@ const GOAL_ITEMS = [
   sourceItem("connector_freeze", "Connector Freeze", "connectors", "connector_freeze", "control-plane-connector-freeze", { acceptance_profile: "connector_freeze_gate" }),
   sourceItem("backfill_job_contract", "Backfill Job Contract", "resource_evidence", "backfill_job_contract", "control-plane-backfill-job-contract", { acceptance_profile: "backfill_job_contract_gate" }),
   sourceItem("expansion_cursor_ledger", "Expansion Cursor Ledger", "resource_evidence", "expansion_cursor_ledger", "control-plane-expansion-cursor-ledger", { acceptance_profile: "expansion_cursor_ledger_gate" }),
+  sourceItem("expansion_dedup_ledger", "Expansion Dedup Ledger", "resource_evidence", "expansion_dedup_ledger", "control-plane-expansion-dedup-ledger", { acceptance_profile: "expansion_dedup_ledger_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -661,6 +662,7 @@ function evaluateStageAcceptance(item, stage) {
     "connector_freeze_gate",
     "backfill_job_contract_gate",
     "expansion_cursor_ledger_gate",
+    "expansion_dedup_ledger_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -5411,6 +5413,52 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Expansion Cursor Ledger locks P278 cursor, batch, resume checkpoint, and portable path-state rules without running backfill, reading source file contents, mutating resources/state, delivering output, legal advice, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "expansion_dedup_ledger_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.expansion_dedup_ledger_status === "complete"
+      && metrics.phase_slot === "P279"
+      && metrics.previous_phase_slot === "P278"
+      && metrics.next_phase_slot === "P280"
+      && metrics.source_expansion_cursor_ledger_status === "complete"
+      && metrics.source_expansion_cursor_phase_slot === "P278"
+      && metrics.idempotency_key_count > 0
+      && metrics.unique_idempotency_key_count === metrics.idempotency_key_count
+      && metrics.idempotency_key_collision_count === 0
+      && metrics.portable_resume_key_count === metrics.idempotency_key_count
+      && metrics.absolute_path_identity_allowed_count === 0
+      && metrics.content_hash_group_count > 0
+      && metrics.duplicate_decision_count > 0
+      && metrics.passed_duplicate_decision_count === metrics.duplicate_decision_count
+      && metrics.validated_skipped_duplicate_count === metrics.skipped_duplicate_count
+      && metrics.skipped_duplicate_with_duplicate_of_count === metrics.skipped_duplicate_count
+      && metrics.stable_skipped_duplicate_count === metrics.skipped_duplicate_count
+      && metrics.new_resource_promoted_for_duplicate_count === 0
+      && metrics.raw_cursor_material_allowed === false
+      && metrics.source_absolute_path_identity_allowed === false
+      && metrics.read_only === true
+      && metrics.dedup_ledger_report_only === true
+      && metrics.source_artifact_read_performed === true
+      && metrics.backfill_execution_performed === false
+      && metrics.source_ingest_performed === false
+      && metrics.file_content_read_performed === false
+      && metrics.source_mutation_performed === false
+      && metrics.resource_mutation_performed === false
+      && metrics.state_mutation_performed === false
+      && metrics.dedup_state_mutation_performed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.client_facing_ready_count === 0
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Expansion Dedup Ledger locks P279 idempotency keys, content-hash groups, duplicate decisions, and skipped_duplicate lineage without absolute path identity, backfill execution, source ingest, file content reads, mutation, delivery, legal advice, or client-facing output.");
     }
   }
 

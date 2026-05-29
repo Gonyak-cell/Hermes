@@ -2644,6 +2644,34 @@ try {
   assert.equal(expansionCursorValidations.collection, "expansion_cursor_validations");
   assert.ok(expansionCursorValidations.count <= 23);
 
+  const expansionDedupLedgers = await fetchJson(`${url}/api/expansion-dedup-ledgers?expansion_dedup_ledger_status=complete&limit=1`);
+  assert.equal(expansionDedupLedgers.collection, "expansion_dedup_ledgers");
+  assert.ok(expansionDedupLedgers.count <= 1);
+
+  const expansionDedupKeys = await fetchJson(`${url}/api/expansion-dedup-idempotency-keys?expansion_dedup_key_status=registered&limit=16`);
+  assert.equal(expansionDedupKeys.collection, "expansion_dedup_idempotency_keys");
+  assert.ok(expansionDedupKeys.count <= 16);
+
+  const expansionContentHashGroups = await fetchJson(`${url}/api/expansion-content-hash-groups?expansion_content_hash_group_status=unique_content_hash&limit=16`);
+  assert.equal(expansionContentHashGroups.collection, "expansion_content_hash_groups");
+  assert.ok(expansionContentHashGroups.count <= 16);
+
+  const expansionDuplicateDecisions = await fetchJson(`${url}/api/expansion-duplicate-decisions?expansion_duplicate_decision_status=passed&limit=16`);
+  assert.equal(expansionDuplicateDecisions.collection, "expansion_duplicate_decisions");
+  assert.ok(expansionDuplicateDecisions.count <= 16);
+
+  const expansionSkippedDuplicates = await fetchJson(`${url}/api/expansion-skipped-duplicates?expansion_skipped_duplicate=true&limit=1`);
+  assert.equal(expansionSkippedDuplicates.collection, "expansion_skipped_duplicates");
+  assert.ok(expansionSkippedDuplicates.count <= 1);
+
+  const expansionDedupResumeChecks = await fetchJson(`${url}/api/expansion-dedup-resume-checks?expansion_dedup_check_status=passed&limit=19`);
+  assert.equal(expansionDedupResumeChecks.collection, "expansion_dedup_resume_checks");
+  assert.ok(expansionDedupResumeChecks.count <= 19);
+
+  const expansionDedupValidations = await fetchJson(`${url}/api/expansion-dedup-validations?status=passed&limit=19`);
+  assert.equal(expansionDedupValidations.collection, "expansion_dedup_validations");
+  assert.ok(expansionDedupValidations.count <= 19);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

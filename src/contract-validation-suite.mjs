@@ -160,6 +160,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "connectors:freeze",
   "resource:backfill-job-contract",
   "resource:expansion-cursor-ledger",
+  "resource:expansion-dedup-ledger",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

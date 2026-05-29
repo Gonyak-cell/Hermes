@@ -114,6 +114,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   connectorFreezePath: "artifacts/connector-freeze/latest/connector-freeze.json",
   backfillJobContractPath: "artifacts/backfill-job-contract/latest/backfill-job-contract.json",
   expansionCursorLedgerPath: "artifacts/expansion-cursor-ledger/latest/expansion-cursor-ledger.json",
+  expansionDedupLedgerPath: "artifacts/expansion-dedup-ledger/latest/expansion-dedup-ledger.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -827,6 +828,11 @@ const SOURCE_DEFINITIONS = [
     option: "expansionCursorLedgerPath",
     source_id: "expansion_cursor_ledger",
     label: "Expansion Cursor Ledger",
+  },
+  {
+    option: "expansionDedupLedgerPath",
+    source_id: "expansion_dedup_ledger",
+    label: "Expansion Dedup Ledger",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1810,6 +1816,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "connector_freeze") return data.summary ?? {};
   if (sourceId === "backfill_job_contract") return data.summary ?? {};
   if (sourceId === "expansion_cursor_ledger") return data.summary ?? {};
+  if (sourceId === "expansion_dedup_ledger") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2205,6 +2212,7 @@ function buildStageStatuses(artifacts, sources) {
     buildConnectorFreezeStage(artifacts.connector_freeze, sourceById.get("connector_freeze")),
     buildBackfillJobContractStage(artifacts.backfill_job_contract, sourceById.get("backfill_job_contract")),
     buildExpansionCursorLedgerStage(artifacts.expansion_cursor_ledger, sourceById.get("expansion_cursor_ledger")),
+    buildExpansionDedupLedgerStage(artifacts.expansion_dedup_ledger, sourceById.get("expansion_dedup_ledger")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -13323,6 +13331,108 @@ function buildExpansionCursorLedgerStage(artifact, source) {
   };
 }
 
+function buildExpansionDedupLedgerStage(artifact, source) {
+  if (!artifact) return missingStage("expansion_dedup_ledger", "Expansion Dedup Ledger", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.expansion_dedup_ledger_status !== "complete"
+    || summary.phase_slot !== "P279"
+    || summary.previous_phase_slot !== "P278"
+    || summary.next_phase_slot !== "P280"
+    || summary.source_expansion_cursor_ledger_status !== "complete"
+    || summary.source_expansion_cursor_phase_slot !== "P278"
+    || summary.idempotency_key_count <= 0
+    || summary.unique_idempotency_key_count !== summary.idempotency_key_count
+    || summary.idempotency_key_collision_count !== 0
+    || summary.portable_resume_key_count !== summary.idempotency_key_count
+    || summary.absolute_path_identity_allowed_count !== 0
+    || summary.content_hash_group_count <= 0
+    || summary.duplicate_decision_count !== summary.idempotency_key_count
+    || summary.passed_duplicate_decision_count !== summary.duplicate_decision_count
+    || summary.validated_skipped_duplicate_count !== summary.skipped_duplicate_count
+    || summary.new_resource_promoted_for_duplicate_count !== 0
+    || summary.raw_cursor_material_allowed !== false
+    || summary.source_absolute_path_identity_allowed !== false
+    || summary.read_only !== true
+    || summary.dedup_ledger_report_only !== true
+    || summary.backfill_execution_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.file_content_read_performed !== false
+    || summary.source_mutation_performed !== false
+    || summary.resource_mutation_performed !== false
+    || summary.state_mutation_performed !== false
+    || summary.delivery_execution_performed !== false
+    || summary.protected_action_executed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.client_facing_ready_count !== 0
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || summary.failed_checkpoint_count !== 0
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "expansion_dedup_ledger",
+    label: "Expansion Dedup Ledger",
+    status,
+    message: `${summary.validated_skipped_duplicate_count ?? 0}/${summary.skipped_duplicate_count ?? 0} skipped duplicate(s), ${summary.unique_idempotency_key_count ?? 0}/${summary.idempotency_key_count ?? 0} idempotency key(s), and ${summary.passed_duplicate_decision_count ?? 0}/${summary.duplicate_decision_count ?? 0} dedup decision(s) passed.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      expansion_dedup_ledger_status: summary.expansion_dedup_ledger_status ?? "unknown",
+      expansion_dedup_ledger_id: summary.expansion_dedup_ledger_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_resource_expansion_job_id: summary.source_resource_expansion_job_id ?? null,
+      source_resource_expansion_source_id: summary.source_resource_expansion_source_id ?? null,
+      source_expansion_cursor_ledger_status: summary.source_expansion_cursor_ledger_status ?? "unknown",
+      source_expansion_cursor_phase_slot: summary.source_expansion_cursor_phase_slot ?? null,
+      source_backfill_job_contract_status: summary.source_backfill_job_contract_status ?? "unknown",
+      discovered_count: summary.discovered_count ?? 0,
+      terminal_count: summary.terminal_count ?? 0,
+      extracted_count: summary.extracted_count ?? 0,
+      skipped_duplicate_count: summary.skipped_duplicate_count ?? 0,
+      idempotency_key_count: summary.idempotency_key_count ?? 0,
+      unique_idempotency_key_count: summary.unique_idempotency_key_count ?? 0,
+      idempotency_key_collision_count: summary.idempotency_key_collision_count ?? 0,
+      portable_resume_key_count: summary.portable_resume_key_count ?? 0,
+      absolute_path_identity_allowed_count: summary.absolute_path_identity_allowed_count ?? 0,
+      content_hash_group_count: summary.content_hash_group_count ?? 0,
+      duplicate_content_hash_group_count: summary.duplicate_content_hash_group_count ?? 0,
+      duplicate_decision_count: summary.duplicate_decision_count ?? 0,
+      passed_duplicate_decision_count: summary.passed_duplicate_decision_count ?? 0,
+      skipped_duplicate_row_count: summary.skipped_duplicate_row_count ?? 0,
+      validated_skipped_duplicate_count: summary.validated_skipped_duplicate_count ?? 0,
+      skipped_duplicate_with_duplicate_of_count: summary.skipped_duplicate_with_duplicate_of_count ?? 0,
+      stable_skipped_duplicate_count: summary.stable_skipped_duplicate_count ?? 0,
+      new_resource_promoted_for_duplicate_count: summary.new_resource_promoted_for_duplicate_count ?? 0,
+      raw_cursor_material_allowed: summary.raw_cursor_material_allowed ?? true,
+      source_absolute_path_identity_allowed: summary.source_absolute_path_identity_allowed ?? true,
+      read_only: summary.read_only ?? false,
+      dedup_ledger_report_only: summary.dedup_ledger_report_only ?? false,
+      source_artifact_read_performed: summary.source_artifact_read_performed ?? false,
+      backfill_execution_performed: summary.backfill_execution_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      file_content_read_performed: summary.file_content_read_performed ?? false,
+      source_mutation_performed: summary.source_mutation_performed ?? false,
+      resource_mutation_performed: summary.resource_mutation_performed ?? false,
+      state_mutation_performed: summary.state_mutation_performed ?? false,
+      dedup_state_mutation_performed: summary.dedup_state_mutation_performed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -19823,6 +19933,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_expansion_cursor_ledger", "rerun_expansion_cursor_ledger", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.expansion_dedup_ledger?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "expansion_dedup_ledger";
+    items.push({
+      action_item_id: `dashboard.action.expansion_dedup_ledger.${slugify(subjectId)}`,
+      source_stage: "expansion_dedup_ledger",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Expansion Dedup Ledger",
+      subject_ref: {
+        subject_type: "expansion_dedup_ledger_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_expansion_dedup_ledger", "rerun_expansion_dedup_ledger", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -26427,6 +26555,56 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     expansion_cursor_ledger_mac_windows_completion_instability_guard: artifacts.expansion_cursor_ledger?.summary?.mac_windows_completion_instability_guard ?? false,
     expansion_cursor_ledger_failed_checkpoint_count: artifacts.expansion_cursor_ledger?.summary?.failed_checkpoint_count ?? 0,
     expansion_cursor_ledger_validation_error_count: artifacts.expansion_cursor_ledger?.summary?.validation_error_count ?? artifacts.expansion_cursor_ledger?.validation?.errors?.length ?? 0,
+    expansion_dedup_ledger_status: artifacts.expansion_dedup_ledger?.summary?.expansion_dedup_ledger_status ?? "unknown",
+    expansion_dedup_ledger_id: artifacts.expansion_dedup_ledger?.summary?.expansion_dedup_ledger_id ?? null,
+    expansion_dedup_ledger_phase_slot: artifacts.expansion_dedup_ledger?.summary?.phase_slot ?? null,
+    expansion_dedup_ledger_previous_phase_slot: artifacts.expansion_dedup_ledger?.summary?.previous_phase_slot ?? null,
+    expansion_dedup_ledger_next_phase_slot: artifacts.expansion_dedup_ledger?.summary?.next_phase_slot ?? null,
+    expansion_dedup_ledger_source_resource_expansion_job_id: artifacts.expansion_dedup_ledger?.summary?.source_resource_expansion_job_id ?? null,
+    expansion_dedup_ledger_source_resource_expansion_source_id: artifacts.expansion_dedup_ledger?.summary?.source_resource_expansion_source_id ?? null,
+    expansion_dedup_ledger_source_expansion_cursor_ledger_status: artifacts.expansion_dedup_ledger?.summary?.source_expansion_cursor_ledger_status ?? "unknown",
+    expansion_dedup_ledger_source_expansion_cursor_phase_slot: artifacts.expansion_dedup_ledger?.summary?.source_expansion_cursor_phase_slot ?? null,
+    expansion_dedup_ledger_source_backfill_job_contract_status: artifacts.expansion_dedup_ledger?.summary?.source_backfill_job_contract_status ?? "unknown",
+    expansion_dedup_ledger_discovered_count: artifacts.expansion_dedup_ledger?.summary?.discovered_count ?? 0,
+    expansion_dedup_ledger_terminal_count: artifacts.expansion_dedup_ledger?.summary?.terminal_count ?? 0,
+    expansion_dedup_ledger_extracted_count: artifacts.expansion_dedup_ledger?.summary?.extracted_count ?? 0,
+    expansion_dedup_ledger_skipped_duplicate_count: artifacts.expansion_dedup_ledger?.summary?.skipped_duplicate_count ?? 0,
+    expansion_dedup_ledger_idempotency_key_count: artifacts.expansion_dedup_ledger?.summary?.idempotency_key_count ?? 0,
+    expansion_dedup_ledger_unique_idempotency_key_count: artifacts.expansion_dedup_ledger?.summary?.unique_idempotency_key_count ?? 0,
+    expansion_dedup_ledger_idempotency_key_collision_count: artifacts.expansion_dedup_ledger?.summary?.idempotency_key_collision_count ?? 0,
+    expansion_dedup_ledger_portable_resume_key_count: artifacts.expansion_dedup_ledger?.summary?.portable_resume_key_count ?? 0,
+    expansion_dedup_ledger_absolute_path_identity_allowed_count: artifacts.expansion_dedup_ledger?.summary?.absolute_path_identity_allowed_count ?? 0,
+    expansion_dedup_ledger_content_hash_group_count: artifacts.expansion_dedup_ledger?.summary?.content_hash_group_count ?? 0,
+    expansion_dedup_ledger_duplicate_content_hash_group_count: artifacts.expansion_dedup_ledger?.summary?.duplicate_content_hash_group_count ?? 0,
+    expansion_dedup_ledger_duplicate_decision_count: artifacts.expansion_dedup_ledger?.summary?.duplicate_decision_count ?? 0,
+    expansion_dedup_ledger_passed_duplicate_decision_count: artifacts.expansion_dedup_ledger?.summary?.passed_duplicate_decision_count ?? 0,
+    expansion_dedup_ledger_skipped_duplicate_row_count: artifacts.expansion_dedup_ledger?.summary?.skipped_duplicate_row_count ?? 0,
+    expansion_dedup_ledger_validated_skipped_duplicate_count: artifacts.expansion_dedup_ledger?.summary?.validated_skipped_duplicate_count ?? 0,
+    expansion_dedup_ledger_skipped_duplicate_with_duplicate_of_count: artifacts.expansion_dedup_ledger?.summary?.skipped_duplicate_with_duplicate_of_count ?? 0,
+    expansion_dedup_ledger_stable_skipped_duplicate_count: artifacts.expansion_dedup_ledger?.summary?.stable_skipped_duplicate_count ?? 0,
+    expansion_dedup_ledger_new_resource_promoted_for_duplicate_count: artifacts.expansion_dedup_ledger?.summary?.new_resource_promoted_for_duplicate_count ?? 0,
+    expansion_dedup_ledger_raw_cursor_material_allowed: artifacts.expansion_dedup_ledger?.summary?.raw_cursor_material_allowed ?? true,
+    expansion_dedup_ledger_source_absolute_path_identity_allowed: artifacts.expansion_dedup_ledger?.summary?.source_absolute_path_identity_allowed ?? true,
+    expansion_dedup_ledger_read_only: artifacts.expansion_dedup_ledger?.summary?.read_only ?? false,
+    expansion_dedup_ledger_report_only: artifacts.expansion_dedup_ledger?.summary?.dedup_ledger_report_only ?? false,
+    expansion_dedup_ledger_source_artifact_read_performed: artifacts.expansion_dedup_ledger?.summary?.source_artifact_read_performed ?? false,
+    expansion_dedup_ledger_backfill_execution_performed: artifacts.expansion_dedup_ledger?.summary?.backfill_execution_performed ?? false,
+    expansion_dedup_ledger_source_ingest_performed: artifacts.expansion_dedup_ledger?.summary?.source_ingest_performed ?? false,
+    expansion_dedup_ledger_file_content_read_performed: artifacts.expansion_dedup_ledger?.summary?.file_content_read_performed ?? false,
+    expansion_dedup_ledger_source_mutation_performed: artifacts.expansion_dedup_ledger?.summary?.source_mutation_performed ?? false,
+    expansion_dedup_ledger_resource_mutation_performed: artifacts.expansion_dedup_ledger?.summary?.resource_mutation_performed ?? false,
+    expansion_dedup_ledger_state_mutation_performed: artifacts.expansion_dedup_ledger?.summary?.state_mutation_performed ?? false,
+    expansion_dedup_ledger_dedup_state_mutation_performed: artifacts.expansion_dedup_ledger?.summary?.dedup_state_mutation_performed ?? false,
+    expansion_dedup_ledger_delivery_execution_performed: artifacts.expansion_dedup_ledger?.summary?.delivery_execution_performed ?? false,
+    expansion_dedup_ledger_protected_action_executed: artifacts.expansion_dedup_ledger?.summary?.protected_action_executed ?? false,
+    expansion_dedup_ledger_legal_advice_generated: artifacts.expansion_dedup_ledger?.summary?.legal_advice_generated ?? false,
+    expansion_dedup_ledger_client_facing_output_generated: artifacts.expansion_dedup_ledger?.summary?.client_facing_output_generated ?? false,
+    expansion_dedup_ledger_client_facing_ready_count: artifacts.expansion_dedup_ledger?.summary?.client_facing_ready_count ?? 0,
+    expansion_dedup_ledger_windows_baseline_stability_preserved: artifacts.expansion_dedup_ledger?.summary?.windows_baseline_stability_preserved ?? false,
+    expansion_dedup_ledger_mac_windows_completion_instability_guard: artifacts.expansion_dedup_ledger?.summary?.mac_windows_completion_instability_guard ?? false,
+    expansion_dedup_ledger_validation_item_count: artifacts.expansion_dedup_ledger?.summary?.validation_item_count ?? 0,
+    expansion_dedup_ledger_failed_checkpoint_count: artifacts.expansion_dedup_ledger?.summary?.failed_checkpoint_count ?? 0,
+    expansion_dedup_ledger_validation_error_count: artifacts.expansion_dedup_ledger?.summary?.validation_error_count ?? artifacts.expansion_dedup_ledger?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -28238,6 +28416,8 @@ function parseArgs(argv) {
     else if (arg === "--no-backfill-job-contract") parsed.backfillJobContractPath = false;
     else if (arg === "--expansion-cursor-ledger") parsed.expansionCursorLedgerPath = argv[++index];
     else if (arg === "--no-expansion-cursor-ledger") parsed.expansionCursorLedgerPath = false;
+    else if (arg === "--expansion-dedup-ledger") parsed.expansionDedupLedgerPath = argv[++index];
+    else if (arg === "--no-expansion-dedup-ledger") parsed.expansionDedupLedgerPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

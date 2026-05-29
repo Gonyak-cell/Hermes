@@ -160,6 +160,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     contract_draft_workflow: "artifacts/contract-draft-workflow/latest/contract-draft-workflow.json",
     provided_material_review: "artifacts/provided-material-review/latest/provided-material-review-ledger.json",
     legal_approval_matrix: "artifacts/legal-approval-matrix/latest/legal-approval-matrix.json",
+    law_firm_e2e_freeze: "artifacts/law-firm-e2e-freeze/latest/law-firm-e2e-freeze.json",
   },
 };
 
@@ -313,6 +314,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("contract_draft_workflow", "Contract Draft Workflow", "law_firm", "contract-draft-workflow.schema.json"),
   fixtureDefinition("provided_material_review", "Provided Material Review Ledger", "law_firm", "provided-material-review-ledger.schema.json"),
   fixtureDefinition("legal_approval_matrix", "Legal Approval Matrix", "law_firm", "legal-approval-matrix.schema.json"),
+  fixtureDefinition("law_firm_e2e_freeze", "Law Firm E2E Freeze", "law_firm", "law-firm-e2e-freeze.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),

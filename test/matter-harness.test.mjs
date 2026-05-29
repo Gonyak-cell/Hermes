@@ -51,6 +51,7 @@ import { runMeetingMinutesWorkflow } from "../src/meeting-minutes-workflow.mjs";
 import { runContractDraftWorkflow } from "../src/contract-draft-workflow.mjs";
 import { runProvidedMaterialReview } from "../src/provided-material-review-ledger.mjs";
 import { runLegalApprovalMatrix } from "../src/legal-approval-matrix.mjs";
+import { runLawFirmE2eFreeze } from "../src/law-firm-e2e-freeze.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1897,6 +1898,7 @@ describe("matter harness", () => {
         contractDraftWorkflowPath: path.join(outDir, "contract-draft-workflow", "contract-draft-workflow.json"),
         providedMaterialReviewPath: path.join(outDir, "provided-material-review", "provided-material-review-ledger.json"),
         legalApprovalMatrixPath: path.join(outDir, "legal-approval-matrix", "legal-approval-matrix.json"),
+        lawFirmE2eFreezePath: path.join(outDir, "law-firm-e2e-freeze", "law-firm-e2e-freeze.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -9726,6 +9728,79 @@ describe("matter harness", () => {
       assert.ok(legalApprovalMatrix.legal_approval_gate_links.every((link) => link.gate_link_status === "linked_pending_approval" && link.attorney_requirement_linked && link.partner_requirement_linked && link.approval_decision_recorded === false));
       assert.match(await readFile(path.join(outDir, "legal-approval-matrix", "summary.md"), "utf8"), /Legal Approval Matrix/);
 
+      const lawFirmE2eFreeze = await runLawFirmE2eFreeze({
+        lawFirmPackManifestPath: path.join(outDir, "law-firm-pack-manifest", "law-firm-pack-manifest.json"),
+        matterOsProfilePath: path.join(outDir, "matter-os-profile", "matter-os-profile.json"),
+        matterTimelinePath: path.join(outDir, "matter-timeline", "matter-timeline.json"),
+        matterDocumentIndexPath: path.join(outDir, "matter-document-index", "matter-document-index.json"),
+        matterTaskBoardPath: path.join(outDir, "matter-task-board", "matter-task-board.json"),
+        matterKnowledgeGraphPath: path.join(outDir, "matter-knowledge-graph", "matter-knowledge-graph.json"),
+        matterPrivilegeClassifierPath: path.join(outDir, "matter-privilege-classifier", "matter-privilege-classifier.json"),
+        matterPersonalDataDetectorPath: path.join(outDir, "matter-personal-data-detector", "matter-personal-data-detector.json"),
+        legalCitationVerifierPath: path.join(outDir, "legal-citation-verifier", "legal-citation-verifier.json"),
+        lddVdrInventoryPath: path.join(outDir, "ldd-vdr-inventory", "ldd-vdr-inventory.json"),
+        lddDocumentClassificationPath: path.join(outDir, "ldd-document-classification", "ldd-document-classification.json"),
+        lddExtractorSelectionPath: path.join(outDir, "ldd-extractor-selection", "ldd-extractor-selection.json"),
+        lddFactExtractionPath: path.join(outDir, "ldd-fact-extraction", "ldd-fact-extraction.json"),
+        lddIssueDetectionPath: path.join(outDir, "ldd-issue-detection", "ldd-issue-detection.json"),
+        lddRfiGeneratorPath: path.join(outDir, "ldd-rfi-generator", "ldd-rfi-generator.json"),
+        lddReportDraftPath: path.join(outDir, "ldd-report-draft", "ldd-report-draft.json"),
+        litigationBriefDraftPath: path.join(outDir, "litigation-brief-draft", "litigation-brief-draft.json"),
+        meetingMinutesWorkflowPath: path.join(outDir, "meeting-minutes-workflow", "meeting-minutes-workflow.json"),
+        contractDraftWorkflowPath: path.join(outDir, "contract-draft-workflow", "contract-draft-workflow.json"),
+        providedMaterialReviewPath: path.join(outDir, "provided-material-review", "provided-material-review-ledger.json"),
+        legalApprovalMatrixPath: path.join(outDir, "legal-approval-matrix", "legal-approval-matrix.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "law-firm-e2e-freeze"),
+        runAt: "2026-05-23T07:00:11.000Z",
+      });
+      const lawFirmE2eFreezeSchema = JSON.parse(await readFile("schemas/law-firm-e2e-freeze.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(lawFirmE2eFreeze, lawFirmE2eFreezeSchema, {}, "law_firm_e2e_freeze"), []);
+      assert.equal(lawFirmE2eFreeze.summary.law_firm_e2e_freeze_status, "complete");
+      assert.equal(lawFirmE2eFreeze.summary.law_firm_e2e_freeze_contract_id, "law-firm-e2e-freeze.v1");
+      assert.equal(lawFirmE2eFreeze.summary.pack_id, "law-firm");
+      assert.equal(lawFirmE2eFreeze.summary.capability_id, "law_firm.e2e.freeze");
+      assert.equal(lawFirmE2eFreeze.summary.freeze_authority, "harness_control_plane");
+      assert.equal(lawFirmE2eFreeze.summary.source_count, 21);
+      assert.equal(lawFirmE2eFreeze.summary.passed_source_count, lawFirmE2eFreeze.summary.source_count);
+      assert.equal(lawFirmE2eFreeze.summary.path_count, 3);
+      assert.equal(lawFirmE2eFreeze.summary.passed_path_count, lawFirmE2eFreeze.summary.path_count);
+      assert.equal(lawFirmE2eFreeze.summary.coverage_gate_count, 4);
+      assert.equal(lawFirmE2eFreeze.summary.passed_coverage_gate_count, lawFirmE2eFreeze.summary.coverage_gate_count);
+      assert.equal(lawFirmE2eFreeze.summary.representative_matter_gate_passed_count, lawFirmE2eFreeze.summary.path_count);
+      assert.equal(lawFirmE2eFreeze.summary.representative_evidence_gate_passed_count, lawFirmE2eFreeze.summary.path_count);
+      assert.equal(lawFirmE2eFreeze.summary.representative_citation_gate_passed_count, lawFirmE2eFreeze.summary.path_count);
+      assert.equal(lawFirmE2eFreeze.summary.representative_approval_gate_passed_count, lawFirmE2eFreeze.summary.path_count);
+      assert.equal(lawFirmE2eFreeze.summary.matter_count, 2);
+      assert.equal(lawFirmE2eFreeze.summary.approval_output_count, legalApprovalMatrix.summary.legal_approval_output_count);
+      assert.equal(lawFirmE2eFreeze.summary.approval_requirement_count, legalApprovalMatrix.summary.legal_approval_requirement_count);
+      assert.equal(lawFirmE2eFreeze.summary.approval_gate_link_count, legalApprovalMatrix.summary.legal_approval_gate_link_count);
+      assert.equal(lawFirmE2eFreeze.summary.attorney_review_requirement_count, legalApprovalMatrix.summary.attorney_review_requirement_count);
+      assert.equal(lawFirmE2eFreeze.summary.partner_approval_requirement_count, legalApprovalMatrix.summary.partner_approval_requirement_count);
+      assert.equal(lawFirmE2eFreeze.summary.approval_decision_recorded_count, 0);
+      assert.equal(lawFirmE2eFreeze.summary.attorney_approval_recorded_count, 0);
+      assert.equal(lawFirmE2eFreeze.summary.partner_approval_recorded_count, 0);
+      assert.equal(lawFirmE2eFreeze.summary.final_review_decision_recorded_count, 0);
+      assert.equal(lawFirmE2eFreeze.summary.legal_advice_provided, false);
+      assert.equal(lawFirmE2eFreeze.summary.legal_conclusion_asserted_count, 0);
+      assert.equal(lawFirmE2eFreeze.summary.client_facing_output_generated, false);
+      assert.equal(lawFirmE2eFreeze.summary.matter_data_write_performed, false);
+      assert.equal(lawFirmE2eFreeze.summary.task_state_write_performed, false);
+      assert.equal(lawFirmE2eFreeze.summary.workflow_transition_performed, false);
+      assert.equal(lawFirmE2eFreeze.summary.runtime_execution_performed, false);
+      assert.equal(lawFirmE2eFreeze.summary.delivery_execution_performed, false);
+      assert.equal(lawFirmE2eFreeze.summary.protected_mutation_performed, false);
+      assert.equal(lawFirmE2eFreeze.summary.source_artifact_mutation_performed, false);
+      assert.equal(lawFirmE2eFreeze.summary.desktop_read_only, true);
+      assert.equal(lawFirmE2eFreeze.summary.desktop_source_of_truth, false);
+      assert.equal(lawFirmE2eFreeze.summary.failed_checkpoint_count, 0);
+      assert.equal(lawFirmE2eFreeze.summary.validation_error_count, 0);
+      assert.ok(lawFirmE2eFreeze.law_firm_e2e_freeze_sources.every((source) => source.source_status === "complete" && source.validation_error_count === 0 && source.desktop_read_only === true && source.desktop_source_of_truth === false));
+      assert.ok(lawFirmE2eFreeze.law_firm_e2e_paths.every((pathRow) => pathRow.path_status === "passed" && pathRow.matter_gate_passed && pathRow.evidence_gate_passed && pathRow.citation_gate_passed && pathRow.approval_gate_passed && pathRow.attorney_review_required && pathRow.human_review_required && pathRow.partner_approval_required_before_client_use && pathRow.approval_decision_recorded === false));
+      assert.ok(lawFirmE2eFreeze.law_firm_e2e_coverage_gates.every((gate) => gate.gate_status === "passed" && gate.read_only && gate.mutation_allowed === false));
+      assert.match(await readFile(path.join(outDir, "law-firm-e2e-freeze", "summary.md"), "utf8"), /Law Firm E2E Freeze/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -9901,6 +9976,7 @@ describe("matter harness", () => {
           contract_draft_workflow: path.join(outDir, "contract-draft-workflow", "contract-draft-workflow.json"),
           provided_material_review: path.join(outDir, "provided-material-review", "provided-material-review-ledger.json"),
           legal_approval_matrix: path.join(outDir, "legal-approval-matrix", "legal-approval-matrix.json"),
+          law_firm_e2e_freeze: path.join(outDir, "law-firm-e2e-freeze", "law-firm-e2e-freeze.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -9952,8 +10028,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 153);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 153);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 154);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 154);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -10094,6 +10170,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "contract_draft_workflow"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "provided_material_review"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "legal_approval_matrix"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "law_firm_e2e_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -10138,6 +10215,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:runtime-interface"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:approval-matrix"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:e2e-freeze"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:hermes-adapter"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:claude-code-adapter"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:codex-adapter"));
@@ -10854,6 +10932,10 @@ describe("matter harness", () => {
       assert.equal(legalApprovalMatrixCheckpoint?.acceptance_profile, "legal_approval_matrix_gate");
       assert.equal(legalApprovalMatrixCheckpoint?.status, "passed");
       assert.equal(legalApprovalMatrixCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const lawFirmE2eFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-law-firm-e2e-freeze");
+      assert.equal(lawFirmE2eFreezeCheckpoint?.acceptance_profile, "law_firm_e2e_freeze_gate");
+      assert.equal(lawFirmE2eFreezeCheckpoint?.status, "passed");
+      assert.equal(lawFirmE2eFreezeCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -14505,6 +14587,45 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.legal_approval_matrix_partner_approval_bypass_allowed, false);
       assert.equal(dashboard.summary.legal_approval_matrix_failed_checkpoint_count, 0);
       assert.equal(dashboard.summary.legal_approval_matrix_validation_error_count, 0);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_status, "complete");
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_contract_id, lawFirmE2eFreeze.summary.law_firm_e2e_freeze_contract_id);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_pack_id, lawFirmE2eFreeze.summary.pack_id);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_capability_id, lawFirmE2eFreeze.summary.capability_id);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_authority, lawFirmE2eFreeze.summary.freeze_authority);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_source_count, lawFirmE2eFreeze.summary.source_count);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_passed_source_count, lawFirmE2eFreeze.summary.passed_source_count);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_path_count, lawFirmE2eFreeze.summary.path_count);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_passed_path_count, lawFirmE2eFreeze.summary.passed_path_count);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_coverage_gate_count, lawFirmE2eFreeze.summary.coverage_gate_count);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_passed_coverage_gate_count, lawFirmE2eFreeze.summary.passed_coverage_gate_count);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_representative_matter_gate_passed_count, lawFirmE2eFreeze.summary.representative_matter_gate_passed_count);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_representative_evidence_gate_passed_count, lawFirmE2eFreeze.summary.representative_evidence_gate_passed_count);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_representative_citation_gate_passed_count, lawFirmE2eFreeze.summary.representative_citation_gate_passed_count);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_representative_approval_gate_passed_count, lawFirmE2eFreeze.summary.representative_approval_gate_passed_count);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_matter_count, lawFirmE2eFreeze.summary.matter_count);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_approval_output_count, lawFirmE2eFreeze.summary.approval_output_count);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_approval_requirement_count, lawFirmE2eFreeze.summary.approval_requirement_count);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_approval_gate_link_count, lawFirmE2eFreeze.summary.approval_gate_link_count);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_attorney_review_requirement_count, lawFirmE2eFreeze.summary.attorney_review_requirement_count);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_partner_approval_requirement_count, lawFirmE2eFreeze.summary.partner_approval_requirement_count);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_approval_decision_recorded_count, 0);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_attorney_approval_recorded_count, 0);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_partner_approval_recorded_count, 0);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_final_review_decision_recorded_count, 0);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_legal_advice_provided, false);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_legal_conclusion_asserted_count, 0);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_matter_data_write_performed, false);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_task_state_write_performed, false);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_workflow_transition_performed, false);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_runtime_execution_performed, false);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_protected_mutation_performed, false);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_source_artifact_mutation_performed, false);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_desktop_read_only, true);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.law_firm_e2e_freeze_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -16607,6 +16728,43 @@ describe("matter harness", () => {
       assert.equal(legalApprovalMatrixStage?.metrics.client_facing_output_allowed_without_attorney_review, false);
       assert.equal(legalApprovalMatrixStage?.metrics.partner_approval_bypass_allowed, false);
       assert.equal(legalApprovalMatrixStage?.metrics.validation_error_count, 0);
+      const lawFirmE2eFreezeStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "law_firm_e2e_freeze");
+      assert.equal(lawFirmE2eFreezeStage?.status, "passed");
+      assert.equal(lawFirmE2eFreezeStage?.metrics.law_firm_e2e_freeze_status, "complete");
+      assert.equal(lawFirmE2eFreezeStage?.metrics.source_count, lawFirmE2eFreeze.summary.source_count);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.passed_source_count, lawFirmE2eFreeze.summary.passed_source_count);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.path_count, lawFirmE2eFreeze.summary.path_count);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.passed_path_count, lawFirmE2eFreeze.summary.passed_path_count);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.coverage_gate_count, lawFirmE2eFreeze.summary.coverage_gate_count);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.passed_coverage_gate_count, lawFirmE2eFreeze.summary.passed_coverage_gate_count);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.representative_matter_gate_passed_count, lawFirmE2eFreeze.summary.representative_matter_gate_passed_count);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.representative_evidence_gate_passed_count, lawFirmE2eFreeze.summary.representative_evidence_gate_passed_count);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.representative_citation_gate_passed_count, lawFirmE2eFreeze.summary.representative_citation_gate_passed_count);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.representative_approval_gate_passed_count, lawFirmE2eFreeze.summary.representative_approval_gate_passed_count);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.matter_count, lawFirmE2eFreeze.summary.matter_count);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.approval_output_count, lawFirmE2eFreeze.summary.approval_output_count);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.approval_requirement_count, lawFirmE2eFreeze.summary.approval_requirement_count);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.approval_gate_link_count, lawFirmE2eFreeze.summary.approval_gate_link_count);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.attorney_review_requirement_count, lawFirmE2eFreeze.summary.attorney_review_requirement_count);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.partner_approval_requirement_count, lawFirmE2eFreeze.summary.partner_approval_requirement_count);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.approval_decision_recorded_count, 0);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.attorney_approval_recorded_count, 0);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.partner_approval_recorded_count, 0);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.final_review_decision_recorded_count, 0);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.legal_advice_provided, false);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.legal_conclusion_asserted_count, 0);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.client_facing_output_generated, false);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.matter_data_write_performed, false);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.task_state_write_performed, false);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.workflow_transition_performed, false);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.runtime_execution_performed, false);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.delivery_execution_performed, false);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.protected_mutation_performed, false);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.source_artifact_mutation_performed, false);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.desktop_read_only, true);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.desktop_source_of_truth, false);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.failed_checkpoint_count, 0);
+      assert.equal(lawFirmE2eFreezeStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -19031,6 +19189,34 @@ describe("matter harness", () => {
       const legalApprovalMatrixValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/legal-approval-matrix-validations?status=passed", apiOptions)).body);
       assert.equal(legalApprovalMatrixValidationsResponse.collection, "legal_approval_matrix_validations");
       assert.equal(legalApprovalMatrixValidationsResponse.count, legalApprovalMatrix.summary.validation_item_count);
+
+      const lawFirmE2eFreezesResponse = JSON.parse((await buildReviewApiResponse("/api/law-firm-e2e-freezes?law_firm_e2e_freeze_status=complete", apiOptions)).body);
+      assert.equal(lawFirmE2eFreezesResponse.collection, "law_firm_e2e_freezes");
+      assert.equal(lawFirmE2eFreezesResponse.count, 1);
+
+      const lawFirmE2eSourcesResponse = JSON.parse((await buildReviewApiResponse("/api/law-firm-e2e-freeze-sources?law_firm_e2e_source_status=complete", apiOptions)).body);
+      assert.equal(lawFirmE2eSourcesResponse.collection, "law_firm_e2e_freeze_sources");
+      assert.equal(lawFirmE2eSourcesResponse.count, lawFirmE2eFreeze.summary.source_count);
+
+      const lawFirmE2ePathsResponse = JSON.parse((await buildReviewApiResponse("/api/law-firm-e2e-paths?law_firm_e2e_path_status=passed&matter_gate_passed=true&evidence_gate_passed=true&citation_gate_passed=true&approval_gate_passed=true", apiOptions)).body);
+      assert.equal(lawFirmE2ePathsResponse.collection, "law_firm_e2e_paths");
+      assert.equal(lawFirmE2ePathsResponse.count, lawFirmE2eFreeze.summary.path_count);
+
+      const lawFirmE2eCoverageGatesResponse = JSON.parse((await buildReviewApiResponse("/api/law-firm-e2e-coverage-gates?law_firm_e2e_coverage_gate_status=passed", apiOptions)).body);
+      assert.equal(lawFirmE2eCoverageGatesResponse.collection, "law_firm_e2e_coverage_gates");
+      assert.equal(lawFirmE2eCoverageGatesResponse.count, lawFirmE2eFreeze.summary.coverage_gate_count);
+
+      const lawFirmE2eCheckpointsResponse = JSON.parse((await buildReviewApiResponse("/api/law-firm-e2e-freeze-checkpoints?law_firm_e2e_checkpoint_status=passed", apiOptions)).body);
+      assert.equal(lawFirmE2eCheckpointsResponse.collection, "law_firm_e2e_freeze_checkpoints");
+      assert.equal(lawFirmE2eCheckpointsResponse.count, lawFirmE2eFreeze.summary.validation_item_count);
+
+      const lawFirmE2eBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/law-firm-e2e-freeze-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(lawFirmE2eBoundaryResponse.collection, "law_firm_e2e_freeze_boundary");
+      assert.equal(lawFirmE2eBoundaryResponse.count, 1);
+
+      const lawFirmE2eValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/law-firm-e2e-freeze-validations?status=passed", apiOptions)).body);
+      assert.equal(lawFirmE2eValidationsResponse.collection, "law_firm_e2e_freeze_validations");
+      assert.equal(lawFirmE2eValidationsResponse.count, lawFirmE2eFreeze.summary.validation_item_count);
 
       const repoProfileDetectorsResponse = JSON.parse((await buildReviewApiResponse("/api/repo-profile-detectors?repo_profile_detector_status=complete", apiOptions)).body);
       assert.equal(repoProfileDetectorsResponse.collection, "repo_profile_detectors");

@@ -124,6 +124,7 @@ const GOAL_ITEMS = [
   sourceItem("contract_draft_workflow", "Contract draft workflow", "law_firm", "contract_draft_workflow", "control-plane-contract-draft-workflow", { acceptance_profile: "contract_draft_workflow_gate" }),
   sourceItem("provided_material_review", "Provided material review ledger", "law_firm", "provided_material_review", "control-plane-provided-material-review", { acceptance_profile: "provided_material_review_gate" }),
   sourceItem("legal_approval_matrix", "Legal approval matrix", "law_firm", "legal_approval_matrix", "control-plane-legal-approval-matrix", { acceptance_profile: "legal_approval_matrix_gate" }),
+  sourceItem("law_firm_e2e_freeze", "Law firm E2E freeze", "law_firm", "law_firm_e2e_freeze", "control-plane-law-firm-e2e-freeze", { acceptance_profile: "law_firm_e2e_freeze_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -607,6 +608,7 @@ function evaluateStageAcceptance(item, stage) {
     "contract_draft_workflow_gate",
     "provided_material_review_gate",
     "legal_approval_matrix_gate",
+    "law_firm_e2e_freeze_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -4096,6 +4098,45 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.failed_checkpoint_count === 0
     ) {
       return passedWithOperationalGate(stage, "Legal Approval Matrix enforces attorney and partner approval requirements for law-firm outputs without recording approval decisions, legal/client-facing output, or state mutation.");
+    }
+  }
+
+  if (item.acceptance_profile === "law_firm_e2e_freeze_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.law_firm_e2e_freeze_status === "complete"
+      && metrics.source_count === 21
+      && metrics.passed_source_count === metrics.source_count
+      && metrics.path_count === 3
+      && metrics.passed_path_count === metrics.path_count
+      && metrics.coverage_gate_count === 4
+      && metrics.passed_coverage_gate_count === metrics.coverage_gate_count
+      && metrics.representative_matter_gate_passed_count === metrics.path_count
+      && metrics.representative_evidence_gate_passed_count === metrics.path_count
+      && metrics.representative_citation_gate_passed_count === metrics.path_count
+      && metrics.representative_approval_gate_passed_count === metrics.path_count
+      && metrics.approval_output_count === 6
+      && metrics.approval_requirement_count === 12
+      && metrics.approval_gate_link_count === 6
+      && metrics.approval_decision_recorded_count === 0
+      && metrics.attorney_approval_recorded_count === 0
+      && metrics.partner_approval_recorded_count === 0
+      && metrics.final_review_decision_recorded_count === 0
+      && metrics.legal_advice_provided === false
+      && metrics.legal_conclusion_asserted_count === 0
+      && metrics.client_facing_output_generated === false
+      && metrics.matter_data_write_performed === false
+      && metrics.task_state_write_performed === false
+      && metrics.workflow_transition_performed === false
+      && metrics.runtime_execution_performed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.protected_mutation_performed === false
+      && metrics.source_artifact_mutation_performed === false
+      && metrics.desktop_read_only === true
+      && metrics.desktop_source_of_truth === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Law Firm E2E Freeze locks representative matter, evidence, citation, and approval paths without legal/client-facing output or state mutation.");
     }
   }
 

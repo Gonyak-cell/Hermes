@@ -109,6 +109,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   contractDraftWorkflowPath: "artifacts/contract-draft-workflow/latest/contract-draft-workflow.json",
   providedMaterialReviewPath: "artifacts/provided-material-review/latest/provided-material-review-ledger.json",
   legalApprovalMatrixPath: "artifacts/legal-approval-matrix/latest/legal-approval-matrix.json",
+  lawFirmE2eFreezePath: "artifacts/law-firm-e2e-freeze/latest/law-firm-e2e-freeze.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -775,6 +776,11 @@ const SOURCE_DEFINITIONS = [
     option: "legalApprovalMatrixPath",
     source_id: "legal_approval_matrix",
     label: "Legal Approval Matrix",
+  },
+  {
+    option: "lawFirmE2eFreezePath",
+    source_id: "law_firm_e2e_freeze",
+    label: "Law Firm E2E Freeze",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1621,6 +1627,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "contract_draft_workflow") return data.summary ?? {};
   if (sourceId === "provided_material_review") return data.summary ?? {};
   if (sourceId === "legal_approval_matrix") return data.summary ?? {};
+  if (sourceId === "law_firm_e2e_freeze") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -1989,6 +1996,7 @@ function buildStageStatuses(artifacts, sources) {
     buildContractDraftWorkflowStage(artifacts.contract_draft_workflow, sourceById.get("contract_draft_workflow")),
     buildProvidedMaterialReviewStage(artifacts.provided_material_review, sourceById.get("provided_material_review")),
     buildLegalApprovalMatrixStage(artifacts.legal_approval_matrix, sourceById.get("legal_approval_matrix")),
+    buildLawFirmE2eFreezeStage(artifacts.law_firm_e2e_freeze, sourceById.get("law_firm_e2e_freeze")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -10253,6 +10261,105 @@ function buildLegalApprovalMatrixStage(artifact, source) {
   };
 }
 
+function buildLawFirmE2eFreezeStage(artifact, source) {
+  if (!artifact) return missingStage("law_firm_e2e_freeze", "Law Firm E2E Freeze", source);
+  const summary = artifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.law_firm_e2e_freeze_status !== "complete"
+    || summary.source_count !== 21
+    || summary.passed_source_count !== summary.source_count
+    || summary.path_count !== 3
+    || summary.passed_path_count !== summary.path_count
+    || summary.coverage_gate_count !== 4
+    || summary.passed_coverage_gate_count !== summary.coverage_gate_count
+    || summary.representative_matter_gate_passed_count !== summary.path_count
+    || summary.representative_evidence_gate_passed_count !== summary.path_count
+    || summary.representative_citation_gate_passed_count !== summary.path_count
+    || summary.representative_approval_gate_passed_count !== summary.path_count
+    || summary.approval_output_count !== 6
+    || summary.approval_requirement_count !== 12
+    || summary.approval_gate_link_count !== 6
+    || summary.approval_decision_recorded_count !== 0
+    || summary.attorney_approval_recorded_count !== 0
+    || summary.partner_approval_recorded_count !== 0
+    || summary.final_review_decision_recorded_count !== 0
+    || summary.legal_advice_provided === true
+    || summary.legal_conclusion_asserted_count !== 0
+    || summary.client_facing_output_generated === true
+    || summary.matter_data_write_performed === true
+    || summary.task_state_write_performed === true
+    || summary.workflow_transition_performed === true
+    || summary.runtime_execution_performed === true
+    || summary.delivery_execution_performed === true
+    || summary.protected_mutation_performed === true
+    || summary.source_artifact_mutation_performed === true
+    || summary.desktop_read_only !== true
+    || summary.desktop_source_of_truth === true
+    || summary.failed_checkpoint_count !== 0
+    || artifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "law_firm_e2e_freeze",
+    label: "Law Firm E2E Freeze",
+    status,
+    message: `${summary.passed_path_count ?? 0}/${summary.path_count ?? 0} path(s), ${summary.passed_coverage_gate_count ?? 0}/${summary.coverage_gate_count ?? 0} coverage gate(s), ${summary.approval_requirement_count ?? 0} approval requirement(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      law_firm_e2e_freeze_status: summary.law_firm_e2e_freeze_status ?? "unknown",
+      law_firm_e2e_freeze_contract_id: summary.law_firm_e2e_freeze_contract_id ?? null,
+      pack_id: summary.pack_id ?? null,
+      capability_id: summary.capability_id ?? null,
+      freeze_authority: summary.freeze_authority ?? "unknown",
+      source_of_truth: summary.source_of_truth ?? "unknown",
+      phase_range: summary.phase_range ?? null,
+      source_phase_range: summary.source_phase_range ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_count: summary.source_count ?? 0,
+      passed_source_count: summary.passed_source_count ?? 0,
+      path_count: summary.path_count ?? 0,
+      passed_path_count: summary.passed_path_count ?? 0,
+      coverage_gate_count: summary.coverage_gate_count ?? 0,
+      passed_coverage_gate_count: summary.passed_coverage_gate_count ?? 0,
+      representative_matter_gate_passed_count: summary.representative_matter_gate_passed_count ?? 0,
+      representative_evidence_gate_passed_count: summary.representative_evidence_gate_passed_count ?? 0,
+      representative_citation_gate_passed_count: summary.representative_citation_gate_passed_count ?? 0,
+      representative_approval_gate_passed_count: summary.representative_approval_gate_passed_count ?? 0,
+      matter_count: summary.matter_count ?? 0,
+      approval_output_count: summary.approval_output_count ?? 0,
+      approval_requirement_count: summary.approval_requirement_count ?? 0,
+      approval_gate_link_count: summary.approval_gate_link_count ?? 0,
+      attorney_review_requirement_count: summary.attorney_review_requirement_count ?? 0,
+      partner_approval_requirement_count: summary.partner_approval_requirement_count ?? 0,
+      ldd_report_section_count: summary.ldd_report_section_count ?? 0,
+      ldd_report_paragraph_count: summary.ldd_report_paragraph_count ?? 0,
+      litigation_brief_claim_count: summary.litigation_brief_claim_count ?? 0,
+      litigation_brief_evidence_link_count: summary.litigation_brief_evidence_link_count ?? 0,
+      contract_clause_draft_count: summary.contract_clause_draft_count ?? 0,
+      provided_material_review_item_count: summary.provided_material_review_item_count ?? 0,
+      approval_decision_recorded_count: summary.approval_decision_recorded_count ?? 0,
+      attorney_approval_recorded_count: summary.attorney_approval_recorded_count ?? 0,
+      partner_approval_recorded_count: summary.partner_approval_recorded_count ?? 0,
+      final_review_decision_recorded_count: summary.final_review_decision_recorded_count ?? 0,
+      legal_advice_provided: summary.legal_advice_provided ?? false,
+      legal_conclusion_asserted_count: summary.legal_conclusion_asserted_count ?? 0,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      matter_data_write_performed: summary.matter_data_write_performed ?? false,
+      task_state_write_performed: summary.task_state_write_performed ?? false,
+      workflow_transition_performed: summary.workflow_transition_performed ?? false,
+      runtime_execution_performed: summary.runtime_execution_performed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      protected_mutation_performed: summary.protected_mutation_performed ?? false,
+      source_artifact_mutation_performed: summary.source_artifact_mutation_performed ?? false,
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_source_of_truth: summary.desktop_source_of_truth ?? false,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -16271,6 +16378,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.law_firm_e2e_freeze?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "law_firm_e2e_freeze";
+    items.push({
+      action_item_id: `dashboard.action.law_firm_e2e_freeze.${slugify(subjectId)}`,
+      source_stage: "law_firm_e2e_freeze",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix law firm E2E freeze",
+      subject_ref: {
+        subject_type: "law_firm_e2e_freeze_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_law_firm_e2e_freeze", "rerun_law_firm_e2e_freeze", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -21638,6 +21763,55 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     legal_approval_matrix_partner_approval_bypass_allowed: artifacts.legal_approval_matrix?.summary?.partner_approval_bypass_allowed ?? false,
     legal_approval_matrix_failed_checkpoint_count: artifacts.legal_approval_matrix?.summary?.failed_checkpoint_count ?? 0,
     legal_approval_matrix_validation_error_count: artifacts.legal_approval_matrix?.summary?.validation_error_count ?? artifacts.legal_approval_matrix?.validation?.errors?.length ?? 0,
+    law_firm_e2e_freeze_status: artifacts.law_firm_e2e_freeze?.summary?.law_firm_e2e_freeze_status ?? "unknown",
+    law_firm_e2e_freeze_contract_id: artifacts.law_firm_e2e_freeze?.summary?.law_firm_e2e_freeze_contract_id ?? null,
+    law_firm_e2e_freeze_pack_id: artifacts.law_firm_e2e_freeze?.summary?.pack_id ?? null,
+    law_firm_e2e_freeze_capability_id: artifacts.law_firm_e2e_freeze?.summary?.capability_id ?? null,
+    law_firm_e2e_freeze_authority: artifacts.law_firm_e2e_freeze?.summary?.freeze_authority ?? "unknown",
+    law_firm_e2e_freeze_source_of_truth: artifacts.law_firm_e2e_freeze?.summary?.source_of_truth ?? "unknown",
+    law_firm_e2e_freeze_phase_range: artifacts.law_firm_e2e_freeze?.summary?.phase_range ?? null,
+    law_firm_e2e_freeze_source_phase_range: artifacts.law_firm_e2e_freeze?.summary?.source_phase_range ?? null,
+    law_firm_e2e_freeze_next_phase_slot: artifacts.law_firm_e2e_freeze?.summary?.next_phase_slot ?? null,
+    law_firm_e2e_freeze_source_count: artifacts.law_firm_e2e_freeze?.summary?.source_count ?? 0,
+    law_firm_e2e_freeze_passed_source_count: artifacts.law_firm_e2e_freeze?.summary?.passed_source_count ?? 0,
+    law_firm_e2e_freeze_path_count: artifacts.law_firm_e2e_freeze?.summary?.path_count ?? 0,
+    law_firm_e2e_freeze_passed_path_count: artifacts.law_firm_e2e_freeze?.summary?.passed_path_count ?? 0,
+    law_firm_e2e_freeze_coverage_gate_count: artifacts.law_firm_e2e_freeze?.summary?.coverage_gate_count ?? 0,
+    law_firm_e2e_freeze_passed_coverage_gate_count: artifacts.law_firm_e2e_freeze?.summary?.passed_coverage_gate_count ?? 0,
+    law_firm_e2e_freeze_representative_matter_gate_passed_count: artifacts.law_firm_e2e_freeze?.summary?.representative_matter_gate_passed_count ?? 0,
+    law_firm_e2e_freeze_representative_evidence_gate_passed_count: artifacts.law_firm_e2e_freeze?.summary?.representative_evidence_gate_passed_count ?? 0,
+    law_firm_e2e_freeze_representative_citation_gate_passed_count: artifacts.law_firm_e2e_freeze?.summary?.representative_citation_gate_passed_count ?? 0,
+    law_firm_e2e_freeze_representative_approval_gate_passed_count: artifacts.law_firm_e2e_freeze?.summary?.representative_approval_gate_passed_count ?? 0,
+    law_firm_e2e_freeze_matter_count: artifacts.law_firm_e2e_freeze?.summary?.matter_count ?? 0,
+    law_firm_e2e_freeze_approval_output_count: artifacts.law_firm_e2e_freeze?.summary?.approval_output_count ?? 0,
+    law_firm_e2e_freeze_approval_requirement_count: artifacts.law_firm_e2e_freeze?.summary?.approval_requirement_count ?? 0,
+    law_firm_e2e_freeze_approval_gate_link_count: artifacts.law_firm_e2e_freeze?.summary?.approval_gate_link_count ?? 0,
+    law_firm_e2e_freeze_attorney_review_requirement_count: artifacts.law_firm_e2e_freeze?.summary?.attorney_review_requirement_count ?? 0,
+    law_firm_e2e_freeze_partner_approval_requirement_count: artifacts.law_firm_e2e_freeze?.summary?.partner_approval_requirement_count ?? 0,
+    law_firm_e2e_freeze_ldd_report_section_count: artifacts.law_firm_e2e_freeze?.summary?.ldd_report_section_count ?? 0,
+    law_firm_e2e_freeze_ldd_report_paragraph_count: artifacts.law_firm_e2e_freeze?.summary?.ldd_report_paragraph_count ?? 0,
+    law_firm_e2e_freeze_litigation_brief_claim_count: artifacts.law_firm_e2e_freeze?.summary?.litigation_brief_claim_count ?? 0,
+    law_firm_e2e_freeze_litigation_brief_evidence_link_count: artifacts.law_firm_e2e_freeze?.summary?.litigation_brief_evidence_link_count ?? 0,
+    law_firm_e2e_freeze_contract_clause_draft_count: artifacts.law_firm_e2e_freeze?.summary?.contract_clause_draft_count ?? 0,
+    law_firm_e2e_freeze_provided_material_review_item_count: artifacts.law_firm_e2e_freeze?.summary?.provided_material_review_item_count ?? 0,
+    law_firm_e2e_freeze_approval_decision_recorded_count: artifacts.law_firm_e2e_freeze?.summary?.approval_decision_recorded_count ?? 0,
+    law_firm_e2e_freeze_attorney_approval_recorded_count: artifacts.law_firm_e2e_freeze?.summary?.attorney_approval_recorded_count ?? 0,
+    law_firm_e2e_freeze_partner_approval_recorded_count: artifacts.law_firm_e2e_freeze?.summary?.partner_approval_recorded_count ?? 0,
+    law_firm_e2e_freeze_final_review_decision_recorded_count: artifacts.law_firm_e2e_freeze?.summary?.final_review_decision_recorded_count ?? 0,
+    law_firm_e2e_freeze_legal_advice_provided: artifacts.law_firm_e2e_freeze?.summary?.legal_advice_provided ?? false,
+    law_firm_e2e_freeze_legal_conclusion_asserted_count: artifacts.law_firm_e2e_freeze?.summary?.legal_conclusion_asserted_count ?? 0,
+    law_firm_e2e_freeze_client_facing_output_generated: artifacts.law_firm_e2e_freeze?.summary?.client_facing_output_generated ?? false,
+    law_firm_e2e_freeze_matter_data_write_performed: artifacts.law_firm_e2e_freeze?.summary?.matter_data_write_performed ?? false,
+    law_firm_e2e_freeze_task_state_write_performed: artifacts.law_firm_e2e_freeze?.summary?.task_state_write_performed ?? false,
+    law_firm_e2e_freeze_workflow_transition_performed: artifacts.law_firm_e2e_freeze?.summary?.workflow_transition_performed ?? false,
+    law_firm_e2e_freeze_runtime_execution_performed: artifacts.law_firm_e2e_freeze?.summary?.runtime_execution_performed ?? false,
+    law_firm_e2e_freeze_delivery_execution_performed: artifacts.law_firm_e2e_freeze?.summary?.delivery_execution_performed ?? false,
+    law_firm_e2e_freeze_protected_mutation_performed: artifacts.law_firm_e2e_freeze?.summary?.protected_mutation_performed ?? false,
+    law_firm_e2e_freeze_source_artifact_mutation_performed: artifacts.law_firm_e2e_freeze?.summary?.source_artifact_mutation_performed ?? false,
+    law_firm_e2e_freeze_desktop_read_only: artifacts.law_firm_e2e_freeze?.summary?.desktop_read_only ?? false,
+    law_firm_e2e_freeze_desktop_source_of_truth: artifacts.law_firm_e2e_freeze?.summary?.desktop_source_of_truth ?? false,
+    law_firm_e2e_freeze_failed_checkpoint_count: artifacts.law_firm_e2e_freeze?.summary?.failed_checkpoint_count ?? 0,
+    law_firm_e2e_freeze_validation_error_count: artifacts.law_firm_e2e_freeze?.summary?.validation_error_count ?? artifacts.law_firm_e2e_freeze?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -23439,6 +23613,8 @@ function parseArgs(argv) {
     else if (arg === "--no-provided-material-review") parsed.providedMaterialReviewPath = false;
     else if (arg === "--legal-approval-matrix") parsed.legalApprovalMatrixPath = argv[++index];
     else if (arg === "--no-legal-approval-matrix") parsed.legalApprovalMatrixPath = false;
+    else if (arg === "--law-firm-e2e-freeze") parsed.lawFirmE2eFreezePath = argv[++index];
+    else if (arg === "--no-law-firm-e2e-freeze") parsed.lawFirmE2eFreezePath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];

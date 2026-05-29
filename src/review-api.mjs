@@ -5464,6 +5464,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("legal_approval_matrix_validations", approvalResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/law-firm-e2e-freezes") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "law_firm_e2e_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("law_firm_e2e_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("law_firm_e2e_freezes", [freezeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/law-firm-e2e-freeze-sources") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "law_firm_e2e_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("law_firm_e2e_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("law_firm_e2e_freeze_sources", freezeResult.artifact.law_firm_e2e_freeze_sources ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/law-firm-e2e-paths") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "law_firm_e2e_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("law_firm_e2e_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("law_firm_e2e_paths", freezeResult.artifact.law_firm_e2e_paths ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/law-firm-e2e-coverage-gates") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "law_firm_e2e_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("law_firm_e2e_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("law_firm_e2e_coverage_gates", freezeResult.artifact.law_firm_e2e_coverage_gates ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/law-firm-e2e-freeze-checkpoints") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "law_firm_e2e_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("law_firm_e2e_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("law_firm_e2e_freeze_checkpoints", freezeResult.artifact.law_firm_e2e_freeze_checkpoints ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/law-firm-e2e-freeze-boundary") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "law_firm_e2e_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("law_firm_e2e_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("law_firm_e2e_freeze_boundary", [freezeResult.artifact.law_firm_e2e_freeze_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/law-firm-e2e-freeze-validations") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "law_firm_e2e_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("law_firm_e2e_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("law_firm_e2e_freeze_validations", freezeResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/repo-profile-detectors") {
     const repoProfileDetectorResult = await readDashboardSourceArtifact(dashboard, "repo_profile_detector");
     if (!repoProfileDetectorResult.available) {
@@ -10722,6 +10771,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/legal-approval-matter-summaries", "Legal approval matter summary rows"),
       route("GET", "/api/legal-approval-matrix-boundary", "Legal approval matrix Desktop boundary"),
       route("GET", "/api/legal-approval-matrix-validations", "Legal approval matrix validation rows"),
+      route("GET", "/api/law-firm-e2e-freezes", "Law firm E2E freeze artifact"),
+      route("GET", "/api/law-firm-e2e-freeze-sources", "Law firm E2E freeze source rows"),
+      route("GET", "/api/law-firm-e2e-paths", "Law firm representative E2E path rows"),
+      route("GET", "/api/law-firm-e2e-coverage-gates", "Law firm matter evidence citation approval coverage gates"),
+      route("GET", "/api/law-firm-e2e-freeze-checkpoints", "Law firm E2E freeze checkpoint rows"),
+      route("GET", "/api/law-firm-e2e-freeze-boundary", "Law firm E2E freeze Desktop boundary"),
+      route("GET", "/api/law-firm-e2e-freeze-validations", "Law firm E2E freeze validation rows"),
       route("GET", "/api/repo-profile-detectors", "Repo profile detector artifact"),
       route("GET", "/api/repo-profiles", "Detected repository profile rows"),
       route("GET", "/api/repo-profile-languages", "Detected repository language profiles"),
@@ -11746,6 +11802,17 @@ function filterItems(items, searchParams) {
     "approval_decision_recorded",
     "client_use_blocked_until_approval",
     "partner_approval_required_before_client_use",
+    "law_firm_e2e_freeze_status",
+    "law_firm_e2e_source_status",
+    "law_firm_e2e_path_status",
+    "law_firm_e2e_path_kind",
+    "law_firm_e2e_coverage_gate_type",
+    "law_firm_e2e_coverage_gate_status",
+    "law_firm_e2e_checkpoint_status",
+    "matter_gate_passed",
+    "evidence_gate_passed",
+    "citation_gate_passed",
+    "approval_gate_passed",
     "repo_profile_detector_status",
     "repo_profile_status",
     "language_id",
@@ -13429,6 +13496,17 @@ function readFilterValue(item, key) {
   if (key === "approval_decision_recorded") return String(Boolean(item.approval_decision_recorded));
   if (key === "client_use_blocked_until_approval") return String(Boolean(item.client_use_blocked_until_approval));
   if (key === "partner_approval_required_before_client_use") return String(Boolean(item.partner_approval_required_before_client_use));
+  if (key === "law_firm_e2e_freeze_status") return item.summary?.law_firm_e2e_freeze_status ?? item.law_firm_e2e_freeze_status;
+  if (key === "law_firm_e2e_source_status") return item.source_status;
+  if (key === "law_firm_e2e_path_status") return item.path_status;
+  if (key === "law_firm_e2e_path_kind") return item.path_kind;
+  if (key === "law_firm_e2e_coverage_gate_type") return item.gate_type;
+  if (key === "law_firm_e2e_coverage_gate_status") return item.gate_status;
+  if (key === "law_firm_e2e_checkpoint_status") return item.status;
+  if (key === "matter_gate_passed") return String(Boolean(item.matter_gate_passed));
+  if (key === "evidence_gate_passed") return String(Boolean(item.evidence_gate_passed));
+  if (key === "citation_gate_passed") return String(Boolean(item.citation_gate_passed));
+  if (key === "approval_gate_passed") return String(Boolean(item.approval_gate_passed));
   if (key === "repo_profile_detector_status") return item.summary?.repo_profile_detector_status ?? item.repo_profile_detector_status;
   if (key === "repo_profile_status") return item.summary?.repo_profile_status ?? item.profile_status ?? item.repo_profile_status;
   if (key === "language_id") return item.language_id ?? item.primary_language_id;

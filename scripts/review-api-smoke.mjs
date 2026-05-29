@@ -2528,6 +2528,34 @@ try {
   assert.equal(legalApprovalMatrixValidations.collection, "legal_approval_matrix_validations");
   assert.ok(legalApprovalMatrixValidations.count <= 5);
 
+  const lawFirmE2eFreezes = await fetchJson(`${url}/api/law-firm-e2e-freezes?law_firm_e2e_freeze_status=complete&limit=1`);
+  assert.equal(lawFirmE2eFreezes.collection, "law_firm_e2e_freezes");
+  assert.ok(lawFirmE2eFreezes.count <= 1);
+
+  const lawFirmE2eSources = await fetchJson(`${url}/api/law-firm-e2e-freeze-sources?law_firm_e2e_source_status=complete&limit=5`);
+  assert.equal(lawFirmE2eSources.collection, "law_firm_e2e_freeze_sources");
+  assert.ok(lawFirmE2eSources.count <= 5);
+
+  const lawFirmE2ePaths = await fetchJson(`${url}/api/law-firm-e2e-paths?law_firm_e2e_path_status=passed&matter_gate_passed=true&evidence_gate_passed=true&citation_gate_passed=true&approval_gate_passed=true&limit=5`);
+  assert.equal(lawFirmE2ePaths.collection, "law_firm_e2e_paths");
+  assert.ok(lawFirmE2ePaths.count <= 5);
+
+  const lawFirmE2eCoverageGates = await fetchJson(`${url}/api/law-firm-e2e-coverage-gates?law_firm_e2e_coverage_gate_status=passed&limit=5`);
+  assert.equal(lawFirmE2eCoverageGates.collection, "law_firm_e2e_coverage_gates");
+  assert.ok(lawFirmE2eCoverageGates.count <= 5);
+
+  const lawFirmE2eCheckpoints = await fetchJson(`${url}/api/law-firm-e2e-freeze-checkpoints?law_firm_e2e_checkpoint_status=passed&limit=5`);
+  assert.equal(lawFirmE2eCheckpoints.collection, "law_firm_e2e_freeze_checkpoints");
+  assert.ok(lawFirmE2eCheckpoints.count <= 5);
+
+  const lawFirmE2eBoundary = await fetchJson(`${url}/api/law-firm-e2e-freeze-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(lawFirmE2eBoundary.collection, "law_firm_e2e_freeze_boundary");
+  assert.ok(lawFirmE2eBoundary.count <= 1);
+
+  const lawFirmE2eValidations = await fetchJson(`${url}/api/law-firm-e2e-freeze-validations?status=passed&limit=5`);
+  assert.equal(lawFirmE2eValidations.collection, "law_firm_e2e_freeze_validations");
+  assert.ok(lawFirmE2eValidations.count <= 5);
+
   const repoProfileDetectors = await fetchJson(`${url}/api/repo-profile-detectors?repo_profile_detector_status=complete&limit=1`);
   assert.equal(repoProfileDetectors.collection, "repo_profile_detectors");
   assert.ok(repoProfileDetectors.count <= 1);

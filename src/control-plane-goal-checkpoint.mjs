@@ -162,6 +162,7 @@ const GOAL_ITEMS = [
   sourceItem("api_route_inventory", "API Route Inventory", "api", "api_route_inventory", "control-plane-api-route-inventory", { acceptance_profile: "api_route_inventory_gate" }),
   sourceItem("dashboard_information_architecture", "Review Dashboard Information Architecture", "api", "dashboard_information_architecture", "control-plane-dashboard-information-architecture", { acceptance_profile: "dashboard_information_architecture_gate" }),
   sourceItem("approval_queue_ui", "Approval Queue UI", "api", "approval_queue_ui", "control-plane-approval-queue-ui", { acceptance_profile: "approval_queue_ui_gate" }),
+  sourceItem("evidence_viewer_ui", "Evidence Viewer UI", "api", "evidence_viewer_ui", "control-plane-evidence-viewer-ui", { acceptance_profile: "evidence_viewer_ui_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -683,6 +684,7 @@ function evaluateStageAcceptance(item, stage) {
     "api_route_inventory_gate",
     "dashboard_information_architecture_gate",
     "approval_queue_ui_gate",
+    "evidence_viewer_ui_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -6005,6 +6007,57 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Approval Queue UI locks P289 pending approval, required actor, target artifact lookup, receipt draft preview, and protected request preview surfaces from existing approval artifacts without applying approvals, applying receipts, executing protected actions, route execution, server start, mutation, legal advice, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "evidence_viewer_ui_gate") {
+    const cardCount = metrics.evidence_viewer_ui_card_count ?? 0;
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.evidence_viewer_ui_status === "complete"
+      && metrics.phase_slot === "P290"
+      && metrics.previous_phase_slot === "P289"
+      && metrics.next_phase_slot === "P291"
+      && metrics.source_approval_queue_ui_status === "complete"
+      && metrics.source_approval_queue_ui_phase_slot === "P289"
+      && metrics.source_approval_queue_ui_next_phase_slot === "P290"
+      && metrics.source_evidence_viewer_data_status === "complete"
+      && metrics.source_citation_object_store_status === "complete"
+      && metrics.source_evidence_coverage_status === "complete"
+      && metrics.source_evidence_flags_status === "complete"
+      && metrics.evidence_viewer_ui_panel_count === 5
+      && metrics.required_panel_count === 5
+      && metrics.ready_panel_count === 5
+      && cardCount > 0
+      && metrics.card_source_span_bound_count === cardCount
+      && metrics.card_citation_bound_count === cardCount
+      && metrics.card_coverage_bound_count === cardCount
+      && metrics.card_flag_bound_count === cardCount
+      && metrics.human_review_required_card_count === cardCount
+      && metrics.client_facing_ready_card_count === 0
+      && metrics.read_only_card_count === cardCount
+      && metrics.preview_only_card_count === cardCount
+      && metrics.read_only === true
+      && metrics.ui_projection_only === true
+      && metrics.source_span_preview_only === true
+      && metrics.citation_preview_only === true
+      && metrics.coverage_preview_only === true
+      && metrics.source_file_content_read_performed === false
+      && metrics.source_ingest_performed === false
+      && metrics.evidence_mutation_performed === false
+      && metrics.citation_approval_performed === false
+      && metrics.output_delivery_performed === false
+      && metrics.route_execution_performed === false
+      && metrics.server_started === false
+      && metrics.mutation_allowed === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Evidence Viewer UI locks P290 evidence cards, source span previews, citation rows, coverage rows, and review flag panels from existing evidence artifacts without source file content reads, source ingest, evidence mutation, citation approval, output delivery, route execution, server start, mutation, legal advice, or client-facing output.");
     }
   }
 

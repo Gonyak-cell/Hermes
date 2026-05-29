@@ -18,6 +18,12 @@ Approval Queue UI routes expose the read-only approval queue panel artifact, pan
 
 Routes: `/api/approval-queue-ui-artifacts`, `/api/approval-queue-ui-panels`, `/api/approval-queue-ui-items`, `/api/approval-queue-target-artifacts`, `/api/approval-queue-receipt-previews`, `/api/approval-queue-protected-request-previews`, `/api/approval-queue-ui-boundary`, `/api/approval-queue-ui-checks`, `/api/approval-queue-ui-validations`.
 
+## P290 Evidence Viewer UI Routes
+
+Evidence Viewer UI routes expose the read-only evidence viewer UI artifact, panel rows, joined evidence cards, source span preview rows, citation rows, coverage rows, flag rows, checks, boundary, and validation rows. Supported filters include `evidence_viewer_ui_status`, `evidence_viewer_ui_panel_status`, `evidence_viewer_ui_card_status`, `source_span_binding_status`, `citation_binding_status`, `card_binding_status`, `coverage_status`, `review_status`, `human_review_required`, `client_facing_ready`, `read_only`, `preview_only`, `boundary_status`, `status`, and `limit`.
+
+Routes: `/api/evidence-viewer-ui-artifacts`, `/api/evidence-viewer-ui-panels`, `/api/evidence-viewer-ui-cards`, `/api/evidence-viewer-ui-source-spans`, `/api/evidence-viewer-ui-citations`, `/api/evidence-viewer-ui-coverage`, `/api/evidence-viewer-ui-flags`, `/api/evidence-viewer-ui-boundary`, `/api/evidence-viewer-ui-checks`, `/api/evidence-viewer-ui-validations`.
+
 ## P245 LDD RFI Generator Routes
 
 LDD RFI Generator routes expose read-only draft-only RFI packets, draft questions, missing-material links, issue links, matter summaries, and validation/boundary rows. Supported filters include `ldd_rfi_generator_status`, `ldd_rfi_matter_status`, `rfi_rule_type`, `rfi_draft_status`, `rfi_question_type`, `rfi_question_priority`, `rfi_question_status`, `rfi_missing_material_status`, `rfi_issue_link_status`, `deterministic_rfi_generation_performed`, `ldd_rfi_question_id`, `ldd_issue_record_id`, `ldd_vdr_missing_data_record_id`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.

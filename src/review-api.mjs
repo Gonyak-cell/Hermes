@@ -6288,6 +6288,76 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("approval_queue_ui_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/evidence-viewer-ui-artifacts") {
+    const result = await readDashboardSourceArtifact(dashboard, "evidence_viewer_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("evidence_viewer_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_viewer_ui_artifacts", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-viewer-ui-panels") {
+    const result = await readDashboardSourceArtifact(dashboard, "evidence_viewer_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("evidence_viewer_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_viewer_ui_panels", result.artifact.evidence_viewer_ui_panels ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-viewer-ui-cards") {
+    const result = await readDashboardSourceArtifact(dashboard, "evidence_viewer_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("evidence_viewer_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_viewer_ui_cards", result.artifact.evidence_viewer_ui_cards ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-viewer-ui-source-spans") {
+    const result = await readDashboardSourceArtifact(dashboard, "evidence_viewer_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("evidence_viewer_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_viewer_ui_source_spans", result.artifact.evidence_viewer_ui_source_spans ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-viewer-ui-citations") {
+    const result = await readDashboardSourceArtifact(dashboard, "evidence_viewer_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("evidence_viewer_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_viewer_ui_citations", result.artifact.evidence_viewer_ui_citations ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-viewer-ui-coverage") {
+    const result = await readDashboardSourceArtifact(dashboard, "evidence_viewer_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("evidence_viewer_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_viewer_ui_coverage", result.artifact.evidence_viewer_ui_coverage ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-viewer-ui-flags") {
+    const result = await readDashboardSourceArtifact(dashboard, "evidence_viewer_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("evidence_viewer_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_viewer_ui_flags", result.artifact.evidence_viewer_ui_flags ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-viewer-ui-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "evidence_viewer_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("evidence_viewer_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_viewer_ui_boundary", [result.artifact.evidence_viewer_ui_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-viewer-ui-checks") {
+    const result = await readDashboardSourceArtifact(dashboard, "evidence_viewer_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("evidence_viewer_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_viewer_ui_checks", result.artifact.evidence_viewer_ui_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-viewer-ui-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "evidence_viewer_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("evidence_viewer_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_viewer_ui_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -12790,6 +12860,16 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/approval-queue-ui-boundary", "Approval Queue UI read-only boundary"),
       route("GET", "/api/approval-queue-ui-checks", "Approval Queue UI check rows"),
       route("GET", "/api/approval-queue-ui-validations", "Approval Queue UI validation rows"),
+      route("GET", "/api/evidence-viewer-ui-artifacts", "Evidence Viewer UI artifact"),
+      route("GET", "/api/evidence-viewer-ui-panels", "Evidence Viewer UI panel rows"),
+      route("GET", "/api/evidence-viewer-ui-cards", "Evidence Viewer UI card rows"),
+      route("GET", "/api/evidence-viewer-ui-source-spans", "Evidence Viewer UI source span rows"),
+      route("GET", "/api/evidence-viewer-ui-citations", "Evidence Viewer UI citation rows"),
+      route("GET", "/api/evidence-viewer-ui-coverage", "Evidence Viewer UI coverage rows"),
+      route("GET", "/api/evidence-viewer-ui-flags", "Evidence Viewer UI flag rows"),
+      route("GET", "/api/evidence-viewer-ui-boundary", "Evidence Viewer UI read-only boundary"),
+      route("GET", "/api/evidence-viewer-ui-checks", "Evidence Viewer UI check rows"),
+      route("GET", "/api/evidence-viewer-ui-validations", "Evidence Viewer UI validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -13994,6 +14074,12 @@ function filterItems(items, searchParams) {
     "protected_request_preview_status",
     "protected_action",
     "pending_approval",
+    "evidence_viewer_ui_status",
+    "evidence_viewer_ui_panel_status",
+    "evidence_viewer_ui_card_status",
+    "source_span_binding_status",
+    "citation_binding_status",
+    "card_binding_status",
     "preview_only",
     "boundary_status",
     "path_kind",
@@ -15935,6 +16021,12 @@ function readFilterValue(item, key) {
   if (key === "protected_action") return String(Boolean(item.protected_action));
   if (key === "pending_approval") return String(Boolean(item.pending_approval));
   if (key === "preview_only") return String(Boolean(item.preview_only));
+  if (key === "evidence_viewer_ui_status") return item.summary?.evidence_viewer_ui_status ?? item.evidence_viewer_ui_status;
+  if (key === "evidence_viewer_ui_panel_status") return item.panel_status;
+  if (key === "evidence_viewer_ui_card_status") return item.card_status;
+  if (key === "source_span_binding_status") return item.source_span_binding_status;
+  if (key === "citation_binding_status") return item.citation_binding_status;
+  if (key === "card_binding_status") return item.card_binding_status;
   if (key === "path_kind") return item.path_kind;
   if (key === "gate_id") return item.gate_id;
   if (key === "thread_status") return item.thread_status;

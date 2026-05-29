@@ -1,0 +1,453 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/evidence-viewer-ui.schema.json",
+  "title": "Hermes Evidence Viewer UI",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "evidence_viewer_ui_id",
+    "evidence_viewer_ui_status",
+    "phase_slot",
+    "previous_phase_slot",
+    "next_phase_slot",
+    "summary",
+    "evidence_viewer_ui_panels",
+    "evidence_viewer_ui_cards",
+    "evidence_viewer_ui_source_spans",
+    "evidence_viewer_ui_citations",
+    "evidence_viewer_ui_coverage",
+    "evidence_viewer_ui_flags",
+    "evidence_viewer_ui_boundary",
+    "evidence_viewer_ui_checks",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "evidence-viewer-ui.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "evidence_viewer_ui_id": { "type": "string" },
+    "evidence_viewer_ui_status": { "enum": ["complete", "attention"] },
+    "phase_slot": { "const": "P290" },
+    "previous_phase_slot": { "const": "P289" },
+    "next_phase_slot": { "const": "P291" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "evidence_viewer_ui_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "source_approval_queue_ui_status",
+        "source_approval_queue_ui_phase_slot",
+        "source_approval_queue_ui_next_phase_slot",
+        "source_dashboard_information_architecture_status",
+        "source_evidence_viewer_data_status",
+        "source_citation_object_store_status",
+        "source_evidence_coverage_status",
+        "source_evidence_flags_status",
+        "evidence_viewer_ui_panel_count",
+        "required_panel_count",
+        "ready_panel_count",
+        "evidence_viewer_ui_card_count",
+        "source_span_row_count",
+        "citation_row_count",
+        "coverage_row_count",
+        "flag_row_count",
+        "card_source_span_bound_count",
+        "card_citation_bound_count",
+        "card_coverage_bound_count",
+        "card_flag_bound_count",
+        "human_review_required_card_count",
+        "client_facing_ready_card_count",
+        "read_only_card_count",
+        "preview_only_card_count",
+        "read_only",
+        "ui_projection_only",
+        "source_span_preview_only",
+        "citation_preview_only",
+        "coverage_preview_only",
+        "source_file_content_read_performed",
+        "source_ingest_performed",
+        "evidence_mutation_performed",
+        "citation_approval_performed",
+        "output_delivery_performed",
+        "route_execution_performed",
+        "server_started",
+        "mutation_allowed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "windows_baseline_stability_preserved",
+        "mac_windows_completion_instability_guard",
+        "validation_error_count"
+      ],
+      "properties": {
+        "evidence_viewer_ui_status": { "const": "complete" },
+        "phase_slot": { "const": "P290" },
+        "previous_phase_slot": { "const": "P289" },
+        "next_phase_slot": { "const": "P291" },
+        "source_approval_queue_ui_status": { "const": "complete" },
+        "source_approval_queue_ui_phase_slot": { "const": "P289" },
+        "source_approval_queue_ui_next_phase_slot": { "const": "P290" },
+        "source_dashboard_information_architecture_status": { "const": "complete" },
+        "source_evidence_viewer_data_status": { "const": "complete" },
+        "source_citation_object_store_status": { "const": "complete" },
+        "source_evidence_coverage_status": { "const": "complete" },
+        "source_evidence_flags_status": { "const": "complete" },
+        "evidence_viewer_ui_panel_count": { "const": 5 },
+        "required_panel_count": { "const": 5 },
+        "ready_panel_count": { "const": 5 },
+        "evidence_viewer_ui_card_count": { "minimum": 1 },
+        "source_span_row_count": { "minimum": 1 },
+        "citation_row_count": { "minimum": 1 },
+        "coverage_row_count": { "minimum": 1 },
+        "flag_row_count": { "minimum": 1 },
+        "card_source_span_bound_count": { "minimum": 1 },
+        "card_citation_bound_count": { "minimum": 1 },
+        "card_coverage_bound_count": { "minimum": 1 },
+        "card_flag_bound_count": { "minimum": 1 },
+        "human_review_required_card_count": { "minimum": 1 },
+        "client_facing_ready_card_count": { "const": 0 },
+        "read_only_card_count": { "minimum": 1 },
+        "preview_only_card_count": { "minimum": 1 },
+        "read_only": { "const": true },
+        "ui_projection_only": { "const": true },
+        "source_span_preview_only": { "const": true },
+        "citation_preview_only": { "const": true },
+        "coverage_preview_only": { "const": true },
+        "source_file_content_read_performed": { "const": false },
+        "source_ingest_performed": { "const": false },
+        "evidence_mutation_performed": { "const": false },
+        "citation_approval_performed": { "const": false },
+        "output_delivery_performed": { "const": false },
+        "route_execution_performed": { "const": false },
+        "server_started": { "const": false },
+        "mutation_allowed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true },
+        "validation_error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    },
+    "evidence_viewer_ui_panels": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/$defs/panel" }
+    },
+    "evidence_viewer_ui_cards": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/card" }
+    },
+    "evidence_viewer_ui_source_spans": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/source_span_row" }
+    },
+    "evidence_viewer_ui_citations": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/citation_row" }
+    },
+    "evidence_viewer_ui_coverage": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/coverage_row" }
+    },
+    "evidence_viewer_ui_flags": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/flag_row" }
+    },
+    "evidence_viewer_ui_boundary": { "$ref": "#/$defs/boundary" },
+    "evidence_viewer_ui_checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/check" }
+    },
+    "validation_items": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/check" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "item_count", "error_count", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "item_count": { "minimum": 1 },
+        "error_count": { "const": 0 },
+        "errors": { "type": "array", "maxItems": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "panel": {
+      "type": "object",
+      "required": [
+        "panel_key",
+        "panel_label",
+        "panel_order",
+        "panel_status",
+        "row_count",
+        "read_only",
+        "preview_only",
+        "source_file_content_read_allowed",
+        "source_ingest_allowed",
+        "evidence_mutation_allowed",
+        "citation_approval_allowed",
+        "output_delivery_allowed",
+        "legal_advice_generated",
+        "client_facing_ready",
+        "human_review_required"
+      ],
+      "properties": {
+        "panel_key": {
+          "enum": ["evidence_cards", "source_spans", "citations", "coverage", "review_flags"]
+        },
+        "panel_status": { "const": "ready" },
+        "row_count": { "minimum": 1 },
+        "read_only": { "const": true },
+        "preview_only": { "const": true },
+        "source_file_content_read_allowed": { "const": false },
+        "source_ingest_allowed": { "const": false },
+        "evidence_mutation_allowed": { "const": false },
+        "citation_approval_allowed": { "const": false },
+        "output_delivery_allowed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_ready": { "const": false },
+        "human_review_required": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "card": {
+      "type": "object",
+      "required": [
+        "evidence_viewer_ui_card_id",
+        "card_status",
+        "viewer_card_id",
+        "evidence_id",
+        "source_span_id",
+        "source_span_binding_status",
+        "citation_id",
+        "citation_binding_status",
+        "coverage_score_id",
+        "coverage_status",
+        "evidence_flag_record_id",
+        "human_review_required",
+        "client_facing_ready",
+        "read_only",
+        "preview_only",
+        "ui_actions"
+      ],
+      "properties": {
+        "card_status": { "const": "ready" },
+        "source_span_binding_status": { "const": "bound" },
+        "citation_binding_status": { "const": "bound" },
+        "coverage_status": { "enum": ["complete", "partial"] },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false },
+        "read_only": { "const": true },
+        "preview_only": { "const": true },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "ui_actions": { "$ref": "#/$defs/ui_actions" }
+      },
+      "additionalProperties": true
+    },
+    "source_span_row": {
+      "type": "object",
+      "required": [
+        "source_span_row_id",
+        "source_span_id",
+        "source_span_panel_id",
+        "binding_status",
+        "content_preview",
+        "linked_card_count",
+        "read_only",
+        "preview_only",
+        "source_file_content_read_performed"
+      ],
+      "properties": {
+        "binding_status": { "const": "bound" },
+        "linked_card_count": { "minimum": 1 },
+        "read_only": { "const": true },
+        "preview_only": { "const": true },
+        "source_file_content_read_performed": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "citation_row": {
+      "type": "object",
+      "required": [
+        "citation_row_id",
+        "citation_id",
+        "source_span_id",
+        "citation_status",
+        "citation_binding_status",
+        "human_review_required",
+        "client_facing_ready",
+        "card_binding_status",
+        "read_only",
+        "preview_only",
+        "citation_approval_performed",
+        "output_delivery_performed"
+      ],
+      "properties": {
+        "citation_binding_status": { "const": "bound" },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false },
+        "card_binding_status": { "const": "bound" },
+        "read_only": { "const": true },
+        "preview_only": { "const": true },
+        "citation_approval_performed": { "const": false },
+        "output_delivery_performed": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "coverage_row": {
+      "type": "object",
+      "required": [
+        "coverage_row_id",
+        "coverage_score_id",
+        "evidence_id",
+        "source_span_id",
+        "coverage_status",
+        "coverage_score",
+        "card_binding_status",
+        "human_review_required",
+        "client_facing_ready",
+        "read_only",
+        "preview_only"
+      ],
+      "properties": {
+        "coverage_status": { "enum": ["complete", "partial"] },
+        "card_binding_status": { "const": "bound" },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false },
+        "read_only": { "const": true },
+        "preview_only": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "flag_row": {
+      "type": "object",
+      "required": [
+        "flag_row_id",
+        "evidence_flag_record_id",
+        "evidence_id",
+        "source_span_id",
+        "extraction_flag",
+        "human_confirmation_flag",
+        "privilege_review_flag",
+        "redaction_flag",
+        "external_transfer_flag",
+        "card_binding_status",
+        "human_review_required",
+        "client_facing_ready",
+        "read_only",
+        "preview_only"
+      ],
+      "properties": {
+        "card_binding_status": { "const": "bound" },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false },
+        "read_only": { "const": true },
+        "preview_only": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "ui_actions": {
+      "type": "object",
+      "required": [
+        "source_span_view_allowed",
+        "citation_view_allowed",
+        "coverage_view_allowed",
+        "flag_view_allowed",
+        "approve_allowed",
+        "citation_approval_allowed",
+        "output_delivery_allowed",
+        "source_ingest_allowed",
+        "mutation_allowed",
+        "protected_action_execution_allowed"
+      ],
+      "properties": {
+        "source_span_view_allowed": { "const": true },
+        "citation_view_allowed": { "const": true },
+        "coverage_view_allowed": { "const": true },
+        "flag_view_allowed": { "const": true },
+        "approve_allowed": { "const": false },
+        "citation_approval_allowed": { "const": false },
+        "output_delivery_allowed": { "const": false },
+        "source_ingest_allowed": { "const": false },
+        "mutation_allowed": { "const": false },
+        "protected_action_execution_allowed": { "const": false }
+      }
+    },
+    "boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "read_only",
+        "ui_projection_only",
+        "source_span_preview_only",
+        "citation_preview_only",
+        "coverage_preview_only",
+        "source_file_content_read_performed",
+        "source_ingest_performed",
+        "evidence_mutation_performed",
+        "citation_approval_performed",
+        "output_delivery_performed",
+        "route_execution_performed",
+        "server_started",
+        "mutation_allowed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "windows_baseline_stability_preserved",
+        "mac_windows_completion_instability_guard"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "read_only": { "const": true },
+        "ui_projection_only": { "const": true },
+        "source_span_preview_only": { "const": true },
+        "citation_preview_only": { "const": true },
+        "coverage_preview_only": { "const": true },
+        "source_file_content_read_performed": { "const": false },
+        "source_ingest_performed": { "const": false },
+        "evidence_mutation_performed": { "const": false },
+        "citation_approval_performed": { "const": false },
+        "output_delivery_performed": { "const": false },
+        "route_execution_performed": { "const": false },
+        "server_started": { "const": false },
+        "mutation_allowed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "check": {
+      "type": "object",
+      "required": ["schema_version", "validation_id", "subject_id", "check_id", "status", "message"],
+      "properties": {
+        "schema_version": { "const": "evidence-viewer-ui-check.v1" },
+        "validation_id": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

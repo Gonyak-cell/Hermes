@@ -177,6 +177,7 @@
     "events:tool-invocations": "node scripts/tool-invocation-ledger.mjs",
     "events:workflow-runs": "node scripts/workflow-run-ledger.mjs",
     "evidence:viewer": "node scripts/evidence-viewer.mjs",
+    "evidence:viewer-ui": "node scripts/evidence-viewer-ui.mjs",
     "evidence:review:draft": "node scripts/evidence-review-draft.mjs",
     "intake": "node scripts/intake-messages.mjs examples/project-alpha-matter.json examples/raw-intake-messages.json",
     "intake:kakao": "node scripts/intake-kakao.mjs examples/project-alpha-matter.json examples/kakaotalk-alpha-export.txt --source-id kakao-alpha",

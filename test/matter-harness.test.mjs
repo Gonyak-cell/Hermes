@@ -88,6 +88,7 @@ import { runExpansionStatusDashboard } from "../src/expansion-status-dashboard.m
 import { runResourceExpansionFreeze } from "../src/resource-expansion-freeze.mjs";
 import { runApiRouteInventory } from "../src/api-route-inventory.mjs";
 import { runApprovalQueueUi } from "../src/approval-queue-ui.mjs";
+import { runEvidenceViewerUi } from "../src/evidence-viewer-ui.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -1973,6 +1974,7 @@ describe("matter harness", () => {
         apiRouteInventoryPath: path.join(outDir, "api-route-inventory", "api-route-inventory.json"),
         dashboardInformationArchitecturePath: path.join(outDir, "review-dashboard-ia", "review-dashboard-ia.json"),
         approvalQueueUiPath: path.join(outDir, "approval-queue-ui", "approval-queue-ui.json"),
+        evidenceViewerUiPath: path.join(outDir, "evidence-viewer-ui", "evidence-viewer-ui.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -12213,6 +12215,75 @@ describe("matter harness", () => {
       assert.ok(approvalQueueUi.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "approval-queue-ui", "summary.md"), "utf8"), /Approval Queue UI/);
 
+      const evidenceViewerUi = await runEvidenceViewerUi({
+        approvalQueueUiPath: path.join(outDir, "approval-queue-ui", "approval-queue-ui.json"),
+        dashboardInformationArchitecturePath: path.join(outDir, "review-dashboard-ia", "review-dashboard-ia.json"),
+        evidenceViewerDataApiPath: path.join(outDir, "evidence-viewer-data-api", "evidence-viewer-data-api.json"),
+        citationObjectStorePath: path.join(outDir, "citation-object-store", "citation-object-store.json"),
+        evidenceCoverageScorePath: path.join(outDir, "evidence-coverage", "evidence-coverage-score.json"),
+        evidenceFlagsPath: path.join(outDir, "evidence-flags", "evidence-flags.json"),
+        outDir: path.join(outDir, "evidence-viewer-ui"),
+        runAt: "2026-05-23T07:24:31.000Z",
+      });
+      const evidenceViewerUiSchema = JSON.parse(await readFile("schemas/evidence-viewer-ui.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(evidenceViewerUi, evidenceViewerUiSchema, {}, "evidence_viewer_ui"), [], JSON.stringify(evidenceViewerUi.validation.errors));
+      assert.equal(evidenceViewerUi.summary.evidence_viewer_ui_status, "complete");
+      assert.equal(evidenceViewerUi.summary.phase_slot, "P290");
+      assert.equal(evidenceViewerUi.summary.previous_phase_slot, "P289");
+      assert.equal(evidenceViewerUi.summary.next_phase_slot, "P291");
+      assert.equal(evidenceViewerUi.summary.source_approval_queue_ui_status, "complete");
+      assert.equal(evidenceViewerUi.summary.source_approval_queue_ui_phase_slot, "P289");
+      assert.equal(evidenceViewerUi.summary.source_approval_queue_ui_next_phase_slot, "P290");
+      assert.equal(evidenceViewerUi.summary.source_evidence_viewer_data_status, "complete");
+      assert.equal(evidenceViewerUi.summary.source_citation_object_store_status, "complete");
+      assert.equal(evidenceViewerUi.summary.source_evidence_coverage_status, "complete");
+      assert.equal(evidenceViewerUi.summary.source_evidence_flags_status, "complete");
+      assert.equal(evidenceViewerUi.summary.evidence_viewer_ui_panel_count, 5);
+      assert.equal(evidenceViewerUi.summary.required_panel_count, 5);
+      assert.equal(evidenceViewerUi.summary.ready_panel_count, 5);
+      assert.equal(evidenceViewerUi.summary.evidence_viewer_ui_card_count, evidenceViewerDataApi.summary.viewer_card_count);
+      assert.equal(evidenceViewerUi.summary.source_span_row_count, evidenceViewerDataApi.summary.source_span_panel_count);
+      assert.equal(evidenceViewerUi.summary.citation_row_count, citationObjectStore.summary.citation_count);
+      assert.equal(evidenceViewerUi.summary.coverage_row_count, evidenceCoverageScore.summary.coverage_score_count);
+      assert.equal(evidenceViewerUi.summary.flag_row_count, evidenceFlags.summary.evidence_flag_record_count);
+      assert.equal(evidenceViewerUi.summary.card_source_span_bound_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(evidenceViewerUi.summary.card_citation_bound_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(evidenceViewerUi.summary.card_coverage_bound_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(evidenceViewerUi.summary.card_flag_bound_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(evidenceViewerUi.summary.human_review_required_card_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(evidenceViewerUi.summary.client_facing_ready_card_count, 0);
+      assert.equal(evidenceViewerUi.summary.read_only_card_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(evidenceViewerUi.summary.preview_only_card_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(evidenceViewerUi.summary.read_only, true);
+      assert.equal(evidenceViewerUi.summary.ui_projection_only, true);
+      assert.equal(evidenceViewerUi.summary.source_span_preview_only, true);
+      assert.equal(evidenceViewerUi.summary.citation_preview_only, true);
+      assert.equal(evidenceViewerUi.summary.coverage_preview_only, true);
+      assert.equal(evidenceViewerUi.summary.source_file_content_read_performed, false);
+      assert.equal(evidenceViewerUi.summary.source_ingest_performed, false);
+      assert.equal(evidenceViewerUi.summary.evidence_mutation_performed, false);
+      assert.equal(evidenceViewerUi.summary.citation_approval_performed, false);
+      assert.equal(evidenceViewerUi.summary.output_delivery_performed, false);
+      assert.equal(evidenceViewerUi.summary.route_execution_performed, false);
+      assert.equal(evidenceViewerUi.summary.server_started, false);
+      assert.equal(evidenceViewerUi.summary.mutation_allowed, false);
+      assert.equal(evidenceViewerUi.summary.protected_action_executed, false);
+      assert.equal(evidenceViewerUi.summary.legal_advice_generated, false);
+      assert.equal(evidenceViewerUi.summary.client_facing_output_generated, false);
+      assert.equal(evidenceViewerUi.summary.windows_baseline_stability_preserved, true);
+      assert.equal(evidenceViewerUi.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(evidenceViewerUi.summary.validation_error_count, 0);
+      const evidenceViewerUiPanelKeys = new Set(["evidence_cards", "source_spans", "citations", "coverage", "review_flags"]);
+      assert.ok(evidenceViewerUi.evidence_viewer_ui_panels.every((row) => evidenceViewerUiPanelKeys.has(row.panel_key) && row.panel_status === "ready" && row.read_only && row.preview_only && row.source_file_content_read_allowed === false && row.source_ingest_allowed === false && row.output_delivery_allowed === false && row.human_review_required && row.client_facing_ready === false));
+      assert.ok(evidenceViewerUi.evidence_viewer_ui_cards.every((row) => row.card_status === "ready" && row.source_span_binding_status === "bound" && row.citation_binding_status === "bound" && row.coverage_status !== "missing" && row.evidence_flag_record_id && row.human_review_required && row.client_facing_ready === false && row.read_only && row.preview_only && row.ui_actions.output_delivery_allowed === false && row.ui_actions.mutation_allowed === false));
+      assert.ok(evidenceViewerUi.evidence_viewer_ui_source_spans.every((row) => row.binding_status === "bound" && row.linked_card_count > 0 && row.read_only && row.preview_only && row.source_file_content_read_performed === false));
+      assert.ok(evidenceViewerUi.evidence_viewer_ui_citations.every((row) => row.citation_binding_status === "bound" && row.card_binding_status === "bound" && row.human_review_required && row.client_facing_ready === false && row.citation_approval_performed === false && row.output_delivery_performed === false));
+      assert.ok(evidenceViewerUi.evidence_viewer_ui_coverage.every((row) => row.card_binding_status === "bound" && ["complete", "partial"].includes(row.coverage_status) && row.human_review_required && row.client_facing_ready === false));
+      assert.ok(evidenceViewerUi.evidence_viewer_ui_flags.every((row) => row.card_binding_status === "bound" && row.human_review_required && row.client_facing_ready === false));
+      assert.equal(evidenceViewerUi.evidence_viewer_ui_boundary.boundary_status, "enforced");
+      assert.ok(evidenceViewerUi.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "evidence-viewer-ui", "summary.md"), "utf8"), /Evidence Viewer UI/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -12426,6 +12497,7 @@ describe("matter harness", () => {
           api_route_inventory: path.join(outDir, "api-route-inventory", "api-route-inventory.json"),
           dashboard_information_architecture: path.join(outDir, "review-dashboard-ia", "review-dashboard-ia.json"),
           approval_queue_ui: path.join(outDir, "approval-queue-ui", "approval-queue-ui.json"),
+          evidence_viewer_ui: path.join(outDir, "evidence-viewer-ui", "evidence-viewer-ui.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -12477,8 +12549,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 191);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 191);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 192);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 192);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -12657,6 +12729,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "api_route_inventory"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "dashboard_information_architecture"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "approval_queue_ui"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_viewer_ui"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -12711,6 +12784,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "api:route-inventory"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "dashboard:ia"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "approval:queue-ui"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "evidence:viewer-ui"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:runtime-interface"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:approval-matrix"));
@@ -13598,6 +13672,10 @@ describe("matter harness", () => {
       assert.equal(approvalQueueUiCheckpoint?.acceptance_profile, "approval_queue_ui_gate");
       assert.equal(approvalQueueUiCheckpoint?.status, "passed");
       assert.equal(approvalQueueUiCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const evidenceViewerUiCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-evidence-viewer-ui");
+      assert.equal(evidenceViewerUiCheckpoint?.acceptance_profile, "evidence_viewer_ui_gate");
+      assert.equal(evidenceViewerUiCheckpoint?.status, "passed");
+      assert.equal(evidenceViewerUiCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -18828,6 +18906,63 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.approval_queue_ui_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.approval_queue_ui_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.approval_queue_ui_validation_error_count, 0);
+      assert.equal(dashboard.summary.evidence_viewer_ui_status, "complete");
+      assert.equal(dashboard.summary.evidence_viewer_ui_id, evidenceViewerUi.summary.evidence_viewer_ui_id);
+      assert.equal(dashboard.summary.evidence_viewer_ui_phase_slot, "P290");
+      assert.equal(dashboard.summary.evidence_viewer_ui_previous_phase_slot, "P289");
+      assert.equal(dashboard.summary.evidence_viewer_ui_next_phase_slot, "P291");
+      assert.equal(dashboard.summary.evidence_viewer_ui_source_approval_queue_ui_status, "complete");
+      assert.equal(dashboard.summary.evidence_viewer_ui_source_approval_queue_ui_phase_slot, "P289");
+      assert.equal(dashboard.summary.evidence_viewer_ui_source_approval_queue_ui_next_phase_slot, "P290");
+      assert.equal(dashboard.summary.evidence_viewer_ui_source_dashboard_information_architecture_status, "complete");
+      assert.equal(dashboard.summary.evidence_viewer_ui_source_evidence_viewer_data_status, "complete");
+      assert.equal(dashboard.summary.evidence_viewer_ui_source_evidence_viewer_data_card_count, evidenceViewerDataApi.summary.viewer_card_count);
+      assert.equal(dashboard.summary.evidence_viewer_ui_source_citation_object_store_status, "complete");
+      assert.equal(dashboard.summary.evidence_viewer_ui_source_citation_count, citationObjectStore.summary.citation_count);
+      assert.equal(dashboard.summary.evidence_viewer_ui_source_evidence_coverage_status, "complete");
+      assert.equal(dashboard.summary.evidence_viewer_ui_source_coverage_score_count, evidenceCoverageScore.summary.coverage_score_count);
+      assert.equal(dashboard.summary.evidence_viewer_ui_source_evidence_flags_status, "complete");
+      assert.equal(dashboard.summary.evidence_viewer_ui_source_flag_record_count, evidenceFlags.summary.evidence_flag_record_count);
+      assert.equal(dashboard.summary.evidence_viewer_ui_panel_count, 5);
+      assert.equal(dashboard.summary.evidence_viewer_ui_required_panel_count, 5);
+      assert.equal(dashboard.summary.evidence_viewer_ui_ready_panel_count, 5);
+      assert.equal(dashboard.summary.evidence_viewer_ui_card_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(dashboard.summary.evidence_viewer_ui_source_span_row_count, evidenceViewerUi.summary.source_span_row_count);
+      assert.equal(dashboard.summary.evidence_viewer_ui_citation_row_count, evidenceViewerUi.summary.citation_row_count);
+      assert.equal(dashboard.summary.evidence_viewer_ui_coverage_row_count, evidenceViewerUi.summary.coverage_row_count);
+      assert.equal(dashboard.summary.evidence_viewer_ui_flag_row_count, evidenceViewerUi.summary.flag_row_count);
+      assert.equal(dashboard.summary.evidence_viewer_ui_card_source_span_bound_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(dashboard.summary.evidence_viewer_ui_card_citation_bound_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(dashboard.summary.evidence_viewer_ui_card_coverage_bound_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(dashboard.summary.evidence_viewer_ui_card_flag_bound_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(dashboard.summary.evidence_viewer_ui_full_coverage_card_count, evidenceViewerUi.summary.full_coverage_card_count);
+      assert.equal(dashboard.summary.evidence_viewer_ui_partial_coverage_card_count, evidenceViewerUi.summary.partial_coverage_card_count);
+      assert.equal(dashboard.summary.evidence_viewer_ui_missing_required_dimension_card_count, evidenceViewerUi.summary.missing_required_dimension_card_count);
+      assert.equal(dashboard.summary.evidence_viewer_ui_human_review_required_card_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(dashboard.summary.evidence_viewer_ui_client_facing_ready_card_count, 0);
+      assert.equal(dashboard.summary.evidence_viewer_ui_read_only_card_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(dashboard.summary.evidence_viewer_ui_preview_only_card_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(dashboard.summary.evidence_viewer_ui_read_only, true);
+      assert.equal(dashboard.summary.evidence_viewer_ui_ui_projection_only, true);
+      assert.equal(dashboard.summary.evidence_viewer_ui_source_span_preview_only, true);
+      assert.equal(dashboard.summary.evidence_viewer_ui_citation_preview_only, true);
+      assert.equal(dashboard.summary.evidence_viewer_ui_coverage_preview_only, true);
+      assert.equal(dashboard.summary.evidence_viewer_ui_source_file_content_read_performed, false);
+      assert.equal(dashboard.summary.evidence_viewer_ui_source_ingest_performed, false);
+      assert.equal(dashboard.summary.evidence_viewer_ui_evidence_mutation_performed, false);
+      assert.equal(dashboard.summary.evidence_viewer_ui_citation_approval_performed, false);
+      assert.equal(dashboard.summary.evidence_viewer_ui_output_delivery_performed, false);
+      assert.equal(dashboard.summary.evidence_viewer_ui_route_execution_performed, false);
+      assert.equal(dashboard.summary.evidence_viewer_ui_server_started, false);
+      assert.equal(dashboard.summary.evidence_viewer_ui_mutation_allowed, false);
+      assert.equal(dashboard.summary.evidence_viewer_ui_protected_action_executed, false);
+      assert.equal(dashboard.summary.evidence_viewer_ui_legal_advice_generated, false);
+      assert.equal(dashboard.summary.evidence_viewer_ui_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.evidence_viewer_ui_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.evidence_viewer_ui_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.evidence_viewer_ui_validation_item_count, evidenceViewerUi.summary.validation_item_count);
+      assert.equal(dashboard.summary.evidence_viewer_ui_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.evidence_viewer_ui_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -22465,6 +22600,67 @@ describe("matter harness", () => {
       assert.equal(approvalQueueUiStage?.metrics.windows_baseline_stability_preserved, true);
       assert.equal(approvalQueueUiStage?.metrics.mac_windows_completion_instability_guard, true);
       assert.equal(approvalQueueUiStage?.metrics.validation_error_count, 0);
+      const evidenceViewerUiStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "evidence_viewer_ui");
+      assert.equal(evidenceViewerUiStage?.status, "passed");
+      assert.equal(evidenceViewerUiStage?.metrics.evidence_viewer_ui_status, "complete");
+      assert.equal(evidenceViewerUiStage?.metrics.evidence_viewer_ui_id, evidenceViewerUi.summary.evidence_viewer_ui_id);
+      assert.equal(evidenceViewerUiStage?.metrics.phase_slot, "P290");
+      assert.equal(evidenceViewerUiStage?.metrics.previous_phase_slot, "P289");
+      assert.equal(evidenceViewerUiStage?.metrics.next_phase_slot, "P291");
+      assert.equal(evidenceViewerUiStage?.metrics.source_approval_queue_ui_status, "complete");
+      assert.equal(evidenceViewerUiStage?.metrics.source_approval_queue_ui_phase_slot, "P289");
+      assert.equal(evidenceViewerUiStage?.metrics.source_approval_queue_ui_next_phase_slot, "P290");
+      assert.equal(evidenceViewerUiStage?.metrics.source_dashboard_information_architecture_status, "complete");
+      assert.equal(evidenceViewerUiStage?.metrics.source_evidence_viewer_data_status, "complete");
+      assert.equal(evidenceViewerUiStage?.metrics.source_evidence_viewer_data_card_count, evidenceViewerDataApi.summary.viewer_card_count);
+      assert.equal(evidenceViewerUiStage?.metrics.source_citation_object_store_status, "complete");
+      assert.equal(evidenceViewerUiStage?.metrics.source_citation_count, citationObjectStore.summary.citation_count);
+      assert.equal(evidenceViewerUiStage?.metrics.source_evidence_coverage_status, "complete");
+      assert.equal(evidenceViewerUiStage?.metrics.source_coverage_score_count, evidenceCoverageScore.summary.coverage_score_count);
+      assert.equal(evidenceViewerUiStage?.metrics.source_evidence_flags_status, "complete");
+      assert.equal(evidenceViewerUiStage?.metrics.source_flag_record_count, evidenceFlags.summary.evidence_flag_record_count);
+      assert.equal(evidenceViewerUiStage?.metrics.evidence_viewer_ui_panel_count, 5);
+      assert.equal(evidenceViewerUiStage?.metrics.required_panel_count, 5);
+      assert.equal(evidenceViewerUiStage?.metrics.ready_panel_count, 5);
+      assert.equal(evidenceViewerUiStage?.metrics.evidence_viewer_ui_card_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(evidenceViewerUiStage?.metrics.source_span_row_count, evidenceViewerUi.summary.source_span_row_count);
+      assert.equal(evidenceViewerUiStage?.metrics.citation_row_count, evidenceViewerUi.summary.citation_row_count);
+      assert.equal(evidenceViewerUiStage?.metrics.coverage_row_count, evidenceViewerUi.summary.coverage_row_count);
+      assert.equal(evidenceViewerUiStage?.metrics.flag_row_count, evidenceViewerUi.summary.flag_row_count);
+      assert.equal(evidenceViewerUiStage?.metrics.card_source_span_bound_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(evidenceViewerUiStage?.metrics.card_citation_bound_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(evidenceViewerUiStage?.metrics.card_coverage_bound_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(evidenceViewerUiStage?.metrics.card_flag_bound_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(evidenceViewerUiStage?.metrics.full_coverage_card_count, evidenceViewerUi.summary.full_coverage_card_count);
+      assert.equal(evidenceViewerUiStage?.metrics.partial_coverage_card_count, evidenceViewerUi.summary.partial_coverage_card_count);
+      assert.equal(evidenceViewerUiStage?.metrics.missing_required_dimension_card_count, evidenceViewerUi.summary.missing_required_dimension_card_count);
+      assert.equal(evidenceViewerUiStage?.metrics.human_review_required_card_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(evidenceViewerUiStage?.metrics.client_facing_ready_card_count, 0);
+      assert.equal(evidenceViewerUiStage?.metrics.read_only_card_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(evidenceViewerUiStage?.metrics.preview_only_card_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(evidenceViewerUiStage?.metrics.read_only, true);
+      assert.equal(evidenceViewerUiStage?.metrics.ui_projection_only, true);
+      assert.equal(evidenceViewerUiStage?.metrics.source_span_preview_only, true);
+      assert.equal(evidenceViewerUiStage?.metrics.citation_preview_only, true);
+      assert.equal(evidenceViewerUiStage?.metrics.coverage_preview_only, true);
+      assert.equal(evidenceViewerUiStage?.metrics.source_file_content_read_performed, false);
+      assert.equal(evidenceViewerUiStage?.metrics.source_ingest_performed, false);
+      assert.equal(evidenceViewerUiStage?.metrics.evidence_mutation_performed, false);
+      assert.equal(evidenceViewerUiStage?.metrics.citation_approval_performed, false);
+      assert.equal(evidenceViewerUiStage?.metrics.output_delivery_performed, false);
+      assert.equal(evidenceViewerUiStage?.metrics.route_execution_performed, false);
+      assert.equal(evidenceViewerUiStage?.metrics.server_started, false);
+      assert.equal(evidenceViewerUiStage?.metrics.mutation_allowed, false);
+      assert.equal(evidenceViewerUiStage?.metrics.protected_action_executed, false);
+      assert.equal(evidenceViewerUiStage?.metrics.legal_advice_generated, false);
+      assert.equal(evidenceViewerUiStage?.metrics.client_facing_output_generated, false);
+      assert.equal(evidenceViewerUiStage?.metrics.human_review_required, true);
+      assert.equal(evidenceViewerUiStage?.metrics.client_facing_ready, false);
+      assert.equal(evidenceViewerUiStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(evidenceViewerUiStage?.metrics.mac_windows_completion_instability_guard, true);
+      assert.equal(evidenceViewerUiStage?.metrics.validation_item_count, evidenceViewerUi.summary.validation_item_count);
+      assert.equal(evidenceViewerUiStage?.metrics.failed_checkpoint_count, 0);
+      assert.equal(evidenceViewerUiStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -22647,6 +22843,16 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/approval-queue-ui-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/approval-queue-ui-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/approval-queue-ui-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-viewer-ui-artifacts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-viewer-ui-panels"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-viewer-ui-cards"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-viewer-ui-source-spans"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-viewer-ui-citations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-viewer-ui-coverage"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-viewer-ui-flags"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-viewer-ui-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-viewer-ui-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-viewer-ui-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -25495,6 +25701,46 @@ describe("matter harness", () => {
       const approvalQueueUiValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/approval-queue-ui-validations?status=passed", apiOptions)).body);
       assert.equal(approvalQueueUiValidationsResponse.collection, "approval_queue_ui_validations");
       assert.equal(approvalQueueUiValidationsResponse.count, approvalQueueUi.summary.validation_item_count);
+
+      const evidenceViewerUiArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/evidence-viewer-ui-artifacts?evidence_viewer_ui_status=complete", apiOptions)).body);
+      assert.equal(evidenceViewerUiArtifactsResponse.collection, "evidence_viewer_ui_artifacts");
+      assert.equal(evidenceViewerUiArtifactsResponse.count, 1);
+
+      const evidenceViewerUiPanelsResponse = JSON.parse((await buildReviewApiResponse("/api/evidence-viewer-ui-panels?evidence_viewer_ui_panel_status=ready", apiOptions)).body);
+      assert.equal(evidenceViewerUiPanelsResponse.collection, "evidence_viewer_ui_panels");
+      assert.equal(evidenceViewerUiPanelsResponse.count, evidenceViewerUi.summary.evidence_viewer_ui_panel_count);
+
+      const evidenceViewerUiCardsResponse = JSON.parse((await buildReviewApiResponse("/api/evidence-viewer-ui-cards?evidence_viewer_ui_card_status=ready&source_span_binding_status=bound&citation_binding_status=bound&read_only=true&preview_only=true", apiOptions)).body);
+      assert.equal(evidenceViewerUiCardsResponse.collection, "evidence_viewer_ui_cards");
+      assert.equal(evidenceViewerUiCardsResponse.count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+
+      const evidenceViewerUiSourceSpansResponse = JSON.parse((await buildReviewApiResponse("/api/evidence-viewer-ui-source-spans?binding_status=bound&read_only=true", apiOptions)).body);
+      assert.equal(evidenceViewerUiSourceSpansResponse.collection, "evidence_viewer_ui_source_spans");
+      assert.equal(evidenceViewerUiSourceSpansResponse.count, evidenceViewerUi.summary.source_span_row_count);
+
+      const evidenceViewerUiCitationsResponse = JSON.parse((await buildReviewApiResponse("/api/evidence-viewer-ui-citations?citation_binding_status=bound&human_review_required=true&client_facing_ready=false", apiOptions)).body);
+      assert.equal(evidenceViewerUiCitationsResponse.collection, "evidence_viewer_ui_citations");
+      assert.equal(evidenceViewerUiCitationsResponse.count, evidenceViewerUi.summary.citation_row_count);
+
+      const evidenceViewerUiCoverageResponse = JSON.parse((await buildReviewApiResponse("/api/evidence-viewer-ui-coverage?coverage_status=partial&card_binding_status=bound", apiOptions)).body);
+      assert.equal(evidenceViewerUiCoverageResponse.collection, "evidence_viewer_ui_coverage");
+      assert.equal(evidenceViewerUiCoverageResponse.count, evidenceViewerUi.summary.partial_coverage_card_count);
+
+      const evidenceViewerUiFlagsResponse = JSON.parse((await buildReviewApiResponse("/api/evidence-viewer-ui-flags?human_review_required=true&card_binding_status=bound", apiOptions)).body);
+      assert.equal(evidenceViewerUiFlagsResponse.collection, "evidence_viewer_ui_flags");
+      assert.equal(evidenceViewerUiFlagsResponse.count, evidenceViewerUi.summary.flag_row_count);
+
+      const evidenceViewerUiBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/evidence-viewer-ui-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(evidenceViewerUiBoundaryResponse.collection, "evidence_viewer_ui_boundary");
+      assert.equal(evidenceViewerUiBoundaryResponse.count, 1);
+
+      const evidenceViewerUiChecksResponse = JSON.parse((await buildReviewApiResponse("/api/evidence-viewer-ui-checks?status=passed", apiOptions)).body);
+      assert.equal(evidenceViewerUiChecksResponse.collection, "evidence_viewer_ui_checks");
+      assert.equal(evidenceViewerUiChecksResponse.count, evidenceViewerUi.summary.validation_item_count);
+
+      const evidenceViewerUiValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/evidence-viewer-ui-validations?status=passed", apiOptions)).body);
+      assert.equal(evidenceViewerUiValidationsResponse.collection, "evidence_viewer_ui_validations");
+      assert.equal(evidenceViewerUiValidationsResponse.count, evidenceViewerUi.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

@@ -3004,6 +3004,46 @@ try {
   assert.equal(approvalQueueUiValidations.collection, "approval_queue_ui_validations");
   assert.ok(approvalQueueUiValidations.count <= 20);
 
+  const evidenceViewerUiArtifacts = await fetchJson(`${url}/api/evidence-viewer-ui-artifacts?evidence_viewer_ui_status=complete&limit=1`);
+  assert.equal(evidenceViewerUiArtifacts.collection, "evidence_viewer_ui_artifacts");
+  assert.ok(evidenceViewerUiArtifacts.count <= 1);
+
+  const evidenceViewerUiPanels = await fetchJson(`${url}/api/evidence-viewer-ui-panels?evidence_viewer_ui_panel_status=ready&limit=5`);
+  assert.equal(evidenceViewerUiPanels.collection, "evidence_viewer_ui_panels");
+  assert.ok(evidenceViewerUiPanels.count <= 5);
+
+  const evidenceViewerUiCards = await fetchJson(`${url}/api/evidence-viewer-ui-cards?evidence_viewer_ui_card_status=ready&source_span_binding_status=bound&citation_binding_status=bound&read_only=true&preview_only=true&limit=20`);
+  assert.equal(evidenceViewerUiCards.collection, "evidence_viewer_ui_cards");
+  assert.ok(evidenceViewerUiCards.count <= 20);
+
+  const evidenceViewerUiSourceSpans = await fetchJson(`${url}/api/evidence-viewer-ui-source-spans?binding_status=bound&read_only=true&limit=20`);
+  assert.equal(evidenceViewerUiSourceSpans.collection, "evidence_viewer_ui_source_spans");
+  assert.ok(evidenceViewerUiSourceSpans.count <= 20);
+
+  const evidenceViewerUiCitations = await fetchJson(`${url}/api/evidence-viewer-ui-citations?citation_binding_status=bound&human_review_required=true&client_facing_ready=false&limit=20`);
+  assert.equal(evidenceViewerUiCitations.collection, "evidence_viewer_ui_citations");
+  assert.ok(evidenceViewerUiCitations.count <= 20);
+
+  const evidenceViewerUiCoverage = await fetchJson(`${url}/api/evidence-viewer-ui-coverage?coverage_status=partial&card_binding_status=bound&limit=20`);
+  assert.equal(evidenceViewerUiCoverage.collection, "evidence_viewer_ui_coverage");
+  assert.ok(evidenceViewerUiCoverage.count <= 20);
+
+  const evidenceViewerUiFlags = await fetchJson(`${url}/api/evidence-viewer-ui-flags?human_review_required=true&card_binding_status=bound&limit=20`);
+  assert.equal(evidenceViewerUiFlags.collection, "evidence_viewer_ui_flags");
+  assert.ok(evidenceViewerUiFlags.count <= 20);
+
+  const evidenceViewerUiBoundary = await fetchJson(`${url}/api/evidence-viewer-ui-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(evidenceViewerUiBoundary.collection, "evidence_viewer_ui_boundary");
+  assert.ok(evidenceViewerUiBoundary.count <= 1);
+
+  const evidenceViewerUiChecks = await fetchJson(`${url}/api/evidence-viewer-ui-checks?status=passed&limit=20`);
+  assert.equal(evidenceViewerUiChecks.collection, "evidence_viewer_ui_checks");
+  assert.ok(evidenceViewerUiChecks.count <= 20);
+
+  const evidenceViewerUiValidations = await fetchJson(`${url}/api/evidence-viewer-ui-validations?status=passed&limit=20`);
+  assert.equal(evidenceViewerUiValidations.collection, "evidence_viewer_ui_validations");
+  assert.ok(evidenceViewerUiValidations.count <= 20);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

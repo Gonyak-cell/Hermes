@@ -125,6 +125,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   apiRouteInventoryPath: "artifacts/api-route-inventory/latest/api-route-inventory.json",
   dashboardInformationArchitecturePath: "artifacts/review-dashboard-ia/latest/review-dashboard-ia.json",
   approvalQueueUiPath: "artifacts/approval-queue-ui/latest/approval-queue-ui.json",
+  evidenceViewerUiPath: "artifacts/evidence-viewer-ui/latest/evidence-viewer-ui.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -893,6 +894,11 @@ const SOURCE_DEFINITIONS = [
     option: "approvalQueueUiPath",
     source_id: "approval_queue_ui",
     label: "Approval Queue UI",
+  },
+  {
+    option: "evidenceViewerUiPath",
+    source_id: "evidence_viewer_ui",
+    label: "Evidence Viewer UI",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -2293,6 +2299,7 @@ function buildStageStatuses(artifacts, sources) {
     buildApiRouteInventoryStage(artifacts.api_route_inventory, sourceById.get("api_route_inventory")),
     buildDashboardInformationArchitectureStage(artifacts.dashboard_information_architecture, sourceById.get("dashboard_information_architecture")),
     buildApprovalQueueUiStage(artifacts.approval_queue_ui, sourceById.get("approval_queue_ui")),
+    buildEvidenceViewerUiStage(artifacts.evidence_viewer_ui, sourceById.get("evidence_viewer_ui")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -14715,6 +14722,126 @@ function buildApprovalQueueUiStage(artifact, source) {
   };
 }
 
+function buildEvidenceViewerUiStage(artifact, source) {
+  if (!artifact) return missingStage("evidence_viewer_ui", "Evidence Viewer UI", source);
+  const summary = artifact.summary ?? {};
+  const cardCount = summary.evidence_viewer_ui_card_count ?? 0;
+  const panelCount = summary.evidence_viewer_ui_panel_count ?? 0;
+  const status = artifact.validation?.valid === false
+    || summary.evidence_viewer_ui_status !== "complete"
+    || summary.phase_slot !== "P290"
+    || summary.previous_phase_slot !== "P289"
+    || summary.next_phase_slot !== "P291"
+    || summary.source_approval_queue_ui_status !== "complete"
+    || summary.source_approval_queue_ui_phase_slot !== "P289"
+    || summary.source_approval_queue_ui_next_phase_slot !== "P290"
+    || summary.source_evidence_viewer_data_status !== "complete"
+    || summary.source_citation_object_store_status !== "complete"
+    || summary.source_evidence_coverage_status !== "complete"
+    || summary.source_evidence_flags_status !== "complete"
+    || panelCount !== 5
+    || summary.required_panel_count !== 5
+    || summary.ready_panel_count !== 5
+    || cardCount <= 0
+    || summary.card_source_span_bound_count !== cardCount
+    || summary.card_citation_bound_count !== cardCount
+    || summary.card_coverage_bound_count !== cardCount
+    || summary.card_flag_bound_count !== cardCount
+    || summary.human_review_required_card_count !== cardCount
+    || summary.client_facing_ready_card_count !== 0
+    || summary.read_only_card_count !== cardCount
+    || summary.preview_only_card_count !== cardCount
+    || summary.read_only !== true
+    || summary.ui_projection_only !== true
+    || summary.source_span_preview_only !== true
+    || summary.citation_preview_only !== true
+    || summary.coverage_preview_only !== true
+    || summary.source_file_content_read_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.evidence_mutation_performed !== false
+    || summary.citation_approval_performed !== false
+    || summary.output_delivery_performed !== false
+    || summary.route_execution_performed !== false
+    || summary.server_started !== false
+    || summary.mutation_allowed !== false
+    || summary.protected_action_executed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "evidence_viewer_ui",
+    label: "Evidence Viewer UI",
+    status,
+    message: `${cardCount} evidence UI card(s) across ${panelCount} panel(s), ${summary.partial_coverage_card_count ?? 0} partial coverage card(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      evidence_viewer_ui_status: summary.evidence_viewer_ui_status ?? "unknown",
+      evidence_viewer_ui_id: summary.evidence_viewer_ui_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_approval_queue_ui_status: summary.source_approval_queue_ui_status ?? "unknown",
+      source_approval_queue_ui_phase_slot: summary.source_approval_queue_ui_phase_slot ?? null,
+      source_approval_queue_ui_next_phase_slot: summary.source_approval_queue_ui_next_phase_slot ?? null,
+      source_dashboard_information_architecture_status: summary.source_dashboard_information_architecture_status ?? "unknown",
+      source_evidence_viewer_data_status: summary.source_evidence_viewer_data_status ?? "unknown",
+      source_evidence_viewer_data_card_count: summary.source_evidence_viewer_data_card_count ?? 0,
+      source_citation_object_store_status: summary.source_citation_object_store_status ?? "unknown",
+      source_citation_count: summary.source_citation_count ?? 0,
+      source_evidence_coverage_status: summary.source_evidence_coverage_status ?? "unknown",
+      source_coverage_score_count: summary.source_coverage_score_count ?? 0,
+      source_evidence_flags_status: summary.source_evidence_flags_status ?? "unknown",
+      source_flag_record_count: summary.source_flag_record_count ?? 0,
+      evidence_viewer_ui_panel_count: panelCount,
+      required_panel_count: summary.required_panel_count ?? 0,
+      ready_panel_count: summary.ready_panel_count ?? 0,
+      evidence_viewer_ui_card_count: cardCount,
+      source_span_row_count: summary.source_span_row_count ?? 0,
+      citation_row_count: summary.citation_row_count ?? 0,
+      coverage_row_count: summary.coverage_row_count ?? 0,
+      flag_row_count: summary.flag_row_count ?? 0,
+      card_source_span_bound_count: summary.card_source_span_bound_count ?? 0,
+      card_citation_bound_count: summary.card_citation_bound_count ?? 0,
+      card_coverage_bound_count: summary.card_coverage_bound_count ?? 0,
+      card_flag_bound_count: summary.card_flag_bound_count ?? 0,
+      full_coverage_card_count: summary.full_coverage_card_count ?? 0,
+      partial_coverage_card_count: summary.partial_coverage_card_count ?? 0,
+      missing_required_dimension_card_count: summary.missing_required_dimension_card_count ?? 0,
+      human_review_required_card_count: summary.human_review_required_card_count ?? 0,
+      client_facing_ready_card_count: summary.client_facing_ready_card_count ?? 0,
+      read_only_card_count: summary.read_only_card_count ?? 0,
+      preview_only_card_count: summary.preview_only_card_count ?? 0,
+      read_only: summary.read_only ?? false,
+      ui_projection_only: summary.ui_projection_only ?? false,
+      source_span_preview_only: summary.source_span_preview_only ?? false,
+      citation_preview_only: summary.citation_preview_only ?? false,
+      coverage_preview_only: summary.coverage_preview_only ?? false,
+      source_file_content_read_performed: summary.source_file_content_read_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      evidence_mutation_performed: summary.evidence_mutation_performed ?? false,
+      citation_approval_performed: summary.citation_approval_performed ?? false,
+      output_delivery_performed: summary.output_delivery_performed ?? false,
+      route_execution_performed: summary.route_execution_performed ?? false,
+      server_started: summary.server_started ?? false,
+      mutation_allowed: summary.mutation_allowed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      human_review_required: true,
+      client_facing_ready: false,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -21413,6 +21540,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_approval_queue_ui", "rerun_approval_queue_ui", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.evidence_viewer_ui?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "evidence_viewer_ui";
+    items.push({
+      action_item_id: `dashboard.action.evidence_viewer_ui.${slugify(subjectId)}`,
+      source_stage: "evidence_viewer_ui",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Evidence Viewer UI",
+      subject_ref: {
+        subject_type: "evidence_viewer_ui_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_evidence_viewer_ui", "rerun_evidence_viewer_ui", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -28609,6 +28754,63 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     approval_queue_ui_validation_item_count: artifacts.approval_queue_ui?.summary?.validation_item_count ?? 0,
     approval_queue_ui_failed_checkpoint_count: artifacts.approval_queue_ui?.summary?.failed_checkpoint_count ?? 0,
     approval_queue_ui_validation_error_count: artifacts.approval_queue_ui?.summary?.validation_error_count ?? artifacts.approval_queue_ui?.validation?.errors?.length ?? 0,
+    evidence_viewer_ui_status: artifacts.evidence_viewer_ui?.summary?.evidence_viewer_ui_status ?? "unknown",
+    evidence_viewer_ui_id: artifacts.evidence_viewer_ui?.summary?.evidence_viewer_ui_id ?? null,
+    evidence_viewer_ui_phase_slot: artifacts.evidence_viewer_ui?.summary?.phase_slot ?? null,
+    evidence_viewer_ui_previous_phase_slot: artifacts.evidence_viewer_ui?.summary?.previous_phase_slot ?? null,
+    evidence_viewer_ui_next_phase_slot: artifacts.evidence_viewer_ui?.summary?.next_phase_slot ?? null,
+    evidence_viewer_ui_source_approval_queue_ui_status: artifacts.evidence_viewer_ui?.summary?.source_approval_queue_ui_status ?? "unknown",
+    evidence_viewer_ui_source_approval_queue_ui_phase_slot: artifacts.evidence_viewer_ui?.summary?.source_approval_queue_ui_phase_slot ?? null,
+    evidence_viewer_ui_source_approval_queue_ui_next_phase_slot: artifacts.evidence_viewer_ui?.summary?.source_approval_queue_ui_next_phase_slot ?? null,
+    evidence_viewer_ui_source_dashboard_information_architecture_status: artifacts.evidence_viewer_ui?.summary?.source_dashboard_information_architecture_status ?? "unknown",
+    evidence_viewer_ui_source_evidence_viewer_data_status: artifacts.evidence_viewer_ui?.summary?.source_evidence_viewer_data_status ?? "unknown",
+    evidence_viewer_ui_source_evidence_viewer_data_card_count: artifacts.evidence_viewer_ui?.summary?.source_evidence_viewer_data_card_count ?? 0,
+    evidence_viewer_ui_source_citation_object_store_status: artifacts.evidence_viewer_ui?.summary?.source_citation_object_store_status ?? "unknown",
+    evidence_viewer_ui_source_citation_count: artifacts.evidence_viewer_ui?.summary?.source_citation_count ?? 0,
+    evidence_viewer_ui_source_evidence_coverage_status: artifacts.evidence_viewer_ui?.summary?.source_evidence_coverage_status ?? "unknown",
+    evidence_viewer_ui_source_coverage_score_count: artifacts.evidence_viewer_ui?.summary?.source_coverage_score_count ?? 0,
+    evidence_viewer_ui_source_evidence_flags_status: artifacts.evidence_viewer_ui?.summary?.source_evidence_flags_status ?? "unknown",
+    evidence_viewer_ui_source_flag_record_count: artifacts.evidence_viewer_ui?.summary?.source_flag_record_count ?? 0,
+    evidence_viewer_ui_panel_count: artifacts.evidence_viewer_ui?.summary?.evidence_viewer_ui_panel_count ?? 0,
+    evidence_viewer_ui_required_panel_count: artifacts.evidence_viewer_ui?.summary?.required_panel_count ?? 0,
+    evidence_viewer_ui_ready_panel_count: artifacts.evidence_viewer_ui?.summary?.ready_panel_count ?? 0,
+    evidence_viewer_ui_card_count: artifacts.evidence_viewer_ui?.summary?.evidence_viewer_ui_card_count ?? 0,
+    evidence_viewer_ui_source_span_row_count: artifacts.evidence_viewer_ui?.summary?.source_span_row_count ?? 0,
+    evidence_viewer_ui_citation_row_count: artifacts.evidence_viewer_ui?.summary?.citation_row_count ?? 0,
+    evidence_viewer_ui_coverage_row_count: artifacts.evidence_viewer_ui?.summary?.coverage_row_count ?? 0,
+    evidence_viewer_ui_flag_row_count: artifacts.evidence_viewer_ui?.summary?.flag_row_count ?? 0,
+    evidence_viewer_ui_card_source_span_bound_count: artifacts.evidence_viewer_ui?.summary?.card_source_span_bound_count ?? 0,
+    evidence_viewer_ui_card_citation_bound_count: artifacts.evidence_viewer_ui?.summary?.card_citation_bound_count ?? 0,
+    evidence_viewer_ui_card_coverage_bound_count: artifacts.evidence_viewer_ui?.summary?.card_coverage_bound_count ?? 0,
+    evidence_viewer_ui_card_flag_bound_count: artifacts.evidence_viewer_ui?.summary?.card_flag_bound_count ?? 0,
+    evidence_viewer_ui_full_coverage_card_count: artifacts.evidence_viewer_ui?.summary?.full_coverage_card_count ?? 0,
+    evidence_viewer_ui_partial_coverage_card_count: artifacts.evidence_viewer_ui?.summary?.partial_coverage_card_count ?? 0,
+    evidence_viewer_ui_missing_required_dimension_card_count: artifacts.evidence_viewer_ui?.summary?.missing_required_dimension_card_count ?? 0,
+    evidence_viewer_ui_human_review_required_card_count: artifacts.evidence_viewer_ui?.summary?.human_review_required_card_count ?? 0,
+    evidence_viewer_ui_client_facing_ready_card_count: artifacts.evidence_viewer_ui?.summary?.client_facing_ready_card_count ?? 0,
+    evidence_viewer_ui_read_only_card_count: artifacts.evidence_viewer_ui?.summary?.read_only_card_count ?? 0,
+    evidence_viewer_ui_preview_only_card_count: artifacts.evidence_viewer_ui?.summary?.preview_only_card_count ?? 0,
+    evidence_viewer_ui_read_only: artifacts.evidence_viewer_ui?.summary?.read_only ?? false,
+    evidence_viewer_ui_ui_projection_only: artifacts.evidence_viewer_ui?.summary?.ui_projection_only ?? false,
+    evidence_viewer_ui_source_span_preview_only: artifacts.evidence_viewer_ui?.summary?.source_span_preview_only ?? false,
+    evidence_viewer_ui_citation_preview_only: artifacts.evidence_viewer_ui?.summary?.citation_preview_only ?? false,
+    evidence_viewer_ui_coverage_preview_only: artifacts.evidence_viewer_ui?.summary?.coverage_preview_only ?? false,
+    evidence_viewer_ui_source_file_content_read_performed: artifacts.evidence_viewer_ui?.summary?.source_file_content_read_performed ?? false,
+    evidence_viewer_ui_source_ingest_performed: artifacts.evidence_viewer_ui?.summary?.source_ingest_performed ?? false,
+    evidence_viewer_ui_evidence_mutation_performed: artifacts.evidence_viewer_ui?.summary?.evidence_mutation_performed ?? false,
+    evidence_viewer_ui_citation_approval_performed: artifacts.evidence_viewer_ui?.summary?.citation_approval_performed ?? false,
+    evidence_viewer_ui_output_delivery_performed: artifacts.evidence_viewer_ui?.summary?.output_delivery_performed ?? false,
+    evidence_viewer_ui_route_execution_performed: artifacts.evidence_viewer_ui?.summary?.route_execution_performed ?? false,
+    evidence_viewer_ui_server_started: artifacts.evidence_viewer_ui?.summary?.server_started ?? false,
+    evidence_viewer_ui_mutation_allowed: artifacts.evidence_viewer_ui?.summary?.mutation_allowed ?? false,
+    evidence_viewer_ui_protected_action_executed: artifacts.evidence_viewer_ui?.summary?.protected_action_executed ?? false,
+    evidence_viewer_ui_legal_advice_generated: artifacts.evidence_viewer_ui?.summary?.legal_advice_generated ?? false,
+    evidence_viewer_ui_client_facing_output_generated: artifacts.evidence_viewer_ui?.summary?.client_facing_output_generated ?? false,
+    evidence_viewer_ui_windows_baseline_stability_preserved: artifacts.evidence_viewer_ui?.summary?.windows_baseline_stability_preserved ?? false,
+    evidence_viewer_ui_mac_windows_completion_instability_guard: artifacts.evidence_viewer_ui?.summary?.mac_windows_completion_instability_guard ?? false,
+    evidence_viewer_ui_validation_item_count: artifacts.evidence_viewer_ui?.summary?.validation_item_count ?? 0,
+    evidence_viewer_ui_failed_checkpoint_count: artifacts.evidence_viewer_ui?.summary?.failed_checkpoint_count ?? 0,
+    evidence_viewer_ui_validation_error_count: artifacts.evidence_viewer_ui?.summary?.validation_error_count ?? artifacts.evidence_viewer_ui?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -30442,6 +30644,8 @@ function parseArgs(argv) {
     else if (arg === "--no-dashboard-ia") parsed.dashboardInformationArchitecturePath = false;
     else if (arg === "--approval-queue-ui") parsed.approvalQueueUiPath = argv[++index];
     else if (arg === "--no-approval-queue-ui") parsed.approvalQueueUiPath = false;
+    else if (arg === "--evidence-viewer-ui") parsed.evidenceViewerUiPath = argv[++index];
+    else if (arg === "--no-evidence-viewer-ui") parsed.evidenceViewerUiPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

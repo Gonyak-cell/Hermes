@@ -95,6 +95,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   docxRendererPath: "artifacts/docx-renderer/latest/docx-renderer.json",
   pptxRendererPath: "artifacts/pptx-renderer/latest/pptx-renderer.json",
   pdfHtmlRendererPath: "artifacts/pdf-html-renderer/latest/pdf-html-renderer.json",
+  layoutValidatorPath: "artifacts/layout-validator/latest/layout-validator.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -713,6 +714,11 @@ const SOURCE_DEFINITIONS = [
     option: "pdfHtmlRendererPath",
     source_id: "pdf_html_renderer",
     label: "PDF/HTML Renderer",
+  },
+  {
+    option: "layoutValidatorPath",
+    source_id: "layout_validator",
+    label: "Layout Validator",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1677,6 +1683,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "docx_renderer") return data.summary ?? {};
   if (sourceId === "pptx_renderer") return data.summary ?? {};
   if (sourceId === "pdf_html_renderer") return data.summary ?? {};
+  if (sourceId === "layout_validator") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2053,6 +2060,7 @@ function buildStageStatuses(artifacts, sources) {
     buildDocxRendererStage(artifacts.docx_renderer, sourceById.get("docx_renderer")),
     buildPptxRendererStage(artifacts.pptx_renderer, sourceById.get("pptx_renderer")),
     buildPdfHtmlRendererStage(artifacts.pdf_html_renderer, sourceById.get("pdf_html_renderer")),
+    buildLayoutValidatorStage(artifacts.layout_validator, sourceById.get("layout_validator")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -11163,6 +11171,102 @@ function buildPdfHtmlRendererStage(artifact, source) {
   };
 }
 
+function buildLayoutValidatorStage(artifact, source) {
+  if (!artifact) return missingStage("layout_validator", "Layout Validator", source);
+  const summary = artifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.layout_validator_status !== "complete"
+    || summary.source_docx_renderer_status !== "complete"
+    || summary.source_pptx_renderer_status !== "complete"
+    || summary.source_pdf_html_renderer_status !== "complete"
+    || summary.layout_target_count < 1
+    || summary.layout_validation_result_count !== summary.layout_target_count
+    || summary.passed_layout_validation_result_count !== summary.layout_validation_result_count
+    || summary.failed_layout_validation_result_count !== 0
+    || summary.page_count_check_count !== summary.layout_target_count
+    || summary.passed_page_count_check_count !== summary.page_count_check_count
+    || summary.layout_overflow_check_count !== summary.layout_target_count
+    || summary.passed_layout_overflow_check_count !== summary.layout_overflow_check_count
+    || summary.broken_table_check_count !== summary.layout_target_count
+    || summary.passed_broken_table_check_count !== summary.broken_table_check_count
+    || summary.broken_table_count !== 0
+    || summary.overflow_signal_count !== 0
+    || summary.human_review_required_result_count !== summary.layout_validation_result_count
+    || summary.attorney_review_required_result_count !== summary.layout_validation_result_count
+    || summary.layout_validation_report_only !== true
+    || summary.renderer_execution_allowed === true
+    || summary.document_renderer_runtime_execution_allowed === true
+    || summary.external_renderer_execution_allowed === true
+    || summary.network_access_allowed === true
+    || summary.artifact_write_allowed !== true
+    || summary.core_registry_mutation_allowed === true
+    || summary.delivery_execution_allowed === true
+    || summary.delivery_execution_performed === true
+    || summary.protected_action_allowed === true
+    || summary.protected_action_executed === true
+    || summary.legal_advice_generated === true
+    || summary.client_facing_output_generated === true
+    || summary.client_facing_ready_count !== 0
+    || summary.failed_checkpoint_count !== 0
+    || artifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "layout_validator",
+    label: "Layout Validator",
+    status,
+    message: `${summary.passed_layout_validation_result_count ?? 0}/${summary.layout_validation_result_count ?? 0} result(s), ${summary.passed_page_count_check_count ?? 0}/${summary.page_count_check_count ?? 0} page count check(s), ${summary.passed_broken_table_check_count ?? 0}/${summary.broken_table_check_count ?? 0} broken table check(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      layout_validator_status: summary.layout_validator_status ?? "unknown",
+      layout_validator_contract_id: summary.layout_validator_contract_id ?? null,
+      source_docx_renderer_status: summary.source_docx_renderer_status ?? "unknown",
+      source_pptx_renderer_status: summary.source_pptx_renderer_status ?? "unknown",
+      source_pdf_html_renderer_status: summary.source_pdf_html_renderer_status ?? "unknown",
+      layout_target_count: summary.layout_target_count ?? 0,
+      docx_layout_target_count: summary.docx_layout_target_count ?? 0,
+      pptx_layout_target_count: summary.pptx_layout_target_count ?? 0,
+      html_layout_target_count: summary.html_layout_target_count ?? 0,
+      pdf_layout_target_count: summary.pdf_layout_target_count ?? 0,
+      layout_validation_result_count: summary.layout_validation_result_count ?? 0,
+      passed_layout_validation_result_count: summary.passed_layout_validation_result_count ?? 0,
+      failed_layout_validation_result_count: summary.failed_layout_validation_result_count ?? 0,
+      page_count_check_count: summary.page_count_check_count ?? 0,
+      passed_page_count_check_count: summary.passed_page_count_check_count ?? 0,
+      layout_overflow_check_count: summary.layout_overflow_check_count ?? 0,
+      passed_layout_overflow_check_count: summary.passed_layout_overflow_check_count ?? 0,
+      broken_table_check_count: summary.broken_table_check_count ?? 0,
+      passed_broken_table_check_count: summary.passed_broken_table_check_count ?? 0,
+      broken_table_count: summary.broken_table_count ?? 0,
+      overflow_signal_count: summary.overflow_signal_count ?? 0,
+      max_page_count_observed: summary.max_page_count_observed ?? 0,
+      max_slide_count_observed: summary.max_slide_count_observed ?? 0,
+      human_review_required_result_count: summary.human_review_required_result_count ?? 0,
+      attorney_review_required_result_count: summary.attorney_review_required_result_count ?? 0,
+      source_attribution_required_result_count: summary.source_attribution_required_result_count ?? 0,
+      citation_review_required_result_count: summary.citation_review_required_result_count ?? 0,
+      layout_validation_report_only: summary.layout_validation_report_only ?? false,
+      renderer_execution_allowed: summary.renderer_execution_allowed ?? false,
+      document_renderer_runtime_execution_allowed: summary.document_renderer_runtime_execution_allowed ?? false,
+      external_renderer_execution_allowed: summary.external_renderer_execution_allowed ?? false,
+      network_access_allowed: summary.network_access_allowed ?? false,
+      artifact_write_allowed: summary.artifact_write_allowed ?? false,
+      core_registry_mutation_allowed: summary.core_registry_mutation_allowed ?? false,
+      delivery_execution_allowed: summary.delivery_execution_allowed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      protected_action_allowed: summary.protected_action_allowed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      metadata_hash_count: summary.metadata_hash_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -17325,6 +17429,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.layout_validator?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "layout_validator";
+    items.push({
+      action_item_id: `dashboard.action.layout_validator.${slugify(subjectId)}`,
+      source_stage: "layout_validator",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix layout validator",
+      subject_ref: {
+        subject_type: "layout_validator_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_layout_validator", "rerun_layout_validator", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -23070,6 +23192,45 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     pdf_html_renderer_metadata_hash_count: artifacts.pdf_html_renderer?.summary?.metadata_hash_count ?? 0,
     pdf_html_renderer_failed_checkpoint_count: artifacts.pdf_html_renderer?.summary?.failed_checkpoint_count ?? 0,
     pdf_html_renderer_validation_error_count: artifacts.pdf_html_renderer?.summary?.validation_error_count ?? artifacts.pdf_html_renderer?.validation?.errors?.length ?? 0,
+    layout_validator_status: artifacts.layout_validator?.summary?.layout_validator_status ?? "unknown",
+    layout_validator_contract_id: artifacts.layout_validator?.summary?.layout_validator_contract_id ?? null,
+    layout_validator_source_docx_renderer_status: artifacts.layout_validator?.summary?.source_docx_renderer_status ?? "unknown",
+    layout_validator_source_pptx_renderer_status: artifacts.layout_validator?.summary?.source_pptx_renderer_status ?? "unknown",
+    layout_validator_source_pdf_html_renderer_status: artifacts.layout_validator?.summary?.source_pdf_html_renderer_status ?? "unknown",
+    layout_validator_target_count: artifacts.layout_validator?.summary?.layout_target_count ?? 0,
+    layout_validator_docx_target_count: artifacts.layout_validator?.summary?.docx_layout_target_count ?? 0,
+    layout_validator_pptx_target_count: artifacts.layout_validator?.summary?.pptx_layout_target_count ?? 0,
+    layout_validator_html_target_count: artifacts.layout_validator?.summary?.html_layout_target_count ?? 0,
+    layout_validator_pdf_target_count: artifacts.layout_validator?.summary?.pdf_layout_target_count ?? 0,
+    layout_validator_result_count: artifacts.layout_validator?.summary?.layout_validation_result_count ?? 0,
+    layout_validator_passed_result_count: artifacts.layout_validator?.summary?.passed_layout_validation_result_count ?? 0,
+    layout_validator_failed_result_count: artifacts.layout_validator?.summary?.failed_layout_validation_result_count ?? 0,
+    layout_validator_page_count_check_count: artifacts.layout_validator?.summary?.page_count_check_count ?? 0,
+    layout_validator_passed_page_count_check_count: artifacts.layout_validator?.summary?.passed_page_count_check_count ?? 0,
+    layout_validator_overflow_check_count: artifacts.layout_validator?.summary?.layout_overflow_check_count ?? 0,
+    layout_validator_passed_overflow_check_count: artifacts.layout_validator?.summary?.passed_layout_overflow_check_count ?? 0,
+    layout_validator_broken_table_check_count: artifacts.layout_validator?.summary?.broken_table_check_count ?? 0,
+    layout_validator_passed_broken_table_check_count: artifacts.layout_validator?.summary?.passed_broken_table_check_count ?? 0,
+    layout_validator_broken_table_count: artifacts.layout_validator?.summary?.broken_table_count ?? 0,
+    layout_validator_overflow_signal_count: artifacts.layout_validator?.summary?.overflow_signal_count ?? 0,
+    layout_validator_human_review_required_result_count: artifacts.layout_validator?.summary?.human_review_required_result_count ?? 0,
+    layout_validator_attorney_review_required_result_count: artifacts.layout_validator?.summary?.attorney_review_required_result_count ?? 0,
+    layout_validator_report_only: artifacts.layout_validator?.summary?.layout_validation_report_only ?? false,
+    layout_validator_renderer_execution_allowed: artifacts.layout_validator?.summary?.renderer_execution_allowed ?? false,
+    layout_validator_document_renderer_runtime_execution_allowed: artifacts.layout_validator?.summary?.document_renderer_runtime_execution_allowed ?? false,
+    layout_validator_external_renderer_execution_allowed: artifacts.layout_validator?.summary?.external_renderer_execution_allowed ?? false,
+    layout_validator_network_access_allowed: artifacts.layout_validator?.summary?.network_access_allowed ?? false,
+    layout_validator_artifact_write_allowed: artifacts.layout_validator?.summary?.artifact_write_allowed ?? false,
+    layout_validator_delivery_execution_allowed: artifacts.layout_validator?.summary?.delivery_execution_allowed ?? false,
+    layout_validator_delivery_execution_performed: artifacts.layout_validator?.summary?.delivery_execution_performed ?? false,
+    layout_validator_protected_action_allowed: artifacts.layout_validator?.summary?.protected_action_allowed ?? false,
+    layout_validator_protected_action_executed: artifacts.layout_validator?.summary?.protected_action_executed ?? false,
+    layout_validator_legal_advice_generated: artifacts.layout_validator?.summary?.legal_advice_generated ?? false,
+    layout_validator_client_facing_output_generated: artifacts.layout_validator?.summary?.client_facing_output_generated ?? false,
+    layout_validator_client_facing_ready_count: artifacts.layout_validator?.summary?.client_facing_ready_count ?? 0,
+    layout_validator_metadata_hash_count: artifacts.layout_validator?.summary?.metadata_hash_count ?? 0,
+    layout_validator_failed_checkpoint_count: artifacts.layout_validator?.summary?.failed_checkpoint_count ?? 0,
+    layout_validator_validation_error_count: artifacts.layout_validator?.summary?.validation_error_count ?? artifacts.layout_validator?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -24843,6 +25004,8 @@ function parseArgs(argv) {
     else if (arg === "--no-pptx-renderer") parsed.pptxRendererPath = false;
     else if (arg === "--pdf-html-renderer") parsed.pdfHtmlRendererPath = argv[++index];
     else if (arg === "--no-pdf-html-renderer") parsed.pdfHtmlRendererPath = false;
+    else if (arg === "--layout-validator") parsed.layoutValidatorPath = argv[++index];
+    else if (arg === "--no-layout-validator") parsed.layoutValidatorPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

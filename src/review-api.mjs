@@ -4715,6 +4715,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("pdf_html_renderer_validations", pdfHtmlRendererResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/layout-validators") {
+    const layoutValidatorResult = await readDashboardSourceArtifact(dashboard, "layout_validator");
+    if (!layoutValidatorResult.available) {
+      return jsonResponse(503, buildError("layout_validator_unavailable", layoutValidatorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("layout_validators", [layoutValidatorResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/layout-targets") {
+    const layoutValidatorResult = await readDashboardSourceArtifact(dashboard, "layout_validator");
+    if (!layoutValidatorResult.available) {
+      return jsonResponse(503, buildError("layout_validator_unavailable", layoutValidatorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("layout_targets", layoutValidatorResult.artifact.layout_targets ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/layout-validation-results") {
+    const layoutValidatorResult = await readDashboardSourceArtifact(dashboard, "layout_validator");
+    if (!layoutValidatorResult.available) {
+      return jsonResponse(503, buildError("layout_validator_unavailable", layoutValidatorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("layout_validation_results", layoutValidatorResult.artifact.layout_validation_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/layout-validation-checks") {
+    const layoutValidatorResult = await readDashboardSourceArtifact(dashboard, "layout_validator");
+    if (!layoutValidatorResult.available) {
+      return jsonResponse(503, buildError("layout_validator_unavailable", layoutValidatorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("layout_validation_checks", layoutValidatorResult.artifact.layout_validation_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/layout-validator-validations") {
+    const layoutValidatorResult = await readDashboardSourceArtifact(dashboard, "layout_validator");
+    if (!layoutValidatorResult.available) {
+      return jsonResponse(503, buildError("layout_validator_unavailable", layoutValidatorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("layout_validator_validations", layoutValidatorResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -10993,6 +11028,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/pdf-html-output-artifacts", "PDF/HTML output artifact rows"),
       route("GET", "/api/pdf-html-format-validations", "PDF/HTML format validation rows"),
       route("GET", "/api/pdf-html-renderer-validations", "PDF/HTML renderer validation rows"),
+      route("GET", "/api/layout-validators", "Layout validator artifact"),
+      route("GET", "/api/layout-targets", "Layout target rows"),
+      route("GET", "/api/layout-validation-results", "Layout validation result rows"),
+      route("GET", "/api/layout-validation-checks", "Layout validation check rows"),
+      route("GET", "/api/layout-validator-validations", "Layout validator validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -11998,6 +12038,11 @@ function filterItems(items, searchParams) {
     "pdf_export_status",
     "pdf_html_output_artifact_status",
     "pdf_html_format_validation_status",
+    "layout_validator_status",
+    "layout_target_format",
+    "layout_validation_status",
+    "layout_check_status",
+    "layout_check_type",
     "matter_os_profile_status",
     "profile_card_status",
     "display_field_status",
@@ -13731,6 +13776,11 @@ function readFilterValue(item, key) {
   if (key === "pdf_export_status") return item.pdf_export_status ?? item.output_artifact_status;
   if (key === "pdf_html_output_artifact_status") return item.output_artifact_status;
   if (key === "pdf_html_format_validation_status") return item.pdf_html_format_validation_status ?? item.validation_status;
+  if (key === "layout_validator_status") return item.summary?.layout_validator_status ?? item.layout_validator_status;
+  if (key === "layout_target_format") return item.output_format;
+  if (key === "layout_validation_status") return item.layout_validation_status ?? item.validation_status;
+  if (key === "layout_check_status") return item.status;
+  if (key === "layout_check_type") return item.check_type;
   if (key === "matter_os_profile_status") return item.summary?.matter_os_profile_status ?? item.matter_os_profile_status;
   if (key === "profile_card_status") return item.profile_card_status;
   if (key === "display_field_status") return item.display_field_status;

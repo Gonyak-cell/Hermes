@@ -141,6 +141,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "creative-document:docx-renderer",
   "creative-document:pptx-renderer",
   "creative-document:pdf-html-renderer",
+  "creative-document:layout-validator",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

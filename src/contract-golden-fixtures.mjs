@@ -168,6 +168,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     docx_renderer: "artifacts/docx-renderer/latest/docx-renderer.json",
     pptx_renderer: "artifacts/pptx-renderer/latest/pptx-renderer.json",
     pdf_html_renderer: "artifacts/pdf-html-renderer/latest/pdf-html-renderer.json",
+    layout_validator: "artifacts/layout-validator/latest/layout-validator.json",
   },
 };
 
@@ -329,6 +330,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("docx_renderer", "DOCX Renderer", "creative_document", "docx-renderer.schema.json"),
   fixtureDefinition("pptx_renderer", "PPTX Renderer", "creative_document", "pptx-renderer.schema.json"),
   fixtureDefinition("pdf_html_renderer", "PDF/HTML Renderer", "creative_document", "pdf-html-renderer.schema.json"),
+  fixtureDefinition("layout_validator", "Layout Validator", "creative_document", "layout-validator.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),

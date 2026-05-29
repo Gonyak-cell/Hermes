@@ -132,6 +132,7 @@ const GOAL_ITEMS = [
   sourceItem("docx_renderer", "DOCX renderer", "creative_document", "docx_renderer", "control-plane-docx-renderer", { acceptance_profile: "docx_renderer_gate" }),
   sourceItem("pptx_renderer", "PPTX renderer", "creative_document", "pptx_renderer", "control-plane-pptx-renderer", { acceptance_profile: "pptx_renderer_gate" }),
   sourceItem("pdf_html_renderer", "PDF/HTML renderer", "creative_document", "pdf_html_renderer", "control-plane-pdf-html-renderer", { acceptance_profile: "pdf_html_renderer_gate" }),
+  sourceItem("layout_validator", "Layout validator", "creative_document", "layout_validator", "control-plane-layout-validator", { acceptance_profile: "layout_validator_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -623,6 +624,7 @@ function evaluateStageAcceptance(item, stage) {
     "docx_renderer_gate",
     "pptx_renderer_gate",
     "pdf_html_renderer_gate",
+    "layout_validator_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -4490,6 +4492,47 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.failed_checkpoint_count === 0
     ) {
       return passedWithOperationalGate(stage, "PDF/HTML Renderer generates draft HTML preview and PDF export artifacts with format validation while preserving attorney review, no legal advice, no runtime execution, and no delivery.");
+    }
+  }
+
+  if (item.acceptance_profile === "layout_validator_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.layout_validator_status === "complete"
+      && metrics.source_docx_renderer_status === "complete"
+      && metrics.source_pptx_renderer_status === "complete"
+      && metrics.source_pdf_html_renderer_status === "complete"
+      && metrics.layout_target_count >= 1
+      && metrics.layout_validation_result_count === metrics.layout_target_count
+      && metrics.passed_layout_validation_result_count === metrics.layout_validation_result_count
+      && metrics.failed_layout_validation_result_count === 0
+      && metrics.page_count_check_count === metrics.layout_target_count
+      && metrics.passed_page_count_check_count === metrics.page_count_check_count
+      && metrics.layout_overflow_check_count === metrics.layout_target_count
+      && metrics.passed_layout_overflow_check_count === metrics.layout_overflow_check_count
+      && metrics.broken_table_check_count === metrics.layout_target_count
+      && metrics.passed_broken_table_check_count === metrics.broken_table_check_count
+      && metrics.broken_table_count === 0
+      && metrics.overflow_signal_count === 0
+      && metrics.human_review_required_result_count === metrics.layout_validation_result_count
+      && metrics.attorney_review_required_result_count === metrics.layout_validation_result_count
+      && metrics.layout_validation_report_only === true
+      && metrics.renderer_execution_allowed === false
+      && metrics.document_renderer_runtime_execution_allowed === false
+      && metrics.external_renderer_execution_allowed === false
+      && metrics.network_access_allowed === false
+      && metrics.artifact_write_allowed === true
+      && metrics.core_registry_mutation_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.protected_action_allowed === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.client_facing_ready_count === 0
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Layout Validator checks DOCX/PPTX/PDF/HTML page counts, overflow, and broken table signals while staying report-only, attorney-review gated, and delivery-blocked.");
     }
   }
 

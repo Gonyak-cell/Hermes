@@ -59,6 +59,7 @@ import { runAssetRegistry } from "../src/creative-document-asset-registry.mjs";
 import { runDocxRenderer } from "../src/creative-document-docx-renderer.mjs";
 import { runPptxRenderer } from "../src/creative-document-pptx-renderer.mjs";
 import { runPdfHtmlRenderer } from "../src/creative-document-pdf-html-renderer.mjs";
+import { runLayoutValidator } from "../src/creative-document-layout-validator.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1913,6 +1914,7 @@ describe("matter harness", () => {
         docxRendererPath: path.join(outDir, "docx-renderer", "docx-renderer.json"),
         pptxRendererPath: path.join(outDir, "pptx-renderer", "pptx-renderer.json"),
         pdfHtmlRendererPath: path.join(outDir, "pdf-html-renderer", "pdf-html-renderer.json"),
+        layoutValidatorPath: path.join(outDir, "layout-validator", "layout-validator.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10284,6 +10286,62 @@ describe("matter harness", () => {
       assert.equal(pdfExportBytes.slice(0, 5).toString("utf8"), "%PDF-");
       assert.match(await readFile(path.join(outDir, "pdf-html-renderer", "summary.md"), "utf8"), /PDF\/HTML Renderer/);
 
+      const layoutValidator = await runLayoutValidator({
+        docxRendererPath: path.join(outDir, "docx-renderer", "docx-renderer.json"),
+        pptxRendererPath: path.join(outDir, "pptx-renderer", "pptx-renderer.json"),
+        pdfHtmlRendererPath: path.join(outDir, "pdf-html-renderer", "pdf-html-renderer.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "layout-validator"),
+        runAt: "2026-05-23T07:00:19.000Z",
+      });
+      const layoutValidatorSchema = JSON.parse(await readFile("schemas/layout-validator.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(layoutValidator, layoutValidatorSchema, {}, "layout_validator"), []);
+      assert.equal(layoutValidator.summary.layout_validator_status, "complete");
+      assert.equal(layoutValidator.summary.layout_validator_contract_id, "layout-validator.v1");
+      assert.equal(layoutValidator.summary.source_docx_renderer_status, "complete");
+      assert.equal(layoutValidator.summary.source_pptx_renderer_status, "complete");
+      assert.equal(layoutValidator.summary.source_pdf_html_renderer_status, "complete");
+      assert.equal(layoutValidator.summary.layout_target_count, 7);
+      assert.equal(layoutValidator.summary.docx_layout_target_count, 1);
+      assert.equal(layoutValidator.summary.pptx_layout_target_count, 2);
+      assert.equal(layoutValidator.summary.html_layout_target_count, 2);
+      assert.equal(layoutValidator.summary.pdf_layout_target_count, 2);
+      assert.equal(layoutValidator.summary.layout_validation_result_count, 7);
+      assert.equal(layoutValidator.summary.passed_layout_validation_result_count, 7);
+      assert.equal(layoutValidator.summary.failed_layout_validation_result_count, 0);
+      assert.equal(layoutValidator.summary.page_count_check_count, 7);
+      assert.equal(layoutValidator.summary.passed_page_count_check_count, 7);
+      assert.equal(layoutValidator.summary.layout_overflow_check_count, 7);
+      assert.equal(layoutValidator.summary.passed_layout_overflow_check_count, 7);
+      assert.equal(layoutValidator.summary.broken_table_check_count, 7);
+      assert.equal(layoutValidator.summary.passed_broken_table_check_count, 7);
+      assert.equal(layoutValidator.summary.broken_table_count, 0);
+      assert.equal(layoutValidator.summary.overflow_signal_count, 0);
+      assert.equal(layoutValidator.summary.human_review_required_result_count, 7);
+      assert.equal(layoutValidator.summary.attorney_review_required_result_count, 7);
+      assert.equal(layoutValidator.summary.layout_validation_report_only, true);
+      assert.equal(layoutValidator.summary.renderer_execution_allowed, false);
+      assert.equal(layoutValidator.summary.document_renderer_runtime_execution_allowed, false);
+      assert.equal(layoutValidator.summary.external_renderer_execution_allowed, false);
+      assert.equal(layoutValidator.summary.network_access_allowed, false);
+      assert.equal(layoutValidator.summary.artifact_write_allowed, true);
+      assert.equal(layoutValidator.summary.delivery_execution_allowed, false);
+      assert.equal(layoutValidator.summary.delivery_execution_performed, false);
+      assert.equal(layoutValidator.summary.protected_action_allowed, false);
+      assert.equal(layoutValidator.summary.protected_action_executed, false);
+      assert.equal(layoutValidator.summary.legal_advice_generated, false);
+      assert.equal(layoutValidator.summary.client_facing_output_generated, false);
+      assert.equal(layoutValidator.summary.client_facing_ready_count, 0);
+      assert.equal(layoutValidator.summary.failed_checkpoint_count, 0);
+      assert.equal(layoutValidator.summary.validation_error_count, 0);
+      assert.ok(layoutValidator.layout_targets.every((target) => target.metadata_hash.startsWith("sha256:") && target.broken_table_count === 0 && target.overflow_signal_count === 0 && target.human_review_required && target.attorney_review_required && target.client_facing_ready === false));
+      assert.ok(layoutValidator.layout_validation_results.every((result) => result.layout_validation_status === "passed" && result.failed_check_count === 0 && result.metadata_hash.startsWith("sha256:") && result.human_review_note.includes("Not legal advice")));
+      assert.ok(layoutValidator.layout_validation_checks.filter((check) => check.check_type === "page_count").every((check) => check.status === "passed"));
+      assert.ok(layoutValidator.layout_validation_checks.filter((check) => check.check_type === "overflow").every((check) => check.status === "passed"));
+      assert.ok(layoutValidator.layout_validation_checks.filter((check) => check.check_type === "broken_table").every((check) => check.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "layout-validator", "summary.md"), "utf8"), /Layout Validator/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -10467,6 +10525,7 @@ describe("matter harness", () => {
           docx_renderer: path.join(outDir, "docx-renderer", "docx-renderer.json"),
           pptx_renderer: path.join(outDir, "pptx-renderer", "pptx-renderer.json"),
           pdf_html_renderer: path.join(outDir, "pdf-html-renderer", "pdf-html-renderer.json"),
+          layout_validator: path.join(outDir, "layout-validator", "layout-validator.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10518,8 +10577,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 161);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 161);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 162);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 162);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -10668,6 +10727,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "docx_renderer"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "pptx_renderer"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "pdf_html_renderer"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "layout_validator"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -10750,6 +10810,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:docx-renderer"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:pptx-renderer"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:pdf-html-renderer"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:layout-validator"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter-os:profile"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:timeline"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:document-index"));
@@ -11468,6 +11529,10 @@ describe("matter harness", () => {
       assert.equal(pdfHtmlRendererCheckpoint?.acceptance_profile, "pdf_html_renderer_gate");
       assert.equal(pdfHtmlRendererCheckpoint?.status, "passed");
       assert.equal(pdfHtmlRendererCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const layoutValidatorCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-layout-validator");
+      assert.equal(layoutValidatorCheckpoint?.acceptance_profile, "layout_validator_gate");
+      assert.equal(layoutValidatorCheckpoint?.status, "passed");
+      assert.equal(layoutValidatorCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -15463,6 +15528,44 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.pdf_html_renderer_output_delivery_contract_freeze_status, "complete");
       assert.equal(dashboard.summary.pdf_html_renderer_failed_checkpoint_count, 0);
       assert.equal(dashboard.summary.pdf_html_renderer_validation_error_count, 0);
+      assert.equal(dashboard.summary.layout_validator_status, "complete");
+      assert.equal(dashboard.summary.layout_validator_contract_id, layoutValidator.summary.layout_validator_contract_id);
+      assert.equal(dashboard.summary.layout_validator_source_docx_renderer_status, "complete");
+      assert.equal(dashboard.summary.layout_validator_source_pptx_renderer_status, "complete");
+      assert.equal(dashboard.summary.layout_validator_source_pdf_html_renderer_status, "complete");
+      assert.equal(dashboard.summary.layout_validator_target_count, layoutValidator.summary.layout_target_count);
+      assert.equal(dashboard.summary.layout_validator_docx_target_count, layoutValidator.summary.docx_layout_target_count);
+      assert.equal(dashboard.summary.layout_validator_pptx_target_count, layoutValidator.summary.pptx_layout_target_count);
+      assert.equal(dashboard.summary.layout_validator_html_target_count, layoutValidator.summary.html_layout_target_count);
+      assert.equal(dashboard.summary.layout_validator_pdf_target_count, layoutValidator.summary.pdf_layout_target_count);
+      assert.equal(dashboard.summary.layout_validator_result_count, layoutValidator.summary.layout_validation_result_count);
+      assert.equal(dashboard.summary.layout_validator_passed_result_count, layoutValidator.summary.passed_layout_validation_result_count);
+      assert.equal(dashboard.summary.layout_validator_failed_result_count, 0);
+      assert.equal(dashboard.summary.layout_validator_page_count_check_count, layoutValidator.summary.page_count_check_count);
+      assert.equal(dashboard.summary.layout_validator_passed_page_count_check_count, layoutValidator.summary.passed_page_count_check_count);
+      assert.equal(dashboard.summary.layout_validator_overflow_check_count, layoutValidator.summary.layout_overflow_check_count);
+      assert.equal(dashboard.summary.layout_validator_passed_overflow_check_count, layoutValidator.summary.passed_layout_overflow_check_count);
+      assert.equal(dashboard.summary.layout_validator_broken_table_check_count, layoutValidator.summary.broken_table_check_count);
+      assert.equal(dashboard.summary.layout_validator_passed_broken_table_check_count, layoutValidator.summary.passed_broken_table_check_count);
+      assert.equal(dashboard.summary.layout_validator_broken_table_count, 0);
+      assert.equal(dashboard.summary.layout_validator_overflow_signal_count, 0);
+      assert.equal(dashboard.summary.layout_validator_human_review_required_result_count, layoutValidator.summary.human_review_required_result_count);
+      assert.equal(dashboard.summary.layout_validator_attorney_review_required_result_count, layoutValidator.summary.attorney_review_required_result_count);
+      assert.equal(dashboard.summary.layout_validator_report_only, true);
+      assert.equal(dashboard.summary.layout_validator_renderer_execution_allowed, false);
+      assert.equal(dashboard.summary.layout_validator_document_renderer_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.layout_validator_external_renderer_execution_allowed, false);
+      assert.equal(dashboard.summary.layout_validator_network_access_allowed, false);
+      assert.equal(dashboard.summary.layout_validator_artifact_write_allowed, true);
+      assert.equal(dashboard.summary.layout_validator_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.layout_validator_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.layout_validator_protected_action_allowed, false);
+      assert.equal(dashboard.summary.layout_validator_protected_action_executed, false);
+      assert.equal(dashboard.summary.layout_validator_legal_advice_generated, false);
+      assert.equal(dashboard.summary.layout_validator_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.layout_validator_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.layout_validator_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.layout_validator_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -17883,6 +17986,46 @@ describe("matter harness", () => {
       assert.equal(pdfHtmlRendererStage?.metrics.metadata_hash_count, pdfHtmlRenderer.summary.metadata_hash_count);
       assert.equal(pdfHtmlRendererStage?.metrics.failed_checkpoint_count, 0);
       assert.equal(pdfHtmlRendererStage?.metrics.validation_error_count, 0);
+      const layoutValidatorStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "layout_validator");
+      assert.equal(layoutValidatorStage?.status, "passed");
+      assert.equal(layoutValidatorStage?.metrics.layout_validator_status, "complete");
+      assert.equal(layoutValidatorStage?.metrics.layout_validator_contract_id, layoutValidator.summary.layout_validator_contract_id);
+      assert.equal(layoutValidatorStage?.metrics.source_docx_renderer_status, "complete");
+      assert.equal(layoutValidatorStage?.metrics.source_pptx_renderer_status, "complete");
+      assert.equal(layoutValidatorStage?.metrics.source_pdf_html_renderer_status, "complete");
+      assert.equal(layoutValidatorStage?.metrics.layout_target_count, layoutValidator.summary.layout_target_count);
+      assert.equal(layoutValidatorStage?.metrics.docx_layout_target_count, layoutValidator.summary.docx_layout_target_count);
+      assert.equal(layoutValidatorStage?.metrics.pptx_layout_target_count, layoutValidator.summary.pptx_layout_target_count);
+      assert.equal(layoutValidatorStage?.metrics.html_layout_target_count, layoutValidator.summary.html_layout_target_count);
+      assert.equal(layoutValidatorStage?.metrics.pdf_layout_target_count, layoutValidator.summary.pdf_layout_target_count);
+      assert.equal(layoutValidatorStage?.metrics.layout_validation_result_count, layoutValidator.summary.layout_validation_result_count);
+      assert.equal(layoutValidatorStage?.metrics.passed_layout_validation_result_count, layoutValidator.summary.passed_layout_validation_result_count);
+      assert.equal(layoutValidatorStage?.metrics.failed_layout_validation_result_count, 0);
+      assert.equal(layoutValidatorStage?.metrics.page_count_check_count, layoutValidator.summary.page_count_check_count);
+      assert.equal(layoutValidatorStage?.metrics.passed_page_count_check_count, layoutValidator.summary.passed_page_count_check_count);
+      assert.equal(layoutValidatorStage?.metrics.layout_overflow_check_count, layoutValidator.summary.layout_overflow_check_count);
+      assert.equal(layoutValidatorStage?.metrics.passed_layout_overflow_check_count, layoutValidator.summary.passed_layout_overflow_check_count);
+      assert.equal(layoutValidatorStage?.metrics.broken_table_check_count, layoutValidator.summary.broken_table_check_count);
+      assert.equal(layoutValidatorStage?.metrics.passed_broken_table_check_count, layoutValidator.summary.passed_broken_table_check_count);
+      assert.equal(layoutValidatorStage?.metrics.broken_table_count, 0);
+      assert.equal(layoutValidatorStage?.metrics.overflow_signal_count, 0);
+      assert.equal(layoutValidatorStage?.metrics.human_review_required_result_count, layoutValidator.summary.human_review_required_result_count);
+      assert.equal(layoutValidatorStage?.metrics.attorney_review_required_result_count, layoutValidator.summary.attorney_review_required_result_count);
+      assert.equal(layoutValidatorStage?.metrics.layout_validation_report_only, true);
+      assert.equal(layoutValidatorStage?.metrics.renderer_execution_allowed, false);
+      assert.equal(layoutValidatorStage?.metrics.document_renderer_runtime_execution_allowed, false);
+      assert.equal(layoutValidatorStage?.metrics.external_renderer_execution_allowed, false);
+      assert.equal(layoutValidatorStage?.metrics.network_access_allowed, false);
+      assert.equal(layoutValidatorStage?.metrics.artifact_write_allowed, true);
+      assert.equal(layoutValidatorStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(layoutValidatorStage?.metrics.delivery_execution_performed, false);
+      assert.equal(layoutValidatorStage?.metrics.protected_action_allowed, false);
+      assert.equal(layoutValidatorStage?.metrics.protected_action_executed, false);
+      assert.equal(layoutValidatorStage?.metrics.legal_advice_generated, false);
+      assert.equal(layoutValidatorStage?.metrics.client_facing_output_generated, false);
+      assert.equal(layoutValidatorStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(layoutValidatorStage?.metrics.failed_checkpoint_count, 0);
+      assert.equal(layoutValidatorStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -19891,6 +20034,26 @@ describe("matter harness", () => {
       const pdfHtmlRendererValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/pdf-html-renderer-validations?status=passed", apiOptions)).body);
       assert.equal(pdfHtmlRendererValidationsResponse.collection, "pdf_html_renderer_validations");
       assert.equal(pdfHtmlRendererValidationsResponse.count, pdfHtmlRenderer.summary.validation_item_count);
+
+      const layoutValidatorsResponse = JSON.parse((await buildReviewApiResponse("/api/layout-validators?layout_validator_status=complete", apiOptions)).body);
+      assert.equal(layoutValidatorsResponse.collection, "layout_validators");
+      assert.equal(layoutValidatorsResponse.count, 1);
+
+      const layoutTargetsResponse = JSON.parse((await buildReviewApiResponse("/api/layout-targets?layout_target_format=pptx", apiOptions)).body);
+      assert.equal(layoutTargetsResponse.collection, "layout_targets");
+      assert.equal(layoutTargetsResponse.count, layoutValidator.summary.pptx_layout_target_count);
+
+      const layoutValidationResultsResponse = JSON.parse((await buildReviewApiResponse("/api/layout-validation-results?layout_validation_status=passed", apiOptions)).body);
+      assert.equal(layoutValidationResultsResponse.collection, "layout_validation_results");
+      assert.equal(layoutValidationResultsResponse.count, layoutValidator.summary.passed_layout_validation_result_count);
+
+      const layoutBrokenTableChecksResponse = JSON.parse((await buildReviewApiResponse("/api/layout-validation-checks?layout_check_type=broken_table&layout_check_status=passed", apiOptions)).body);
+      assert.equal(layoutBrokenTableChecksResponse.collection, "layout_validation_checks");
+      assert.equal(layoutBrokenTableChecksResponse.count, layoutValidator.summary.passed_broken_table_check_count);
+
+      const layoutValidatorValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/layout-validator-validations?status=passed", apiOptions)).body);
+      assert.equal(layoutValidatorValidationsResponse.collection, "layout_validator_validations");
+      assert.equal(layoutValidatorValidationsResponse.count, layoutValidator.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

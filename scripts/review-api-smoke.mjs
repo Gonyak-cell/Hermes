@@ -2092,6 +2092,26 @@ try {
   assert.equal(pdfHtmlRendererValidations.collection, "pdf_html_renderer_validations");
   assert.ok(pdfHtmlRendererValidations.count <= 5);
 
+  const layoutValidators = await fetchJson(`${url}/api/layout-validators?layout_validator_status=complete&limit=1`);
+  assert.equal(layoutValidators.collection, "layout_validators");
+  assert.ok(layoutValidators.count <= 1);
+
+  const layoutTargets = await fetchJson(`${url}/api/layout-targets?layout_target_format=pptx&limit=5`);
+  assert.equal(layoutTargets.collection, "layout_targets");
+  assert.ok(layoutTargets.count <= 5);
+
+  const layoutValidationResults = await fetchJson(`${url}/api/layout-validation-results?layout_validation_status=passed&limit=5`);
+  assert.equal(layoutValidationResults.collection, "layout_validation_results");
+  assert.ok(layoutValidationResults.count <= 5);
+
+  const layoutValidationChecks = await fetchJson(`${url}/api/layout-validation-checks?layout_check_type=broken_table&layout_check_status=passed&limit=5`);
+  assert.equal(layoutValidationChecks.collection, "layout_validation_checks");
+  assert.ok(layoutValidationChecks.count <= 5);
+
+  const layoutValidatorValidations = await fetchJson(`${url}/api/layout-validator-validations?status=passed&limit=5`);
+  assert.equal(layoutValidatorValidations.collection, "layout_validator_validations");
+  assert.ok(layoutValidatorValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

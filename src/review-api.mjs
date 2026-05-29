@@ -4421,6 +4421,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("creative_document_pack_validations", creativeDocumentPackManifestResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/template-registries") {
+    const templateRegistryResult = await readDashboardSourceArtifact(dashboard, "template_registry");
+    if (!templateRegistryResult.available) {
+      return jsonResponse(503, buildError("template_registry_unavailable", templateRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("template_registries", [templateRegistryResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/template-records") {
+    const templateRegistryResult = await readDashboardSourceArtifact(dashboard, "template_registry");
+    if (!templateRegistryResult.available) {
+      return jsonResponse(503, buildError("template_registry_unavailable", templateRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("template_records", templateRegistryResult.artifact.template_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/template-version-records") {
+    const templateRegistryResult = await readDashboardSourceArtifact(dashboard, "template_registry");
+    if (!templateRegistryResult.available) {
+      return jsonResponse(503, buildError("template_registry_unavailable", templateRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("template_version_records", templateRegistryResult.artifact.template_version_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/template-format-coverage") {
+    const templateRegistryResult = await readDashboardSourceArtifact(dashboard, "template_registry");
+    if (!templateRegistryResult.available) {
+      return jsonResponse(503, buildError("template_registry_unavailable", templateRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("template_format_coverage", templateRegistryResult.artifact.template_format_coverage ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/template-pack-bindings") {
+    const templateRegistryResult = await readDashboardSourceArtifact(dashboard, "template_registry");
+    if (!templateRegistryResult.available) {
+      return jsonResponse(503, buildError("template_registry_unavailable", templateRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("template_pack_bindings", templateRegistryResult.artifact.template_pack_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/template-registry-validations") {
+    const templateRegistryResult = await readDashboardSourceArtifact(dashboard, "template_registry");
+    if (!templateRegistryResult.available) {
+      return jsonResponse(503, buildError("template_registry_unavailable", templateRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("template_registry_validations", templateRegistryResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -10657,6 +10699,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/creative-document-capability-registrations", "Creative-document capability registration rows"),
       route("GET", "/api/creative-document-pack-boundary", "Creative-document read-only pack boundary"),
       route("GET", "/api/creative-document-pack-validations", "Creative-document pack manifest validation rows"),
+      route("GET", "/api/template-registries", "Template registry artifact"),
+      route("GET", "/api/template-records", "Template metadata records by pack and format"),
+      route("GET", "/api/template-version-records", "Template version tracking records"),
+      route("GET", "/api/template-format-coverage", "Template format coverage rows"),
+      route("GET", "/api/template-pack-bindings", "Template pack binding rows"),
+      route("GET", "/api/template-registry-validations", "Template registry validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -11621,6 +11669,13 @@ function filterItems(items, searchParams) {
     "law_firm_capability_registration_status",
     "creative_document_pack_manifest_status",
     "creative_document_capability_registration_status",
+    "template_registry_status",
+    "template_status",
+    "template_format",
+    "template_family",
+    "version_status",
+    "format_coverage_status",
+    "binding_status",
     "matter_os_profile_status",
     "profile_card_status",
     "display_field_status",
@@ -13313,6 +13368,13 @@ function readFilterValue(item, key) {
   if (key === "law_firm_capability_registration_status") return item.registration_status;
   if (key === "creative_document_pack_manifest_status") return item.summary?.creative_document_pack_manifest_status ?? item.creative_document_pack_manifest_status;
   if (key === "creative_document_capability_registration_status") return item.registration_status;
+  if (key === "template_registry_status") return item.summary?.template_registry_status ?? item.template_registry_status;
+  if (key === "template_status") return item.template_status;
+  if (key === "template_format") return item.template_format;
+  if (key === "template_family") return item.template_family;
+  if (key === "version_status") return item.version_status;
+  if (key === "format_coverage_status") return item.format_coverage_status;
+  if (key === "binding_status") return item.binding_status;
   if (key === "matter_os_profile_status") return item.summary?.matter_os_profile_status ?? item.matter_os_profile_status;
   if (key === "profile_card_status") return item.profile_card_status;
   if (key === "display_field_status") return item.display_field_status;

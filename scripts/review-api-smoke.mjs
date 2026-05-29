@@ -1924,6 +1924,30 @@ try {
   assert.equal(creativeDocumentPackValidations.collection, "creative_document_pack_validations");
   assert.ok(creativeDocumentPackValidations.count <= 5);
 
+  const templateRegistries = await fetchJson(`${url}/api/template-registries?template_registry_status=complete&limit=1`);
+  assert.equal(templateRegistries.collection, "template_registries");
+  assert.ok(templateRegistries.count <= 1);
+
+  const templateRecords = await fetchJson(`${url}/api/template-records?template_format=pptx&template_status=registered&limit=5`);
+  assert.equal(templateRecords.collection, "template_records");
+  assert.ok(templateRecords.count <= 5);
+
+  const templateVersionRecords = await fetchJson(`${url}/api/template-version-records?version_status=current&limit=5`);
+  assert.equal(templateVersionRecords.collection, "template_version_records");
+  assert.ok(templateVersionRecords.count <= 5);
+
+  const templateFormatCoverage = await fetchJson(`${url}/api/template-format-coverage?format_coverage_status=covered&limit=5`);
+  assert.equal(templateFormatCoverage.collection, "template_format_coverage");
+  assert.ok(templateFormatCoverage.count <= 5);
+
+  const templatePackBindings = await fetchJson(`${url}/api/template-pack-bindings?binding_status=linked&limit=5`);
+  assert.equal(templatePackBindings.collection, "template_pack_bindings");
+  assert.ok(templatePackBindings.count <= 5);
+
+  const templateRegistryValidations = await fetchJson(`${url}/api/template-registry-validations?status=passed&limit=5`);
+  assert.equal(templateRegistryValidations.collection, "template_registry_validations");
+  assert.ok(templateRegistryValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

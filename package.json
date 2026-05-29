@@ -126,6 +126,7 @@
     "control-plane:pipeline": "node scripts/control-plane-pipeline.mjs",
     "creative-document:slice": "node scripts/run-creative-document-slice.mjs",
     "creative-document:pack-manifest": "node scripts/creative-document-pack-manifest.mjs",
+    "creative-document:template-registry": "node scripts/creative-document-template-registry.mjs",
     "dashboard:build": "node scripts/review-dashboard.mjs",
     "delivery:closeout": "node scripts/delivery-closeout-queue.mjs",
     "delivery:closeout:apply": "node scripts/delivery-closeout-receipt-application.mjs",

@@ -89,6 +89,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   personalDevDashboardApiPath: "artifacts/personal-dev-dashboard-api/latest/personal-dev-dashboard-api.json",
   personalDevE2eFreezePath: "artifacts/personal-dev-e2e-freeze/latest/personal-dev-e2e-freeze.json",
   creativeDocumentPackManifestPath: "artifacts/creative-document-pack-manifest/latest/creative-document-pack-manifest.json",
+  templateRegistryPath: "artifacts/template-registry/latest/template-registry.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -677,6 +678,11 @@ const SOURCE_DEFINITIONS = [
     option: "creativeDocumentPackManifestPath",
     source_id: "creative_document_pack_manifest",
     label: "Creative Document Pack Manifest",
+  },
+  {
+    option: "templateRegistryPath",
+    source_id: "template_registry",
+    label: "Template Registry",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1635,6 +1641,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "legal_approval_matrix") return data.summary ?? {};
   if (sourceId === "law_firm_e2e_freeze") return data.summary ?? {};
   if (sourceId === "creative_document_pack_manifest") return data.summary ?? {};
+  if (sourceId === "template_registry") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2005,6 +2012,7 @@ function buildStageStatuses(artifacts, sources) {
     buildLegalApprovalMatrixStage(artifacts.legal_approval_matrix, sourceById.get("legal_approval_matrix")),
     buildLawFirmE2eFreezeStage(artifacts.law_firm_e2e_freeze, sourceById.get("law_firm_e2e_freeze")),
     buildCreativeDocumentPackManifestStage(artifacts.creative_document_pack_manifest, sourceById.get("creative_document_pack_manifest")),
+    buildTemplateRegistryStage(artifacts.template_registry, sourceById.get("template_registry")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -10467,6 +10475,87 @@ function buildCreativeDocumentPackManifestStage(artifact, source) {
   };
 }
 
+function buildTemplateRegistryStage(artifact, source) {
+  if (!artifact) return missingStage("template_registry", "Template Registry", source);
+  const summary = artifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.template_registry_status !== "complete"
+    || summary.source_creative_document_pack_manifest_status !== "complete"
+    || summary.template_count < 4
+    || summary.registered_template_count !== summary.template_count
+    || summary.template_version_count !== summary.template_count
+    || summary.current_version_count !== summary.template_version_count
+    || summary.required_format_count !== 4
+    || summary.covered_format_count !== summary.required_format_count
+    || summary.docx_template_count < 1
+    || summary.pptx_template_count < 1
+    || summary.html_template_count < 1
+    || summary.email_template_count < 1
+    || summary.metadata_hash_count !== summary.template_count
+    || summary.human_review_required_template_count !== summary.template_count
+    || summary.format_validation_required_template_count !== summary.template_count
+    || summary.runtime_freeze_status !== "complete"
+    || summary.document_renderer_adapter_status !== "complete"
+    || summary.output_delivery_contract_freeze_status !== "complete"
+    || summary.read_only !== true
+    || summary.metadata_registry_only !== true
+    || summary.template_file_write_allowed === true
+    || summary.core_registry_mutation_allowed === true
+    || summary.renderer_execution_allowed === true
+    || summary.delivery_execution_allowed === true
+    || summary.protected_action_allowed === true
+    || summary.client_facing_output_generated === true
+    || summary.client_facing_ready_count !== 0
+    || summary.failed_checkpoint_count !== 0
+    || artifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "template_registry",
+    label: "Template Registry",
+    status,
+    message: `${summary.template_count ?? 0} template(s), ${summary.covered_format_count ?? 0}/${summary.required_format_count ?? 0} format(s), ${summary.current_version_count ?? 0}/${summary.template_version_count ?? 0} current version(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      template_registry_status: summary.template_registry_status ?? "unknown",
+      template_registry_contract_id: summary.template_registry_contract_id ?? null,
+      source_creative_document_pack_manifest_status: summary.source_creative_document_pack_manifest_status ?? "unknown",
+      source_domain_pack_registry_status: summary.source_domain_pack_registry_status ?? "unknown",
+      template_count: summary.template_count ?? 0,
+      registered_template_count: summary.registered_template_count ?? 0,
+      template_version_count: summary.template_version_count ?? 0,
+      current_version_count: summary.current_version_count ?? 0,
+      pack_binding_count: summary.pack_binding_count ?? 0,
+      linked_pack_binding_count: summary.linked_pack_binding_count ?? 0,
+      required_format_count: summary.required_format_count ?? 0,
+      covered_format_count: summary.covered_format_count ?? 0,
+      docx_template_count: summary.docx_template_count ?? 0,
+      pptx_template_count: summary.pptx_template_count ?? 0,
+      html_template_count: summary.html_template_count ?? 0,
+      email_template_count: summary.email_template_count ?? 0,
+      metadata_hash_count: summary.metadata_hash_count ?? 0,
+      human_review_required_template_count: summary.human_review_required_template_count ?? 0,
+      format_validation_required_template_count: summary.format_validation_required_template_count ?? 0,
+      layout_validation_required_template_count: summary.layout_validation_required_template_count ?? 0,
+      runtime_freeze_status: summary.runtime_freeze_status ?? "unknown",
+      document_renderer_adapter_status: summary.document_renderer_adapter_status ?? "unknown",
+      output_delivery_contract_freeze_status: summary.output_delivery_contract_freeze_status ?? "unknown",
+      read_only: summary.read_only ?? false,
+      metadata_registry_only: summary.metadata_registry_only ?? false,
+      template_file_write_allowed: summary.template_file_write_allowed ?? false,
+      core_registry_mutation_allowed: summary.core_registry_mutation_allowed ?? false,
+      renderer_execution_allowed: summary.renderer_execution_allowed ?? false,
+      delivery_execution_allowed: summary.delivery_execution_allowed ?? false,
+      protected_action_allowed: summary.protected_action_allowed ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -16521,6 +16610,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.template_registry?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "template_registry";
+    items.push({
+      action_item_id: `dashboard.action.template_registry.${slugify(subjectId)}`,
+      source_stage: "template_registry",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix template registry",
+      subject_ref: {
+        subject_type: "template_registry_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_template_registry", "rerun_template_registry", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -21987,6 +22094,40 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     creative_document_pack_manifest_human_approval_capability_count: artifacts.creative_document_pack_manifest?.summary?.human_approval_capability_count ?? 0,
     creative_document_pack_manifest_failed_checkpoint_count: artifacts.creative_document_pack_manifest?.summary?.failed_checkpoint_count ?? 0,
     creative_document_pack_manifest_validation_error_count: artifacts.creative_document_pack_manifest?.summary?.validation_error_count ?? artifacts.creative_document_pack_manifest?.validation?.errors?.length ?? 0,
+    template_registry_status: artifacts.template_registry?.summary?.template_registry_status ?? "unknown",
+    template_registry_contract_id: artifacts.template_registry?.summary?.template_registry_contract_id ?? null,
+    template_registry_source_creative_document_pack_manifest_status: artifacts.template_registry?.summary?.source_creative_document_pack_manifest_status ?? "unknown",
+    template_registry_source_domain_pack_registry_status: artifacts.template_registry?.summary?.source_domain_pack_registry_status ?? "unknown",
+    template_registry_template_count: artifacts.template_registry?.summary?.template_count ?? 0,
+    template_registry_registered_template_count: artifacts.template_registry?.summary?.registered_template_count ?? 0,
+    template_registry_template_version_count: artifacts.template_registry?.summary?.template_version_count ?? 0,
+    template_registry_current_version_count: artifacts.template_registry?.summary?.current_version_count ?? 0,
+    template_registry_pack_binding_count: artifacts.template_registry?.summary?.pack_binding_count ?? 0,
+    template_registry_linked_pack_binding_count: artifacts.template_registry?.summary?.linked_pack_binding_count ?? 0,
+    template_registry_required_format_count: artifacts.template_registry?.summary?.required_format_count ?? 0,
+    template_registry_covered_format_count: artifacts.template_registry?.summary?.covered_format_count ?? 0,
+    template_registry_docx_template_count: artifacts.template_registry?.summary?.docx_template_count ?? 0,
+    template_registry_pptx_template_count: artifacts.template_registry?.summary?.pptx_template_count ?? 0,
+    template_registry_html_template_count: artifacts.template_registry?.summary?.html_template_count ?? 0,
+    template_registry_email_template_count: artifacts.template_registry?.summary?.email_template_count ?? 0,
+    template_registry_metadata_hash_count: artifacts.template_registry?.summary?.metadata_hash_count ?? 0,
+    template_registry_human_review_required_template_count: artifacts.template_registry?.summary?.human_review_required_template_count ?? 0,
+    template_registry_format_validation_required_template_count: artifacts.template_registry?.summary?.format_validation_required_template_count ?? 0,
+    template_registry_layout_validation_required_template_count: artifacts.template_registry?.summary?.layout_validation_required_template_count ?? 0,
+    template_registry_runtime_freeze_status: artifacts.template_registry?.summary?.runtime_freeze_status ?? "unknown",
+    template_registry_document_renderer_adapter_status: artifacts.template_registry?.summary?.document_renderer_adapter_status ?? "unknown",
+    template_registry_output_delivery_contract_freeze_status: artifacts.template_registry?.summary?.output_delivery_contract_freeze_status ?? "unknown",
+    template_registry_read_only: artifacts.template_registry?.summary?.read_only ?? false,
+    template_registry_metadata_only: artifacts.template_registry?.summary?.metadata_registry_only ?? false,
+    template_registry_template_file_write_allowed: artifacts.template_registry?.summary?.template_file_write_allowed ?? false,
+    template_registry_core_registry_mutation_allowed: artifacts.template_registry?.summary?.core_registry_mutation_allowed ?? false,
+    template_registry_renderer_execution_allowed: artifacts.template_registry?.summary?.renderer_execution_allowed ?? false,
+    template_registry_delivery_execution_allowed: artifacts.template_registry?.summary?.delivery_execution_allowed ?? false,
+    template_registry_protected_action_allowed: artifacts.template_registry?.summary?.protected_action_allowed ?? false,
+    template_registry_client_facing_output_generated: artifacts.template_registry?.summary?.client_facing_output_generated ?? false,
+    template_registry_client_facing_ready_count: artifacts.template_registry?.summary?.client_facing_ready_count ?? 0,
+    template_registry_failed_checkpoint_count: artifacts.template_registry?.summary?.failed_checkpoint_count ?? 0,
+    template_registry_validation_error_count: artifacts.template_registry?.summary?.validation_error_count ?? artifacts.template_registry?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -23748,6 +23889,8 @@ function parseArgs(argv) {
     else if (arg === "--no-personal-dev-e2e-freeze") parsed.personalDevE2eFreezePath = false;
     else if (arg === "--creative-document-pack-manifest") parsed.creativeDocumentPackManifestPath = argv[++index];
     else if (arg === "--no-creative-document-pack-manifest") parsed.creativeDocumentPackManifestPath = false;
+    else if (arg === "--template-registry") parsed.templateRegistryPath = argv[++index];
+    else if (arg === "--no-template-registry") parsed.templateRegistryPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

@@ -70,6 +70,7 @@ import { runConnectorContractV2 } from "../src/connector-contract-v2.mjs";
 import { runLocalFolderConnector } from "../src/local-folder-connector.mjs";
 import { runOneDriveConnectorBoundary } from "../src/onedrive-connector-boundary.mjs";
 import { runOutlookEmailConnector } from "../src/outlook-email-connector.mjs";
+import { runKakaoTalkImportBoundary } from "../src/kakaotalk-import-boundary.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1935,6 +1936,7 @@ describe("matter harness", () => {
         localFolderConnectorPath: path.join(outDir, "local-folder-connector", "local-folder-connector.json"),
         onedriveConnectorBoundaryPath: path.join(outDir, "onedrive-connector-boundary", "onedrive-connector-boundary.json"),
         outlookEmailConnectorPath: path.join(outDir, "outlook-email-connector", "outlook-email-connector.json"),
+        kakaotalkImportBoundaryPath: path.join(outDir, "kakaotalk-import-boundary", "kakaotalk-import-boundary.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10950,6 +10952,65 @@ describe("matter harness", () => {
       assert.equal(outlookEmailConnector.auth_boundary.auth_mode, "oauth_delegated_readonly");
       assert.match(await readFile(path.join(outDir, "outlook-email-connector", "summary.md"), "utf8"), /Outlook Email Connector/);
 
+      const kakaoTalkImportBoundary = await runKakaoTalkImportBoundary({
+        connectorContractV2Path: path.join(outDir, "connector-contract-v2", "connector-contract-v2.json"),
+        outlookEmailConnectorPath: path.join(outDir, "outlook-email-connector", "outlook-email-connector.json"),
+        exportInputs: ["examples/kakaotalk-import-boundary"],
+        attachmentManifestPath: "examples/kakaotalk-import-boundary/attachments.json",
+        outDir: path.join(outDir, "kakaotalk-import-boundary"),
+        runAt: "2026-05-23T07:12:24.000Z",
+      });
+      const kakaoTalkImportBoundarySchema = JSON.parse(await readFile("schemas/kakaotalk-import-boundary.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(kakaoTalkImportBoundary, kakaoTalkImportBoundarySchema, {}, "kakaotalk_import_boundary"), [], JSON.stringify(kakaoTalkImportBoundary.validation.errors));
+      assert.equal(kakaoTalkImportBoundary.summary.kakaotalk_import_boundary_status, "complete");
+      assert.equal(kakaoTalkImportBoundary.summary.connector_id, "connector.kakaotalk_export.v2");
+      assert.equal(kakaoTalkImportBoundary.summary.source_id, "source.kakaotalk_export.v2");
+      assert.equal(kakaoTalkImportBoundary.summary.source_outlook_email_connector_status, "complete");
+      assert.equal(kakaoTalkImportBoundary.summary.message_count, 5);
+      assert.equal(kakaoTalkImportBoundary.summary.attachment_count, 2);
+      assert.equal(kakaoTalkImportBoundary.summary.conversation_count, 1);
+      assert.equal(kakaoTalkImportBoundary.summary.author_count, 4);
+      assert.equal(kakaoTalkImportBoundary.summary.message_resource_count, kakaoTalkImportBoundary.summary.message_count);
+      assert.equal(kakaoTalkImportBoundary.summary.attachment_resource_count, kakaoTalkImportBoundary.summary.attachment_count);
+      assert.equal(kakaoTalkImportBoundary.summary.resource_candidate_count, kakaoTalkImportBoundary.summary.message_count + kakaoTalkImportBoundary.summary.attachment_count);
+      assert.equal(kakaoTalkImportBoundary.summary.metadata_complete_message_count, kakaoTalkImportBoundary.summary.message_count);
+      assert.equal(kakaoTalkImportBoundary.summary.line_offset_count, kakaoTalkImportBoundary.summary.message_count);
+      assert.equal(kakaoTalkImportBoundary.summary.attachment_parent_link_count, kakaoTalkImportBoundary.summary.attachment_count);
+      assert.equal(kakaoTalkImportBoundary.summary.conversation_message_link_count, kakaoTalkImportBoundary.summary.message_count);
+      assert.equal(kakaoTalkImportBoundary.summary.cursor_status, "complete");
+      assert.equal(kakaoTalkImportBoundary.summary.cursor_resume_supported, true);
+      assert.equal(kakaoTalkImportBoundary.summary.raw_export_cursor_material_allowed, false);
+      assert.equal(kakaoTalkImportBoundary.summary.auth_boundary_status, "enforced");
+      assert.equal(kakaoTalkImportBoundary.summary.credential_ref_required, false);
+      assert.equal(kakaoTalkImportBoundary.summary.credential_reference_only, true);
+      assert.equal(kakaoTalkImportBoundary.summary.raw_secret_material_allowed, false);
+      assert.equal(kakaoTalkImportBoundary.summary.external_network_access_required_for_runtime, false);
+      assert.equal(kakaoTalkImportBoundary.summary.operator_export_only, true);
+      assert.equal(kakaoTalkImportBoundary.summary.import_boundary_only, true);
+      assert.equal(kakaoTalkImportBoundary.summary.local_export_read_performed, true);
+      assert.equal(kakaoTalkImportBoundary.summary.kakaotalk_app_execution_performed, false);
+      assert.equal(kakaoTalkImportBoundary.summary.live_chat_api_execution_performed, false);
+      assert.equal(kakaoTalkImportBoundary.summary.external_network_access_performed, false);
+      assert.equal(kakaoTalkImportBoundary.summary.connector_execution_performed, true);
+      assert.equal(kakaoTalkImportBoundary.summary.source_read_performed, true);
+      assert.equal(kakaoTalkImportBoundary.summary.credential_material_read, false);
+      assert.equal(kakaoTalkImportBoundary.summary.source_mutation_performed, false);
+      assert.equal(kakaoTalkImportBoundary.summary.resource_mutation_performed, false);
+      assert.equal(kakaoTalkImportBoundary.summary.output_delivery_performed, false);
+      assert.equal(kakaoTalkImportBoundary.summary.protected_action_executed, false);
+      assert.equal(kakaoTalkImportBoundary.summary.legal_advice_generated, false);
+      assert.equal(kakaoTalkImportBoundary.summary.client_facing_output_generated, false);
+      assert.equal(kakaoTalkImportBoundary.summary.human_review_required_count, kakaoTalkImportBoundary.summary.resource_candidate_count);
+      assert.equal(kakaoTalkImportBoundary.summary.validation_error_count, 0);
+      assert.ok(kakaoTalkImportBoundary.kakaotalk_message_records.every((message) => message.connector_id === "connector.kakaotalk_export.v2" && message.source_id === "source.kakaotalk_export.v2" && message.resource_type === "chat_message" && message.chat_room_id && message.source_line_number > 0 && message.metadata_complete && message.human_review_required));
+      assert.ok(kakaoTalkImportBoundary.kakaotalk_attachment_records.every((attachment) => attachment.resource_type === "chat_attachment" && attachment.parent_message_resource_id && attachment.parent_message_line === 7 && attachment.attachment_content_read_performed === false && attachment.human_review_required));
+      assert.ok(kakaoTalkImportBoundary.kakaotalk_conversation_records.every((conversation) => conversation.conversation_status === "complete" && conversation.message_count > 0 && conversation.human_review_required));
+      assert.equal(kakaoTalkImportBoundary.cursor_state.cursor_kind, "export_line_offset_cursor");
+      assert.equal(kakaoTalkImportBoundary.cursor_state.raw_export_cursor_material_allowed, false);
+      assert.equal(kakaoTalkImportBoundary.auth_boundary.auth_mode, "operator_provided_export");
+      assert.equal(kakaoTalkImportBoundary.kakaotalk_import_boundary.import_boundary_only, true);
+      assert.match(await readFile(path.join(outDir, "kakaotalk-import-boundary", "summary.md"), "utf8"), /KakaoTalk Import Boundary/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -11144,6 +11205,7 @@ describe("matter harness", () => {
           local_folder_connector: path.join(outDir, "local-folder-connector", "local-folder-connector.json"),
           onedrive_connector_boundary: path.join(outDir, "onedrive-connector-boundary", "onedrive-connector-boundary.json"),
           outlook_email_connector: path.join(outDir, "outlook-email-connector", "outlook-email-connector.json"),
+          kakaotalk_import_boundary: path.join(outDir, "kakaotalk-import-boundary", "kakaotalk-import-boundary.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11195,8 +11257,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 172);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 172);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 173);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 173);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -11356,6 +11418,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "local_folder_connector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "onedrive_connector_boundary"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "outlook_email_connector"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "kakaotalk_import_boundary"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -12208,6 +12271,10 @@ describe("matter harness", () => {
       assert.equal(outlookEmailConnectorCheckpoint?.acceptance_profile, "outlook_email_connector_gate");
       assert.equal(outlookEmailConnectorCheckpoint?.status, "passed");
       assert.equal(outlookEmailConnectorCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const kakaoTalkImportBoundaryCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-kakaotalk-import-boundary");
+      assert.equal(kakaoTalkImportBoundaryCheckpoint?.acceptance_profile, "kakaotalk_import_boundary_gate");
+      assert.equal(kakaoTalkImportBoundaryCheckpoint?.status, "passed");
+      assert.equal(kakaoTalkImportBoundaryCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -16609,6 +16676,46 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.outlook_email_connector_client_facing_output_generated, false);
       assert.equal(dashboard.summary.outlook_email_connector_human_review_required_count, outlookEmailConnector.summary.human_review_required_count);
       assert.equal(dashboard.summary.outlook_email_connector_validation_error_count, 0);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_status, "complete");
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_connector_id, kakaoTalkImportBoundary.summary.connector_id);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_source_id, kakaoTalkImportBoundary.summary.source_id);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_source_outlook_email_connector_status, "complete");
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_message_count, kakaoTalkImportBoundary.summary.message_count);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_attachment_count, kakaoTalkImportBoundary.summary.attachment_count);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_conversation_count, kakaoTalkImportBoundary.summary.conversation_count);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_author_count, kakaoTalkImportBoundary.summary.author_count);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_message_resource_count, kakaoTalkImportBoundary.summary.message_resource_count);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_attachment_resource_count, kakaoTalkImportBoundary.summary.attachment_resource_count);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_resource_candidate_count, kakaoTalkImportBoundary.summary.resource_candidate_count);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_metadata_complete_message_count, kakaoTalkImportBoundary.summary.metadata_complete_message_count);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_line_offset_count, kakaoTalkImportBoundary.summary.line_offset_count);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_attachment_parent_link_count, kakaoTalkImportBoundary.summary.attachment_parent_link_count);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_conversation_message_link_count, kakaoTalkImportBoundary.summary.conversation_message_link_count);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_cursor_status, "complete");
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_cursor_resume_supported, true);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_raw_export_cursor_material_allowed, false);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_auth_boundary_status, "enforced");
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_credential_ref_required, false);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_credential_reference_only, true);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_raw_secret_material_allowed, false);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_external_network_access_required_for_runtime, false);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_operator_export_only, true);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_import_boundary_only, true);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_local_export_read_performed, true);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_kakaotalk_app_execution_performed, false);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_live_chat_api_execution_performed, false);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_external_network_access_performed, false);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_connector_execution_performed, true);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_source_read_performed, true);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_credential_material_read, false);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_source_mutation_performed, false);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_resource_mutation_performed, false);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_output_delivery_performed, false);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_protected_action_executed, false);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_legal_advice_generated, false);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_human_review_required_count, kakaoTalkImportBoundary.summary.human_review_required_count);
+      assert.equal(dashboard.summary.kakaotalk_import_boundary_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -19454,6 +19561,47 @@ describe("matter harness", () => {
       assert.equal(outlookEmailConnectorStage?.metrics.client_facing_output_generated, false);
       assert.equal(outlookEmailConnectorStage?.metrics.human_review_required_count, outlookEmailConnector.summary.human_review_required_count);
       assert.equal(outlookEmailConnectorStage?.metrics.validation_error_count, 0);
+      const kakaoTalkImportBoundaryStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "kakaotalk_import_boundary");
+      assert.equal(kakaoTalkImportBoundaryStage?.status, "passed");
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.kakaotalk_import_boundary_status, "complete");
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.connector_id, kakaoTalkImportBoundary.summary.connector_id);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.source_id, kakaoTalkImportBoundary.summary.source_id);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.source_outlook_email_connector_status, "complete");
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.message_count, kakaoTalkImportBoundary.summary.message_count);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.attachment_count, kakaoTalkImportBoundary.summary.attachment_count);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.conversation_count, kakaoTalkImportBoundary.summary.conversation_count);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.author_count, kakaoTalkImportBoundary.summary.author_count);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.message_resource_count, kakaoTalkImportBoundary.summary.message_resource_count);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.attachment_resource_count, kakaoTalkImportBoundary.summary.attachment_resource_count);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.resource_candidate_count, kakaoTalkImportBoundary.summary.resource_candidate_count);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.metadata_complete_message_count, kakaoTalkImportBoundary.summary.metadata_complete_message_count);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.line_offset_count, kakaoTalkImportBoundary.summary.line_offset_count);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.attachment_parent_link_count, kakaoTalkImportBoundary.summary.attachment_parent_link_count);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.conversation_message_link_count, kakaoTalkImportBoundary.summary.conversation_message_link_count);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.cursor_status, "complete");
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.cursor_resume_supported, true);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.raw_export_cursor_material_allowed, false);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.auth_boundary_status, "enforced");
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.credential_ref_required, false);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.credential_reference_only, true);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.raw_secret_material_allowed, false);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.operator_export_only, true);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.import_boundary_only, true);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.local_export_read_performed, true);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.kakaotalk_app_execution_performed, false);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.live_chat_api_execution_performed, false);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.external_network_access_performed, false);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.connector_execution_performed, true);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.source_read_performed, true);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.credential_material_read, false);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.source_mutation_performed, false);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.resource_mutation_performed, false);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.output_delivery_performed, false);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.protected_action_executed, false);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.legal_advice_generated, false);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.client_facing_output_generated, false);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.human_review_required_count, kakaoTalkImportBoundary.summary.human_review_required_count);
+      assert.equal(kakaoTalkImportBoundaryStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -21738,6 +21886,34 @@ describe("matter harness", () => {
       const outlookEmailValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/outlook-email-validations?status=passed", apiOptions)).body);
       assert.equal(outlookEmailValidationsResponse.collection, "outlook_email_validations");
       assert.equal(outlookEmailValidationsResponse.count, outlookEmailConnector.summary.validation_item_count);
+
+      const kakaoTalkImportBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/kakaotalk-import-boundary?kakaotalk_import_boundary_status=complete", apiOptions)).body);
+      assert.equal(kakaoTalkImportBoundaryResponse.collection, "kakaotalk_import_boundary");
+      assert.equal(kakaoTalkImportBoundaryResponse.count, 1);
+
+      const kakaoTalkMessagesResponse = JSON.parse((await buildReviewApiResponse("/api/kakaotalk-messages?kakaotalk_message_status=resource_candidate_ready&chat_resource_status=ready&review_status=needs_review", apiOptions)).body);
+      assert.equal(kakaoTalkMessagesResponse.collection, "kakaotalk_messages");
+      assert.equal(kakaoTalkMessagesResponse.count, kakaoTalkImportBoundary.summary.message_count);
+
+      const kakaoTalkAttachmentsResponse = JSON.parse((await buildReviewApiResponse("/api/kakaotalk-attachments?kakaotalk_attachment_status=resource_candidate_ready&chat_resource_status=ready&review_status=needs_review", apiOptions)).body);
+      assert.equal(kakaoTalkAttachmentsResponse.collection, "kakaotalk_attachments");
+      assert.equal(kakaoTalkAttachmentsResponse.count, kakaoTalkImportBoundary.summary.attachment_count);
+
+      const kakaoTalkConversationsResponse = JSON.parse((await buildReviewApiResponse("/api/kakaotalk-conversations?kakaotalk_conversation_status=complete&review_status=needs_review", apiOptions)).body);
+      assert.equal(kakaoTalkConversationsResponse.collection, "kakaotalk_conversations");
+      assert.equal(kakaoTalkConversationsResponse.count, kakaoTalkImportBoundary.summary.conversation_count);
+
+      const kakaoTalkCursorResponse = JSON.parse((await buildReviewApiResponse("/api/kakaotalk-cursor?cursor_status=complete", apiOptions)).body);
+      assert.equal(kakaoTalkCursorResponse.collection, "kakaotalk_cursor");
+      assert.equal(kakaoTalkCursorResponse.count, 1);
+
+      const kakaoTalkAuthBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/kakaotalk-auth-boundary?auth_boundary_status=enforced&credential_reference_only=true", apiOptions)).body);
+      assert.equal(kakaoTalkAuthBoundaryResponse.collection, "kakaotalk_auth_boundary");
+      assert.equal(kakaoTalkAuthBoundaryResponse.count, 1);
+
+      const kakaoTalkImportValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/kakaotalk-import-validations?status=passed", apiOptions)).body);
+      assert.equal(kakaoTalkImportValidationsResponse.collection, "kakaotalk_import_validations");
+      assert.equal(kakaoTalkImportValidationsResponse.count, kakaoTalkImportBoundary.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

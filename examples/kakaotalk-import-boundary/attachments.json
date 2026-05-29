@@ -1,0 +1,30 @@
+{
+  "schema_version": "kakaotalk-import-boundary-attachment-manifest.v1",
+  "tenant_id": "tenant.hermes.kakaotalk.demo",
+  "matter_id": "matter.kakaotalk.demo",
+  "policy_snapshot_id": "policy.kakaotalk_import_boundary.default.v1",
+  "export_id": "kakaotalk-export.alpha.demo",
+  "chat_room_id": "kakaotalk-room.project-alpha",
+  "attachment_exports": [
+    {
+      "export_id": "kakaotalk-export.alpha.demo",
+      "chat_room_id": "kakaotalk-room.project-alpha",
+      "message_line": 7,
+      "export_item_id": "kakao-attachment-001",
+      "file_name": "spa-8-2-markup-screenshot.png",
+      "content_type": "image/png",
+      "size_bytes": 184320,
+      "exported_path": "KakaoTalk_Photos/spa-8-2-markup-screenshot.png"
+    },
+    {
+      "export_id": "kakaotalk-export.alpha.demo",
+      "chat_room_id": "kakaotalk-room.project-alpha",
+      "message_line": 7,
+      "export_item_id": "kakao-attachment-002",
+      "file_name": "closing-checklist-draft.jpg",
+      "content_type": "image/jpeg",
+      "size_bytes": 262144,
+      "exported_path": "KakaoTalk_Photos/closing-checklist-draft.jpg"
+    }
+  ]
+}

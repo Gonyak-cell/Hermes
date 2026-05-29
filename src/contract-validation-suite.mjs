@@ -152,6 +152,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "connectors:local-folder",
   "connectors:onedrive-boundary",
   "connectors:outlook-email",
+  "connectors:kakaotalk-import-boundary",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

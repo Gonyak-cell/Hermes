@@ -143,6 +143,7 @@
     "connectors:local-folder": "node scripts/local-folder-connector.mjs",
     "connectors:onedrive-boundary": "node scripts/onedrive-connector-boundary.mjs",
     "connectors:outlook-email": "node scripts/outlook-email-connector.mjs",
+    "connectors:kakaotalk-import-boundary": "node scripts/kakaotalk-import-boundary.mjs",
     "dashboard:build": "node scripts/review-dashboard.mjs",
     "delivery:closeout": "node scripts/delivery-closeout-queue.mjs",
     "delivery:closeout:apply": "node scripts/delivery-closeout-receipt-application.mjs",

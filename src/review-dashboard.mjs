@@ -106,6 +106,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   localFolderConnectorPath: "artifacts/local-folder-connector/latest/local-folder-connector.json",
   onedriveConnectorBoundaryPath: "artifacts/onedrive-connector-boundary/latest/onedrive-connector-boundary.json",
   outlookEmailConnectorPath: "artifacts/outlook-email-connector/latest/outlook-email-connector.json",
+  kakaotalkImportBoundaryPath: "artifacts/kakaotalk-import-boundary/latest/kakaotalk-import-boundary.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -779,6 +780,11 @@ const SOURCE_DEFINITIONS = [
     option: "outlookEmailConnectorPath",
     source_id: "outlook_email_connector",
     label: "Outlook Email Connector",
+  },
+  {
+    option: "kakaotalkImportBoundaryPath",
+    source_id: "kakaotalk_import_boundary",
+    label: "KakaoTalk Import Boundary",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1754,6 +1760,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "local_folder_connector") return data.summary ?? {};
   if (sourceId === "onedrive_connector_boundary") return data.summary ?? {};
   if (sourceId === "outlook_email_connector") return data.summary ?? {};
+  if (sourceId === "kakaotalk_import_boundary") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2141,6 +2148,7 @@ function buildStageStatuses(artifacts, sources) {
     buildLocalFolderConnectorStage(artifacts.local_folder_connector, sourceById.get("local_folder_connector")),
     buildOneDriveConnectorBoundaryStage(artifacts.onedrive_connector_boundary, sourceById.get("onedrive_connector_boundary")),
     buildOutlookEmailConnectorStage(artifacts.outlook_email_connector, sourceById.get("outlook_email_connector")),
+    buildKakaoTalkImportBoundaryStage(artifacts.kakaotalk_import_boundary, sourceById.get("kakaotalk_import_boundary")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -12309,6 +12317,107 @@ function buildOutlookEmailConnectorStage(artifact, source) {
   };
 }
 
+function buildKakaoTalkImportBoundaryStage(artifact, source) {
+  if (!artifact) return missingStage("kakaotalk_import_boundary", "KakaoTalk Import Boundary", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.kakaotalk_import_boundary_status !== "complete"
+    || summary.source_outlook_email_connector_status !== "complete"
+    || summary.message_count <= 0
+    || summary.attachment_count <= 0
+    || summary.conversation_count <= 0
+    || summary.message_resource_count !== summary.message_count
+    || summary.attachment_resource_count !== summary.attachment_count
+    || summary.resource_candidate_count !== summary.message_count + summary.attachment_count
+    || summary.metadata_complete_message_count !== summary.message_count
+    || summary.line_offset_count !== summary.message_count
+    || summary.attachment_parent_link_count !== summary.attachment_count
+    || summary.conversation_message_link_count !== summary.message_count
+    || summary.cursor_status !== "complete"
+    || summary.cursor_resume_supported !== true
+    || summary.raw_export_cursor_material_allowed === true
+    || summary.auth_boundary_status !== "enforced"
+    || summary.credential_ref_required !== false
+    || summary.credential_reference_only !== true
+    || summary.raw_secret_material_allowed === true
+    || summary.write_operations_allowed === true
+    || summary.operator_export_only !== true
+    || summary.import_boundary_only !== true
+    || summary.local_export_read_performed !== true
+    || summary.kakaotalk_app_execution_performed === true
+    || summary.live_chat_api_execution_performed === true
+    || summary.external_network_access_performed === true
+    || summary.connector_execution_performed !== true
+    || summary.source_read_performed !== true
+    || summary.credential_material_read === true
+    || summary.source_mutation_performed === true
+    || summary.resource_mutation_performed === true
+    || summary.output_delivery_performed === true
+    || summary.protected_action_executed === true
+    || summary.legal_advice_generated === true
+    || summary.client_facing_output_generated === true
+    || summary.human_review_required_count !== summary.resource_candidate_count
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "kakaotalk_import_boundary",
+    label: "KakaoTalk Import Boundary",
+    status,
+    message: `${summary.message_count ?? 0} chat message(s), ${summary.attachment_count ?? 0} attachment(s), ${summary.conversation_count ?? 0} conversation(s) projected.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      kakaotalk_import_boundary_status: summary.kakaotalk_import_boundary_status ?? "unknown",
+      connector_id: summary.connector_id ?? artifact.connector_id ?? null,
+      source_id: summary.source_id ?? artifact.connector_contract_binding?.source_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      source_outlook_email_connector_status: summary.source_outlook_email_connector_status ?? "unknown",
+      message_count: summary.message_count ?? artifact.kakaotalk_message_records?.length ?? 0,
+      attachment_count: summary.attachment_count ?? artifact.kakaotalk_attachment_records?.length ?? 0,
+      conversation_count: summary.conversation_count ?? artifact.kakaotalk_conversation_records?.length ?? 0,
+      author_count: summary.author_count ?? 0,
+      message_resource_count: summary.message_resource_count ?? 0,
+      attachment_resource_count: summary.attachment_resource_count ?? 0,
+      resource_candidate_count: summary.resource_candidate_count ?? 0,
+      metadata_complete_message_count: summary.metadata_complete_message_count ?? 0,
+      line_offset_count: summary.line_offset_count ?? 0,
+      attachment_parent_link_count: summary.attachment_parent_link_count ?? 0,
+      conversation_message_link_count: summary.conversation_message_link_count ?? 0,
+      cursor_status: summary.cursor_status ?? artifact.cursor_state?.cursor_status ?? "unknown",
+      cursor_kind: summary.cursor_kind ?? artifact.cursor_state?.cursor_kind ?? null,
+      cursor_resume_supported: summary.cursor_resume_supported ?? artifact.cursor_state?.resume_supported ?? false,
+      last_line_number: summary.last_line_number ?? artifact.cursor_state?.last_line_number ?? 0,
+      raw_export_cursor_material_allowed: summary.raw_export_cursor_material_allowed ?? artifact.cursor_state?.raw_export_cursor_material_allowed ?? false,
+      auth_boundary_status: summary.auth_boundary_status ?? artifact.auth_boundary?.auth_boundary_status ?? "unknown",
+      credential_ref_required: summary.credential_ref_required ?? artifact.auth_boundary?.credential_ref_required ?? true,
+      credential_reference_only: summary.credential_reference_only ?? artifact.auth_boundary?.credential_reference_only ?? false,
+      raw_secret_material_allowed: summary.raw_secret_material_allowed ?? artifact.auth_boundary?.raw_secret_material_allowed ?? false,
+      least_privilege_scope_count: summary.least_privilege_scope_count ?? artifact.auth_boundary?.least_privilege_scopes?.length ?? 0,
+      read_operations_allowed: summary.read_operations_allowed ?? artifact.auth_boundary?.read_operations_allowed ?? false,
+      write_operations_allowed: summary.write_operations_allowed ?? artifact.auth_boundary?.write_operations_allowed ?? false,
+      external_network_access_required_for_runtime: summary.external_network_access_required_for_runtime ?? artifact.auth_boundary?.external_network_access_required_for_runtime ?? false,
+      operator_export_only: summary.operator_export_only ?? artifact.kakaotalk_import_boundary?.operator_export_only ?? false,
+      import_boundary_only: summary.import_boundary_only ?? artifact.kakaotalk_import_boundary?.import_boundary_only ?? false,
+      local_export_read_performed: summary.local_export_read_performed ?? artifact.kakaotalk_import_boundary?.local_export_read_performed ?? false,
+      kakaotalk_app_execution_performed: summary.kakaotalk_app_execution_performed ?? artifact.kakaotalk_import_boundary?.kakaotalk_app_execution_performed ?? false,
+      live_chat_api_execution_performed: summary.live_chat_api_execution_performed ?? artifact.kakaotalk_import_boundary?.live_chat_api_execution_performed ?? false,
+      external_network_access_performed: summary.external_network_access_performed ?? artifact.kakaotalk_import_boundary?.external_network_access_performed ?? false,
+      connector_execution_performed: summary.connector_execution_performed ?? artifact.kakaotalk_import_boundary?.connector_execution_performed ?? false,
+      source_read_performed: summary.source_read_performed ?? artifact.kakaotalk_import_boundary?.source_read_performed ?? false,
+      credential_material_read: summary.credential_material_read ?? artifact.kakaotalk_import_boundary?.credential_material_read ?? false,
+      source_mutation_performed: summary.source_mutation_performed ?? artifact.kakaotalk_import_boundary?.source_mutation_performed ?? false,
+      resource_mutation_performed: summary.resource_mutation_performed ?? artifact.kakaotalk_import_boundary?.resource_mutation_performed ?? false,
+      output_delivery_performed: summary.output_delivery_performed ?? artifact.kakaotalk_import_boundary?.output_delivery_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? artifact.kakaotalk_import_boundary?.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? artifact.kakaotalk_import_boundary?.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? artifact.kakaotalk_import_boundary?.client_facing_output_generated ?? false,
+      human_review_required_count: summary.human_review_required_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -18669,6 +18778,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.kakaotalk_import_boundary?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "kakaotalk_import_boundary";
+    items.push({
+      action_item_id: `dashboard.action.kakaotalk_import_boundary.${slugify(subjectId)}`,
+      source_stage: "kakaotalk_import_boundary",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix KakaoTalk Import Boundary",
+      subject_ref: {
+        subject_type: "kakaotalk_import_boundary_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_kakaotalk_import_boundary", "rerun_kakaotalk_import_boundary", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -24854,6 +24981,48 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     outlook_email_connector_client_facing_output_generated: artifacts.outlook_email_connector?.summary?.client_facing_output_generated ?? false,
     outlook_email_connector_human_review_required_count: artifacts.outlook_email_connector?.summary?.human_review_required_count ?? 0,
     outlook_email_connector_validation_error_count: artifacts.outlook_email_connector?.summary?.validation_error_count ?? artifacts.outlook_email_connector?.validation?.errors?.length ?? 0,
+    kakaotalk_import_boundary_status: artifacts.kakaotalk_import_boundary?.summary?.kakaotalk_import_boundary_status ?? "unknown",
+    kakaotalk_import_boundary_connector_id: artifacts.kakaotalk_import_boundary?.summary?.connector_id ?? null,
+    kakaotalk_import_boundary_source_id: artifacts.kakaotalk_import_boundary?.summary?.source_id ?? null,
+    kakaotalk_import_boundary_source_outlook_email_connector_status: artifacts.kakaotalk_import_boundary?.summary?.source_outlook_email_connector_status ?? "unknown",
+    kakaotalk_import_boundary_message_count: artifacts.kakaotalk_import_boundary?.summary?.message_count ?? 0,
+    kakaotalk_import_boundary_attachment_count: artifacts.kakaotalk_import_boundary?.summary?.attachment_count ?? 0,
+    kakaotalk_import_boundary_conversation_count: artifacts.kakaotalk_import_boundary?.summary?.conversation_count ?? 0,
+    kakaotalk_import_boundary_author_count: artifacts.kakaotalk_import_boundary?.summary?.author_count ?? 0,
+    kakaotalk_import_boundary_message_resource_count: artifacts.kakaotalk_import_boundary?.summary?.message_resource_count ?? 0,
+    kakaotalk_import_boundary_attachment_resource_count: artifacts.kakaotalk_import_boundary?.summary?.attachment_resource_count ?? 0,
+    kakaotalk_import_boundary_resource_candidate_count: artifacts.kakaotalk_import_boundary?.summary?.resource_candidate_count ?? 0,
+    kakaotalk_import_boundary_metadata_complete_message_count: artifacts.kakaotalk_import_boundary?.summary?.metadata_complete_message_count ?? 0,
+    kakaotalk_import_boundary_line_offset_count: artifacts.kakaotalk_import_boundary?.summary?.line_offset_count ?? 0,
+    kakaotalk_import_boundary_attachment_parent_link_count: artifacts.kakaotalk_import_boundary?.summary?.attachment_parent_link_count ?? 0,
+    kakaotalk_import_boundary_conversation_message_link_count: artifacts.kakaotalk_import_boundary?.summary?.conversation_message_link_count ?? 0,
+    kakaotalk_import_boundary_cursor_status: artifacts.kakaotalk_import_boundary?.summary?.cursor_status ?? "unknown",
+    kakaotalk_import_boundary_cursor_resume_supported: artifacts.kakaotalk_import_boundary?.summary?.cursor_resume_supported ?? false,
+    kakaotalk_import_boundary_raw_export_cursor_material_allowed: artifacts.kakaotalk_import_boundary?.summary?.raw_export_cursor_material_allowed ?? false,
+    kakaotalk_import_boundary_auth_boundary_status: artifacts.kakaotalk_import_boundary?.summary?.auth_boundary_status ?? "unknown",
+    kakaotalk_import_boundary_credential_ref_required: artifacts.kakaotalk_import_boundary?.summary?.credential_ref_required ?? true,
+    kakaotalk_import_boundary_credential_reference_only: artifacts.kakaotalk_import_boundary?.summary?.credential_reference_only ?? false,
+    kakaotalk_import_boundary_raw_secret_material_allowed: artifacts.kakaotalk_import_boundary?.summary?.raw_secret_material_allowed ?? false,
+    kakaotalk_import_boundary_read_operations_allowed: artifacts.kakaotalk_import_boundary?.summary?.read_operations_allowed ?? false,
+    kakaotalk_import_boundary_write_operations_allowed: artifacts.kakaotalk_import_boundary?.summary?.write_operations_allowed ?? false,
+    kakaotalk_import_boundary_external_network_access_required_for_runtime: artifacts.kakaotalk_import_boundary?.summary?.external_network_access_required_for_runtime ?? false,
+    kakaotalk_import_boundary_operator_export_only: artifacts.kakaotalk_import_boundary?.summary?.operator_export_only ?? false,
+    kakaotalk_import_boundary_import_boundary_only: artifacts.kakaotalk_import_boundary?.summary?.import_boundary_only ?? false,
+    kakaotalk_import_boundary_local_export_read_performed: artifacts.kakaotalk_import_boundary?.summary?.local_export_read_performed ?? false,
+    kakaotalk_import_boundary_kakaotalk_app_execution_performed: artifacts.kakaotalk_import_boundary?.summary?.kakaotalk_app_execution_performed ?? false,
+    kakaotalk_import_boundary_live_chat_api_execution_performed: artifacts.kakaotalk_import_boundary?.summary?.live_chat_api_execution_performed ?? false,
+    kakaotalk_import_boundary_external_network_access_performed: artifacts.kakaotalk_import_boundary?.summary?.external_network_access_performed ?? false,
+    kakaotalk_import_boundary_connector_execution_performed: artifacts.kakaotalk_import_boundary?.summary?.connector_execution_performed ?? false,
+    kakaotalk_import_boundary_source_read_performed: artifacts.kakaotalk_import_boundary?.summary?.source_read_performed ?? false,
+    kakaotalk_import_boundary_credential_material_read: artifacts.kakaotalk_import_boundary?.summary?.credential_material_read ?? false,
+    kakaotalk_import_boundary_source_mutation_performed: artifacts.kakaotalk_import_boundary?.summary?.source_mutation_performed ?? false,
+    kakaotalk_import_boundary_resource_mutation_performed: artifacts.kakaotalk_import_boundary?.summary?.resource_mutation_performed ?? false,
+    kakaotalk_import_boundary_output_delivery_performed: artifacts.kakaotalk_import_boundary?.summary?.output_delivery_performed ?? false,
+    kakaotalk_import_boundary_protected_action_executed: artifacts.kakaotalk_import_boundary?.summary?.protected_action_executed ?? false,
+    kakaotalk_import_boundary_legal_advice_generated: artifacts.kakaotalk_import_boundary?.summary?.legal_advice_generated ?? false,
+    kakaotalk_import_boundary_client_facing_output_generated: artifacts.kakaotalk_import_boundary?.summary?.client_facing_output_generated ?? false,
+    kakaotalk_import_boundary_human_review_required_count: artifacts.kakaotalk_import_boundary?.summary?.human_review_required_count ?? 0,
+    kakaotalk_import_boundary_validation_error_count: artifacts.kakaotalk_import_boundary?.summary?.validation_error_count ?? artifacts.kakaotalk_import_boundary?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -26649,6 +26818,8 @@ function parseArgs(argv) {
     else if (arg === "--no-onedrive-connector-boundary") parsed.onedriveConnectorBoundaryPath = false;
     else if (arg === "--outlook-email-connector") parsed.outlookEmailConnectorPath = argv[++index];
     else if (arg === "--no-outlook-email-connector") parsed.outlookEmailConnectorPath = false;
+    else if (arg === "--kakaotalk-import-boundary") parsed.kakaotalkImportBoundaryPath = argv[++index];
+    else if (arg === "--no-kakaotalk-import-boundary") parsed.kakaotalkImportBoundaryPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

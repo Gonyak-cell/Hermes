@@ -2368,6 +2368,34 @@ try {
   assert.equal(outlookEmailValidations.collection, "outlook_email_validations");
   assert.ok(outlookEmailValidations.count <= 5);
 
+  const kakaoTalkImportBoundary = await fetchJson(`${url}/api/kakaotalk-import-boundary?kakaotalk_import_boundary_status=complete&limit=1`);
+  assert.equal(kakaoTalkImportBoundary.collection, "kakaotalk_import_boundary");
+  assert.ok(kakaoTalkImportBoundary.count <= 1);
+
+  const kakaoTalkMessages = await fetchJson(`${url}/api/kakaotalk-messages?kakaotalk_message_status=resource_candidate_ready&chat_resource_status=ready&review_status=needs_review&limit=5`);
+  assert.equal(kakaoTalkMessages.collection, "kakaotalk_messages");
+  assert.ok(kakaoTalkMessages.count <= 5);
+
+  const kakaoTalkAttachments = await fetchJson(`${url}/api/kakaotalk-attachments?kakaotalk_attachment_status=resource_candidate_ready&chat_resource_status=ready&review_status=needs_review&limit=5`);
+  assert.equal(kakaoTalkAttachments.collection, "kakaotalk_attachments");
+  assert.ok(kakaoTalkAttachments.count <= 5);
+
+  const kakaoTalkConversations = await fetchJson(`${url}/api/kakaotalk-conversations?kakaotalk_conversation_status=complete&review_status=needs_review&limit=5`);
+  assert.equal(kakaoTalkConversations.collection, "kakaotalk_conversations");
+  assert.ok(kakaoTalkConversations.count <= 5);
+
+  const kakaoTalkCursor = await fetchJson(`${url}/api/kakaotalk-cursor?cursor_status=complete&limit=1`);
+  assert.equal(kakaoTalkCursor.collection, "kakaotalk_cursor");
+  assert.ok(kakaoTalkCursor.count <= 1);
+
+  const kakaoTalkAuthBoundary = await fetchJson(`${url}/api/kakaotalk-auth-boundary?auth_boundary_status=enforced&credential_reference_only=true&limit=1`);
+  assert.equal(kakaoTalkAuthBoundary.collection, "kakaotalk_auth_boundary");
+  assert.ok(kakaoTalkAuthBoundary.count <= 1);
+
+  const kakaoTalkImportValidations = await fetchJson(`${url}/api/kakaotalk-import-validations?status=passed&limit=5`);
+  assert.equal(kakaoTalkImportValidations.collection, "kakaotalk_import_validations");
+  assert.ok(kakaoTalkImportValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

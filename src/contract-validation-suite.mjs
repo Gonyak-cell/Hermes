@@ -17,6 +17,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "contracts:migrations",
   "contracts:golden-fixtures",
   "contracts:validate",
+  "api:route-inventory",
   "contracts:identity",
   "contracts:party-registry",
   "contracts:matter-teams",

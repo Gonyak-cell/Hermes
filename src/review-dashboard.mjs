@@ -122,6 +122,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   extractorCoverageReportPath: "artifacts/extractor-coverage-report/latest/extractor-coverage-report.json",
   expansionStatusDashboardPath: "artifacts/expansion-status-dashboard/latest/expansion-status-dashboard.json",
   resourceExpansionFreezePath: "artifacts/resource-expansion-freeze/latest/resource-expansion-freeze.json",
+  apiRouteInventoryPath: "artifacts/api-route-inventory/latest/api-route-inventory.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -875,6 +876,11 @@ const SOURCE_DEFINITIONS = [
     option: "resourceExpansionFreezePath",
     source_id: "resource_expansion_freeze",
     label: "Resource Expansion Freeze",
+  },
+  {
+    option: "apiRouteInventoryPath",
+    source_id: "api_route_inventory",
+    label: "API Route Inventory",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1866,6 +1872,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "extractor_coverage_report") return data.summary ?? {};
   if (sourceId === "expansion_status_dashboard") return data.summary ?? {};
   if (sourceId === "resource_expansion_freeze") return data.summary ?? {};
+  if (sourceId === "api_route_inventory") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2269,6 +2276,7 @@ function buildStageStatuses(artifacts, sources) {
     buildExtractorCoverageReportStage(artifacts.extractor_coverage_report, sourceById.get("extractor_coverage_report")),
     buildExpansionStatusDashboardStage(artifacts.expansion_status_dashboard, sourceById.get("expansion_status_dashboard")),
     buildResourceExpansionFreezeStage(artifacts.resource_expansion_freeze, sourceById.get("resource_expansion_freeze")),
+    buildApiRouteInventoryStage(artifacts.api_route_inventory, sourceById.get("api_route_inventory")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -14392,6 +14400,105 @@ function buildResourceExpansionFreezeStage(artifact, source) {
   };
 }
 
+function buildApiRouteInventoryStage(artifact, source) {
+  if (!artifact) return missingStage("api_route_inventory", "API Route Inventory", source);
+  const summary = artifact.summary ?? {};
+  const routeCount = summary.api_route_count ?? 0;
+  const groupCount = summary.api_route_group_count ?? 0;
+  const status = artifact.validation?.valid === false
+    || summary.api_route_inventory_status !== "complete"
+    || summary.phase_slot !== "P287"
+    || summary.previous_phase_slot !== "P286"
+    || summary.next_phase_slot !== "P288"
+    || summary.source_resource_expansion_freeze_status !== "complete"
+    || summary.source_resource_expansion_freeze_phase_slot !== "P286"
+    || summary.source_resource_expansion_freeze_next_phase_slot !== "P287"
+    || summary.required_group_count !== 6
+    || summary.listed_required_group_count !== 6
+    || groupCount < 6
+    || routeCount <= 0
+    || summary.read_only_route_count !== routeCount
+    || summary.route_partition_count !== routeCount
+    || summary.inventory_route_count < 6
+    || summary.core_route_count <= 0
+    || summary.review_route_count <= 0
+    || summary.evidence_route_count <= 0
+    || summary.policy_route_count <= 0
+    || summary.runtime_route_count <= 0
+    || summary.desktop_companion_route_count <= 0
+    || summary.mutation_route_count !== 0
+    || summary.protected_action_execution_route_count !== 0
+    || summary.legal_advice_route_count !== 0
+    || summary.client_facing_output_route_count !== 0
+    || summary.read_only !== true
+    || summary.inventory_only !== true
+    || summary.route_execution_performed !== false
+    || summary.server_started !== false
+    || summary.mutation_allowed !== false
+    || summary.protected_action_executed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "api_route_inventory",
+    label: "API Route Inventory",
+    status,
+    message: `${routeCount} read-only route(s) partitioned across ${groupCount} API group(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      api_route_inventory_status: summary.api_route_inventory_status ?? "unknown",
+      api_route_inventory_id: summary.api_route_inventory_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_review_api_schema_version: summary.source_review_api_schema_version ?? null,
+      source_contract_inventory_status: summary.source_contract_inventory_status ?? "unknown",
+      source_contract_inventory_api_route_count: summary.source_contract_inventory_api_route_count ?? 0,
+      source_resource_expansion_freeze_status: summary.source_resource_expansion_freeze_status ?? "unknown",
+      source_resource_expansion_freeze_phase_slot: summary.source_resource_expansion_freeze_phase_slot ?? null,
+      source_resource_expansion_freeze_next_phase_slot: summary.source_resource_expansion_freeze_next_phase_slot ?? null,
+      required_group_count: summary.required_group_count ?? 0,
+      listed_required_group_count: summary.listed_required_group_count ?? 0,
+      api_route_group_count: groupCount,
+      api_route_count: routeCount,
+      read_only_route_count: summary.read_only_route_count ?? 0,
+      mutation_route_count: summary.mutation_route_count ?? 0,
+      protected_action_execution_route_count: summary.protected_action_execution_route_count ?? 0,
+      legal_advice_route_count: summary.legal_advice_route_count ?? 0,
+      client_facing_output_route_count: summary.client_facing_output_route_count ?? 0,
+      core_route_count: summary.core_route_count ?? 0,
+      review_route_count: summary.review_route_count ?? 0,
+      evidence_route_count: summary.evidence_route_count ?? 0,
+      policy_route_count: summary.policy_route_count ?? 0,
+      runtime_route_count: summary.runtime_route_count ?? 0,
+      desktop_companion_route_count: summary.desktop_companion_route_count ?? 0,
+      route_partition_count: summary.route_partition_count ?? 0,
+      missing_required_route_count: summary.missing_required_route_count ?? 0,
+      inventory_route_count: summary.inventory_route_count ?? 0,
+      boundary_status: summary.boundary_status ?? "unknown",
+      read_only: summary.read_only ?? false,
+      inventory_only: summary.inventory_only ?? false,
+      route_execution_performed: summary.route_execution_performed ?? false,
+      server_started: summary.server_started ?? false,
+      mutation_allowed: summary.mutation_allowed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      human_review_required: summary.human_review_required ?? false,
+      client_facing_ready: summary.client_facing_ready ?? true,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -21036,6 +21143,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_resource_expansion_freeze", "rerun_resource_expansion_freeze", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.api_route_inventory?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "api_route_inventory";
+    items.push({
+      action_item_id: `dashboard.action.api_route_inventory.${slugify(subjectId)}`,
+      source_stage: "api_route_inventory",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix API Route Inventory",
+      subject_ref: {
+        subject_type: "api_route_inventory_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_api_route_inventory", "rerun_api_route_inventory", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -28097,6 +28222,50 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     resource_expansion_freeze_validation_item_count: artifacts.resource_expansion_freeze?.summary?.validation_item_count ?? 0,
     resource_expansion_freeze_failed_checkpoint_count: artifacts.resource_expansion_freeze?.summary?.failed_checkpoint_count ?? 0,
     resource_expansion_freeze_validation_error_count: artifacts.resource_expansion_freeze?.summary?.validation_error_count ?? artifacts.resource_expansion_freeze?.validation?.errors?.length ?? 0,
+    api_route_inventory_status: artifacts.api_route_inventory?.summary?.api_route_inventory_status ?? "unknown",
+    api_route_inventory_id: artifacts.api_route_inventory?.summary?.api_route_inventory_id ?? null,
+    api_route_inventory_phase_slot: artifacts.api_route_inventory?.summary?.phase_slot ?? null,
+    api_route_inventory_previous_phase_slot: artifacts.api_route_inventory?.summary?.previous_phase_slot ?? null,
+    api_route_inventory_next_phase_slot: artifacts.api_route_inventory?.summary?.next_phase_slot ?? null,
+    api_route_inventory_source_contract_inventory_status: artifacts.api_route_inventory?.summary?.source_contract_inventory_status ?? "unknown",
+    api_route_inventory_source_contract_inventory_api_route_count: artifacts.api_route_inventory?.summary?.source_contract_inventory_api_route_count ?? 0,
+    api_route_inventory_source_resource_expansion_freeze_status: artifacts.api_route_inventory?.summary?.source_resource_expansion_freeze_status ?? "unknown",
+    api_route_inventory_source_resource_expansion_freeze_phase_slot: artifacts.api_route_inventory?.summary?.source_resource_expansion_freeze_phase_slot ?? null,
+    api_route_inventory_source_resource_expansion_freeze_next_phase_slot: artifacts.api_route_inventory?.summary?.source_resource_expansion_freeze_next_phase_slot ?? null,
+    api_route_inventory_required_group_count: artifacts.api_route_inventory?.summary?.required_group_count ?? 0,
+    api_route_inventory_listed_required_group_count: artifacts.api_route_inventory?.summary?.listed_required_group_count ?? 0,
+    api_route_inventory_api_route_group_count: artifacts.api_route_inventory?.summary?.api_route_group_count ?? 0,
+    api_route_inventory_api_route_count: artifacts.api_route_inventory?.summary?.api_route_count ?? 0,
+    api_route_inventory_read_only_route_count: artifacts.api_route_inventory?.summary?.read_only_route_count ?? 0,
+    api_route_inventory_mutation_route_count: artifacts.api_route_inventory?.summary?.mutation_route_count ?? 0,
+    api_route_inventory_protected_action_execution_route_count: artifacts.api_route_inventory?.summary?.protected_action_execution_route_count ?? 0,
+    api_route_inventory_legal_advice_route_count: artifacts.api_route_inventory?.summary?.legal_advice_route_count ?? 0,
+    api_route_inventory_client_facing_output_route_count: artifacts.api_route_inventory?.summary?.client_facing_output_route_count ?? 0,
+    api_route_inventory_core_route_count: artifacts.api_route_inventory?.summary?.core_route_count ?? 0,
+    api_route_inventory_review_route_count: artifacts.api_route_inventory?.summary?.review_route_count ?? 0,
+    api_route_inventory_evidence_route_count: artifacts.api_route_inventory?.summary?.evidence_route_count ?? 0,
+    api_route_inventory_policy_route_count: artifacts.api_route_inventory?.summary?.policy_route_count ?? 0,
+    api_route_inventory_runtime_route_count: artifacts.api_route_inventory?.summary?.runtime_route_count ?? 0,
+    api_route_inventory_desktop_companion_route_count: artifacts.api_route_inventory?.summary?.desktop_companion_route_count ?? 0,
+    api_route_inventory_route_partition_count: artifacts.api_route_inventory?.summary?.route_partition_count ?? 0,
+    api_route_inventory_missing_required_route_count: artifacts.api_route_inventory?.summary?.missing_required_route_count ?? 0,
+    api_route_inventory_inventory_route_count: artifacts.api_route_inventory?.summary?.inventory_route_count ?? 0,
+    api_route_inventory_boundary_status: artifacts.api_route_inventory?.summary?.boundary_status ?? "unknown",
+    api_route_inventory_read_only: artifacts.api_route_inventory?.summary?.read_only ?? false,
+    api_route_inventory_inventory_only: artifacts.api_route_inventory?.summary?.inventory_only ?? false,
+    api_route_inventory_route_execution_performed: artifacts.api_route_inventory?.summary?.route_execution_performed ?? false,
+    api_route_inventory_server_started: artifacts.api_route_inventory?.summary?.server_started ?? false,
+    api_route_inventory_mutation_allowed: artifacts.api_route_inventory?.summary?.mutation_allowed ?? false,
+    api_route_inventory_protected_action_executed: artifacts.api_route_inventory?.summary?.protected_action_executed ?? false,
+    api_route_inventory_legal_advice_generated: artifacts.api_route_inventory?.summary?.legal_advice_generated ?? false,
+    api_route_inventory_client_facing_output_generated: artifacts.api_route_inventory?.summary?.client_facing_output_generated ?? false,
+    api_route_inventory_human_review_required: artifacts.api_route_inventory?.summary?.human_review_required ?? false,
+    api_route_inventory_client_facing_ready: artifacts.api_route_inventory?.summary?.client_facing_ready ?? true,
+    api_route_inventory_windows_baseline_stability_preserved: artifacts.api_route_inventory?.summary?.windows_baseline_stability_preserved ?? false,
+    api_route_inventory_mac_windows_completion_instability_guard: artifacts.api_route_inventory?.summary?.mac_windows_completion_instability_guard ?? false,
+    api_route_inventory_validation_item_count: artifacts.api_route_inventory?.summary?.validation_item_count ?? 0,
+    api_route_inventory_failed_checkpoint_count: artifacts.api_route_inventory?.summary?.failed_checkpoint_count ?? 0,
+    api_route_inventory_validation_error_count: artifacts.api_route_inventory?.summary?.validation_error_count ?? artifacts.api_route_inventory?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -29924,6 +30093,8 @@ function parseArgs(argv) {
     else if (arg === "--no-expansion-status-dashboard") parsed.expansionStatusDashboardPath = false;
     else if (arg === "--resource-expansion-freeze") parsed.resourceExpansionFreezePath = argv[++index];
     else if (arg === "--no-resource-expansion-freeze") parsed.resourceExpansionFreezePath = false;
+    else if (arg === "--api-route-inventory") parsed.apiRouteInventoryPath = argv[++index];
+    else if (arg === "--no-api-route-inventory") parsed.apiRouteInventoryPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

@@ -159,6 +159,7 @@ const GOAL_ITEMS = [
   sourceItem("extractor_coverage_report", "Extractor Coverage Report", "resource_evidence", "extractor_coverage_report", "control-plane-extractor-coverage-report", { acceptance_profile: "extractor_coverage_report_gate" }),
   sourceItem("expansion_status_dashboard", "Expansion Status Dashboard", "resource_evidence", "expansion_status_dashboard", "control-plane-expansion-status-dashboard", { acceptance_profile: "expansion_status_dashboard_gate" }),
   sourceItem("resource_expansion_freeze", "Resource Expansion Freeze", "resource_evidence", "resource_expansion_freeze", "control-plane-resource-expansion-freeze", { acceptance_profile: "resource_expansion_freeze_gate" }),
+  sourceItem("api_route_inventory", "API Route Inventory", "api", "api_route_inventory", "control-plane-api-route-inventory", { acceptance_profile: "api_route_inventory_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -677,6 +678,7 @@ function evaluateStageAcceptance(item, stage) {
     "extractor_coverage_report_gate",
     "expansion_status_dashboard_gate",
     "resource_expansion_freeze_gate",
+    "api_route_inventory_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -5866,6 +5868,50 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Resource Expansion Freeze locks P286 2,713-scale resumable/idempotent dry-run projection after P285 without backfill execution, source ingest, file content reads, retry, quarantine release, mutation, delivery, legal advice, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "api_route_inventory_gate") {
+    const routeCount = metrics.api_route_count ?? 0;
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.api_route_inventory_status === "complete"
+      && metrics.phase_slot === "P287"
+      && metrics.previous_phase_slot === "P286"
+      && metrics.next_phase_slot === "P288"
+      && metrics.source_resource_expansion_freeze_status === "complete"
+      && metrics.source_resource_expansion_freeze_phase_slot === "P286"
+      && metrics.source_resource_expansion_freeze_next_phase_slot === "P287"
+      && metrics.required_group_count === 6
+      && metrics.listed_required_group_count === 6
+      && metrics.api_route_group_count >= 6
+      && routeCount > 0
+      && metrics.read_only_route_count === routeCount
+      && metrics.route_partition_count === routeCount
+      && metrics.inventory_route_count >= 6
+      && metrics.core_route_count > 0
+      && metrics.review_route_count > 0
+      && metrics.evidence_route_count > 0
+      && metrics.policy_route_count > 0
+      && metrics.runtime_route_count > 0
+      && metrics.desktop_companion_route_count > 0
+      && metrics.mutation_route_count === 0
+      && metrics.protected_action_execution_route_count === 0
+      && metrics.legal_advice_route_count === 0
+      && metrics.client_facing_output_route_count === 0
+      && metrics.read_only === true
+      && metrics.inventory_only === true
+      && metrics.route_execution_performed === false
+      && metrics.server_started === false
+      && metrics.mutation_allowed === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "API Route Inventory locks P287 core/review/evidence/policy/runtime/Desktop Companion route groups from the read-only Review API index without route execution, server start, mutation, legal advice, or client-facing output.");
     }
   }
 

@@ -4,8 +4,8 @@
 
 운영 규칙:
 
-- Current actual completion baseline is Phase 286.
-- Remaining planned slots are P287-P312, 26 total.
+- Current actual completion baseline is Phase 287.
+- Remaining planned slots are P288-P312, 25 total.
 - 각 slot은 `검증 -> 보강 -> 구현 -> 검증 -> commit -> roadmap 승격` 순서로 처리한다.
 - 모든 slot은 가능하면 `npm run validate`, `npm test`, 해당 slice command, `npm run control-plane:loop`, API/dashboard smoke 중 관련 검증을 통과해야 한다.
 - For P217 and later, continue on the Windows workspace only after preserving the Windows baseline stabilization posture.
@@ -42,7 +42,7 @@
 | P108 | Error/Cost/Observability contract 고정 | error, cost, trace projection schema | Promoted to Phase 108; ErrorRecord v2, CostObservation v2, TraceProjection v2가 실패, retry, token, cost, latency를 독립 projection으로 검증 |
 | P109 | schema versioning rule 확정 | schema versioning guideline | Promoted to Phase 109; optional addition, deprecation, migration manifest rule이 schema-versioning validator와 dashboard/API/checkpoint에 반영 |
 | P110 | migration manifest 구조 확정 | migration manifest schema | Promoted to Phase 110; core/pack/index migration manifest, migration record, validation, dashboard/API/checkpoint/loop가 분리 추적 |
-| P111 | contract golden fixtures | golden fixture set | Promoted to Phase 111; contract artifact, schema validation, and regression hash manifest are locked; Phase 113-P286 identity/policy/resource/evidence/event/workflow/runtime/personal-dev/law-firm/creative-document/connector/resource-expansion fixtures are included, including matter_os_profile through resource_expansion_freeze, for 188 total fixtures |
+| P111 | contract golden fixtures | golden fixture set | Promoted to Phase 111; contract artifact, schema validation, and regression hash manifest are locked; Phase 113-P287 identity/policy/resource/evidence/event/workflow/runtime/personal-dev/law-firm/creative-document/connector/resource-expansion/API fixtures are included, including matter_os_profile through api_route_inventory, for 189 total fixtures |
 | P112 | contract validation CLI 통합 | contract validation command | Promoted to Phase 112; 전체 contract fixture가 `npm run contracts:validate -- --check` 한 명령으로 검증되고 dashboard/API/checkpoint/loop에 반영 |
 
 ## P113-P132 Identity, Policy, Matter Boundary
@@ -273,7 +273,7 @@
 
 | Slot | 목표 | 주요 산출물 | 완료 기준 |
 | --- | --- | --- | --- |
-| P287 | API route inventory 정리 | API inventory | core, review, evidence, policy, runtime, desktop_companion route group이 목록화 |
+| P287 | API Route Inventory | API inventory | Promoted to Phase 287; `api_route_inventory` lists core, review, evidence, policy, runtime, and desktop_companion route groups from the read-only Review API route index, exposes route groups/records/checks/boundary/validation via Review API and dashboard/checkpoint/loop/golden fixtures, and preserves no route execution, no server start, no mutation, no legal advice, no client-facing output, and Windows baseline stability |
 | P288 | review dashboard information architecture 정리 | dashboard IA doc | dashboard navigation이 Overview, Domain Packs, Capabilities, Runs, Approvals, Evidence, Policies, Cost, Diagnostics 기준으로 정리 |
 | P289 | approval queue UI 구현 | approval queue panel | pending approval, required actor, target artifact 조회와 receipt draft/protected request preview 가능 |
 | P290 | evidence viewer UI 구현 | evidence viewer | evidence item, source span, citation, coverage 확인 |

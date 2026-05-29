@@ -2904,6 +2904,34 @@ try {
   assert.equal(resourceExpansionFreezeValidations.collection, "expansion_freeze_validations");
   assert.ok(resourceExpansionFreezeValidations.count <= 24);
 
+  const apiRouteInventories = await fetchJson(`${url}/api/api-route-inventories?api_route_inventory_status=complete&limit=1`);
+  assert.equal(apiRouteInventories.collection, "api_route_inventories");
+  assert.ok(apiRouteInventories.count <= 1);
+
+  const apiRouteGroups = await fetchJson(`${url}/api/api-route-groups?api_route_group_status=listed&limit=6`);
+  assert.equal(apiRouteGroups.collection, "api_route_groups");
+  assert.ok(apiRouteGroups.count <= 6);
+
+  const apiRouteRecords = await fetchJson(`${url}/api/api-route-records?api_route_status=listed&read_only=true&limit=20`);
+  assert.equal(apiRouteRecords.collection, "api_route_records");
+  assert.ok(apiRouteRecords.count <= 20);
+
+  const apiRouteCoreRecords = await fetchJson(`${url}/api/api-route-records?route_group_key=core&limit=10`);
+  assert.equal(apiRouteCoreRecords.collection, "api_route_records");
+  assert.ok(apiRouteCoreRecords.count <= 10);
+
+  const apiRouteInventoryChecks = await fetchJson(`${url}/api/api-route-inventory-checks?status=passed&limit=20`);
+  assert.equal(apiRouteInventoryChecks.collection, "api_route_inventory_checks");
+  assert.ok(apiRouteInventoryChecks.count <= 20);
+
+  const apiRouteInventoryBoundary = await fetchJson(`${url}/api/api-route-inventory-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(apiRouteInventoryBoundary.collection, "api_route_inventory_boundary");
+  assert.ok(apiRouteInventoryBoundary.count <= 1);
+
+  const apiRouteInventoryValidations = await fetchJson(`${url}/api/api-route-inventory-validations?status=passed&limit=20`);
+  assert.equal(apiRouteInventoryValidations.collection, "api_route_inventory_validations");
+  assert.ok(apiRouteInventoryValidations.count <= 20);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

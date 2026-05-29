@@ -86,6 +86,7 @@ import { runExtractorRegistry } from "../src/extractor-registry.mjs";
 import { runExtractorCoverageReport } from "../src/extractor-coverage-report.mjs";
 import { runExpansionStatusDashboard } from "../src/expansion-status-dashboard.mjs";
 import { runResourceExpansionFreeze } from "../src/resource-expansion-freeze.mjs";
+import { runApiRouteInventory } from "../src/api-route-inventory.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1967,6 +1968,7 @@ describe("matter harness", () => {
         extractorCoverageReportPath: path.join(outDir, "extractor-coverage-report", "extractor-coverage-report.json"),
         expansionStatusDashboardPath: path.join(outDir, "expansion-status-dashboard", "expansion-status-dashboard.json"),
         resourceExpansionFreezePath: path.join(outDir, "resource-expansion-freeze", "resource-expansion-freeze.json"),
+        apiRouteInventoryPath: path.join(outDir, "api-route-inventory", "api-route-inventory.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -12039,6 +12041,60 @@ describe("matter harness", () => {
       assert.ok(resourceExpansionFreeze.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "resource-expansion-freeze", "summary.md"), "utf8"), /Resource Expansion Freeze/);
 
+      const apiRouteInventory = await runApiRouteInventory({
+        contractInventoryPath: path.join(outDir, "contract-inventory", "contract-inventory.json"),
+        resourceExpansionFreezePath: path.join(outDir, "resource-expansion-freeze", "resource-expansion-freeze.json"),
+        outDir: path.join(outDir, "api-route-inventory"),
+        runAt: "2026-05-23T07:24:28.000Z",
+      });
+      const apiRouteInventorySchema = JSON.parse(await readFile("schemas/api-route-inventory.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(apiRouteInventory, apiRouteInventorySchema, {}, "api_route_inventory"), [], JSON.stringify(apiRouteInventory.validation.errors));
+      assert.equal(apiRouteInventory.summary.api_route_inventory_status, "complete");
+      assert.equal(apiRouteInventory.summary.phase_slot, "P287");
+      assert.equal(apiRouteInventory.summary.previous_phase_slot, "P286");
+      assert.equal(apiRouteInventory.summary.next_phase_slot, "P288");
+      assert.equal(apiRouteInventory.summary.source_contract_inventory_status, "complete");
+      assert.equal(apiRouteInventory.summary.source_resource_expansion_freeze_status, "complete");
+      assert.equal(apiRouteInventory.summary.source_resource_expansion_freeze_phase_slot, "P286");
+      assert.equal(apiRouteInventory.summary.source_resource_expansion_freeze_next_phase_slot, "P287");
+      assert.equal(apiRouteInventory.summary.required_group_count, 6);
+      assert.equal(apiRouteInventory.summary.listed_required_group_count, 6);
+      assert.equal(apiRouteInventory.summary.api_route_group_count, 6);
+      assert.ok(apiRouteInventory.summary.api_route_count > 0);
+      assert.equal(apiRouteInventory.summary.read_only_route_count, apiRouteInventory.summary.api_route_count);
+      assert.equal(apiRouteInventory.summary.route_partition_count, apiRouteInventory.summary.api_route_count);
+      assert.ok(apiRouteInventory.summary.inventory_route_count >= 6);
+      assert.equal(apiRouteInventory.summary.missing_required_route_count, 0);
+      assert.ok(apiRouteInventory.summary.core_route_count > 0);
+      assert.ok(apiRouteInventory.summary.review_route_count > 0);
+      assert.ok(apiRouteInventory.summary.evidence_route_count > 0);
+      assert.ok(apiRouteInventory.summary.policy_route_count > 0);
+      assert.ok(apiRouteInventory.summary.runtime_route_count > 0);
+      assert.ok(apiRouteInventory.summary.desktop_companion_route_count > 0);
+      assert.equal(apiRouteInventory.summary.mutation_route_count, 0);
+      assert.equal(apiRouteInventory.summary.protected_action_execution_route_count, 0);
+      assert.equal(apiRouteInventory.summary.legal_advice_route_count, 0);
+      assert.equal(apiRouteInventory.summary.client_facing_output_route_count, 0);
+      assert.equal(apiRouteInventory.summary.read_only, true);
+      assert.equal(apiRouteInventory.summary.inventory_only, true);
+      assert.equal(apiRouteInventory.summary.route_execution_performed, false);
+      assert.equal(apiRouteInventory.summary.server_started, false);
+      assert.equal(apiRouteInventory.summary.mutation_allowed, false);
+      assert.equal(apiRouteInventory.summary.protected_action_executed, false);
+      assert.equal(apiRouteInventory.summary.legal_advice_generated, false);
+      assert.equal(apiRouteInventory.summary.client_facing_output_generated, false);
+      assert.equal(apiRouteInventory.summary.human_review_required, true);
+      assert.equal(apiRouteInventory.summary.client_facing_ready, false);
+      assert.equal(apiRouteInventory.summary.windows_baseline_stability_preserved, true);
+      assert.equal(apiRouteInventory.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(apiRouteInventory.summary.validation_error_count, 0);
+      const apiRouteGroupKeys = new Set(["core", "review", "evidence", "policy", "runtime", "desktop_companion"]);
+      assert.ok(apiRouteInventory.api_route_group_rows.every((row) => apiRouteGroupKeys.has(row.route_group_key) && row.route_group_status === "listed" && row.read_only_route_count === row.route_count && row.mutation_route_count === 0 && row.protected_action_execution_route_count === 0 && row.legal_advice_route_count === 0 && row.client_facing_output_route_count === 0 && row.human_review_required && row.client_facing_ready === false));
+      assert.ok(apiRouteInventory.api_route_rows.every((row) => row.method === "GET" && row.route_status === "listed" && row.read_only && row.mutation_allowed === false && row.protected_action_execution_allowed === false && row.legal_advice_generated === false && row.client_facing_output_generated === false && row.human_review_required && row.client_facing_ready === false && apiRouteGroupKeys.has(row.route_group_key)));
+      assert.equal(apiRouteInventory.api_route_inventory_boundary.boundary_status, "enforced");
+      assert.ok(apiRouteInventory.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "api-route-inventory", "summary.md"), "utf8"), /API Route Inventory/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -12249,6 +12305,7 @@ describe("matter harness", () => {
           extractor_coverage_report: path.join(outDir, "extractor-coverage-report", "extractor-coverage-report.json"),
           expansion_status_dashboard: path.join(outDir, "expansion-status-dashboard", "expansion-status-dashboard.json"),
           resource_expansion_freeze: path.join(outDir, "resource-expansion-freeze", "resource-expansion-freeze.json"),
+          api_route_inventory: path.join(outDir, "api-route-inventory", "api-route-inventory.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -12300,8 +12357,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 188);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 188);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 189);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 189);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -12477,6 +12534,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "extractor_coverage_report"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "expansion_status_dashboard"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "resource_expansion_freeze"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "api_route_inventory"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -12528,6 +12586,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:extractor-coverage"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:expansion-status"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:expansion-freeze"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "api:route-inventory"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:runtime-interface"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:approval-matrix"));
@@ -13403,6 +13462,10 @@ describe("matter harness", () => {
       assert.equal(resourceExpansionFreezeCheckpoint?.acceptance_profile, "resource_expansion_freeze_gate");
       assert.equal(resourceExpansionFreezeCheckpoint?.status, "passed");
       assert.equal(resourceExpansionFreezeCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const apiRouteInventoryCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-api-route-inventory");
+      assert.equal(apiRouteInventoryCheckpoint?.acceptance_profile, "api_route_inventory_gate");
+      assert.equal(apiRouteInventoryCheckpoint?.status, "passed");
+      assert.equal(apiRouteInventoryCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -18515,6 +18578,46 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.resource_expansion_freeze_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.resource_expansion_freeze_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.resource_expansion_freeze_validation_error_count, 0);
+      assert.equal(dashboard.summary.api_route_inventory_status, "complete");
+      assert.equal(dashboard.summary.api_route_inventory_phase_slot, "P287");
+      assert.equal(dashboard.summary.api_route_inventory_previous_phase_slot, "P286");
+      assert.equal(dashboard.summary.api_route_inventory_next_phase_slot, "P288");
+      assert.equal(dashboard.summary.api_route_inventory_source_contract_inventory_status, "complete");
+      assert.equal(dashboard.summary.api_route_inventory_source_resource_expansion_freeze_status, "complete");
+      assert.equal(dashboard.summary.api_route_inventory_source_resource_expansion_freeze_phase_slot, "P286");
+      assert.equal(dashboard.summary.api_route_inventory_source_resource_expansion_freeze_next_phase_slot, "P287");
+      assert.equal(dashboard.summary.api_route_inventory_required_group_count, 6);
+      assert.equal(dashboard.summary.api_route_inventory_listed_required_group_count, 6);
+      assert.equal(dashboard.summary.api_route_inventory_api_route_group_count, apiRouteInventory.summary.api_route_group_count);
+      assert.equal(dashboard.summary.api_route_inventory_api_route_count, apiRouteInventory.summary.api_route_count);
+      assert.equal(dashboard.summary.api_route_inventory_read_only_route_count, apiRouteInventory.summary.api_route_count);
+      assert.equal(dashboard.summary.api_route_inventory_route_partition_count, apiRouteInventory.summary.api_route_count);
+      assert.ok(dashboard.summary.api_route_inventory_inventory_route_count >= 6);
+      assert.equal(dashboard.summary.api_route_inventory_missing_required_route_count, 0);
+      assert.ok(dashboard.summary.api_route_inventory_core_route_count > 0);
+      assert.ok(dashboard.summary.api_route_inventory_review_route_count > 0);
+      assert.ok(dashboard.summary.api_route_inventory_evidence_route_count > 0);
+      assert.ok(dashboard.summary.api_route_inventory_policy_route_count > 0);
+      assert.ok(dashboard.summary.api_route_inventory_runtime_route_count > 0);
+      assert.ok(dashboard.summary.api_route_inventory_desktop_companion_route_count > 0);
+      assert.equal(dashboard.summary.api_route_inventory_mutation_route_count, 0);
+      assert.equal(dashboard.summary.api_route_inventory_protected_action_execution_route_count, 0);
+      assert.equal(dashboard.summary.api_route_inventory_legal_advice_route_count, 0);
+      assert.equal(dashboard.summary.api_route_inventory_client_facing_output_route_count, 0);
+      assert.equal(dashboard.summary.api_route_inventory_boundary_status, "enforced");
+      assert.equal(dashboard.summary.api_route_inventory_read_only, true);
+      assert.equal(dashboard.summary.api_route_inventory_inventory_only, true);
+      assert.equal(dashboard.summary.api_route_inventory_route_execution_performed, false);
+      assert.equal(dashboard.summary.api_route_inventory_server_started, false);
+      assert.equal(dashboard.summary.api_route_inventory_mutation_allowed, false);
+      assert.equal(dashboard.summary.api_route_inventory_protected_action_executed, false);
+      assert.equal(dashboard.summary.api_route_inventory_legal_advice_generated, false);
+      assert.equal(dashboard.summary.api_route_inventory_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.api_route_inventory_human_review_required, true);
+      assert.equal(dashboard.summary.api_route_inventory_client_facing_ready, false);
+      assert.equal(dashboard.summary.api_route_inventory_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.api_route_inventory_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.api_route_inventory_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -22032,6 +22135,47 @@ describe("matter harness", () => {
       assert.equal(resourceExpansionFreezeStage?.metrics.windows_baseline_stability_preserved, true);
       assert.equal(resourceExpansionFreezeStage?.metrics.mac_windows_completion_instability_guard, true);
       assert.equal(resourceExpansionFreezeStage?.metrics.validation_error_count, 0);
+      const apiRouteInventoryStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "api_route_inventory");
+      assert.equal(apiRouteInventoryStage?.status, "passed");
+      assert.equal(apiRouteInventoryStage?.metrics.api_route_inventory_status, "complete");
+      assert.equal(apiRouteInventoryStage?.metrics.phase_slot, "P287");
+      assert.equal(apiRouteInventoryStage?.metrics.previous_phase_slot, "P286");
+      assert.equal(apiRouteInventoryStage?.metrics.next_phase_slot, "P288");
+      assert.equal(apiRouteInventoryStage?.metrics.source_resource_expansion_freeze_status, "complete");
+      assert.equal(apiRouteInventoryStage?.metrics.source_resource_expansion_freeze_phase_slot, "P286");
+      assert.equal(apiRouteInventoryStage?.metrics.source_resource_expansion_freeze_next_phase_slot, "P287");
+      assert.equal(apiRouteInventoryStage?.metrics.required_group_count, 6);
+      assert.equal(apiRouteInventoryStage?.metrics.listed_required_group_count, 6);
+      assert.equal(apiRouteInventoryStage?.metrics.api_route_group_count, apiRouteInventory.summary.api_route_group_count);
+      assert.equal(apiRouteInventoryStage?.metrics.api_route_count, apiRouteInventory.summary.api_route_count);
+      assert.equal(apiRouteInventoryStage?.metrics.read_only_route_count, apiRouteInventory.summary.api_route_count);
+      assert.equal(apiRouteInventoryStage?.metrics.route_partition_count, apiRouteInventory.summary.api_route_count);
+      assert.ok(apiRouteInventoryStage?.metrics.inventory_route_count >= 6);
+      assert.equal(apiRouteInventoryStage?.metrics.missing_required_route_count, 0);
+      assert.ok(apiRouteInventoryStage?.metrics.core_route_count > 0);
+      assert.ok(apiRouteInventoryStage?.metrics.review_route_count > 0);
+      assert.ok(apiRouteInventoryStage?.metrics.evidence_route_count > 0);
+      assert.ok(apiRouteInventoryStage?.metrics.policy_route_count > 0);
+      assert.ok(apiRouteInventoryStage?.metrics.runtime_route_count > 0);
+      assert.ok(apiRouteInventoryStage?.metrics.desktop_companion_route_count > 0);
+      assert.equal(apiRouteInventoryStage?.metrics.mutation_route_count, 0);
+      assert.equal(apiRouteInventoryStage?.metrics.protected_action_execution_route_count, 0);
+      assert.equal(apiRouteInventoryStage?.metrics.legal_advice_route_count, 0);
+      assert.equal(apiRouteInventoryStage?.metrics.client_facing_output_route_count, 0);
+      assert.equal(apiRouteInventoryStage?.metrics.boundary_status, "enforced");
+      assert.equal(apiRouteInventoryStage?.metrics.read_only, true);
+      assert.equal(apiRouteInventoryStage?.metrics.inventory_only, true);
+      assert.equal(apiRouteInventoryStage?.metrics.route_execution_performed, false);
+      assert.equal(apiRouteInventoryStage?.metrics.server_started, false);
+      assert.equal(apiRouteInventoryStage?.metrics.mutation_allowed, false);
+      assert.equal(apiRouteInventoryStage?.metrics.protected_action_executed, false);
+      assert.equal(apiRouteInventoryStage?.metrics.legal_advice_generated, false);
+      assert.equal(apiRouteInventoryStage?.metrics.client_facing_output_generated, false);
+      assert.equal(apiRouteInventoryStage?.metrics.human_review_required, true);
+      assert.equal(apiRouteInventoryStage?.metrics.client_facing_ready, false);
+      assert.equal(apiRouteInventoryStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(apiRouteInventoryStage?.metrics.mac_windows_completion_instability_guard, true);
+      assert.equal(apiRouteInventoryStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -22192,6 +22336,12 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-expansion-freeze-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-expansion-freeze-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-expansion-freeze-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/api-route-inventories"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/api-route-groups"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/api-route-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/api-route-inventory-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/api-route-inventory-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/api-route-inventory-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -24936,6 +25086,36 @@ describe("matter harness", () => {
       const resourceExpansionFreezeValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/resource-expansion-freeze-validations?status=passed", apiOptions)).body);
       assert.equal(resourceExpansionFreezeValidationsResponse.collection, "expansion_freeze_validations");
       assert.equal(resourceExpansionFreezeValidationsResponse.count, resourceExpansionFreeze.summary.validation_item_count);
+
+      const apiRouteInventoriesResponse = JSON.parse((await buildReviewApiResponse("/api/api-route-inventories?api_route_inventory_status=complete", apiOptions)).body);
+      assert.equal(apiRouteInventoriesResponse.collection, "api_route_inventories");
+      assert.equal(apiRouteInventoriesResponse.count, 1);
+
+      const apiRouteGroupsResponse = JSON.parse((await buildReviewApiResponse("/api/api-route-groups?api_route_group_status=listed", apiOptions)).body);
+      assert.equal(apiRouteGroupsResponse.collection, "api_route_groups");
+      assert.equal(apiRouteGroupsResponse.count, apiRouteInventory.summary.api_route_group_count);
+
+      const apiRouteRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/api-route-records?api_route_status=listed&read_only=true", apiOptions)).body);
+      assert.equal(apiRouteRecordsResponse.collection, "api_route_records");
+      assert.equal(apiRouteRecordsResponse.count, apiRouteInventory.summary.api_route_count);
+
+      for (const routeGroupKey of apiRouteGroupKeys) {
+        const routeGroupResponse = JSON.parse((await buildReviewApiResponse(`/api/api-route-records?route_group_key=${routeGroupKey}`, apiOptions)).body);
+        assert.equal(routeGroupResponse.collection, "api_route_records");
+        assert.equal(routeGroupResponse.count, apiRouteInventory.summary[`${routeGroupKey}_route_count`]);
+      }
+
+      const apiRouteInventoryChecksResponse = JSON.parse((await buildReviewApiResponse("/api/api-route-inventory-checks?status=passed", apiOptions)).body);
+      assert.equal(apiRouteInventoryChecksResponse.collection, "api_route_inventory_checks");
+      assert.equal(apiRouteInventoryChecksResponse.count, apiRouteInventory.summary.validation_item_count);
+
+      const apiRouteInventoryBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/api-route-inventory-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(apiRouteInventoryBoundaryResponse.collection, "api_route_inventory_boundary");
+      assert.equal(apiRouteInventoryBoundaryResponse.count, 1);
+
+      const apiRouteInventoryValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/api-route-inventory-validations?status=passed", apiOptions)).body);
+      assert.equal(apiRouteInventoryValidationsResponse.collection, "api_route_inventory_validations");
+      assert.equal(apiRouteInventoryValidationsResponse.count, apiRouteInventory.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

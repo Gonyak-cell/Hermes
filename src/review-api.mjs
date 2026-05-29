@@ -6134,6 +6134,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("expansion_freeze_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/api-route-inventories") {
+    const result = await readDashboardSourceArtifact(dashboard, "api_route_inventory");
+    if (!result.available) {
+      return jsonResponse(503, buildError("api_route_inventory_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("api_route_inventories", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/api-route-groups") {
+    const result = await readDashboardSourceArtifact(dashboard, "api_route_inventory");
+    if (!result.available) {
+      return jsonResponse(503, buildError("api_route_inventory_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("api_route_groups", result.artifact.api_route_group_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/api-route-records") {
+    const result = await readDashboardSourceArtifact(dashboard, "api_route_inventory");
+    if (!result.available) {
+      return jsonResponse(503, buildError("api_route_inventory_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("api_route_records", result.artifact.api_route_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/api-route-inventory-checks") {
+    const result = await readDashboardSourceArtifact(dashboard, "api_route_inventory");
+    if (!result.available) {
+      return jsonResponse(503, buildError("api_route_inventory_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("api_route_inventory_checks", result.artifact.api_route_inventory_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/api-route-inventory-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "api_route_inventory");
+    if (!result.available) {
+      return jsonResponse(503, buildError("api_route_inventory_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("api_route_inventory_boundary", [result.artifact.api_route_inventory_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/api-route-inventory-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "api_route_inventory");
+    if (!result.available) {
+      return jsonResponse(503, buildError("api_route_inventory_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("api_route_inventory_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -12614,6 +12656,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/resource-expansion-freeze-boundary", "Resource Expansion Freeze boundary"),
       route("GET", "/api/resource-expansion-freeze-checks", "Resource Expansion Freeze checkpoint rows"),
       route("GET", "/api/resource-expansion-freeze-validations", "Resource Expansion Freeze validation rows"),
+      route("GET", "/api/api-route-inventories", "API Route Inventory artifact"),
+      route("GET", "/api/api-route-groups", "API route inventory group rows"),
+      route("GET", "/api/api-route-records", "API route inventory route rows"),
+      route("GET", "/api/api-route-inventory-checks", "API route inventory check rows"),
+      route("GET", "/api/api-route-inventory-boundary", "API route inventory read-only boundary"),
+      route("GET", "/api/api-route-inventory-validations", "API route inventory validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -13797,6 +13845,13 @@ function filterItems(items, searchParams) {
     "expansion_freeze_idempotency_status",
     "expansion_freeze_scale_check_status",
     "expansion_freeze_boundary_status",
+    "api_route_inventory_status",
+    "api_route_group_status",
+    "api_route_status",
+    "api_route_group_key",
+    "route_group_key",
+    "route_method",
+    "boundary_status",
     "path_kind",
     "gate_id",
     "thread_status",
@@ -15715,6 +15770,11 @@ function readFilterValue(item, key) {
   if (key === "expansion_freeze_idempotency_status") return item.idempotency_probe_status;
   if (key === "expansion_freeze_scale_check_status") return item.scale_check_status;
   if (key === "expansion_freeze_boundary_status") return item.boundary_status;
+  if (key === "api_route_inventory_status") return item.summary?.api_route_inventory_status ?? item.api_route_inventory_status;
+  if (key === "api_route_group_status") return item.route_group_status;
+  if (key === "api_route_status") return item.route_status;
+  if (key === "api_route_group_key") return item.route_group_key;
+  if (key === "route_group_key") return item.route_group_key;
   if (key === "path_kind") return item.path_kind;
   if (key === "gate_id") return item.gate_id;
   if (key === "thread_status") return item.thread_status;

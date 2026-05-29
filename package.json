@@ -14,6 +14,7 @@
     "approval:queue": "node scripts/approval-queue.mjs",
     "api:serve": "node scripts/review-api.mjs",
     "api:smoke": "node scripts/review-api-smoke.mjs",
+    "api:route-inventory": "node scripts/api-route-inventory.mjs",
     "brief": "node scripts/matter-brief.mjs examples/project-alpha-matter.json",
     "context:packets": "node scripts/context-packet-ledger.mjs",
     "contracts:inventory": "node scripts/contract-inventory.mjs",

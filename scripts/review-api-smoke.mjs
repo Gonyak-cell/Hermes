@@ -2964,6 +2964,46 @@ try {
   assert.equal(dashboardIaValidations.collection, "review_dashboard_ia_validations");
   assert.ok(dashboardIaValidations.count <= 20);
 
+  const approvalQueueUiArtifacts = await fetchJson(`${url}/api/approval-queue-ui-artifacts?approval_queue_ui_status=complete&limit=1`);
+  assert.equal(approvalQueueUiArtifacts.collection, "approval_queue_ui_artifacts");
+  assert.ok(approvalQueueUiArtifacts.count <= 1);
+
+  const approvalQueueUiPanels = await fetchJson(`${url}/api/approval-queue-ui-panels?approval_queue_ui_panel_status=ready&limit=5`);
+  assert.equal(approvalQueueUiPanels.collection, "approval_queue_ui_panels");
+  assert.ok(approvalQueueUiPanels.count <= 5);
+
+  const approvalQueueUiItems = await fetchJson(`${url}/api/approval-queue-ui-items?approval_queue_ui_item_status=pending&pending_approval=true&read_only=true&limit=20`);
+  assert.equal(approvalQueueUiItems.collection, "approval_queue_ui_items");
+  assert.ok(approvalQueueUiItems.count <= 20);
+
+  const approvalQueueUiActorItems = await fetchJson(`${url}/api/approval-queue-ui-items?required_actor=human_reviewer&limit=10`);
+  assert.equal(approvalQueueUiActorItems.collection, "approval_queue_ui_items");
+  assert.ok(approvalQueueUiActorItems.count <= 10);
+
+  const approvalQueueTargetArtifacts = await fetchJson(`${url}/api/approval-queue-target-artifacts?target_artifact_lookup_status=linked&limit=20`);
+  assert.equal(approvalQueueTargetArtifacts.collection, "approval_queue_target_artifacts");
+  assert.ok(approvalQueueTargetArtifacts.count <= 20);
+
+  const approvalQueueReceiptPreviews = await fetchJson(`${url}/api/approval-queue-receipt-previews?receipt_preview_status=draft_available&preview_only=true&limit=20`);
+  assert.equal(approvalQueueReceiptPreviews.collection, "approval_queue_receipt_previews");
+  assert.ok(approvalQueueReceiptPreviews.count <= 20);
+
+  const approvalQueueProtectedRequestPreviews = await fetchJson(`${url}/api/approval-queue-protected-request-previews?protected_request_preview_status=pending_explicit_approval&protected_action=true&preview_only=true&limit=5`);
+  assert.equal(approvalQueueProtectedRequestPreviews.collection, "approval_queue_protected_request_previews");
+  assert.ok(approvalQueueProtectedRequestPreviews.count <= 5);
+
+  const approvalQueueUiBoundary = await fetchJson(`${url}/api/approval-queue-ui-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(approvalQueueUiBoundary.collection, "approval_queue_ui_boundary");
+  assert.ok(approvalQueueUiBoundary.count <= 1);
+
+  const approvalQueueUiChecks = await fetchJson(`${url}/api/approval-queue-ui-checks?status=passed&limit=20`);
+  assert.equal(approvalQueueUiChecks.collection, "approval_queue_ui_checks");
+  assert.ok(approvalQueueUiChecks.count <= 20);
+
+  const approvalQueueUiValidations = await fetchJson(`${url}/api/approval-queue-ui-validations?status=passed&limit=20`);
+  assert.equal(approvalQueueUiValidations.collection, "approval_queue_ui_validations");
+  assert.ok(approvalQueueUiValidations.count <= 20);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

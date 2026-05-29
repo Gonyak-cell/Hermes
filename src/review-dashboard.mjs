@@ -124,6 +124,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   resourceExpansionFreezePath: "artifacts/resource-expansion-freeze/latest/resource-expansion-freeze.json",
   apiRouteInventoryPath: "artifacts/api-route-inventory/latest/api-route-inventory.json",
   dashboardInformationArchitecturePath: "artifacts/review-dashboard-ia/latest/review-dashboard-ia.json",
+  approvalQueueUiPath: "artifacts/approval-queue-ui/latest/approval-queue-ui.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -887,6 +888,11 @@ const SOURCE_DEFINITIONS = [
     option: "dashboardInformationArchitecturePath",
     source_id: "dashboard_information_architecture",
     label: "Review Dashboard Information Architecture",
+  },
+  {
+    option: "approvalQueueUiPath",
+    source_id: "approval_queue_ui",
+    label: "Approval Queue UI",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1880,6 +1886,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "resource_expansion_freeze") return data.summary ?? {};
   if (sourceId === "api_route_inventory") return data.summary ?? {};
   if (sourceId === "dashboard_information_architecture") return data.summary ?? {};
+  if (sourceId === "approval_queue_ui") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2285,6 +2292,7 @@ function buildStageStatuses(artifacts, sources) {
     buildResourceExpansionFreezeStage(artifacts.resource_expansion_freeze, sourceById.get("resource_expansion_freeze")),
     buildApiRouteInventoryStage(artifacts.api_route_inventory, sourceById.get("api_route_inventory")),
     buildDashboardInformationArchitectureStage(artifacts.dashboard_information_architecture, sourceById.get("dashboard_information_architecture")),
+    buildApprovalQueueUiStage(artifacts.approval_queue_ui, sourceById.get("approval_queue_ui")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -14604,6 +14612,109 @@ function buildDashboardInformationArchitectureStage(artifact, source) {
   };
 }
 
+function buildApprovalQueueUiStage(artifact, source) {
+  if (!artifact) return missingStage("approval_queue_ui", "Approval Queue UI", source);
+  const summary = artifact.summary ?? {};
+  const itemCount = summary.approval_queue_ui_item_count ?? 0;
+  const panelCount = summary.approval_queue_ui_panel_count ?? 0;
+  const status = artifact.validation?.valid === false
+    || summary.approval_queue_ui_status !== "complete"
+    || summary.phase_slot !== "P289"
+    || summary.previous_phase_slot !== "P288"
+    || summary.next_phase_slot !== "P290"
+    || summary.source_dashboard_information_architecture_status !== "complete"
+    || summary.source_dashboard_information_architecture_phase_slot !== "P288"
+    || summary.source_dashboard_information_architecture_next_phase_slot !== "P289"
+    || panelCount !== 5
+    || summary.required_panel_count !== 5
+    || summary.ready_panel_count !== 5
+    || itemCount <= 0
+    || summary.source_pending_approval_count !== itemCount
+    || summary.pending_approval_item_count !== itemCount
+    || summary.missing_required_actor_count !== 0
+    || summary.target_artifact_count !== itemCount
+    || summary.linked_target_artifact_count !== itemCount
+    || summary.receipt_preview_count !== itemCount
+    || summary.receipt_preview_available_count !== itemCount
+    || summary.protected_request_preview_count !== itemCount
+    || summary.actual_protected_request_preview_count <= 0
+    || summary.read_only !== true
+    || summary.ui_projection_only !== true
+    || summary.receipt_preview_only !== true
+    || summary.protected_request_preview_only !== true
+    || summary.approval_application_performed !== false
+    || summary.receipt_application_performed !== false
+    || summary.protected_action_executed !== false
+    || summary.route_execution_performed !== false
+    || summary.server_started !== false
+    || summary.mutation_allowed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "approval_queue_ui",
+    label: "Approval Queue UI",
+    status,
+    message: `${itemCount} approval UI item(s) across ${panelCount} panel(s), ${summary.actual_protected_request_preview_count ?? 0} protected request preview(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      approval_queue_ui_status: summary.approval_queue_ui_status ?? "unknown",
+      approval_queue_ui_id: summary.approval_queue_ui_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_dashboard_information_architecture_status: summary.source_dashboard_information_architecture_status ?? "unknown",
+      source_dashboard_information_architecture_phase_slot: summary.source_dashboard_information_architecture_phase_slot ?? null,
+      source_dashboard_information_architecture_next_phase_slot: summary.source_dashboard_information_architecture_next_phase_slot ?? null,
+      source_approval_queue_item_count: summary.source_approval_queue_item_count ?? 0,
+      source_approval_queue_pending_count: summary.source_approval_queue_pending_count ?? 0,
+      source_approval_inbox_item_count: summary.source_approval_inbox_item_count ?? 0,
+      source_approval_inbox_pending_count: summary.source_approval_inbox_pending_count ?? 0,
+      source_human_gate_receipt_requirement_count: summary.source_human_gate_receipt_requirement_count ?? 0,
+      source_protected_approval_request_count: summary.source_protected_approval_request_count ?? 0,
+      source_pending_protected_approval_count: summary.source_pending_protected_approval_count ?? 0,
+      source_pending_approval_count: summary.source_pending_approval_count ?? 0,
+      approval_queue_ui_panel_count: panelCount,
+      required_panel_count: summary.required_panel_count ?? 0,
+      ready_panel_count: summary.ready_panel_count ?? 0,
+      approval_queue_ui_item_count: itemCount,
+      pending_approval_item_count: summary.pending_approval_item_count ?? 0,
+      required_actor_count: summary.required_actor_count ?? 0,
+      missing_required_actor_count: summary.missing_required_actor_count ?? 0,
+      target_artifact_count: summary.target_artifact_count ?? 0,
+      linked_target_artifact_count: summary.linked_target_artifact_count ?? 0,
+      receipt_preview_count: summary.receipt_preview_count ?? 0,
+      receipt_preview_available_count: summary.receipt_preview_available_count ?? 0,
+      protected_request_preview_count: summary.protected_request_preview_count ?? 0,
+      actual_protected_request_preview_count: summary.actual_protected_request_preview_count ?? 0,
+      not_required_protected_request_preview_count: summary.not_required_protected_request_preview_count ?? 0,
+      read_only: summary.read_only ?? false,
+      ui_projection_only: summary.ui_projection_only ?? false,
+      receipt_preview_only: summary.receipt_preview_only ?? false,
+      protected_request_preview_only: summary.protected_request_preview_only ?? false,
+      approval_application_performed: summary.approval_application_performed ?? false,
+      receipt_application_performed: summary.receipt_application_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      route_execution_performed: summary.route_execution_performed ?? false,
+      server_started: summary.server_started ?? false,
+      mutation_allowed: summary.mutation_allowed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      human_review_required: summary.human_review_required ?? false,
+      client_facing_ready: summary.client_facing_ready ?? true,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -21284,6 +21395,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_dashboard_information_architecture", "rerun_dashboard_ia", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.approval_queue_ui?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "approval_queue_ui";
+    items.push({
+      action_item_id: `dashboard.action.approval_queue_ui.${slugify(subjectId)}`,
+      source_stage: "approval_queue_ui",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Approval Queue UI",
+      subject_ref: {
+        subject_type: "approval_queue_ui_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_approval_queue_ui", "rerun_approval_queue_ui", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -28431,6 +28560,55 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     dashboard_information_architecture_validation_item_count: artifacts.dashboard_information_architecture?.summary?.validation_item_count ?? 0,
     dashboard_information_architecture_failed_checkpoint_count: artifacts.dashboard_information_architecture?.summary?.failed_checkpoint_count ?? 0,
     dashboard_information_architecture_validation_error_count: artifacts.dashboard_information_architecture?.summary?.validation_error_count ?? artifacts.dashboard_information_architecture?.validation?.errors?.length ?? 0,
+    approval_queue_ui_status: artifacts.approval_queue_ui?.summary?.approval_queue_ui_status ?? "unknown",
+    approval_queue_ui_id: artifacts.approval_queue_ui?.summary?.approval_queue_ui_id ?? null,
+    approval_queue_ui_phase_slot: artifacts.approval_queue_ui?.summary?.phase_slot ?? null,
+    approval_queue_ui_previous_phase_slot: artifacts.approval_queue_ui?.summary?.previous_phase_slot ?? null,
+    approval_queue_ui_next_phase_slot: artifacts.approval_queue_ui?.summary?.next_phase_slot ?? null,
+    approval_queue_ui_source_dashboard_information_architecture_status: artifacts.approval_queue_ui?.summary?.source_dashboard_information_architecture_status ?? "unknown",
+    approval_queue_ui_source_dashboard_information_architecture_phase_slot: artifacts.approval_queue_ui?.summary?.source_dashboard_information_architecture_phase_slot ?? null,
+    approval_queue_ui_source_dashboard_information_architecture_next_phase_slot: artifacts.approval_queue_ui?.summary?.source_dashboard_information_architecture_next_phase_slot ?? null,
+    approval_queue_ui_source_approval_queue_item_count: artifacts.approval_queue_ui?.summary?.source_approval_queue_item_count ?? 0,
+    approval_queue_ui_source_approval_queue_pending_count: artifacts.approval_queue_ui?.summary?.source_approval_queue_pending_count ?? 0,
+    approval_queue_ui_source_approval_inbox_item_count: artifacts.approval_queue_ui?.summary?.source_approval_inbox_item_count ?? 0,
+    approval_queue_ui_source_approval_inbox_pending_count: artifacts.approval_queue_ui?.summary?.source_approval_inbox_pending_count ?? 0,
+    approval_queue_ui_source_human_gate_receipt_requirement_count: artifacts.approval_queue_ui?.summary?.source_human_gate_receipt_requirement_count ?? 0,
+    approval_queue_ui_source_protected_approval_request_count: artifacts.approval_queue_ui?.summary?.source_protected_approval_request_count ?? 0,
+    approval_queue_ui_source_pending_protected_approval_count: artifacts.approval_queue_ui?.summary?.source_pending_protected_approval_count ?? 0,
+    approval_queue_ui_source_pending_approval_count: artifacts.approval_queue_ui?.summary?.source_pending_approval_count ?? 0,
+    approval_queue_ui_panel_count: artifacts.approval_queue_ui?.summary?.approval_queue_ui_panel_count ?? 0,
+    approval_queue_ui_required_panel_count: artifacts.approval_queue_ui?.summary?.required_panel_count ?? 0,
+    approval_queue_ui_ready_panel_count: artifacts.approval_queue_ui?.summary?.ready_panel_count ?? 0,
+    approval_queue_ui_item_count: artifacts.approval_queue_ui?.summary?.approval_queue_ui_item_count ?? 0,
+    approval_queue_ui_pending_approval_item_count: artifacts.approval_queue_ui?.summary?.pending_approval_item_count ?? 0,
+    approval_queue_ui_required_actor_count: artifacts.approval_queue_ui?.summary?.required_actor_count ?? 0,
+    approval_queue_ui_missing_required_actor_count: artifacts.approval_queue_ui?.summary?.missing_required_actor_count ?? 0,
+    approval_queue_ui_target_artifact_count: artifacts.approval_queue_ui?.summary?.target_artifact_count ?? 0,
+    approval_queue_ui_linked_target_artifact_count: artifacts.approval_queue_ui?.summary?.linked_target_artifact_count ?? 0,
+    approval_queue_ui_receipt_preview_count: artifacts.approval_queue_ui?.summary?.receipt_preview_count ?? 0,
+    approval_queue_ui_receipt_preview_available_count: artifacts.approval_queue_ui?.summary?.receipt_preview_available_count ?? 0,
+    approval_queue_ui_protected_request_preview_count: artifacts.approval_queue_ui?.summary?.protected_request_preview_count ?? 0,
+    approval_queue_ui_actual_protected_request_preview_count: artifacts.approval_queue_ui?.summary?.actual_protected_request_preview_count ?? 0,
+    approval_queue_ui_not_required_protected_request_preview_count: artifacts.approval_queue_ui?.summary?.not_required_protected_request_preview_count ?? 0,
+    approval_queue_ui_read_only: artifacts.approval_queue_ui?.summary?.read_only ?? false,
+    approval_queue_ui_ui_projection_only: artifacts.approval_queue_ui?.summary?.ui_projection_only ?? false,
+    approval_queue_ui_receipt_preview_only: artifacts.approval_queue_ui?.summary?.receipt_preview_only ?? false,
+    approval_queue_ui_protected_request_preview_only: artifacts.approval_queue_ui?.summary?.protected_request_preview_only ?? false,
+    approval_queue_ui_approval_application_performed: artifacts.approval_queue_ui?.summary?.approval_application_performed ?? false,
+    approval_queue_ui_receipt_application_performed: artifacts.approval_queue_ui?.summary?.receipt_application_performed ?? false,
+    approval_queue_ui_protected_action_executed: artifacts.approval_queue_ui?.summary?.protected_action_executed ?? false,
+    approval_queue_ui_route_execution_performed: artifacts.approval_queue_ui?.summary?.route_execution_performed ?? false,
+    approval_queue_ui_server_started: artifacts.approval_queue_ui?.summary?.server_started ?? false,
+    approval_queue_ui_mutation_allowed: artifacts.approval_queue_ui?.summary?.mutation_allowed ?? false,
+    approval_queue_ui_legal_advice_generated: artifacts.approval_queue_ui?.summary?.legal_advice_generated ?? false,
+    approval_queue_ui_client_facing_output_generated: artifacts.approval_queue_ui?.summary?.client_facing_output_generated ?? false,
+    approval_queue_ui_human_review_required: artifacts.approval_queue_ui?.summary?.human_review_required ?? false,
+    approval_queue_ui_client_facing_ready: artifacts.approval_queue_ui?.summary?.client_facing_ready ?? true,
+    approval_queue_ui_windows_baseline_stability_preserved: artifacts.approval_queue_ui?.summary?.windows_baseline_stability_preserved ?? false,
+    approval_queue_ui_mac_windows_completion_instability_guard: artifacts.approval_queue_ui?.summary?.mac_windows_completion_instability_guard ?? false,
+    approval_queue_ui_validation_item_count: artifacts.approval_queue_ui?.summary?.validation_item_count ?? 0,
+    approval_queue_ui_failed_checkpoint_count: artifacts.approval_queue_ui?.summary?.failed_checkpoint_count ?? 0,
+    approval_queue_ui_validation_error_count: artifacts.approval_queue_ui?.summary?.validation_error_count ?? artifacts.approval_queue_ui?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -30262,6 +30440,8 @@ function parseArgs(argv) {
     else if (arg === "--no-api-route-inventory") parsed.apiRouteInventoryPath = false;
     else if (arg === "--dashboard-ia") parsed.dashboardInformationArchitecturePath = argv[++index];
     else if (arg === "--no-dashboard-ia") parsed.dashboardInformationArchitecturePath = false;
+    else if (arg === "--approval-queue-ui") parsed.approvalQueueUiPath = argv[++index];
+    else if (arg === "--no-approval-queue-ui") parsed.approvalQueueUiPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

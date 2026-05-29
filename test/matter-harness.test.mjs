@@ -87,6 +87,7 @@ import { runExtractorCoverageReport } from "../src/extractor-coverage-report.mjs
 import { runExpansionStatusDashboard } from "../src/expansion-status-dashboard.mjs";
 import { runResourceExpansionFreeze } from "../src/resource-expansion-freeze.mjs";
 import { runApiRouteInventory } from "../src/api-route-inventory.mjs";
+import { runApprovalQueueUi } from "../src/approval-queue-ui.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -1971,6 +1972,7 @@ describe("matter harness", () => {
         resourceExpansionFreezePath: path.join(outDir, "resource-expansion-freeze", "resource-expansion-freeze.json"),
         apiRouteInventoryPath: path.join(outDir, "api-route-inventory", "api-route-inventory.json"),
         dashboardInformationArchitecturePath: path.join(outDir, "review-dashboard-ia", "review-dashboard-ia.json"),
+        approvalQueueUiPath: path.join(outDir, "approval-queue-ui", "approval-queue-ui.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -12150,6 +12152,67 @@ describe("matter harness", () => {
       assert.ok(dashboardInformationArchitecture.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "review-dashboard-ia", "summary.md"), "utf8"), /Review Dashboard Information Architecture/);
 
+      const approvalQueueUi = await runApprovalQueueUi({
+        approvalQueuePath: path.join(outDir, "approval-queue", "approval-queue.json"),
+        approvalInboxPath: path.join(outDir, "approval-inbox", "approval-inbox.json"),
+        controlPlaneHumanGateReceiptsPath: path.join(outDir, "control-plane-human-gate-receipts", "control-plane-human-gate-receipt-drafts.json"),
+        protectedApprovalRequestPackPath: path.join(outDir, "human-review-cycle-receipt-completion-protected-approval-request-pack", "human-review-cycle-receipt-completion-protected-approval-request-pack.json"),
+        dashboardInformationArchitecturePath: path.join(outDir, "review-dashboard-ia", "review-dashboard-ia.json"),
+        outDir: path.join(outDir, "approval-queue-ui"),
+        runAt: "2026-05-23T07:24:30.000Z",
+      });
+      const approvalQueueUiSchema = JSON.parse(await readFile("schemas/approval-queue-ui.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(approvalQueueUi, approvalQueueUiSchema, {}, "approval_queue_ui"), [], JSON.stringify(approvalQueueUi.validation.errors));
+      assert.equal(approvalQueueUi.summary.approval_queue_ui_status, "complete");
+      assert.equal(approvalQueueUi.summary.phase_slot, "P289");
+      assert.equal(approvalQueueUi.summary.previous_phase_slot, "P288");
+      assert.equal(approvalQueueUi.summary.next_phase_slot, "P290");
+      assert.equal(approvalQueueUi.summary.source_dashboard_information_architecture_status, "complete");
+      assert.equal(approvalQueueUi.summary.source_dashboard_information_architecture_phase_slot, "P288");
+      assert.equal(approvalQueueUi.summary.source_dashboard_information_architecture_next_phase_slot, "P289");
+      assert.equal(approvalQueueUi.summary.source_approval_queue_pending_count, approvalQueue.summary.by_status.pending);
+      assert.equal(approvalQueueUi.summary.source_approval_inbox_pending_count, approvalInbox.summary.pending_item_count);
+      assert.equal(approvalQueueUi.summary.source_pending_protected_approval_count, humanReviewCycleReceiptCompletionProtectedApprovalRequestPack.summary.pending_explicit_approval_count);
+      assert.equal(approvalQueueUi.summary.source_pending_approval_count, approvalQueue.summary.by_status.pending + approvalInbox.summary.pending_item_count + humanReviewCycleReceiptCompletionProtectedApprovalRequestPack.summary.pending_explicit_approval_count);
+      assert.equal(approvalQueueUi.summary.approval_queue_ui_panel_count, 5);
+      assert.equal(approvalQueueUi.summary.required_panel_count, 5);
+      assert.equal(approvalQueueUi.summary.ready_panel_count, 5);
+      assert.equal(approvalQueueUi.summary.approval_queue_ui_item_count, approvalQueueUi.summary.source_pending_approval_count);
+      assert.equal(approvalQueueUi.summary.pending_approval_item_count, approvalQueueUi.summary.approval_queue_ui_item_count);
+      assert.equal(approvalQueueUi.summary.missing_required_actor_count, 0);
+      assert.equal(approvalQueueUi.summary.target_artifact_count, approvalQueueUi.summary.approval_queue_ui_item_count);
+      assert.equal(approvalQueueUi.summary.linked_target_artifact_count, approvalQueueUi.summary.approval_queue_ui_item_count);
+      assert.equal(approvalQueueUi.summary.receipt_preview_count, approvalQueueUi.summary.approval_queue_ui_item_count);
+      assert.equal(approvalQueueUi.summary.receipt_preview_available_count, approvalQueueUi.summary.approval_queue_ui_item_count);
+      assert.equal(approvalQueueUi.summary.protected_request_preview_count, approvalQueueUi.summary.approval_queue_ui_item_count);
+      assert.equal(approvalQueueUi.summary.actual_protected_request_preview_count, humanReviewCycleReceiptCompletionProtectedApprovalRequestPack.summary.pending_explicit_approval_count);
+      assert.equal(approvalQueueUi.summary.read_only, true);
+      assert.equal(approvalQueueUi.summary.ui_projection_only, true);
+      assert.equal(approvalQueueUi.summary.receipt_preview_only, true);
+      assert.equal(approvalQueueUi.summary.protected_request_preview_only, true);
+      assert.equal(approvalQueueUi.summary.approval_application_performed, false);
+      assert.equal(approvalQueueUi.summary.receipt_application_performed, false);
+      assert.equal(approvalQueueUi.summary.protected_action_executed, false);
+      assert.equal(approvalQueueUi.summary.route_execution_performed, false);
+      assert.equal(approvalQueueUi.summary.server_started, false);
+      assert.equal(approvalQueueUi.summary.mutation_allowed, false);
+      assert.equal(approvalQueueUi.summary.legal_advice_generated, false);
+      assert.equal(approvalQueueUi.summary.client_facing_output_generated, false);
+      assert.equal(approvalQueueUi.summary.human_review_required, true);
+      assert.equal(approvalQueueUi.summary.client_facing_ready, false);
+      assert.equal(approvalQueueUi.summary.windows_baseline_stability_preserved, true);
+      assert.equal(approvalQueueUi.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(approvalQueueUi.summary.validation_error_count, 0);
+      const approvalQueueUiPanelKeys = new Set(["pending_approvals", "required_actors", "target_artifacts", "receipt_drafts", "protected_requests"]);
+      assert.ok(approvalQueueUi.approval_queue_ui_panels.every((row) => approvalQueueUiPanelKeys.has(row.panel_key) && row.panel_status === "ready" && row.read_only && row.preview_only && row.mutation_allowed === false && row.protected_action_execution_allowed === false && row.human_review_required && row.client_facing_ready === false));
+      assert.ok(approvalQueueUi.approval_queue_ui_items.every((row) => row.pending_approval && row.required_actor && row.target_artifact_lookup_id && row.receipt_draft_preview_id && row.protected_request_preview_id && row.read_only && row.preview_only && row.approval_application_allowed === false && row.receipt_application_allowed === false && row.protected_action_execution_allowed === false && row.human_review_required && row.client_facing_ready === false));
+      assert.ok(approvalQueueUi.approval_queue_target_artifacts.every((row) => row.target_artifact_lookup_status === "linked" && row.target_artifact_ref.target_artifact_id && row.read_only && row.lookup_only && row.mutation_allowed === false && row.protected_action_execution_allowed === false));
+      assert.ok(approvalQueueUi.approval_queue_receipt_previews.every((row) => row.receipt_form_draft && row.required_actor && row.preview_only && row.receipt_application_allowed === false && row.protected_action_execution_allowed === false));
+      assert.ok(approvalQueueUi.approval_queue_protected_request_previews.every((row) => row.preview_only && row.approval_application_allowed === false && row.protected_action_execution_allowed === false));
+      assert.equal(approvalQueueUi.approval_queue_ui_boundary.boundary_status, "enforced");
+      assert.ok(approvalQueueUi.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "approval-queue-ui", "summary.md"), "utf8"), /Approval Queue UI/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -12362,6 +12425,7 @@ describe("matter harness", () => {
           resource_expansion_freeze: path.join(outDir, "resource-expansion-freeze", "resource-expansion-freeze.json"),
           api_route_inventory: path.join(outDir, "api-route-inventory", "api-route-inventory.json"),
           dashboard_information_architecture: path.join(outDir, "review-dashboard-ia", "review-dashboard-ia.json"),
+          approval_queue_ui: path.join(outDir, "approval-queue-ui", "approval-queue-ui.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -12413,8 +12477,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 190);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 190);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 191);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 191);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -12592,6 +12656,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "resource_expansion_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "api_route_inventory"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "dashboard_information_architecture"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "approval_queue_ui"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -12645,6 +12710,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:expansion-freeze"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "api:route-inventory"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "dashboard:ia"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "approval:queue-ui"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:runtime-interface"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:approval-matrix"));
@@ -13528,6 +13594,10 @@ describe("matter harness", () => {
       assert.equal(dashboardInformationArchitectureCheckpoint?.acceptance_profile, "dashboard_information_architecture_gate");
       assert.equal(dashboardInformationArchitectureCheckpoint?.status, "passed");
       assert.equal(dashboardInformationArchitectureCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const approvalQueueUiCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-approval-queue-ui");
+      assert.equal(approvalQueueUiCheckpoint?.acceptance_profile, "approval_queue_ui_gate");
+      assert.equal(approvalQueueUiCheckpoint?.status, "passed");
+      assert.equal(approvalQueueUiCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -18718,6 +18788,46 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.dashboard_information_architecture_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.dashboard_information_architecture_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.dashboard_information_architecture_validation_error_count, 0);
+      assert.equal(dashboard.summary.approval_queue_ui_status, "complete");
+      assert.equal(dashboard.summary.approval_queue_ui_phase_slot, "P289");
+      assert.equal(dashboard.summary.approval_queue_ui_previous_phase_slot, "P288");
+      assert.equal(dashboard.summary.approval_queue_ui_next_phase_slot, "P290");
+      assert.equal(dashboard.summary.approval_queue_ui_source_dashboard_information_architecture_status, "complete");
+      assert.equal(dashboard.summary.approval_queue_ui_source_dashboard_information_architecture_phase_slot, "P288");
+      assert.equal(dashboard.summary.approval_queue_ui_source_dashboard_information_architecture_next_phase_slot, "P289");
+      assert.equal(dashboard.summary.approval_queue_ui_source_approval_queue_pending_count, approvalQueue.summary.by_status.pending);
+      assert.equal(dashboard.summary.approval_queue_ui_source_approval_inbox_pending_count, approvalInbox.summary.pending_item_count);
+      assert.equal(dashboard.summary.approval_queue_ui_source_pending_protected_approval_count, humanReviewCycleReceiptCompletionProtectedApprovalRequestPack.summary.pending_explicit_approval_count);
+      assert.equal(dashboard.summary.approval_queue_ui_source_pending_approval_count, approvalQueueUi.summary.source_pending_approval_count);
+      assert.equal(dashboard.summary.approval_queue_ui_panel_count, 5);
+      assert.equal(dashboard.summary.approval_queue_ui_required_panel_count, 5);
+      assert.equal(dashboard.summary.approval_queue_ui_ready_panel_count, 5);
+      assert.equal(dashboard.summary.approval_queue_ui_item_count, approvalQueueUi.summary.approval_queue_ui_item_count);
+      assert.equal(dashboard.summary.approval_queue_ui_pending_approval_item_count, approvalQueueUi.summary.approval_queue_ui_item_count);
+      assert.equal(dashboard.summary.approval_queue_ui_missing_required_actor_count, 0);
+      assert.equal(dashboard.summary.approval_queue_ui_target_artifact_count, approvalQueueUi.summary.approval_queue_ui_item_count);
+      assert.equal(dashboard.summary.approval_queue_ui_linked_target_artifact_count, approvalQueueUi.summary.approval_queue_ui_item_count);
+      assert.equal(dashboard.summary.approval_queue_ui_receipt_preview_count, approvalQueueUi.summary.approval_queue_ui_item_count);
+      assert.equal(dashboard.summary.approval_queue_ui_receipt_preview_available_count, approvalQueueUi.summary.approval_queue_ui_item_count);
+      assert.equal(dashboard.summary.approval_queue_ui_protected_request_preview_count, approvalQueueUi.summary.approval_queue_ui_item_count);
+      assert.equal(dashboard.summary.approval_queue_ui_actual_protected_request_preview_count, humanReviewCycleReceiptCompletionProtectedApprovalRequestPack.summary.pending_explicit_approval_count);
+      assert.equal(dashboard.summary.approval_queue_ui_read_only, true);
+      assert.equal(dashboard.summary.approval_queue_ui_ui_projection_only, true);
+      assert.equal(dashboard.summary.approval_queue_ui_receipt_preview_only, true);
+      assert.equal(dashboard.summary.approval_queue_ui_protected_request_preview_only, true);
+      assert.equal(dashboard.summary.approval_queue_ui_approval_application_performed, false);
+      assert.equal(dashboard.summary.approval_queue_ui_receipt_application_performed, false);
+      assert.equal(dashboard.summary.approval_queue_ui_protected_action_executed, false);
+      assert.equal(dashboard.summary.approval_queue_ui_route_execution_performed, false);
+      assert.equal(dashboard.summary.approval_queue_ui_server_started, false);
+      assert.equal(dashboard.summary.approval_queue_ui_mutation_allowed, false);
+      assert.equal(dashboard.summary.approval_queue_ui_legal_advice_generated, false);
+      assert.equal(dashboard.summary.approval_queue_ui_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.approval_queue_ui_human_review_required, true);
+      assert.equal(dashboard.summary.approval_queue_ui_client_facing_ready, false);
+      assert.equal(dashboard.summary.approval_queue_ui_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.approval_queue_ui_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.approval_queue_ui_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -22316,6 +22426,45 @@ describe("matter harness", () => {
       assert.equal(dashboardInformationArchitectureStage?.metrics.windows_baseline_stability_preserved, true);
       assert.equal(dashboardInformationArchitectureStage?.metrics.mac_windows_completion_instability_guard, true);
       assert.equal(dashboardInformationArchitectureStage?.metrics.validation_error_count, 0);
+      const approvalQueueUiStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "approval_queue_ui");
+      assert.equal(approvalQueueUiStage?.status, "passed");
+      assert.equal(approvalQueueUiStage?.metrics.approval_queue_ui_status, "complete");
+      assert.equal(approvalQueueUiStage?.metrics.phase_slot, "P289");
+      assert.equal(approvalQueueUiStage?.metrics.previous_phase_slot, "P288");
+      assert.equal(approvalQueueUiStage?.metrics.next_phase_slot, "P290");
+      assert.equal(approvalQueueUiStage?.metrics.source_dashboard_information_architecture_status, "complete");
+      assert.equal(approvalQueueUiStage?.metrics.source_dashboard_information_architecture_phase_slot, "P288");
+      assert.equal(approvalQueueUiStage?.metrics.source_dashboard_information_architecture_next_phase_slot, "P289");
+      assert.equal(approvalQueueUiStage?.metrics.source_pending_approval_count, approvalQueueUi.summary.source_pending_approval_count);
+      assert.equal(approvalQueueUiStage?.metrics.approval_queue_ui_panel_count, 5);
+      assert.equal(approvalQueueUiStage?.metrics.required_panel_count, 5);
+      assert.equal(approvalQueueUiStage?.metrics.ready_panel_count, 5);
+      assert.equal(approvalQueueUiStage?.metrics.approval_queue_ui_item_count, approvalQueueUi.summary.approval_queue_ui_item_count);
+      assert.equal(approvalQueueUiStage?.metrics.pending_approval_item_count, approvalQueueUi.summary.approval_queue_ui_item_count);
+      assert.equal(approvalQueueUiStage?.metrics.missing_required_actor_count, 0);
+      assert.equal(approvalQueueUiStage?.metrics.target_artifact_count, approvalQueueUi.summary.approval_queue_ui_item_count);
+      assert.equal(approvalQueueUiStage?.metrics.linked_target_artifact_count, approvalQueueUi.summary.approval_queue_ui_item_count);
+      assert.equal(approvalQueueUiStage?.metrics.receipt_preview_count, approvalQueueUi.summary.approval_queue_ui_item_count);
+      assert.equal(approvalQueueUiStage?.metrics.receipt_preview_available_count, approvalQueueUi.summary.approval_queue_ui_item_count);
+      assert.equal(approvalQueueUiStage?.metrics.protected_request_preview_count, approvalQueueUi.summary.approval_queue_ui_item_count);
+      assert.equal(approvalQueueUiStage?.metrics.actual_protected_request_preview_count, humanReviewCycleReceiptCompletionProtectedApprovalRequestPack.summary.pending_explicit_approval_count);
+      assert.equal(approvalQueueUiStage?.metrics.read_only, true);
+      assert.equal(approvalQueueUiStage?.metrics.ui_projection_only, true);
+      assert.equal(approvalQueueUiStage?.metrics.receipt_preview_only, true);
+      assert.equal(approvalQueueUiStage?.metrics.protected_request_preview_only, true);
+      assert.equal(approvalQueueUiStage?.metrics.approval_application_performed, false);
+      assert.equal(approvalQueueUiStage?.metrics.receipt_application_performed, false);
+      assert.equal(approvalQueueUiStage?.metrics.protected_action_executed, false);
+      assert.equal(approvalQueueUiStage?.metrics.route_execution_performed, false);
+      assert.equal(approvalQueueUiStage?.metrics.server_started, false);
+      assert.equal(approvalQueueUiStage?.metrics.mutation_allowed, false);
+      assert.equal(approvalQueueUiStage?.metrics.legal_advice_generated, false);
+      assert.equal(approvalQueueUiStage?.metrics.client_facing_output_generated, false);
+      assert.equal(approvalQueueUiStage?.metrics.human_review_required, true);
+      assert.equal(approvalQueueUiStage?.metrics.client_facing_ready, false);
+      assert.equal(approvalQueueUiStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(approvalQueueUiStage?.metrics.mac_windows_completion_instability_guard, true);
+      assert.equal(approvalQueueUiStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -22489,6 +22638,15 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/review-dashboard-ia-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/review-dashboard-ia-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/review-dashboard-ia-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/approval-queue-ui-artifacts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/approval-queue-ui-panels"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/approval-queue-ui-items"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/approval-queue-target-artifacts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/approval-queue-receipt-previews"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/approval-queue-protected-request-previews"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/approval-queue-ui-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/approval-queue-ui-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/approval-queue-ui-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -25297,6 +25455,46 @@ describe("matter harness", () => {
       const dashboardIaValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/review-dashboard-ia-validations?status=passed", apiOptions)).body);
       assert.equal(dashboardIaValidationsResponse.collection, "review_dashboard_ia_validations");
       assert.equal(dashboardIaValidationsResponse.count, dashboardInformationArchitecture.summary.validation_item_count);
+
+      const approvalQueueUiArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/approval-queue-ui-artifacts?approval_queue_ui_status=complete", apiOptions)).body);
+      assert.equal(approvalQueueUiArtifactsResponse.collection, "approval_queue_ui_artifacts");
+      assert.equal(approvalQueueUiArtifactsResponse.count, 1);
+
+      const approvalQueueUiPanelsResponse = JSON.parse((await buildReviewApiResponse("/api/approval-queue-ui-panels?approval_queue_ui_panel_status=ready", apiOptions)).body);
+      assert.equal(approvalQueueUiPanelsResponse.collection, "approval_queue_ui_panels");
+      assert.equal(approvalQueueUiPanelsResponse.count, approvalQueueUi.summary.approval_queue_ui_panel_count);
+
+      const approvalQueueUiItemsResponse = JSON.parse((await buildReviewApiResponse("/api/approval-queue-ui-items?approval_queue_ui_item_status=pending&pending_approval=true&read_only=true", apiOptions)).body);
+      assert.equal(approvalQueueUiItemsResponse.collection, "approval_queue_ui_items");
+      assert.equal(approvalQueueUiItemsResponse.count, approvalQueue.summary.by_status.pending + approvalInbox.summary.pending_item_count);
+
+      const approvalQueueUiProtectedItemsResponse = JSON.parse((await buildReviewApiResponse("/api/approval-queue-ui-items?source_stage=protected_approval_request_pack", apiOptions)).body);
+      assert.equal(approvalQueueUiProtectedItemsResponse.collection, "approval_queue_ui_items");
+      assert.equal(approvalQueueUiProtectedItemsResponse.count, humanReviewCycleReceiptCompletionProtectedApprovalRequestPack.summary.pending_explicit_approval_count);
+
+      const approvalQueueTargetArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/approval-queue-target-artifacts?target_artifact_lookup_status=linked", apiOptions)).body);
+      assert.equal(approvalQueueTargetArtifactsResponse.collection, "approval_queue_target_artifacts");
+      assert.equal(approvalQueueTargetArtifactsResponse.count, approvalQueueUi.summary.linked_target_artifact_count);
+
+      const approvalQueueReceiptPreviewsResponse = JSON.parse((await buildReviewApiResponse("/api/approval-queue-receipt-previews?preview_only=true", apiOptions)).body);
+      assert.equal(approvalQueueReceiptPreviewsResponse.collection, "approval_queue_receipt_previews");
+      assert.equal(approvalQueueReceiptPreviewsResponse.count, approvalQueueUi.summary.receipt_preview_count);
+
+      const approvalQueueProtectedRequestPreviewsResponse = JSON.parse((await buildReviewApiResponse("/api/approval-queue-protected-request-previews?protected_request_preview_status=pending_explicit_approval&protected_action=true&preview_only=true", apiOptions)).body);
+      assert.equal(approvalQueueProtectedRequestPreviewsResponse.collection, "approval_queue_protected_request_previews");
+      assert.equal(approvalQueueProtectedRequestPreviewsResponse.count, humanReviewCycleReceiptCompletionProtectedApprovalRequestPack.summary.pending_explicit_approval_count);
+
+      const approvalQueueUiBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/approval-queue-ui-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(approvalQueueUiBoundaryResponse.collection, "approval_queue_ui_boundary");
+      assert.equal(approvalQueueUiBoundaryResponse.count, 1);
+
+      const approvalQueueUiChecksResponse = JSON.parse((await buildReviewApiResponse("/api/approval-queue-ui-checks?status=passed", apiOptions)).body);
+      assert.equal(approvalQueueUiChecksResponse.collection, "approval_queue_ui_checks");
+      assert.equal(approvalQueueUiChecksResponse.count, approvalQueueUi.summary.validation_item_count);
+
+      const approvalQueueUiValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/approval-queue-ui-validations?status=passed", apiOptions)).body);
+      assert.equal(approvalQueueUiValidationsResponse.collection, "approval_queue_ui_validations");
+      assert.equal(approvalQueueUiValidationsResponse.count, approvalQueueUi.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

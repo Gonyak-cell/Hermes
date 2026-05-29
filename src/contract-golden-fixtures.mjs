@@ -197,6 +197,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     resource_expansion_freeze: "artifacts/resource-expansion-freeze/latest/resource-expansion-freeze.json",
     api_route_inventory: "artifacts/api-route-inventory/latest/api-route-inventory.json",
     dashboard_information_architecture: "artifacts/review-dashboard-ia/latest/review-dashboard-ia.json",
+    approval_queue_ui: "artifacts/approval-queue-ui/latest/approval-queue-ui.json",
   },
 };
 
@@ -387,6 +388,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("resource_expansion_freeze", "Resource Expansion Freeze", "resource_evidence", "resource-expansion-freeze.schema.json"),
   fixtureDefinition("api_route_inventory", "API Route Inventory", "api", "api-route-inventory.schema.json"),
   fixtureDefinition("dashboard_information_architecture", "Review Dashboard Information Architecture", "api", "review-dashboard-ia.schema.json"),
+  fixtureDefinition("approval_queue_ui", "Approval Queue UI", "api", "approval-queue-ui.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),

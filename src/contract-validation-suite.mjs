@@ -19,6 +19,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "contracts:validate",
   "api:route-inventory",
   "dashboard:ia",
+  "approval:queue-ui",
   "contracts:identity",
   "contracts:party-registry",
   "contracts:matter-teams",

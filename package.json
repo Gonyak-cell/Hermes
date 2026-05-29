@@ -12,6 +12,7 @@
     "approval:inbox": "node scripts/approval-inbox.mjs",
     "approval:inbox:apply": "node scripts/approval-inbox-decisions.mjs",
     "approval:queue": "node scripts/approval-queue.mjs",
+    "approval:queue-ui": "node scripts/approval-queue-ui.mjs",
     "api:serve": "node scripts/review-api.mjs",
     "api:smoke": "node scripts/review-api-smoke.mjs",
     "api:route-inventory": "node scripts/api-route-inventory.mjs",

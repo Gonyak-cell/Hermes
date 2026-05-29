@@ -6225,6 +6225,69 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("review_dashboard_ia_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/approval-queue-ui-artifacts") {
+    const result = await readDashboardSourceArtifact(dashboard, "approval_queue_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("approval_queue_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("approval_queue_ui_artifacts", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/approval-queue-ui-panels") {
+    const result = await readDashboardSourceArtifact(dashboard, "approval_queue_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("approval_queue_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("approval_queue_ui_panels", result.artifact.approval_queue_ui_panels ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/approval-queue-ui-items") {
+    const result = await readDashboardSourceArtifact(dashboard, "approval_queue_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("approval_queue_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("approval_queue_ui_items", result.artifact.approval_queue_ui_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/approval-queue-target-artifacts") {
+    const result = await readDashboardSourceArtifact(dashboard, "approval_queue_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("approval_queue_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("approval_queue_target_artifacts", result.artifact.approval_queue_target_artifacts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/approval-queue-receipt-previews") {
+    const result = await readDashboardSourceArtifact(dashboard, "approval_queue_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("approval_queue_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("approval_queue_receipt_previews", result.artifact.approval_queue_receipt_previews ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/approval-queue-protected-request-previews") {
+    const result = await readDashboardSourceArtifact(dashboard, "approval_queue_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("approval_queue_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("approval_queue_protected_request_previews", result.artifact.approval_queue_protected_request_previews ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/approval-queue-ui-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "approval_queue_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("approval_queue_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("approval_queue_ui_boundary", [result.artifact.approval_queue_ui_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/approval-queue-ui-checks") {
+    const result = await readDashboardSourceArtifact(dashboard, "approval_queue_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("approval_queue_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("approval_queue_ui_checks", result.artifact.approval_queue_ui_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/approval-queue-ui-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "approval_queue_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("approval_queue_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("approval_queue_ui_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -12718,6 +12781,15 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/review-dashboard-ia-checks", "Review Dashboard Information Architecture check rows"),
       route("GET", "/api/review-dashboard-ia-boundary", "Review Dashboard Information Architecture boundary"),
       route("GET", "/api/review-dashboard-ia-validations", "Review Dashboard Information Architecture validation rows"),
+      route("GET", "/api/approval-queue-ui-artifacts", "Approval Queue UI artifact"),
+      route("GET", "/api/approval-queue-ui-panels", "Approval Queue UI panel rows"),
+      route("GET", "/api/approval-queue-ui-items", "Approval Queue UI item rows"),
+      route("GET", "/api/approval-queue-target-artifacts", "Approval Queue UI target artifact lookup rows"),
+      route("GET", "/api/approval-queue-receipt-previews", "Approval Queue UI receipt draft previews"),
+      route("GET", "/api/approval-queue-protected-request-previews", "Approval Queue UI protected request previews"),
+      route("GET", "/api/approval-queue-ui-boundary", "Approval Queue UI read-only boundary"),
+      route("GET", "/api/approval-queue-ui-checks", "Approval Queue UI check rows"),
+      route("GET", "/api/approval-queue-ui-validations", "Approval Queue UI validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -13912,6 +13984,17 @@ function filterItems(items, searchParams) {
     "ia_section_key",
     "navigation_item_status",
     "route_binding_status",
+    "approval_queue_ui_status",
+    "approval_queue_ui_panel_status",
+    "approval_queue_ui_item_status",
+    "required_actor",
+    "source_stage",
+    "target_artifact_lookup_status",
+    "receipt_preview_status",
+    "protected_request_preview_status",
+    "protected_action",
+    "pending_approval",
+    "preview_only",
     "boundary_status",
     "path_kind",
     "gate_id",
@@ -15841,6 +15924,17 @@ function readFilterValue(item, key) {
   if (key === "ia_section_key") return item.ia_section_key;
   if (key === "navigation_item_status") return item.navigation_item_status;
   if (key === "route_binding_status") return item.route_binding_status;
+  if (key === "approval_queue_ui_status") return item.summary?.approval_queue_ui_status ?? item.approval_queue_ui_status;
+  if (key === "approval_queue_ui_panel_status") return item.panel_status;
+  if (key === "approval_queue_ui_item_status") return item.item_status ?? item.display_status;
+  if (key === "required_actor") return item.required_actor;
+  if (key === "source_stage") return item.source_stage;
+  if (key === "target_artifact_lookup_status") return item.target_artifact_lookup_status;
+  if (key === "receipt_preview_status") return item.receipt_preview_status;
+  if (key === "protected_request_preview_status") return item.protected_request_preview_status;
+  if (key === "protected_action") return String(Boolean(item.protected_action));
+  if (key === "pending_approval") return String(Boolean(item.pending_approval));
+  if (key === "preview_only") return String(Boolean(item.preview_only));
   if (key === "path_kind") return item.path_kind;
   if (key === "gate_id") return item.gate_id;
   if (key === "thread_status") return item.thread_status;

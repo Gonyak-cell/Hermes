@@ -96,6 +96,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   pptxRendererPath: "artifacts/pptx-renderer/latest/pptx-renderer.json",
   pdfHtmlRendererPath: "artifacts/pdf-html-renderer/latest/pdf-html-renderer.json",
   layoutValidatorPath: "artifacts/layout-validator/latest/layout-validator.json",
+  citationRendererPath: "artifacts/citation-renderer/latest/citation-renderer.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -719,6 +720,11 @@ const SOURCE_DEFINITIONS = [
     option: "layoutValidatorPath",
     source_id: "layout_validator",
     label: "Layout Validator",
+  },
+  {
+    option: "citationRendererPath",
+    source_id: "citation_renderer",
+    label: "Citation Renderer",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1684,6 +1690,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "pptx_renderer") return data.summary ?? {};
   if (sourceId === "pdf_html_renderer") return data.summary ?? {};
   if (sourceId === "layout_validator") return data.summary ?? {};
+  if (sourceId === "citation_renderer") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2061,6 +2068,7 @@ function buildStageStatuses(artifacts, sources) {
     buildPptxRendererStage(artifacts.pptx_renderer, sourceById.get("pptx_renderer")),
     buildPdfHtmlRendererStage(artifacts.pdf_html_renderer, sourceById.get("pdf_html_renderer")),
     buildLayoutValidatorStage(artifacts.layout_validator, sourceById.get("layout_validator")),
+    buildCitationRendererStage(artifacts.citation_renderer, sourceById.get("citation_renderer")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -11267,6 +11275,101 @@ function buildLayoutValidatorStage(artifact, source) {
   };
 }
 
+function buildCitationRendererStage(artifact, source) {
+  if (!artifact) return missingStage("citation_renderer", "Citation Renderer", source);
+  const summary = artifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.citation_renderer_status !== "complete"
+    || summary.source_source_span_store_status !== "complete"
+    || summary.source_citation_object_store_status !== "complete"
+    || summary.source_exhibit_map_status !== "complete"
+    || summary.source_layout_validator_status !== "complete"
+    || summary.citation_count < 1
+    || summary.rendered_citation_unit_count !== summary.citation_count
+    || summary.footnote_rendering_count !== summary.citation_count
+    || summary.exhibit_reference_rendering_count !== summary.citation_count
+    || summary.source_span_link_rendering_count !== summary.citation_count
+    || summary.bound_exhibit_reference_count !== summary.citation_count
+    || summary.bound_source_span_link_count !== summary.citation_count
+    || summary.citation_render_packet_count !== summary.layout_target_count
+    || summary.target_bound_render_packet_count !== summary.citation_render_packet_count
+    || summary.rendered_needs_review_count !== summary.citation_count
+    || summary.human_review_required_render_count !== summary.citation_count
+    || summary.attorney_review_required_render_count !== summary.citation_count
+    || summary.citation_review_required_render_count !== summary.citation_count
+    || summary.currentness_review_required_render_count !== summary.citation_count
+    || summary.source_verification_required_render_count !== summary.citation_count
+    || summary.citation_rendering_report_only !== true
+    || summary.document_runtime_mutation_allowed === true
+    || summary.external_renderer_execution_allowed === true
+    || summary.network_access_allowed === true
+    || summary.artifact_write_allowed !== true
+    || summary.core_registry_mutation_allowed === true
+    || summary.delivery_execution_allowed === true
+    || summary.delivery_execution_performed === true
+    || summary.protected_action_allowed === true
+    || summary.protected_action_executed === true
+    || summary.legal_advice_generated === true
+    || summary.client_facing_output_generated === true
+    || summary.client_facing_ready_count !== 0
+    || summary.failed_checkpoint_count !== 0
+    || artifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "citation_renderer",
+    label: "Citation Renderer",
+    status,
+    message: `${summary.rendered_citation_unit_count ?? 0}/${summary.citation_count ?? 0} citation(s), ${summary.footnote_rendering_count ?? 0} footnote(s), ${summary.exhibit_reference_rendering_count ?? 0} exhibit reference(s), ${summary.source_span_link_rendering_count ?? 0} source span link(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      citation_renderer_status: summary.citation_renderer_status ?? "unknown",
+      citation_renderer_contract_id: summary.citation_renderer_contract_id ?? null,
+      source_source_span_store_status: summary.source_source_span_store_status ?? "unknown",
+      source_citation_object_store_status: summary.source_citation_object_store_status ?? "unknown",
+      source_exhibit_map_status: summary.source_exhibit_map_status ?? "unknown",
+      source_layout_validator_status: summary.source_layout_validator_status ?? "unknown",
+      source_span_count: summary.source_span_count ?? 0,
+      citation_count: summary.citation_count ?? 0,
+      output_paragraph_count: summary.output_paragraph_count ?? 0,
+      exhibit_record_count: summary.exhibit_record_count ?? 0,
+      layout_target_count: summary.layout_target_count ?? 0,
+      rendered_citation_unit_count: summary.rendered_citation_unit_count ?? 0,
+      footnote_rendering_count: summary.footnote_rendering_count ?? 0,
+      exhibit_reference_rendering_count: summary.exhibit_reference_rendering_count ?? 0,
+      source_span_link_rendering_count: summary.source_span_link_rendering_count ?? 0,
+      citation_render_packet_count: summary.citation_render_packet_count ?? 0,
+      target_bound_render_packet_count: summary.target_bound_render_packet_count ?? 0,
+      packet_citation_binding_count: summary.packet_citation_binding_count ?? 0,
+      rendered_needs_review_count: summary.rendered_needs_review_count ?? 0,
+      bound_exhibit_reference_count: summary.bound_exhibit_reference_count ?? 0,
+      bound_source_span_link_count: summary.bound_source_span_link_count ?? 0,
+      human_review_required_render_count: summary.human_review_required_render_count ?? 0,
+      attorney_review_required_render_count: summary.attorney_review_required_render_count ?? 0,
+      citation_review_required_render_count: summary.citation_review_required_render_count ?? 0,
+      currentness_review_required_render_count: summary.currentness_review_required_render_count ?? 0,
+      source_verification_required_render_count: summary.source_verification_required_render_count ?? 0,
+      citation_rendering_report_only: summary.citation_rendering_report_only ?? false,
+      document_runtime_mutation_allowed: summary.document_runtime_mutation_allowed ?? false,
+      external_renderer_execution_allowed: summary.external_renderer_execution_allowed ?? false,
+      network_access_allowed: summary.network_access_allowed ?? false,
+      artifact_write_allowed: summary.artifact_write_allowed ?? false,
+      core_registry_mutation_allowed: summary.core_registry_mutation_allowed ?? false,
+      delivery_execution_allowed: summary.delivery_execution_allowed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      protected_action_allowed: summary.protected_action_allowed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      metadata_hash_count: summary.metadata_hash_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -17447,6 +17550,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.citation_renderer?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "citation_renderer";
+    items.push({
+      action_item_id: `dashboard.action.citation_renderer.${slugify(subjectId)}`,
+      source_stage: "citation_renderer",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix citation renderer",
+      subject_ref: {
+        subject_type: "citation_renderer_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_citation_renderer", "rerun_citation_renderer", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -23231,6 +23352,47 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     layout_validator_metadata_hash_count: artifacts.layout_validator?.summary?.metadata_hash_count ?? 0,
     layout_validator_failed_checkpoint_count: artifacts.layout_validator?.summary?.failed_checkpoint_count ?? 0,
     layout_validator_validation_error_count: artifacts.layout_validator?.summary?.validation_error_count ?? artifacts.layout_validator?.validation?.errors?.length ?? 0,
+    citation_renderer_status: artifacts.citation_renderer?.summary?.citation_renderer_status ?? "unknown",
+    citation_renderer_contract_id: artifacts.citation_renderer?.summary?.citation_renderer_contract_id ?? null,
+    citation_renderer_source_source_span_store_status: artifacts.citation_renderer?.summary?.source_source_span_store_status ?? "unknown",
+    citation_renderer_source_citation_object_store_status: artifacts.citation_renderer?.summary?.source_citation_object_store_status ?? "unknown",
+    citation_renderer_source_exhibit_map_status: artifacts.citation_renderer?.summary?.source_exhibit_map_status ?? "unknown",
+    citation_renderer_source_layout_validator_status: artifacts.citation_renderer?.summary?.source_layout_validator_status ?? "unknown",
+    citation_renderer_source_span_count: artifacts.citation_renderer?.summary?.source_span_count ?? 0,
+    citation_renderer_citation_count: artifacts.citation_renderer?.summary?.citation_count ?? 0,
+    citation_renderer_output_paragraph_count: artifacts.citation_renderer?.summary?.output_paragraph_count ?? 0,
+    citation_renderer_exhibit_record_count: artifacts.citation_renderer?.summary?.exhibit_record_count ?? 0,
+    citation_renderer_layout_target_count: artifacts.citation_renderer?.summary?.layout_target_count ?? 0,
+    citation_renderer_rendered_unit_count: artifacts.citation_renderer?.summary?.rendered_citation_unit_count ?? 0,
+    citation_renderer_footnote_rendering_count: artifacts.citation_renderer?.summary?.footnote_rendering_count ?? 0,
+    citation_renderer_exhibit_reference_rendering_count: artifacts.citation_renderer?.summary?.exhibit_reference_rendering_count ?? 0,
+    citation_renderer_source_span_link_rendering_count: artifacts.citation_renderer?.summary?.source_span_link_rendering_count ?? 0,
+    citation_renderer_packet_count: artifacts.citation_renderer?.summary?.citation_render_packet_count ?? 0,
+    citation_renderer_target_bound_packet_count: artifacts.citation_renderer?.summary?.target_bound_render_packet_count ?? 0,
+    citation_renderer_packet_citation_binding_count: artifacts.citation_renderer?.summary?.packet_citation_binding_count ?? 0,
+    citation_renderer_rendered_needs_review_count: artifacts.citation_renderer?.summary?.rendered_needs_review_count ?? 0,
+    citation_renderer_bound_exhibit_reference_count: artifacts.citation_renderer?.summary?.bound_exhibit_reference_count ?? 0,
+    citation_renderer_bound_source_span_link_count: artifacts.citation_renderer?.summary?.bound_source_span_link_count ?? 0,
+    citation_renderer_human_review_required_render_count: artifacts.citation_renderer?.summary?.human_review_required_render_count ?? 0,
+    citation_renderer_attorney_review_required_render_count: artifacts.citation_renderer?.summary?.attorney_review_required_render_count ?? 0,
+    citation_renderer_citation_review_required_render_count: artifacts.citation_renderer?.summary?.citation_review_required_render_count ?? 0,
+    citation_renderer_currentness_review_required_render_count: artifacts.citation_renderer?.summary?.currentness_review_required_render_count ?? 0,
+    citation_renderer_source_verification_required_render_count: artifacts.citation_renderer?.summary?.source_verification_required_render_count ?? 0,
+    citation_renderer_report_only: artifacts.citation_renderer?.summary?.citation_rendering_report_only ?? false,
+    citation_renderer_document_runtime_mutation_allowed: artifacts.citation_renderer?.summary?.document_runtime_mutation_allowed ?? false,
+    citation_renderer_external_renderer_execution_allowed: artifacts.citation_renderer?.summary?.external_renderer_execution_allowed ?? false,
+    citation_renderer_network_access_allowed: artifacts.citation_renderer?.summary?.network_access_allowed ?? false,
+    citation_renderer_artifact_write_allowed: artifacts.citation_renderer?.summary?.artifact_write_allowed ?? false,
+    citation_renderer_delivery_execution_allowed: artifacts.citation_renderer?.summary?.delivery_execution_allowed ?? false,
+    citation_renderer_delivery_execution_performed: artifacts.citation_renderer?.summary?.delivery_execution_performed ?? false,
+    citation_renderer_protected_action_allowed: artifacts.citation_renderer?.summary?.protected_action_allowed ?? false,
+    citation_renderer_protected_action_executed: artifacts.citation_renderer?.summary?.protected_action_executed ?? false,
+    citation_renderer_legal_advice_generated: artifacts.citation_renderer?.summary?.legal_advice_generated ?? false,
+    citation_renderer_client_facing_output_generated: artifacts.citation_renderer?.summary?.client_facing_output_generated ?? false,
+    citation_renderer_client_facing_ready_count: artifacts.citation_renderer?.summary?.client_facing_ready_count ?? 0,
+    citation_renderer_metadata_hash_count: artifacts.citation_renderer?.summary?.metadata_hash_count ?? 0,
+    citation_renderer_failed_checkpoint_count: artifacts.citation_renderer?.summary?.failed_checkpoint_count ?? 0,
+    citation_renderer_validation_error_count: artifacts.citation_renderer?.summary?.validation_error_count ?? artifacts.citation_renderer?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -25006,6 +25168,8 @@ function parseArgs(argv) {
     else if (arg === "--no-pdf-html-renderer") parsed.pdfHtmlRendererPath = false;
     else if (arg === "--layout-validator") parsed.layoutValidatorPath = argv[++index];
     else if (arg === "--no-layout-validator") parsed.layoutValidatorPath = false;
+    else if (arg === "--citation-renderer") parsed.citationRendererPath = argv[++index];
+    else if (arg === "--no-citation-renderer") parsed.citationRendererPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

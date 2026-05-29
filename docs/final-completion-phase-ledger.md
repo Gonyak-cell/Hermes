@@ -4,8 +4,8 @@
 
 운영 규칙:
 
-- Current actual completion baseline is Phase 260.
-- Remaining planned slots are P261-P312, 52 total.
+- Current actual completion baseline is Phase 261.
+- Remaining planned slots are P262-P312, 51 total.
 - 각 slot은 `검증 -> 보강 -> 구현 -> 검증 -> commit -> roadmap 승격` 순서로 처리한다.
 - 모든 slot은 가능하면 `npm run validate`, `npm test`, 해당 slice command, `npm run control-plane:loop`, API/dashboard smoke 중 관련 검증을 통과해야 한다.
 - For P217 and later, continue on the Windows workspace only after preserving the Windows baseline stabilization posture.
@@ -42,7 +42,7 @@
 | P108 | Error/Cost/Observability contract 고정 | error, cost, trace projection schema | Promoted to Phase 108; ErrorRecord v2, CostObservation v2, TraceProjection v2가 실패, retry, token, cost, latency를 독립 projection으로 검증 |
 | P109 | schema versioning rule 확정 | schema versioning guideline | Promoted to Phase 109; optional addition, deprecation, migration manifest rule이 schema-versioning validator와 dashboard/API/checkpoint에 반영 |
 | P110 | migration manifest 구조 확정 | migration manifest schema | Promoted to Phase 110; core/pack/index migration manifest, migration record, validation, dashboard/API/checkpoint/loop가 분리 추적 |
-| P111 | contract golden fixtures | golden fixture set | Promoted to Phase 111; contract artifact, schema validation, and regression hash manifest are locked; Phase 113-P260 identity/policy/resource/evidence/event/workflow/runtime/personal-dev/law-firm/creative-document fixtures are included, including matter_os_profile through layout_validator, for 162 total fixtures |
+| P111 | contract golden fixtures | golden fixture set | Promoted to Phase 111; contract artifact, schema validation, and regression hash manifest are locked; Phase 113-P261 identity/policy/resource/evidence/event/workflow/runtime/personal-dev/law-firm/creative-document fixtures are included, including matter_os_profile through citation_renderer, for 163 total fixtures |
 | P112 | contract validation CLI 통합 | contract validation command | Promoted to Phase 112; 전체 contract fixture가 `npm run contracts:validate -- --check` 한 명령으로 검증되고 dashboard/API/checkpoint/loop에 반영 |
 
 ## P113-P132 Identity, Policy, Matter Boundary
@@ -232,7 +232,7 @@
 | P258 | PPTX renderer 구현 | PPTX renderer workflow | Promoted to Phase 258; PPTX Renderer converts 2 Phase 254 PPTX templates into 2 deterministic slide templates, 2 slide deck manifests, 26 hashed OpenXML parts, 2 draft PPTX artifacts with binary hashes, 2 passed overflow checks, and 2 passed format validation results while preserving attorney review, source/citation/format gates, no legal advice, no external runtime execution, no network access, no delivery, no protected action, and no client-facing readiness; golden/checkpoint/dashboard/API/loop/test verification passed |
 | P259 | PDF/HTML renderer 구현 | PDF/HTML renderer workflow | Promoted to Phase 259; PDF/HTML Renderer converts 2 Phase 254 HTML templates into 2 deterministic HTML preview artifacts, 2 deterministic PDF export artifacts, 4 draft output artifact records with content hashes, and 4 passed format validation results while preserving attorney review, source/citation/format gates, no legal advice, no external runtime execution, no network access, no delivery, no protected action, and no client-facing readiness; golden/checkpoint/dashboard/API/loop/test verification passed |
 | P260 | layout validator 구현 | layout validation result | Promoted to Phase 260; Layout Validator reads DOCX, PPTX, and PDF/HTML renderer artifacts as read-only sources and emits 7 layout targets, 7 passed layout validation results, and 42 passed layout validation checks covering page count, overflow, broken table, source hash, review gate, and safety gate while preserving attorney review, no legal advice, no renderer/runtime execution, no network access, no delivery, no protected action, and no client-facing readiness; golden/checkpoint/dashboard/API/loop/test verification passed |
-| P261 | citation renderer 구현 | citation renderer | footnote, exhibit reference, source span link 렌더 |
+| P261 | citation renderer 구현 | citation renderer | Promoted to Phase 261; Citation Renderer reads source-span, citation-object, exhibit-map, and layout-validator artifacts as read-only sources and emits 80 rendered citation units, 80 draft footnote renderings, 80 bound exhibit references, 80 bound source span links, and 7 layout-target citation render packets while preserving attorney review, citation/currentness review, source verification, no legal advice, no document runtime mutation, no network access, no delivery, no protected action, and no client-facing readiness; golden/checkpoint/dashboard/API/loop/test verification passed |
 | P262 | version comparator 구현 | document comparison artifact | draft version 간 변경사항이 검토 가능 |
 | P263 | design system profile 구현 | design system profile | PPTX/보고자료 디자인 규칙이 template/style과 연결 |
 | P264 | web novel generator workflow 구현 | web novel workflow | synopsis, chapter, style, revision, output artifact 생성 |

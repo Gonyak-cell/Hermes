@@ -4750,6 +4750,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("layout_validator_validations", layoutValidatorResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/citation-renderers") {
+    const citationRendererResult = await readDashboardSourceArtifact(dashboard, "citation_renderer");
+    if (!citationRendererResult.available) {
+      return jsonResponse(503, buildError("citation_renderer_unavailable", citationRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("citation_renderers", [citationRendererResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/citation-render-units") {
+    const citationRendererResult = await readDashboardSourceArtifact(dashboard, "citation_renderer");
+    if (!citationRendererResult.available) {
+      return jsonResponse(503, buildError("citation_renderer_unavailable", citationRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("citation_render_units", citationRendererResult.artifact.citation_render_units ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/footnote-renderings") {
+    const citationRendererResult = await readDashboardSourceArtifact(dashboard, "citation_renderer");
+    if (!citationRendererResult.available) {
+      return jsonResponse(503, buildError("citation_renderer_unavailable", citationRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("footnote_renderings", citationRendererResult.artifact.footnote_renderings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/exhibit-reference-renderings") {
+    const citationRendererResult = await readDashboardSourceArtifact(dashboard, "citation_renderer");
+    if (!citationRendererResult.available) {
+      return jsonResponse(503, buildError("citation_renderer_unavailable", citationRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("exhibit_reference_renderings", citationRendererResult.artifact.exhibit_reference_renderings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/source-span-link-renderings") {
+    const citationRendererResult = await readDashboardSourceArtifact(dashboard, "citation_renderer");
+    if (!citationRendererResult.available) {
+      return jsonResponse(503, buildError("citation_renderer_unavailable", citationRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("source_span_link_renderings", citationRendererResult.artifact.source_span_link_renderings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/citation-render-packets") {
+    const citationRendererResult = await readDashboardSourceArtifact(dashboard, "citation_renderer");
+    if (!citationRendererResult.available) {
+      return jsonResponse(503, buildError("citation_renderer_unavailable", citationRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("citation_render_packets", citationRendererResult.artifact.citation_render_packets ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/citation-renderer-validations") {
+    const citationRendererResult = await readDashboardSourceArtifact(dashboard, "citation_renderer");
+    if (!citationRendererResult.available) {
+      return jsonResponse(503, buildError("citation_renderer_unavailable", citationRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("citation_renderer_validations", citationRendererResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -11033,6 +11082,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/layout-validation-results", "Layout validation result rows"),
       route("GET", "/api/layout-validation-checks", "Layout validation check rows"),
       route("GET", "/api/layout-validator-validations", "Layout validator validation rows"),
+      route("GET", "/api/citation-renderers", "Citation renderer artifact"),
+      route("GET", "/api/citation-render-units", "Citation render unit rows"),
+      route("GET", "/api/footnote-renderings", "Footnote rendering rows"),
+      route("GET", "/api/exhibit-reference-renderings", "Exhibit reference rendering rows"),
+      route("GET", "/api/source-span-link-renderings", "Source span link rendering rows"),
+      route("GET", "/api/citation-render-packets", "Citation render packet rows"),
+      route("GET", "/api/citation-renderer-validations", "Citation renderer validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -12043,6 +12099,13 @@ function filterItems(items, searchParams) {
     "layout_validation_status",
     "layout_check_status",
     "layout_check_type",
+    "citation_renderer_status",
+    "citation_render_status",
+    "citation_render_packet_status",
+    "footnote_rendering_status",
+    "exhibit_reference_status",
+    "source_span_link_status",
+    "citation_render_format",
     "matter_os_profile_status",
     "profile_card_status",
     "display_field_status",
@@ -13781,6 +13844,13 @@ function readFilterValue(item, key) {
   if (key === "layout_validation_status") return item.layout_validation_status ?? item.validation_status;
   if (key === "layout_check_status") return item.status;
   if (key === "layout_check_type") return item.check_type;
+  if (key === "citation_renderer_status") return item.summary?.citation_renderer_status ?? item.citation_renderer_status;
+  if (key === "citation_render_status") return item.citation_render_status;
+  if (key === "citation_render_packet_status") return item.citation_render_packet_status;
+  if (key === "footnote_rendering_status") return item.footnote_status;
+  if (key === "exhibit_reference_status") return item.exhibit_reference_status;
+  if (key === "source_span_link_status") return item.source_span_link_status;
+  if (key === "citation_render_format") return item.output_format;
   if (key === "matter_os_profile_status") return item.summary?.matter_os_profile_status ?? item.matter_os_profile_status;
   if (key === "profile_card_status") return item.profile_card_status;
   if (key === "display_field_status") return item.display_field_status;

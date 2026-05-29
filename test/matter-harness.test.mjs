@@ -60,6 +60,7 @@ import { runDocxRenderer } from "../src/creative-document-docx-renderer.mjs";
 import { runPptxRenderer } from "../src/creative-document-pptx-renderer.mjs";
 import { runPdfHtmlRenderer } from "../src/creative-document-pdf-html-renderer.mjs";
 import { runLayoutValidator } from "../src/creative-document-layout-validator.mjs";
+import { runCitationRenderer } from "../src/creative-document-citation-renderer.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1915,6 +1916,7 @@ describe("matter harness", () => {
         pptxRendererPath: path.join(outDir, "pptx-renderer", "pptx-renderer.json"),
         pdfHtmlRendererPath: path.join(outDir, "pdf-html-renderer", "pdf-html-renderer.json"),
         layoutValidatorPath: path.join(outDir, "layout-validator", "layout-validator.json"),
+        citationRendererPath: path.join(outDir, "citation-renderer", "citation-renderer.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10342,6 +10344,60 @@ describe("matter harness", () => {
       assert.ok(layoutValidator.layout_validation_checks.filter((check) => check.check_type === "broken_table").every((check) => check.status === "passed"));
       assert.match(await readFile(path.join(outDir, "layout-validator", "summary.md"), "utf8"), /Layout Validator/);
 
+      const citationRenderer = await runCitationRenderer({
+        sourceSpanStorePath: path.join(outDir, "source-span-store", "source-span-store.json"),
+        citationObjectStorePath: path.join(outDir, "citation-object-store", "citation-object-store.json"),
+        exhibitMapPath: path.join(outDir, "exhibit-map", "exhibit-map.json"),
+        layoutValidatorPath: path.join(outDir, "layout-validator", "layout-validator.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "citation-renderer"),
+        runAt: "2026-05-23T07:04:21.000Z",
+      });
+      const citationRendererSchema = JSON.parse(await readFile("schemas/citation-renderer.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(citationRenderer, citationRendererSchema, {}, "citation_renderer"), []);
+      assert.equal(citationRenderer.summary.citation_renderer_status, "complete");
+      assert.equal(citationRenderer.summary.citation_renderer_contract_id, "citation-renderer.v1");
+      assert.equal(citationRenderer.summary.source_source_span_store_status, "complete");
+      assert.equal(citationRenderer.summary.source_citation_object_store_status, "complete");
+      assert.equal(citationRenderer.summary.source_exhibit_map_status, "complete");
+      assert.equal(citationRenderer.summary.source_layout_validator_status, "complete");
+      assert.equal(citationRenderer.summary.citation_count, citationObjectStore.summary.citation_count);
+      assert.equal(citationRenderer.summary.rendered_citation_unit_count, citationObjectStore.summary.citation_count);
+      assert.equal(citationRenderer.summary.footnote_rendering_count, citationObjectStore.summary.citation_count);
+      assert.equal(citationRenderer.summary.exhibit_reference_rendering_count, citationObjectStore.summary.citation_count);
+      assert.equal(citationRenderer.summary.source_span_link_rendering_count, citationObjectStore.summary.citation_count);
+      assert.equal(citationRenderer.summary.citation_render_packet_count, layoutValidator.summary.layout_target_count);
+      assert.equal(citationRenderer.summary.target_bound_render_packet_count, citationRenderer.summary.citation_render_packet_count);
+      assert.equal(citationRenderer.summary.packet_citation_binding_count, citationRenderer.summary.citation_count * citationRenderer.summary.citation_render_packet_count);
+      assert.equal(citationRenderer.summary.bound_exhibit_reference_count, citationRenderer.summary.citation_count);
+      assert.equal(citationRenderer.summary.bound_source_span_link_count, citationRenderer.summary.citation_count);
+      assert.equal(citationRenderer.summary.human_review_required_render_count, citationRenderer.summary.citation_count);
+      assert.equal(citationRenderer.summary.attorney_review_required_render_count, citationRenderer.summary.citation_count);
+      assert.equal(citationRenderer.summary.citation_review_required_render_count, citationRenderer.summary.citation_count);
+      assert.equal(citationRenderer.summary.currentness_review_required_render_count, citationRenderer.summary.citation_count);
+      assert.equal(citationRenderer.summary.source_verification_required_render_count, citationRenderer.summary.citation_count);
+      assert.equal(citationRenderer.summary.citation_rendering_report_only, true);
+      assert.equal(citationRenderer.summary.document_runtime_mutation_allowed, false);
+      assert.equal(citationRenderer.summary.external_renderer_execution_allowed, false);
+      assert.equal(citationRenderer.summary.network_access_allowed, false);
+      assert.equal(citationRenderer.summary.artifact_write_allowed, true);
+      assert.equal(citationRenderer.summary.delivery_execution_allowed, false);
+      assert.equal(citationRenderer.summary.delivery_execution_performed, false);
+      assert.equal(citationRenderer.summary.protected_action_allowed, false);
+      assert.equal(citationRenderer.summary.protected_action_executed, false);
+      assert.equal(citationRenderer.summary.legal_advice_generated, false);
+      assert.equal(citationRenderer.summary.client_facing_output_generated, false);
+      assert.equal(citationRenderer.summary.client_facing_ready_count, 0);
+      assert.equal(citationRenderer.summary.failed_checkpoint_count, 0);
+      assert.equal(citationRenderer.summary.validation_error_count, 0);
+      assert.ok(citationRenderer.citation_render_units.every((unit) => unit.citation_render_status === "rendered_needs_review" && unit.metadata_hash.startsWith("sha256:") && unit.human_review_required && unit.attorney_review_required && unit.client_facing_ready === false));
+      assert.ok(citationRenderer.footnote_renderings.every((rendering) => rendering.footnote_status === "rendered_needs_review" && rendering.footnote_marker.startsWith("[") && rendering.metadata_hash.startsWith("sha256:")));
+      assert.ok(citationRenderer.exhibit_reference_renderings.every((rendering) => rendering.exhibit_reference_status === "rendered_bound" && rendering.exhibit_reference.startsWith("별첨 ") && rendering.metadata_hash.startsWith("sha256:")));
+      assert.ok(citationRenderer.source_span_link_renderings.every((rendering) => rendering.source_span_link_status === "rendered_bound" && rendering.source_span_link_uri.startsWith("hermes://matter/") && rendering.metadata_hash.startsWith("sha256:")));
+      assert.ok(citationRenderer.citation_render_packets.every((packet) => packet.citation_render_packet_status === "rendered_needs_review" && packet.rendered_citation_unit_count === citationRenderer.summary.citation_count && packet.layout_validation_status === "passed" && packet.client_facing_ready === false));
+      assert.match(await readFile(path.join(outDir, "citation-renderer", "summary.md"), "utf8"), /Citation Renderer/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -10526,6 +10582,7 @@ describe("matter harness", () => {
           pptx_renderer: path.join(outDir, "pptx-renderer", "pptx-renderer.json"),
           pdf_html_renderer: path.join(outDir, "pdf-html-renderer", "pdf-html-renderer.json"),
           layout_validator: path.join(outDir, "layout-validator", "layout-validator.json"),
+          citation_renderer: path.join(outDir, "citation-renderer", "citation-renderer.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10577,8 +10634,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 162);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 162);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 163);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 163);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -10728,6 +10785,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "pptx_renderer"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "pdf_html_renderer"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "layout_validator"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "citation_renderer"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -10811,6 +10869,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:pptx-renderer"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:pdf-html-renderer"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:layout-validator"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:citation-renderer"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter-os:profile"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:timeline"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:document-index"));
@@ -11533,6 +11592,10 @@ describe("matter harness", () => {
       assert.equal(layoutValidatorCheckpoint?.acceptance_profile, "layout_validator_gate");
       assert.equal(layoutValidatorCheckpoint?.status, "passed");
       assert.equal(layoutValidatorCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const citationRendererCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-citation-renderer");
+      assert.equal(citationRendererCheckpoint?.acceptance_profile, "citation_renderer_gate");
+      assert.equal(citationRendererCheckpoint?.status, "passed");
+      assert.equal(citationRendererCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -15566,6 +15629,46 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.layout_validator_client_facing_ready_count, 0);
       assert.equal(dashboard.summary.layout_validator_failed_checkpoint_count, 0);
       assert.equal(dashboard.summary.layout_validator_validation_error_count, 0);
+      assert.equal(dashboard.summary.citation_renderer_status, "complete");
+      assert.equal(dashboard.summary.citation_renderer_contract_id, citationRenderer.summary.citation_renderer_contract_id);
+      assert.equal(dashboard.summary.citation_renderer_source_source_span_store_status, "complete");
+      assert.equal(dashboard.summary.citation_renderer_source_citation_object_store_status, "complete");
+      assert.equal(dashboard.summary.citation_renderer_source_exhibit_map_status, "complete");
+      assert.equal(dashboard.summary.citation_renderer_source_layout_validator_status, "complete");
+      assert.equal(dashboard.summary.citation_renderer_source_span_count, citationRenderer.summary.source_span_count);
+      assert.equal(dashboard.summary.citation_renderer_citation_count, citationRenderer.summary.citation_count);
+      assert.equal(dashboard.summary.citation_renderer_output_paragraph_count, citationRenderer.summary.output_paragraph_count);
+      assert.equal(dashboard.summary.citation_renderer_exhibit_record_count, citationRenderer.summary.exhibit_record_count);
+      assert.equal(dashboard.summary.citation_renderer_layout_target_count, citationRenderer.summary.layout_target_count);
+      assert.equal(dashboard.summary.citation_renderer_rendered_unit_count, citationRenderer.summary.rendered_citation_unit_count);
+      assert.equal(dashboard.summary.citation_renderer_footnote_rendering_count, citationRenderer.summary.footnote_rendering_count);
+      assert.equal(dashboard.summary.citation_renderer_exhibit_reference_rendering_count, citationRenderer.summary.exhibit_reference_rendering_count);
+      assert.equal(dashboard.summary.citation_renderer_source_span_link_rendering_count, citationRenderer.summary.source_span_link_rendering_count);
+      assert.equal(dashboard.summary.citation_renderer_packet_count, citationRenderer.summary.citation_render_packet_count);
+      assert.equal(dashboard.summary.citation_renderer_target_bound_packet_count, citationRenderer.summary.target_bound_render_packet_count);
+      assert.equal(dashboard.summary.citation_renderer_packet_citation_binding_count, citationRenderer.summary.packet_citation_binding_count);
+      assert.equal(dashboard.summary.citation_renderer_rendered_needs_review_count, citationRenderer.summary.rendered_needs_review_count);
+      assert.equal(dashboard.summary.citation_renderer_bound_exhibit_reference_count, citationRenderer.summary.bound_exhibit_reference_count);
+      assert.equal(dashboard.summary.citation_renderer_bound_source_span_link_count, citationRenderer.summary.bound_source_span_link_count);
+      assert.equal(dashboard.summary.citation_renderer_human_review_required_render_count, citationRenderer.summary.human_review_required_render_count);
+      assert.equal(dashboard.summary.citation_renderer_attorney_review_required_render_count, citationRenderer.summary.attorney_review_required_render_count);
+      assert.equal(dashboard.summary.citation_renderer_citation_review_required_render_count, citationRenderer.summary.citation_review_required_render_count);
+      assert.equal(dashboard.summary.citation_renderer_currentness_review_required_render_count, citationRenderer.summary.currentness_review_required_render_count);
+      assert.equal(dashboard.summary.citation_renderer_source_verification_required_render_count, citationRenderer.summary.source_verification_required_render_count);
+      assert.equal(dashboard.summary.citation_renderer_report_only, true);
+      assert.equal(dashboard.summary.citation_renderer_document_runtime_mutation_allowed, false);
+      assert.equal(dashboard.summary.citation_renderer_external_renderer_execution_allowed, false);
+      assert.equal(dashboard.summary.citation_renderer_network_access_allowed, false);
+      assert.equal(dashboard.summary.citation_renderer_artifact_write_allowed, true);
+      assert.equal(dashboard.summary.citation_renderer_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.citation_renderer_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.citation_renderer_protected_action_allowed, false);
+      assert.equal(dashboard.summary.citation_renderer_protected_action_executed, false);
+      assert.equal(dashboard.summary.citation_renderer_legal_advice_generated, false);
+      assert.equal(dashboard.summary.citation_renderer_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.citation_renderer_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.citation_renderer_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.citation_renderer_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -18026,6 +18129,48 @@ describe("matter harness", () => {
       assert.equal(layoutValidatorStage?.metrics.client_facing_ready_count, 0);
       assert.equal(layoutValidatorStage?.metrics.failed_checkpoint_count, 0);
       assert.equal(layoutValidatorStage?.metrics.validation_error_count, 0);
+      const citationRendererStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "citation_renderer");
+      assert.equal(citationRendererStage?.status, "passed");
+      assert.equal(citationRendererStage?.metrics.citation_renderer_status, "complete");
+      assert.equal(citationRendererStage?.metrics.citation_renderer_contract_id, citationRenderer.summary.citation_renderer_contract_id);
+      assert.equal(citationRendererStage?.metrics.source_source_span_store_status, "complete");
+      assert.equal(citationRendererStage?.metrics.source_citation_object_store_status, "complete");
+      assert.equal(citationRendererStage?.metrics.source_exhibit_map_status, "complete");
+      assert.equal(citationRendererStage?.metrics.source_layout_validator_status, "complete");
+      assert.equal(citationRendererStage?.metrics.source_span_count, citationRenderer.summary.source_span_count);
+      assert.equal(citationRendererStage?.metrics.citation_count, citationRenderer.summary.citation_count);
+      assert.equal(citationRendererStage?.metrics.output_paragraph_count, citationRenderer.summary.output_paragraph_count);
+      assert.equal(citationRendererStage?.metrics.exhibit_record_count, citationRenderer.summary.exhibit_record_count);
+      assert.equal(citationRendererStage?.metrics.layout_target_count, citationRenderer.summary.layout_target_count);
+      assert.equal(citationRendererStage?.metrics.rendered_citation_unit_count, citationRenderer.summary.rendered_citation_unit_count);
+      assert.equal(citationRendererStage?.metrics.footnote_rendering_count, citationRenderer.summary.footnote_rendering_count);
+      assert.equal(citationRendererStage?.metrics.exhibit_reference_rendering_count, citationRenderer.summary.exhibit_reference_rendering_count);
+      assert.equal(citationRendererStage?.metrics.source_span_link_rendering_count, citationRenderer.summary.source_span_link_rendering_count);
+      assert.equal(citationRendererStage?.metrics.citation_render_packet_count, citationRenderer.summary.citation_render_packet_count);
+      assert.equal(citationRendererStage?.metrics.target_bound_render_packet_count, citationRenderer.summary.target_bound_render_packet_count);
+      assert.equal(citationRendererStage?.metrics.packet_citation_binding_count, citationRenderer.summary.packet_citation_binding_count);
+      assert.equal(citationRendererStage?.metrics.rendered_needs_review_count, citationRenderer.summary.rendered_needs_review_count);
+      assert.equal(citationRendererStage?.metrics.bound_exhibit_reference_count, citationRenderer.summary.bound_exhibit_reference_count);
+      assert.equal(citationRendererStage?.metrics.bound_source_span_link_count, citationRenderer.summary.bound_source_span_link_count);
+      assert.equal(citationRendererStage?.metrics.human_review_required_render_count, citationRenderer.summary.human_review_required_render_count);
+      assert.equal(citationRendererStage?.metrics.attorney_review_required_render_count, citationRenderer.summary.attorney_review_required_render_count);
+      assert.equal(citationRendererStage?.metrics.citation_review_required_render_count, citationRenderer.summary.citation_review_required_render_count);
+      assert.equal(citationRendererStage?.metrics.currentness_review_required_render_count, citationRenderer.summary.currentness_review_required_render_count);
+      assert.equal(citationRendererStage?.metrics.source_verification_required_render_count, citationRenderer.summary.source_verification_required_render_count);
+      assert.equal(citationRendererStage?.metrics.citation_rendering_report_only, true);
+      assert.equal(citationRendererStage?.metrics.document_runtime_mutation_allowed, false);
+      assert.equal(citationRendererStage?.metrics.external_renderer_execution_allowed, false);
+      assert.equal(citationRendererStage?.metrics.network_access_allowed, false);
+      assert.equal(citationRendererStage?.metrics.artifact_write_allowed, true);
+      assert.equal(citationRendererStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(citationRendererStage?.metrics.delivery_execution_performed, false);
+      assert.equal(citationRendererStage?.metrics.protected_action_allowed, false);
+      assert.equal(citationRendererStage?.metrics.protected_action_executed, false);
+      assert.equal(citationRendererStage?.metrics.legal_advice_generated, false);
+      assert.equal(citationRendererStage?.metrics.client_facing_output_generated, false);
+      assert.equal(citationRendererStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(citationRendererStage?.metrics.failed_checkpoint_count, 0);
+      assert.equal(citationRendererStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -20054,6 +20199,34 @@ describe("matter harness", () => {
       const layoutValidatorValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/layout-validator-validations?status=passed", apiOptions)).body);
       assert.equal(layoutValidatorValidationsResponse.collection, "layout_validator_validations");
       assert.equal(layoutValidatorValidationsResponse.count, layoutValidator.summary.validation_item_count);
+
+      const citationRenderersResponse = JSON.parse((await buildReviewApiResponse("/api/citation-renderers?citation_renderer_status=complete", apiOptions)).body);
+      assert.equal(citationRenderersResponse.collection, "citation_renderers");
+      assert.equal(citationRenderersResponse.count, 1);
+
+      const citationRenderUnitsResponse = JSON.parse((await buildReviewApiResponse("/api/citation-render-units?citation_render_status=rendered_needs_review", apiOptions)).body);
+      assert.equal(citationRenderUnitsResponse.collection, "citation_render_units");
+      assert.equal(citationRenderUnitsResponse.count, citationRenderer.summary.rendered_citation_unit_count);
+
+      const footnoteRenderingsResponse = JSON.parse((await buildReviewApiResponse("/api/footnote-renderings?footnote_rendering_status=rendered_needs_review", apiOptions)).body);
+      assert.equal(footnoteRenderingsResponse.collection, "footnote_renderings");
+      assert.equal(footnoteRenderingsResponse.count, citationRenderer.summary.footnote_rendering_count);
+
+      const exhibitReferenceRenderingsResponse = JSON.parse((await buildReviewApiResponse("/api/exhibit-reference-renderings?exhibit_reference_status=rendered_bound", apiOptions)).body);
+      assert.equal(exhibitReferenceRenderingsResponse.collection, "exhibit_reference_renderings");
+      assert.equal(exhibitReferenceRenderingsResponse.count, citationRenderer.summary.bound_exhibit_reference_count);
+
+      const sourceSpanLinkRenderingsResponse = JSON.parse((await buildReviewApiResponse("/api/source-span-link-renderings?source_span_link_status=rendered_bound", apiOptions)).body);
+      assert.equal(sourceSpanLinkRenderingsResponse.collection, "source_span_link_renderings");
+      assert.equal(sourceSpanLinkRenderingsResponse.count, citationRenderer.summary.bound_source_span_link_count);
+
+      const citationRenderPacketsResponse = JSON.parse((await buildReviewApiResponse("/api/citation-render-packets?citation_render_packet_status=rendered_needs_review&citation_render_format=docx", apiOptions)).body);
+      assert.equal(citationRenderPacketsResponse.collection, "citation_render_packets");
+      assert.equal(citationRenderPacketsResponse.count, 1);
+
+      const citationRendererValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/citation-renderer-validations?status=passed", apiOptions)).body);
+      assert.equal(citationRendererValidationsResponse.collection, "citation_renderer_validations");
+      assert.equal(citationRendererValidationsResponse.count, citationRenderer.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

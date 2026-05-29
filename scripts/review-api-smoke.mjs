@@ -2112,6 +2112,34 @@ try {
   assert.equal(layoutValidatorValidations.collection, "layout_validator_validations");
   assert.ok(layoutValidatorValidations.count <= 5);
 
+  const citationRenderers = await fetchJson(`${url}/api/citation-renderers?citation_renderer_status=complete&limit=1`);
+  assert.equal(citationRenderers.collection, "citation_renderers");
+  assert.ok(citationRenderers.count <= 1);
+
+  const citationRenderUnits = await fetchJson(`${url}/api/citation-render-units?citation_render_status=rendered_needs_review&limit=5`);
+  assert.equal(citationRenderUnits.collection, "citation_render_units");
+  assert.ok(citationRenderUnits.count <= 5);
+
+  const footnoteRenderings = await fetchJson(`${url}/api/footnote-renderings?footnote_rendering_status=rendered_needs_review&limit=5`);
+  assert.equal(footnoteRenderings.collection, "footnote_renderings");
+  assert.ok(footnoteRenderings.count <= 5);
+
+  const exhibitReferenceRenderings = await fetchJson(`${url}/api/exhibit-reference-renderings?exhibit_reference_status=rendered_bound&limit=5`);
+  assert.equal(exhibitReferenceRenderings.collection, "exhibit_reference_renderings");
+  assert.ok(exhibitReferenceRenderings.count <= 5);
+
+  const sourceSpanLinkRenderings = await fetchJson(`${url}/api/source-span-link-renderings?source_span_link_status=rendered_bound&limit=5`);
+  assert.equal(sourceSpanLinkRenderings.collection, "source_span_link_renderings");
+  assert.ok(sourceSpanLinkRenderings.count <= 5);
+
+  const citationRenderPackets = await fetchJson(`${url}/api/citation-render-packets?citation_render_packet_status=rendered_needs_review&citation_render_format=docx&limit=5`);
+  assert.equal(citationRenderPackets.collection, "citation_render_packets");
+  assert.ok(citationRenderPackets.count <= 5);
+
+  const citationRendererValidations = await fetchJson(`${url}/api/citation-renderer-validations?status=passed&limit=5`);
+  assert.equal(citationRendererValidations.collection, "citation_renderer_validations");
+  assert.ok(citationRendererValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

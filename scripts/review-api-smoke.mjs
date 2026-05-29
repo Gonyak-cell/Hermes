@@ -2516,6 +2516,46 @@ try {
   assert.equal(plaudValidations.collection, "plaud_transcript_validations");
   assert.ok(plaudValidations.count <= 5);
 
+  const erpDraftConnector = await fetchJson(`${url}/api/erp-draft-connector?erp_draft_connector_status=complete&limit=1`);
+  assert.equal(erpDraftConnector.collection, "erp_draft_connector");
+  assert.ok(erpDraftConnector.count <= 1);
+
+  const erpAccounts = await fetchJson(`${url}/api/erp-accounts?erp_account_status=metadata_export_ready&review_status=needs_review&limit=5`);
+  assert.equal(erpAccounts.collection, "erp_accounts");
+  assert.ok(erpAccounts.count <= 5);
+
+  const erpDrafts = await fetchJson(`${url}/api/erp-drafts?erp_draft_status=draft_output_ready&erp_resource_status=ready&review_status=needs_review&limit=5`);
+  assert.equal(erpDrafts.collection, "erp_drafts");
+  assert.ok(erpDrafts.count <= 5);
+
+  const erpTaxDrafts = await fetchJson(`${url}/api/erp-drafts?draft_kind=tax_invoice&erp_draft_status=draft_output_ready&limit=5`);
+  assert.equal(erpTaxDrafts.collection, "erp_drafts");
+  assert.ok(erpTaxDrafts.count <= 5);
+
+  const erpLineItems = await fetchJson(`${url}/api/erp-line-items?erp_line_item_status=draft_line_ready&review_status=needs_review&limit=5`);
+  assert.equal(erpLineItems.collection, "erp_line_items");
+  assert.ok(erpLineItems.count <= 5);
+
+  const erpDraftOutputs = await fetchJson(`${url}/api/erp-draft-outputs?erp_draft_output_status=blocked_pending_human_review&review_status=needs_review&limit=5`);
+  assert.equal(erpDraftOutputs.collection, "erp_draft_outputs");
+  assert.ok(erpDraftOutputs.count <= 5);
+
+  const erpApprovalHolds = await fetchJson(`${url}/api/erp-approval-holds?erp_approval_hold_status=held_for_human_review&limit=5`);
+  assert.equal(erpApprovalHolds.collection, "erp_approval_holds");
+  assert.ok(erpApprovalHolds.count <= 5);
+
+  const erpCursor = await fetchJson(`${url}/api/erp-cursor?cursor_status=complete&limit=1`);
+  assert.equal(erpCursor.collection, "erp_cursor");
+  assert.ok(erpCursor.count <= 1);
+
+  const erpAuthBoundary = await fetchJson(`${url}/api/erp-auth-boundary?auth_boundary_status=enforced&credential_reference_only=true&limit=1`);
+  assert.equal(erpAuthBoundary.collection, "erp_auth_boundary");
+  assert.ok(erpAuthBoundary.count <= 1);
+
+  const erpValidations = await fetchJson(`${url}/api/erp-draft-validations?status=passed&limit=5`);
+  assert.equal(erpValidations.collection, "erp_draft_validations");
+  assert.ok(erpValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

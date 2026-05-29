@@ -147,6 +147,7 @@ const GOAL_ITEMS = [
   sourceItem("github_connector", "GitHub Connector", "connectors", "github_connector", "control-plane-github-connector", { acceptance_profile: "github_connector_gate" }),
   sourceItem("vdr_connector", "VDR Connector", "connectors", "vdr_connector", "control-plane-vdr-connector", { acceptance_profile: "vdr_connector_gate" }),
   sourceItem("plaud_transcript_connector", "Plaud Transcript Connector", "connectors", "plaud_transcript_connector", "control-plane-plaud-transcript-connector", { acceptance_profile: "plaud_transcript_connector_gate" }),
+  sourceItem("erp_draft_connector", "ERP Draft Connector", "connectors", "erp_draft_connector", "control-plane-erp-draft-connector", { acceptance_profile: "erp_draft_connector_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -653,6 +654,7 @@ function evaluateStageAcceptance(item, stage) {
     "github_connector_gate",
     "vdr_connector_gate",
     "plaud_transcript_connector_gate",
+    "erp_draft_connector_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -5202,6 +5204,66 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.normalized_text_human_review_required_count === metrics.normalized_text_record_count
     ) {
       return passedWithOperationalGate(stage, "Plaud Transcript Connector projects operator-provided recording, speaker, timestamp, transcript, normalized text, and audio metadata rows into review-gated candidates without live Plaud API calls, network access, credential reads, audio downloads, mutation, delivery, legal advice, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "erp_draft_connector_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.erp_draft_connector_status === "complete"
+      && metrics.source_plaud_transcript_connector_status === "complete"
+      && metrics.source_output_delivery_contract_freeze_status === "complete"
+      && metrics.account_count > 0
+      && metrics.draft_count >= 3
+      && metrics.estimate_draft_count > 0
+      && metrics.invoice_draft_count > 0
+      && metrics.tax_invoice_draft_count > 0
+      && metrics.line_item_count > 0
+      && metrics.draft_output_count === metrics.draft_count
+      && metrics.approval_hold_count === metrics.draft_count
+      && metrics.resource_candidate_count === metrics.draft_count
+      && metrics.line_item_link_count === metrics.line_item_count
+      && metrics.draft_only_output_count === metrics.draft_count
+      && metrics.final_output_allowed_count === 0
+      && metrics.ready_to_issue_count === 0
+      && metrics.blocked_final_action_count === metrics.draft_count
+      && metrics.metadata_complete_draft_count === metrics.draft_count
+      && metrics.cursor_status === "complete"
+      && metrics.cursor_resume_supported === true
+      && metrics.raw_draft_sequence_cursor_material_allowed === false
+      && metrics.auth_boundary_status === "enforced"
+      && metrics.auth_mode === "service_account_draft_hold"
+      && metrics.credential_ref_required === true
+      && metrics.credential_reference_only === true
+      && metrics.raw_secret_material_allowed === false
+      && metrics.read_operations_allowed === true
+      && metrics.draft_output_allowed === true
+      && metrics.final_output_allowed === false
+      && metrics.write_operations_allowed === false
+      && metrics.external_network_access_required_for_runtime === true
+      && metrics.local_export_read_performed === true
+      && metrics.erp_api_execution_performed === false
+      && metrics.external_network_access_performed === false
+      && metrics.connector_execution_performed === true
+      && metrics.source_read_performed === true
+      && metrics.credential_material_read === false
+      && metrics.draft_output_generated === true
+      && metrics.final_output_generated === false
+      && metrics.erp_issue_performed === false
+      && metrics.source_mutation_performed === false
+      && metrics.resource_mutation_performed === false
+      && metrics.billing_mutation_performed === false
+      && metrics.matter_data_write_allowed === false
+      && metrics.task_state_write_allowed === false
+      && metrics.workflow_transition_allowed === false
+      && metrics.output_delivery_performed === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.human_review_required_count === metrics.draft_count + metrics.draft_output_count
+      && metrics.approval_hold_human_review_required_count === metrics.approval_hold_count
+    ) {
+      return passedWithOperationalGate(stage, "ERP Draft Connector projects operator-provided estimate, invoice, and tax invoice draft rows into review-gated draft-only candidates without live ERP API calls, network access, credential reads, issue/finalize actions, mutation, delivery, legal advice, or client-facing output.");
     }
   }
 

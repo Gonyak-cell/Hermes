@@ -156,6 +156,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "connectors:github",
   "connectors:vdr",
   "connectors:plaud-transcript",
+  "connectors:erp-draft",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

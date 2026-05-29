@@ -110,6 +110,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   githubConnectorPath: "artifacts/github-connector/latest/github-connector.json",
   vdrConnectorPath: "artifacts/vdr-connector/latest/vdr-connector.json",
   plaudTranscriptConnectorPath: "artifacts/plaud-transcript-connector/latest/plaud-transcript-connector.json",
+  erpDraftConnectorPath: "artifacts/erp-draft-connector/latest/erp-draft-connector.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -803,6 +804,11 @@ const SOURCE_DEFINITIONS = [
     option: "plaudTranscriptConnectorPath",
     source_id: "plaud_transcript_connector",
     label: "Plaud Transcript Connector",
+  },
+  {
+    option: "erpDraftConnectorPath",
+    source_id: "erp_draft_connector",
+    label: "ERP Draft Connector",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1782,6 +1788,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "github_connector") return data.summary ?? {};
   if (sourceId === "vdr_connector") return data.summary ?? {};
   if (sourceId === "plaud_transcript_connector") return data.summary ?? {};
+  if (sourceId === "erp_draft_connector") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2173,6 +2180,7 @@ function buildStageStatuses(artifacts, sources) {
     buildGitHubConnectorStage(artifacts.github_connector, sourceById.get("github_connector")),
     buildVdrConnectorStage(artifacts.vdr_connector, sourceById.get("vdr_connector")),
     buildPlaudTranscriptConnectorStage(artifacts.plaud_transcript_connector, sourceById.get("plaud_transcript_connector")),
+    buildErpDraftConnectorStage(artifacts.erp_draft_connector, sourceById.get("erp_draft_connector")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -12807,6 +12815,134 @@ function buildPlaudTranscriptConnectorStage(artifact, source) {
   };
 }
 
+function buildErpDraftConnectorStage(artifact, source) {
+  if (!artifact) return missingStage("erp_draft_connector", "ERP Draft Connector", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.erp_draft_connector_status !== "complete"
+    || summary.source_plaud_transcript_connector_status !== "complete"
+    || summary.source_output_delivery_contract_freeze_status !== "complete"
+    || summary.account_count <= 0
+    || summary.draft_count < 3
+    || summary.estimate_draft_count <= 0
+    || summary.invoice_draft_count <= 0
+    || summary.tax_invoice_draft_count <= 0
+    || summary.line_item_count <= 0
+    || summary.draft_output_count !== summary.draft_count
+    || summary.approval_hold_count !== summary.draft_count
+    || summary.resource_candidate_count !== summary.draft_count
+    || summary.line_item_link_count !== summary.line_item_count
+    || summary.draft_only_output_count !== summary.draft_count
+    || summary.final_output_allowed_count !== 0
+    || summary.ready_to_issue_count !== 0
+    || summary.blocked_final_action_count !== summary.draft_count
+    || summary.metadata_complete_draft_count !== summary.draft_count
+    || summary.cursor_status !== "complete"
+    || summary.cursor_resume_supported !== true
+    || summary.raw_draft_sequence_cursor_material_allowed === true
+    || summary.auth_boundary_status !== "enforced"
+    || summary.auth_mode !== "service_account_draft_hold"
+    || summary.credential_ref_required !== true
+    || summary.credential_reference_only !== true
+    || summary.raw_secret_material_allowed === true
+    || summary.read_operations_allowed !== true
+    || summary.draft_output_allowed !== true
+    || summary.final_output_allowed === true
+    || summary.write_operations_allowed === true
+    || summary.external_network_access_required_for_runtime !== true
+    || summary.local_export_read_performed !== true
+    || summary.erp_api_execution_performed === true
+    || summary.external_network_access_performed === true
+    || summary.connector_execution_performed !== true
+    || summary.source_read_performed !== true
+    || summary.credential_material_read === true
+    || summary.draft_output_generated !== true
+    || summary.final_output_generated === true
+    || summary.erp_issue_performed === true
+    || summary.source_mutation_performed === true
+    || summary.resource_mutation_performed === true
+    || summary.billing_mutation_performed === true
+    || summary.matter_data_write_allowed === true
+    || summary.task_state_write_allowed === true
+    || summary.workflow_transition_allowed === true
+    || summary.output_delivery_performed === true
+    || summary.protected_action_executed === true
+    || summary.legal_advice_generated === true
+    || summary.client_facing_output_generated === true
+    || summary.human_review_required_count !== summary.draft_count + summary.draft_output_count
+    || summary.approval_hold_human_review_required_count !== summary.approval_hold_count
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "erp_draft_connector",
+    label: "ERP Draft Connector",
+    status,
+    message: `${summary.draft_count ?? 0} ERP draft(s), ${summary.line_item_count ?? 0} line item(s), and ${summary.approval_hold_count ?? 0} approval hold(s) projected.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      erp_draft_connector_status: summary.erp_draft_connector_status ?? "unknown",
+      connector_id: summary.connector_id ?? artifact.connector_id ?? null,
+      source_id: summary.source_id ?? artifact.connector_contract_binding?.source_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      source_plaud_transcript_connector_status: summary.source_plaud_transcript_connector_status ?? "unknown",
+      source_output_delivery_contract_freeze_status: summary.source_output_delivery_contract_freeze_status ?? "unknown",
+      account_count: summary.account_count ?? artifact.erp_account_records?.length ?? 0,
+      draft_count: summary.draft_count ?? artifact.erp_draft_records?.length ?? 0,
+      estimate_draft_count: summary.estimate_draft_count ?? 0,
+      invoice_draft_count: summary.invoice_draft_count ?? 0,
+      tax_invoice_draft_count: summary.tax_invoice_draft_count ?? 0,
+      line_item_count: summary.line_item_count ?? artifact.erp_line_item_records?.length ?? 0,
+      draft_output_count: summary.draft_output_count ?? artifact.erp_draft_output_records?.length ?? 0,
+      approval_hold_count: summary.approval_hold_count ?? artifact.erp_approval_hold_records?.length ?? 0,
+      resource_candidate_count: summary.resource_candidate_count ?? 0,
+      line_item_link_count: summary.line_item_link_count ?? 0,
+      draft_only_output_count: summary.draft_only_output_count ?? 0,
+      final_output_allowed_count: summary.final_output_allowed_count ?? 0,
+      ready_to_issue_count: summary.ready_to_issue_count ?? 0,
+      blocked_final_action_count: summary.blocked_final_action_count ?? 0,
+      metadata_complete_draft_count: summary.metadata_complete_draft_count ?? 0,
+      cursor_status: summary.cursor_status ?? artifact.cursor_state?.cursor_status ?? "unknown",
+      cursor_kind: summary.cursor_kind ?? artifact.cursor_state?.cursor_kind ?? null,
+      cursor_resume_supported: summary.cursor_resume_supported ?? artifact.cursor_state?.resume_supported ?? false,
+      raw_draft_sequence_cursor_material_allowed: summary.raw_draft_sequence_cursor_material_allowed ?? artifact.cursor_state?.raw_draft_sequence_cursor_material_allowed ?? false,
+      auth_boundary_status: summary.auth_boundary_status ?? artifact.auth_boundary?.auth_boundary_status ?? "unknown",
+      auth_mode: summary.auth_mode ?? artifact.auth_boundary?.auth_mode ?? null,
+      credential_ref_required: summary.credential_ref_required ?? artifact.auth_boundary?.credential_ref_required ?? false,
+      credential_reference_only: summary.credential_reference_only ?? artifact.auth_boundary?.credential_reference_only ?? false,
+      raw_secret_material_allowed: summary.raw_secret_material_allowed ?? artifact.auth_boundary?.raw_secret_material_allowed ?? false,
+      read_operations_allowed: summary.read_operations_allowed ?? artifact.auth_boundary?.read_operations_allowed ?? false,
+      draft_output_allowed: summary.draft_output_allowed ?? artifact.auth_boundary?.draft_output_allowed ?? false,
+      final_output_allowed: summary.final_output_allowed ?? artifact.auth_boundary?.final_output_allowed ?? false,
+      write_operations_allowed: summary.write_operations_allowed ?? artifact.auth_boundary?.write_operations_allowed ?? false,
+      external_network_access_required_for_runtime: summary.external_network_access_required_for_runtime ?? artifact.auth_boundary?.external_network_access_required_for_runtime ?? false,
+      local_export_read_performed: summary.local_export_read_performed ?? artifact.erp_connector_boundary?.local_export_read_performed ?? false,
+      erp_api_execution_performed: summary.erp_api_execution_performed ?? artifact.erp_connector_boundary?.erp_api_execution_performed ?? false,
+      external_network_access_performed: summary.external_network_access_performed ?? artifact.erp_connector_boundary?.external_network_access_performed ?? false,
+      connector_execution_performed: summary.connector_execution_performed ?? artifact.erp_connector_boundary?.connector_execution_performed ?? false,
+      source_read_performed: summary.source_read_performed ?? artifact.erp_connector_boundary?.source_read_performed ?? false,
+      credential_material_read: summary.credential_material_read ?? artifact.erp_connector_boundary?.credential_material_read ?? false,
+      draft_output_generated: summary.draft_output_generated ?? artifact.erp_connector_boundary?.draft_output_generated ?? false,
+      final_output_generated: summary.final_output_generated ?? artifact.erp_connector_boundary?.final_output_generated ?? false,
+      erp_issue_performed: summary.erp_issue_performed ?? artifact.erp_connector_boundary?.erp_issue_performed ?? false,
+      source_mutation_performed: summary.source_mutation_performed ?? artifact.erp_connector_boundary?.source_mutation_performed ?? false,
+      resource_mutation_performed: summary.resource_mutation_performed ?? artifact.erp_connector_boundary?.resource_mutation_performed ?? false,
+      billing_mutation_performed: summary.billing_mutation_performed ?? artifact.erp_connector_boundary?.billing_mutation_performed ?? false,
+      matter_data_write_allowed: summary.matter_data_write_allowed ?? artifact.erp_connector_boundary?.matter_data_write_allowed ?? false,
+      task_state_write_allowed: summary.task_state_write_allowed ?? artifact.erp_connector_boundary?.task_state_write_allowed ?? false,
+      workflow_transition_allowed: summary.workflow_transition_allowed ?? artifact.erp_connector_boundary?.workflow_transition_allowed ?? false,
+      output_delivery_performed: summary.output_delivery_performed ?? artifact.erp_connector_boundary?.output_delivery_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? artifact.erp_connector_boundary?.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? artifact.erp_connector_boundary?.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? artifact.erp_connector_boundary?.client_facing_output_generated ?? false,
+      human_review_required_count: summary.human_review_required_count ?? 0,
+      approval_hold_human_review_required_count: summary.approval_hold_human_review_required_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -19239,6 +19375,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.erp_draft_connector?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "erp_draft_connector";
+    items.push({
+      action_item_id: `dashboard.action.erp_draft_connector.${slugify(subjectId)}`,
+      source_stage: "erp_draft_connector",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix ERP Draft Connector",
+      subject_ref: {
+        subject_type: "erp_draft_connector_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_erp_draft_connector", "rerun_erp_draft_connector", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -25625,6 +25779,61 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     plaud_transcript_connector_human_review_required_count: artifacts.plaud_transcript_connector?.summary?.human_review_required_count ?? 0,
     plaud_transcript_connector_normalized_text_human_review_required_count: artifacts.plaud_transcript_connector?.summary?.normalized_text_human_review_required_count ?? 0,
     plaud_transcript_connector_validation_error_count: artifacts.plaud_transcript_connector?.summary?.validation_error_count ?? artifacts.plaud_transcript_connector?.validation?.errors?.length ?? 0,
+    erp_draft_connector_status: artifacts.erp_draft_connector?.summary?.erp_draft_connector_status ?? "unknown",
+    erp_draft_connector_connector_id: artifacts.erp_draft_connector?.summary?.connector_id ?? null,
+    erp_draft_connector_source_id: artifacts.erp_draft_connector?.summary?.source_id ?? null,
+    erp_draft_connector_source_plaud_transcript_connector_status: artifacts.erp_draft_connector?.summary?.source_plaud_transcript_connector_status ?? "unknown",
+    erp_draft_connector_source_output_delivery_contract_freeze_status: artifacts.erp_draft_connector?.summary?.source_output_delivery_contract_freeze_status ?? "unknown",
+    erp_draft_connector_account_count: artifacts.erp_draft_connector?.summary?.account_count ?? 0,
+    erp_draft_connector_draft_count: artifacts.erp_draft_connector?.summary?.draft_count ?? 0,
+    erp_draft_connector_estimate_draft_count: artifacts.erp_draft_connector?.summary?.estimate_draft_count ?? 0,
+    erp_draft_connector_invoice_draft_count: artifacts.erp_draft_connector?.summary?.invoice_draft_count ?? 0,
+    erp_draft_connector_tax_invoice_draft_count: artifacts.erp_draft_connector?.summary?.tax_invoice_draft_count ?? 0,
+    erp_draft_connector_line_item_count: artifacts.erp_draft_connector?.summary?.line_item_count ?? 0,
+    erp_draft_connector_draft_output_count: artifacts.erp_draft_connector?.summary?.draft_output_count ?? 0,
+    erp_draft_connector_approval_hold_count: artifacts.erp_draft_connector?.summary?.approval_hold_count ?? 0,
+    erp_draft_connector_resource_candidate_count: artifacts.erp_draft_connector?.summary?.resource_candidate_count ?? 0,
+    erp_draft_connector_line_item_link_count: artifacts.erp_draft_connector?.summary?.line_item_link_count ?? 0,
+    erp_draft_connector_draft_only_output_count: artifacts.erp_draft_connector?.summary?.draft_only_output_count ?? 0,
+    erp_draft_connector_final_output_allowed_count: artifacts.erp_draft_connector?.summary?.final_output_allowed_count ?? 0,
+    erp_draft_connector_ready_to_issue_count: artifacts.erp_draft_connector?.summary?.ready_to_issue_count ?? 0,
+    erp_draft_connector_blocked_final_action_count: artifacts.erp_draft_connector?.summary?.blocked_final_action_count ?? 0,
+    erp_draft_connector_metadata_complete_draft_count: artifacts.erp_draft_connector?.summary?.metadata_complete_draft_count ?? 0,
+    erp_draft_connector_cursor_status: artifacts.erp_draft_connector?.summary?.cursor_status ?? "unknown",
+    erp_draft_connector_cursor_resume_supported: artifacts.erp_draft_connector?.summary?.cursor_resume_supported ?? false,
+    erp_draft_connector_raw_draft_sequence_cursor_material_allowed: artifacts.erp_draft_connector?.summary?.raw_draft_sequence_cursor_material_allowed ?? false,
+    erp_draft_connector_auth_boundary_status: artifacts.erp_draft_connector?.summary?.auth_boundary_status ?? "unknown",
+    erp_draft_connector_auth_mode: artifacts.erp_draft_connector?.summary?.auth_mode ?? null,
+    erp_draft_connector_credential_ref_required: artifacts.erp_draft_connector?.summary?.credential_ref_required ?? false,
+    erp_draft_connector_credential_reference_only: artifacts.erp_draft_connector?.summary?.credential_reference_only ?? false,
+    erp_draft_connector_raw_secret_material_allowed: artifacts.erp_draft_connector?.summary?.raw_secret_material_allowed ?? false,
+    erp_draft_connector_read_operations_allowed: artifacts.erp_draft_connector?.summary?.read_operations_allowed ?? false,
+    erp_draft_connector_draft_output_allowed: artifacts.erp_draft_connector?.summary?.draft_output_allowed ?? false,
+    erp_draft_connector_final_output_allowed: artifacts.erp_draft_connector?.summary?.final_output_allowed ?? false,
+    erp_draft_connector_write_operations_allowed: artifacts.erp_draft_connector?.summary?.write_operations_allowed ?? false,
+    erp_draft_connector_external_network_access_required_for_runtime: artifacts.erp_draft_connector?.summary?.external_network_access_required_for_runtime ?? false,
+    erp_draft_connector_local_export_read_performed: artifacts.erp_draft_connector?.summary?.local_export_read_performed ?? false,
+    erp_draft_connector_erp_api_execution_performed: artifacts.erp_draft_connector?.summary?.erp_api_execution_performed ?? false,
+    erp_draft_connector_external_network_access_performed: artifacts.erp_draft_connector?.summary?.external_network_access_performed ?? false,
+    erp_draft_connector_connector_execution_performed: artifacts.erp_draft_connector?.summary?.connector_execution_performed ?? false,
+    erp_draft_connector_source_read_performed: artifacts.erp_draft_connector?.summary?.source_read_performed ?? false,
+    erp_draft_connector_credential_material_read: artifacts.erp_draft_connector?.summary?.credential_material_read ?? false,
+    erp_draft_connector_draft_output_generated: artifacts.erp_draft_connector?.summary?.draft_output_generated ?? false,
+    erp_draft_connector_final_output_generated: artifacts.erp_draft_connector?.summary?.final_output_generated ?? false,
+    erp_draft_connector_erp_issue_performed: artifacts.erp_draft_connector?.summary?.erp_issue_performed ?? false,
+    erp_draft_connector_source_mutation_performed: artifacts.erp_draft_connector?.summary?.source_mutation_performed ?? false,
+    erp_draft_connector_resource_mutation_performed: artifacts.erp_draft_connector?.summary?.resource_mutation_performed ?? false,
+    erp_draft_connector_billing_mutation_performed: artifacts.erp_draft_connector?.summary?.billing_mutation_performed ?? false,
+    erp_draft_connector_matter_data_write_allowed: artifacts.erp_draft_connector?.summary?.matter_data_write_allowed ?? false,
+    erp_draft_connector_task_state_write_allowed: artifacts.erp_draft_connector?.summary?.task_state_write_allowed ?? false,
+    erp_draft_connector_workflow_transition_allowed: artifacts.erp_draft_connector?.summary?.workflow_transition_allowed ?? false,
+    erp_draft_connector_output_delivery_performed: artifacts.erp_draft_connector?.summary?.output_delivery_performed ?? false,
+    erp_draft_connector_protected_action_executed: artifacts.erp_draft_connector?.summary?.protected_action_executed ?? false,
+    erp_draft_connector_legal_advice_generated: artifacts.erp_draft_connector?.summary?.legal_advice_generated ?? false,
+    erp_draft_connector_client_facing_output_generated: artifacts.erp_draft_connector?.summary?.client_facing_output_generated ?? false,
+    erp_draft_connector_human_review_required_count: artifacts.erp_draft_connector?.summary?.human_review_required_count ?? 0,
+    erp_draft_connector_approval_hold_human_review_required_count: artifacts.erp_draft_connector?.summary?.approval_hold_human_review_required_count ?? 0,
+    erp_draft_connector_validation_error_count: artifacts.erp_draft_connector?.summary?.validation_error_count ?? artifacts.erp_draft_connector?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -27428,6 +27637,8 @@ function parseArgs(argv) {
     else if (arg === "--no-vdr-connector") parsed.vdrConnectorPath = false;
     else if (arg === "--plaud-transcript-connector") parsed.plaudTranscriptConnectorPath = argv[++index];
     else if (arg === "--no-plaud-transcript-connector") parsed.plaudTranscriptConnectorPath = false;
+    else if (arg === "--erp-draft-connector") parsed.erpDraftConnectorPath = argv[++index];
+    else if (arg === "--no-erp-draft-connector") parsed.erpDraftConnectorPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

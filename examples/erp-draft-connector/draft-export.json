@@ -1,0 +1,97 @@
+{
+  "tenant_id": "tenant.hermes.erp.demo",
+  "matter_id": "MNA-2026-ALPHA",
+  "policy_snapshot_id": "policy.erp_draft.default.v1",
+  "classification": "restricted",
+  "erp_account_id": "erp-account-alpha-001",
+  "account_name": "Project Alpha billing account",
+  "client_id": "client.alpha",
+  "client_name": "Alpha Buyer LLC",
+  "currency": "USD",
+  "drafts": [
+    {
+      "draft_id": "estimate-alpha-001",
+      "draft_revision": "rev-001",
+      "draft_kind": "estimate",
+      "title": "Project Alpha due diligence estimate",
+      "description": "Internal estimate draft for review before any ERP issue action.",
+      "issue_date": "2026-05-29",
+      "due_date": "2026-06-05",
+      "subtotal": 4200,
+      "tax": 0,
+      "total": 4200,
+      "line_items": [
+        {
+          "line_item_id": "estimate-line-001",
+          "description": "Diligence review planning",
+          "quantity": 12,
+          "unit_amount": 250,
+          "amount": 3000
+        },
+        {
+          "line_item_id": "estimate-line-002",
+          "description": "VDR document handling estimate",
+          "quantity": 6,
+          "unit_amount": 200,
+          "amount": 1200
+        }
+      ]
+    },
+    {
+      "draft_id": "invoice-alpha-001",
+      "draft_revision": "rev-001",
+      "draft_kind": "invoice",
+      "title": "Project Alpha billing draft",
+      "description": "Internal invoice draft held until human approval.",
+      "issue_date": "2026-05-29",
+      "due_date": "2026-06-12",
+      "subtotal": 3750,
+      "tax": 0,
+      "total": 3750,
+      "line_items": [
+        {
+          "line_item_id": "invoice-line-001",
+          "description": "Transcript review and normalization",
+          "quantity": 10,
+          "unit_amount": 225,
+          "amount": 2250
+        },
+        {
+          "line_item_id": "invoice-line-002",
+          "description": "Resource candidate QA",
+          "quantity": 6,
+          "unit_amount": 250,
+          "amount": 1500
+        }
+      ]
+    },
+    {
+      "draft_id": "tax-invoice-alpha-001",
+      "draft_revision": "rev-001",
+      "draft_kind": "tax_invoice",
+      "title": "Project Alpha tax invoice draft",
+      "description": "Internal tax invoice draft with VAT line held for review.",
+      "issue_date": "2026-05-29",
+      "due_date": "2026-06-12",
+      "subtotal": 3750,
+      "tax": 375,
+      "total": 4125,
+      "line_items": [
+        {
+          "line_item_id": "tax-invoice-line-001",
+          "description": "Approved service subtotal draft",
+          "quantity": 1,
+          "unit_amount": 3750,
+          "amount": 3750
+        },
+        {
+          "line_item_id": "tax-invoice-line-002",
+          "description": "VAT draft line",
+          "quantity": 1,
+          "unit_amount": 375,
+          "amount": 375
+        }
+      ]
+    }
+  ]
+}

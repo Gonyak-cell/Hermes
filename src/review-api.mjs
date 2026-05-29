@@ -5457,6 +5457,69 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("plaud_transcript_validations", plaudResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/erp-draft-connector") {
+    const erpResult = await readDashboardSourceArtifact(dashboard, "erp_draft_connector");
+    if (!erpResult.available) {
+      return jsonResponse(503, buildError("erp_draft_connector_unavailable", erpResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("erp_draft_connector", [erpResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/erp-accounts") {
+    const erpResult = await readDashboardSourceArtifact(dashboard, "erp_draft_connector");
+    if (!erpResult.available) {
+      return jsonResponse(503, buildError("erp_draft_connector_unavailable", erpResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("erp_accounts", erpResult.artifact.erp_account_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/erp-drafts") {
+    const erpResult = await readDashboardSourceArtifact(dashboard, "erp_draft_connector");
+    if (!erpResult.available) {
+      return jsonResponse(503, buildError("erp_draft_connector_unavailable", erpResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("erp_drafts", erpResult.artifact.erp_draft_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/erp-line-items") {
+    const erpResult = await readDashboardSourceArtifact(dashboard, "erp_draft_connector");
+    if (!erpResult.available) {
+      return jsonResponse(503, buildError("erp_draft_connector_unavailable", erpResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("erp_line_items", erpResult.artifact.erp_line_item_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/erp-draft-outputs") {
+    const erpResult = await readDashboardSourceArtifact(dashboard, "erp_draft_connector");
+    if (!erpResult.available) {
+      return jsonResponse(503, buildError("erp_draft_connector_unavailable", erpResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("erp_draft_outputs", erpResult.artifact.erp_draft_output_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/erp-approval-holds") {
+    const erpResult = await readDashboardSourceArtifact(dashboard, "erp_draft_connector");
+    if (!erpResult.available) {
+      return jsonResponse(503, buildError("erp_draft_connector_unavailable", erpResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("erp_approval_holds", erpResult.artifact.erp_approval_hold_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/erp-cursor") {
+    const erpResult = await readDashboardSourceArtifact(dashboard, "erp_draft_connector");
+    if (!erpResult.available) {
+      return jsonResponse(503, buildError("erp_draft_connector_unavailable", erpResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("erp_cursor", [erpResult.artifact.cursor_state].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/erp-auth-boundary") {
+    const erpResult = await readDashboardSourceArtifact(dashboard, "erp_draft_connector");
+    if (!erpResult.available) {
+      return jsonResponse(503, buildError("erp_draft_connector_unavailable", erpResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("erp_auth_boundary", [erpResult.artifact.auth_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/erp-draft-validations") {
+    const erpResult = await readDashboardSourceArtifact(dashboard, "erp_draft_connector");
+    if (!erpResult.available) {
+      return jsonResponse(503, buildError("erp_draft_connector_unavailable", erpResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("erp_draft_validations", erpResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -11841,6 +11904,15 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/plaud-cursor", "Plaud transcript cursor state"),
       route("GET", "/api/plaud-auth-boundary", "Plaud connector auth boundary"),
       route("GET", "/api/plaud-transcript-validations", "Plaud Transcript Connector validation rows"),
+      route("GET", "/api/erp-draft-connector", "ERP Draft Connector artifact"),
+      route("GET", "/api/erp-accounts", "ERP account metadata rows"),
+      route("GET", "/api/erp-drafts", "ERP draft rows"),
+      route("GET", "/api/erp-line-items", "ERP draft line item rows"),
+      route("GET", "/api/erp-draft-outputs", "ERP draft-only output rows"),
+      route("GET", "/api/erp-approval-holds", "ERP approval hold rows"),
+      route("GET", "/api/erp-cursor", "ERP draft cursor state"),
+      route("GET", "/api/erp-auth-boundary", "ERP connector auth boundary"),
+      route("GET", "/api/erp-draft-validations", "ERP Draft Connector validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -12943,6 +13015,14 @@ function filterItems(items, searchParams) {
     "plaud_timestamp_span_status",
     "plaud_audio_metadata_status",
     "plaud_resource_status",
+    "erp_draft_connector_status",
+    "erp_account_status",
+    "erp_draft_status",
+    "erp_line_item_status",
+    "erp_draft_output_status",
+    "erp_approval_hold_status",
+    "erp_resource_status",
+    "draft_kind",
     "thread_status",
     "email_resource_status",
     "chat_resource_status",
@@ -14778,6 +14858,14 @@ function readFilterValue(item, key) {
   if (key === "plaud_timestamp_span_status") return item.timestamp_span_status;
   if (key === "plaud_audio_metadata_status") return item.audio_metadata_status;
   if (key === "plaud_resource_status") return item.plaud_resource_status;
+  if (key === "erp_draft_connector_status") return item.summary?.erp_draft_connector_status ?? item.connector_status ?? item.erp_draft_connector_status;
+  if (key === "erp_account_status") return item.account_status;
+  if (key === "erp_draft_status") return item.draft_status;
+  if (key === "erp_line_item_status") return item.line_item_status;
+  if (key === "erp_draft_output_status") return item.draft_output_status;
+  if (key === "erp_approval_hold_status") return item.approval_hold_status;
+  if (key === "erp_resource_status") return item.erp_resource_status;
+  if (key === "draft_kind") return item.draft_kind;
   if (key === "thread_status") return item.thread_status;
   if (key === "email_resource_status") return item.email_resource_status;
   if (key === "chat_resource_status") return item.chat_resource_status;

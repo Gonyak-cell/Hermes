@@ -7374,6 +7374,25 @@ Verification:
 - Golden fixture count increased to 176 and `plaud_transcript_connector` is included as a regression fixture.
 - `npm run connectors:plaud-transcript -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
 
+## Phase 275 - ERP Draft Connector
+
+Goal: P275 implements the ERP draft connector as a deterministic adapter for operator-provided billing draft export JSON. It preserves the Windows baseline stabilization posture by projecting estimate, invoice, and tax invoice drafts into internal draft-only output candidates with approval holds, without calling a live ERP API, using network access, reading credential material, issuing/posting/finalizing ERP records, mutating source/resource/billing/matter/task/workflow state, delivering output, or producing legal/client-facing output.
+
+Implementation:
+- Added `src/erp-draft-connector.mjs`, `scripts/erp-draft-connector.mjs`, `schemas/erp-draft-connector.schema.json`, `docs/erp-draft-connector.md`, and deterministic fixture exports under `examples/erp-draft-connector/`.
+- Added `connectors:erp-draft` npm script.
+- The artifact reads Connector Contract v2 plus the completed P274 Plaud Transcript Connector and Output Delivery Contract Freeze baselines, binds `connector.erp_draft.v2` / `source.erp_draft.v2`, and emits account, draft, line item, draft output, approval hold, cursor, auth boundary, validation, and summary artifacts.
+- Review Dashboard stage/summary, Review API routes/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests were wired to the new artifact.
+
+Verification:
+- Estimate, invoice, and tax invoice rows become human-review-gated draft-only candidates with external ids, external version ids, resource ids, resource version ids, line-item links, metadata completeness, and blocked final issue actions.
+- Every draft has a draft-only output row plus an approval hold row, and no draft is ready to issue.
+- Cursor state uses `draft_sequence_cursor` with hash-only resume token storage and no raw draft sequence cursor material.
+- Auth boundary is service-account draft-hold, credential-reference-only, least-privilege scoped, and records that runtime network access may be required for a real ERP runtime while this deterministic connector performs no network/API execution.
+- The connector performs no live ERP API execution, external network access, credential material read, ERP issue/post/finalize action, source mutation, resource mutation, billing mutation, matter data write, task state write, workflow transition, delivery, protected action, legal advice, or client-facing output.
+- Golden fixture count increased to 177 and `erp_draft_connector` is included as a regression fixture.
+- `npm run connectors:erp-draft -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -7382,9 +7401,9 @@ Verification:
 
 운영 원칙:
 
-- Current actual completion baseline is Phase 274.
+- Current actual completion baseline is Phase 275.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- Remaining planned slots are P275-P312, 38 total.
+- Remaining planned slots are P276-P312, 37 total.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - P217 이후 personal-dev 작업은 Mac Phase 216 결과를 Windows 작업공간에서 계속 이어가되, Phase 217 본작업보다 Windows 기준선 안정화 게이트를 선행 조건으로 둔 판단을 기준으로 운영한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
@@ -7402,7 +7421,7 @@ Verification:
 | P213-P230 | Personal Dev Domain Pack | repo profile, agent instruction registry, plan reconciliation, parallel worktree lane, diff review, canonical test, PR draft, debt ledger, release/rollback flow를 완성한다. |
 | P231-P252 | Law Firm Domain Pack | Matter OS, Evidence OS, LDD, litigation brief, meeting minutes, contract draft, VDR review, provided-material review, legal citation verifier, attorney approval workflow를 완성한다. |
 | P253-P266 | Creative and Document Domain Pack | template/style/asset registry, DOCX/PPTX/PDF/HTML renderer, layout validator, citation renderer, design system, web novel/video/PPTX production workflows, Creative Document freeze를 완성한다. |
-| P267-P276 | Connector and Ingestion Layer | Connector Contract v2, Local Folder Connector, OneDrive Connector Boundary, Outlook Email Connector, KakaoTalk Import Boundary, GitHub Connector, VDR Connector, and Plaud Transcript Connector를 기준으로 ERP, future Slack/Teams connector를 adapter 방식으로 확장한다. |
+| P267-P276 | Connector and Ingestion Layer | Connector Contract v2, Local Folder Connector, OneDrive Connector Boundary, Outlook Email Connector, KakaoTalk Import Boundary, GitHub Connector, VDR Connector, Plaud Transcript Connector, and ERP Draft Connector를 기준으로 future Slack/Teams connector를 adapter 방식으로 확장한다. |
 | P277-P286 | Resource Expansion and Extractor Library | 2,713개 이상 파일 backfill, resumable batch cursor, quarantine, duplicate detection, extractor registry, document-type coverage dashboard를 완성한다. |
 | P287-P296 | API, Dashboard, Evidence Viewer, Matter Cockpit | API server, review dashboard, Desktop-ready route group, approval queue, evidence viewer, source span inspector, run ledger viewer, matter cockpit, policy violation queue를 usable UI로 연결한다. |
 | P297-P304 | Security, Compliance, Performance Hardening | prompt injection boundary, secrets scanning, external model policy, Desktop companion risk, retention, access review, cost cap, performance budget, backup/restore 검증을 마친다. |

@@ -1,0 +1,254 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/erp-draft-connector.schema.json",
+  "title": "ERP Draft Connector",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "erp_draft_connector_id",
+    "connector_id",
+    "connector_status",
+    "connector_contract_binding",
+    "source_binding",
+    "auth_boundary",
+    "erp_account_records",
+    "erp_draft_records",
+    "erp_line_item_records",
+    "erp_draft_output_records",
+    "erp_approval_hold_records",
+    "cursor_state",
+    "erp_connector_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "erp-draft-connector.v1" },
+    "generated_at": { "type": "string" },
+    "erp_draft_connector_id": { "type": "string" },
+    "connector_id": { "const": "connector.erp_draft.v2" },
+    "connector_status": { "const": "complete" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "connector_contract_binding": {
+      "type": "object",
+      "required": ["binding_status", "connector_id", "source_id", "phase_slot"],
+      "properties": {
+        "binding_status": { "const": "bound" },
+        "connector_id": { "const": "connector.erp_draft.v2" },
+        "source_id": { "const": "source.erp_draft.v2" },
+        "phase_slot": { "const": "P275" }
+      },
+      "additionalProperties": true
+    },
+    "source_binding": {
+      "type": "object",
+      "required": ["source_binding_status", "source_system", "source_kind", "account_count", "draft_count"],
+      "properties": {
+        "source_binding_status": { "const": "bound" },
+        "source_system": { "const": "erp" },
+        "source_kind": { "const": "billing_draft" },
+        "account_count": { "type": "integer", "minimum": 1 },
+        "draft_count": { "type": "integer", "minimum": 3 }
+      },
+      "additionalProperties": true
+    },
+    "auth_boundary": {
+      "type": "object",
+      "required": [
+        "auth_boundary_status",
+        "auth_mode",
+        "credential_ref_required",
+        "credential_reference_only",
+        "raw_secret_material_allowed",
+        "external_network_access_required_for_runtime",
+        "external_network_access_performed",
+        "erp_api_execution_performed",
+        "draft_output_allowed",
+        "final_output_allowed",
+        "write_operations_allowed"
+      ],
+      "properties": {
+        "auth_boundary_status": { "const": "enforced" },
+        "auth_mode": { "const": "service_account_draft_hold" },
+        "credential_ref_required": { "const": true },
+        "credential_reference_only": { "const": true },
+        "raw_secret_material_allowed": { "const": false },
+        "external_network_access_required_for_runtime": { "const": true },
+        "external_network_access_performed": { "const": false },
+        "erp_api_execution_performed": { "const": false },
+        "draft_output_allowed": { "const": true },
+        "final_output_allowed": { "const": false },
+        "write_operations_allowed": { "const": false },
+        "protected_action_allowed": { "const": false },
+        "delivery_execution_allowed": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "erp_account_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["account_status", "human_review_required"],
+        "properties": {
+          "account_status": { "const": "metadata_export_ready" },
+          "human_review_required": { "const": true }
+        },
+        "additionalProperties": true
+      }
+    },
+    "erp_draft_records": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["resource_type", "draft_status", "erp_resource_status", "draft_output_status", "final_output_allowed", "issue_allowed", "issue_performed", "metadata_complete", "human_review_required"],
+        "properties": {
+          "resource_type": { "enum": ["estimate_draft", "invoice_draft"] },
+          "draft_status": { "const": "draft_output_ready" },
+          "erp_resource_status": { "const": "ready" },
+          "draft_output_status": { "const": "draft_only" },
+          "final_output_allowed": { "const": false },
+          "issue_allowed": { "const": false },
+          "issue_performed": { "const": false },
+          "metadata_complete": { "const": true },
+          "human_review_required": { "const": true },
+          "legal_advice_generated": { "const": false },
+          "client_facing_output_generated": { "const": false }
+        },
+        "additionalProperties": true
+      }
+    },
+    "erp_line_item_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["erp_draft_record_id", "line_item_status", "human_review_required"],
+        "properties": {
+          "line_item_status": { "const": "draft_line_ready" },
+          "human_review_required": { "const": true }
+        },
+        "additionalProperties": true
+      }
+    },
+    "erp_draft_output_records": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["artifact_type", "draft_output_status", "draft_only_output_generated", "final_output_allowed", "delivery_execution_allowed", "protected_action_allowed", "erp_issue_performed", "human_review_required"],
+        "properties": {
+          "artifact_type": { "const": "erp_billing_draft" },
+          "draft_output_status": { "const": "blocked_pending_human_review" },
+          "draft_only_output_generated": { "const": true },
+          "final_output_allowed": { "const": false },
+          "delivery_execution_allowed": { "const": false },
+          "protected_action_allowed": { "const": false },
+          "erp_issue_performed": { "const": false },
+          "human_review_required": { "const": true }
+        },
+        "additionalProperties": true
+      }
+    },
+    "erp_approval_hold_records": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["approval_hold_status", "final_action_blocked", "protected_action_allowed", "erp_issue_performed", "human_review_required"],
+        "properties": {
+          "approval_hold_status": { "const": "held_for_human_review" },
+          "final_action_blocked": { "const": true },
+          "protected_action_allowed": { "const": false },
+          "erp_issue_performed": { "const": false },
+          "human_review_required": { "const": true }
+        },
+        "additionalProperties": true
+      }
+    },
+    "cursor_state": {
+      "type": "object",
+      "required": ["cursor_status", "cursor_kind", "resume_supported", "raw_draft_sequence_cursor_material_allowed"],
+      "properties": {
+        "cursor_status": { "const": "complete" },
+        "cursor_kind": { "const": "draft_sequence_cursor" },
+        "resume_supported": { "const": true },
+        "raw_draft_sequence_cursor_material_allowed": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "erp_connector_boundary": {
+      "type": "object",
+      "required": ["boundary_status", "local_export_read_performed", "erp_api_execution_performed", "source_mutation_performed", "resource_mutation_performed", "billing_mutation_performed", "legal_advice_generated", "client_facing_output_generated"],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "local_export_read_performed": { "const": true },
+        "erp_api_execution_performed": { "const": false },
+        "external_network_access_performed": { "const": false },
+        "credential_material_read": { "const": false },
+        "draft_output_generated": { "const": true },
+        "final_output_generated": { "const": false },
+        "erp_issue_performed": { "const": false },
+        "source_mutation_performed": { "const": false },
+        "resource_mutation_performed": { "const": false },
+        "billing_mutation_performed": { "const": false },
+        "matter_data_write_allowed": { "const": false },
+        "task_state_write_allowed": { "const": false },
+        "workflow_transition_allowed": { "const": false },
+        "output_delivery_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "validation_items": { "type": "array", "minItems": 1 },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count"],
+      "properties": {
+        "valid": { "const": true },
+        "error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "erp_draft_connector_status",
+        "connector_id",
+        "source_id",
+        "phase_slot",
+        "account_count",
+        "draft_count",
+        "estimate_draft_count",
+        "invoice_draft_count",
+        "tax_invoice_draft_count",
+        "draft_output_count",
+        "approval_hold_count",
+        "final_output_allowed_count",
+        "ready_to_issue_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "erp_draft_connector_status": { "const": "complete" },
+        "connector_id": { "const": "connector.erp_draft.v2" },
+        "source_id": { "const": "source.erp_draft.v2" },
+        "phase_slot": { "const": "P275" },
+        "account_count": { "type": "integer", "minimum": 1 },
+        "draft_count": { "type": "integer", "minimum": 3 },
+        "estimate_draft_count": { "type": "integer", "minimum": 1 },
+        "invoice_draft_count": { "type": "integer", "minimum": 1 },
+        "tax_invoice_draft_count": { "type": "integer", "minimum": 1 },
+        "final_output_allowed_count": { "const": 0 },
+        "ready_to_issue_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

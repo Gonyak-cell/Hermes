@@ -74,6 +74,7 @@ import { runKakaoTalkImportBoundary } from "../src/kakaotalk-import-boundary.mjs
 import { runGitHubConnector } from "../src/github-connector.mjs";
 import { runVdrConnector } from "../src/vdr-connector.mjs";
 import { runPlaudTranscriptConnector } from "../src/plaud-transcript-connector.mjs";
+import { runErpDraftConnector } from "../src/erp-draft-connector.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1943,6 +1944,7 @@ describe("matter harness", () => {
         githubConnectorPath: path.join(outDir, "github-connector", "github-connector.json"),
         vdrConnectorPath: path.join(outDir, "vdr-connector", "vdr-connector.json"),
         plaudTranscriptConnectorPath: path.join(outDir, "plaud-transcript-connector", "plaud-transcript-connector.json"),
+        erpDraftConnectorPath: path.join(outDir, "erp-draft-connector", "erp-draft-connector.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11232,6 +11234,83 @@ describe("matter harness", () => {
       assert.equal(plaudTranscriptConnector.plaud_connector_boundary.plaud_api_execution_performed, false);
       assert.match(await readFile(path.join(outDir, "plaud-transcript-connector", "summary.md"), "utf8"), /Plaud Transcript Connector/);
 
+      const erpDraftConnector = await runErpDraftConnector({
+        connectorContractV2Path: path.join(outDir, "connector-contract-v2", "connector-contract-v2.json"),
+        plaudTranscriptConnectorPath: path.join(outDir, "plaud-transcript-connector", "plaud-transcript-connector.json"),
+        outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
+        erpInputs: ["examples/erp-draft-connector"],
+        outDir: path.join(outDir, "erp-draft-connector"),
+        runAt: "2026-05-23T07:16:24.000Z",
+      });
+      const erpDraftConnectorSchema = JSON.parse(await readFile("schemas/erp-draft-connector.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(erpDraftConnector, erpDraftConnectorSchema, {}, "erp_draft_connector"), [], JSON.stringify(erpDraftConnector.validation.errors));
+      assert.equal(erpDraftConnector.summary.erp_draft_connector_status, "complete");
+      assert.equal(erpDraftConnector.summary.connector_id, "connector.erp_draft.v2");
+      assert.equal(erpDraftConnector.summary.source_id, "source.erp_draft.v2");
+      assert.equal(erpDraftConnector.summary.source_plaud_transcript_connector_status, "complete");
+      assert.equal(erpDraftConnector.summary.source_output_delivery_contract_freeze_status, "complete");
+      assert.equal(erpDraftConnector.summary.account_count, 1);
+      assert.equal(erpDraftConnector.summary.draft_count, 3);
+      assert.equal(erpDraftConnector.summary.estimate_draft_count, 1);
+      assert.equal(erpDraftConnector.summary.invoice_draft_count, 1);
+      assert.equal(erpDraftConnector.summary.tax_invoice_draft_count, 1);
+      assert.equal(erpDraftConnector.summary.line_item_count, 6);
+      assert.equal(erpDraftConnector.summary.draft_output_count, erpDraftConnector.summary.draft_count);
+      assert.equal(erpDraftConnector.summary.approval_hold_count, erpDraftConnector.summary.draft_count);
+      assert.equal(erpDraftConnector.summary.resource_candidate_count, erpDraftConnector.summary.draft_count);
+      assert.equal(erpDraftConnector.summary.line_item_link_count, erpDraftConnector.summary.line_item_count);
+      assert.equal(erpDraftConnector.summary.draft_only_output_count, erpDraftConnector.summary.draft_count);
+      assert.equal(erpDraftConnector.summary.final_output_allowed_count, 0);
+      assert.equal(erpDraftConnector.summary.ready_to_issue_count, 0);
+      assert.equal(erpDraftConnector.summary.blocked_final_action_count, erpDraftConnector.summary.draft_count);
+      assert.equal(erpDraftConnector.summary.metadata_complete_draft_count, erpDraftConnector.summary.draft_count);
+      assert.equal(erpDraftConnector.summary.cursor_status, "complete");
+      assert.equal(erpDraftConnector.summary.cursor_resume_supported, true);
+      assert.equal(erpDraftConnector.summary.raw_draft_sequence_cursor_material_allowed, false);
+      assert.equal(erpDraftConnector.summary.auth_boundary_status, "enforced");
+      assert.equal(erpDraftConnector.summary.auth_mode, "service_account_draft_hold");
+      assert.equal(erpDraftConnector.summary.credential_ref_required, true);
+      assert.equal(erpDraftConnector.summary.credential_reference_only, true);
+      assert.equal(erpDraftConnector.summary.raw_secret_material_allowed, false);
+      assert.equal(erpDraftConnector.summary.read_operations_allowed, true);
+      assert.equal(erpDraftConnector.summary.draft_output_allowed, true);
+      assert.equal(erpDraftConnector.summary.final_output_allowed, false);
+      assert.equal(erpDraftConnector.summary.write_operations_allowed, false);
+      assert.equal(erpDraftConnector.summary.external_network_access_required_for_runtime, true);
+      assert.equal(erpDraftConnector.summary.local_export_read_performed, true);
+      assert.equal(erpDraftConnector.summary.erp_api_execution_performed, false);
+      assert.equal(erpDraftConnector.summary.external_network_access_performed, false);
+      assert.equal(erpDraftConnector.summary.connector_execution_performed, true);
+      assert.equal(erpDraftConnector.summary.source_read_performed, true);
+      assert.equal(erpDraftConnector.summary.credential_material_read, false);
+      assert.equal(erpDraftConnector.summary.draft_output_generated, true);
+      assert.equal(erpDraftConnector.summary.final_output_generated, false);
+      assert.equal(erpDraftConnector.summary.erp_issue_performed, false);
+      assert.equal(erpDraftConnector.summary.source_mutation_performed, false);
+      assert.equal(erpDraftConnector.summary.resource_mutation_performed, false);
+      assert.equal(erpDraftConnector.summary.billing_mutation_performed, false);
+      assert.equal(erpDraftConnector.summary.matter_data_write_allowed, false);
+      assert.equal(erpDraftConnector.summary.task_state_write_allowed, false);
+      assert.equal(erpDraftConnector.summary.workflow_transition_allowed, false);
+      assert.equal(erpDraftConnector.summary.output_delivery_performed, false);
+      assert.equal(erpDraftConnector.summary.protected_action_executed, false);
+      assert.equal(erpDraftConnector.summary.legal_advice_generated, false);
+      assert.equal(erpDraftConnector.summary.client_facing_output_generated, false);
+      assert.equal(erpDraftConnector.summary.human_review_required_count, erpDraftConnector.summary.draft_count + erpDraftConnector.summary.draft_output_count);
+      assert.equal(erpDraftConnector.summary.approval_hold_human_review_required_count, erpDraftConnector.summary.approval_hold_count);
+      assert.equal(erpDraftConnector.summary.validation_error_count, 0);
+      assert.ok(erpDraftConnector.erp_account_records.every((record) => record.connector_id === "connector.erp_draft.v2" && record.source_id === "source.erp_draft.v2" && record.account_status === "metadata_export_ready" && record.human_review_required));
+      assert.ok(erpDraftConnector.erp_draft_records.every((record) => ["estimate_draft", "invoice_draft"].includes(record.resource_type) && record.draft_status === "draft_output_ready" && record.erp_resource_status === "ready" && record.draft_output_status === "draft_only" && record.final_output_allowed === false && record.issue_allowed === false && record.issue_performed === false && record.metadata_complete && record.human_review_required));
+      assert.ok(erpDraftConnector.erp_draft_records.some((record) => record.draft_kind === "tax_invoice" && record.resource_type === "invoice_draft"));
+      assert.ok(erpDraftConnector.erp_line_item_records.every((record) => record.erp_draft_record_id && record.line_item_status === "draft_line_ready" && record.human_review_required));
+      assert.ok(erpDraftConnector.erp_draft_output_records.every((record) => record.artifact_type === "erp_billing_draft" && record.draft_output_status === "blocked_pending_human_review" && record.draft_only_output_generated && record.final_output_allowed === false && record.delivery_execution_allowed === false && record.protected_action_allowed === false && record.erp_issue_performed === false && record.human_review_required));
+      assert.ok(erpDraftConnector.erp_approval_hold_records.every((record) => record.approval_hold_status === "held_for_human_review" && record.final_action_blocked && record.protected_action_allowed === false && record.erp_issue_performed === false && record.human_review_required));
+      assert.equal(erpDraftConnector.cursor_state.cursor_kind, "draft_sequence_cursor");
+      assert.equal(erpDraftConnector.cursor_state.raw_draft_sequence_cursor_material_allowed, false);
+      assert.equal(erpDraftConnector.auth_boundary.auth_mode, "service_account_draft_hold");
+      assert.equal(erpDraftConnector.erp_connector_boundary.erp_api_execution_performed, false);
+      assert.match(await readFile(path.join(outDir, "erp-draft-connector", "summary.md"), "utf8"), /ERP Draft Connector/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -11430,6 +11509,7 @@ describe("matter harness", () => {
           github_connector: path.join(outDir, "github-connector", "github-connector.json"),
           vdr_connector: path.join(outDir, "vdr-connector", "vdr-connector.json"),
           plaud_transcript_connector: path.join(outDir, "plaud-transcript-connector", "plaud-transcript-connector.json"),
+          erp_draft_connector: path.join(outDir, "erp-draft-connector", "erp-draft-connector.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11481,8 +11561,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 176);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 176);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 177);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 177);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -11646,6 +11726,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "github_connector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "vdr_connector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "plaud_transcript_connector"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "erp_draft_connector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -12514,6 +12595,10 @@ describe("matter harness", () => {
       assert.equal(plaudTranscriptConnectorCheckpoint?.acceptance_profile, "plaud_transcript_connector_gate");
       assert.equal(plaudTranscriptConnectorCheckpoint?.status, "passed");
       assert.equal(plaudTranscriptConnectorCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const erpDraftConnectorCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-erp-draft-connector");
+      assert.equal(erpDraftConnectorCheckpoint?.acceptance_profile, "erp_draft_connector_gate");
+      assert.equal(erpDraftConnectorCheckpoint?.status, "passed");
+      assert.equal(erpDraftConnectorCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -17111,6 +17196,61 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.plaud_transcript_connector_human_review_required_count, plaudTranscriptConnector.summary.human_review_required_count);
       assert.equal(dashboard.summary.plaud_transcript_connector_normalized_text_human_review_required_count, plaudTranscriptConnector.summary.normalized_text_human_review_required_count);
       assert.equal(dashboard.summary.plaud_transcript_connector_validation_error_count, 0);
+      assert.equal(dashboard.summary.erp_draft_connector_status, "complete");
+      assert.equal(dashboard.summary.erp_draft_connector_connector_id, erpDraftConnector.summary.connector_id);
+      assert.equal(dashboard.summary.erp_draft_connector_source_id, erpDraftConnector.summary.source_id);
+      assert.equal(dashboard.summary.erp_draft_connector_source_plaud_transcript_connector_status, "complete");
+      assert.equal(dashboard.summary.erp_draft_connector_source_output_delivery_contract_freeze_status, "complete");
+      assert.equal(dashboard.summary.erp_draft_connector_account_count, erpDraftConnector.summary.account_count);
+      assert.equal(dashboard.summary.erp_draft_connector_draft_count, erpDraftConnector.summary.draft_count);
+      assert.equal(dashboard.summary.erp_draft_connector_estimate_draft_count, erpDraftConnector.summary.estimate_draft_count);
+      assert.equal(dashboard.summary.erp_draft_connector_invoice_draft_count, erpDraftConnector.summary.invoice_draft_count);
+      assert.equal(dashboard.summary.erp_draft_connector_tax_invoice_draft_count, erpDraftConnector.summary.tax_invoice_draft_count);
+      assert.equal(dashboard.summary.erp_draft_connector_line_item_count, erpDraftConnector.summary.line_item_count);
+      assert.equal(dashboard.summary.erp_draft_connector_draft_output_count, erpDraftConnector.summary.draft_output_count);
+      assert.equal(dashboard.summary.erp_draft_connector_approval_hold_count, erpDraftConnector.summary.approval_hold_count);
+      assert.equal(dashboard.summary.erp_draft_connector_resource_candidate_count, erpDraftConnector.summary.resource_candidate_count);
+      assert.equal(dashboard.summary.erp_draft_connector_line_item_link_count, erpDraftConnector.summary.line_item_link_count);
+      assert.equal(dashboard.summary.erp_draft_connector_draft_only_output_count, erpDraftConnector.summary.draft_only_output_count);
+      assert.equal(dashboard.summary.erp_draft_connector_final_output_allowed_count, 0);
+      assert.equal(dashboard.summary.erp_draft_connector_ready_to_issue_count, 0);
+      assert.equal(dashboard.summary.erp_draft_connector_blocked_final_action_count, erpDraftConnector.summary.blocked_final_action_count);
+      assert.equal(dashboard.summary.erp_draft_connector_metadata_complete_draft_count, erpDraftConnector.summary.metadata_complete_draft_count);
+      assert.equal(dashboard.summary.erp_draft_connector_cursor_status, "complete");
+      assert.equal(dashboard.summary.erp_draft_connector_cursor_resume_supported, true);
+      assert.equal(dashboard.summary.erp_draft_connector_raw_draft_sequence_cursor_material_allowed, false);
+      assert.equal(dashboard.summary.erp_draft_connector_auth_boundary_status, "enforced");
+      assert.equal(dashboard.summary.erp_draft_connector_auth_mode, "service_account_draft_hold");
+      assert.equal(dashboard.summary.erp_draft_connector_credential_ref_required, true);
+      assert.equal(dashboard.summary.erp_draft_connector_credential_reference_only, true);
+      assert.equal(dashboard.summary.erp_draft_connector_raw_secret_material_allowed, false);
+      assert.equal(dashboard.summary.erp_draft_connector_read_operations_allowed, true);
+      assert.equal(dashboard.summary.erp_draft_connector_draft_output_allowed, true);
+      assert.equal(dashboard.summary.erp_draft_connector_final_output_allowed, false);
+      assert.equal(dashboard.summary.erp_draft_connector_write_operations_allowed, false);
+      assert.equal(dashboard.summary.erp_draft_connector_external_network_access_required_for_runtime, true);
+      assert.equal(dashboard.summary.erp_draft_connector_local_export_read_performed, true);
+      assert.equal(dashboard.summary.erp_draft_connector_erp_api_execution_performed, false);
+      assert.equal(dashboard.summary.erp_draft_connector_external_network_access_performed, false);
+      assert.equal(dashboard.summary.erp_draft_connector_connector_execution_performed, true);
+      assert.equal(dashboard.summary.erp_draft_connector_source_read_performed, true);
+      assert.equal(dashboard.summary.erp_draft_connector_credential_material_read, false);
+      assert.equal(dashboard.summary.erp_draft_connector_draft_output_generated, true);
+      assert.equal(dashboard.summary.erp_draft_connector_final_output_generated, false);
+      assert.equal(dashboard.summary.erp_draft_connector_erp_issue_performed, false);
+      assert.equal(dashboard.summary.erp_draft_connector_source_mutation_performed, false);
+      assert.equal(dashboard.summary.erp_draft_connector_resource_mutation_performed, false);
+      assert.equal(dashboard.summary.erp_draft_connector_billing_mutation_performed, false);
+      assert.equal(dashboard.summary.erp_draft_connector_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.erp_draft_connector_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.erp_draft_connector_workflow_transition_allowed, false);
+      assert.equal(dashboard.summary.erp_draft_connector_output_delivery_performed, false);
+      assert.equal(dashboard.summary.erp_draft_connector_protected_action_executed, false);
+      assert.equal(dashboard.summary.erp_draft_connector_legal_advice_generated, false);
+      assert.equal(dashboard.summary.erp_draft_connector_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.erp_draft_connector_human_review_required_count, erpDraftConnector.summary.human_review_required_count);
+      assert.equal(dashboard.summary.erp_draft_connector_approval_hold_human_review_required_count, erpDraftConnector.summary.approval_hold_human_review_required_count);
+      assert.equal(dashboard.summary.erp_draft_connector_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -20142,6 +20282,60 @@ describe("matter harness", () => {
       assert.equal(plaudTranscriptConnectorStage?.metrics.human_review_required_count, plaudTranscriptConnector.summary.human_review_required_count);
       assert.equal(plaudTranscriptConnectorStage?.metrics.normalized_text_human_review_required_count, plaudTranscriptConnector.summary.normalized_text_human_review_required_count);
       assert.equal(plaudTranscriptConnectorStage?.metrics.validation_error_count, 0);
+      const erpDraftConnectorStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "erp_draft_connector");
+      assert.equal(erpDraftConnectorStage?.status, "passed");
+      assert.equal(erpDraftConnectorStage?.metrics.erp_draft_connector_status, "complete");
+      assert.equal(erpDraftConnectorStage?.metrics.connector_id, erpDraftConnector.summary.connector_id);
+      assert.equal(erpDraftConnectorStage?.metrics.source_id, erpDraftConnector.summary.source_id);
+      assert.equal(erpDraftConnectorStage?.metrics.source_plaud_transcript_connector_status, "complete");
+      assert.equal(erpDraftConnectorStage?.metrics.source_output_delivery_contract_freeze_status, "complete");
+      assert.equal(erpDraftConnectorStage?.metrics.account_count, erpDraftConnector.summary.account_count);
+      assert.equal(erpDraftConnectorStage?.metrics.draft_count, erpDraftConnector.summary.draft_count);
+      assert.equal(erpDraftConnectorStage?.metrics.estimate_draft_count, erpDraftConnector.summary.estimate_draft_count);
+      assert.equal(erpDraftConnectorStage?.metrics.invoice_draft_count, erpDraftConnector.summary.invoice_draft_count);
+      assert.equal(erpDraftConnectorStage?.metrics.tax_invoice_draft_count, erpDraftConnector.summary.tax_invoice_draft_count);
+      assert.equal(erpDraftConnectorStage?.metrics.line_item_count, erpDraftConnector.summary.line_item_count);
+      assert.equal(erpDraftConnectorStage?.metrics.draft_output_count, erpDraftConnector.summary.draft_output_count);
+      assert.equal(erpDraftConnectorStage?.metrics.approval_hold_count, erpDraftConnector.summary.approval_hold_count);
+      assert.equal(erpDraftConnectorStage?.metrics.resource_candidate_count, erpDraftConnector.summary.resource_candidate_count);
+      assert.equal(erpDraftConnectorStage?.metrics.line_item_link_count, erpDraftConnector.summary.line_item_link_count);
+      assert.equal(erpDraftConnectorStage?.metrics.draft_only_output_count, erpDraftConnector.summary.draft_only_output_count);
+      assert.equal(erpDraftConnectorStage?.metrics.final_output_allowed_count, 0);
+      assert.equal(erpDraftConnectorStage?.metrics.ready_to_issue_count, 0);
+      assert.equal(erpDraftConnectorStage?.metrics.blocked_final_action_count, erpDraftConnector.summary.blocked_final_action_count);
+      assert.equal(erpDraftConnectorStage?.metrics.metadata_complete_draft_count, erpDraftConnector.summary.metadata_complete_draft_count);
+      assert.equal(erpDraftConnectorStage?.metrics.cursor_status, "complete");
+      assert.equal(erpDraftConnectorStage?.metrics.cursor_resume_supported, true);
+      assert.equal(erpDraftConnectorStage?.metrics.raw_draft_sequence_cursor_material_allowed, false);
+      assert.equal(erpDraftConnectorStage?.metrics.auth_boundary_status, "enforced");
+      assert.equal(erpDraftConnectorStage?.metrics.auth_mode, "service_account_draft_hold");
+      assert.equal(erpDraftConnectorStage?.metrics.credential_ref_required, true);
+      assert.equal(erpDraftConnectorStage?.metrics.credential_reference_only, true);
+      assert.equal(erpDraftConnectorStage?.metrics.raw_secret_material_allowed, false);
+      assert.equal(erpDraftConnectorStage?.metrics.read_operations_allowed, true);
+      assert.equal(erpDraftConnectorStage?.metrics.draft_output_allowed, true);
+      assert.equal(erpDraftConnectorStage?.metrics.final_output_allowed, false);
+      assert.equal(erpDraftConnectorStage?.metrics.write_operations_allowed, false);
+      assert.equal(erpDraftConnectorStage?.metrics.external_network_access_required_for_runtime, true);
+      assert.equal(erpDraftConnectorStage?.metrics.local_export_read_performed, true);
+      assert.equal(erpDraftConnectorStage?.metrics.erp_api_execution_performed, false);
+      assert.equal(erpDraftConnectorStage?.metrics.external_network_access_performed, false);
+      assert.equal(erpDraftConnectorStage?.metrics.connector_execution_performed, true);
+      assert.equal(erpDraftConnectorStage?.metrics.source_read_performed, true);
+      assert.equal(erpDraftConnectorStage?.metrics.credential_material_read, false);
+      assert.equal(erpDraftConnectorStage?.metrics.draft_output_generated, true);
+      assert.equal(erpDraftConnectorStage?.metrics.final_output_generated, false);
+      assert.equal(erpDraftConnectorStage?.metrics.erp_issue_performed, false);
+      assert.equal(erpDraftConnectorStage?.metrics.source_mutation_performed, false);
+      assert.equal(erpDraftConnectorStage?.metrics.resource_mutation_performed, false);
+      assert.equal(erpDraftConnectorStage?.metrics.billing_mutation_performed, false);
+      assert.equal(erpDraftConnectorStage?.metrics.output_delivery_performed, false);
+      assert.equal(erpDraftConnectorStage?.metrics.protected_action_executed, false);
+      assert.equal(erpDraftConnectorStage?.metrics.legal_advice_generated, false);
+      assert.equal(erpDraftConnectorStage?.metrics.client_facing_output_generated, false);
+      assert.equal(erpDraftConnectorStage?.metrics.human_review_required_count, erpDraftConnector.summary.human_review_required_count);
+      assert.equal(erpDraftConnectorStage?.metrics.approval_hold_human_review_required_count, erpDraftConnector.summary.approval_hold_human_review_required_count);
+      assert.equal(erpDraftConnectorStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -22574,6 +22768,46 @@ describe("matter harness", () => {
       const plaudTranscriptValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/plaud-transcript-validations?status=passed", apiOptions)).body);
       assert.equal(plaudTranscriptValidationsResponse.collection, "plaud_transcript_validations");
       assert.equal(plaudTranscriptValidationsResponse.count, plaudTranscriptConnector.summary.validation_item_count);
+
+      const erpDraftConnectorResponse = JSON.parse((await buildReviewApiResponse("/api/erp-draft-connector?erp_draft_connector_status=complete", apiOptions)).body);
+      assert.equal(erpDraftConnectorResponse.collection, "erp_draft_connector");
+      assert.equal(erpDraftConnectorResponse.count, 1);
+
+      const erpAccountsResponse = JSON.parse((await buildReviewApiResponse("/api/erp-accounts?erp_account_status=metadata_export_ready&review_status=needs_review", apiOptions)).body);
+      assert.equal(erpAccountsResponse.collection, "erp_accounts");
+      assert.equal(erpAccountsResponse.count, erpDraftConnector.summary.account_count);
+
+      const erpDraftsResponse = JSON.parse((await buildReviewApiResponse("/api/erp-drafts?erp_draft_status=draft_output_ready&erp_resource_status=ready&review_status=needs_review", apiOptions)).body);
+      assert.equal(erpDraftsResponse.collection, "erp_drafts");
+      assert.equal(erpDraftsResponse.count, erpDraftConnector.summary.draft_count);
+
+      const erpTaxDraftsResponse = JSON.parse((await buildReviewApiResponse("/api/erp-drafts?draft_kind=tax_invoice&erp_draft_status=draft_output_ready", apiOptions)).body);
+      assert.equal(erpTaxDraftsResponse.collection, "erp_drafts");
+      assert.equal(erpTaxDraftsResponse.count, erpDraftConnector.summary.tax_invoice_draft_count);
+
+      const erpLineItemsResponse = JSON.parse((await buildReviewApiResponse("/api/erp-line-items?erp_line_item_status=draft_line_ready&review_status=needs_review", apiOptions)).body);
+      assert.equal(erpLineItemsResponse.collection, "erp_line_items");
+      assert.equal(erpLineItemsResponse.count, erpDraftConnector.summary.line_item_count);
+
+      const erpDraftOutputsResponse = JSON.parse((await buildReviewApiResponse("/api/erp-draft-outputs?erp_draft_output_status=blocked_pending_human_review&review_status=needs_review", apiOptions)).body);
+      assert.equal(erpDraftOutputsResponse.collection, "erp_draft_outputs");
+      assert.equal(erpDraftOutputsResponse.count, erpDraftConnector.summary.draft_output_count);
+
+      const erpApprovalHoldsResponse = JSON.parse((await buildReviewApiResponse("/api/erp-approval-holds?erp_approval_hold_status=held_for_human_review", apiOptions)).body);
+      assert.equal(erpApprovalHoldsResponse.collection, "erp_approval_holds");
+      assert.equal(erpApprovalHoldsResponse.count, erpDraftConnector.summary.approval_hold_count);
+
+      const erpCursorResponse = JSON.parse((await buildReviewApiResponse("/api/erp-cursor?cursor_status=complete", apiOptions)).body);
+      assert.equal(erpCursorResponse.collection, "erp_cursor");
+      assert.equal(erpCursorResponse.count, 1);
+
+      const erpAuthBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/erp-auth-boundary?auth_boundary_status=enforced&credential_reference_only=true", apiOptions)).body);
+      assert.equal(erpAuthBoundaryResponse.collection, "erp_auth_boundary");
+      assert.equal(erpAuthBoundaryResponse.count, 1);
+
+      const erpDraftValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/erp-draft-validations?status=passed", apiOptions)).body);
+      assert.equal(erpDraftValidationsResponse.collection, "erp_draft_validations");
+      assert.equal(erpDraftValidationsResponse.count, erpDraftConnector.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

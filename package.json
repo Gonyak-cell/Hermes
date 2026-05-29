@@ -254,6 +254,7 @@
     "resource:backfill-job-contract": "node scripts/backfill-job-contract.mjs",
     "resource:expansion-cursor-ledger": "node scripts/expansion-cursor-ledger.mjs",
     "resource:expansion-dedup-ledger": "node scripts/expansion-dedup-ledger.mjs",
+    "resource:expansion-quarantine-ledger": "node scripts/expansion-quarantine-ledger.mjs",
     "resource:extract": "node scripts/resource-extract.mjs",
     "resource:extractor-adapters": "node scripts/extractor-adapter-contract.mjs",
     "resource:evidence-items": "node scripts/evidence-item-store.mjs",

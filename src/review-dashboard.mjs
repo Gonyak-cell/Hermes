@@ -115,6 +115,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   backfillJobContractPath: "artifacts/backfill-job-contract/latest/backfill-job-contract.json",
   expansionCursorLedgerPath: "artifacts/expansion-cursor-ledger/latest/expansion-cursor-ledger.json",
   expansionDedupLedgerPath: "artifacts/expansion-dedup-ledger/latest/expansion-dedup-ledger.json",
+  expansionQuarantineLedgerPath: "artifacts/expansion-quarantine-ledger/latest/expansion-quarantine-ledger.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -833,6 +834,11 @@ const SOURCE_DEFINITIONS = [
     option: "expansionDedupLedgerPath",
     source_id: "expansion_dedup_ledger",
     label: "Expansion Dedup Ledger",
+  },
+  {
+    option: "expansionQuarantineLedgerPath",
+    source_id: "expansion_quarantine_ledger",
+    label: "Expansion Quarantine Ledger",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1817,6 +1823,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "backfill_job_contract") return data.summary ?? {};
   if (sourceId === "expansion_cursor_ledger") return data.summary ?? {};
   if (sourceId === "expansion_dedup_ledger") return data.summary ?? {};
+  if (sourceId === "expansion_quarantine_ledger") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2213,6 +2220,7 @@ function buildStageStatuses(artifacts, sources) {
     buildBackfillJobContractStage(artifacts.backfill_job_contract, sourceById.get("backfill_job_contract")),
     buildExpansionCursorLedgerStage(artifacts.expansion_cursor_ledger, sourceById.get("expansion_cursor_ledger")),
     buildExpansionDedupLedgerStage(artifacts.expansion_dedup_ledger, sourceById.get("expansion_dedup_ledger")),
+    buildExpansionQuarantineLedgerStage(artifacts.expansion_quarantine_ledger, sourceById.get("expansion_quarantine_ledger")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -13433,6 +13441,115 @@ function buildExpansionDedupLedgerStage(artifact, source) {
   };
 }
 
+function buildExpansionQuarantineLedgerStage(artifact, source) {
+  if (!artifact) return missingStage("expansion_quarantine_ledger", "Expansion Quarantine Ledger", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.expansion_quarantine_ledger_status !== "complete"
+    || summary.phase_slot !== "P280"
+    || summary.previous_phase_slot !== "P279"
+    || summary.next_phase_slot !== "P281"
+    || summary.source_expansion_dedup_ledger_status !== "complete"
+    || summary.source_expansion_dedup_phase_slot !== "P279"
+    || summary.quarantine_rule_count < 5
+    || summary.required_quarantine_category_count !== 5
+    || summary.quarantine_decision_count <= 0
+    || summary.passed_quarantine_decision_count !== summary.quarantine_decision_count
+    || summary.held_retrieval_allowed_count !== 0
+    || summary.held_external_transfer_allowed_count !== 0
+    || summary.held_output_delivery_allowed_count !== 0
+    || summary.automatic_release_allowed_count !== 0
+    || summary.source_path_used_for_hold_identity_count !== 0
+    || summary.read_only !== true
+    || summary.quarantine_ledger_report_only !== true
+    || summary.backfill_execution_performed !== false
+    || summary.extraction_retry_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.file_content_read_performed !== false
+    || summary.source_mutation_performed !== false
+    || summary.resource_mutation_performed !== false
+    || summary.state_mutation_performed !== false
+    || summary.quarantine_release_performed !== false
+    || summary.delivery_execution_performed !== false
+    || summary.protected_action_executed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.client_facing_ready_count !== 0
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || summary.failed_checkpoint_count !== 0
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "expansion_quarantine_ledger",
+    label: "Expansion Quarantine Ledger",
+    status,
+    message: `${summary.passed_quarantine_decision_count ?? 0}/${summary.quarantine_decision_count ?? 0} quarantine decision(s), ${summary.quarantine_hold_count ?? 0} hold(s), and ${summary.quarantine_rule_count ?? 0} rule(s) passed.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      expansion_quarantine_ledger_status: summary.expansion_quarantine_ledger_status ?? "unknown",
+      expansion_quarantine_ledger_id: summary.expansion_quarantine_ledger_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_resource_expansion_job_id: summary.source_resource_expansion_job_id ?? null,
+      source_resource_expansion_source_id: summary.source_resource_expansion_source_id ?? null,
+      source_expansion_cursor_ledger_status: summary.source_expansion_cursor_ledger_status ?? "unknown",
+      source_expansion_cursor_phase_slot: summary.source_expansion_cursor_phase_slot ?? null,
+      source_expansion_dedup_ledger_status: summary.source_expansion_dedup_ledger_status ?? "unknown",
+      source_expansion_dedup_phase_slot: summary.source_expansion_dedup_phase_slot ?? null,
+      source_backfill_job_contract_status: summary.source_backfill_job_contract_status ?? "unknown",
+      discovered_count: summary.discovered_count ?? 0,
+      terminal_count: summary.terminal_count ?? 0,
+      extracted_count: summary.extracted_count ?? 0,
+      skipped_duplicate_count: summary.skipped_duplicate_count ?? 0,
+      source_quarantine_count: summary.source_quarantine_count ?? 0,
+      source_failed_count: summary.source_failed_count ?? 0,
+      source_dataless_count: summary.source_dataless_count ?? 0,
+      quarantine_rule_count: summary.quarantine_rule_count ?? 0,
+      required_quarantine_category_count: summary.required_quarantine_category_count ?? 0,
+      quarantine_decision_count: summary.quarantine_decision_count ?? 0,
+      passed_quarantine_decision_count: summary.passed_quarantine_decision_count ?? 0,
+      quarantine_hold_count: summary.quarantine_hold_count ?? 0,
+      sensitive_or_secret_hold_count: summary.sensitive_or_secret_hold_count ?? 0,
+      extraction_failure_hold_count: summary.extraction_failure_hold_count ?? 0,
+      materialization_required_hold_count: summary.materialization_required_hold_count ?? 0,
+      oversized_file_hold_count: summary.oversized_file_hold_count ?? 0,
+      unsupported_or_unknown_type_hold_count: summary.unsupported_or_unknown_type_hold_count ?? 0,
+      held_retrieval_allowed_count: summary.held_retrieval_allowed_count ?? 0,
+      held_external_transfer_allowed_count: summary.held_external_transfer_allowed_count ?? 0,
+      held_output_delivery_allowed_count: summary.held_output_delivery_allowed_count ?? 0,
+      automatic_release_allowed_count: summary.automatic_release_allowed_count ?? 0,
+      human_review_required_hold_count: summary.human_review_required_hold_count ?? 0,
+      quarantine_status_audit_count: summary.quarantine_status_audit_count ?? 0,
+      passed_quarantine_status_audit_count: summary.passed_quarantine_status_audit_count ?? 0,
+      source_path_used_for_hold_identity_count: summary.source_path_used_for_hold_identity_count ?? 0,
+      read_only: summary.read_only ?? false,
+      quarantine_ledger_report_only: summary.quarantine_ledger_report_only ?? false,
+      source_artifact_read_performed: summary.source_artifact_read_performed ?? false,
+      backfill_execution_performed: summary.backfill_execution_performed ?? false,
+      extraction_retry_performed: summary.extraction_retry_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      file_content_read_performed: summary.file_content_read_performed ?? false,
+      source_mutation_performed: summary.source_mutation_performed ?? false,
+      resource_mutation_performed: summary.resource_mutation_performed ?? false,
+      state_mutation_performed: summary.state_mutation_performed ?? false,
+      quarantine_release_performed: summary.quarantine_release_performed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -19951,6 +20068,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_expansion_dedup_ledger", "rerun_expansion_dedup_ledger", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.expansion_quarantine_ledger?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "expansion_quarantine_ledger";
+    items.push({
+      action_item_id: `dashboard.action.expansion_quarantine_ledger.${slugify(subjectId)}`,
+      source_stage: "expansion_quarantine_ledger",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Expansion Quarantine Ledger",
+      subject_ref: {
+        subject_type: "expansion_quarantine_ledger_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_expansion_quarantine_ledger", "rerun_expansion_quarantine_ledger", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -26605,6 +26740,45 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     expansion_dedup_ledger_validation_item_count: artifacts.expansion_dedup_ledger?.summary?.validation_item_count ?? 0,
     expansion_dedup_ledger_failed_checkpoint_count: artifacts.expansion_dedup_ledger?.summary?.failed_checkpoint_count ?? 0,
     expansion_dedup_ledger_validation_error_count: artifacts.expansion_dedup_ledger?.summary?.validation_error_count ?? artifacts.expansion_dedup_ledger?.validation?.errors?.length ?? 0,
+    expansion_quarantine_ledger_status: artifacts.expansion_quarantine_ledger?.summary?.expansion_quarantine_ledger_status ?? "unknown",
+    expansion_quarantine_ledger_id: artifacts.expansion_quarantine_ledger?.summary?.expansion_quarantine_ledger_id ?? null,
+    expansion_quarantine_ledger_phase_slot: artifacts.expansion_quarantine_ledger?.summary?.phase_slot ?? null,
+    expansion_quarantine_ledger_previous_phase_slot: artifacts.expansion_quarantine_ledger?.summary?.previous_phase_slot ?? null,
+    expansion_quarantine_ledger_next_phase_slot: artifacts.expansion_quarantine_ledger?.summary?.next_phase_slot ?? null,
+    expansion_quarantine_ledger_source_expansion_dedup_ledger_status: artifacts.expansion_quarantine_ledger?.summary?.source_expansion_dedup_ledger_status ?? "unknown",
+    expansion_quarantine_ledger_source_expansion_dedup_phase_slot: artifacts.expansion_quarantine_ledger?.summary?.source_expansion_dedup_phase_slot ?? null,
+    expansion_quarantine_ledger_quarantine_rule_count: artifacts.expansion_quarantine_ledger?.summary?.quarantine_rule_count ?? 0,
+    expansion_quarantine_ledger_required_quarantine_category_count: artifacts.expansion_quarantine_ledger?.summary?.required_quarantine_category_count ?? 0,
+    expansion_quarantine_ledger_quarantine_decision_count: artifacts.expansion_quarantine_ledger?.summary?.quarantine_decision_count ?? 0,
+    expansion_quarantine_ledger_passed_quarantine_decision_count: artifacts.expansion_quarantine_ledger?.summary?.passed_quarantine_decision_count ?? 0,
+    expansion_quarantine_ledger_quarantine_hold_count: artifacts.expansion_quarantine_ledger?.summary?.quarantine_hold_count ?? 0,
+    expansion_quarantine_ledger_sensitive_or_secret_hold_count: artifacts.expansion_quarantine_ledger?.summary?.sensitive_or_secret_hold_count ?? 0,
+    expansion_quarantine_ledger_extraction_failure_hold_count: artifacts.expansion_quarantine_ledger?.summary?.extraction_failure_hold_count ?? 0,
+    expansion_quarantine_ledger_held_retrieval_allowed_count: artifacts.expansion_quarantine_ledger?.summary?.held_retrieval_allowed_count ?? 0,
+    expansion_quarantine_ledger_held_external_transfer_allowed_count: artifacts.expansion_quarantine_ledger?.summary?.held_external_transfer_allowed_count ?? 0,
+    expansion_quarantine_ledger_held_output_delivery_allowed_count: artifacts.expansion_quarantine_ledger?.summary?.held_output_delivery_allowed_count ?? 0,
+    expansion_quarantine_ledger_automatic_release_allowed_count: artifacts.expansion_quarantine_ledger?.summary?.automatic_release_allowed_count ?? 0,
+    expansion_quarantine_ledger_source_path_used_for_hold_identity_count: artifacts.expansion_quarantine_ledger?.summary?.source_path_used_for_hold_identity_count ?? 0,
+    expansion_quarantine_ledger_read_only: artifacts.expansion_quarantine_ledger?.summary?.read_only ?? false,
+    expansion_quarantine_ledger_report_only: artifacts.expansion_quarantine_ledger?.summary?.quarantine_ledger_report_only ?? false,
+    expansion_quarantine_ledger_backfill_execution_performed: artifacts.expansion_quarantine_ledger?.summary?.backfill_execution_performed ?? false,
+    expansion_quarantine_ledger_extraction_retry_performed: artifacts.expansion_quarantine_ledger?.summary?.extraction_retry_performed ?? false,
+    expansion_quarantine_ledger_source_ingest_performed: artifacts.expansion_quarantine_ledger?.summary?.source_ingest_performed ?? false,
+    expansion_quarantine_ledger_file_content_read_performed: artifacts.expansion_quarantine_ledger?.summary?.file_content_read_performed ?? false,
+    expansion_quarantine_ledger_source_mutation_performed: artifacts.expansion_quarantine_ledger?.summary?.source_mutation_performed ?? false,
+    expansion_quarantine_ledger_resource_mutation_performed: artifacts.expansion_quarantine_ledger?.summary?.resource_mutation_performed ?? false,
+    expansion_quarantine_ledger_state_mutation_performed: artifacts.expansion_quarantine_ledger?.summary?.state_mutation_performed ?? false,
+    expansion_quarantine_ledger_quarantine_release_performed: artifacts.expansion_quarantine_ledger?.summary?.quarantine_release_performed ?? false,
+    expansion_quarantine_ledger_delivery_execution_performed: artifacts.expansion_quarantine_ledger?.summary?.delivery_execution_performed ?? false,
+    expansion_quarantine_ledger_protected_action_executed: artifacts.expansion_quarantine_ledger?.summary?.protected_action_executed ?? false,
+    expansion_quarantine_ledger_legal_advice_generated: artifacts.expansion_quarantine_ledger?.summary?.legal_advice_generated ?? false,
+    expansion_quarantine_ledger_client_facing_output_generated: artifacts.expansion_quarantine_ledger?.summary?.client_facing_output_generated ?? false,
+    expansion_quarantine_ledger_client_facing_ready_count: artifacts.expansion_quarantine_ledger?.summary?.client_facing_ready_count ?? 0,
+    expansion_quarantine_ledger_windows_baseline_stability_preserved: artifacts.expansion_quarantine_ledger?.summary?.windows_baseline_stability_preserved ?? false,
+    expansion_quarantine_ledger_mac_windows_completion_instability_guard: artifacts.expansion_quarantine_ledger?.summary?.mac_windows_completion_instability_guard ?? false,
+    expansion_quarantine_ledger_validation_item_count: artifacts.expansion_quarantine_ledger?.summary?.validation_item_count ?? 0,
+    expansion_quarantine_ledger_failed_checkpoint_count: artifacts.expansion_quarantine_ledger?.summary?.failed_checkpoint_count ?? 0,
+    expansion_quarantine_ledger_validation_error_count: artifacts.expansion_quarantine_ledger?.summary?.validation_error_count ?? artifacts.expansion_quarantine_ledger?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -28418,6 +28592,8 @@ function parseArgs(argv) {
     else if (arg === "--no-expansion-cursor-ledger") parsed.expansionCursorLedgerPath = false;
     else if (arg === "--expansion-dedup-ledger") parsed.expansionDedupLedgerPath = argv[++index];
     else if (arg === "--no-expansion-dedup-ledger") parsed.expansionDedupLedgerPath = false;
+    else if (arg === "--expansion-quarantine-ledger") parsed.expansionQuarantineLedgerPath = argv[++index];
+    else if (arg === "--no-expansion-quarantine-ledger") parsed.expansionQuarantineLedgerPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

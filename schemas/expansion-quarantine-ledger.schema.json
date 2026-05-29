@@ -1,0 +1,406 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/expansion-quarantine-ledger.schema.json",
+  "title": "Expansion Quarantine Ledger",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "expansion_quarantine_ledger_id",
+    "expansion_quarantine_ledger_status",
+    "phase_slot",
+    "previous_phase_slot",
+    "next_phase_slot",
+    "expansion_quarantine_contract",
+    "quarantine_rule_rows",
+    "quarantine_decision_rows",
+    "quarantine_hold_rows",
+    "quarantine_status_audits",
+    "quarantine_resume_checks",
+    "expansion_quarantine_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "expansion-quarantine-ledger.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "expansion_quarantine_ledger_id": { "type": "string", "minLength": 1 },
+    "expansion_quarantine_ledger_status": { "const": "complete" },
+    "pack_id": { "const": "resource-expansion" },
+    "capability_id": { "const": "resource.expansion_quarantine_ledger" },
+    "phase_slot": { "const": "P280" },
+    "previous_phase_slot": { "const": "P279" },
+    "next_phase_slot": { "const": "P281" },
+    "source_contracts": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["label", "available"],
+        "properties": {
+          "label": { "type": "string" },
+          "available": { "type": "boolean" },
+          "schema_version": { "type": ["string", "null"] },
+          "content_hash": { "type": ["string", "null"], "pattern": "^sha256:" }
+        }
+      }
+    },
+    "expansion_quarantine_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "contract_id",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "required_quarantine_categories",
+        "source_file_content_read_allowed",
+        "absolute_path_hold_identity_allowed"
+      ],
+      "properties": {
+        "schema_version": { "const": "expansion-quarantine-contract.v1" },
+        "contract_id": { "const": "expansion-quarantine-ledger.v1" },
+        "phase_slot": { "const": "P280" },
+        "previous_phase_slot": { "const": "P279" },
+        "next_phase_slot": { "const": "P281" },
+        "required_quarantine_categories": {
+          "type": "array",
+          "minItems": 5,
+          "items": { "$ref": "#/$defs/quarantine_category" }
+        },
+        "quarantine_rule_count": { "type": "integer", "minimum": 5 },
+        "quarantine_hold_count": { "type": "integer", "minimum": 0 },
+        "source_file_content_read_allowed": { "const": false },
+        "absolute_path_hold_identity_allowed": { "const": false }
+      }
+    },
+    "quarantine_rule_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "quarantine_rule_row_id",
+          "category",
+          "rule_status",
+          "default_quarantine_decision",
+          "retrieval_allowed_for_hold",
+          "external_transfer_allowed_for_hold",
+          "output_delivery_allowed_for_hold",
+          "automatic_release_allowed",
+          "human_review_required",
+          "client_facing_ready"
+        ],
+        "properties": {
+          "quarantine_rule_row_id": { "type": "string", "minLength": 1 },
+          "category": { "$ref": "#/$defs/quarantine_category" },
+          "rule_status": { "const": "registered" },
+          "default_quarantine_decision": { "enum": ["hold_for_human_review", "failed_hold"] },
+          "trigger_statuses": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "trigger_reasons": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "retrieval_allowed_for_hold": { "const": false },
+          "external_transfer_allowed_for_hold": { "const": false },
+          "output_delivery_allowed_for_hold": { "const": false },
+          "automatic_release_allowed": { "const": false },
+          "human_review_required": { "const": true },
+          "client_facing_ready": { "const": false }
+        }
+      }
+    },
+    "quarantine_decision_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/quarantine_decision_row" }
+    },
+    "quarantine_hold_rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "quarantine_decision_row_id",
+          "item_id",
+          "item_status",
+          "quarantine_candidate",
+          "quarantine_decision",
+          "quarantine_category",
+          "quarantine_reason",
+          "hold_status",
+          "decision_status",
+          "retrieval_allowed",
+          "external_transfer_allowed",
+          "output_delivery_allowed",
+          "automatic_release_allowed",
+          "release_requires_human_review",
+          "status_history_contains_decision",
+          "source_path_used_for_hold_identity",
+          "human_review_required",
+          "client_facing_ready"
+        ],
+        "properties": {
+          "quarantine_decision_row_id": { "type": "string", "minLength": 1 },
+          "item_id": { "type": "string", "minLength": 1 },
+          "item_status": { "enum": ["quarantined", "failed"] },
+          "quarantine_candidate": { "const": true },
+          "quarantine_decision": { "enum": ["hold_for_human_review", "failed_hold"] },
+          "quarantine_category": { "$ref": "#/$defs/quarantine_category" },
+          "quarantine_reason": { "type": "string", "minLength": 1 },
+          "hold_status": { "const": "held_for_human_review" },
+          "decision_status": { "const": "passed" },
+          "status_history_contains_decision": { "const": true },
+          "retrieval_allowed": { "const": false },
+          "external_transfer_allowed": { "const": false },
+          "output_delivery_allowed": { "const": false },
+          "automatic_release_allowed": { "const": false },
+          "release_requires_human_review": { "const": true },
+          "retry_execution_performed": { "const": false },
+          "source_file_content_read_performed": { "const": false },
+          "source_path_used_for_hold_identity": { "const": false },
+          "human_review_required": { "const": true },
+          "legal_advice_generated": { "const": false },
+          "client_facing_ready": { "const": false }
+        }
+      }
+    },
+    "quarantine_status_audits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "quarantine_status_audit_id",
+          "item_id",
+          "quarantine_decision",
+          "quarantine_category",
+          "hold_status",
+          "audit_status",
+          "status_history_contains_decision",
+          "release_event_present",
+          "automatic_release_allowed",
+          "human_review_required",
+          "client_facing_ready"
+        ],
+        "properties": {
+          "quarantine_status_audit_id": { "type": "string", "minLength": 1 },
+          "item_id": { "type": "string", "minLength": 1 },
+          "quarantine_decision": { "enum": ["hold_for_human_review", "failed_hold"] },
+          "quarantine_category": { "$ref": "#/$defs/quarantine_category" },
+          "hold_status": { "const": "held_for_human_review" },
+          "audit_status": { "const": "passed" },
+          "status_history_contains_decision": { "const": true },
+          "release_event_present": { "const": false },
+          "automatic_release_allowed": { "const": false },
+          "human_review_required": { "const": true },
+          "client_facing_ready": { "const": false }
+        }
+      }
+    },
+    "quarantine_resume_checks": {
+      "type": "array",
+      "minItems": 20,
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "expansion_quarantine_boundary": {
+      "type": "object",
+      "required": [
+        "read_only",
+        "quarantine_ledger_report_only",
+        "source_artifact_read_performed",
+        "backfill_execution_performed",
+        "extraction_retry_performed",
+        "source_ingest_performed",
+        "file_content_read_performed",
+        "source_mutation_performed",
+        "resource_mutation_performed",
+        "state_mutation_performed",
+        "quarantine_release_performed",
+        "delivery_execution_performed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "client_facing_ready_count",
+        "windows_baseline_stability_preserved",
+        "mac_windows_completion_instability_guard"
+      ],
+      "properties": {
+        "read_only": { "const": true },
+        "quarantine_ledger_report_only": { "const": true },
+        "source_artifact_read_performed": { "const": true },
+        "backfill_execution_performed": { "const": false },
+        "extraction_retry_performed": { "const": false },
+        "source_ingest_performed": { "const": false },
+        "file_content_read_performed": { "const": false },
+        "source_mutation_performed": { "const": false },
+        "resource_mutation_performed": { "const": false },
+        "state_mutation_performed": { "const": false },
+        "quarantine_release_performed": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true },
+        "client_facing_ready_count": { "const": 0 },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "minItems": 20,
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "error_count": { "const": 0 },
+        "errors": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "expansion_quarantine_ledger_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "source_expansion_dedup_ledger_status",
+        "quarantine_rule_count",
+        "required_quarantine_category_count",
+        "quarantine_decision_count",
+        "passed_quarantine_decision_count",
+        "quarantine_hold_count",
+        "held_retrieval_allowed_count",
+        "held_external_transfer_allowed_count",
+        "held_output_delivery_allowed_count",
+        "automatic_release_allowed_count",
+        "source_path_used_for_hold_identity_count",
+        "read_only",
+        "quarantine_ledger_report_only",
+        "backfill_execution_performed",
+        "extraction_retry_performed",
+        "source_ingest_performed",
+        "file_content_read_performed",
+        "source_mutation_performed",
+        "resource_mutation_performed",
+        "state_mutation_performed",
+        "quarantine_release_performed",
+        "delivery_execution_performed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "windows_baseline_stability_preserved",
+        "mac_windows_completion_instability_guard",
+        "failed_checkpoint_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "expansion_quarantine_ledger_status": { "const": "complete" },
+        "phase_slot": { "const": "P280" },
+        "previous_phase_slot": { "const": "P279" },
+        "next_phase_slot": { "const": "P281" },
+        "source_expansion_cursor_ledger_status": { "const": "complete" },
+        "source_expansion_cursor_phase_slot": { "const": "P278" },
+        "source_expansion_dedup_ledger_status": { "const": "complete" },
+        "source_expansion_dedup_phase_slot": { "const": "P279" },
+        "source_backfill_job_contract_status": { "const": "complete" },
+        "source_backfill_job_contract_phase_slot": { "const": "P277" },
+        "quarantine_rule_count": { "type": "integer", "minimum": 5 },
+        "required_quarantine_category_count": { "const": 5 },
+        "quarantine_decision_count": { "type": "integer", "minimum": 1 },
+        "passed_quarantine_decision_count": { "type": "integer", "minimum": 1 },
+        "quarantine_hold_count": { "type": "integer", "minimum": 0 },
+        "held_retrieval_allowed_count": { "const": 0 },
+        "held_external_transfer_allowed_count": { "const": 0 },
+        "held_output_delivery_allowed_count": { "const": 0 },
+        "automatic_release_allowed_count": { "const": 0 },
+        "source_path_used_for_hold_identity_count": { "const": 0 },
+        "read_only": { "const": true },
+        "quarantine_ledger_report_only": { "const": true },
+        "backfill_execution_performed": { "const": false },
+        "extraction_retry_performed": { "const": false },
+        "source_ingest_performed": { "const": false },
+        "file_content_read_performed": { "const": false },
+        "source_mutation_performed": { "const": false },
+        "resource_mutation_performed": { "const": false },
+        "state_mutation_performed": { "const": false },
+        "quarantine_release_performed": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "client_facing_ready_count": { "const": 0 },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true },
+        "failed_checkpoint_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "quarantine_category": {
+      "enum": [
+        "sensitive_or_secret",
+        "extraction_failure",
+        "materialization_required",
+        "oversized_file",
+        "unsupported_or_unknown_type"
+      ]
+    },
+    "quarantine_decision_row": {
+      "type": "object",
+      "required": [
+        "quarantine_decision_row_id",
+        "item_id",
+        "item_status",
+        "quarantine_candidate",
+        "quarantine_decision",
+        "hold_status",
+        "decision_status",
+        "retrieval_allowed",
+        "external_transfer_allowed",
+        "output_delivery_allowed",
+        "automatic_release_allowed",
+        "retry_execution_performed",
+        "source_file_content_read_performed",
+        "source_path_used_for_hold_identity",
+        "human_review_required",
+        "client_facing_ready"
+      ],
+      "properties": {
+        "quarantine_decision_row_id": { "type": "string", "minLength": 1 },
+        "item_id": { "type": "string", "minLength": 1 },
+        "item_status": { "enum": ["queued", "extracted", "quarantined", "failed", "skipped_duplicate"] },
+        "quarantine_candidate": { "type": "boolean" },
+        "quarantine_decision": { "enum": ["hold_for_human_review", "failed_hold", "pending_backfill", "no_hold"] },
+        "quarantine_category": { "enum": ["none", "sensitive_or_secret", "extraction_failure", "materialization_required", "oversized_file", "unsupported_or_unknown_type"] },
+        "quarantine_reason": { "type": ["string", "null"] },
+        "hold_status": { "enum": ["held_for_human_review", "not_held"] },
+        "decision_status": { "const": "passed" },
+        "status_history_contains_decision": { "type": "boolean" },
+        "retrieval_allowed": { "type": "boolean" },
+        "external_transfer_allowed": { "type": "boolean" },
+        "output_delivery_allowed": { "type": "boolean" },
+        "automatic_release_allowed": { "const": false },
+        "release_requires_human_review": { "type": "boolean" },
+        "retry_execution_performed": { "const": false },
+        "source_file_content_read_performed": { "const": false },
+        "source_path_used_for_hold_identity": { "const": false },
+        "human_review_required": { "const": true },
+        "legal_advice_generated": { "const": false },
+        "client_facing_ready": { "const": false }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["checkpoint_id", "status", "message"],
+      "properties": {
+        "checkpoint_id": { "type": "string", "minLength": 1 },
+        "status": { "const": "passed" },
+        "message": { "type": "string" },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false }
+      }
+    }
+  }
+}

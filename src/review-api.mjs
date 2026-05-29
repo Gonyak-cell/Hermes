@@ -5723,6 +5723,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("expansion_dedup_validations", ledgerResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/expansion-quarantine-ledgers") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "expansion_quarantine_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("expansion_quarantine_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_quarantine_ledgers", [ledgerResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-quarantine-decisions") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "expansion_quarantine_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("expansion_quarantine_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_quarantine_decisions", ledgerResult.artifact.quarantine_decision_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-quarantine-holds") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "expansion_quarantine_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("expansion_quarantine_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_quarantine_holds", ledgerResult.artifact.quarantine_hold_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-quarantine-rules") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "expansion_quarantine_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("expansion_quarantine_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_quarantine_rules", ledgerResult.artifact.quarantine_rule_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-quarantine-status-audits") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "expansion_quarantine_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("expansion_quarantine_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_quarantine_status_audits", ledgerResult.artifact.quarantine_status_audits ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-quarantine-resume-checks") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "expansion_quarantine_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("expansion_quarantine_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_quarantine_resume_checks", ledgerResult.artifact.quarantine_resume_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-quarantine-validations") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "expansion_quarantine_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("expansion_quarantine_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_quarantine_validations", ledgerResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -12145,6 +12194,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/expansion-skipped-duplicates", "Expansion skipped duplicate rows"),
       route("GET", "/api/expansion-dedup-resume-checks", "Expansion dedup resume check rows"),
       route("GET", "/api/expansion-dedup-validations", "Expansion dedup validation rows"),
+      route("GET", "/api/expansion-quarantine-ledgers", "Expansion Quarantine Ledger artifact"),
+      route("GET", "/api/expansion-quarantine-decisions", "Expansion quarantine decision rows"),
+      route("GET", "/api/expansion-quarantine-holds", "Expansion quarantine hold rows"),
+      route("GET", "/api/expansion-quarantine-rules", "Expansion quarantine rule rows"),
+      route("GET", "/api/expansion-quarantine-status-audits", "Expansion quarantine status audit rows"),
+      route("GET", "/api/expansion-quarantine-resume-checks", "Expansion quarantine resume check rows"),
+      route("GET", "/api/expansion-quarantine-validations", "Expansion quarantine validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -13281,6 +13337,13 @@ function filterItems(items, searchParams) {
     "expansion_duplicate_decision_status",
     "expansion_skipped_duplicate",
     "expansion_dedup_check_status",
+    "expansion_quarantine_ledger_status",
+    "expansion_quarantine_decision",
+    "expansion_quarantine_category",
+    "expansion_quarantine_hold_status",
+    "expansion_quarantine_rule_status",
+    "expansion_quarantine_audit_status",
+    "expansion_quarantine_check_status",
     "path_kind",
     "gate_id",
     "thread_status",
@@ -15152,6 +15215,13 @@ function readFilterValue(item, key) {
   if (key === "expansion_duplicate_decision_status") return item.decision_status;
   if (key === "expansion_skipped_duplicate") return item.skipped_duplicate;
   if (key === "expansion_dedup_check_status") return item.status;
+  if (key === "expansion_quarantine_ledger_status") return item.summary?.expansion_quarantine_ledger_status ?? item.expansion_quarantine_ledger_status;
+  if (key === "expansion_quarantine_decision") return item.quarantine_decision;
+  if (key === "expansion_quarantine_category") return item.quarantine_category ?? item.category;
+  if (key === "expansion_quarantine_hold_status") return item.hold_status;
+  if (key === "expansion_quarantine_rule_status") return item.rule_status;
+  if (key === "expansion_quarantine_audit_status") return item.audit_status;
+  if (key === "expansion_quarantine_check_status") return item.status;
   if (key === "path_kind") return item.path_kind;
   if (key === "gate_id") return item.gate_id;
   if (key === "thread_status") return item.thread_status;

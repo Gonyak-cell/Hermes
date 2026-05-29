@@ -161,6 +161,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "resource:backfill-job-contract",
   "resource:expansion-cursor-ledger",
   "resource:expansion-dedup-ledger",
+  "resource:expansion-quarantine-ledger",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

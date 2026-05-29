@@ -2672,6 +2672,34 @@ try {
   assert.equal(expansionDedupValidations.collection, "expansion_dedup_validations");
   assert.ok(expansionDedupValidations.count <= 19);
 
+  const expansionQuarantineLedgers = await fetchJson(`${url}/api/expansion-quarantine-ledgers?expansion_quarantine_ledger_status=complete&limit=1`);
+  assert.equal(expansionQuarantineLedgers.collection, "expansion_quarantine_ledgers");
+  assert.ok(expansionQuarantineLedgers.count <= 1);
+
+  const expansionQuarantineDecisions = await fetchJson(`${url}/api/expansion-quarantine-decisions?expansion_quarantine_decision=no_hold&limit=16`);
+  assert.equal(expansionQuarantineDecisions.collection, "expansion_quarantine_decisions");
+  assert.ok(expansionQuarantineDecisions.count <= 16);
+
+  const expansionQuarantineHolds = await fetchJson(`${url}/api/expansion-quarantine-holds?expansion_quarantine_hold_status=held_for_human_review&limit=1`);
+  assert.equal(expansionQuarantineHolds.collection, "expansion_quarantine_holds");
+  assert.ok(expansionQuarantineHolds.count <= 1);
+
+  const expansionQuarantineRules = await fetchJson(`${url}/api/expansion-quarantine-rules?expansion_quarantine_rule_status=registered&limit=5`);
+  assert.equal(expansionQuarantineRules.collection, "expansion_quarantine_rules");
+  assert.ok(expansionQuarantineRules.count <= 5);
+
+  const expansionQuarantineAudits = await fetchJson(`${url}/api/expansion-quarantine-status-audits?expansion_quarantine_audit_status=passed&limit=1`);
+  assert.equal(expansionQuarantineAudits.collection, "expansion_quarantine_status_audits");
+  assert.ok(expansionQuarantineAudits.count <= 1);
+
+  const expansionQuarantineChecks = await fetchJson(`${url}/api/expansion-quarantine-resume-checks?expansion_quarantine_check_status=passed&limit=20`);
+  assert.equal(expansionQuarantineChecks.collection, "expansion_quarantine_resume_checks");
+  assert.ok(expansionQuarantineChecks.count <= 20);
+
+  const expansionQuarantineValidations = await fetchJson(`${url}/api/expansion-quarantine-validations?status=passed&limit=20`);
+  assert.equal(expansionQuarantineValidations.collection, "expansion_quarantine_validations");
+  assert.ok(expansionQuarantineValidations.count <= 20);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

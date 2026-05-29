@@ -79,6 +79,7 @@ import { runConnectorFreeze } from "../src/connector-freeze.mjs";
 import { runBackfillJobContract } from "../src/backfill-job-contract.mjs";
 import { runExpansionCursorLedger } from "../src/expansion-cursor-ledger.mjs";
 import { runExpansionDedupLedger } from "../src/expansion-dedup-ledger.mjs";
+import { runExpansionQuarantineLedger } from "../src/expansion-quarantine-ledger.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1953,6 +1954,7 @@ describe("matter harness", () => {
         backfillJobContractPath: path.join(outDir, "backfill-job-contract", "backfill-job-contract.json"),
         expansionCursorLedgerPath: path.join(outDir, "expansion-cursor-ledger", "expansion-cursor-ledger.json"),
         expansionDedupLedgerPath: path.join(outDir, "expansion-dedup-ledger", "expansion-dedup-ledger.json"),
+        expansionQuarantineLedgerPath: path.join(outDir, "expansion-quarantine-ledger", "expansion-quarantine-ledger.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11564,6 +11566,59 @@ describe("matter harness", () => {
       assert.equal(expansionDedupLedger.expansion_dedup_boundary.file_content_read_performed, false);
       assert.match(await readFile(path.join(outDir, "expansion-dedup-ledger", "summary.md"), "utf8"), /Expansion Dedup Ledger/);
 
+      const expansionQuarantineLedger = await runExpansionQuarantineLedger({
+        resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
+        expansionCursorLedgerPath: path.join(outDir, "expansion-cursor-ledger", "expansion-cursor-ledger.json"),
+        expansionDedupLedgerPath: path.join(outDir, "expansion-dedup-ledger", "expansion-dedup-ledger.json"),
+        backfillJobContractPath: path.join(outDir, "backfill-job-contract", "backfill-job-contract.json"),
+        outDir: path.join(outDir, "expansion-quarantine-ledger"),
+        runAt: "2026-05-23T07:21:24.000Z",
+      });
+      const expansionQuarantineLedgerSchema = JSON.parse(await readFile("schemas/expansion-quarantine-ledger.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(expansionQuarantineLedger, expansionQuarantineLedgerSchema, {}, "expansion_quarantine_ledger"), [], JSON.stringify(expansionQuarantineLedger.validation.errors));
+      assert.equal(expansionQuarantineLedger.summary.expansion_quarantine_ledger_status, "complete");
+      assert.equal(expansionQuarantineLedger.summary.phase_slot, "P280");
+      assert.equal(expansionQuarantineLedger.summary.previous_phase_slot, "P279");
+      assert.equal(expansionQuarantineLedger.summary.next_phase_slot, "P281");
+      assert.equal(expansionQuarantineLedger.summary.source_expansion_dedup_ledger_status, "complete");
+      assert.equal(expansionQuarantineLedger.summary.source_expansion_dedup_phase_slot, "P279");
+      assert.equal(expansionQuarantineLedger.summary.quarantine_rule_count, 5);
+      assert.equal(expansionQuarantineLedger.summary.required_quarantine_category_count, 5);
+      assert.equal(expansionQuarantineLedger.summary.quarantine_decision_count, second.items.length);
+      assert.equal(expansionQuarantineLedger.summary.passed_quarantine_decision_count, second.items.length);
+      assert.equal(expansionQuarantineLedger.summary.quarantine_hold_count, 1);
+      assert.equal(expansionQuarantineLedger.summary.sensitive_or_secret_hold_count, 1);
+      assert.equal(expansionQuarantineLedger.summary.held_retrieval_allowed_count, 0);
+      assert.equal(expansionQuarantineLedger.summary.held_external_transfer_allowed_count, 0);
+      assert.equal(expansionQuarantineLedger.summary.held_output_delivery_allowed_count, 0);
+      assert.equal(expansionQuarantineLedger.summary.automatic_release_allowed_count, 0);
+      assert.equal(expansionQuarantineLedger.summary.human_review_required_hold_count, 1);
+      assert.equal(expansionQuarantineLedger.summary.quarantine_status_audit_count, 1);
+      assert.equal(expansionQuarantineLedger.summary.passed_quarantine_status_audit_count, 1);
+      assert.equal(expansionQuarantineLedger.summary.source_path_used_for_hold_identity_count, 0);
+      assert.equal(expansionQuarantineLedger.summary.backfill_execution_performed, false);
+      assert.equal(expansionQuarantineLedger.summary.extraction_retry_performed, false);
+      assert.equal(expansionQuarantineLedger.summary.source_ingest_performed, false);
+      assert.equal(expansionQuarantineLedger.summary.file_content_read_performed, false);
+      assert.equal(expansionQuarantineLedger.summary.source_mutation_performed, false);
+      assert.equal(expansionQuarantineLedger.summary.resource_mutation_performed, false);
+      assert.equal(expansionQuarantineLedger.summary.state_mutation_performed, false);
+      assert.equal(expansionQuarantineLedger.summary.quarantine_release_performed, false);
+      assert.equal(expansionQuarantineLedger.summary.delivery_execution_performed, false);
+      assert.equal(expansionQuarantineLedger.summary.protected_action_executed, false);
+      assert.equal(expansionQuarantineLedger.summary.legal_advice_generated, false);
+      assert.equal(expansionQuarantineLedger.summary.client_facing_output_generated, false);
+      assert.equal(expansionQuarantineLedger.summary.client_facing_ready_count, 0);
+      assert.equal(expansionQuarantineLedger.summary.windows_baseline_stability_preserved, true);
+      assert.equal(expansionQuarantineLedger.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(expansionQuarantineLedger.summary.failed_checkpoint_count, 0);
+      assert.equal(expansionQuarantineLedger.summary.validation_error_count, 0);
+      assert.ok(expansionQuarantineLedger.quarantine_rule_rows.every((row) => row.rule_status === "registered" && row.retrieval_allowed_for_hold === false && row.human_review_required && row.client_facing_ready === false));
+      assert.ok(expansionQuarantineLedger.quarantine_decision_rows.every((row) => row.decision_status === "passed" && row.retry_execution_performed === false && row.source_file_content_read_performed === false && row.source_path_used_for_hold_identity === false));
+      assert.ok(expansionQuarantineLedger.quarantine_hold_rows.every((row) => row.quarantine_decision === "hold_for_human_review" && row.quarantine_category === "sensitive_or_secret" && row.hold_status === "held_for_human_review" && row.retrieval_allowed === false && row.release_requires_human_review));
+      assert.ok(expansionQuarantineLedger.quarantine_status_audits.every((row) => row.audit_status === "passed" && row.release_event_present === false));
+      assert.match(await readFile(path.join(outDir, "expansion-quarantine-ledger", "summary.md"), "utf8"), /Expansion Quarantine Ledger/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -11767,6 +11822,7 @@ describe("matter harness", () => {
           backfill_job_contract: path.join(outDir, "backfill-job-contract", "backfill-job-contract.json"),
           expansion_cursor_ledger: path.join(outDir, "expansion-cursor-ledger", "expansion-cursor-ledger.json"),
           expansion_dedup_ledger: path.join(outDir, "expansion-dedup-ledger", "expansion-dedup-ledger.json"),
+          expansion_quarantine_ledger: path.join(outDir, "expansion-quarantine-ledger", "expansion-quarantine-ledger.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11818,8 +11874,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 181);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 181);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 182);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 182);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -11988,6 +12044,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "backfill_job_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "expansion_cursor_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "expansion_dedup_ledger"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "expansion_quarantine_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -12032,6 +12089,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:backfill-job-contract"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:expansion-cursor-ledger"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:expansion-dedup-ledger"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:expansion-quarantine-ledger"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:runtime-interface"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:approval-matrix"));
@@ -12879,6 +12937,10 @@ describe("matter harness", () => {
       assert.equal(expansionDedupLedgerCheckpoint?.acceptance_profile, "expansion_dedup_ledger_gate");
       assert.equal(expansionDedupLedgerCheckpoint?.status, "passed");
       assert.equal(expansionDedupLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const expansionQuarantineLedgerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-expansion-quarantine-ledger");
+      assert.equal(expansionQuarantineLedgerCheckpoint?.acceptance_profile, "expansion_quarantine_ledger_gate");
+      assert.equal(expansionQuarantineLedgerCheckpoint?.status, "passed");
+      assert.equal(expansionQuarantineLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -17667,6 +17729,41 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.expansion_dedup_ledger_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.expansion_dedup_ledger_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.expansion_dedup_ledger_validation_error_count, 0);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_status, "complete");
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_phase_slot, "P280");
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_previous_phase_slot, "P279");
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_next_phase_slot, "P281");
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_source_expansion_dedup_ledger_status, "complete");
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_source_expansion_dedup_phase_slot, "P279");
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_quarantine_rule_count, expansionQuarantineLedger.summary.quarantine_rule_count);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_required_quarantine_category_count, 5);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_quarantine_decision_count, expansionQuarantineLedger.summary.quarantine_decision_count);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_passed_quarantine_decision_count, expansionQuarantineLedger.summary.passed_quarantine_decision_count);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_quarantine_hold_count, expansionQuarantineLedger.summary.quarantine_hold_count);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_sensitive_or_secret_hold_count, 1);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_held_retrieval_allowed_count, 0);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_held_external_transfer_allowed_count, 0);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_held_output_delivery_allowed_count, 0);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_automatic_release_allowed_count, 0);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_source_path_used_for_hold_identity_count, 0);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_read_only, true);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_report_only, true);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_backfill_execution_performed, false);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_extraction_retry_performed, false);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_source_ingest_performed, false);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_file_content_read_performed, false);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_source_mutation_performed, false);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_resource_mutation_performed, false);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_state_mutation_performed, false);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_quarantine_release_performed, false);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_protected_action_executed, false);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_legal_advice_generated, false);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.expansion_quarantine_ledger_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -20886,6 +20983,36 @@ describe("matter harness", () => {
       assert.equal(expansionDedupLedgerStage?.metrics.client_facing_ready_count, 0);
       assert.equal(expansionDedupLedgerStage?.metrics.windows_baseline_stability_preserved, true);
       assert.equal(expansionDedupLedgerStage?.metrics.validation_error_count, 0);
+      const expansionQuarantineLedgerStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "expansion_quarantine_ledger");
+      assert.equal(expansionQuarantineLedgerStage?.status, "passed");
+      assert.equal(expansionQuarantineLedgerStage?.metrics.expansion_quarantine_ledger_status, "complete");
+      assert.equal(expansionQuarantineLedgerStage?.metrics.phase_slot, "P280");
+      assert.equal(expansionQuarantineLedgerStage?.metrics.previous_phase_slot, "P279");
+      assert.equal(expansionQuarantineLedgerStage?.metrics.next_phase_slot, "P281");
+      assert.equal(expansionQuarantineLedgerStage?.metrics.source_expansion_dedup_ledger_status, "complete");
+      assert.equal(expansionQuarantineLedgerStage?.metrics.source_expansion_dedup_phase_slot, "P279");
+      assert.equal(expansionQuarantineLedgerStage?.metrics.quarantine_rule_count, expansionQuarantineLedger.summary.quarantine_rule_count);
+      assert.equal(expansionQuarantineLedgerStage?.metrics.quarantine_decision_count, expansionQuarantineLedger.summary.quarantine_decision_count);
+      assert.equal(expansionQuarantineLedgerStage?.metrics.passed_quarantine_decision_count, expansionQuarantineLedger.summary.passed_quarantine_decision_count);
+      assert.equal(expansionQuarantineLedgerStage?.metrics.quarantine_hold_count, expansionQuarantineLedger.summary.quarantine_hold_count);
+      assert.equal(expansionQuarantineLedgerStage?.metrics.sensitive_or_secret_hold_count, 1);
+      assert.equal(expansionQuarantineLedgerStage?.metrics.held_retrieval_allowed_count, 0);
+      assert.equal(expansionQuarantineLedgerStage?.metrics.held_external_transfer_allowed_count, 0);
+      assert.equal(expansionQuarantineLedgerStage?.metrics.held_output_delivery_allowed_count, 0);
+      assert.equal(expansionQuarantineLedgerStage?.metrics.automatic_release_allowed_count, 0);
+      assert.equal(expansionQuarantineLedgerStage?.metrics.source_path_used_for_hold_identity_count, 0);
+      assert.equal(expansionQuarantineLedgerStage?.metrics.read_only, true);
+      assert.equal(expansionQuarantineLedgerStage?.metrics.quarantine_ledger_report_only, true);
+      assert.equal(expansionQuarantineLedgerStage?.metrics.backfill_execution_performed, false);
+      assert.equal(expansionQuarantineLedgerStage?.metrics.extraction_retry_performed, false);
+      assert.equal(expansionQuarantineLedgerStage?.metrics.file_content_read_performed, false);
+      assert.equal(expansionQuarantineLedgerStage?.metrics.quarantine_release_performed, false);
+      assert.equal(expansionQuarantineLedgerStage?.metrics.delivery_execution_performed, false);
+      assert.equal(expansionQuarantineLedgerStage?.metrics.legal_advice_generated, false);
+      assert.equal(expansionQuarantineLedgerStage?.metrics.client_facing_output_generated, false);
+      assert.equal(expansionQuarantineLedgerStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(expansionQuarantineLedgerStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(expansionQuarantineLedgerStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -20988,6 +21115,13 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-skipped-duplicates"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-dedup-resume-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-dedup-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-quarantine-ledgers"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-quarantine-decisions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-quarantine-holds"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-quarantine-rules"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-quarantine-status-audits"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-quarantine-resume-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-quarantine-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -23500,6 +23634,34 @@ describe("matter harness", () => {
       const expansionDedupValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-dedup-validations?status=passed", apiOptions)).body);
       assert.equal(expansionDedupValidationsResponse.collection, "expansion_dedup_validations");
       assert.equal(expansionDedupValidationsResponse.count, expansionDedupLedger.summary.validation_item_count);
+
+      const expansionQuarantineLedgersResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-quarantine-ledgers?expansion_quarantine_ledger_status=complete", apiOptions)).body);
+      assert.equal(expansionQuarantineLedgersResponse.collection, "expansion_quarantine_ledgers");
+      assert.equal(expansionQuarantineLedgersResponse.count, 1);
+
+      const expansionQuarantineDecisionsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-quarantine-decisions?expansion_quarantine_decision=hold_for_human_review", apiOptions)).body);
+      assert.equal(expansionQuarantineDecisionsResponse.collection, "expansion_quarantine_decisions");
+      assert.equal(expansionQuarantineDecisionsResponse.count, expansionQuarantineLedger.summary.quarantine_hold_count);
+
+      const expansionQuarantineHoldsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-quarantine-holds?expansion_quarantine_hold_status=held_for_human_review", apiOptions)).body);
+      assert.equal(expansionQuarantineHoldsResponse.collection, "expansion_quarantine_holds");
+      assert.equal(expansionQuarantineHoldsResponse.count, expansionQuarantineLedger.summary.quarantine_hold_count);
+
+      const expansionQuarantineRulesResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-quarantine-rules?expansion_quarantine_rule_status=registered", apiOptions)).body);
+      assert.equal(expansionQuarantineRulesResponse.collection, "expansion_quarantine_rules");
+      assert.equal(expansionQuarantineRulesResponse.count, expansionQuarantineLedger.summary.quarantine_rule_count);
+
+      const expansionQuarantineAuditsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-quarantine-status-audits?expansion_quarantine_audit_status=passed", apiOptions)).body);
+      assert.equal(expansionQuarantineAuditsResponse.collection, "expansion_quarantine_status_audits");
+      assert.equal(expansionQuarantineAuditsResponse.count, expansionQuarantineLedger.summary.quarantine_status_audit_count);
+
+      const expansionQuarantineChecksResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-quarantine-resume-checks?expansion_quarantine_check_status=passed", apiOptions)).body);
+      assert.equal(expansionQuarantineChecksResponse.collection, "expansion_quarantine_resume_checks");
+      assert.equal(expansionQuarantineChecksResponse.count, expansionQuarantineLedger.summary.validation_item_count);
+
+      const expansionQuarantineValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-quarantine-validations?status=passed", apiOptions)).body);
+      assert.equal(expansionQuarantineValidationsResponse.collection, "expansion_quarantine_validations");
+      assert.equal(expansionQuarantineValidationsResponse.count, expansionQuarantineLedger.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

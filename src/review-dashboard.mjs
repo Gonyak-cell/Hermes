@@ -123,6 +123,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   expansionStatusDashboardPath: "artifacts/expansion-status-dashboard/latest/expansion-status-dashboard.json",
   resourceExpansionFreezePath: "artifacts/resource-expansion-freeze/latest/resource-expansion-freeze.json",
   apiRouteInventoryPath: "artifacts/api-route-inventory/latest/api-route-inventory.json",
+  dashboardInformationArchitecturePath: "artifacts/review-dashboard-ia/latest/review-dashboard-ia.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -881,6 +882,11 @@ const SOURCE_DEFINITIONS = [
     option: "apiRouteInventoryPath",
     source_id: "api_route_inventory",
     label: "API Route Inventory",
+  },
+  {
+    option: "dashboardInformationArchitecturePath",
+    source_id: "dashboard_information_architecture",
+    label: "Review Dashboard Information Architecture",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1873,6 +1879,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "expansion_status_dashboard") return data.summary ?? {};
   if (sourceId === "resource_expansion_freeze") return data.summary ?? {};
   if (sourceId === "api_route_inventory") return data.summary ?? {};
+  if (sourceId === "dashboard_information_architecture") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2277,6 +2284,7 @@ function buildStageStatuses(artifacts, sources) {
     buildExpansionStatusDashboardStage(artifacts.expansion_status_dashboard, sourceById.get("expansion_status_dashboard")),
     buildResourceExpansionFreezeStage(artifacts.resource_expansion_freeze, sourceById.get("resource_expansion_freeze")),
     buildApiRouteInventoryStage(artifacts.api_route_inventory, sourceById.get("api_route_inventory")),
+    buildDashboardInformationArchitectureStage(artifacts.dashboard_information_architecture, sourceById.get("dashboard_information_architecture")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -14499,6 +14507,103 @@ function buildApiRouteInventoryStage(artifact, source) {
   };
 }
 
+function buildDashboardInformationArchitectureStage(artifact, source) {
+  if (!artifact) return missingStage("dashboard_information_architecture", "Review Dashboard Information Architecture", source);
+  const summary = artifact.summary ?? {};
+  const routeCount = summary.dashboard_ia_route_binding_count ?? 0;
+  const sectionCount = summary.dashboard_ia_section_count ?? 0;
+  const status = artifact.validation?.valid === false
+    || summary.review_dashboard_ia_status !== "complete"
+    || summary.phase_slot !== "P288"
+    || summary.previous_phase_slot !== "P287"
+    || summary.next_phase_slot !== "P289"
+    || summary.source_api_route_inventory_status !== "complete"
+    || summary.source_api_route_inventory_phase_slot !== "P287"
+    || summary.source_api_route_inventory_next_phase_slot !== "P288"
+    || summary.required_section_count !== 9
+    || summary.listed_required_section_count !== 9
+    || sectionCount !== 9
+    || summary.dashboard_navigation_item_count !== 9
+    || routeCount <= 0
+    || summary.api_route_count !== routeCount
+    || summary.route_partition_count !== routeCount
+    || summary.unassigned_route_count !== 0
+    || summary.overview_route_count <= 0
+    || summary.domain_packs_route_count <= 0
+    || summary.capabilities_route_count <= 0
+    || summary.runs_route_count <= 0
+    || summary.approvals_route_count <= 0
+    || summary.evidence_route_count <= 0
+    || summary.policies_route_count <= 0
+    || summary.cost_route_count <= 0
+    || summary.diagnostics_route_count <= 0
+    || summary.read_only !== true
+    || summary.information_architecture_only !== true
+    || summary.dashboard_build_performed !== false
+    || summary.route_execution_performed !== false
+    || summary.server_started !== false
+    || summary.dashboard_mutation_allowed !== false
+    || summary.protected_action_executed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "dashboard_information_architecture",
+    label: "Review Dashboard Information Architecture",
+    status,
+    message: `${sectionCount} navigation section(s) map ${routeCount} Review API route(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      review_dashboard_ia_status: summary.review_dashboard_ia_status ?? "unknown",
+      review_dashboard_ia_id: summary.review_dashboard_ia_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_api_route_inventory_status: summary.source_api_route_inventory_status ?? "unknown",
+      source_api_route_inventory_phase_slot: summary.source_api_route_inventory_phase_slot ?? null,
+      source_api_route_inventory_next_phase_slot: summary.source_api_route_inventory_next_phase_slot ?? null,
+      source_api_route_count: summary.source_api_route_count ?? 0,
+      required_section_count: summary.required_section_count ?? 0,
+      listed_required_section_count: summary.listed_required_section_count ?? 0,
+      dashboard_ia_section_count: sectionCount,
+      dashboard_navigation_item_count: summary.dashboard_navigation_item_count ?? 0,
+      dashboard_ia_route_binding_count: routeCount,
+      api_route_count: summary.api_route_count ?? 0,
+      route_partition_count: summary.route_partition_count ?? 0,
+      unassigned_route_count: summary.unassigned_route_count ?? 0,
+      overview_route_count: summary.overview_route_count ?? 0,
+      domain_packs_route_count: summary.domain_packs_route_count ?? 0,
+      capabilities_route_count: summary.capabilities_route_count ?? 0,
+      runs_route_count: summary.runs_route_count ?? 0,
+      approvals_route_count: summary.approvals_route_count ?? 0,
+      evidence_route_count: summary.evidence_route_count ?? 0,
+      policies_route_count: summary.policies_route_count ?? 0,
+      cost_route_count: summary.cost_route_count ?? 0,
+      diagnostics_route_count: summary.diagnostics_route_count ?? 0,
+      read_only: summary.read_only ?? false,
+      information_architecture_only: summary.information_architecture_only ?? false,
+      dashboard_build_performed: summary.dashboard_build_performed ?? false,
+      route_execution_performed: summary.route_execution_performed ?? false,
+      server_started: summary.server_started ?? false,
+      dashboard_mutation_allowed: summary.dashboard_mutation_allowed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      human_review_required: summary.human_review_required ?? false,
+      client_facing_ready: summary.client_facing_ready ?? true,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -21161,6 +21266,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_api_route_inventory", "rerun_api_route_inventory", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.dashboard_information_architecture?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "dashboard_information_architecture";
+    items.push({
+      action_item_id: `dashboard.action.dashboard_information_architecture.${slugify(subjectId)}`,
+      source_stage: "dashboard_information_architecture",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Review Dashboard Information Architecture",
+      subject_ref: {
+        subject_type: "dashboard_information_architecture_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_dashboard_information_architecture", "rerun_dashboard_ia", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -28266,6 +28389,48 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     api_route_inventory_validation_item_count: artifacts.api_route_inventory?.summary?.validation_item_count ?? 0,
     api_route_inventory_failed_checkpoint_count: artifacts.api_route_inventory?.summary?.failed_checkpoint_count ?? 0,
     api_route_inventory_validation_error_count: artifacts.api_route_inventory?.summary?.validation_error_count ?? artifacts.api_route_inventory?.validation?.errors?.length ?? 0,
+    dashboard_information_architecture_status: artifacts.dashboard_information_architecture?.summary?.review_dashboard_ia_status ?? "unknown",
+    dashboard_information_architecture_id: artifacts.dashboard_information_architecture?.summary?.review_dashboard_ia_id ?? null,
+    dashboard_information_architecture_phase_slot: artifacts.dashboard_information_architecture?.summary?.phase_slot ?? null,
+    dashboard_information_architecture_previous_phase_slot: artifacts.dashboard_information_architecture?.summary?.previous_phase_slot ?? null,
+    dashboard_information_architecture_next_phase_slot: artifacts.dashboard_information_architecture?.summary?.next_phase_slot ?? null,
+    dashboard_information_architecture_source_api_route_inventory_status: artifacts.dashboard_information_architecture?.summary?.source_api_route_inventory_status ?? "unknown",
+    dashboard_information_architecture_source_api_route_inventory_phase_slot: artifacts.dashboard_information_architecture?.summary?.source_api_route_inventory_phase_slot ?? null,
+    dashboard_information_architecture_source_api_route_inventory_next_phase_slot: artifacts.dashboard_information_architecture?.summary?.source_api_route_inventory_next_phase_slot ?? null,
+    dashboard_information_architecture_source_api_route_count: artifacts.dashboard_information_architecture?.summary?.source_api_route_count ?? 0,
+    dashboard_information_architecture_required_section_count: artifacts.dashboard_information_architecture?.summary?.required_section_count ?? 0,
+    dashboard_information_architecture_listed_required_section_count: artifacts.dashboard_information_architecture?.summary?.listed_required_section_count ?? 0,
+    dashboard_information_architecture_section_count: artifacts.dashboard_information_architecture?.summary?.dashboard_ia_section_count ?? 0,
+    dashboard_information_architecture_navigation_item_count: artifacts.dashboard_information_architecture?.summary?.dashboard_navigation_item_count ?? 0,
+    dashboard_information_architecture_route_binding_count: artifacts.dashboard_information_architecture?.summary?.dashboard_ia_route_binding_count ?? 0,
+    dashboard_information_architecture_api_route_count: artifacts.dashboard_information_architecture?.summary?.api_route_count ?? 0,
+    dashboard_information_architecture_route_partition_count: artifacts.dashboard_information_architecture?.summary?.route_partition_count ?? 0,
+    dashboard_information_architecture_unassigned_route_count: artifacts.dashboard_information_architecture?.summary?.unassigned_route_count ?? 0,
+    dashboard_information_architecture_overview_route_count: artifacts.dashboard_information_architecture?.summary?.overview_route_count ?? 0,
+    dashboard_information_architecture_domain_packs_route_count: artifacts.dashboard_information_architecture?.summary?.domain_packs_route_count ?? 0,
+    dashboard_information_architecture_capabilities_route_count: artifacts.dashboard_information_architecture?.summary?.capabilities_route_count ?? 0,
+    dashboard_information_architecture_runs_route_count: artifacts.dashboard_information_architecture?.summary?.runs_route_count ?? 0,
+    dashboard_information_architecture_approvals_route_count: artifacts.dashboard_information_architecture?.summary?.approvals_route_count ?? 0,
+    dashboard_information_architecture_evidence_route_count: artifacts.dashboard_information_architecture?.summary?.evidence_route_count ?? 0,
+    dashboard_information_architecture_policies_route_count: artifacts.dashboard_information_architecture?.summary?.policies_route_count ?? 0,
+    dashboard_information_architecture_cost_route_count: artifacts.dashboard_information_architecture?.summary?.cost_route_count ?? 0,
+    dashboard_information_architecture_diagnostics_route_count: artifacts.dashboard_information_architecture?.summary?.diagnostics_route_count ?? 0,
+    dashboard_information_architecture_read_only: artifacts.dashboard_information_architecture?.summary?.read_only ?? false,
+    dashboard_information_architecture_information_architecture_only: artifacts.dashboard_information_architecture?.summary?.information_architecture_only ?? false,
+    dashboard_information_architecture_dashboard_build_performed: artifacts.dashboard_information_architecture?.summary?.dashboard_build_performed ?? false,
+    dashboard_information_architecture_route_execution_performed: artifacts.dashboard_information_architecture?.summary?.route_execution_performed ?? false,
+    dashboard_information_architecture_server_started: artifacts.dashboard_information_architecture?.summary?.server_started ?? false,
+    dashboard_information_architecture_dashboard_mutation_allowed: artifacts.dashboard_information_architecture?.summary?.dashboard_mutation_allowed ?? false,
+    dashboard_information_architecture_protected_action_executed: artifacts.dashboard_information_architecture?.summary?.protected_action_executed ?? false,
+    dashboard_information_architecture_legal_advice_generated: artifacts.dashboard_information_architecture?.summary?.legal_advice_generated ?? false,
+    dashboard_information_architecture_client_facing_output_generated: artifacts.dashboard_information_architecture?.summary?.client_facing_output_generated ?? false,
+    dashboard_information_architecture_human_review_required: artifacts.dashboard_information_architecture?.summary?.human_review_required ?? false,
+    dashboard_information_architecture_client_facing_ready: artifacts.dashboard_information_architecture?.summary?.client_facing_ready ?? true,
+    dashboard_information_architecture_windows_baseline_stability_preserved: artifacts.dashboard_information_architecture?.summary?.windows_baseline_stability_preserved ?? false,
+    dashboard_information_architecture_mac_windows_completion_instability_guard: artifacts.dashboard_information_architecture?.summary?.mac_windows_completion_instability_guard ?? false,
+    dashboard_information_architecture_validation_item_count: artifacts.dashboard_information_architecture?.summary?.validation_item_count ?? 0,
+    dashboard_information_architecture_failed_checkpoint_count: artifacts.dashboard_information_architecture?.summary?.failed_checkpoint_count ?? 0,
+    dashboard_information_architecture_validation_error_count: artifacts.dashboard_information_architecture?.summary?.validation_error_count ?? artifacts.dashboard_information_architecture?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -30095,6 +30260,8 @@ function parseArgs(argv) {
     else if (arg === "--no-resource-expansion-freeze") parsed.resourceExpansionFreezePath = false;
     else if (arg === "--api-route-inventory") parsed.apiRouteInventoryPath = argv[++index];
     else if (arg === "--no-api-route-inventory") parsed.apiRouteInventoryPath = false;
+    else if (arg === "--dashboard-ia") parsed.dashboardInformationArchitecturePath = argv[++index];
+    else if (arg === "--no-dashboard-ia") parsed.dashboardInformationArchitecturePath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

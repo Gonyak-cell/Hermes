@@ -6176,6 +6176,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("api_route_inventory_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/review-dashboard-information-architectures") {
+    const result = await readDashboardSourceArtifact(dashboard, "dashboard_information_architecture");
+    if (!result.available) {
+      return jsonResponse(503, buildError("dashboard_information_architecture_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("review_dashboard_information_architectures", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/review-dashboard-ia-sections") {
+    const result = await readDashboardSourceArtifact(dashboard, "dashboard_information_architecture");
+    if (!result.available) {
+      return jsonResponse(503, buildError("dashboard_information_architecture_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("review_dashboard_ia_sections", result.artifact.dashboard_ia_sections ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/review-dashboard-navigation-items") {
+    const result = await readDashboardSourceArtifact(dashboard, "dashboard_information_architecture");
+    if (!result.available) {
+      return jsonResponse(503, buildError("dashboard_information_architecture_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("review_dashboard_navigation_items", result.artifact.dashboard_navigation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/review-dashboard-ia-route-bindings") {
+    const result = await readDashboardSourceArtifact(dashboard, "dashboard_information_architecture");
+    if (!result.available) {
+      return jsonResponse(503, buildError("dashboard_information_architecture_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("review_dashboard_ia_route_bindings", result.artifact.dashboard_ia_route_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/review-dashboard-ia-checks") {
+    const result = await readDashboardSourceArtifact(dashboard, "dashboard_information_architecture");
+    if (!result.available) {
+      return jsonResponse(503, buildError("dashboard_information_architecture_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("review_dashboard_ia_checks", result.artifact.dashboard_ia_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/review-dashboard-ia-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "dashboard_information_architecture");
+    if (!result.available) {
+      return jsonResponse(503, buildError("dashboard_information_architecture_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("review_dashboard_ia_boundary", [result.artifact.dashboard_ia_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/review-dashboard-ia-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "dashboard_information_architecture");
+    if (!result.available) {
+      return jsonResponse(503, buildError("dashboard_information_architecture_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("review_dashboard_ia_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -12662,6 +12711,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/api-route-inventory-checks", "API route inventory check rows"),
       route("GET", "/api/api-route-inventory-boundary", "API route inventory read-only boundary"),
       route("GET", "/api/api-route-inventory-validations", "API route inventory validation rows"),
+      route("GET", "/api/review-dashboard-information-architectures", "Review Dashboard Information Architecture artifact"),
+      route("GET", "/api/review-dashboard-ia-sections", "Review Dashboard Information Architecture section rows"),
+      route("GET", "/api/review-dashboard-navigation-items", "Review Dashboard navigation item rows"),
+      route("GET", "/api/review-dashboard-ia-route-bindings", "Review Dashboard Information Architecture route bindings"),
+      route("GET", "/api/review-dashboard-ia-checks", "Review Dashboard Information Architecture check rows"),
+      route("GET", "/api/review-dashboard-ia-boundary", "Review Dashboard Information Architecture boundary"),
+      route("GET", "/api/review-dashboard-ia-validations", "Review Dashboard Information Architecture validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -13851,6 +13907,11 @@ function filterItems(items, searchParams) {
     "api_route_group_key",
     "route_group_key",
     "route_method",
+    "dashboard_ia_status",
+    "ia_section_status",
+    "ia_section_key",
+    "navigation_item_status",
+    "route_binding_status",
     "boundary_status",
     "path_kind",
     "gate_id",
@@ -15775,6 +15836,11 @@ function readFilterValue(item, key) {
   if (key === "api_route_status") return item.route_status;
   if (key === "api_route_group_key") return item.route_group_key;
   if (key === "route_group_key") return item.route_group_key;
+  if (key === "dashboard_ia_status") return item.summary?.review_dashboard_ia_status ?? item.review_dashboard_ia_status;
+  if (key === "ia_section_status") return item.ia_section_status;
+  if (key === "ia_section_key") return item.ia_section_key;
+  if (key === "navigation_item_status") return item.navigation_item_status;
+  if (key === "route_binding_status") return item.route_binding_status;
   if (key === "path_kind") return item.path_kind;
   if (key === "gate_id") return item.gate_id;
   if (key === "thread_status") return item.thread_status;

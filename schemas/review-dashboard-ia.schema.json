@@ -1,0 +1,284 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/review-dashboard-ia.schema.json",
+  "title": "Hermes Review Dashboard Information Architecture",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "review_dashboard_ia_id",
+    "review_dashboard_ia_status",
+    "phase_slot",
+    "previous_phase_slot",
+    "next_phase_slot",
+    "summary",
+    "dashboard_ia_sections",
+    "dashboard_navigation_items",
+    "dashboard_ia_route_bindings",
+    "dashboard_ia_boundary",
+    "dashboard_ia_checks",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "review-dashboard-ia.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "review_dashboard_ia_id": { "type": "string" },
+    "review_dashboard_ia_status": { "enum": ["complete", "attention"] },
+    "phase_slot": { "const": "P288" },
+    "previous_phase_slot": { "const": "P287" },
+    "next_phase_slot": { "const": "P289" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "review_dashboard_ia_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "required_section_count",
+        "listed_required_section_count",
+        "dashboard_ia_section_count",
+        "dashboard_navigation_item_count",
+        "dashboard_ia_route_binding_count",
+        "api_route_count",
+        "route_partition_count",
+        "unassigned_route_count",
+        "overview_route_count",
+        "domain_packs_route_count",
+        "capabilities_route_count",
+        "runs_route_count",
+        "approvals_route_count",
+        "evidence_route_count",
+        "policies_route_count",
+        "cost_route_count",
+        "diagnostics_route_count",
+        "read_only",
+        "information_architecture_only",
+        "dashboard_build_performed",
+        "route_execution_performed",
+        "server_started",
+        "dashboard_mutation_allowed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "windows_baseline_stability_preserved",
+        "mac_windows_completion_instability_guard",
+        "validation_error_count"
+      ],
+      "properties": {
+        "review_dashboard_ia_status": { "const": "complete" },
+        "phase_slot": { "const": "P288" },
+        "previous_phase_slot": { "const": "P287" },
+        "next_phase_slot": { "const": "P289" },
+        "required_section_count": { "const": 9 },
+        "listed_required_section_count": { "const": 9 },
+        "dashboard_ia_section_count": { "const": 9 },
+        "dashboard_navigation_item_count": { "const": 9 },
+        "dashboard_ia_route_binding_count": { "minimum": 1 },
+        "api_route_count": { "minimum": 1 },
+        "route_partition_count": { "minimum": 1 },
+        "unassigned_route_count": { "const": 0 },
+        "overview_route_count": { "minimum": 1 },
+        "domain_packs_route_count": { "minimum": 1 },
+        "capabilities_route_count": { "minimum": 1 },
+        "runs_route_count": { "minimum": 1 },
+        "approvals_route_count": { "minimum": 1 },
+        "evidence_route_count": { "minimum": 1 },
+        "policies_route_count": { "minimum": 1 },
+        "cost_route_count": { "minimum": 1 },
+        "diagnostics_route_count": { "minimum": 1 },
+        "read_only": { "const": true },
+        "information_architecture_only": { "const": true },
+        "dashboard_build_performed": { "const": false },
+        "route_execution_performed": { "const": false },
+        "server_started": { "const": false },
+        "dashboard_mutation_allowed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true },
+        "validation_error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    },
+    "dashboard_ia_sections": {
+      "type": "array",
+      "minItems": 9,
+      "items": { "$ref": "#/$defs/section" }
+    },
+    "dashboard_navigation_items": {
+      "type": "array",
+      "minItems": 9,
+      "items": { "$ref": "#/$defs/navigation_item" }
+    },
+    "dashboard_ia_route_bindings": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/route_binding" }
+    },
+    "dashboard_ia_boundary": { "$ref": "#/$defs/boundary" },
+    "dashboard_ia_checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/check" }
+    },
+    "validation_items": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/check" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "item_count", "error_count", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "item_count": { "minimum": 1 },
+        "error_count": { "const": 0 },
+        "errors": { "type": "array", "maxItems": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "section": {
+      "type": "object",
+      "required": [
+        "ia_section_key",
+        "ia_section_label",
+        "ia_section_order",
+        "ia_section_status",
+        "route_count",
+        "navigation_item_count",
+        "read_only",
+        "dashboard_mutation_allowed",
+        "route_execution_allowed",
+        "human_review_required",
+        "client_facing_ready"
+      ],
+      "properties": {
+        "ia_section_key": {
+          "enum": ["overview", "domain_packs", "capabilities", "runs", "approvals", "evidence", "policies", "cost", "diagnostics"]
+        },
+        "ia_section_status": { "const": "mapped" },
+        "route_count": { "minimum": 1 },
+        "navigation_item_count": { "minimum": 1 },
+        "read_only": { "const": true },
+        "dashboard_mutation_allowed": { "const": false },
+        "route_execution_allowed": { "const": false },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "navigation_item": {
+      "type": "object",
+      "required": [
+        "ia_section_key",
+        "navigation_label",
+        "navigation_order",
+        "navigation_item_status",
+        "route_count",
+        "read_only",
+        "dashboard_mutation_allowed",
+        "route_execution_allowed",
+        "human_review_required",
+        "client_facing_ready"
+      ],
+      "properties": {
+        "ia_section_key": {
+          "enum": ["overview", "domain_packs", "capabilities", "runs", "approvals", "evidence", "policies", "cost", "diagnostics"]
+        },
+        "navigation_item_status": { "const": "mapped" },
+        "route_count": { "minimum": 1 },
+        "read_only": { "const": true },
+        "dashboard_mutation_allowed": { "const": false },
+        "route_execution_allowed": { "const": false },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "route_binding": {
+      "type": "object",
+      "required": [
+        "route_method",
+        "route_path",
+        "ia_section_key",
+        "route_binding_status",
+        "navigation_visible",
+        "read_only",
+        "dashboard_mutation_allowed",
+        "route_execution_allowed",
+        "protected_action_execution_allowed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "human_review_required",
+        "client_facing_ready"
+      ],
+      "properties": {
+        "route_method": { "const": "GET" },
+        "route_path": { "type": "string" },
+        "ia_section_key": {
+          "enum": ["overview", "domain_packs", "capabilities", "runs", "approvals", "evidence", "policies", "cost", "diagnostics"]
+        },
+        "route_binding_status": { "const": "mapped" },
+        "navigation_visible": { "const": true },
+        "read_only": { "const": true },
+        "dashboard_mutation_allowed": { "const": false },
+        "route_execution_allowed": { "const": false },
+        "protected_action_execution_allowed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "read_only",
+        "information_architecture_only",
+        "dashboard_build_performed",
+        "route_execution_performed",
+        "server_started",
+        "dashboard_mutation_allowed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "windows_baseline_stability_preserved",
+        "mac_windows_completion_instability_guard"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "read_only": { "const": true },
+        "information_architecture_only": { "const": true },
+        "dashboard_build_performed": { "const": false },
+        "route_execution_performed": { "const": false },
+        "server_started": { "const": false },
+        "dashboard_mutation_allowed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "check": {
+      "type": "object",
+      "required": ["path", "status", "message", "human_review_required", "client_facing_ready"],
+      "properties": {
+        "path": { "type": "string" },
+        "status": { "const": "passed" },
+        "message": { "type": "string" },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

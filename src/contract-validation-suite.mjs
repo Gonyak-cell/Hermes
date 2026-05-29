@@ -18,6 +18,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "contracts:golden-fixtures",
   "contracts:validate",
   "api:route-inventory",
+  "dashboard:ia",
   "contracts:identity",
   "contracts:party-registry",
   "contracts:matter-teams",

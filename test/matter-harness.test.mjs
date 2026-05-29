@@ -87,6 +87,7 @@ import { runExtractorCoverageReport } from "../src/extractor-coverage-report.mjs
 import { runExpansionStatusDashboard } from "../src/expansion-status-dashboard.mjs";
 import { runResourceExpansionFreeze } from "../src/resource-expansion-freeze.mjs";
 import { runApiRouteInventory } from "../src/api-route-inventory.mjs";
+import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1969,6 +1970,7 @@ describe("matter harness", () => {
         expansionStatusDashboardPath: path.join(outDir, "expansion-status-dashboard", "expansion-status-dashboard.json"),
         resourceExpansionFreezePath: path.join(outDir, "resource-expansion-freeze", "resource-expansion-freeze.json"),
         apiRouteInventoryPath: path.join(outDir, "api-route-inventory", "api-route-inventory.json"),
+        dashboardInformationArchitecturePath: path.join(outDir, "review-dashboard-ia", "review-dashboard-ia.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -12095,6 +12097,59 @@ describe("matter harness", () => {
       assert.ok(apiRouteInventory.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "api-route-inventory", "summary.md"), "utf8"), /API Route Inventory/);
 
+      const dashboardInformationArchitecture = await runReviewDashboardInformationArchitecture({
+        apiRouteInventoryPath: path.join(outDir, "api-route-inventory", "api-route-inventory.json"),
+        outDir: path.join(outDir, "review-dashboard-ia"),
+        runAt: "2026-05-23T07:24:29.000Z",
+      });
+      const dashboardInformationArchitectureSchema = JSON.parse(await readFile("schemas/review-dashboard-ia.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(dashboardInformationArchitecture, dashboardInformationArchitectureSchema, {}, "dashboard_information_architecture"), [], JSON.stringify(dashboardInformationArchitecture.validation.errors));
+      assert.equal(dashboardInformationArchitecture.summary.review_dashboard_ia_status, "complete");
+      assert.equal(dashboardInformationArchitecture.summary.phase_slot, "P288");
+      assert.equal(dashboardInformationArchitecture.summary.previous_phase_slot, "P287");
+      assert.equal(dashboardInformationArchitecture.summary.next_phase_slot, "P289");
+      assert.equal(dashboardInformationArchitecture.summary.source_api_route_inventory_status, "complete");
+      assert.equal(dashboardInformationArchitecture.summary.source_api_route_inventory_phase_slot, "P287");
+      assert.equal(dashboardInformationArchitecture.summary.source_api_route_inventory_next_phase_slot, "P288");
+      assert.equal(dashboardInformationArchitecture.summary.required_section_count, 9);
+      assert.equal(dashboardInformationArchitecture.summary.listed_required_section_count, 9);
+      assert.equal(dashboardInformationArchitecture.summary.dashboard_ia_section_count, 9);
+      assert.equal(dashboardInformationArchitecture.summary.dashboard_navigation_item_count, 9);
+      assert.equal(dashboardInformationArchitecture.summary.dashboard_ia_route_binding_count, apiRouteInventory.summary.api_route_count);
+      assert.equal(dashboardInformationArchitecture.summary.api_route_count, apiRouteInventory.summary.api_route_count);
+      assert.equal(dashboardInformationArchitecture.summary.route_partition_count, apiRouteInventory.summary.api_route_count);
+      assert.equal(dashboardInformationArchitecture.summary.unassigned_route_count, 0);
+      assert.ok(dashboardInformationArchitecture.summary.overview_route_count > 0);
+      assert.ok(dashboardInformationArchitecture.summary.domain_packs_route_count > 0);
+      assert.ok(dashboardInformationArchitecture.summary.capabilities_route_count > 0);
+      assert.ok(dashboardInformationArchitecture.summary.runs_route_count > 0);
+      assert.ok(dashboardInformationArchitecture.summary.approvals_route_count > 0);
+      assert.ok(dashboardInformationArchitecture.summary.evidence_route_count > 0);
+      assert.ok(dashboardInformationArchitecture.summary.policies_route_count > 0);
+      assert.ok(dashboardInformationArchitecture.summary.cost_route_count > 0);
+      assert.ok(dashboardInformationArchitecture.summary.diagnostics_route_count > 0);
+      assert.equal(dashboardInformationArchitecture.summary.read_only, true);
+      assert.equal(dashboardInformationArchitecture.summary.information_architecture_only, true);
+      assert.equal(dashboardInformationArchitecture.summary.dashboard_build_performed, false);
+      assert.equal(dashboardInformationArchitecture.summary.route_execution_performed, false);
+      assert.equal(dashboardInformationArchitecture.summary.server_started, false);
+      assert.equal(dashboardInformationArchitecture.summary.dashboard_mutation_allowed, false);
+      assert.equal(dashboardInformationArchitecture.summary.protected_action_executed, false);
+      assert.equal(dashboardInformationArchitecture.summary.legal_advice_generated, false);
+      assert.equal(dashboardInformationArchitecture.summary.client_facing_output_generated, false);
+      assert.equal(dashboardInformationArchitecture.summary.human_review_required, true);
+      assert.equal(dashboardInformationArchitecture.summary.client_facing_ready, false);
+      assert.equal(dashboardInformationArchitecture.summary.windows_baseline_stability_preserved, true);
+      assert.equal(dashboardInformationArchitecture.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(dashboardInformationArchitecture.summary.validation_error_count, 0);
+      const dashboardIaSectionKeys = new Set(["overview", "domain_packs", "capabilities", "runs", "approvals", "evidence", "policies", "cost", "diagnostics"]);
+      assert.ok(dashboardInformationArchitecture.dashboard_ia_sections.every((row) => dashboardIaSectionKeys.has(row.ia_section_key) && row.ia_section_status === "mapped" && row.route_count > 0 && row.read_only && row.dashboard_mutation_allowed === false && row.route_execution_allowed === false && row.human_review_required && row.client_facing_ready === false));
+      assert.ok(dashboardInformationArchitecture.dashboard_navigation_items.every((row) => dashboardIaSectionKeys.has(row.ia_section_key) && row.navigation_item_status === "mapped" && row.route_count > 0 && row.read_only && row.dashboard_mutation_allowed === false && row.route_execution_allowed === false));
+      assert.ok(dashboardInformationArchitecture.dashboard_ia_route_bindings.every((row) => row.route_method === "GET" && dashboardIaSectionKeys.has(row.ia_section_key) && row.route_binding_status === "mapped" && row.navigation_visible && row.read_only && row.dashboard_mutation_allowed === false && row.route_execution_allowed === false && row.protected_action_execution_allowed === false && row.legal_advice_generated === false && row.client_facing_output_generated === false));
+      assert.equal(dashboardInformationArchitecture.dashboard_ia_boundary.boundary_status, "enforced");
+      assert.ok(dashboardInformationArchitecture.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "review-dashboard-ia", "summary.md"), "utf8"), /Review Dashboard Information Architecture/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -12306,6 +12361,7 @@ describe("matter harness", () => {
           expansion_status_dashboard: path.join(outDir, "expansion-status-dashboard", "expansion-status-dashboard.json"),
           resource_expansion_freeze: path.join(outDir, "resource-expansion-freeze", "resource-expansion-freeze.json"),
           api_route_inventory: path.join(outDir, "api-route-inventory", "api-route-inventory.json"),
+          dashboard_information_architecture: path.join(outDir, "review-dashboard-ia", "review-dashboard-ia.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -12357,8 +12413,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 189);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 189);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 190);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 190);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -12535,6 +12591,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "expansion_status_dashboard"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "resource_expansion_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "api_route_inventory"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "dashboard_information_architecture"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -12587,6 +12644,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:expansion-status"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:expansion-freeze"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "api:route-inventory"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "dashboard:ia"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:runtime-interface"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:approval-matrix"));
@@ -13466,6 +13524,10 @@ describe("matter harness", () => {
       assert.equal(apiRouteInventoryCheckpoint?.acceptance_profile, "api_route_inventory_gate");
       assert.equal(apiRouteInventoryCheckpoint?.status, "passed");
       assert.equal(apiRouteInventoryCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const dashboardInformationArchitectureCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-dashboard-information-architecture");
+      assert.equal(dashboardInformationArchitectureCheckpoint?.acceptance_profile, "dashboard_information_architecture_gate");
+      assert.equal(dashboardInformationArchitectureCheckpoint?.status, "passed");
+      assert.equal(dashboardInformationArchitectureCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -18618,6 +18680,44 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.api_route_inventory_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.api_route_inventory_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.api_route_inventory_validation_error_count, 0);
+      assert.equal(dashboard.summary.dashboard_information_architecture_status, "complete");
+      assert.equal(dashboard.summary.dashboard_information_architecture_phase_slot, "P288");
+      assert.equal(dashboard.summary.dashboard_information_architecture_previous_phase_slot, "P287");
+      assert.equal(dashboard.summary.dashboard_information_architecture_next_phase_slot, "P289");
+      assert.equal(dashboard.summary.dashboard_information_architecture_source_api_route_inventory_status, "complete");
+      assert.equal(dashboard.summary.dashboard_information_architecture_source_api_route_inventory_phase_slot, "P287");
+      assert.equal(dashboard.summary.dashboard_information_architecture_source_api_route_inventory_next_phase_slot, "P288");
+      assert.equal(dashboard.summary.dashboard_information_architecture_required_section_count, 9);
+      assert.equal(dashboard.summary.dashboard_information_architecture_listed_required_section_count, 9);
+      assert.equal(dashboard.summary.dashboard_information_architecture_section_count, 9);
+      assert.equal(dashboard.summary.dashboard_information_architecture_navigation_item_count, 9);
+      assert.equal(dashboard.summary.dashboard_information_architecture_route_binding_count, dashboardInformationArchitecture.summary.dashboard_ia_route_binding_count);
+      assert.equal(dashboard.summary.dashboard_information_architecture_api_route_count, apiRouteInventory.summary.api_route_count);
+      assert.equal(dashboard.summary.dashboard_information_architecture_route_partition_count, apiRouteInventory.summary.api_route_count);
+      assert.equal(dashboard.summary.dashboard_information_architecture_unassigned_route_count, 0);
+      assert.ok(dashboard.summary.dashboard_information_architecture_overview_route_count > 0);
+      assert.ok(dashboard.summary.dashboard_information_architecture_domain_packs_route_count > 0);
+      assert.ok(dashboard.summary.dashboard_information_architecture_capabilities_route_count > 0);
+      assert.ok(dashboard.summary.dashboard_information_architecture_runs_route_count > 0);
+      assert.ok(dashboard.summary.dashboard_information_architecture_approvals_route_count > 0);
+      assert.ok(dashboard.summary.dashboard_information_architecture_evidence_route_count > 0);
+      assert.ok(dashboard.summary.dashboard_information_architecture_policies_route_count > 0);
+      assert.ok(dashboard.summary.dashboard_information_architecture_cost_route_count > 0);
+      assert.ok(dashboard.summary.dashboard_information_architecture_diagnostics_route_count > 0);
+      assert.equal(dashboard.summary.dashboard_information_architecture_read_only, true);
+      assert.equal(dashboard.summary.dashboard_information_architecture_information_architecture_only, true);
+      assert.equal(dashboard.summary.dashboard_information_architecture_dashboard_build_performed, false);
+      assert.equal(dashboard.summary.dashboard_information_architecture_route_execution_performed, false);
+      assert.equal(dashboard.summary.dashboard_information_architecture_server_started, false);
+      assert.equal(dashboard.summary.dashboard_information_architecture_dashboard_mutation_allowed, false);
+      assert.equal(dashboard.summary.dashboard_information_architecture_protected_action_executed, false);
+      assert.equal(dashboard.summary.dashboard_information_architecture_legal_advice_generated, false);
+      assert.equal(dashboard.summary.dashboard_information_architecture_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.dashboard_information_architecture_human_review_required, true);
+      assert.equal(dashboard.summary.dashboard_information_architecture_client_facing_ready, false);
+      assert.equal(dashboard.summary.dashboard_information_architecture_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.dashboard_information_architecture_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.dashboard_information_architecture_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -22176,6 +22276,46 @@ describe("matter harness", () => {
       assert.equal(apiRouteInventoryStage?.metrics.windows_baseline_stability_preserved, true);
       assert.equal(apiRouteInventoryStage?.metrics.mac_windows_completion_instability_guard, true);
       assert.equal(apiRouteInventoryStage?.metrics.validation_error_count, 0);
+      const dashboardInformationArchitectureStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "dashboard_information_architecture");
+      assert.equal(dashboardInformationArchitectureStage?.status, "passed");
+      assert.equal(dashboardInformationArchitectureStage?.metrics.review_dashboard_ia_status, "complete");
+      assert.equal(dashboardInformationArchitectureStage?.metrics.phase_slot, "P288");
+      assert.equal(dashboardInformationArchitectureStage?.metrics.previous_phase_slot, "P287");
+      assert.equal(dashboardInformationArchitectureStage?.metrics.next_phase_slot, "P289");
+      assert.equal(dashboardInformationArchitectureStage?.metrics.source_api_route_inventory_status, "complete");
+      assert.equal(dashboardInformationArchitectureStage?.metrics.source_api_route_inventory_phase_slot, "P287");
+      assert.equal(dashboardInformationArchitectureStage?.metrics.source_api_route_inventory_next_phase_slot, "P288");
+      assert.equal(dashboardInformationArchitectureStage?.metrics.required_section_count, 9);
+      assert.equal(dashboardInformationArchitectureStage?.metrics.listed_required_section_count, 9);
+      assert.equal(dashboardInformationArchitectureStage?.metrics.dashboard_ia_section_count, 9);
+      assert.equal(dashboardInformationArchitectureStage?.metrics.dashboard_navigation_item_count, 9);
+      assert.equal(dashboardInformationArchitectureStage?.metrics.dashboard_ia_route_binding_count, apiRouteInventory.summary.api_route_count);
+      assert.equal(dashboardInformationArchitectureStage?.metrics.api_route_count, apiRouteInventory.summary.api_route_count);
+      assert.equal(dashboardInformationArchitectureStage?.metrics.route_partition_count, apiRouteInventory.summary.api_route_count);
+      assert.equal(dashboardInformationArchitectureStage?.metrics.unassigned_route_count, 0);
+      assert.ok(dashboardInformationArchitectureStage?.metrics.overview_route_count > 0);
+      assert.ok(dashboardInformationArchitectureStage?.metrics.domain_packs_route_count > 0);
+      assert.ok(dashboardInformationArchitectureStage?.metrics.capabilities_route_count > 0);
+      assert.ok(dashboardInformationArchitectureStage?.metrics.runs_route_count > 0);
+      assert.ok(dashboardInformationArchitectureStage?.metrics.approvals_route_count > 0);
+      assert.ok(dashboardInformationArchitectureStage?.metrics.evidence_route_count > 0);
+      assert.ok(dashboardInformationArchitectureStage?.metrics.policies_route_count > 0);
+      assert.ok(dashboardInformationArchitectureStage?.metrics.cost_route_count > 0);
+      assert.ok(dashboardInformationArchitectureStage?.metrics.diagnostics_route_count > 0);
+      assert.equal(dashboardInformationArchitectureStage?.metrics.read_only, true);
+      assert.equal(dashboardInformationArchitectureStage?.metrics.information_architecture_only, true);
+      assert.equal(dashboardInformationArchitectureStage?.metrics.dashboard_build_performed, false);
+      assert.equal(dashboardInformationArchitectureStage?.metrics.route_execution_performed, false);
+      assert.equal(dashboardInformationArchitectureStage?.metrics.server_started, false);
+      assert.equal(dashboardInformationArchitectureStage?.metrics.dashboard_mutation_allowed, false);
+      assert.equal(dashboardInformationArchitectureStage?.metrics.protected_action_executed, false);
+      assert.equal(dashboardInformationArchitectureStage?.metrics.legal_advice_generated, false);
+      assert.equal(dashboardInformationArchitectureStage?.metrics.client_facing_output_generated, false);
+      assert.equal(dashboardInformationArchitectureStage?.metrics.human_review_required, true);
+      assert.equal(dashboardInformationArchitectureStage?.metrics.client_facing_ready, false);
+      assert.equal(dashboardInformationArchitectureStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(dashboardInformationArchitectureStage?.metrics.mac_windows_completion_instability_guard, true);
+      assert.equal(dashboardInformationArchitectureStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -22342,6 +22482,13 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/api-route-inventory-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/api-route-inventory-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/api-route-inventory-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/review-dashboard-information-architectures"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/review-dashboard-ia-sections"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/review-dashboard-navigation-items"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/review-dashboard-ia-route-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/review-dashboard-ia-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/review-dashboard-ia-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/review-dashboard-ia-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -25116,6 +25263,40 @@ describe("matter harness", () => {
       const apiRouteInventoryValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/api-route-inventory-validations?status=passed", apiOptions)).body);
       assert.equal(apiRouteInventoryValidationsResponse.collection, "api_route_inventory_validations");
       assert.equal(apiRouteInventoryValidationsResponse.count, apiRouteInventory.summary.validation_item_count);
+
+      const dashboardInformationArchitecturesResponse = JSON.parse((await buildReviewApiResponse("/api/review-dashboard-information-architectures?dashboard_ia_status=complete", apiOptions)).body);
+      assert.equal(dashboardInformationArchitecturesResponse.collection, "review_dashboard_information_architectures");
+      assert.equal(dashboardInformationArchitecturesResponse.count, 1);
+
+      const dashboardIaSectionsResponse = JSON.parse((await buildReviewApiResponse("/api/review-dashboard-ia-sections?ia_section_status=mapped", apiOptions)).body);
+      assert.equal(dashboardIaSectionsResponse.collection, "review_dashboard_ia_sections");
+      assert.equal(dashboardIaSectionsResponse.count, dashboardInformationArchitecture.summary.dashboard_ia_section_count);
+
+      const dashboardNavigationItemsResponse = JSON.parse((await buildReviewApiResponse("/api/review-dashboard-navigation-items?navigation_item_status=mapped", apiOptions)).body);
+      assert.equal(dashboardNavigationItemsResponse.collection, "review_dashboard_navigation_items");
+      assert.equal(dashboardNavigationItemsResponse.count, dashboardInformationArchitecture.summary.dashboard_navigation_item_count);
+
+      const dashboardIaRouteBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/review-dashboard-ia-route-bindings?route_binding_status=mapped&read_only=true", apiOptions)).body);
+      assert.equal(dashboardIaRouteBindingsResponse.collection, "review_dashboard_ia_route_bindings");
+      assert.equal(dashboardIaRouteBindingsResponse.count, dashboardInformationArchitecture.summary.dashboard_ia_route_binding_count);
+
+      for (const iaSectionKey of dashboardIaSectionKeys) {
+        const iaSectionResponse = JSON.parse((await buildReviewApiResponse(`/api/review-dashboard-ia-route-bindings?ia_section_key=${iaSectionKey}`, apiOptions)).body);
+        assert.equal(iaSectionResponse.collection, "review_dashboard_ia_route_bindings");
+        assert.equal(iaSectionResponse.count, dashboardInformationArchitecture.summary[`${iaSectionKey}_route_count`]);
+      }
+
+      const dashboardIaChecksResponse = JSON.parse((await buildReviewApiResponse("/api/review-dashboard-ia-checks?status=passed", apiOptions)).body);
+      assert.equal(dashboardIaChecksResponse.collection, "review_dashboard_ia_checks");
+      assert.equal(dashboardIaChecksResponse.count, dashboardInformationArchitecture.summary.validation_item_count);
+
+      const dashboardIaBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/review-dashboard-ia-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(dashboardIaBoundaryResponse.collection, "review_dashboard_ia_boundary");
+      assert.equal(dashboardIaBoundaryResponse.count, 1);
+
+      const dashboardIaValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/review-dashboard-ia-validations?status=passed", apiOptions)).body);
+      assert.equal(dashboardIaValidationsResponse.collection, "review_dashboard_ia_validations");
+      assert.equal(dashboardIaValidationsResponse.count, dashboardInformationArchitecture.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

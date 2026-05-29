@@ -2932,6 +2932,38 @@ try {
   assert.equal(apiRouteInventoryValidations.collection, "api_route_inventory_validations");
   assert.ok(apiRouteInventoryValidations.count <= 20);
 
+  const dashboardInformationArchitectures = await fetchJson(`${url}/api/review-dashboard-information-architectures?dashboard_ia_status=complete&limit=1`);
+  assert.equal(dashboardInformationArchitectures.collection, "review_dashboard_information_architectures");
+  assert.ok(dashboardInformationArchitectures.count <= 1);
+
+  const dashboardIaSections = await fetchJson(`${url}/api/review-dashboard-ia-sections?ia_section_status=mapped&limit=9`);
+  assert.equal(dashboardIaSections.collection, "review_dashboard_ia_sections");
+  assert.ok(dashboardIaSections.count <= 9);
+
+  const dashboardNavigationItems = await fetchJson(`${url}/api/review-dashboard-navigation-items?navigation_item_status=mapped&limit=9`);
+  assert.equal(dashboardNavigationItems.collection, "review_dashboard_navigation_items");
+  assert.ok(dashboardNavigationItems.count <= 9);
+
+  const dashboardIaRouteBindings = await fetchJson(`${url}/api/review-dashboard-ia-route-bindings?route_binding_status=mapped&read_only=true&limit=20`);
+  assert.equal(dashboardIaRouteBindings.collection, "review_dashboard_ia_route_bindings");
+  assert.ok(dashboardIaRouteBindings.count <= 20);
+
+  const dashboardIaEvidenceBindings = await fetchJson(`${url}/api/review-dashboard-ia-route-bindings?ia_section_key=evidence&limit=10`);
+  assert.equal(dashboardIaEvidenceBindings.collection, "review_dashboard_ia_route_bindings");
+  assert.ok(dashboardIaEvidenceBindings.count <= 10);
+
+  const dashboardIaChecks = await fetchJson(`${url}/api/review-dashboard-ia-checks?status=passed&limit=20`);
+  assert.equal(dashboardIaChecks.collection, "review_dashboard_ia_checks");
+  assert.ok(dashboardIaChecks.count <= 20);
+
+  const dashboardIaBoundary = await fetchJson(`${url}/api/review-dashboard-ia-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(dashboardIaBoundary.collection, "review_dashboard_ia_boundary");
+  assert.ok(dashboardIaBoundary.count <= 1);
+
+  const dashboardIaValidations = await fetchJson(`${url}/api/review-dashboard-ia-validations?status=passed&limit=20`);
+  assert.equal(dashboardIaValidations.collection, "review_dashboard_ia_validations");
+  assert.ok(dashboardIaValidations.count <= 20);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

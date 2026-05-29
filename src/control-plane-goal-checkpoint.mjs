@@ -128,6 +128,7 @@ const GOAL_ITEMS = [
   sourceItem("creative_document_pack_manifest", "Creative document pack manifest", "creative_document", "creative_document_pack_manifest", "control-plane-creative-document-pack-manifest", { acceptance_profile: "creative_document_pack_manifest_gate" }),
   sourceItem("template_registry", "Template registry", "creative_document", "template_registry", "control-plane-template-registry", { acceptance_profile: "template_registry_gate" }),
   sourceItem("style_registry", "Style registry", "creative_document", "style_registry", "control-plane-style-registry", { acceptance_profile: "style_registry_gate" }),
+  sourceItem("asset_registry", "Asset registry", "creative_document", "asset_registry", "control-plane-asset-registry", { acceptance_profile: "asset_registry_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -615,6 +616,7 @@ function evaluateStageAcceptance(item, stage) {
     "creative_document_pack_manifest_gate",
     "template_registry_gate",
     "style_registry_gate",
+    "asset_registry_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -4264,6 +4266,60 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.failed_checkpoint_count === 0
     ) {
       return passedWithOperationalGate(stage, "Style Registry tracks voice, tone, brand, font, and layout metadata without style file writes, renderer execution, delivery, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "asset_registry_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.asset_registry_status === "complete"
+      && metrics.source_style_registry_status === "complete"
+      && metrics.source_template_registry_status === "complete"
+      && metrics.source_creative_document_pack_manifest_status === "complete"
+      && metrics.asset_record_count === 5
+      && metrics.registered_asset_record_count === metrics.asset_record_count
+      && metrics.required_asset_type_count === 5
+      && metrics.covered_asset_type_count === metrics.required_asset_type_count
+      && metrics.asset_artifact_policy_count === 5
+      && metrics.registered_asset_artifact_policy_count === metrics.asset_artifact_policy_count
+      && metrics.template_asset_binding_count >= 5
+      && metrics.linked_template_asset_binding_count === metrics.template_asset_binding_count
+      && metrics.required_format_count === 4
+      && metrics.covered_format_count === metrics.required_format_count
+      && metrics.image_asset_count === 1
+      && metrics.logo_asset_count === 1
+      && metrics.graph_asset_count === 1
+      && metrics.table_asset_count === 1
+      && metrics.video_asset_count === 1
+      && metrics.docx_template_asset_binding_count >= 1
+      && metrics.pptx_template_asset_binding_count >= 1
+      && metrics.html_template_asset_binding_count >= 1
+      && metrics.email_template_asset_binding_count >= 1
+      && metrics.metadata_hash_count >= metrics.asset_record_count + metrics.asset_type_record_count + metrics.asset_artifact_policy_count + metrics.template_asset_binding_count
+      && metrics.human_review_required_asset_count === metrics.asset_record_count
+      && metrics.source_attribution_required_asset_count === metrics.asset_record_count
+      && metrics.license_review_required_asset_count === metrics.asset_record_count
+      && metrics.format_validation_required_asset_count === metrics.asset_record_count
+      && metrics.source_attribution_required_binding_count === metrics.template_asset_binding_count
+      && metrics.license_review_required_binding_count === metrics.template_asset_binding_count
+      && metrics.format_validation_required_binding_count === metrics.template_asset_binding_count
+      && metrics.runtime_freeze_status === "complete"
+      && metrics.document_renderer_adapter_status === "complete"
+      && metrics.output_delivery_contract_freeze_status === "complete"
+      && metrics.read_only === true
+      && metrics.metadata_registry_only === true
+      && metrics.asset_binary_write_allowed === false
+      && metrics.asset_file_ingestion_allowed === false
+      && metrics.media_generation_allowed === false
+      && metrics.core_registry_mutation_allowed === false
+      && metrics.renderer_execution_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.protected_action_allowed === false
+      && metrics.client_facing_output_generated === false
+      && metrics.client_facing_ready_count === 0
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Asset Registry tracks image, logo, graph, table, and video metadata as artifact references without media ingestion, binary writes, generation, renderer execution, delivery, or client-facing output.");
     }
   }
 

@@ -7020,6 +7020,25 @@ Completion criteria:
 - Golden fixture count increased to 157 and `style_registry` is included as a regression fixture.
 - `npm run creative-document:style-registry -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
 
+## Phase 256 - Asset Registry
+
+Goal: P256 establishes the Creative and Document Domain Pack asset registry. It records image, logo, graph, table, and video asset metadata as artifact-managed references without media ingestion, binary writes, media generation, renderer execution, delivery, or client-facing output.
+
+Implementation:
+- Added `src/creative-document-asset-registry.mjs`, `scripts/creative-document-asset-registry.mjs`, `schemas/asset-registry.schema.json`, and `docs/asset-registry.md`.
+- Added `creative-document:asset-registry` npm script.
+- The artifact emits `asset_records`, `asset_type_records`, `asset_artifact_policies`, `template_asset_bindings`, `asset_format_coverage`, a read-only boundary, checkpoint rows, and a validation report.
+- Review Dashboard stage/summary, Review API route/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests were wired to the new artifact.
+
+Completion criteria:
+- Image, logo, graph, table, and video each have one registered asset metadata row.
+- Asset artifact policies require metadata artifacts while binary storage, file ingestion, media generation, renderer execution, delivery, and protected actions remain disabled.
+- 28 template asset bindings connect the Phase 254 template registry and Phase 255 style registry to asset metadata.
+- DOCX, PPTX, HTML, and email format coverage is complete.
+- All assets and bindings require source attribution, license review, accessibility text, format validation, and human review.
+- Golden fixture count increased to 158 and `asset_registry` is included as a regression fixture.
+- `npm run creative-document:asset-registry -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -7028,9 +7047,9 @@ Completion criteria:
 
 운영 원칙:
 
-- Current actual completion baseline is Phase 255.
+- Current actual completion baseline is Phase 256.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- Remaining planned slots are P256-P312, 57 total.
+- Remaining planned slots are P257-P312, 56 total.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - P217 이후 personal-dev 작업은 Mac Phase 216 결과를 Windows 작업공간에서 계속 이어가되, Phase 217 본작업보다 Windows 기준선 안정화 게이트를 선행 조건으로 둔 판단을 기준으로 운영한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.

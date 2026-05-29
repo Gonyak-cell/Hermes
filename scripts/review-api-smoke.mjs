@@ -1972,6 +1972,34 @@ try {
   assert.equal(styleRegistryValidations.collection, "style_registry_validations");
   assert.ok(styleRegistryValidations.count <= 5);
 
+  const assetRegistries = await fetchJson(`${url}/api/asset-registries?asset_registry_status=complete&limit=1`);
+  assert.equal(assetRegistries.collection, "asset_registries");
+  assert.ok(assetRegistries.count <= 1);
+
+  const assetRecords = await fetchJson(`${url}/api/asset-records?asset_status=registered&asset_type=video&limit=5`);
+  assert.equal(assetRecords.collection, "asset_records");
+  assert.ok(assetRecords.count <= 5);
+
+  const assetTypeRecords = await fetchJson(`${url}/api/asset-type-records?asset_type_status=covered&asset_type=image&limit=5`);
+  assert.equal(assetTypeRecords.collection, "asset_type_records");
+  assert.ok(assetTypeRecords.count <= 5);
+
+  const assetArtifactPolicies = await fetchJson(`${url}/api/asset-artifact-policies?asset_artifact_policy_status=registered&asset_type=logo&limit=5`);
+  assert.equal(assetArtifactPolicies.collection, "asset_artifact_policies");
+  assert.ok(assetArtifactPolicies.count <= 5);
+
+  const templateAssetBindings = await fetchJson(`${url}/api/template-asset-bindings?template_asset_binding_status=linked&asset_type=table&limit=5`);
+  assert.equal(templateAssetBindings.collection, "template_asset_bindings");
+  assert.ok(templateAssetBindings.count <= 5);
+
+  const assetFormatCoverage = await fetchJson(`${url}/api/asset-format-coverage?asset_format_coverage_status=covered&asset_format=pptx&limit=5`);
+  assert.equal(assetFormatCoverage.collection, "asset_format_coverage");
+  assert.ok(assetFormatCoverage.count <= 5);
+
+  const assetRegistryValidations = await fetchJson(`${url}/api/asset-registry-validations?status=passed&limit=5`);
+  assert.equal(assetRegistryValidations.collection, "asset_registry_validations");
+  assert.ok(assetRegistryValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

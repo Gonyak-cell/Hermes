@@ -4505,6 +4505,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("style_registry_validations", styleRegistryResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/asset-registries") {
+    const assetRegistryResult = await readDashboardSourceArtifact(dashboard, "asset_registry");
+    if (!assetRegistryResult.available) {
+      return jsonResponse(503, buildError("asset_registry_unavailable", assetRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("asset_registries", [assetRegistryResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/asset-records") {
+    const assetRegistryResult = await readDashboardSourceArtifact(dashboard, "asset_registry");
+    if (!assetRegistryResult.available) {
+      return jsonResponse(503, buildError("asset_registry_unavailable", assetRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("asset_records", assetRegistryResult.artifact.asset_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/asset-type-records") {
+    const assetRegistryResult = await readDashboardSourceArtifact(dashboard, "asset_registry");
+    if (!assetRegistryResult.available) {
+      return jsonResponse(503, buildError("asset_registry_unavailable", assetRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("asset_type_records", assetRegistryResult.artifact.asset_type_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/asset-artifact-policies") {
+    const assetRegistryResult = await readDashboardSourceArtifact(dashboard, "asset_registry");
+    if (!assetRegistryResult.available) {
+      return jsonResponse(503, buildError("asset_registry_unavailable", assetRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("asset_artifact_policies", assetRegistryResult.artifact.asset_artifact_policies ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/template-asset-bindings") {
+    const assetRegistryResult = await readDashboardSourceArtifact(dashboard, "asset_registry");
+    if (!assetRegistryResult.available) {
+      return jsonResponse(503, buildError("asset_registry_unavailable", assetRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("template_asset_bindings", assetRegistryResult.artifact.template_asset_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/asset-format-coverage") {
+    const assetRegistryResult = await readDashboardSourceArtifact(dashboard, "asset_registry");
+    if (!assetRegistryResult.available) {
+      return jsonResponse(503, buildError("asset_registry_unavailable", assetRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("asset_format_coverage", assetRegistryResult.artifact.asset_format_coverage ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/asset-registry-validations") {
+    const assetRegistryResult = await readDashboardSourceArtifact(dashboard, "asset_registry");
+    if (!assetRegistryResult.available) {
+      return jsonResponse(503, buildError("asset_registry_unavailable", assetRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("asset_registry_validations", assetRegistryResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -10753,6 +10802,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/template-style-bindings", "Template style binding rows"),
       route("GET", "/api/style-format-coverage", "Style format coverage rows"),
       route("GET", "/api/style-registry-validations", "Style registry validation rows"),
+      route("GET", "/api/asset-registries", "Asset registry artifact"),
+      route("GET", "/api/asset-records", "Asset metadata records"),
+      route("GET", "/api/asset-type-records", "Asset type coverage records"),
+      route("GET", "/api/asset-artifact-policies", "Asset artifact policy records"),
+      route("GET", "/api/template-asset-bindings", "Template asset binding rows"),
+      route("GET", "/api/asset-format-coverage", "Asset format coverage rows"),
+      route("GET", "/api/asset-registry-validations", "Asset registry validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -11731,6 +11787,14 @@ function filterItems(items, searchParams) {
     "style_format",
     "template_style_binding_status",
     "style_format_coverage_status",
+    "asset_registry_status",
+    "asset_status",
+    "asset_type_status",
+    "asset_type",
+    "asset_artifact_policy_status",
+    "template_asset_binding_status",
+    "asset_format",
+    "asset_format_coverage_status",
     "matter_os_profile_status",
     "profile_card_status",
     "display_field_status",
@@ -13437,6 +13501,14 @@ function readFilterValue(item, key) {
   if (key === "style_format") return item.style_format;
   if (key === "template_style_binding_status") return item.binding_status;
   if (key === "style_format_coverage_status") return item.style_format_coverage_status;
+  if (key === "asset_registry_status") return item.summary?.asset_registry_status ?? item.asset_registry_status;
+  if (key === "asset_status") return item.asset_status;
+  if (key === "asset_type_status") return item.asset_type_status;
+  if (key === "asset_type") return item.asset_type;
+  if (key === "asset_artifact_policy_status") return item.asset_artifact_policy_status;
+  if (key === "template_asset_binding_status") return item.binding_status;
+  if (key === "asset_format") return item.asset_format ?? item.template_format;
+  if (key === "asset_format_coverage_status") return item.asset_format_coverage_status;
   if (key === "matter_os_profile_status") return item.summary?.matter_os_profile_status ?? item.matter_os_profile_status;
   if (key === "profile_card_status") return item.profile_card_status;
   if (key === "display_field_status") return item.display_field_status;

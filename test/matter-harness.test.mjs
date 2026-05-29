@@ -55,6 +55,7 @@ import { runLawFirmE2eFreeze } from "../src/law-firm-e2e-freeze.mjs";
 import { runCreativeDocumentPackManifest } from "../src/creative-document-pack-manifest.mjs";
 import { runTemplateRegistry } from "../src/creative-document-template-registry.mjs";
 import { runStyleRegistry } from "../src/creative-document-style-registry.mjs";
+import { runAssetRegistry } from "../src/creative-document-asset-registry.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1905,6 +1906,7 @@ describe("matter harness", () => {
         creativeDocumentPackManifestPath: path.join(outDir, "creative-document-pack-manifest", "creative-document-pack-manifest.json"),
         templateRegistryPath: path.join(outDir, "template-registry", "template-registry.json"),
         styleRegistryPath: path.join(outDir, "style-registry", "style-registry.json"),
+        assetRegistryPath: path.join(outDir, "asset-registry", "asset-registry.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -9975,6 +9977,78 @@ describe("matter harness", () => {
       assert.ok(styleRegistry.style_format_coverage.every((row) => row.style_format_coverage_status === "covered" && row.style_profile_count > 0 && row.template_style_binding_count > 0));
       assert.match(await readFile(path.join(outDir, "style-registry", "summary.md"), "utf8"), /Style Registry/);
 
+      const assetRegistry = await runAssetRegistry({
+        styleRegistryPath: path.join(outDir, "style-registry", "style-registry.json"),
+        templateRegistryPath: path.join(outDir, "template-registry", "template-registry.json"),
+        creativeDocumentPackManifestPath: path.join(outDir, "creative-document-pack-manifest", "creative-document-pack-manifest.json"),
+        domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
+        runtimeFreezePath: path.join(outDir, "runtime-freeze", "runtime-freeze.json"),
+        documentRendererAdapterPath: path.join(outDir, "document-renderer-adapter", "document-renderer-adapter.json"),
+        outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "asset-registry"),
+        runAt: "2026-05-23T07:00:15.000Z",
+      });
+      const assetRegistrySchema = JSON.parse(await readFile("schemas/asset-registry.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(assetRegistry, assetRegistrySchema, {}, "asset_registry"), []);
+      assert.equal(assetRegistry.summary.asset_registry_status, "complete");
+      assert.equal(assetRegistry.summary.asset_registry_contract_id, "asset-registry.v1");
+      assert.equal(assetRegistry.summary.source_style_registry_status, "complete");
+      assert.equal(assetRegistry.summary.source_template_registry_status, "complete");
+      assert.equal(assetRegistry.summary.source_creative_document_pack_manifest_status, "complete");
+      assert.equal(assetRegistry.summary.source_domain_pack_registry_status, "complete");
+      assert.equal(assetRegistry.summary.asset_record_count, 5);
+      assert.equal(assetRegistry.summary.registered_asset_record_count, assetRegistry.summary.asset_record_count);
+      assert.equal(assetRegistry.summary.required_asset_type_count, 5);
+      assert.equal(assetRegistry.summary.covered_asset_type_count, 5);
+      assert.equal(assetRegistry.summary.asset_artifact_policy_count, 5);
+      assert.equal(assetRegistry.summary.registered_asset_artifact_policy_count, assetRegistry.summary.asset_artifact_policy_count);
+      assert.equal(assetRegistry.summary.template_asset_binding_count, 28);
+      assert.equal(assetRegistry.summary.linked_template_asset_binding_count, assetRegistry.summary.template_asset_binding_count);
+      assert.equal(assetRegistry.summary.required_format_count, 4);
+      assert.equal(assetRegistry.summary.covered_format_count, 4);
+      assert.equal(assetRegistry.summary.image_asset_count, 1);
+      assert.equal(assetRegistry.summary.logo_asset_count, 1);
+      assert.equal(assetRegistry.summary.graph_asset_count, 1);
+      assert.equal(assetRegistry.summary.table_asset_count, 1);
+      assert.equal(assetRegistry.summary.video_asset_count, 1);
+      assert.equal(assetRegistry.summary.docx_template_asset_binding_count, 4);
+      assert.equal(assetRegistry.summary.pptx_template_asset_binding_count, 10);
+      assert.equal(assetRegistry.summary.html_template_asset_binding_count, 10);
+      assert.equal(assetRegistry.summary.email_template_asset_binding_count, 4);
+      assert.equal(assetRegistry.summary.metadata_hash_count, assetRegistry.summary.asset_record_count + assetRegistry.summary.asset_type_record_count + assetRegistry.summary.asset_artifact_policy_count + assetRegistry.summary.template_asset_binding_count);
+      assert.equal(assetRegistry.summary.human_review_required_asset_count, assetRegistry.summary.asset_record_count);
+      assert.equal(assetRegistry.summary.source_attribution_required_asset_count, assetRegistry.summary.asset_record_count);
+      assert.equal(assetRegistry.summary.license_review_required_asset_count, assetRegistry.summary.asset_record_count);
+      assert.equal(assetRegistry.summary.format_validation_required_asset_count, assetRegistry.summary.asset_record_count);
+      assert.equal(assetRegistry.summary.source_attribution_required_binding_count, assetRegistry.summary.template_asset_binding_count);
+      assert.equal(assetRegistry.summary.license_review_required_binding_count, assetRegistry.summary.template_asset_binding_count);
+      assert.equal(assetRegistry.summary.format_validation_required_binding_count, assetRegistry.summary.template_asset_binding_count);
+      assert.equal(assetRegistry.summary.runtime_freeze_status, "complete");
+      assert.equal(assetRegistry.summary.document_renderer_adapter_status, "complete");
+      assert.equal(assetRegistry.summary.output_delivery_contract_freeze_status, "complete");
+      assert.equal(assetRegistry.summary.read_only, true);
+      assert.equal(assetRegistry.summary.metadata_registry_only, true);
+      assert.equal(assetRegistry.summary.asset_binary_write_allowed, false);
+      assert.equal(assetRegistry.summary.asset_file_ingestion_allowed, false);
+      assert.equal(assetRegistry.summary.media_generation_allowed, false);
+      assert.equal(assetRegistry.summary.core_registry_mutation_allowed, false);
+      assert.equal(assetRegistry.summary.renderer_execution_allowed, false);
+      assert.equal(assetRegistry.summary.delivery_execution_allowed, false);
+      assert.equal(assetRegistry.summary.protected_action_allowed, false);
+      assert.equal(assetRegistry.summary.client_facing_output_generated, false);
+      assert.equal(assetRegistry.summary.client_facing_ready_count, 0);
+      assert.equal(assetRegistry.summary.failed_checkpoint_count, 0);
+      assert.equal(assetRegistry.summary.validation_error_count, 0);
+      assert.ok(assetRegistry.asset_records.every((record) => record.asset_status === "registered" && record.metadata_hash.startsWith("sha256:") && record.source_attribution_required && record.license_review_required && record.human_review_required && record.format_validation_required && record.asset_binary_write_performed === false && record.asset_file_ingestion_performed === false && record.media_generation_performed === false && record.client_facing_ready === false));
+      assert.ok(assetRegistry.template_asset_bindings.every((record) => record.binding_status === "linked" && record.metadata_hash.startsWith("sha256:") && record.source_attribution_required && record.license_review_required && record.human_review_required && record.format_validation_required && record.renderer_execution_performed === false && record.delivery_execution_performed === false && record.client_facing_ready === false));
+      assert.deepEqual(new Set(assetRegistry.asset_type_records.map((row) => row.asset_type)), new Set(["image", "logo", "graph", "table", "video"]));
+      assert.ok(assetRegistry.asset_type_records.every((row) => row.asset_type_status === "covered" && row.asset_count > 0));
+      assert.deepEqual(new Set(assetRegistry.asset_format_coverage.map((row) => row.asset_format)), new Set(["docx", "pptx", "html", "email"]));
+      assert.ok(assetRegistry.asset_format_coverage.every((row) => row.asset_format_coverage_status === "covered" && row.template_count > 0 && row.asset_binding_count > 0));
+      assert.match(await readFile(path.join(outDir, "asset-registry", "summary.md"), "utf8"), /Asset Registry/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -10154,6 +10228,7 @@ describe("matter harness", () => {
           creative_document_pack_manifest: path.join(outDir, "creative-document-pack-manifest", "creative-document-pack-manifest.json"),
           template_registry: path.join(outDir, "template-registry", "template-registry.json"),
           style_registry: path.join(outDir, "style-registry", "style-registry.json"),
+          asset_registry: path.join(outDir, "asset-registry", "asset-registry.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10205,8 +10280,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 157);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 157);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 158);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 158);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -10351,6 +10426,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "creative_document_pack_manifest"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "template_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "style_registry"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "asset_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -10429,6 +10505,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:pack-manifest"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:template-registry"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:style-registry"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:asset-registry"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter-os:profile"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:timeline"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:document-index"));
@@ -11131,6 +11208,10 @@ describe("matter harness", () => {
       assert.equal(styleRegistryCheckpoint?.acceptance_profile, "style_registry_gate");
       assert.equal(styleRegistryCheckpoint?.status, "passed");
       assert.equal(styleRegistryCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const assetRegistryCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-asset-registry");
+      assert.equal(assetRegistryCheckpoint?.acceptance_profile, "asset_registry_gate");
+      assert.equal(assetRegistryCheckpoint?.status, "passed");
+      assert.equal(assetRegistryCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -14927,6 +15008,56 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.style_registry_client_facing_ready_count, 0);
       assert.equal(dashboard.summary.style_registry_failed_checkpoint_count, 0);
       assert.equal(dashboard.summary.style_registry_validation_error_count, 0);
+      assert.equal(dashboard.summary.asset_registry_status, "complete");
+      assert.equal(dashboard.summary.asset_registry_contract_id, assetRegistry.summary.asset_registry_contract_id);
+      assert.equal(dashboard.summary.asset_registry_source_style_registry_status, "complete");
+      assert.equal(dashboard.summary.asset_registry_source_template_registry_status, "complete");
+      assert.equal(dashboard.summary.asset_registry_source_creative_document_pack_manifest_status, "complete");
+      assert.equal(dashboard.summary.asset_registry_source_domain_pack_registry_status, "complete");
+      assert.equal(dashboard.summary.asset_registry_asset_record_count, assetRegistry.summary.asset_record_count);
+      assert.equal(dashboard.summary.asset_registry_registered_asset_record_count, assetRegistry.summary.registered_asset_record_count);
+      assert.equal(dashboard.summary.asset_registry_required_asset_type_count, 5);
+      assert.equal(dashboard.summary.asset_registry_covered_asset_type_count, 5);
+      assert.equal(dashboard.summary.asset_registry_asset_type_record_count, assetRegistry.summary.asset_type_record_count);
+      assert.equal(dashboard.summary.asset_registry_asset_artifact_policy_count, assetRegistry.summary.asset_artifact_policy_count);
+      assert.equal(dashboard.summary.asset_registry_registered_asset_artifact_policy_count, assetRegistry.summary.registered_asset_artifact_policy_count);
+      assert.equal(dashboard.summary.asset_registry_template_asset_binding_count, assetRegistry.summary.template_asset_binding_count);
+      assert.equal(dashboard.summary.asset_registry_linked_template_asset_binding_count, assetRegistry.summary.linked_template_asset_binding_count);
+      assert.equal(dashboard.summary.asset_registry_required_format_count, 4);
+      assert.equal(dashboard.summary.asset_registry_covered_format_count, 4);
+      assert.equal(dashboard.summary.asset_registry_image_asset_count, 1);
+      assert.equal(dashboard.summary.asset_registry_logo_asset_count, 1);
+      assert.equal(dashboard.summary.asset_registry_graph_asset_count, 1);
+      assert.equal(dashboard.summary.asset_registry_table_asset_count, 1);
+      assert.equal(dashboard.summary.asset_registry_video_asset_count, 1);
+      assert.equal(dashboard.summary.asset_registry_docx_template_asset_binding_count, 4);
+      assert.equal(dashboard.summary.asset_registry_pptx_template_asset_binding_count, 10);
+      assert.equal(dashboard.summary.asset_registry_html_template_asset_binding_count, 10);
+      assert.equal(dashboard.summary.asset_registry_email_template_asset_binding_count, 4);
+      assert.equal(dashboard.summary.asset_registry_metadata_hash_count, assetRegistry.summary.metadata_hash_count);
+      assert.equal(dashboard.summary.asset_registry_human_review_required_asset_count, assetRegistry.summary.human_review_required_asset_count);
+      assert.equal(dashboard.summary.asset_registry_source_attribution_required_asset_count, assetRegistry.summary.source_attribution_required_asset_count);
+      assert.equal(dashboard.summary.asset_registry_license_review_required_asset_count, assetRegistry.summary.license_review_required_asset_count);
+      assert.equal(dashboard.summary.asset_registry_format_validation_required_asset_count, assetRegistry.summary.format_validation_required_asset_count);
+      assert.equal(dashboard.summary.asset_registry_source_attribution_required_binding_count, assetRegistry.summary.source_attribution_required_binding_count);
+      assert.equal(dashboard.summary.asset_registry_license_review_required_binding_count, assetRegistry.summary.license_review_required_binding_count);
+      assert.equal(dashboard.summary.asset_registry_format_validation_required_binding_count, assetRegistry.summary.format_validation_required_binding_count);
+      assert.equal(dashboard.summary.asset_registry_runtime_freeze_status, "complete");
+      assert.equal(dashboard.summary.asset_registry_document_renderer_adapter_status, "complete");
+      assert.equal(dashboard.summary.asset_registry_output_delivery_contract_freeze_status, "complete");
+      assert.equal(dashboard.summary.asset_registry_read_only, true);
+      assert.equal(dashboard.summary.asset_registry_metadata_only, true);
+      assert.equal(dashboard.summary.asset_registry_asset_binary_write_allowed, false);
+      assert.equal(dashboard.summary.asset_registry_asset_file_ingestion_allowed, false);
+      assert.equal(dashboard.summary.asset_registry_media_generation_allowed, false);
+      assert.equal(dashboard.summary.asset_registry_core_registry_mutation_allowed, false);
+      assert.equal(dashboard.summary.asset_registry_renderer_execution_allowed, false);
+      assert.equal(dashboard.summary.asset_registry_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.asset_registry_protected_action_allowed, false);
+      assert.equal(dashboard.summary.asset_registry_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.asset_registry_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.asset_registry_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.asset_registry_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -17172,6 +17303,56 @@ describe("matter harness", () => {
       assert.equal(styleRegistryStage?.metrics.client_facing_ready_count, 0);
       assert.equal(styleRegistryStage?.metrics.failed_checkpoint_count, 0);
       assert.equal(styleRegistryStage?.metrics.validation_error_count, 0);
+      const assetRegistryStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "asset_registry");
+      assert.equal(assetRegistryStage?.status, "passed");
+      assert.equal(assetRegistryStage?.metrics.asset_registry_status, "complete");
+      assert.equal(assetRegistryStage?.metrics.source_style_registry_status, "complete");
+      assert.equal(assetRegistryStage?.metrics.source_template_registry_status, "complete");
+      assert.equal(assetRegistryStage?.metrics.source_creative_document_pack_manifest_status, "complete");
+      assert.equal(assetRegistryStage?.metrics.asset_record_count, assetRegistry.summary.asset_record_count);
+      assert.equal(assetRegistryStage?.metrics.registered_asset_record_count, assetRegistry.summary.registered_asset_record_count);
+      assert.equal(assetRegistryStage?.metrics.required_asset_type_count, 5);
+      assert.equal(assetRegistryStage?.metrics.covered_asset_type_count, 5);
+      assert.equal(assetRegistryStage?.metrics.asset_type_record_count, assetRegistry.summary.asset_type_record_count);
+      assert.equal(assetRegistryStage?.metrics.asset_artifact_policy_count, assetRegistry.summary.asset_artifact_policy_count);
+      assert.equal(assetRegistryStage?.metrics.registered_asset_artifact_policy_count, assetRegistry.summary.registered_asset_artifact_policy_count);
+      assert.equal(assetRegistryStage?.metrics.template_asset_binding_count, assetRegistry.summary.template_asset_binding_count);
+      assert.equal(assetRegistryStage?.metrics.linked_template_asset_binding_count, assetRegistry.summary.linked_template_asset_binding_count);
+      assert.equal(assetRegistryStage?.metrics.required_format_count, 4);
+      assert.equal(assetRegistryStage?.metrics.covered_format_count, 4);
+      assert.equal(assetRegistryStage?.metrics.image_asset_count, 1);
+      assert.equal(assetRegistryStage?.metrics.logo_asset_count, 1);
+      assert.equal(assetRegistryStage?.metrics.graph_asset_count, 1);
+      assert.equal(assetRegistryStage?.metrics.table_asset_count, 1);
+      assert.equal(assetRegistryStage?.metrics.video_asset_count, 1);
+      assert.equal(assetRegistryStage?.metrics.docx_template_asset_binding_count, 4);
+      assert.equal(assetRegistryStage?.metrics.pptx_template_asset_binding_count, 10);
+      assert.equal(assetRegistryStage?.metrics.html_template_asset_binding_count, 10);
+      assert.equal(assetRegistryStage?.metrics.email_template_asset_binding_count, 4);
+      assert.equal(assetRegistryStage?.metrics.metadata_hash_count, assetRegistry.summary.metadata_hash_count);
+      assert.equal(assetRegistryStage?.metrics.human_review_required_asset_count, assetRegistry.summary.human_review_required_asset_count);
+      assert.equal(assetRegistryStage?.metrics.source_attribution_required_asset_count, assetRegistry.summary.source_attribution_required_asset_count);
+      assert.equal(assetRegistryStage?.metrics.license_review_required_asset_count, assetRegistry.summary.license_review_required_asset_count);
+      assert.equal(assetRegistryStage?.metrics.format_validation_required_asset_count, assetRegistry.summary.format_validation_required_asset_count);
+      assert.equal(assetRegistryStage?.metrics.source_attribution_required_binding_count, assetRegistry.summary.source_attribution_required_binding_count);
+      assert.equal(assetRegistryStage?.metrics.license_review_required_binding_count, assetRegistry.summary.license_review_required_binding_count);
+      assert.equal(assetRegistryStage?.metrics.format_validation_required_binding_count, assetRegistry.summary.format_validation_required_binding_count);
+      assert.equal(assetRegistryStage?.metrics.runtime_freeze_status, "complete");
+      assert.equal(assetRegistryStage?.metrics.document_renderer_adapter_status, "complete");
+      assert.equal(assetRegistryStage?.metrics.output_delivery_contract_freeze_status, "complete");
+      assert.equal(assetRegistryStage?.metrics.read_only, true);
+      assert.equal(assetRegistryStage?.metrics.metadata_registry_only, true);
+      assert.equal(assetRegistryStage?.metrics.asset_binary_write_allowed, false);
+      assert.equal(assetRegistryStage?.metrics.asset_file_ingestion_allowed, false);
+      assert.equal(assetRegistryStage?.metrics.media_generation_allowed, false);
+      assert.equal(assetRegistryStage?.metrics.core_registry_mutation_allowed, false);
+      assert.equal(assetRegistryStage?.metrics.renderer_execution_allowed, false);
+      assert.equal(assetRegistryStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(assetRegistryStage?.metrics.protected_action_allowed, false);
+      assert.equal(assetRegistryStage?.metrics.client_facing_output_generated, false);
+      assert.equal(assetRegistryStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(assetRegistryStage?.metrics.failed_checkpoint_count, 0);
+      assert.equal(assetRegistryStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -19052,6 +19233,42 @@ describe("matter harness", () => {
       const styleRegistryValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/style-registry-validations?status=passed", apiOptions)).body);
       assert.equal(styleRegistryValidationsResponse.collection, "style_registry_validations");
       assert.equal(styleRegistryValidationsResponse.count, styleRegistry.summary.validation_item_count);
+
+      const assetRegistriesResponse = JSON.parse((await buildReviewApiResponse("/api/asset-registries?asset_registry_status=complete", apiOptions)).body);
+      assert.equal(assetRegistriesResponse.collection, "asset_registries");
+      assert.equal(assetRegistriesResponse.count, 1);
+
+      const assetRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/asset-records?asset_status=registered", apiOptions)).body);
+      assert.equal(assetRecordsResponse.collection, "asset_records");
+      assert.equal(assetRecordsResponse.count, assetRegistry.summary.registered_asset_record_count);
+
+      const videoAssetRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/asset-records?asset_type=video", apiOptions)).body);
+      assert.equal(videoAssetRecordsResponse.collection, "asset_records");
+      assert.equal(videoAssetRecordsResponse.count, assetRegistry.summary.video_asset_count);
+
+      const assetTypeRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/asset-type-records?asset_type_status=covered", apiOptions)).body);
+      assert.equal(assetTypeRecordsResponse.collection, "asset_type_records");
+      assert.equal(assetTypeRecordsResponse.count, assetRegistry.summary.covered_asset_type_count);
+
+      const assetArtifactPoliciesResponse = JSON.parse((await buildReviewApiResponse("/api/asset-artifact-policies?asset_artifact_policy_status=registered", apiOptions)).body);
+      assert.equal(assetArtifactPoliciesResponse.collection, "asset_artifact_policies");
+      assert.equal(assetArtifactPoliciesResponse.count, assetRegistry.summary.registered_asset_artifact_policy_count);
+
+      const templateAssetBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/template-asset-bindings?template_asset_binding_status=linked", apiOptions)).body);
+      assert.equal(templateAssetBindingsResponse.collection, "template_asset_bindings");
+      assert.equal(templateAssetBindingsResponse.count, assetRegistry.summary.linked_template_asset_binding_count);
+
+      const tableTemplateAssetBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/template-asset-bindings?asset_type=table", apiOptions)).body);
+      assert.equal(tableTemplateAssetBindingsResponse.collection, "template_asset_bindings");
+      assert.equal(tableTemplateAssetBindingsResponse.count, 7);
+
+      const assetFormatCoverageResponse = JSON.parse((await buildReviewApiResponse("/api/asset-format-coverage?asset_format_coverage_status=covered", apiOptions)).body);
+      assert.equal(assetFormatCoverageResponse.collection, "asset_format_coverage");
+      assert.equal(assetFormatCoverageResponse.count, assetRegistry.summary.covered_format_count);
+
+      const assetRegistryValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/asset-registry-validations?status=passed", apiOptions)).body);
+      assert.equal(assetRegistryValidationsResponse.collection, "asset_registry_validations");
+      assert.equal(assetRegistryValidationsResponse.count, assetRegistry.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

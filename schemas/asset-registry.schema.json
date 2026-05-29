@@ -1,0 +1,355 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/asset-registry.schema.json",
+  "title": "Asset Registry",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "asset_registry_id",
+    "asset_registry_status",
+    "safe_handling",
+    "asset_registry_contract",
+    "asset_registry_boundary",
+    "asset_records",
+    "asset_type_records",
+    "asset_artifact_policies",
+    "template_asset_bindings",
+    "asset_format_coverage",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "asset-registry.v1" },
+    "generated_at": { "type": "string", "minLength": 1 },
+    "asset_registry_id": { "type": "string", "minLength": 1 },
+    "asset_registry_status": { "const": "complete" },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "report_only",
+        "asset_registry_generated",
+        "metadata_registry_only",
+        "source_attribution_required",
+        "license_review_required",
+        "human_review_required",
+        "format_validation_required",
+        "media_generation_performed",
+        "asset_file_ingestion_performed",
+        "asset_binary_write_performed",
+        "renderer_execution_performed",
+        "delivery_execution_performed",
+        "protected_mutation_performed",
+        "core_registry_mutation_performed",
+        "client_facing_output_generated"
+      ],
+      "properties": {
+        "report_only": { "const": true },
+        "asset_registry_generated": { "const": true },
+        "metadata_registry_only": { "const": true },
+        "source_attribution_required": { "const": true },
+        "license_review_required": { "const": true },
+        "human_review_required": { "const": true },
+        "format_validation_required": { "const": true },
+        "media_generation_performed": { "const": false },
+        "asset_file_ingestion_performed": { "const": false },
+        "asset_binary_write_performed": { "const": false },
+        "renderer_execution_performed": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "protected_mutation_performed": { "const": false },
+        "core_registry_mutation_performed": { "const": false },
+        "client_facing_output_generated": { "const": false }
+      }
+    },
+    "asset_registry_contract": {
+      "type": "object",
+      "required": ["contract_id", "registry_scope", "source_of_truth", "required_asset_types", "required_formats"],
+      "properties": {
+        "contract_id": { "const": "asset-registry.v1" },
+        "registry_scope": { "const": "creative_and_document_domain_pack" },
+        "source_of_truth": { "const": "style_registry_template_bindings_and_asset_metadata_policy" },
+        "required_asset_types": {
+          "type": "array",
+          "minItems": 5,
+          "contains": { "const": "image" }
+        },
+        "required_formats": {
+          "type": "array",
+          "minItems": 4,
+          "contains": { "const": "docx" }
+        }
+      }
+    },
+    "asset_registry_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "read_only",
+        "metadata_registry_only",
+        "asset_binary_write_allowed",
+        "asset_file_ingestion_allowed",
+        "media_generation_allowed",
+        "core_registry_mutation_allowed",
+        "renderer_execution_allowed",
+        "delivery_execution_allowed",
+        "protected_action_allowed",
+        "client_facing_output_generated",
+        "client_facing_ready_count"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "read_only": { "const": true },
+        "metadata_registry_only": { "const": true },
+        "asset_binary_write_allowed": { "const": false },
+        "asset_file_ingestion_allowed": { "const": false },
+        "media_generation_allowed": { "const": false },
+        "core_registry_mutation_allowed": { "const": false },
+        "renderer_execution_allowed": { "const": false },
+        "delivery_execution_allowed": { "const": false },
+        "protected_action_allowed": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "client_facing_ready_count": { "const": 0 }
+      }
+    },
+    "asset_records": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "asset_id",
+          "asset_type",
+          "asset_family",
+          "asset_status",
+          "artifact_management_status",
+          "file_presence_status",
+          "metadata_hash",
+          "source_attribution_required",
+          "license_review_required",
+          "accessibility_text_required",
+          "human_review_required",
+          "format_validation_required",
+          "media_generation_performed",
+          "asset_file_ingestion_performed",
+          "asset_binary_write_performed",
+          "renderer_execution_performed",
+          "delivery_execution_performed",
+          "protected_action_executed",
+          "client_facing_ready",
+          "client_facing_output_generated"
+        ],
+        "properties": {
+          "asset_type": { "enum": ["image", "logo", "graph", "table", "video"] },
+          "asset_status": { "const": "registered" },
+          "artifact_management_status": { "const": "metadata_registered" },
+          "file_presence_status": { "const": "metadata_only_no_binary" },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "source_attribution_required": { "const": true },
+          "license_review_required": { "const": true },
+          "accessibility_text_required": { "const": true },
+          "human_review_required": { "const": true },
+          "format_validation_required": { "const": true },
+          "media_generation_performed": { "const": false },
+          "asset_file_ingestion_performed": { "const": false },
+          "asset_binary_write_performed": { "const": false },
+          "renderer_execution_performed": { "const": false },
+          "delivery_execution_performed": { "const": false },
+          "protected_action_executed": { "const": false },
+          "client_facing_ready": { "const": false },
+          "client_facing_output_generated": { "const": false }
+        }
+      }
+    },
+    "asset_type_records": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["asset_type", "asset_type_status", "asset_count", "artifact_managed_asset_count", "metadata_hash"],
+        "properties": {
+          "asset_type": { "enum": ["image", "logo", "graph", "table", "video"] },
+          "asset_type_status": { "const": "covered" },
+          "asset_count": { "type": "integer", "minimum": 1 },
+          "artifact_managed_asset_count": { "type": "integer", "minimum": 1 },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+        }
+      }
+    },
+    "asset_artifact_policies": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "asset_artifact_policy_id",
+          "asset_type",
+          "asset_artifact_policy_status",
+          "managed_as_artifact",
+          "metadata_artifact_required",
+          "binary_storage_allowed",
+          "source_attribution_required",
+          "license_review_required",
+          "accessibility_text_required",
+          "media_generation_allowed",
+          "asset_file_ingestion_allowed",
+          "asset_binary_write_allowed",
+          "renderer_execution_allowed",
+          "delivery_execution_allowed",
+          "protected_action_allowed",
+          "metadata_hash"
+        ],
+        "properties": {
+          "asset_type": { "enum": ["image", "logo", "graph", "table", "video"] },
+          "asset_artifact_policy_status": { "const": "registered" },
+          "managed_as_artifact": { "const": true },
+          "metadata_artifact_required": { "const": true },
+          "binary_storage_allowed": { "const": false },
+          "source_attribution_required": { "const": true },
+          "license_review_required": { "const": true },
+          "accessibility_text_required": { "const": true },
+          "media_generation_allowed": { "const": false },
+          "asset_file_ingestion_allowed": { "const": false },
+          "asset_binary_write_allowed": { "const": false },
+          "renderer_execution_allowed": { "const": false },
+          "delivery_execution_allowed": { "const": false },
+          "protected_action_allowed": { "const": false },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+        }
+      }
+    },
+    "template_asset_bindings": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "template_asset_binding_id",
+          "template_id",
+          "template_format",
+          "asset_id",
+          "asset_type",
+          "asset_artifact_policy_id",
+          "binding_status",
+          "metadata_hash",
+          "source_attribution_required",
+          "license_review_required",
+          "accessibility_text_required",
+          "human_review_required",
+          "format_validation_required",
+          "media_generation_performed",
+          "asset_file_ingestion_performed",
+          "asset_binary_write_performed",
+          "renderer_execution_performed",
+          "delivery_execution_performed",
+          "protected_action_executed",
+          "client_facing_ready",
+          "client_facing_output_generated"
+        ],
+        "properties": {
+          "template_format": { "enum": ["docx", "pptx", "html", "email"] },
+          "asset_type": { "enum": ["image", "logo", "graph", "table", "video"] },
+          "binding_status": { "const": "linked" },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "source_attribution_required": { "const": true },
+          "license_review_required": { "const": true },
+          "accessibility_text_required": { "const": true },
+          "human_review_required": { "const": true },
+          "format_validation_required": { "const": true },
+          "media_generation_performed": { "const": false },
+          "asset_file_ingestion_performed": { "const": false },
+          "asset_binary_write_performed": { "const": false },
+          "renderer_execution_performed": { "const": false },
+          "delivery_execution_performed": { "const": false },
+          "protected_action_executed": { "const": false },
+          "client_facing_ready": { "const": false },
+          "client_facing_output_generated": { "const": false }
+        }
+      }
+    },
+    "asset_format_coverage": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["asset_format", "asset_format_coverage_status", "template_count", "asset_binding_count"],
+        "properties": {
+          "asset_format": { "enum": ["docx", "pptx", "html", "email"] },
+          "asset_format_coverage_status": { "const": "covered" },
+          "template_count": { "type": "integer", "minimum": 1 },
+          "asset_binding_count": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "errors": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "asset_registry_status",
+        "asset_registry_contract_id",
+        "source_style_registry_status",
+        "source_template_registry_status",
+        "asset_record_count",
+        "registered_asset_record_count",
+        "required_asset_type_count",
+        "covered_asset_type_count",
+        "asset_artifact_policy_count",
+        "registered_asset_artifact_policy_count",
+        "template_asset_binding_count",
+        "linked_template_asset_binding_count",
+        "required_format_count",
+        "covered_format_count",
+        "metadata_hash_count",
+        "read_only",
+        "metadata_registry_only",
+        "asset_binary_write_allowed",
+        "asset_file_ingestion_allowed",
+        "media_generation_allowed",
+        "renderer_execution_allowed",
+        "delivery_execution_allowed",
+        "protected_action_allowed",
+        "client_facing_output_generated",
+        "client_facing_ready_count",
+        "failed_checkpoint_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "asset_registry_status": { "const": "complete" },
+        "asset_registry_contract_id": { "const": "asset-registry.v1" },
+        "source_style_registry_status": { "const": "complete" },
+        "source_template_registry_status": { "const": "complete" },
+        "asset_record_count": { "const": 5 },
+        "registered_asset_record_count": { "const": 5 },
+        "required_asset_type_count": { "const": 5 },
+        "covered_asset_type_count": { "const": 5 },
+        "asset_artifact_policy_count": { "const": 5 },
+        "registered_asset_artifact_policy_count": { "const": 5 },
+        "template_asset_binding_count": { "type": "integer", "minimum": 5 },
+        "linked_template_asset_binding_count": { "type": "integer", "minimum": 5 },
+        "required_format_count": { "const": 4 },
+        "covered_format_count": { "const": 4 },
+        "metadata_hash_count": { "type": "integer", "minimum": 20 },
+        "read_only": { "const": true },
+        "metadata_registry_only": { "const": true },
+        "asset_binary_write_allowed": { "const": false },
+        "asset_file_ingestion_allowed": { "const": false },
+        "media_generation_allowed": { "const": false },
+        "renderer_execution_allowed": { "const": false },
+        "delivery_execution_allowed": { "const": false },
+        "protected_action_allowed": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "client_facing_ready_count": { "const": 0 },
+        "failed_checkpoint_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

@@ -150,6 +150,7 @@ const GOAL_ITEMS = [
   sourceItem("erp_draft_connector", "ERP Draft Connector", "connectors", "erp_draft_connector", "control-plane-erp-draft-connector", { acceptance_profile: "erp_draft_connector_gate" }),
   sourceItem("connector_freeze", "Connector Freeze", "connectors", "connector_freeze", "control-plane-connector-freeze", { acceptance_profile: "connector_freeze_gate" }),
   sourceItem("backfill_job_contract", "Backfill Job Contract", "resource_evidence", "backfill_job_contract", "control-plane-backfill-job-contract", { acceptance_profile: "backfill_job_contract_gate" }),
+  sourceItem("expansion_cursor_ledger", "Expansion Cursor Ledger", "resource_evidence", "expansion_cursor_ledger", "control-plane-expansion-cursor-ledger", { acceptance_profile: "expansion_cursor_ledger_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -659,6 +660,7 @@ function evaluateStageAcceptance(item, stage) {
     "erp_draft_connector_gate",
     "connector_freeze_gate",
     "backfill_job_contract_gate",
+    "expansion_cursor_ledger_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -5363,6 +5365,52 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Backfill Job Contract locks P277 field, cursor, batch, count, source, and policy snapshot requirements without running backfill, reading source file contents, mutating resources, delivering output, legal advice, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "expansion_cursor_ledger_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.expansion_cursor_ledger_status === "complete"
+      && metrics.phase_slot === "P278"
+      && metrics.requested_batch_size > 0
+      && metrics.batch_item_position_count > 0
+      && metrics.portable_resume_key_complete_count === metrics.batch_item_position_count
+      && metrics.cursor_state_row_count >= 6
+      && metrics.passed_cursor_state_row_count === metrics.cursor_state_row_count
+      && metrics.batch_state_row_count >= 5
+      && metrics.passed_batch_state_row_count === metrics.batch_state_row_count
+      && metrics.resume_checkpoint_count >= 18
+      && metrics.passed_resume_checkpoint_count === metrics.resume_checkpoint_count
+      && metrics.path_portability_check_count >= 6
+      && metrics.passed_path_portability_check_count === metrics.path_portability_check_count
+      && metrics.same_batch_resume_supported === true
+      && metrics.interrupted_resume_returns_same_batch_state === true
+      && metrics.resume_batch_state_stable === true
+      && metrics.cursor_state_stable === true
+      && metrics.state_snapshot_hash_stable === true
+      && metrics.next_batch_artifact_matches_cursor === true
+      && metrics.raw_cursor_material_allowed === false
+      && metrics.source_absolute_path_identity_allowed === false
+      && metrics.state_path_treated_as_opaque === true
+      && metrics.read_only === true
+      && metrics.cursor_ledger_report_only === true
+      && metrics.backfill_execution_performed === false
+      && metrics.source_ingest_performed === false
+      && metrics.file_content_read_performed === false
+      && metrics.source_mutation_performed === false
+      && metrics.resource_mutation_performed === false
+      && metrics.state_mutation_performed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.client_facing_ready_count === 0
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Expansion Cursor Ledger locks P278 cursor, batch, resume checkpoint, and portable path-state rules without running backfill, reading source file contents, mutating resources/state, delivering output, legal advice, or client-facing output.");
     }
   }
 

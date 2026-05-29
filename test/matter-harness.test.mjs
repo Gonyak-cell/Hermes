@@ -77,6 +77,7 @@ import { runPlaudTranscriptConnector } from "../src/plaud-transcript-connector.m
 import { runErpDraftConnector } from "../src/erp-draft-connector.mjs";
 import { runConnectorFreeze } from "../src/connector-freeze.mjs";
 import { runBackfillJobContract } from "../src/backfill-job-contract.mjs";
+import { runExpansionCursorLedger } from "../src/expansion-cursor-ledger.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1949,6 +1950,7 @@ describe("matter harness", () => {
         erpDraftConnectorPath: path.join(outDir, "erp-draft-connector", "erp-draft-connector.json"),
         connectorFreezePath: path.join(outDir, "connector-freeze", "connector-freeze.json"),
         backfillJobContractPath: path.join(outDir, "backfill-job-contract", "backfill-job-contract.json"),
+        expansionCursorLedgerPath: path.join(outDir, "expansion-cursor-ledger", "expansion-cursor-ledger.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11448,6 +11450,64 @@ describe("matter harness", () => {
       assert.equal(backfillJobContract.backfill_job_boundary.file_content_read_performed, false);
       assert.match(await readFile(path.join(outDir, "backfill-job-contract", "summary.md"), "utf8"), /Backfill Job Contract/);
 
+      const expansionCursorLedger = await runExpansionCursorLedger({
+        resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
+        resourceExpansionStatePath: path.join(outDir, "resource-expansion-state.json"),
+        nextBatchPath: path.join(outDir, "next-batch.json"),
+        backfillJobContractPath: path.join(outDir, "backfill-job-contract", "backfill-job-contract.json"),
+        outDir: path.join(outDir, "expansion-cursor-ledger"),
+        runAt: "2026-05-23T07:19:24.000Z",
+      });
+      const expansionCursorLedgerSchema = JSON.parse(await readFile("schemas/expansion-cursor-ledger.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(expansionCursorLedger, expansionCursorLedgerSchema, {}, "expansion_cursor_ledger"), [], JSON.stringify(expansionCursorLedger.validation.errors));
+      assert.equal(expansionCursorLedger.summary.expansion_cursor_ledger_status, "complete");
+      assert.equal(expansionCursorLedger.summary.phase_slot, "P278");
+      assert.equal(expansionCursorLedger.summary.previous_phase_slot, "P277");
+      assert.equal(expansionCursorLedger.summary.next_phase_slot, "P279");
+      assert.equal(expansionCursorLedger.summary.source_backfill_job_contract_status, "complete");
+      assert.equal(expansionCursorLedger.summary.requested_batch_size > 0, true);
+      assert.equal(expansionCursorLedger.summary.batch_item_position_count, second.items.length);
+      assert.equal(expansionCursorLedger.summary.portable_resume_key_complete_count, expansionCursorLedger.summary.batch_item_position_count);
+      assert.equal(expansionCursorLedger.summary.cursor_state_row_count, 6);
+      assert.equal(expansionCursorLedger.summary.passed_cursor_state_row_count, 6);
+      assert.equal(expansionCursorLedger.summary.batch_state_row_count, 5);
+      assert.equal(expansionCursorLedger.summary.passed_batch_state_row_count, 5);
+      assert.equal(expansionCursorLedger.summary.resume_checkpoint_count, 18);
+      assert.equal(expansionCursorLedger.summary.passed_resume_checkpoint_count, 18);
+      assert.equal(expansionCursorLedger.summary.path_portability_check_count, 6);
+      assert.equal(expansionCursorLedger.summary.passed_path_portability_check_count, 6);
+      assert.equal(expansionCursorLedger.summary.same_batch_resume_supported, true);
+      assert.equal(expansionCursorLedger.summary.interrupted_resume_returns_same_batch_state, true);
+      assert.equal(expansionCursorLedger.summary.resume_batch_state_stable, true);
+      assert.equal(expansionCursorLedger.summary.cursor_state_stable, true);
+      assert.equal(expansionCursorLedger.summary.state_snapshot_hash_stable, true);
+      assert.equal(expansionCursorLedger.summary.next_batch_artifact_matches_cursor, true);
+      assert.equal(expansionCursorLedger.summary.raw_cursor_material_allowed, false);
+      assert.equal(expansionCursorLedger.summary.source_absolute_path_identity_allowed, false);
+      assert.equal(expansionCursorLedger.summary.state_path_treated_as_opaque, true);
+      assert.equal(expansionCursorLedger.summary.backfill_execution_performed, false);
+      assert.equal(expansionCursorLedger.summary.source_ingest_performed, false);
+      assert.equal(expansionCursorLedger.summary.file_content_read_performed, false);
+      assert.equal(expansionCursorLedger.summary.source_mutation_performed, false);
+      assert.equal(expansionCursorLedger.summary.resource_mutation_performed, false);
+      assert.equal(expansionCursorLedger.summary.state_mutation_performed, false);
+      assert.equal(expansionCursorLedger.summary.delivery_execution_performed, false);
+      assert.equal(expansionCursorLedger.summary.protected_action_executed, false);
+      assert.equal(expansionCursorLedger.summary.legal_advice_generated, false);
+      assert.equal(expansionCursorLedger.summary.client_facing_output_generated, false);
+      assert.equal(expansionCursorLedger.summary.windows_baseline_stability_preserved, true);
+      assert.equal(expansionCursorLedger.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(expansionCursorLedger.summary.failed_checkpoint_count, 0);
+      assert.equal(expansionCursorLedger.summary.validation_error_count, 0);
+      assert.ok(expansionCursorLedger.cursor_state_rows.every((row) => row.cursor_state_status === "passed"));
+      assert.ok(expansionCursorLedger.batch_state_rows.every((row) => row.batch_state_status === "passed"));
+      assert.ok(expansionCursorLedger.resume_checkpoint_rows.every((row) => row.checkpoint_status === "passed"));
+      assert.ok(expansionCursorLedger.batch_item_positions.every((row) => row.resume_key_status === "portable" && row.source_path_used_for_resume_identity === false && row.human_review_required && row.client_facing_ready === false));
+      assert.ok(expansionCursorLedger.path_portability_checks.every((row) => row.path_portability_status === "passed" && row.source_absolute_path_identity_allowed === false));
+      assert.equal(expansionCursorLedger.expansion_cursor_boundary.backfill_execution_performed, false);
+      assert.equal(expansionCursorLedger.expansion_cursor_boundary.file_content_read_performed, false);
+      assert.match(await readFile(path.join(outDir, "expansion-cursor-ledger", "summary.md"), "utf8"), /Expansion Cursor Ledger/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -11649,6 +11709,7 @@ describe("matter harness", () => {
           erp_draft_connector: path.join(outDir, "erp-draft-connector", "erp-draft-connector.json"),
           connector_freeze: path.join(outDir, "connector-freeze", "connector-freeze.json"),
           backfill_job_contract: path.join(outDir, "backfill-job-contract", "backfill-job-contract.json"),
+          expansion_cursor_ledger: path.join(outDir, "expansion-cursor-ledger", "expansion-cursor-ledger.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11700,8 +11761,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 179);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 179);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 180);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 180);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -11868,6 +11929,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "erp_draft_connector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "connector_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "backfill_job_contract"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "expansion_cursor_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -11910,6 +11972,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.fixture_validation_results.every((result) => result.regression_status === "passed"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:validate"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:backfill-job-contract"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:expansion-cursor-ledger"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:runtime-interface"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:approval-matrix"));
@@ -12749,6 +12812,10 @@ describe("matter harness", () => {
       assert.equal(backfillJobContractCheckpoint?.acceptance_profile, "backfill_job_contract_gate");
       assert.equal(backfillJobContractCheckpoint?.status, "passed");
       assert.equal(backfillJobContractCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const expansionCursorLedgerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-expansion-cursor-ledger");
+      assert.equal(expansionCursorLedgerCheckpoint?.acceptance_profile, "expansion_cursor_ledger_gate");
+      assert.equal(expansionCursorLedgerCheckpoint?.status, "passed");
+      assert.equal(expansionCursorLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -17469,6 +17536,38 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.backfill_job_contract_client_facing_output_generated, false);
       assert.equal(dashboard.summary.backfill_job_contract_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.backfill_job_contract_validation_error_count, 0);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_status, "complete");
+      assert.equal(dashboard.summary.expansion_cursor_ledger_phase_slot, "P278");
+      assert.equal(dashboard.summary.expansion_cursor_ledger_previous_phase_slot, "P277");
+      assert.equal(dashboard.summary.expansion_cursor_ledger_next_phase_slot, "P279");
+      assert.equal(dashboard.summary.expansion_cursor_ledger_source_backfill_job_contract_status, "complete");
+      assert.equal(dashboard.summary.expansion_cursor_ledger_requested_batch_size, expansionCursorLedger.summary.requested_batch_size);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_batch_item_position_count, expansionCursorLedger.summary.batch_item_position_count);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_portable_resume_key_complete_count, expansionCursorLedger.summary.portable_resume_key_complete_count);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_cursor_state_row_count, 6);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_passed_cursor_state_row_count, 6);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_batch_state_row_count, 5);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_passed_batch_state_row_count, 5);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_resume_checkpoint_count, 18);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_passed_resume_checkpoint_count, 18);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_path_portability_check_count, 6);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_passed_path_portability_check_count, 6);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_same_batch_resume_supported, true);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_interrupted_resume_returns_same_batch_state, true);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_resume_batch_state_stable, true);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_cursor_state_stable, true);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_state_snapshot_hash_stable, true);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_next_batch_artifact_matches_cursor, true);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_raw_cursor_material_allowed, false);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_source_absolute_path_identity_allowed, false);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_state_path_treated_as_opaque, true);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_backfill_execution_performed, false);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_file_content_read_performed, false);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_legal_advice_generated, false);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.expansion_cursor_ledger_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -20624,6 +20723,33 @@ describe("matter harness", () => {
       assert.equal(backfillJobContractStage?.metrics.file_content_read_performed, false);
       assert.equal(backfillJobContractStage?.metrics.windows_baseline_stability_preserved, true);
       assert.equal(backfillJobContractStage?.metrics.validation_error_count, 0);
+      const expansionCursorLedgerStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "expansion_cursor_ledger");
+      assert.equal(expansionCursorLedgerStage?.status, "passed");
+      assert.equal(expansionCursorLedgerStage?.metrics.expansion_cursor_ledger_status, "complete");
+      assert.equal(expansionCursorLedgerStage?.metrics.phase_slot, "P278");
+      assert.equal(expansionCursorLedgerStage?.metrics.previous_phase_slot, "P277");
+      assert.equal(expansionCursorLedgerStage?.metrics.next_phase_slot, "P279");
+      assert.equal(expansionCursorLedgerStage?.metrics.batch_item_position_count, expansionCursorLedger.summary.batch_item_position_count);
+      assert.equal(expansionCursorLedgerStage?.metrics.portable_resume_key_complete_count, expansionCursorLedger.summary.batch_item_position_count);
+      assert.equal(expansionCursorLedgerStage?.metrics.cursor_state_row_count, 6);
+      assert.equal(expansionCursorLedgerStage?.metrics.passed_cursor_state_row_count, 6);
+      assert.equal(expansionCursorLedgerStage?.metrics.batch_state_row_count, 5);
+      assert.equal(expansionCursorLedgerStage?.metrics.passed_batch_state_row_count, 5);
+      assert.equal(expansionCursorLedgerStage?.metrics.resume_checkpoint_count, 18);
+      assert.equal(expansionCursorLedgerStage?.metrics.passed_resume_checkpoint_count, 18);
+      assert.equal(expansionCursorLedgerStage?.metrics.path_portability_check_count, 6);
+      assert.equal(expansionCursorLedgerStage?.metrics.passed_path_portability_check_count, 6);
+      assert.equal(expansionCursorLedgerStage?.metrics.same_batch_resume_supported, true);
+      assert.equal(expansionCursorLedgerStage?.metrics.interrupted_resume_returns_same_batch_state, true);
+      assert.equal(expansionCursorLedgerStage?.metrics.raw_cursor_material_allowed, false);
+      assert.equal(expansionCursorLedgerStage?.metrics.source_absolute_path_identity_allowed, false);
+      assert.equal(expansionCursorLedgerStage?.metrics.state_path_treated_as_opaque, true);
+      assert.equal(expansionCursorLedgerStage?.metrics.backfill_execution_performed, false);
+      assert.equal(expansionCursorLedgerStage?.metrics.file_content_read_performed, false);
+      assert.equal(expansionCursorLedgerStage?.metrics.legal_advice_generated, false);
+      assert.equal(expansionCursorLedgerStage?.metrics.client_facing_output_generated, false);
+      assert.equal(expansionCursorLedgerStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(expansionCursorLedgerStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -20712,6 +20838,13 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/backfill-job-count-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/backfill-job-policy-bindings"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/backfill-job-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-cursor-ledgers"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-cursor-state-rows"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-batch-state-rows"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-resume-checkpoints"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-batch-item-positions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-cursor-path-portability-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-cursor-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -23168,6 +23301,34 @@ describe("matter harness", () => {
       const backfillJobValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/backfill-job-validations?status=passed", apiOptions)).body);
       assert.equal(backfillJobValidationsResponse.collection, "backfill_job_validations");
       assert.equal(backfillJobValidationsResponse.count, backfillJobContract.summary.validation_item_count);
+
+      const expansionCursorLedgersResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-cursor-ledgers?expansion_cursor_ledger_status=complete", apiOptions)).body);
+      assert.equal(expansionCursorLedgersResponse.collection, "expansion_cursor_ledgers");
+      assert.equal(expansionCursorLedgersResponse.count, 1);
+
+      const expansionCursorRowsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-cursor-state-rows?expansion_cursor_state_status=passed", apiOptions)).body);
+      assert.equal(expansionCursorRowsResponse.collection, "expansion_cursor_state_rows");
+      assert.equal(expansionCursorRowsResponse.count, expansionCursorLedger.summary.cursor_state_row_count);
+
+      const expansionBatchRowsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-batch-state-rows?expansion_batch_state_status=passed", apiOptions)).body);
+      assert.equal(expansionBatchRowsResponse.collection, "expansion_batch_state_rows");
+      assert.equal(expansionBatchRowsResponse.count, expansionCursorLedger.summary.batch_state_row_count);
+
+      const expansionResumeCheckpointsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-resume-checkpoints?expansion_resume_checkpoint_status=passed", apiOptions)).body);
+      assert.equal(expansionResumeCheckpointsResponse.collection, "expansion_resume_checkpoints");
+      assert.equal(expansionResumeCheckpointsResponse.count, expansionCursorLedger.summary.resume_checkpoint_count);
+
+      const expansionBatchItemPositionsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-batch-item-positions?expansion_resume_key_status=portable", apiOptions)).body);
+      assert.equal(expansionBatchItemPositionsResponse.collection, "expansion_batch_item_positions");
+      assert.equal(expansionBatchItemPositionsResponse.count, expansionCursorLedger.summary.batch_item_position_count);
+
+      const expansionPathPortabilityResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-cursor-path-portability-checks?expansion_path_portability_status=passed", apiOptions)).body);
+      assert.equal(expansionPathPortabilityResponse.collection, "expansion_cursor_path_portability_checks");
+      assert.equal(expansionPathPortabilityResponse.count, expansionCursorLedger.summary.path_portability_check_count);
+
+      const expansionCursorValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-cursor-validations?status=passed", apiOptions)).body);
+      assert.equal(expansionCursorValidationsResponse.collection, "expansion_cursor_validations");
+      assert.equal(expansionCursorValidationsResponse.count, expansionCursorLedger.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

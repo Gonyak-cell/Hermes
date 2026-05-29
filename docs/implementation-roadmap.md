@@ -7429,6 +7429,24 @@ Verification:
 - Golden fixture count increased to 179 and `backfill_job_contract` is included as a regression fixture.
 - `npm run resource:backfill-job-contract -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
 
+## Phase 278 - Expansion Cursor Ledger
+
+Goal: P278 locks the Resource Expansion cursor and batch-state ledger before any Phase 279+ backfill execution work. It keeps the accepted Windows baseline posture by making resume identity portable across Mac/Windows roots and by treating absolute paths as reference-only metadata.
+
+Implementation:
+- Added `src/expansion-cursor-ledger.mjs`, `scripts/expansion-cursor-ledger.mjs`, `schemas/expansion-cursor-ledger.schema.json`, and `docs/expansion-cursor-ledger.md`.
+- Added `resource:expansion-cursor-ledger` npm script.
+- The artifact reads Resource Expansion Job, Resource Expansion state, next-batch, Backfill Job Contract, package, ledger, roadmap, loop, dashboard, and API sources as read-only inputs and emits cursor state rows, batch state rows, resume checkpoints, batch item positions, path portability checks, boundary, validation, and summary artifacts.
+- Review Dashboard stage/summary, Review API routes/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests were wired to the new artifact.
+
+Verification:
+- Cursor state, batch state, resume checkpoint, and path portability rows all pass while remaining human-review gated and not client-facing.
+- Portable resume keys are derived from source id, relative path, size, and modified timestamp; raw cursor material and absolute source path identity are disallowed.
+- Interruption/resume is validated to return the same deterministic batch state, with the state path treated as opaque and the next-batch artifact matching the queued resume window.
+- The report performs no backfill execution, source ingest, file content read, source/resource/state mutation, delivery execution, protected action, legal advice, or client-facing output.
+- Golden fixture count increased to 180 and `expansion_cursor_ledger` is included as a regression fixture.
+- `npm run resource:expansion-cursor-ledger -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -7437,9 +7455,9 @@ Verification:
 
 운영 원칙:
 
-- Current actual completion baseline is Phase 277.
+- Current actual completion baseline is Phase 278.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- Remaining planned slots are P278-P312, 35 total.
+- Remaining planned slots are P279-P312, 34 total.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - P217 이후 personal-dev 작업은 Mac Phase 216 결과를 Windows 작업공간에서 계속 이어가되, Phase 217 본작업보다 Windows 기준선 안정화 게이트를 선행 조건으로 둔 판단을 기준으로 운영한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.

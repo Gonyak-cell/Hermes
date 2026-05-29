@@ -2616,6 +2616,34 @@ try {
   assert.equal(backfillJobValidations.collection, "backfill_job_validations");
   assert.ok(backfillJobValidations.count <= 19);
 
+  const expansionCursorLedgers = await fetchJson(`${url}/api/expansion-cursor-ledgers?expansion_cursor_ledger_status=complete&limit=1`);
+  assert.equal(expansionCursorLedgers.collection, "expansion_cursor_ledgers");
+  assert.ok(expansionCursorLedgers.count <= 1);
+
+  const expansionCursorRows = await fetchJson(`${url}/api/expansion-cursor-state-rows?expansion_cursor_state_status=passed&limit=6`);
+  assert.equal(expansionCursorRows.collection, "expansion_cursor_state_rows");
+  assert.ok(expansionCursorRows.count <= 6);
+
+  const expansionBatchRows = await fetchJson(`${url}/api/expansion-batch-state-rows?expansion_batch_state_status=passed&limit=5`);
+  assert.equal(expansionBatchRows.collection, "expansion_batch_state_rows");
+  assert.ok(expansionBatchRows.count <= 5);
+
+  const expansionResumeCheckpoints = await fetchJson(`${url}/api/expansion-resume-checkpoints?expansion_resume_checkpoint_status=passed&limit=18`);
+  assert.equal(expansionResumeCheckpoints.collection, "expansion_resume_checkpoints");
+  assert.ok(expansionResumeCheckpoints.count <= 18);
+
+  const expansionBatchItemPositions = await fetchJson(`${url}/api/expansion-batch-item-positions?expansion_resume_key_status=portable&limit=16`);
+  assert.equal(expansionBatchItemPositions.collection, "expansion_batch_item_positions");
+  assert.ok(expansionBatchItemPositions.count <= 16);
+
+  const expansionPathPortability = await fetchJson(`${url}/api/expansion-cursor-path-portability-checks?expansion_path_portability_status=passed&limit=6`);
+  assert.equal(expansionPathPortability.collection, "expansion_cursor_path_portability_checks");
+  assert.ok(expansionPathPortability.count <= 6);
+
+  const expansionCursorValidations = await fetchJson(`${url}/api/expansion-cursor-validations?status=passed&limit=23`);
+  assert.equal(expansionCursorValidations.collection, "expansion_cursor_validations");
+  assert.ok(expansionCursorValidations.count <= 23);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

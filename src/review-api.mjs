@@ -5625,6 +5625,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("backfill_job_validations", contractResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/expansion-cursor-ledgers") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "expansion_cursor_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("expansion_cursor_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_cursor_ledgers", [ledgerResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-cursor-state-rows") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "expansion_cursor_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("expansion_cursor_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_cursor_state_rows", ledgerResult.artifact.cursor_state_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-batch-state-rows") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "expansion_cursor_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("expansion_cursor_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_batch_state_rows", ledgerResult.artifact.batch_state_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-resume-checkpoints") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "expansion_cursor_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("expansion_cursor_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_resume_checkpoints", ledgerResult.artifact.resume_checkpoint_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-batch-item-positions") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "expansion_cursor_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("expansion_cursor_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_batch_item_positions", ledgerResult.artifact.batch_item_positions ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-cursor-path-portability-checks") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "expansion_cursor_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("expansion_cursor_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_cursor_path_portability_checks", ledgerResult.artifact.path_portability_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-cursor-validations") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "expansion_cursor_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("expansion_cursor_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_cursor_validations", ledgerResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -12033,6 +12082,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/backfill-job-count-contracts", "Backfill job count contract rows"),
       route("GET", "/api/backfill-job-policy-bindings", "Backfill job policy binding rows"),
       route("GET", "/api/backfill-job-validations", "Backfill job validation rows"),
+      route("GET", "/api/expansion-cursor-ledgers", "Expansion Cursor Ledger artifact"),
+      route("GET", "/api/expansion-cursor-state-rows", "Expansion cursor state rows"),
+      route("GET", "/api/expansion-batch-state-rows", "Expansion batch state rows"),
+      route("GET", "/api/expansion-resume-checkpoints", "Expansion resume checkpoint rows"),
+      route("GET", "/api/expansion-batch-item-positions", "Expansion batch item position rows"),
+      route("GET", "/api/expansion-cursor-path-portability-checks", "Expansion cursor path portability checks"),
+      route("GET", "/api/expansion-cursor-validations", "Expansion cursor validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -13155,6 +13211,13 @@ function filterItems(items, searchParams) {
     "backfill_batch_contract_status",
     "backfill_count_contract_status",
     "backfill_policy_binding_status",
+    "expansion_cursor_ledger_status",
+    "expansion_cursor_state_status",
+    "expansion_batch_state_status",
+    "expansion_resume_checkpoint_status",
+    "expansion_resume_key_status",
+    "expansion_item_status",
+    "expansion_path_portability_status",
     "path_kind",
     "gate_id",
     "thread_status",
@@ -15012,6 +15075,13 @@ function readFilterValue(item, key) {
   if (key === "backfill_batch_contract_status") return item.contract_status;
   if (key === "backfill_count_contract_status") return item.contract_status;
   if (key === "backfill_policy_binding_status") return item.policy_binding_status;
+  if (key === "expansion_cursor_ledger_status") return item.summary?.expansion_cursor_ledger_status ?? item.expansion_cursor_ledger_status;
+  if (key === "expansion_cursor_state_status") return item.cursor_state_status;
+  if (key === "expansion_batch_state_status") return item.batch_state_status;
+  if (key === "expansion_resume_checkpoint_status") return item.checkpoint_status;
+  if (key === "expansion_resume_key_status") return item.resume_key_status;
+  if (key === "expansion_item_status") return item.item_status;
+  if (key === "expansion_path_portability_status") return item.path_portability_status;
   if (key === "path_kind") return item.path_kind;
   if (key === "gate_id") return item.gate_id;
   if (key === "thread_status") return item.thread_status;

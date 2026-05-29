@@ -113,6 +113,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   erpDraftConnectorPath: "artifacts/erp-draft-connector/latest/erp-draft-connector.json",
   connectorFreezePath: "artifacts/connector-freeze/latest/connector-freeze.json",
   backfillJobContractPath: "artifacts/backfill-job-contract/latest/backfill-job-contract.json",
+  expansionCursorLedgerPath: "artifacts/expansion-cursor-ledger/latest/expansion-cursor-ledger.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -821,6 +822,11 @@ const SOURCE_DEFINITIONS = [
     option: "backfillJobContractPath",
     source_id: "backfill_job_contract",
     label: "Backfill Job Contract",
+  },
+  {
+    option: "expansionCursorLedgerPath",
+    source_id: "expansion_cursor_ledger",
+    label: "Expansion Cursor Ledger",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1803,6 +1809,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "erp_draft_connector") return data.summary ?? {};
   if (sourceId === "connector_freeze") return data.summary ?? {};
   if (sourceId === "backfill_job_contract") return data.summary ?? {};
+  if (sourceId === "expansion_cursor_ledger") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2197,6 +2204,7 @@ function buildStageStatuses(artifacts, sources) {
     buildErpDraftConnectorStage(artifacts.erp_draft_connector, sourceById.get("erp_draft_connector")),
     buildConnectorFreezeStage(artifacts.connector_freeze, sourceById.get("connector_freeze")),
     buildBackfillJobContractStage(artifacts.backfill_job_contract, sourceById.get("backfill_job_contract")),
+    buildExpansionCursorLedgerStage(artifacts.expansion_cursor_ledger, sourceById.get("expansion_cursor_ledger")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -13201,6 +13209,120 @@ function buildBackfillJobContractStage(artifact, source) {
   };
 }
 
+function buildExpansionCursorLedgerStage(artifact, source) {
+  if (!artifact) return missingStage("expansion_cursor_ledger", "Expansion Cursor Ledger", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.expansion_cursor_ledger_status !== "complete"
+    || summary.phase_slot !== "P278"
+    || summary.requested_batch_size <= 0
+    || summary.batch_item_position_count <= 0
+    || summary.portable_resume_key_complete_count !== summary.batch_item_position_count
+    || summary.cursor_state_row_count < 6
+    || summary.passed_cursor_state_row_count !== summary.cursor_state_row_count
+    || summary.batch_state_row_count < 5
+    || summary.passed_batch_state_row_count !== summary.batch_state_row_count
+    || summary.resume_checkpoint_count < 18
+    || summary.passed_resume_checkpoint_count !== summary.resume_checkpoint_count
+    || summary.path_portability_check_count < 6
+    || summary.passed_path_portability_check_count !== summary.path_portability_check_count
+    || summary.same_batch_resume_supported !== true
+    || summary.interrupted_resume_returns_same_batch_state !== true
+    || summary.resume_batch_state_stable !== true
+    || summary.cursor_state_stable !== true
+    || summary.state_snapshot_hash_stable !== true
+    || summary.next_batch_artifact_matches_cursor !== true
+    || summary.raw_cursor_material_allowed !== false
+    || summary.source_absolute_path_identity_allowed !== false
+    || summary.state_path_treated_as_opaque !== true
+    || summary.read_only !== true
+    || summary.cursor_ledger_report_only !== true
+    || summary.backfill_execution_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.file_content_read_performed !== false
+    || summary.source_mutation_performed !== false
+    || summary.resource_mutation_performed !== false
+    || summary.state_mutation_performed !== false
+    || summary.delivery_execution_performed !== false
+    || summary.protected_action_executed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.client_facing_ready_count !== 0
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || summary.failed_checkpoint_count !== 0
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "expansion_cursor_ledger",
+    label: "Expansion Cursor Ledger",
+    status,
+    message: `${summary.passed_resume_checkpoint_count ?? 0}/${summary.resume_checkpoint_count ?? 0} resume checkpoint(s), ${summary.passed_batch_state_row_count ?? 0}/${summary.batch_state_row_count ?? 0} batch state row(s), and ${summary.portable_resume_key_complete_count ?? 0}/${summary.batch_item_position_count ?? 0} portable resume key(s) passed.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      expansion_cursor_ledger_status: summary.expansion_cursor_ledger_status ?? "unknown",
+      expansion_cursor_ledger_id: summary.expansion_cursor_ledger_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_resource_expansion_schema_version: summary.source_resource_expansion_schema_version ?? null,
+      source_resource_expansion_job_id: summary.source_resource_expansion_job_id ?? null,
+      source_resource_expansion_source_id: summary.source_resource_expansion_source_id ?? null,
+      source_backfill_job_contract_status: summary.source_backfill_job_contract_status ?? null,
+      requested_batch_size: summary.requested_batch_size ?? 0,
+      processed_count: summary.processed_count ?? 0,
+      remaining_count: summary.remaining_count ?? 0,
+      queued_count: summary.queued_count ?? 0,
+      terminal_count: summary.terminal_count ?? 0,
+      discovered_count: summary.discovered_count ?? 0,
+      batch_item_position_count: summary.batch_item_position_count ?? artifact.batch_item_positions?.length ?? 0,
+      portable_resume_key_count: summary.portable_resume_key_count ?? 0,
+      portable_resume_key_complete_count: summary.portable_resume_key_complete_count ?? 0,
+      cursor_state_row_count: summary.cursor_state_row_count ?? artifact.cursor_state_rows?.length ?? 0,
+      passed_cursor_state_row_count: summary.passed_cursor_state_row_count ?? 0,
+      batch_state_row_count: summary.batch_state_row_count ?? artifact.batch_state_rows?.length ?? 0,
+      passed_batch_state_row_count: summary.passed_batch_state_row_count ?? 0,
+      resume_checkpoint_count: summary.resume_checkpoint_count ?? artifact.resume_checkpoint_rows?.length ?? 0,
+      passed_resume_checkpoint_count: summary.passed_resume_checkpoint_count ?? 0,
+      path_portability_check_count: summary.path_portability_check_count ?? artifact.path_portability_checks?.length ?? 0,
+      passed_path_portability_check_count: summary.passed_path_portability_check_count ?? 0,
+      state_item_count: summary.state_item_count ?? 0,
+      next_batch_count: summary.next_batch_count ?? 0,
+      resume_state_terminal: summary.resume_state_terminal ?? false,
+      same_batch_resume_supported: summary.same_batch_resume_supported ?? false,
+      interrupted_resume_returns_same_batch_state: summary.interrupted_resume_returns_same_batch_state ?? false,
+      resume_batch_state_stable: summary.resume_batch_state_stable ?? false,
+      cursor_state_stable: summary.cursor_state_stable ?? false,
+      state_snapshot_hash_stable: summary.state_snapshot_hash_stable ?? false,
+      next_batch_artifact_matches_cursor: summary.next_batch_artifact_matches_cursor ?? false,
+      raw_cursor_material_allowed: summary.raw_cursor_material_allowed ?? true,
+      source_absolute_path_identity_allowed: summary.source_absolute_path_identity_allowed ?? true,
+      state_path_treated_as_opaque: summary.state_path_treated_as_opaque ?? false,
+      read_only: summary.read_only ?? artifact.expansion_cursor_boundary?.read_only ?? false,
+      cursor_ledger_report_only: summary.cursor_ledger_report_only ?? artifact.expansion_cursor_boundary?.cursor_ledger_report_only ?? false,
+      source_artifact_read_performed: summary.source_artifact_read_performed ?? artifact.expansion_cursor_boundary?.source_artifact_read_performed ?? false,
+      backfill_execution_performed: summary.backfill_execution_performed ?? artifact.expansion_cursor_boundary?.backfill_execution_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? artifact.expansion_cursor_boundary?.source_ingest_performed ?? false,
+      file_content_read_performed: summary.file_content_read_performed ?? artifact.expansion_cursor_boundary?.file_content_read_performed ?? false,
+      source_mutation_performed: summary.source_mutation_performed ?? artifact.expansion_cursor_boundary?.source_mutation_performed ?? false,
+      resource_mutation_performed: summary.resource_mutation_performed ?? artifact.expansion_cursor_boundary?.resource_mutation_performed ?? false,
+      state_mutation_performed: summary.state_mutation_performed ?? artifact.expansion_cursor_boundary?.state_mutation_performed ?? false,
+      next_batch_mutation_performed: summary.next_batch_mutation_performed ?? artifact.expansion_cursor_boundary?.next_batch_mutation_performed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? artifact.expansion_cursor_boundary?.delivery_execution_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? artifact.expansion_cursor_boundary?.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? artifact.expansion_cursor_boundary?.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? artifact.expansion_cursor_boundary?.client_facing_output_generated ?? false,
+      client_facing_ready_count: summary.client_facing_ready_count ?? artifact.expansion_cursor_boundary?.client_facing_ready_count ?? 0,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? artifact.expansion_cursor_boundary?.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? artifact.expansion_cursor_boundary?.mac_windows_completion_instability_guard ?? false,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -19683,6 +19805,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_backfill_job_contract", "rerun_backfill_job_contract", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.expansion_cursor_ledger?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "expansion_cursor_ledger";
+    items.push({
+      action_item_id: `dashboard.action.expansion_cursor_ledger.${slugify(subjectId)}`,
+      source_stage: "expansion_cursor_ledger",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Expansion Cursor Ledger",
+      subject_ref: {
+        subject_type: "expansion_cursor_ledger_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_expansion_cursor_ledger", "rerun_expansion_cursor_ledger", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -26239,6 +26379,54 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     backfill_job_contract_mac_windows_completion_instability_guard: artifacts.backfill_job_contract?.summary?.mac_windows_completion_instability_guard ?? false,
     backfill_job_contract_failed_checkpoint_count: artifacts.backfill_job_contract?.summary?.failed_checkpoint_count ?? 0,
     backfill_job_contract_validation_error_count: artifacts.backfill_job_contract?.summary?.validation_error_count ?? artifacts.backfill_job_contract?.validation?.errors?.length ?? 0,
+    expansion_cursor_ledger_status: artifacts.expansion_cursor_ledger?.summary?.expansion_cursor_ledger_status ?? "unknown",
+    expansion_cursor_ledger_id: artifacts.expansion_cursor_ledger?.summary?.expansion_cursor_ledger_id ?? null,
+    expansion_cursor_ledger_phase_slot: artifacts.expansion_cursor_ledger?.summary?.phase_slot ?? null,
+    expansion_cursor_ledger_previous_phase_slot: artifacts.expansion_cursor_ledger?.summary?.previous_phase_slot ?? null,
+    expansion_cursor_ledger_next_phase_slot: artifacts.expansion_cursor_ledger?.summary?.next_phase_slot ?? null,
+    expansion_cursor_ledger_source_resource_expansion_job_id: artifacts.expansion_cursor_ledger?.summary?.source_resource_expansion_job_id ?? null,
+    expansion_cursor_ledger_source_resource_expansion_source_id: artifacts.expansion_cursor_ledger?.summary?.source_resource_expansion_source_id ?? null,
+    expansion_cursor_ledger_source_backfill_job_contract_status: artifacts.expansion_cursor_ledger?.summary?.source_backfill_job_contract_status ?? null,
+    expansion_cursor_ledger_requested_batch_size: artifacts.expansion_cursor_ledger?.summary?.requested_batch_size ?? 0,
+    expansion_cursor_ledger_processed_count: artifacts.expansion_cursor_ledger?.summary?.processed_count ?? 0,
+    expansion_cursor_ledger_remaining_count: artifacts.expansion_cursor_ledger?.summary?.remaining_count ?? 0,
+    expansion_cursor_ledger_queued_count: artifacts.expansion_cursor_ledger?.summary?.queued_count ?? 0,
+    expansion_cursor_ledger_terminal_count: artifacts.expansion_cursor_ledger?.summary?.terminal_count ?? 0,
+    expansion_cursor_ledger_discovered_count: artifacts.expansion_cursor_ledger?.summary?.discovered_count ?? 0,
+    expansion_cursor_ledger_batch_item_position_count: artifacts.expansion_cursor_ledger?.summary?.batch_item_position_count ?? 0,
+    expansion_cursor_ledger_portable_resume_key_complete_count: artifacts.expansion_cursor_ledger?.summary?.portable_resume_key_complete_count ?? 0,
+    expansion_cursor_ledger_cursor_state_row_count: artifacts.expansion_cursor_ledger?.summary?.cursor_state_row_count ?? 0,
+    expansion_cursor_ledger_passed_cursor_state_row_count: artifacts.expansion_cursor_ledger?.summary?.passed_cursor_state_row_count ?? 0,
+    expansion_cursor_ledger_batch_state_row_count: artifacts.expansion_cursor_ledger?.summary?.batch_state_row_count ?? 0,
+    expansion_cursor_ledger_passed_batch_state_row_count: artifacts.expansion_cursor_ledger?.summary?.passed_batch_state_row_count ?? 0,
+    expansion_cursor_ledger_resume_checkpoint_count: artifacts.expansion_cursor_ledger?.summary?.resume_checkpoint_count ?? 0,
+    expansion_cursor_ledger_passed_resume_checkpoint_count: artifacts.expansion_cursor_ledger?.summary?.passed_resume_checkpoint_count ?? 0,
+    expansion_cursor_ledger_path_portability_check_count: artifacts.expansion_cursor_ledger?.summary?.path_portability_check_count ?? 0,
+    expansion_cursor_ledger_passed_path_portability_check_count: artifacts.expansion_cursor_ledger?.summary?.passed_path_portability_check_count ?? 0,
+    expansion_cursor_ledger_resume_state_terminal: artifacts.expansion_cursor_ledger?.summary?.resume_state_terminal ?? false,
+    expansion_cursor_ledger_same_batch_resume_supported: artifacts.expansion_cursor_ledger?.summary?.same_batch_resume_supported ?? false,
+    expansion_cursor_ledger_interrupted_resume_returns_same_batch_state: artifacts.expansion_cursor_ledger?.summary?.interrupted_resume_returns_same_batch_state ?? false,
+    expansion_cursor_ledger_resume_batch_state_stable: artifacts.expansion_cursor_ledger?.summary?.resume_batch_state_stable ?? false,
+    expansion_cursor_ledger_cursor_state_stable: artifacts.expansion_cursor_ledger?.summary?.cursor_state_stable ?? false,
+    expansion_cursor_ledger_state_snapshot_hash_stable: artifacts.expansion_cursor_ledger?.summary?.state_snapshot_hash_stable ?? false,
+    expansion_cursor_ledger_next_batch_artifact_matches_cursor: artifacts.expansion_cursor_ledger?.summary?.next_batch_artifact_matches_cursor ?? false,
+    expansion_cursor_ledger_raw_cursor_material_allowed: artifacts.expansion_cursor_ledger?.summary?.raw_cursor_material_allowed ?? true,
+    expansion_cursor_ledger_source_absolute_path_identity_allowed: artifacts.expansion_cursor_ledger?.summary?.source_absolute_path_identity_allowed ?? true,
+    expansion_cursor_ledger_state_path_treated_as_opaque: artifacts.expansion_cursor_ledger?.summary?.state_path_treated_as_opaque ?? false,
+    expansion_cursor_ledger_backfill_execution_performed: artifacts.expansion_cursor_ledger?.summary?.backfill_execution_performed ?? false,
+    expansion_cursor_ledger_source_ingest_performed: artifacts.expansion_cursor_ledger?.summary?.source_ingest_performed ?? false,
+    expansion_cursor_ledger_file_content_read_performed: artifacts.expansion_cursor_ledger?.summary?.file_content_read_performed ?? false,
+    expansion_cursor_ledger_source_mutation_performed: artifacts.expansion_cursor_ledger?.summary?.source_mutation_performed ?? false,
+    expansion_cursor_ledger_resource_mutation_performed: artifacts.expansion_cursor_ledger?.summary?.resource_mutation_performed ?? false,
+    expansion_cursor_ledger_state_mutation_performed: artifacts.expansion_cursor_ledger?.summary?.state_mutation_performed ?? false,
+    expansion_cursor_ledger_delivery_execution_performed: artifacts.expansion_cursor_ledger?.summary?.delivery_execution_performed ?? false,
+    expansion_cursor_ledger_protected_action_executed: artifacts.expansion_cursor_ledger?.summary?.protected_action_executed ?? false,
+    expansion_cursor_ledger_legal_advice_generated: artifacts.expansion_cursor_ledger?.summary?.legal_advice_generated ?? false,
+    expansion_cursor_ledger_client_facing_output_generated: artifacts.expansion_cursor_ledger?.summary?.client_facing_output_generated ?? false,
+    expansion_cursor_ledger_windows_baseline_stability_preserved: artifacts.expansion_cursor_ledger?.summary?.windows_baseline_stability_preserved ?? false,
+    expansion_cursor_ledger_mac_windows_completion_instability_guard: artifacts.expansion_cursor_ledger?.summary?.mac_windows_completion_instability_guard ?? false,
+    expansion_cursor_ledger_failed_checkpoint_count: artifacts.expansion_cursor_ledger?.summary?.failed_checkpoint_count ?? 0,
+    expansion_cursor_ledger_validation_error_count: artifacts.expansion_cursor_ledger?.summary?.validation_error_count ?? artifacts.expansion_cursor_ledger?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -28048,6 +28236,8 @@ function parseArgs(argv) {
     else if (arg === "--no-connector-freeze") parsed.connectorFreezePath = false;
     else if (arg === "--backfill-job-contract") parsed.backfillJobContractPath = argv[++index];
     else if (arg === "--no-backfill-job-contract") parsed.backfillJobContractPath = false;
+    else if (arg === "--expansion-cursor-ledger") parsed.expansionCursorLedgerPath = argv[++index];
+    else if (arg === "--no-expansion-cursor-ledger") parsed.expansionCursorLedgerPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

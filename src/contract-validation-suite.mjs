@@ -159,6 +159,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "connectors:erp-draft",
   "connectors:freeze",
   "resource:backfill-job-contract",
+  "resource:expansion-cursor-ledger",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

@@ -130,6 +130,7 @@ const GOAL_ITEMS = [
   sourceItem("style_registry", "Style registry", "creative_document", "style_registry", "control-plane-style-registry", { acceptance_profile: "style_registry_gate" }),
   sourceItem("asset_registry", "Asset registry", "creative_document", "asset_registry", "control-plane-asset-registry", { acceptance_profile: "asset_registry_gate" }),
   sourceItem("docx_renderer", "DOCX renderer", "creative_document", "docx_renderer", "control-plane-docx-renderer", { acceptance_profile: "docx_renderer_gate" }),
+  sourceItem("pptx_renderer", "PPTX renderer", "creative_document", "pptx_renderer", "control-plane-pptx-renderer", { acceptance_profile: "pptx_renderer_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -619,6 +620,7 @@ function evaluateStageAcceptance(item, stage) {
     "style_registry_gate",
     "asset_registry_gate",
     "docx_renderer_gate",
+    "pptx_renderer_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -4374,6 +4376,64 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.failed_checkpoint_count === 0
     ) {
       return passedWithOperationalGate(stage, "DOCX Renderer generates draft DOCX artifacts from template data packets while preserving attorney review, no legal advice, no runtime execution, and no delivery.");
+    }
+  }
+
+  if (item.acceptance_profile === "pptx_renderer_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.pptx_renderer_status === "complete"
+      && metrics.source_asset_registry_status === "complete"
+      && metrics.source_style_registry_status === "complete"
+      && metrics.source_template_registry_status === "complete"
+      && metrics.source_creative_document_pack_manifest_status === "complete"
+      && metrics.pptx_template_count >= 1
+      && metrics.pptx_render_job_count >= 1
+      && metrics.completed_render_job_count === metrics.pptx_render_job_count
+      && metrics.pptx_slide_template_count === metrics.pptx_render_job_count
+      && metrics.generated_slide_template_count === metrics.pptx_slide_template_count
+      && metrics.pptx_slide_deck_count === metrics.pptx_render_job_count
+      && metrics.generated_slide_deck_count === metrics.pptx_slide_deck_count
+      && metrics.total_slide_count >= metrics.pptx_slide_deck_count
+      && metrics.pptx_openxml_part_count >= metrics.pptx_render_job_count * (metrics.required_base_openxml_part_count_per_artifact ?? 7)
+      && metrics.generated_openxml_part_count === metrics.pptx_openxml_part_count
+      && metrics.openxml_payload_hash_count === metrics.pptx_openxml_part_count
+      && metrics.pptx_output_artifact_count === metrics.pptx_render_job_count
+      && metrics.draft_output_artifact_count === metrics.pptx_output_artifact_count
+      && metrics.pptx_binary_hash_count === metrics.pptx_output_artifact_count
+      && metrics.pptx_binary_write_count === metrics.pptx_output_artifact_count
+      && metrics.pptx_overflow_check_count === metrics.pptx_slide_deck_count
+      && metrics.passed_overflow_check_count === metrics.pptx_overflow_check_count
+      && metrics.overflow_failed_check_count === 0
+      && metrics.pptx_format_validation_result_count === metrics.pptx_output_artifact_count
+      && metrics.passed_format_validation_result_count === metrics.pptx_format_validation_result_count
+      && metrics.human_review_required_output_count === metrics.pptx_output_artifact_count
+      && metrics.attorney_review_required_output_count === metrics.pptx_output_artifact_count
+      && metrics.source_attribution_required_output_count === metrics.pptx_output_artifact_count
+      && metrics.citation_review_required_output_count === metrics.pptx_output_artifact_count
+      && metrics.format_validation_required_output_count === metrics.pptx_output_artifact_count
+      && metrics.local_deterministic_renderer === true
+      && metrics.renderer_execution_performed === true
+      && metrics.local_deterministic_render_performed === true
+      && metrics.document_renderer_runtime_execution_performed === false
+      && metrics.external_renderer_execution_performed === false
+      && metrics.network_access_performed === false
+      && metrics.pptx_binary_write_performed === true
+      && metrics.core_registry_mutation_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.protected_action_allowed === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.client_facing_ready_count === 0
+      && metrics.runtime_freeze_status === "complete"
+      && metrics.document_renderer_adapter_status === "complete"
+      && metrics.document_renderer_pptx_target_supported === true
+      && metrics.output_delivery_contract_freeze_status === "complete"
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "PPTX Renderer generates draft slide decks with overflow checks and draft PPTX artifacts while preserving attorney review, no legal advice, no runtime execution, and no delivery.");
     }
   }
 

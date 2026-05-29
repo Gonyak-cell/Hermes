@@ -57,6 +57,7 @@ import { runTemplateRegistry } from "../src/creative-document-template-registry.
 import { runStyleRegistry } from "../src/creative-document-style-registry.mjs";
 import { runAssetRegistry } from "../src/creative-document-asset-registry.mjs";
 import { runDocxRenderer } from "../src/creative-document-docx-renderer.mjs";
+import { runPptxRenderer } from "../src/creative-document-pptx-renderer.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1909,6 +1910,7 @@ describe("matter harness", () => {
         styleRegistryPath: path.join(outDir, "style-registry", "style-registry.json"),
         assetRegistryPath: path.join(outDir, "asset-registry", "asset-registry.json"),
         docxRendererPath: path.join(outDir, "docx-renderer", "docx-renderer.json"),
+        pptxRendererPath: path.join(outDir, "pptx-renderer", "pptx-renderer.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10124,6 +10126,86 @@ describe("matter harness", () => {
       assert.equal(docxBytes.slice(0, 2).toString("utf8"), "PK");
       assert.match(await readFile(path.join(outDir, "docx-renderer", "summary.md"), "utf8"), /DOCX Renderer/);
 
+      const pptxRenderer = await runPptxRenderer({
+        assetRegistryPath: path.join(outDir, "asset-registry", "asset-registry.json"),
+        styleRegistryPath: path.join(outDir, "style-registry", "style-registry.json"),
+        templateRegistryPath: path.join(outDir, "template-registry", "template-registry.json"),
+        creativeDocumentPackManifestPath: path.join(outDir, "creative-document-pack-manifest", "creative-document-pack-manifest.json"),
+        domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
+        runtimeFreezePath: path.join(outDir, "runtime-freeze", "runtime-freeze.json"),
+        documentRendererAdapterPath: path.join(outDir, "document-renderer-adapter", "document-renderer-adapter.json"),
+        outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "pptx-renderer"),
+        runAt: "2026-05-23T07:00:17.000Z",
+      });
+      const pptxRendererSchema = JSON.parse(await readFile("schemas/pptx-renderer.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(pptxRenderer, pptxRendererSchema, {}, "pptx_renderer"), []);
+      assert.equal(pptxRenderer.summary.pptx_renderer_status, "complete");
+      assert.equal(pptxRenderer.summary.pptx_renderer_contract_id, "pptx-renderer.v1");
+      assert.equal(pptxRenderer.summary.source_asset_registry_status, "complete");
+      assert.equal(pptxRenderer.summary.source_style_registry_status, "complete");
+      assert.equal(pptxRenderer.summary.source_template_registry_status, "complete");
+      assert.equal(pptxRenderer.summary.source_creative_document_pack_manifest_status, "complete");
+      assert.equal(pptxRenderer.summary.source_domain_pack_registry_status, "complete");
+      assert.equal(pptxRenderer.summary.pptx_template_count, 2);
+      assert.equal(pptxRenderer.summary.pptx_render_job_count, 2);
+      assert.equal(pptxRenderer.summary.completed_render_job_count, 2);
+      assert.equal(pptxRenderer.summary.pptx_slide_template_count, 2);
+      assert.equal(pptxRenderer.summary.generated_slide_template_count, 2);
+      assert.equal(pptxRenderer.summary.pptx_slide_deck_count, 2);
+      assert.equal(pptxRenderer.summary.generated_slide_deck_count, 2);
+      assert.equal(pptxRenderer.summary.total_slide_count, 6);
+      assert.ok(pptxRenderer.summary.pptx_openxml_part_count >= 14);
+      assert.equal(pptxRenderer.summary.generated_openxml_part_count, pptxRenderer.summary.pptx_openxml_part_count);
+      assert.equal(pptxRenderer.summary.openxml_payload_hash_count, pptxRenderer.summary.pptx_openxml_part_count);
+      assert.equal(pptxRenderer.summary.pptx_output_artifact_count, 2);
+      assert.equal(pptxRenderer.summary.draft_output_artifact_count, 2);
+      assert.equal(pptxRenderer.summary.pptx_binary_hash_count, 2);
+      assert.equal(pptxRenderer.summary.pptx_binary_write_count, 2);
+      assert.equal(pptxRenderer.summary.pptx_overflow_check_count, 2);
+      assert.equal(pptxRenderer.summary.passed_overflow_check_count, 2);
+      assert.equal(pptxRenderer.summary.overflow_failed_check_count, 0);
+      assert.equal(pptxRenderer.summary.pptx_format_validation_result_count, 2);
+      assert.equal(pptxRenderer.summary.passed_format_validation_result_count, 2);
+      assert.equal(pptxRenderer.summary.human_review_required_output_count, 2);
+      assert.equal(pptxRenderer.summary.attorney_review_required_output_count, 2);
+      assert.equal(pptxRenderer.summary.source_attribution_required_output_count, 2);
+      assert.equal(pptxRenderer.summary.citation_review_required_output_count, 2);
+      assert.equal(pptxRenderer.summary.format_validation_required_output_count, 2);
+      assert.equal(pptxRenderer.summary.local_deterministic_renderer, true);
+      assert.equal(pptxRenderer.summary.renderer_execution_performed, true);
+      assert.equal(pptxRenderer.summary.local_deterministic_render_performed, true);
+      assert.equal(pptxRenderer.summary.document_renderer_runtime_execution_performed, false);
+      assert.equal(pptxRenderer.summary.external_renderer_execution_performed, false);
+      assert.equal(pptxRenderer.summary.network_access_performed, false);
+      assert.equal(pptxRenderer.summary.pptx_binary_write_performed, true);
+      assert.equal(pptxRenderer.summary.core_registry_mutation_allowed, false);
+      assert.equal(pptxRenderer.summary.delivery_execution_allowed, false);
+      assert.equal(pptxRenderer.summary.delivery_execution_performed, false);
+      assert.equal(pptxRenderer.summary.protected_action_allowed, false);
+      assert.equal(pptxRenderer.summary.protected_action_executed, false);
+      assert.equal(pptxRenderer.summary.legal_advice_generated, false);
+      assert.equal(pptxRenderer.summary.client_facing_output_generated, false);
+      assert.equal(pptxRenderer.summary.client_facing_ready_count, 0);
+      assert.equal(pptxRenderer.summary.runtime_freeze_status, "complete");
+      assert.equal(pptxRenderer.summary.document_renderer_adapter_status, "complete");
+      assert.equal(pptxRenderer.summary.document_renderer_pptx_target_supported, true);
+      assert.equal(pptxRenderer.summary.output_delivery_contract_freeze_status, "complete");
+      assert.equal(pptxRenderer.summary.failed_checkpoint_count, 0);
+      assert.equal(pptxRenderer.summary.validation_error_count, 0);
+      assert.ok(pptxRenderer.pptx_render_jobs.every((job) => job.pptx_render_job_status === "complete" && job.template_format === "pptx" && job.metadata_hash.startsWith("sha256:") && job.local_deterministic_render_performed && job.pptx_binary_write_performed && job.document_renderer_runtime_execution_performed === false && job.client_facing_ready === false));
+      assert.ok(pptxRenderer.pptx_slide_templates.every((template) => template.slide_template_status === "generated" && template.metadata_hash.startsWith("sha256:") && template.placeholder_count >= 4));
+      assert.ok(pptxRenderer.pptx_slide_decks.every((deck) => deck.slide_deck_status === "generated" && deck.deck_hash.startsWith("sha256:") && deck.slide_count === 3 && deck.human_review_note.includes("Not legal advice")));
+      assert.ok(pptxRenderer.pptx_openxml_parts.every((part) => part.openxml_part_status === "generated" && part.openxml_payload_hash.startsWith("sha256:")));
+      assert.ok(pptxRenderer.pptx_output_artifacts.every((artifact) => artifact.output_artifact_status === "draft_generated" && artifact.output_format === "pptx" && artifact.pptx_binary_hash.startsWith("sha256:") && artifact.human_review_required && artifact.attorney_review_required && artifact.legal_advice_generated === false && artifact.delivery_execution_performed === false && artifact.client_facing_ready === false));
+      assert.ok(pptxRenderer.pptx_overflow_checks.every((check) => check.overflow_check_status === "passed" && check.failed_check_count === 0));
+      assert.ok(pptxRenderer.pptx_format_validation_results.every((result) => result.pptx_format_validation_status === "passed" && result.failed_check_count === 0 && result.package_signature === "PK"));
+      const pptxBytes = await readFile(pptxRenderer.pptx_output_artifacts[0].pptx_binary_path);
+      assert.equal(pptxBytes.slice(0, 2).toString("utf8"), "PK");
+      assert.match(await readFile(path.join(outDir, "pptx-renderer", "summary.md"), "utf8"), /PPTX Renderer/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -10305,6 +10387,7 @@ describe("matter harness", () => {
           style_registry: path.join(outDir, "style-registry", "style-registry.json"),
           asset_registry: path.join(outDir, "asset-registry", "asset-registry.json"),
           docx_renderer: path.join(outDir, "docx-renderer", "docx-renderer.json"),
+          pptx_renderer: path.join(outDir, "pptx-renderer", "pptx-renderer.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10356,8 +10439,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 159);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 159);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 160);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 160);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -10504,6 +10587,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "style_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "asset_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "docx_renderer"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "pptx_renderer"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -10584,6 +10668,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:style-registry"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:asset-registry"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:docx-renderer"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:pptx-renderer"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter-os:profile"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:timeline"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:document-index"));
@@ -11294,6 +11379,10 @@ describe("matter harness", () => {
       assert.equal(docxRendererCheckpoint?.acceptance_profile, "docx_renderer_gate");
       assert.equal(docxRendererCheckpoint?.status, "passed");
       assert.equal(docxRendererCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const pptxRendererCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-pptx-renderer");
+      assert.equal(pptxRendererCheckpoint?.acceptance_profile, "pptx_renderer_gate");
+      assert.equal(pptxRendererCheckpoint?.status, "passed");
+      assert.equal(pptxRendererCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -15187,6 +15276,59 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.docx_renderer_output_delivery_contract_freeze_status, "complete");
       assert.equal(dashboard.summary.docx_renderer_failed_checkpoint_count, 0);
       assert.equal(dashboard.summary.docx_renderer_validation_error_count, 0);
+      assert.equal(dashboard.summary.pptx_renderer_status, "complete");
+      assert.equal(dashboard.summary.pptx_renderer_contract_id, pptxRenderer.summary.pptx_renderer_contract_id);
+      assert.equal(dashboard.summary.pptx_renderer_source_asset_registry_status, "complete");
+      assert.equal(dashboard.summary.pptx_renderer_source_style_registry_status, "complete");
+      assert.equal(dashboard.summary.pptx_renderer_source_template_registry_status, "complete");
+      assert.equal(dashboard.summary.pptx_renderer_source_creative_document_pack_manifest_status, "complete");
+      assert.equal(dashboard.summary.pptx_renderer_source_domain_pack_registry_status, "complete");
+      assert.equal(dashboard.summary.pptx_renderer_pptx_template_count, pptxRenderer.summary.pptx_template_count);
+      assert.equal(dashboard.summary.pptx_renderer_render_job_count, pptxRenderer.summary.pptx_render_job_count);
+      assert.equal(dashboard.summary.pptx_renderer_completed_render_job_count, pptxRenderer.summary.completed_render_job_count);
+      assert.equal(dashboard.summary.pptx_renderer_slide_template_count, pptxRenderer.summary.pptx_slide_template_count);
+      assert.equal(dashboard.summary.pptx_renderer_generated_slide_template_count, pptxRenderer.summary.generated_slide_template_count);
+      assert.equal(dashboard.summary.pptx_renderer_slide_deck_count, pptxRenderer.summary.pptx_slide_deck_count);
+      assert.equal(dashboard.summary.pptx_renderer_generated_slide_deck_count, pptxRenderer.summary.generated_slide_deck_count);
+      assert.equal(dashboard.summary.pptx_renderer_total_slide_count, pptxRenderer.summary.total_slide_count);
+      assert.equal(dashboard.summary.pptx_renderer_openxml_part_count, pptxRenderer.summary.pptx_openxml_part_count);
+      assert.equal(dashboard.summary.pptx_renderer_generated_openxml_part_count, pptxRenderer.summary.generated_openxml_part_count);
+      assert.equal(dashboard.summary.pptx_renderer_openxml_payload_hash_count, pptxRenderer.summary.openxml_payload_hash_count);
+      assert.equal(dashboard.summary.pptx_renderer_output_artifact_count, pptxRenderer.summary.pptx_output_artifact_count);
+      assert.equal(dashboard.summary.pptx_renderer_draft_output_artifact_count, pptxRenderer.summary.draft_output_artifact_count);
+      assert.equal(dashboard.summary.pptx_renderer_binary_hash_count, pptxRenderer.summary.pptx_binary_hash_count);
+      assert.equal(dashboard.summary.pptx_renderer_binary_write_count, pptxRenderer.summary.pptx_binary_write_count);
+      assert.equal(dashboard.summary.pptx_renderer_overflow_check_count, pptxRenderer.summary.pptx_overflow_check_count);
+      assert.equal(dashboard.summary.pptx_renderer_passed_overflow_check_count, pptxRenderer.summary.passed_overflow_check_count);
+      assert.equal(dashboard.summary.pptx_renderer_overflow_failed_check_count, 0);
+      assert.equal(dashboard.summary.pptx_renderer_format_validation_result_count, pptxRenderer.summary.pptx_format_validation_result_count);
+      assert.equal(dashboard.summary.pptx_renderer_passed_format_validation_result_count, pptxRenderer.summary.passed_format_validation_result_count);
+      assert.equal(dashboard.summary.pptx_renderer_human_review_required_output_count, pptxRenderer.summary.human_review_required_output_count);
+      assert.equal(dashboard.summary.pptx_renderer_attorney_review_required_output_count, pptxRenderer.summary.attorney_review_required_output_count);
+      assert.equal(dashboard.summary.pptx_renderer_source_attribution_required_output_count, pptxRenderer.summary.source_attribution_required_output_count);
+      assert.equal(dashboard.summary.pptx_renderer_citation_review_required_output_count, pptxRenderer.summary.citation_review_required_output_count);
+      assert.equal(dashboard.summary.pptx_renderer_format_validation_required_output_count, pptxRenderer.summary.format_validation_required_output_count);
+      assert.equal(dashboard.summary.pptx_renderer_local_deterministic_renderer, true);
+      assert.equal(dashboard.summary.pptx_renderer_renderer_execution_performed, true);
+      assert.equal(dashboard.summary.pptx_renderer_local_deterministic_render_performed, true);
+      assert.equal(dashboard.summary.pptx_renderer_document_renderer_runtime_execution_performed, false);
+      assert.equal(dashboard.summary.pptx_renderer_external_renderer_execution_performed, false);
+      assert.equal(dashboard.summary.pptx_renderer_network_access_performed, false);
+      assert.equal(dashboard.summary.pptx_renderer_binary_write_performed, true);
+      assert.equal(dashboard.summary.pptx_renderer_core_registry_mutation_allowed, false);
+      assert.equal(dashboard.summary.pptx_renderer_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.pptx_renderer_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.pptx_renderer_protected_action_allowed, false);
+      assert.equal(dashboard.summary.pptx_renderer_protected_action_executed, false);
+      assert.equal(dashboard.summary.pptx_renderer_legal_advice_generated, false);
+      assert.equal(dashboard.summary.pptx_renderer_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.pptx_renderer_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.pptx_renderer_runtime_freeze_status, "complete");
+      assert.equal(dashboard.summary.pptx_renderer_document_renderer_adapter_status, "complete");
+      assert.equal(dashboard.summary.pptx_renderer_document_renderer_pptx_target_supported, true);
+      assert.equal(dashboard.summary.pptx_renderer_output_delivery_contract_freeze_status, "complete");
+      assert.equal(dashboard.summary.pptx_renderer_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.pptx_renderer_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -17525,6 +17667,36 @@ describe("matter harness", () => {
       assert.equal(docxRendererStage?.metrics.document_renderer_docx_target_supported, true);
       assert.equal(docxRendererStage?.metrics.failed_checkpoint_count, 0);
       assert.equal(docxRendererStage?.metrics.validation_error_count, 0);
+      const pptxRendererStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "pptx_renderer");
+      assert.equal(pptxRendererStage?.status, "passed");
+      assert.equal(pptxRendererStage?.metrics.pptx_renderer_status, "complete");
+      assert.equal(pptxRendererStage?.metrics.source_asset_registry_status, "complete");
+      assert.equal(pptxRendererStage?.metrics.source_style_registry_status, "complete");
+      assert.equal(pptxRendererStage?.metrics.source_template_registry_status, "complete");
+      assert.equal(pptxRendererStage?.metrics.source_creative_document_pack_manifest_status, "complete");
+      assert.equal(pptxRendererStage?.metrics.pptx_template_count, pptxRenderer.summary.pptx_template_count);
+      assert.equal(pptxRendererStage?.metrics.pptx_render_job_count, pptxRenderer.summary.pptx_render_job_count);
+      assert.equal(pptxRendererStage?.metrics.completed_render_job_count, pptxRenderer.summary.completed_render_job_count);
+      assert.equal(pptxRendererStage?.metrics.pptx_slide_template_count, pptxRenderer.summary.pptx_slide_template_count);
+      assert.equal(pptxRendererStage?.metrics.generated_slide_template_count, pptxRenderer.summary.generated_slide_template_count);
+      assert.equal(pptxRendererStage?.metrics.pptx_slide_deck_count, pptxRenderer.summary.pptx_slide_deck_count);
+      assert.equal(pptxRendererStage?.metrics.generated_slide_deck_count, pptxRenderer.summary.generated_slide_deck_count);
+      assert.equal(pptxRendererStage?.metrics.total_slide_count, pptxRenderer.summary.total_slide_count);
+      assert.equal(pptxRendererStage?.metrics.pptx_output_artifact_count, pptxRenderer.summary.pptx_output_artifact_count);
+      assert.equal(pptxRendererStage?.metrics.pptx_overflow_check_count, pptxRenderer.summary.pptx_overflow_check_count);
+      assert.equal(pptxRendererStage?.metrics.passed_overflow_check_count, pptxRenderer.summary.passed_overflow_check_count);
+      assert.equal(pptxRendererStage?.metrics.overflow_failed_check_count, 0);
+      assert.equal(pptxRendererStage?.metrics.pptx_format_validation_result_count, pptxRenderer.summary.pptx_format_validation_result_count);
+      assert.equal(pptxRendererStage?.metrics.passed_format_validation_result_count, pptxRenderer.summary.passed_format_validation_result_count);
+      assert.equal(pptxRendererStage?.metrics.local_deterministic_renderer, true);
+      assert.equal(pptxRendererStage?.metrics.renderer_execution_performed, true);
+      assert.equal(pptxRendererStage?.metrics.document_renderer_runtime_execution_performed, false);
+      assert.equal(pptxRendererStage?.metrics.delivery_execution_performed, false);
+      assert.equal(pptxRendererStage?.metrics.legal_advice_generated, false);
+      assert.equal(pptxRendererStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(pptxRendererStage?.metrics.document_renderer_pptx_target_supported, true);
+      assert.equal(pptxRendererStage?.metrics.failed_checkpoint_count, 0);
+      assert.equal(pptxRendererStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -19469,6 +19641,42 @@ describe("matter harness", () => {
       const docxRendererValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/docx-renderer-validations?status=passed", apiOptions)).body);
       assert.equal(docxRendererValidationsResponse.collection, "docx_renderer_validations");
       assert.equal(docxRendererValidationsResponse.count, docxRenderer.summary.validation_item_count);
+
+      const pptxRenderersResponse = JSON.parse((await buildReviewApiResponse("/api/pptx-renderers?pptx_renderer_status=complete", apiOptions)).body);
+      assert.equal(pptxRenderersResponse.collection, "pptx_renderers");
+      assert.equal(pptxRenderersResponse.count, 1);
+
+      const pptxRenderJobsResponse = JSON.parse((await buildReviewApiResponse("/api/pptx-render-jobs?pptx_render_job_status=complete", apiOptions)).body);
+      assert.equal(pptxRenderJobsResponse.collection, "pptx_render_jobs");
+      assert.equal(pptxRenderJobsResponse.count, pptxRenderer.summary.completed_render_job_count);
+
+      const pptxSlideTemplatesResponse = JSON.parse((await buildReviewApiResponse("/api/pptx-slide-templates?pptx_slide_template_status=generated", apiOptions)).body);
+      assert.equal(pptxSlideTemplatesResponse.collection, "pptx_slide_templates");
+      assert.equal(pptxSlideTemplatesResponse.count, pptxRenderer.summary.generated_slide_template_count);
+
+      const pptxSlideDecksResponse = JSON.parse((await buildReviewApiResponse("/api/pptx-slide-decks?pptx_slide_deck_status=generated", apiOptions)).body);
+      assert.equal(pptxSlideDecksResponse.collection, "pptx_slide_decks");
+      assert.equal(pptxSlideDecksResponse.count, pptxRenderer.summary.generated_slide_deck_count);
+
+      const pptxOpenXmlPartsResponse = JSON.parse((await buildReviewApiResponse("/api/pptx-openxml-parts?openxml_part_status=generated", apiOptions)).body);
+      assert.equal(pptxOpenXmlPartsResponse.collection, "pptx_openxml_parts");
+      assert.equal(pptxOpenXmlPartsResponse.count, pptxRenderer.summary.generated_openxml_part_count);
+
+      const pptxOutputArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/pptx-output-artifacts?pptx_output_artifact_status=draft_generated", apiOptions)).body);
+      assert.equal(pptxOutputArtifactsResponse.collection, "pptx_output_artifacts");
+      assert.equal(pptxOutputArtifactsResponse.count, pptxRenderer.summary.draft_output_artifact_count);
+
+      const pptxOverflowChecksResponse = JSON.parse((await buildReviewApiResponse("/api/pptx-overflow-checks?pptx_overflow_check_status=passed", apiOptions)).body);
+      assert.equal(pptxOverflowChecksResponse.collection, "pptx_overflow_checks");
+      assert.equal(pptxOverflowChecksResponse.count, pptxRenderer.summary.passed_overflow_check_count);
+
+      const pptxFormatValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/pptx-format-validations?pptx_format_validation_status=passed", apiOptions)).body);
+      assert.equal(pptxFormatValidationsResponse.collection, "pptx_format_validations");
+      assert.equal(pptxFormatValidationsResponse.count, pptxRenderer.summary.passed_format_validation_result_count);
+
+      const pptxRendererValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/pptx-renderer-validations?status=passed", apiOptions)).body);
+      assert.equal(pptxRendererValidationsResponse.collection, "pptx_renderer_validations");
+      assert.equal(pptxRendererValidationsResponse.count, pptxRenderer.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

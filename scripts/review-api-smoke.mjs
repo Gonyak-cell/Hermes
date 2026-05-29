@@ -2028,6 +2028,42 @@ try {
   assert.equal(docxRendererValidations.collection, "docx_renderer_validations");
   assert.ok(docxRendererValidations.count <= 5);
 
+  const pptxRenderers = await fetchJson(`${url}/api/pptx-renderers?pptx_renderer_status=complete&limit=1`);
+  assert.equal(pptxRenderers.collection, "pptx_renderers");
+  assert.ok(pptxRenderers.count <= 1);
+
+  const pptxRenderJobs = await fetchJson(`${url}/api/pptx-render-jobs?pptx_render_job_status=complete&limit=5`);
+  assert.equal(pptxRenderJobs.collection, "pptx_render_jobs");
+  assert.ok(pptxRenderJobs.count <= 5);
+
+  const pptxSlideTemplates = await fetchJson(`${url}/api/pptx-slide-templates?pptx_slide_template_status=generated&limit=5`);
+  assert.equal(pptxSlideTemplates.collection, "pptx_slide_templates");
+  assert.ok(pptxSlideTemplates.count <= 5);
+
+  const pptxSlideDecks = await fetchJson(`${url}/api/pptx-slide-decks?pptx_slide_deck_status=generated&limit=5`);
+  assert.equal(pptxSlideDecks.collection, "pptx_slide_decks");
+  assert.ok(pptxSlideDecks.count <= 5);
+
+  const pptxOpenXmlParts = await fetchJson(`${url}/api/pptx-openxml-parts?openxml_part_status=generated&limit=5`);
+  assert.equal(pptxOpenXmlParts.collection, "pptx_openxml_parts");
+  assert.ok(pptxOpenXmlParts.count <= 5);
+
+  const pptxOutputArtifacts = await fetchJson(`${url}/api/pptx-output-artifacts?pptx_output_artifact_status=draft_generated&limit=5`);
+  assert.equal(pptxOutputArtifacts.collection, "pptx_output_artifacts");
+  assert.ok(pptxOutputArtifacts.count <= 5);
+
+  const pptxOverflowChecks = await fetchJson(`${url}/api/pptx-overflow-checks?pptx_overflow_check_status=passed&limit=5`);
+  assert.equal(pptxOverflowChecks.collection, "pptx_overflow_checks");
+  assert.ok(pptxOverflowChecks.count <= 5);
+
+  const pptxFormatValidations = await fetchJson(`${url}/api/pptx-format-validations?pptx_format_validation_status=passed&limit=5`);
+  assert.equal(pptxFormatValidations.collection, "pptx_format_validations");
+  assert.ok(pptxFormatValidations.count <= 5);
+
+  const pptxRendererValidations = await fetchJson(`${url}/api/pptx-renderer-validations?status=passed&limit=5`);
+  assert.equal(pptxRendererValidations.collection, "pptx_renderer_validations");
+  assert.ok(pptxRendererValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

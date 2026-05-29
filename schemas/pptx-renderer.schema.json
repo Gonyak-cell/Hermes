@@ -1,0 +1,331 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/pptx-renderer.schema.json",
+  "title": "PPTX Renderer",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "pptx_renderer_id",
+    "pptx_renderer_status",
+    "safe_handling",
+    "pptx_renderer_contract",
+    "pptx_renderer_boundary",
+    "pptx_render_jobs",
+    "pptx_slide_templates",
+    "pptx_slide_decks",
+    "pptx_openxml_parts",
+    "pptx_output_artifacts",
+    "pptx_overflow_checks",
+    "pptx_format_validation_results",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "pptx-renderer.v1" },
+    "generated_at": { "type": "string", "minLength": 1 },
+    "pptx_renderer_id": { "type": "string", "minLength": 1 },
+    "pptx_renderer_status": { "const": "complete" },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "report_only",
+        "pptx_renderer_generated",
+        "draft_artifact_only",
+        "slide_template_generated",
+        "slide_deck_generated",
+        "overflow_check_performed",
+        "local_deterministic_render_performed",
+        "document_renderer_runtime_execution_performed",
+        "external_renderer_execution_performed",
+        "network_access_performed",
+        "pptx_binary_write_performed",
+        "source_attribution_required",
+        "citation_review_required",
+        "human_review_required",
+        "attorney_review_required",
+        "format_validation_required",
+        "legal_advice_generated",
+        "delivery_execution_performed",
+        "protected_mutation_performed",
+        "core_registry_mutation_performed",
+        "client_facing_output_generated"
+      ],
+      "properties": {
+        "report_only": { "const": true },
+        "pptx_renderer_generated": { "const": true },
+        "draft_artifact_only": { "const": true },
+        "slide_template_generated": { "const": true },
+        "slide_deck_generated": { "const": true },
+        "overflow_check_performed": { "const": true },
+        "local_deterministic_render_performed": { "const": true },
+        "document_renderer_runtime_execution_performed": { "const": false },
+        "external_renderer_execution_performed": { "const": false },
+        "network_access_performed": { "const": false },
+        "pptx_binary_write_performed": { "const": true },
+        "source_attribution_required": { "const": true },
+        "citation_review_required": { "const": true },
+        "human_review_required": { "const": true },
+        "attorney_review_required": { "const": true },
+        "format_validation_required": { "const": true },
+        "legal_advice_generated": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "protected_mutation_performed": { "const": false },
+        "core_registry_mutation_performed": { "const": false },
+        "client_facing_output_generated": { "const": false }
+      }
+    },
+    "pptx_renderer_contract": {
+      "type": "object",
+      "required": ["contract_id", "renderer_scope", "required_template_format", "required_base_openxml_parts", "overflow_rule"],
+      "properties": {
+        "contract_id": { "const": "pptx-renderer.v1" },
+        "renderer_scope": { "const": "creative_and_document_domain_pack_pptx" },
+        "required_template_format": { "const": "pptx" },
+        "required_base_openxml_parts": {
+          "type": "array",
+          "minItems": 7,
+          "contains": { "const": "ppt/presentation.xml" }
+        }
+      }
+    },
+    "pptx_renderer_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "read_only_sources",
+        "local_deterministic_renderer",
+        "renderer_execution_allowed",
+        "document_renderer_runtime_execution_allowed",
+        "external_renderer_execution_allowed",
+        "network_access_allowed",
+        "pptx_binary_write_allowed",
+        "core_registry_mutation_allowed",
+        "delivery_execution_allowed",
+        "protected_action_allowed",
+        "client_facing_output_generated",
+        "client_facing_ready_count",
+        "human_review_required",
+        "attorney_review_required",
+        "legal_advice_generated"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "read_only_sources": { "const": true },
+        "local_deterministic_renderer": { "const": true },
+        "renderer_execution_allowed": { "const": true },
+        "document_renderer_runtime_execution_allowed": { "const": false },
+        "external_renderer_execution_allowed": { "const": false },
+        "network_access_allowed": { "const": false },
+        "pptx_binary_write_allowed": { "const": true },
+        "core_registry_mutation_allowed": { "const": false },
+        "delivery_execution_allowed": { "const": false },
+        "protected_action_allowed": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "client_facing_ready_count": { "const": 0 },
+        "human_review_required": { "const": true },
+        "attorney_review_required": { "const": true },
+        "legal_advice_generated": { "const": false }
+      }
+    },
+    "pptx_render_jobs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "pptx_render_job_id",
+          "pptx_render_job_status",
+          "template_id",
+          "template_format",
+          "output_artifact_id",
+          "metadata_hash",
+          "renderer_execution_performed",
+          "local_deterministic_render_performed",
+          "document_renderer_runtime_execution_performed",
+          "external_renderer_execution_performed",
+          "network_access_performed",
+          "pptx_binary_write_performed",
+          "format_validation_required",
+          "overflow_check_required",
+          "human_review_required",
+          "attorney_review_required",
+          "legal_advice_generated",
+          "delivery_execution_performed",
+          "protected_action_executed",
+          "client_facing_ready",
+          "client_facing_output_generated"
+        ],
+        "properties": {
+          "pptx_render_job_status": { "const": "complete" },
+          "template_format": { "const": "pptx" },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "renderer_execution_performed": { "const": true },
+          "local_deterministic_render_performed": { "const": true },
+          "document_renderer_runtime_execution_performed": { "const": false },
+          "external_renderer_execution_performed": { "const": false },
+          "network_access_performed": { "const": false },
+          "pptx_binary_write_performed": { "const": true },
+          "format_validation_required": { "const": true },
+          "overflow_check_required": { "const": true },
+          "human_review_required": { "const": true },
+          "attorney_review_required": { "const": true },
+          "legal_advice_generated": { "const": false },
+          "delivery_execution_performed": { "const": false },
+          "protected_action_executed": { "const": false },
+          "client_facing_ready": { "const": false },
+          "client_facing_output_generated": { "const": false }
+        }
+      }
+    },
+    "pptx_slide_templates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["pptx_slide_template_id", "slide_template_status", "template_format", "placeholder_count", "overflow_rule_set_id", "metadata_hash"],
+        "properties": {
+          "slide_template_status": { "const": "generated" },
+          "template_format": { "const": "pptx" },
+          "placeholder_count": { "type": "integer", "minimum": 4 },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+        }
+      }
+    },
+    "pptx_slide_decks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["pptx_slide_deck_id", "slide_deck_status", "template_format", "slide_count", "slides", "human_review_note", "deck_hash"],
+        "properties": {
+          "slide_deck_status": { "const": "generated" },
+          "template_format": { "const": "pptx" },
+          "slide_count": { "type": "integer", "minimum": 1 },
+          "slides": { "type": "array", "minItems": 1 },
+          "human_review_note": { "type": "string", "minLength": 20 },
+          "deck_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+        }
+      }
+    },
+    "pptx_openxml_parts": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "object",
+        "required": ["pptx_openxml_part_id", "openxml_part_name", "openxml_part_status", "openxml_payload_hash"],
+        "properties": {
+          "openxml_part_status": { "const": "generated" },
+          "openxml_payload_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+        }
+      }
+    },
+    "pptx_output_artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "pptx_output_artifact_id",
+          "output_format",
+          "output_artifact_status",
+          "pptx_binary_path",
+          "pptx_binary_hash",
+          "metadata_hash",
+          "pptx_binary_write_performed",
+          "overflow_check_required",
+          "human_review_required",
+          "attorney_review_required",
+          "legal_advice_generated",
+          "delivery_execution_performed",
+          "protected_action_executed",
+          "client_facing_ready",
+          "client_facing_output_generated"
+        ],
+        "properties": {
+          "output_format": { "const": "pptx" },
+          "output_artifact_status": { "const": "draft_generated" },
+          "pptx_binary_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "pptx_binary_write_performed": { "const": true },
+          "overflow_check_required": { "const": true },
+          "human_review_required": { "const": true },
+          "attorney_review_required": { "const": true },
+          "legal_advice_generated": { "const": false },
+          "delivery_execution_performed": { "const": false },
+          "protected_action_executed": { "const": false },
+          "client_facing_ready": { "const": false },
+          "client_facing_output_generated": { "const": false }
+        }
+      }
+    },
+    "pptx_overflow_checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["pptx_overflow_check_id", "overflow_check_status", "failed_check_count", "checks"],
+        "properties": {
+          "overflow_check_status": { "const": "passed" },
+          "failed_check_count": { "const": 0 },
+          "checks": { "type": "array", "minItems": 1 }
+        }
+      }
+    },
+    "pptx_format_validation_results": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["pptx_format_validation_result_id", "pptx_format_validation_status", "failed_check_count", "package_signature"],
+        "properties": {
+          "pptx_format_validation_status": { "const": "passed" },
+          "failed_check_count": { "const": 0 },
+          "package_signature": { "const": "PK" }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "errors": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "pptx_renderer_status",
+        "pptx_renderer_contract_id",
+        "pptx_template_count",
+        "pptx_render_job_count",
+        "pptx_slide_template_count",
+        "pptx_slide_deck_count",
+        "pptx_output_artifact_count",
+        "pptx_overflow_check_count",
+        "pptx_format_validation_result_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "pptx_renderer_status": { "const": "complete" },
+        "pptx_renderer_contract_id": { "const": "pptx-renderer.v1" },
+        "pptx_template_count": { "type": "integer", "minimum": 1 },
+        "pptx_render_job_count": { "type": "integer", "minimum": 1 },
+        "pptx_slide_template_count": { "type": "integer", "minimum": 1 },
+        "pptx_slide_deck_count": { "type": "integer", "minimum": 1 },
+        "pptx_output_artifact_count": { "type": "integer", "minimum": 1 },
+        "pptx_overflow_check_count": { "type": "integer", "minimum": 1 },
+        "passed_overflow_check_count": { "type": "integer", "minimum": 1 },
+        "pptx_format_validation_result_count": { "type": "integer", "minimum": 1 },
+        "passed_format_validation_result_count": { "type": "integer", "minimum": 1 },
+        "validation_error_count": { "const": 0 },
+        "document_renderer_pptx_target_supported": { "const": true },
+        "client_facing_ready_count": { "const": 0 },
+        "legal_advice_generated": { "const": false }
+      }
+    }
+  }
+}

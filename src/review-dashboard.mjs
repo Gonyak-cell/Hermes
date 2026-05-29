@@ -93,6 +93,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   styleRegistryPath: "artifacts/style-registry/latest/style-registry.json",
   assetRegistryPath: "artifacts/asset-registry/latest/asset-registry.json",
   docxRendererPath: "artifacts/docx-renderer/latest/docx-renderer.json",
+  pptxRendererPath: "artifacts/pptx-renderer/latest/pptx-renderer.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -701,6 +702,11 @@ const SOURCE_DEFINITIONS = [
     option: "docxRendererPath",
     source_id: "docx_renderer",
     label: "DOCX Renderer",
+  },
+  {
+    option: "pptxRendererPath",
+    source_id: "pptx_renderer",
+    label: "PPTX Renderer",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1663,6 +1669,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "style_registry") return data.summary ?? {};
   if (sourceId === "asset_registry") return data.summary ?? {};
   if (sourceId === "docx_renderer") return data.summary ?? {};
+  if (sourceId === "pptx_renderer") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2037,6 +2044,7 @@ function buildStageStatuses(artifacts, sources) {
     buildStyleRegistryStage(artifacts.style_registry, sourceById.get("style_registry")),
     buildAssetRegistryStage(artifacts.asset_registry, sourceById.get("asset_registry")),
     buildDocxRendererStage(artifacts.docx_renderer, sourceById.get("docx_renderer")),
+    buildPptxRendererStage(artifacts.pptx_renderer, sourceById.get("pptx_renderer")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -10907,6 +10915,131 @@ function buildDocxRendererStage(artifact, source) {
   };
 }
 
+function buildPptxRendererStage(artifact, source) {
+  if (!artifact) return missingStage("pptx_renderer", "PPTX Renderer", source);
+  const summary = artifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.pptx_renderer_status !== "complete"
+    || summary.source_asset_registry_status !== "complete"
+    || summary.source_style_registry_status !== "complete"
+    || summary.source_template_registry_status !== "complete"
+    || summary.source_creative_document_pack_manifest_status !== "complete"
+    || summary.pptx_template_count < 1
+    || summary.pptx_render_job_count < 1
+    || summary.completed_render_job_count !== summary.pptx_render_job_count
+    || summary.pptx_slide_template_count !== summary.pptx_render_job_count
+    || summary.generated_slide_template_count !== summary.pptx_slide_template_count
+    || summary.pptx_slide_deck_count !== summary.pptx_render_job_count
+    || summary.generated_slide_deck_count !== summary.pptx_slide_deck_count
+    || summary.total_slide_count < summary.pptx_slide_deck_count
+    || summary.pptx_openxml_part_count < summary.pptx_render_job_count * (summary.required_base_openxml_part_count_per_artifact ?? 7)
+    || summary.generated_openxml_part_count !== summary.pptx_openxml_part_count
+    || summary.openxml_payload_hash_count !== summary.pptx_openxml_part_count
+    || summary.pptx_output_artifact_count !== summary.pptx_render_job_count
+    || summary.draft_output_artifact_count !== summary.pptx_output_artifact_count
+    || summary.pptx_binary_hash_count !== summary.pptx_output_artifact_count
+    || summary.pptx_binary_write_count !== summary.pptx_output_artifact_count
+    || summary.pptx_overflow_check_count !== summary.pptx_slide_deck_count
+    || summary.passed_overflow_check_count !== summary.pptx_overflow_check_count
+    || summary.overflow_failed_check_count !== 0
+    || summary.pptx_format_validation_result_count !== summary.pptx_output_artifact_count
+    || summary.passed_format_validation_result_count !== summary.pptx_format_validation_result_count
+    || summary.human_review_required_output_count !== summary.pptx_output_artifact_count
+    || summary.attorney_review_required_output_count !== summary.pptx_output_artifact_count
+    || summary.source_attribution_required_output_count !== summary.pptx_output_artifact_count
+    || summary.citation_review_required_output_count !== summary.pptx_output_artifact_count
+    || summary.format_validation_required_output_count !== summary.pptx_output_artifact_count
+    || summary.local_deterministic_renderer !== true
+    || summary.renderer_execution_performed !== true
+    || summary.local_deterministic_render_performed !== true
+    || summary.document_renderer_runtime_execution_performed === true
+    || summary.external_renderer_execution_performed === true
+    || summary.network_access_performed === true
+    || summary.pptx_binary_write_performed !== true
+    || summary.core_registry_mutation_allowed === true
+    || summary.delivery_execution_allowed === true
+    || summary.delivery_execution_performed === true
+    || summary.protected_action_allowed === true
+    || summary.protected_action_executed === true
+    || summary.legal_advice_generated === true
+    || summary.client_facing_output_generated === true
+    || summary.client_facing_ready_count !== 0
+    || summary.runtime_freeze_status !== "complete"
+    || summary.document_renderer_adapter_status !== "complete"
+    || summary.document_renderer_pptx_target_supported !== true
+    || summary.output_delivery_contract_freeze_status !== "complete"
+    || summary.failed_checkpoint_count !== 0
+    || artifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "pptx_renderer",
+    label: "PPTX Renderer",
+    status,
+    message: `${summary.completed_render_job_count ?? 0}/${summary.pptx_render_job_count ?? 0} render job(s), ${summary.passed_overflow_check_count ?? 0}/${summary.pptx_overflow_check_count ?? 0} overflow check(s), ${summary.draft_output_artifact_count ?? 0}/${summary.pptx_output_artifact_count ?? 0} draft PPTX artifact(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      pptx_renderer_status: summary.pptx_renderer_status ?? "unknown",
+      pptx_renderer_contract_id: summary.pptx_renderer_contract_id ?? null,
+      source_asset_registry_status: summary.source_asset_registry_status ?? "unknown",
+      source_style_registry_status: summary.source_style_registry_status ?? "unknown",
+      source_template_registry_status: summary.source_template_registry_status ?? "unknown",
+      source_creative_document_pack_manifest_status: summary.source_creative_document_pack_manifest_status ?? "unknown",
+      source_domain_pack_registry_status: summary.source_domain_pack_registry_status ?? "unknown",
+      pptx_template_count: summary.pptx_template_count ?? 0,
+      pptx_render_job_count: summary.pptx_render_job_count ?? 0,
+      completed_render_job_count: summary.completed_render_job_count ?? 0,
+      pptx_slide_template_count: summary.pptx_slide_template_count ?? 0,
+      generated_slide_template_count: summary.generated_slide_template_count ?? 0,
+      pptx_slide_deck_count: summary.pptx_slide_deck_count ?? 0,
+      generated_slide_deck_count: summary.generated_slide_deck_count ?? 0,
+      total_slide_count: summary.total_slide_count ?? 0,
+      max_slides_per_artifact: summary.max_slides_per_artifact ?? 0,
+      pptx_openxml_part_count: summary.pptx_openxml_part_count ?? 0,
+      generated_openxml_part_count: summary.generated_openxml_part_count ?? 0,
+      required_base_openxml_part_count_per_artifact: summary.required_base_openxml_part_count_per_artifact ?? 0,
+      openxml_payload_hash_count: summary.openxml_payload_hash_count ?? 0,
+      pptx_output_artifact_count: summary.pptx_output_artifact_count ?? 0,
+      draft_output_artifact_count: summary.draft_output_artifact_count ?? 0,
+      pptx_binary_hash_count: summary.pptx_binary_hash_count ?? 0,
+      pptx_binary_write_count: summary.pptx_binary_write_count ?? 0,
+      pptx_overflow_check_count: summary.pptx_overflow_check_count ?? 0,
+      passed_overflow_check_count: summary.passed_overflow_check_count ?? 0,
+      overflow_failed_check_count: summary.overflow_failed_check_count ?? 0,
+      pptx_format_validation_result_count: summary.pptx_format_validation_result_count ?? 0,
+      passed_format_validation_result_count: summary.passed_format_validation_result_count ?? 0,
+      human_review_required_output_count: summary.human_review_required_output_count ?? 0,
+      attorney_review_required_output_count: summary.attorney_review_required_output_count ?? 0,
+      source_attribution_required_output_count: summary.source_attribution_required_output_count ?? 0,
+      citation_review_required_output_count: summary.citation_review_required_output_count ?? 0,
+      format_validation_required_output_count: summary.format_validation_required_output_count ?? 0,
+      local_deterministic_renderer: summary.local_deterministic_renderer ?? false,
+      renderer_execution_performed: summary.renderer_execution_performed ?? false,
+      local_deterministic_render_performed: summary.local_deterministic_render_performed ?? false,
+      document_renderer_runtime_execution_performed: summary.document_renderer_runtime_execution_performed ?? false,
+      external_renderer_execution_performed: summary.external_renderer_execution_performed ?? false,
+      network_access_performed: summary.network_access_performed ?? false,
+      pptx_binary_write_performed: summary.pptx_binary_write_performed ?? false,
+      core_registry_mutation_allowed: summary.core_registry_mutation_allowed ?? false,
+      delivery_execution_allowed: summary.delivery_execution_allowed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      protected_action_allowed: summary.protected_action_allowed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      runtime_freeze_status: summary.runtime_freeze_status ?? "unknown",
+      document_renderer_adapter_status: summary.document_renderer_adapter_status ?? "unknown",
+      document_renderer_pptx_target_supported: summary.document_renderer_pptx_target_supported ?? false,
+      output_delivery_contract_freeze_status: summary.output_delivery_contract_freeze_status ?? "unknown",
+      metadata_hash_count: summary.metadata_hash_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -17033,6 +17166,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.pptx_renderer?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "pptx_renderer";
+    items.push({
+      action_item_id: `dashboard.action.pptx_renderer.${slugify(subjectId)}`,
+      source_stage: "pptx_renderer",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix PPTX renderer",
+      subject_ref: {
+        subject_type: "pptx_renderer_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_pptx_renderer", "rerun_pptx_renderer", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -22674,6 +22825,60 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     docx_renderer_metadata_hash_count: artifacts.docx_renderer?.summary?.metadata_hash_count ?? 0,
     docx_renderer_failed_checkpoint_count: artifacts.docx_renderer?.summary?.failed_checkpoint_count ?? 0,
     docx_renderer_validation_error_count: artifacts.docx_renderer?.summary?.validation_error_count ?? artifacts.docx_renderer?.validation?.errors?.length ?? 0,
+    pptx_renderer_status: artifacts.pptx_renderer?.summary?.pptx_renderer_status ?? "unknown",
+    pptx_renderer_contract_id: artifacts.pptx_renderer?.summary?.pptx_renderer_contract_id ?? null,
+    pptx_renderer_source_asset_registry_status: artifacts.pptx_renderer?.summary?.source_asset_registry_status ?? "unknown",
+    pptx_renderer_source_style_registry_status: artifacts.pptx_renderer?.summary?.source_style_registry_status ?? "unknown",
+    pptx_renderer_source_template_registry_status: artifacts.pptx_renderer?.summary?.source_template_registry_status ?? "unknown",
+    pptx_renderer_source_creative_document_pack_manifest_status: artifacts.pptx_renderer?.summary?.source_creative_document_pack_manifest_status ?? "unknown",
+    pptx_renderer_source_domain_pack_registry_status: artifacts.pptx_renderer?.summary?.source_domain_pack_registry_status ?? "unknown",
+    pptx_renderer_pptx_template_count: artifacts.pptx_renderer?.summary?.pptx_template_count ?? 0,
+    pptx_renderer_render_job_count: artifacts.pptx_renderer?.summary?.pptx_render_job_count ?? 0,
+    pptx_renderer_completed_render_job_count: artifacts.pptx_renderer?.summary?.completed_render_job_count ?? 0,
+    pptx_renderer_slide_template_count: artifacts.pptx_renderer?.summary?.pptx_slide_template_count ?? 0,
+    pptx_renderer_generated_slide_template_count: artifacts.pptx_renderer?.summary?.generated_slide_template_count ?? 0,
+    pptx_renderer_slide_deck_count: artifacts.pptx_renderer?.summary?.pptx_slide_deck_count ?? 0,
+    pptx_renderer_generated_slide_deck_count: artifacts.pptx_renderer?.summary?.generated_slide_deck_count ?? 0,
+    pptx_renderer_total_slide_count: artifacts.pptx_renderer?.summary?.total_slide_count ?? 0,
+    pptx_renderer_openxml_part_count: artifacts.pptx_renderer?.summary?.pptx_openxml_part_count ?? 0,
+    pptx_renderer_generated_openxml_part_count: artifacts.pptx_renderer?.summary?.generated_openxml_part_count ?? 0,
+    pptx_renderer_openxml_payload_hash_count: artifacts.pptx_renderer?.summary?.openxml_payload_hash_count ?? 0,
+    pptx_renderer_output_artifact_count: artifacts.pptx_renderer?.summary?.pptx_output_artifact_count ?? 0,
+    pptx_renderer_draft_output_artifact_count: artifacts.pptx_renderer?.summary?.draft_output_artifact_count ?? 0,
+    pptx_renderer_binary_hash_count: artifacts.pptx_renderer?.summary?.pptx_binary_hash_count ?? 0,
+    pptx_renderer_binary_write_count: artifacts.pptx_renderer?.summary?.pptx_binary_write_count ?? 0,
+    pptx_renderer_overflow_check_count: artifacts.pptx_renderer?.summary?.pptx_overflow_check_count ?? 0,
+    pptx_renderer_passed_overflow_check_count: artifacts.pptx_renderer?.summary?.passed_overflow_check_count ?? 0,
+    pptx_renderer_overflow_failed_check_count: artifacts.pptx_renderer?.summary?.overflow_failed_check_count ?? 0,
+    pptx_renderer_format_validation_result_count: artifacts.pptx_renderer?.summary?.pptx_format_validation_result_count ?? 0,
+    pptx_renderer_passed_format_validation_result_count: artifacts.pptx_renderer?.summary?.passed_format_validation_result_count ?? 0,
+    pptx_renderer_human_review_required_output_count: artifacts.pptx_renderer?.summary?.human_review_required_output_count ?? 0,
+    pptx_renderer_attorney_review_required_output_count: artifacts.pptx_renderer?.summary?.attorney_review_required_output_count ?? 0,
+    pptx_renderer_source_attribution_required_output_count: artifacts.pptx_renderer?.summary?.source_attribution_required_output_count ?? 0,
+    pptx_renderer_citation_review_required_output_count: artifacts.pptx_renderer?.summary?.citation_review_required_output_count ?? 0,
+    pptx_renderer_format_validation_required_output_count: artifacts.pptx_renderer?.summary?.format_validation_required_output_count ?? 0,
+    pptx_renderer_local_deterministic_renderer: artifacts.pptx_renderer?.summary?.local_deterministic_renderer ?? false,
+    pptx_renderer_renderer_execution_performed: artifacts.pptx_renderer?.summary?.renderer_execution_performed ?? false,
+    pptx_renderer_local_deterministic_render_performed: artifacts.pptx_renderer?.summary?.local_deterministic_render_performed ?? false,
+    pptx_renderer_document_renderer_runtime_execution_performed: artifacts.pptx_renderer?.summary?.document_renderer_runtime_execution_performed ?? false,
+    pptx_renderer_external_renderer_execution_performed: artifacts.pptx_renderer?.summary?.external_renderer_execution_performed ?? false,
+    pptx_renderer_network_access_performed: artifacts.pptx_renderer?.summary?.network_access_performed ?? false,
+    pptx_renderer_binary_write_performed: artifacts.pptx_renderer?.summary?.pptx_binary_write_performed ?? false,
+    pptx_renderer_core_registry_mutation_allowed: artifacts.pptx_renderer?.summary?.core_registry_mutation_allowed ?? false,
+    pptx_renderer_delivery_execution_allowed: artifacts.pptx_renderer?.summary?.delivery_execution_allowed ?? false,
+    pptx_renderer_delivery_execution_performed: artifacts.pptx_renderer?.summary?.delivery_execution_performed ?? false,
+    pptx_renderer_protected_action_allowed: artifacts.pptx_renderer?.summary?.protected_action_allowed ?? false,
+    pptx_renderer_protected_action_executed: artifacts.pptx_renderer?.summary?.protected_action_executed ?? false,
+    pptx_renderer_legal_advice_generated: artifacts.pptx_renderer?.summary?.legal_advice_generated ?? false,
+    pptx_renderer_client_facing_output_generated: artifacts.pptx_renderer?.summary?.client_facing_output_generated ?? false,
+    pptx_renderer_client_facing_ready_count: artifacts.pptx_renderer?.summary?.client_facing_ready_count ?? 0,
+    pptx_renderer_runtime_freeze_status: artifacts.pptx_renderer?.summary?.runtime_freeze_status ?? "unknown",
+    pptx_renderer_document_renderer_adapter_status: artifacts.pptx_renderer?.summary?.document_renderer_adapter_status ?? "unknown",
+    pptx_renderer_document_renderer_pptx_target_supported: artifacts.pptx_renderer?.summary?.document_renderer_pptx_target_supported ?? false,
+    pptx_renderer_output_delivery_contract_freeze_status: artifacts.pptx_renderer?.summary?.output_delivery_contract_freeze_status ?? "unknown",
+    pptx_renderer_metadata_hash_count: artifacts.pptx_renderer?.summary?.metadata_hash_count ?? 0,
+    pptx_renderer_failed_checkpoint_count: artifacts.pptx_renderer?.summary?.failed_checkpoint_count ?? 0,
+    pptx_renderer_validation_error_count: artifacts.pptx_renderer?.summary?.validation_error_count ?? artifacts.pptx_renderer?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -24443,6 +24648,8 @@ function parseArgs(argv) {
     else if (arg === "--no-asset-registry") parsed.assetRegistryPath = false;
     else if (arg === "--docx-renderer") parsed.docxRendererPath = argv[++index];
     else if (arg === "--no-docx-renderer") parsed.docxRendererPath = false;
+    else if (arg === "--pptx-renderer") parsed.pptxRendererPath = argv[++index];
+    else if (arg === "--no-pptx-renderer") parsed.pptxRendererPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

@@ -4603,6 +4603,69 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("docx_renderer_validations", docxRendererResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/pptx-renderers") {
+    const pptxRendererResult = await readDashboardSourceArtifact(dashboard, "pptx_renderer");
+    if (!pptxRendererResult.available) {
+      return jsonResponse(503, buildError("pptx_renderer_unavailable", pptxRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pptx_renderers", [pptxRendererResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/pptx-render-jobs") {
+    const pptxRendererResult = await readDashboardSourceArtifact(dashboard, "pptx_renderer");
+    if (!pptxRendererResult.available) {
+      return jsonResponse(503, buildError("pptx_renderer_unavailable", pptxRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pptx_render_jobs", pptxRendererResult.artifact.pptx_render_jobs ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/pptx-slide-templates") {
+    const pptxRendererResult = await readDashboardSourceArtifact(dashboard, "pptx_renderer");
+    if (!pptxRendererResult.available) {
+      return jsonResponse(503, buildError("pptx_renderer_unavailable", pptxRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pptx_slide_templates", pptxRendererResult.artifact.pptx_slide_templates ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/pptx-slide-decks") {
+    const pptxRendererResult = await readDashboardSourceArtifact(dashboard, "pptx_renderer");
+    if (!pptxRendererResult.available) {
+      return jsonResponse(503, buildError("pptx_renderer_unavailable", pptxRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pptx_slide_decks", pptxRendererResult.artifact.pptx_slide_decks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/pptx-openxml-parts") {
+    const pptxRendererResult = await readDashboardSourceArtifact(dashboard, "pptx_renderer");
+    if (!pptxRendererResult.available) {
+      return jsonResponse(503, buildError("pptx_renderer_unavailable", pptxRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pptx_openxml_parts", pptxRendererResult.artifact.pptx_openxml_parts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/pptx-output-artifacts") {
+    const pptxRendererResult = await readDashboardSourceArtifact(dashboard, "pptx_renderer");
+    if (!pptxRendererResult.available) {
+      return jsonResponse(503, buildError("pptx_renderer_unavailable", pptxRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pptx_output_artifacts", pptxRendererResult.artifact.pptx_output_artifacts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/pptx-overflow-checks") {
+    const pptxRendererResult = await readDashboardSourceArtifact(dashboard, "pptx_renderer");
+    if (!pptxRendererResult.available) {
+      return jsonResponse(503, buildError("pptx_renderer_unavailable", pptxRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pptx_overflow_checks", pptxRendererResult.artifact.pptx_overflow_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/pptx-format-validations") {
+    const pptxRendererResult = await readDashboardSourceArtifact(dashboard, "pptx_renderer");
+    if (!pptxRendererResult.available) {
+      return jsonResponse(503, buildError("pptx_renderer_unavailable", pptxRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pptx_format_validations", pptxRendererResult.artifact.pptx_format_validation_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/pptx-renderer-validations") {
+    const pptxRendererResult = await readDashboardSourceArtifact(dashboard, "pptx_renderer");
+    if (!pptxRendererResult.available) {
+      return jsonResponse(503, buildError("pptx_renderer_unavailable", pptxRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pptx_renderer_validations", pptxRendererResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -10865,6 +10928,15 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/docx-output-artifacts", "DOCX output artifact rows"),
       route("GET", "/api/docx-format-validations", "DOCX format validation rows"),
       route("GET", "/api/docx-renderer-validations", "DOCX renderer validation rows"),
+      route("GET", "/api/pptx-renderers", "PPTX renderer artifact"),
+      route("GET", "/api/pptx-render-jobs", "PPTX render job rows"),
+      route("GET", "/api/pptx-slide-templates", "PPTX slide template rows"),
+      route("GET", "/api/pptx-slide-decks", "PPTX slide deck rows"),
+      route("GET", "/api/pptx-openxml-parts", "PPTX OpenXML part rows"),
+      route("GET", "/api/pptx-output-artifacts", "PPTX output artifact rows"),
+      route("GET", "/api/pptx-overflow-checks", "PPTX overflow check rows"),
+      route("GET", "/api/pptx-format-validations", "PPTX format validation rows"),
+      route("GET", "/api/pptx-renderer-validations", "PPTX renderer validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -11857,6 +11929,13 @@ function filterItems(items, searchParams) {
     "openxml_part_status",
     "docx_output_artifact_status",
     "docx_format_validation_status",
+    "pptx_renderer_status",
+    "pptx_render_job_status",
+    "pptx_slide_template_status",
+    "pptx_slide_deck_status",
+    "pptx_output_artifact_status",
+    "pptx_overflow_check_status",
+    "pptx_format_validation_status",
     "matter_os_profile_status",
     "profile_card_status",
     "display_field_status",
@@ -13577,6 +13656,13 @@ function readFilterValue(item, key) {
   if (key === "openxml_part_status") return item.openxml_part_status;
   if (key === "docx_output_artifact_status") return item.output_artifact_status;
   if (key === "docx_format_validation_status") return item.docx_format_validation_status ?? item.validation_status;
+  if (key === "pptx_renderer_status") return item.summary?.pptx_renderer_status ?? item.pptx_renderer_status;
+  if (key === "pptx_render_job_status") return item.pptx_render_job_status ?? item.render_job_status;
+  if (key === "pptx_slide_template_status") return item.slide_template_status;
+  if (key === "pptx_slide_deck_status") return item.slide_deck_status;
+  if (key === "pptx_output_artifact_status") return item.output_artifact_status;
+  if (key === "pptx_overflow_check_status") return item.overflow_check_status ?? item.validation_status;
+  if (key === "pptx_format_validation_status") return item.pptx_format_validation_status ?? item.validation_status;
   if (key === "matter_os_profile_status") return item.summary?.matter_os_profile_status ?? item.matter_os_profile_status;
   if (key === "profile_card_status") return item.profile_card_status;
   if (key === "display_field_status") return item.display_field_status;

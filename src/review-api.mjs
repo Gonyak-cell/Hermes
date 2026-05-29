@@ -5919,6 +5919,69 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("extractor_registry_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/extractor-coverage-reports") {
+    const result = await readDashboardSourceArtifact(dashboard, "extractor_coverage_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("extractor_coverage_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("extractor_coverage_reports", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/extractor-coverage-items") {
+    const result = await readDashboardSourceArtifact(dashboard, "extractor_coverage_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("extractor_coverage_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("extractor_coverage_items", result.artifact.extractor_coverage_item_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/extractor-coverage-document-types") {
+    const result = await readDashboardSourceArtifact(dashboard, "extractor_coverage_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("extractor_coverage_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("extractor_coverage_document_types", result.artifact.document_type_coverage_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/extractor-coverage-extensions") {
+    const result = await readDashboardSourceArtifact(dashboard, "extractor_coverage_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("extractor_coverage_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("extractor_coverage_extensions", result.artifact.extension_coverage_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/extractor-coverage-statuses") {
+    const result = await readDashboardSourceArtifact(dashboard, "extractor_coverage_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("extractor_coverage_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("extractor_coverage_statuses", result.artifact.status_coverage_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/extractor-coverage-unsupported-types") {
+    const result = await readDashboardSourceArtifact(dashboard, "extractor_coverage_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("extractor_coverage_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("extractor_coverage_unsupported_types", result.artifact.unsupported_type_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/extractor-coverage-failures") {
+    const result = await readDashboardSourceArtifact(dashboard, "extractor_coverage_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("extractor_coverage_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("extractor_coverage_failures", result.artifact.extractor_failure_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/extractor-coverage-checks") {
+    const result = await readDashboardSourceArtifact(dashboard, "extractor_coverage_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("extractor_coverage_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("extractor_coverage_checks", result.artifact.extractor_coverage_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/extractor-coverage-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "extractor_coverage_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("extractor_coverage_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("extractor_coverage_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -12369,6 +12432,15 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/extractor-extension-compatibility", "Extractor extension compatibility rows"),
       route("GET", "/api/extractor-registry-checks", "Extractor registry check rows"),
       route("GET", "/api/extractor-registry-validations", "Extractor registry validation rows"),
+      route("GET", "/api/extractor-coverage-reports", "Extractor Coverage Report artifact"),
+      route("GET", "/api/extractor-coverage-items", "Extractor coverage item rows"),
+      route("GET", "/api/extractor-coverage-document-types", "Extractor coverage document type rows"),
+      route("GET", "/api/extractor-coverage-extensions", "Extractor coverage extension rows"),
+      route("GET", "/api/extractor-coverage-statuses", "Extractor coverage status rows"),
+      route("GET", "/api/extractor-coverage-unsupported-types", "Extractor coverage unsupported type rows"),
+      route("GET", "/api/extractor-coverage-failures", "Extractor coverage failure rows"),
+      route("GET", "/api/extractor-coverage-checks", "Extractor coverage check rows"),
+      route("GET", "/api/extractor-coverage-validations", "Extractor coverage validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -13531,6 +13603,14 @@ function filterItems(items, searchParams) {
     "extractor_document_type_status",
     "extractor_extension_status",
     "extractor_registry_check_status",
+    "extractor_coverage_report_status",
+    "extractor_coverage_item_status",
+    "extractor_document_type_coverage_status",
+    "extractor_extension_coverage_status",
+    "extractor_status_coverage_status",
+    "extractor_unsupported_type_status",
+    "extractor_failure_status",
+    "extractor_coverage_check_status",
     "path_kind",
     "gate_id",
     "thread_status",
@@ -15428,6 +15508,14 @@ function readFilterValue(item, key) {
   if (key === "extractor_document_type_status") return item.compatibility_status;
   if (key === "extractor_extension_status") return item.compatibility_status;
   if (key === "extractor_registry_check_status") return item.status;
+  if (key === "extractor_coverage_report_status") return item.summary?.extractor_coverage_report_status ?? item.extractor_coverage_report_status;
+  if (key === "extractor_coverage_item_status") return item.coverage_status;
+  if (key === "extractor_document_type_coverage_status") return item.coverage_status;
+  if (key === "extractor_extension_coverage_status") return item.coverage_status;
+  if (key === "extractor_status_coverage_status") return item.coverage_status;
+  if (key === "extractor_unsupported_type_status") return item.unsupported_type_status;
+  if (key === "extractor_failure_status") return item.failure_status;
+  if (key === "extractor_coverage_check_status") return item.status;
   if (key === "path_kind") return item.path_kind;
   if (key === "gate_id") return item.gate_id;
   if (key === "thread_status") return item.thread_status;

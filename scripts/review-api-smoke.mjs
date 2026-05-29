@@ -2784,6 +2784,42 @@ try {
   assert.equal(extractorRegistryValidations.collection, "extractor_registry_validations");
   assert.ok(extractorRegistryValidations.count <= 24);
 
+  const extractorCoverageReports = await fetchJson(`${url}/api/extractor-coverage-reports?extractor_coverage_report_status=complete&limit=1`);
+  assert.equal(extractorCoverageReports.collection, "extractor_coverage_reports");
+  assert.ok(extractorCoverageReports.count <= 1);
+
+  const extractorCoverageItems = await fetchJson(`${url}/api/extractor-coverage-items?extractor_coverage_item_status=covered_pending_human_review&limit=16`);
+  assert.equal(extractorCoverageItems.collection, "extractor_coverage_items");
+  assert.ok(extractorCoverageItems.count <= 16);
+
+  const extractorCoverageDocumentTypes = await fetchJson(`${url}/api/extractor-coverage-document-types?extractor_document_type_coverage_status=covered_pending_human_review&limit=16`);
+  assert.equal(extractorCoverageDocumentTypes.collection, "extractor_coverage_document_types");
+  assert.ok(extractorCoverageDocumentTypes.count <= 16);
+
+  const extractorCoverageExtensions = await fetchJson(`${url}/api/extractor-coverage-extensions?extractor_extension_coverage_status=covered_pending_human_review&limit=16`);
+  assert.equal(extractorCoverageExtensions.collection, "extractor_coverage_extensions");
+  assert.ok(extractorCoverageExtensions.count <= 16);
+
+  const extractorCoverageStatuses = await fetchJson(`${url}/api/extractor-coverage-statuses?extractor_status_coverage_status=covered_pending_human_review&limit=8`);
+  assert.equal(extractorCoverageStatuses.collection, "extractor_coverage_statuses");
+  assert.ok(extractorCoverageStatuses.count <= 8);
+
+  const extractorCoverageUnsupportedTypes = await fetchJson(`${url}/api/extractor-coverage-unsupported-types?limit=8`);
+  assert.equal(extractorCoverageUnsupportedTypes.collection, "extractor_coverage_unsupported_types");
+  assert.ok(extractorCoverageUnsupportedTypes.count <= 8);
+
+  const extractorCoverageFailures = await fetchJson(`${url}/api/extractor-coverage-failures?limit=8`);
+  assert.equal(extractorCoverageFailures.collection, "extractor_coverage_failures");
+  assert.ok(extractorCoverageFailures.count <= 8);
+
+  const extractorCoverageChecks = await fetchJson(`${url}/api/extractor-coverage-checks?extractor_coverage_check_status=passed&limit=30`);
+  assert.equal(extractorCoverageChecks.collection, "extractor_coverage_checks");
+  assert.ok(extractorCoverageChecks.count <= 30);
+
+  const extractorCoverageValidations = await fetchJson(`${url}/api/extractor-coverage-validations?status=passed&limit=30`);
+  assert.equal(extractorCoverageValidations.collection, "extractor_coverage_validations");
+  assert.ok(extractorCoverageValidations.count <= 30);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

@@ -119,6 +119,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   batchClassificationResultPath: "artifacts/batch-classification-result/latest/batch-classification-result.json",
   batchMatterTaggingResultPath: "artifacts/batch-matter-tagging-result/latest/batch-matter-tagging-result.json",
   extractorRegistryPath: "artifacts/extractor-registry/latest/extractor-registry.json",
+  extractorCoverageReportPath: "artifacts/extractor-coverage-report/latest/extractor-coverage-report.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -857,6 +858,11 @@ const SOURCE_DEFINITIONS = [
     option: "extractorRegistryPath",
     source_id: "extractor_registry",
     label: "Extractor Registry",
+  },
+  {
+    option: "extractorCoverageReportPath",
+    source_id: "extractor_coverage_report",
+    label: "Extractor Coverage Report",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1845,6 +1851,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "batch_classification_result") return data.summary ?? {};
   if (sourceId === "batch_matter_tagging_result") return data.summary ?? {};
   if (sourceId === "extractor_registry") return data.summary ?? {};
+  if (sourceId === "extractor_coverage_report") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2245,6 +2252,7 @@ function buildStageStatuses(artifacts, sources) {
     buildBatchClassificationResultStage(artifacts.batch_classification_result, sourceById.get("batch_classification_result")),
     buildBatchMatterTaggingResultStage(artifacts.batch_matter_tagging_result, sourceById.get("batch_matter_tagging_result")),
     buildExtractorRegistryStage(artifacts.extractor_registry, sourceById.get("extractor_registry")),
+    buildExtractorCoverageReportStage(artifacts.extractor_coverage_report, sourceById.get("extractor_coverage_report")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -13939,6 +13947,143 @@ function buildExtractorRegistryStage(artifact, source) {
   };
 }
 
+function buildExtractorCoverageReportStage(artifact, source) {
+  if (!artifact) return missingStage("extractor_coverage_report", "Extractor Coverage Report", source);
+  const summary = artifact.summary ?? {};
+  const rowCount = summary.coverage_item_row_count ?? 0;
+  const status = artifact.validation?.valid === false
+    || summary.extractor_coverage_report_status !== "complete"
+    || summary.phase_slot !== "P284"
+    || summary.previous_phase_slot !== "P283"
+    || summary.next_phase_slot !== "P285"
+    || summary.source_extractor_registry_status !== "complete"
+    || summary.source_extractor_registry_phase_slot !== "P283"
+    || summary.source_extractor_registry_next_phase_slot !== "P284"
+    || summary.source_batch_classification_result_status !== "complete"
+    || summary.source_batch_classification_phase_slot !== "P281"
+    || summary.source_expansion_quarantine_ledger_status !== "complete"
+    || summary.source_expansion_quarantine_phase_slot !== "P280"
+    || rowCount <= 0
+    || summary.resource_item_count !== rowCount
+    || summary.processed_item_count !== rowCount
+    || summary.covered_item_count !== rowCount
+    || summary.coverage_missing_item_count !== 0
+    || summary.passed_document_type_coverage_row_count !== summary.document_type_coverage_row_count
+    || summary.passed_extension_coverage_row_count !== summary.extension_coverage_row_count
+    || summary.passed_status_coverage_row_count !== summary.status_coverage_row_count
+    || !rateIsBounded(summary.processing_rate)
+    || !rateIsBounded(summary.coverage_rate)
+    || !rateIsBounded(summary.failure_rate)
+    || !rateIsBounded(summary.unsupported_rate)
+    || summary.human_review_required_count !== rowCount
+    || summary.client_facing_ready_count !== 0
+    || summary.extractor_execution_count !== 0
+    || summary.file_content_read_count !== 0
+    || summary.ocr_execution_count !== 0
+    || summary.external_model_used_count !== 0
+    || summary.matter_data_write_performed_count !== 0
+    || summary.read_only !== true
+    || summary.extractor_coverage_report_only !== true
+    || summary.source_artifact_read_performed !== true
+    || summary.extractor_execution_performed !== false
+    || summary.ocr_execution_performed !== false
+    || summary.file_content_read_performed !== false
+    || summary.external_model_used !== false
+    || summary.external_service_called !== false
+    || summary.network_access_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.source_mutation_performed !== false
+    || summary.resource_mutation_performed !== false
+    || summary.state_mutation_performed !== false
+    || summary.matter_data_write_performed !== false
+    || summary.delivery_execution_performed !== false
+    || summary.protected_action_executed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || summary.failed_checkpoint_count !== 0
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "extractor_coverage_report",
+    label: "Extractor Coverage Report",
+    status,
+    message: `${rowCount}/${summary.resource_item_count ?? 0} resource item(s) covered; processing ${summary.processing_rate ?? 0}, failure ${summary.failure_rate ?? 0}, unsupported ${summary.unsupported_rate ?? 0}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      extractor_coverage_report_status: summary.extractor_coverage_report_status ?? "unknown",
+      extractor_coverage_report_id: summary.extractor_coverage_report_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_resource_expansion_job_id: summary.source_resource_expansion_job_id ?? null,
+      source_expansion_quarantine_ledger_status: summary.source_expansion_quarantine_ledger_status ?? "unknown",
+      source_expansion_quarantine_phase_slot: summary.source_expansion_quarantine_phase_slot ?? null,
+      source_batch_classification_result_status: summary.source_batch_classification_result_status ?? "unknown",
+      source_batch_classification_phase_slot: summary.source_batch_classification_phase_slot ?? null,
+      source_extractor_registry_status: summary.source_extractor_registry_status ?? "unknown",
+      source_extractor_registry_phase_slot: summary.source_extractor_registry_phase_slot ?? null,
+      source_extractor_registry_next_phase_slot: summary.source_extractor_registry_next_phase_slot ?? null,
+      source_extractor_registry_entry_count: summary.source_extractor_registry_entry_count ?? 0,
+      source_compatibility_row_count: summary.source_compatibility_row_count ?? 0,
+      resource_item_count: summary.resource_item_count ?? 0,
+      coverage_item_row_count: rowCount,
+      processed_item_count: summary.processed_item_count ?? 0,
+      covered_item_count: summary.covered_item_count ?? 0,
+      failed_item_count: summary.failed_item_count ?? 0,
+      quarantined_item_count: summary.quarantined_item_count ?? 0,
+      unsupported_item_count: summary.unsupported_item_count ?? 0,
+      fallback_registry_entry_used_count: summary.fallback_registry_entry_used_count ?? 0,
+      coverage_missing_item_count: summary.coverage_missing_item_count ?? 0,
+      processing_rate: summary.processing_rate ?? 0,
+      coverage_rate: summary.coverage_rate ?? 0,
+      failure_rate: summary.failure_rate ?? 0,
+      quarantine_rate: summary.quarantine_rate ?? 0,
+      unsupported_rate: summary.unsupported_rate ?? 0,
+      document_type_coverage_row_count: summary.document_type_coverage_row_count ?? 0,
+      passed_document_type_coverage_row_count: summary.passed_document_type_coverage_row_count ?? 0,
+      extension_coverage_row_count: summary.extension_coverage_row_count ?? 0,
+      passed_extension_coverage_row_count: summary.passed_extension_coverage_row_count ?? 0,
+      status_coverage_row_count: summary.status_coverage_row_count ?? 0,
+      passed_status_coverage_row_count: summary.passed_status_coverage_row_count ?? 0,
+      unsupported_type_row_count: summary.unsupported_type_row_count ?? 0,
+      extractor_failure_row_count: summary.extractor_failure_row_count ?? 0,
+      human_review_required_count: summary.human_review_required_count ?? 0,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      extractor_execution_count: summary.extractor_execution_count ?? 0,
+      file_content_read_count: summary.file_content_read_count ?? 0,
+      ocr_execution_count: summary.ocr_execution_count ?? 0,
+      external_model_used_count: summary.external_model_used_count ?? 0,
+      matter_data_write_performed_count: summary.matter_data_write_performed_count ?? 0,
+      read_only: summary.read_only ?? false,
+      extractor_coverage_report_only: summary.extractor_coverage_report_only ?? false,
+      source_artifact_read_performed: summary.source_artifact_read_performed ?? false,
+      extractor_execution_performed: summary.extractor_execution_performed ?? false,
+      ocr_execution_performed: summary.ocr_execution_performed ?? false,
+      file_content_read_performed: summary.file_content_read_performed ?? false,
+      external_model_used: summary.external_model_used ?? false,
+      external_service_called: summary.external_service_called ?? false,
+      network_access_performed: summary.network_access_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      source_mutation_performed: summary.source_mutation_performed ?? false,
+      resource_mutation_performed: summary.resource_mutation_performed ?? false,
+      state_mutation_performed: summary.state_mutation_performed ?? false,
+      matter_data_write_performed: summary.matter_data_write_performed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -20529,6 +20674,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_extractor_registry", "rerun_extractor_registry", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.extractor_coverage_report?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "extractor_coverage_report";
+    items.push({
+      action_item_id: `dashboard.action.extractor_coverage_report.${slugify(subjectId)}`,
+      source_stage: "extractor_coverage_report",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Extractor Coverage Report",
+      subject_ref: {
+        subject_type: "extractor_coverage_report_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_extractor_coverage_report", "rerun_extractor_coverage_report", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -27380,6 +27543,69 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     extractor_registry_validation_item_count: artifacts.extractor_registry?.summary?.validation_item_count ?? 0,
     extractor_registry_failed_checkpoint_count: artifacts.extractor_registry?.summary?.failed_checkpoint_count ?? 0,
     extractor_registry_validation_error_count: artifacts.extractor_registry?.summary?.validation_error_count ?? artifacts.extractor_registry?.validation?.errors?.length ?? 0,
+    extractor_coverage_report_status: artifacts.extractor_coverage_report?.summary?.extractor_coverage_report_status ?? "unknown",
+    extractor_coverage_report_id: artifacts.extractor_coverage_report?.summary?.extractor_coverage_report_id ?? null,
+    extractor_coverage_report_phase_slot: artifacts.extractor_coverage_report?.summary?.phase_slot ?? null,
+    extractor_coverage_report_previous_phase_slot: artifacts.extractor_coverage_report?.summary?.previous_phase_slot ?? null,
+    extractor_coverage_report_next_phase_slot: artifacts.extractor_coverage_report?.summary?.next_phase_slot ?? null,
+    extractor_coverage_report_source_expansion_quarantine_ledger_status: artifacts.extractor_coverage_report?.summary?.source_expansion_quarantine_ledger_status ?? "unknown",
+    extractor_coverage_report_source_expansion_quarantine_phase_slot: artifacts.extractor_coverage_report?.summary?.source_expansion_quarantine_phase_slot ?? null,
+    extractor_coverage_report_source_batch_classification_result_status: artifacts.extractor_coverage_report?.summary?.source_batch_classification_result_status ?? "unknown",
+    extractor_coverage_report_source_batch_classification_phase_slot: artifacts.extractor_coverage_report?.summary?.source_batch_classification_phase_slot ?? null,
+    extractor_coverage_report_source_extractor_registry_status: artifacts.extractor_coverage_report?.summary?.source_extractor_registry_status ?? "unknown",
+    extractor_coverage_report_source_extractor_registry_phase_slot: artifacts.extractor_coverage_report?.summary?.source_extractor_registry_phase_slot ?? null,
+    extractor_coverage_report_source_extractor_registry_next_phase_slot: artifacts.extractor_coverage_report?.summary?.source_extractor_registry_next_phase_slot ?? null,
+    extractor_coverage_report_resource_item_count: artifacts.extractor_coverage_report?.summary?.resource_item_count ?? 0,
+    extractor_coverage_report_coverage_item_row_count: artifacts.extractor_coverage_report?.summary?.coverage_item_row_count ?? 0,
+    extractor_coverage_report_processed_item_count: artifacts.extractor_coverage_report?.summary?.processed_item_count ?? 0,
+    extractor_coverage_report_covered_item_count: artifacts.extractor_coverage_report?.summary?.covered_item_count ?? 0,
+    extractor_coverage_report_failed_item_count: artifacts.extractor_coverage_report?.summary?.failed_item_count ?? 0,
+    extractor_coverage_report_quarantined_item_count: artifacts.extractor_coverage_report?.summary?.quarantined_item_count ?? 0,
+    extractor_coverage_report_unsupported_item_count: artifacts.extractor_coverage_report?.summary?.unsupported_item_count ?? 0,
+    extractor_coverage_report_fallback_registry_entry_used_count: artifacts.extractor_coverage_report?.summary?.fallback_registry_entry_used_count ?? 0,
+    extractor_coverage_report_coverage_missing_item_count: artifacts.extractor_coverage_report?.summary?.coverage_missing_item_count ?? 0,
+    extractor_coverage_report_processing_rate: artifacts.extractor_coverage_report?.summary?.processing_rate ?? 0,
+    extractor_coverage_report_coverage_rate: artifacts.extractor_coverage_report?.summary?.coverage_rate ?? 0,
+    extractor_coverage_report_failure_rate: artifacts.extractor_coverage_report?.summary?.failure_rate ?? 0,
+    extractor_coverage_report_quarantine_rate: artifacts.extractor_coverage_report?.summary?.quarantine_rate ?? 0,
+    extractor_coverage_report_unsupported_rate: artifacts.extractor_coverage_report?.summary?.unsupported_rate ?? 0,
+    extractor_coverage_report_document_type_row_count: artifacts.extractor_coverage_report?.summary?.document_type_coverage_row_count ?? 0,
+    extractor_coverage_report_passed_document_type_row_count: artifacts.extractor_coverage_report?.summary?.passed_document_type_coverage_row_count ?? 0,
+    extractor_coverage_report_extension_row_count: artifacts.extractor_coverage_report?.summary?.extension_coverage_row_count ?? 0,
+    extractor_coverage_report_passed_extension_row_count: artifacts.extractor_coverage_report?.summary?.passed_extension_coverage_row_count ?? 0,
+    extractor_coverage_report_status_row_count: artifacts.extractor_coverage_report?.summary?.status_coverage_row_count ?? 0,
+    extractor_coverage_report_passed_status_row_count: artifacts.extractor_coverage_report?.summary?.passed_status_coverage_row_count ?? 0,
+    extractor_coverage_report_unsupported_type_row_count: artifacts.extractor_coverage_report?.summary?.unsupported_type_row_count ?? 0,
+    extractor_coverage_report_failure_row_count: artifacts.extractor_coverage_report?.summary?.extractor_failure_row_count ?? 0,
+    extractor_coverage_report_human_review_required_count: artifacts.extractor_coverage_report?.summary?.human_review_required_count ?? 0,
+    extractor_coverage_report_client_facing_ready_count: artifacts.extractor_coverage_report?.summary?.client_facing_ready_count ?? 0,
+    extractor_coverage_report_extractor_execution_count: artifacts.extractor_coverage_report?.summary?.extractor_execution_count ?? 0,
+    extractor_coverage_report_file_content_read_count: artifacts.extractor_coverage_report?.summary?.file_content_read_count ?? 0,
+    extractor_coverage_report_ocr_execution_count: artifacts.extractor_coverage_report?.summary?.ocr_execution_count ?? 0,
+    extractor_coverage_report_external_model_used_count: artifacts.extractor_coverage_report?.summary?.external_model_used_count ?? 0,
+    extractor_coverage_report_matter_data_write_performed_count: artifacts.extractor_coverage_report?.summary?.matter_data_write_performed_count ?? 0,
+    extractor_coverage_report_read_only: artifacts.extractor_coverage_report?.summary?.read_only ?? false,
+    extractor_coverage_report_report_only: artifacts.extractor_coverage_report?.summary?.extractor_coverage_report_only ?? false,
+    extractor_coverage_report_source_artifact_read_performed: artifacts.extractor_coverage_report?.summary?.source_artifact_read_performed ?? false,
+    extractor_coverage_report_extractor_execution_performed: artifacts.extractor_coverage_report?.summary?.extractor_execution_performed ?? false,
+    extractor_coverage_report_ocr_execution_performed: artifacts.extractor_coverage_report?.summary?.ocr_execution_performed ?? false,
+    extractor_coverage_report_file_content_read_performed: artifacts.extractor_coverage_report?.summary?.file_content_read_performed ?? false,
+    extractor_coverage_report_external_service_called: artifacts.extractor_coverage_report?.summary?.external_service_called ?? false,
+    extractor_coverage_report_network_access_performed: artifacts.extractor_coverage_report?.summary?.network_access_performed ?? false,
+    extractor_coverage_report_source_ingest_performed: artifacts.extractor_coverage_report?.summary?.source_ingest_performed ?? false,
+    extractor_coverage_report_source_mutation_performed: artifacts.extractor_coverage_report?.summary?.source_mutation_performed ?? false,
+    extractor_coverage_report_resource_mutation_performed: artifacts.extractor_coverage_report?.summary?.resource_mutation_performed ?? false,
+    extractor_coverage_report_state_mutation_performed: artifacts.extractor_coverage_report?.summary?.state_mutation_performed ?? false,
+    extractor_coverage_report_matter_data_write_performed: artifacts.extractor_coverage_report?.summary?.matter_data_write_performed ?? false,
+    extractor_coverage_report_delivery_execution_performed: artifacts.extractor_coverage_report?.summary?.delivery_execution_performed ?? false,
+    extractor_coverage_report_protected_action_executed: artifacts.extractor_coverage_report?.summary?.protected_action_executed ?? false,
+    extractor_coverage_report_legal_advice_generated: artifacts.extractor_coverage_report?.summary?.legal_advice_generated ?? false,
+    extractor_coverage_report_client_facing_output_generated: artifacts.extractor_coverage_report?.summary?.client_facing_output_generated ?? false,
+    extractor_coverage_report_windows_baseline_stability_preserved: artifacts.extractor_coverage_report?.summary?.windows_baseline_stability_preserved ?? false,
+    extractor_coverage_report_mac_windows_completion_instability_guard: artifacts.extractor_coverage_report?.summary?.mac_windows_completion_instability_guard ?? false,
+    extractor_coverage_report_validation_item_count: artifacts.extractor_coverage_report?.summary?.validation_item_count ?? 0,
+    extractor_coverage_report_failed_checkpoint_count: artifacts.extractor_coverage_report?.summary?.failed_checkpoint_count ?? 0,
+    extractor_coverage_report_validation_error_count: artifacts.extractor_coverage_report?.summary?.validation_error_count ?? artifacts.extractor_coverage_report?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -29201,6 +29427,8 @@ function parseArgs(argv) {
     else if (arg === "--no-batch-matter-tagging-result") parsed.batchMatterTaggingResultPath = false;
     else if (arg === "--extractor-registry") parsed.extractorRegistryPath = argv[++index];
     else if (arg === "--no-extractor-registry") parsed.extractorRegistryPath = false;
+    else if (arg === "--extractor-coverage-report") parsed.extractorCoverageReportPath = argv[++index];
+    else if (arg === "--no-extractor-coverage-report") parsed.extractorCoverageReportPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];
@@ -30096,6 +30324,10 @@ Options:
 
 async function writeJson(filePath, value) {
   await writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+}
+
+function rateIsBounded(value) {
+  return Number.isFinite(value) && value >= 0 && value <= 1;
 }
 
 function escapeHtml(value) {

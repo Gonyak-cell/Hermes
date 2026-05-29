@@ -165,6 +165,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "resource:batch-classification",
   "resource:batch-matter-tagging",
   "resource:extractor-registry",
+  "resource:extractor-coverage",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

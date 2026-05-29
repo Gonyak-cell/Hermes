@@ -1,0 +1,271 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/hermes/extractor-coverage-report.schema.json",
+  "title": "Hermes Extractor Coverage Report",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "extractor_coverage_report_id",
+    "extractor_coverage_report_status",
+    "summary",
+    "extractor_coverage_item_rows",
+    "document_type_coverage_rows",
+    "extension_coverage_rows",
+    "status_coverage_rows",
+    "unsupported_type_rows",
+    "extractor_failure_rows"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "extractor-coverage-report.v1"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "extractor_coverage_report_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "extractor_coverage_report_status": {
+      "enum": ["complete", "attention"]
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "extractor_coverage_report_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "resource_item_count",
+        "coverage_item_row_count",
+        "processing_rate",
+        "failure_rate",
+        "unsupported_rate",
+        "validation_error_count"
+      ],
+      "properties": {
+        "extractor_coverage_report_status": {
+          "enum": ["complete", "attention"]
+        },
+        "phase_slot": {
+          "const": "P284"
+        },
+        "previous_phase_slot": {
+          "const": "P283"
+        },
+        "next_phase_slot": {
+          "const": "P285"
+        },
+        "resource_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "coverage_item_row_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "processing_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "failure_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "unsupported_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "validation_error_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "extractor_coverage_item_rows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/coverage_item_row"
+      }
+    },
+    "document_type_coverage_rows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/coverage_group_row"
+      }
+    },
+    "extension_coverage_rows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/coverage_group_row"
+      }
+    },
+    "status_coverage_rows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/coverage_group_row"
+      }
+    },
+    "unsupported_type_rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["unsupported_type_row_id", "unsupported_item_count", "unsupported_type_status"],
+        "properties": {
+          "unsupported_type_row_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "unsupported_item_count": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "unsupported_type_status": {
+            "const": "unsupported_or_unknown_type"
+          }
+        }
+      }
+    },
+    "extractor_failure_rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["extractor_failure_row_id", "failure_status", "human_review_required"],
+        "properties": {
+          "extractor_failure_row_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "failure_status": {
+            "enum": ["failed", "held_for_human_review", "passed"]
+          },
+          "human_review_required": {
+            "const": true
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "coverage_item_row": {
+      "type": "object",
+      "required": [
+        "extractor_coverage_item_row_id",
+        "resource_id",
+        "document_type",
+        "extension",
+        "item_status",
+        "processing_status",
+        "coverage_status",
+        "failure_status",
+        "unsupported_type_status",
+        "human_review_required",
+        "client_facing_ready"
+      ],
+      "properties": {
+        "extractor_coverage_item_row_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resource_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "document_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "extension": {
+          "type": "string"
+        },
+        "item_status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "processing_status": {
+          "enum": ["processed", "pending"]
+        },
+        "coverage_status": {
+          "enum": ["covered_pending_human_review", "covered_with_human_review_holds", "attention"]
+        },
+        "failure_status": {
+          "enum": ["failed", "held_for_human_review", "passed"]
+        },
+        "unsupported_type_status": {
+          "enum": ["unsupported_or_unknown_type", "supported_or_reviewable"]
+        },
+        "human_review_required": {
+          "const": true
+        },
+        "client_facing_ready": {
+          "const": false
+        }
+      }
+    },
+    "coverage_group_row": {
+      "type": "object",
+      "required": [
+        "resource_item_count",
+        "processed_item_count",
+        "covered_item_count",
+        "failed_item_count",
+        "unsupported_item_count",
+        "processing_rate",
+        "coverage_rate",
+        "failure_rate",
+        "unsupported_rate",
+        "coverage_status"
+      ],
+      "properties": {
+        "resource_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "processed_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "covered_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unsupported_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "processing_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "coverage_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "failure_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "unsupported_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "coverage_status": {
+          "enum": ["covered_pending_human_review", "covered_with_human_review_holds", "attention"]
+        }
+      }
+    }
+  }
+}

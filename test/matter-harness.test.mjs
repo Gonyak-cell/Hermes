@@ -58,6 +58,7 @@ import { runStyleRegistry } from "../src/creative-document-style-registry.mjs";
 import { runAssetRegistry } from "../src/creative-document-asset-registry.mjs";
 import { runDocxRenderer } from "../src/creative-document-docx-renderer.mjs";
 import { runPptxRenderer } from "../src/creative-document-pptx-renderer.mjs";
+import { runPdfHtmlRenderer } from "../src/creative-document-pdf-html-renderer.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1911,6 +1912,7 @@ describe("matter harness", () => {
         assetRegistryPath: path.join(outDir, "asset-registry", "asset-registry.json"),
         docxRendererPath: path.join(outDir, "docx-renderer", "docx-renderer.json"),
         pptxRendererPath: path.join(outDir, "pptx-renderer", "pptx-renderer.json"),
+        pdfHtmlRendererPath: path.join(outDir, "pdf-html-renderer", "pdf-html-renderer.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10206,6 +10208,82 @@ describe("matter harness", () => {
       assert.equal(pptxBytes.slice(0, 2).toString("utf8"), "PK");
       assert.match(await readFile(path.join(outDir, "pptx-renderer", "summary.md"), "utf8"), /PPTX Renderer/);
 
+      const pdfHtmlRenderer = await runPdfHtmlRenderer({
+        assetRegistryPath: path.join(outDir, "asset-registry", "asset-registry.json"),
+        styleRegistryPath: path.join(outDir, "style-registry", "style-registry.json"),
+        templateRegistryPath: path.join(outDir, "template-registry", "template-registry.json"),
+        creativeDocumentPackManifestPath: path.join(outDir, "creative-document-pack-manifest", "creative-document-pack-manifest.json"),
+        domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
+        runtimeFreezePath: path.join(outDir, "runtime-freeze", "runtime-freeze.json"),
+        documentRendererAdapterPath: path.join(outDir, "document-renderer-adapter", "document-renderer-adapter.json"),
+        outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "pdf-html-renderer"),
+        runAt: "2026-05-23T07:00:18.000Z",
+      });
+      const pdfHtmlRendererSchema = JSON.parse(await readFile("schemas/pdf-html-renderer.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(pdfHtmlRenderer, pdfHtmlRendererSchema, {}, "pdf_html_renderer"), []);
+      assert.equal(pdfHtmlRenderer.summary.pdf_html_renderer_status, "complete");
+      assert.equal(pdfHtmlRenderer.summary.pdf_html_renderer_contract_id, "pdf-html-renderer.v1");
+      assert.equal(pdfHtmlRenderer.summary.source_asset_registry_status, "complete");
+      assert.equal(pdfHtmlRenderer.summary.source_style_registry_status, "complete");
+      assert.equal(pdfHtmlRenderer.summary.source_template_registry_status, "complete");
+      assert.equal(pdfHtmlRenderer.summary.source_creative_document_pack_manifest_status, "complete");
+      assert.equal(pdfHtmlRenderer.summary.source_domain_pack_registry_status, "complete");
+      assert.equal(pdfHtmlRenderer.summary.html_template_count, 2);
+      assert.equal(pdfHtmlRenderer.summary.pdf_html_render_job_count, 2);
+      assert.equal(pdfHtmlRenderer.summary.completed_render_job_count, 2);
+      assert.equal(pdfHtmlRenderer.summary.html_preview_artifact_count, 2);
+      assert.equal(pdfHtmlRenderer.summary.generated_html_preview_artifact_count, 2);
+      assert.equal(pdfHtmlRenderer.summary.pdf_export_artifact_count, 2);
+      assert.equal(pdfHtmlRenderer.summary.generated_pdf_export_artifact_count, 2);
+      assert.equal(pdfHtmlRenderer.summary.pdf_html_output_artifact_count, 4);
+      assert.equal(pdfHtmlRenderer.summary.draft_output_artifact_count, 4);
+      assert.equal(pdfHtmlRenderer.summary.html_output_artifact_count, 2);
+      assert.equal(pdfHtmlRenderer.summary.pdf_output_artifact_count, 2);
+      assert.equal(pdfHtmlRenderer.summary.content_hash_count, 4);
+      assert.equal(pdfHtmlRenderer.summary.html_preview_write_count, 2);
+      assert.equal(pdfHtmlRenderer.summary.pdf_export_write_count, 2);
+      assert.equal(pdfHtmlRenderer.summary.pdf_html_format_validation_result_count, 4);
+      assert.equal(pdfHtmlRenderer.summary.passed_format_validation_result_count, 4);
+      assert.equal(pdfHtmlRenderer.summary.human_review_required_output_count, 4);
+      assert.equal(pdfHtmlRenderer.summary.attorney_review_required_output_count, 4);
+      assert.equal(pdfHtmlRenderer.summary.source_attribution_required_output_count, 4);
+      assert.equal(pdfHtmlRenderer.summary.citation_review_required_output_count, 4);
+      assert.equal(pdfHtmlRenderer.summary.format_validation_required_output_count, 4);
+      assert.equal(pdfHtmlRenderer.summary.local_deterministic_renderer, true);
+      assert.equal(pdfHtmlRenderer.summary.renderer_execution_performed, true);
+      assert.equal(pdfHtmlRenderer.summary.local_deterministic_render_performed, true);
+      assert.equal(pdfHtmlRenderer.summary.document_renderer_runtime_execution_performed, false);
+      assert.equal(pdfHtmlRenderer.summary.external_renderer_execution_performed, false);
+      assert.equal(pdfHtmlRenderer.summary.network_access_performed, false);
+      assert.equal(pdfHtmlRenderer.summary.artifact_write_performed, true);
+      assert.equal(pdfHtmlRenderer.summary.core_registry_mutation_allowed, false);
+      assert.equal(pdfHtmlRenderer.summary.delivery_execution_allowed, false);
+      assert.equal(pdfHtmlRenderer.summary.delivery_execution_performed, false);
+      assert.equal(pdfHtmlRenderer.summary.protected_action_allowed, false);
+      assert.equal(pdfHtmlRenderer.summary.protected_action_executed, false);
+      assert.equal(pdfHtmlRenderer.summary.legal_advice_generated, false);
+      assert.equal(pdfHtmlRenderer.summary.client_facing_output_generated, false);
+      assert.equal(pdfHtmlRenderer.summary.client_facing_ready_count, 0);
+      assert.equal(pdfHtmlRenderer.summary.runtime_freeze_status, "complete");
+      assert.equal(pdfHtmlRenderer.summary.document_renderer_adapter_status, "complete");
+      assert.equal(pdfHtmlRenderer.summary.document_renderer_pdf_target_supported, true);
+      assert.equal(pdfHtmlRenderer.summary.output_delivery_contract_freeze_status, "complete");
+      assert.equal(pdfHtmlRenderer.summary.failed_checkpoint_count, 0);
+      assert.equal(pdfHtmlRenderer.summary.validation_error_count, 0);
+      assert.ok(pdfHtmlRenderer.pdf_html_render_jobs.every((job) => job.pdf_html_render_job_status === "complete" && job.template_format === "html" && job.metadata_hash.startsWith("sha256:") && job.local_deterministic_render_performed && job.html_preview_write_performed && job.pdf_export_write_performed && job.document_renderer_runtime_execution_performed === false && job.client_facing_ready === false));
+      assert.ok(pdfHtmlRenderer.html_preview_artifacts.every((artifact) => artifact.html_preview_status === "draft_generated" && artifact.output_format === "html" && artifact.html_payload_hash.startsWith("sha256:") && artifact.html_payload.includes("Not legal advice") && artifact.client_facing_ready === false));
+      assert.ok(pdfHtmlRenderer.pdf_export_artifacts.every((artifact) => artifact.pdf_export_status === "draft_generated" && artifact.output_format === "pdf" && artifact.pdf_binary_hash.startsWith("sha256:") && artifact.pdf_payload.startsWith("%PDF-1.4") && artifact.pdf_payload.includes("Not legal advice") && artifact.client_facing_ready === false));
+      assert.ok(pdfHtmlRenderer.pdf_html_output_artifacts.every((artifact) => artifact.output_artifact_status === "draft_generated" && ["html", "pdf"].includes(artifact.output_format) && artifact.content_hash.startsWith("sha256:") && artifact.human_review_required && artifact.attorney_review_required && artifact.legal_advice_generated === false && artifact.delivery_execution_performed === false && artifact.client_facing_ready === false));
+      assert.ok(pdfHtmlRenderer.pdf_html_format_validation_results.every((result) => result.pdf_html_format_validation_status === "passed" && result.failed_check_count === 0));
+      const htmlPreviewText = await readFile(pdfHtmlRenderer.html_preview_artifacts[0].html_preview_path, "utf8");
+      assert.match(htmlPreviewText, /<!doctype html>/i);
+      const pdfExportBytes = await readFile(pdfHtmlRenderer.pdf_export_artifacts[0].pdf_export_path);
+      assert.equal(pdfExportBytes.slice(0, 5).toString("utf8"), "%PDF-");
+      assert.match(await readFile(path.join(outDir, "pdf-html-renderer", "summary.md"), "utf8"), /PDF\/HTML Renderer/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -10388,6 +10466,7 @@ describe("matter harness", () => {
           asset_registry: path.join(outDir, "asset-registry", "asset-registry.json"),
           docx_renderer: path.join(outDir, "docx-renderer", "docx-renderer.json"),
           pptx_renderer: path.join(outDir, "pptx-renderer", "pptx-renderer.json"),
+          pdf_html_renderer: path.join(outDir, "pdf-html-renderer", "pdf-html-renderer.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10439,8 +10518,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 160);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 160);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 161);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 161);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -10588,6 +10667,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "asset_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "docx_renderer"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "pptx_renderer"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "pdf_html_renderer"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -10669,6 +10749,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:asset-registry"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:docx-renderer"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:pptx-renderer"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:pdf-html-renderer"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter-os:profile"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:timeline"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:document-index"));
@@ -11383,6 +11464,10 @@ describe("matter harness", () => {
       assert.equal(pptxRendererCheckpoint?.acceptance_profile, "pptx_renderer_gate");
       assert.equal(pptxRendererCheckpoint?.status, "passed");
       assert.equal(pptxRendererCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const pdfHtmlRendererCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-pdf-html-renderer");
+      assert.equal(pdfHtmlRendererCheckpoint?.acceptance_profile, "pdf_html_renderer_gate");
+      assert.equal(pdfHtmlRendererCheckpoint?.status, "passed");
+      assert.equal(pdfHtmlRendererCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -15329,6 +15414,55 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.pptx_renderer_output_delivery_contract_freeze_status, "complete");
       assert.equal(dashboard.summary.pptx_renderer_failed_checkpoint_count, 0);
       assert.equal(dashboard.summary.pptx_renderer_validation_error_count, 0);
+      assert.equal(dashboard.summary.pdf_html_renderer_status, "complete");
+      assert.equal(dashboard.summary.pdf_html_renderer_contract_id, pdfHtmlRenderer.summary.pdf_html_renderer_contract_id);
+      assert.equal(dashboard.summary.pdf_html_renderer_source_asset_registry_status, "complete");
+      assert.equal(dashboard.summary.pdf_html_renderer_source_style_registry_status, "complete");
+      assert.equal(dashboard.summary.pdf_html_renderer_source_template_registry_status, "complete");
+      assert.equal(dashboard.summary.pdf_html_renderer_source_creative_document_pack_manifest_status, "complete");
+      assert.equal(dashboard.summary.pdf_html_renderer_source_domain_pack_registry_status, "complete");
+      assert.equal(dashboard.summary.pdf_html_renderer_html_template_count, pdfHtmlRenderer.summary.html_template_count);
+      assert.equal(dashboard.summary.pdf_html_renderer_render_job_count, pdfHtmlRenderer.summary.pdf_html_render_job_count);
+      assert.equal(dashboard.summary.pdf_html_renderer_completed_render_job_count, pdfHtmlRenderer.summary.completed_render_job_count);
+      assert.equal(dashboard.summary.pdf_html_renderer_html_preview_artifact_count, pdfHtmlRenderer.summary.html_preview_artifact_count);
+      assert.equal(dashboard.summary.pdf_html_renderer_generated_html_preview_artifact_count, pdfHtmlRenderer.summary.generated_html_preview_artifact_count);
+      assert.equal(dashboard.summary.pdf_html_renderer_pdf_export_artifact_count, pdfHtmlRenderer.summary.pdf_export_artifact_count);
+      assert.equal(dashboard.summary.pdf_html_renderer_generated_pdf_export_artifact_count, pdfHtmlRenderer.summary.generated_pdf_export_artifact_count);
+      assert.equal(dashboard.summary.pdf_html_renderer_output_artifact_count, pdfHtmlRenderer.summary.pdf_html_output_artifact_count);
+      assert.equal(dashboard.summary.pdf_html_renderer_draft_output_artifact_count, pdfHtmlRenderer.summary.draft_output_artifact_count);
+      assert.equal(dashboard.summary.pdf_html_renderer_html_output_artifact_count, pdfHtmlRenderer.summary.html_output_artifact_count);
+      assert.equal(dashboard.summary.pdf_html_renderer_pdf_output_artifact_count, pdfHtmlRenderer.summary.pdf_output_artifact_count);
+      assert.equal(dashboard.summary.pdf_html_renderer_content_hash_count, pdfHtmlRenderer.summary.content_hash_count);
+      assert.equal(dashboard.summary.pdf_html_renderer_html_preview_write_count, pdfHtmlRenderer.summary.html_preview_write_count);
+      assert.equal(dashboard.summary.pdf_html_renderer_pdf_export_write_count, pdfHtmlRenderer.summary.pdf_export_write_count);
+      assert.equal(dashboard.summary.pdf_html_renderer_format_validation_result_count, pdfHtmlRenderer.summary.pdf_html_format_validation_result_count);
+      assert.equal(dashboard.summary.pdf_html_renderer_passed_format_validation_result_count, pdfHtmlRenderer.summary.passed_format_validation_result_count);
+      assert.equal(dashboard.summary.pdf_html_renderer_human_review_required_output_count, pdfHtmlRenderer.summary.human_review_required_output_count);
+      assert.equal(dashboard.summary.pdf_html_renderer_attorney_review_required_output_count, pdfHtmlRenderer.summary.attorney_review_required_output_count);
+      assert.equal(dashboard.summary.pdf_html_renderer_source_attribution_required_output_count, pdfHtmlRenderer.summary.source_attribution_required_output_count);
+      assert.equal(dashboard.summary.pdf_html_renderer_citation_review_required_output_count, pdfHtmlRenderer.summary.citation_review_required_output_count);
+      assert.equal(dashboard.summary.pdf_html_renderer_format_validation_required_output_count, pdfHtmlRenderer.summary.format_validation_required_output_count);
+      assert.equal(dashboard.summary.pdf_html_renderer_local_deterministic_renderer, true);
+      assert.equal(dashboard.summary.pdf_html_renderer_renderer_execution_performed, true);
+      assert.equal(dashboard.summary.pdf_html_renderer_local_deterministic_render_performed, true);
+      assert.equal(dashboard.summary.pdf_html_renderer_document_renderer_runtime_execution_performed, false);
+      assert.equal(dashboard.summary.pdf_html_renderer_external_renderer_execution_performed, false);
+      assert.equal(dashboard.summary.pdf_html_renderer_network_access_performed, false);
+      assert.equal(dashboard.summary.pdf_html_renderer_artifact_write_performed, true);
+      assert.equal(dashboard.summary.pdf_html_renderer_core_registry_mutation_allowed, false);
+      assert.equal(dashboard.summary.pdf_html_renderer_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.pdf_html_renderer_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.pdf_html_renderer_protected_action_allowed, false);
+      assert.equal(dashboard.summary.pdf_html_renderer_protected_action_executed, false);
+      assert.equal(dashboard.summary.pdf_html_renderer_legal_advice_generated, false);
+      assert.equal(dashboard.summary.pdf_html_renderer_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.pdf_html_renderer_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.pdf_html_renderer_runtime_freeze_status, "complete");
+      assert.equal(dashboard.summary.pdf_html_renderer_document_renderer_adapter_status, "complete");
+      assert.equal(dashboard.summary.pdf_html_renderer_document_renderer_pdf_target_supported, true);
+      assert.equal(dashboard.summary.pdf_html_renderer_output_delivery_contract_freeze_status, "complete");
+      assert.equal(dashboard.summary.pdf_html_renderer_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.pdf_html_renderer_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -17697,6 +17831,58 @@ describe("matter harness", () => {
       assert.equal(pptxRendererStage?.metrics.document_renderer_pptx_target_supported, true);
       assert.equal(pptxRendererStage?.metrics.failed_checkpoint_count, 0);
       assert.equal(pptxRendererStage?.metrics.validation_error_count, 0);
+      const pdfHtmlRendererStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "pdf_html_renderer");
+      assert.equal(pdfHtmlRendererStage?.status, "passed");
+      assert.equal(pdfHtmlRendererStage?.metrics.pdf_html_renderer_status, "complete");
+      assert.equal(pdfHtmlRendererStage?.metrics.pdf_html_renderer_contract_id, pdfHtmlRenderer.summary.pdf_html_renderer_contract_id);
+      assert.equal(pdfHtmlRendererStage?.metrics.source_asset_registry_status, "complete");
+      assert.equal(pdfHtmlRendererStage?.metrics.source_style_registry_status, "complete");
+      assert.equal(pdfHtmlRendererStage?.metrics.source_template_registry_status, "complete");
+      assert.equal(pdfHtmlRendererStage?.metrics.source_creative_document_pack_manifest_status, "complete");
+      assert.equal(pdfHtmlRendererStage?.metrics.source_domain_pack_registry_status, "complete");
+      assert.equal(pdfHtmlRendererStage?.metrics.html_template_count, pdfHtmlRenderer.summary.html_template_count);
+      assert.equal(pdfHtmlRendererStage?.metrics.pdf_html_render_job_count, pdfHtmlRenderer.summary.pdf_html_render_job_count);
+      assert.equal(pdfHtmlRendererStage?.metrics.completed_render_job_count, pdfHtmlRenderer.summary.completed_render_job_count);
+      assert.equal(pdfHtmlRendererStage?.metrics.html_preview_artifact_count, pdfHtmlRenderer.summary.html_preview_artifact_count);
+      assert.equal(pdfHtmlRendererStage?.metrics.generated_html_preview_artifact_count, pdfHtmlRenderer.summary.generated_html_preview_artifact_count);
+      assert.equal(pdfHtmlRendererStage?.metrics.pdf_export_artifact_count, pdfHtmlRenderer.summary.pdf_export_artifact_count);
+      assert.equal(pdfHtmlRendererStage?.metrics.generated_pdf_export_artifact_count, pdfHtmlRenderer.summary.generated_pdf_export_artifact_count);
+      assert.equal(pdfHtmlRendererStage?.metrics.pdf_html_output_artifact_count, pdfHtmlRenderer.summary.pdf_html_output_artifact_count);
+      assert.equal(pdfHtmlRendererStage?.metrics.draft_output_artifact_count, pdfHtmlRenderer.summary.draft_output_artifact_count);
+      assert.equal(pdfHtmlRendererStage?.metrics.html_output_artifact_count, pdfHtmlRenderer.summary.html_output_artifact_count);
+      assert.equal(pdfHtmlRendererStage?.metrics.pdf_output_artifact_count, pdfHtmlRenderer.summary.pdf_output_artifact_count);
+      assert.equal(pdfHtmlRendererStage?.metrics.content_hash_count, pdfHtmlRenderer.summary.content_hash_count);
+      assert.equal(pdfHtmlRendererStage?.metrics.html_preview_write_count, pdfHtmlRenderer.summary.html_preview_write_count);
+      assert.equal(pdfHtmlRendererStage?.metrics.pdf_export_write_count, pdfHtmlRenderer.summary.pdf_export_write_count);
+      assert.equal(pdfHtmlRendererStage?.metrics.pdf_html_format_validation_result_count, pdfHtmlRenderer.summary.pdf_html_format_validation_result_count);
+      assert.equal(pdfHtmlRendererStage?.metrics.passed_format_validation_result_count, pdfHtmlRenderer.summary.passed_format_validation_result_count);
+      assert.equal(pdfHtmlRendererStage?.metrics.human_review_required_output_count, pdfHtmlRenderer.summary.human_review_required_output_count);
+      assert.equal(pdfHtmlRendererStage?.metrics.attorney_review_required_output_count, pdfHtmlRenderer.summary.attorney_review_required_output_count);
+      assert.equal(pdfHtmlRendererStage?.metrics.source_attribution_required_output_count, pdfHtmlRenderer.summary.source_attribution_required_output_count);
+      assert.equal(pdfHtmlRendererStage?.metrics.citation_review_required_output_count, pdfHtmlRenderer.summary.citation_review_required_output_count);
+      assert.equal(pdfHtmlRendererStage?.metrics.format_validation_required_output_count, pdfHtmlRenderer.summary.format_validation_required_output_count);
+      assert.equal(pdfHtmlRendererStage?.metrics.local_deterministic_renderer, true);
+      assert.equal(pdfHtmlRendererStage?.metrics.renderer_execution_performed, true);
+      assert.equal(pdfHtmlRendererStage?.metrics.local_deterministic_render_performed, true);
+      assert.equal(pdfHtmlRendererStage?.metrics.document_renderer_runtime_execution_performed, false);
+      assert.equal(pdfHtmlRendererStage?.metrics.external_renderer_execution_performed, false);
+      assert.equal(pdfHtmlRendererStage?.metrics.network_access_performed, false);
+      assert.equal(pdfHtmlRendererStage?.metrics.artifact_write_performed, true);
+      assert.equal(pdfHtmlRendererStage?.metrics.core_registry_mutation_allowed, false);
+      assert.equal(pdfHtmlRendererStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(pdfHtmlRendererStage?.metrics.delivery_execution_performed, false);
+      assert.equal(pdfHtmlRendererStage?.metrics.protected_action_allowed, false);
+      assert.equal(pdfHtmlRendererStage?.metrics.protected_action_executed, false);
+      assert.equal(pdfHtmlRendererStage?.metrics.legal_advice_generated, false);
+      assert.equal(pdfHtmlRendererStage?.metrics.client_facing_output_generated, false);
+      assert.equal(pdfHtmlRendererStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(pdfHtmlRendererStage?.metrics.runtime_freeze_status, "complete");
+      assert.equal(pdfHtmlRendererStage?.metrics.document_renderer_adapter_status, "complete");
+      assert.equal(pdfHtmlRendererStage?.metrics.document_renderer_pdf_target_supported, true);
+      assert.equal(pdfHtmlRendererStage?.metrics.output_delivery_contract_freeze_status, "complete");
+      assert.equal(pdfHtmlRendererStage?.metrics.metadata_hash_count, pdfHtmlRenderer.summary.metadata_hash_count);
+      assert.equal(pdfHtmlRendererStage?.metrics.failed_checkpoint_count, 0);
+      assert.equal(pdfHtmlRendererStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -19677,6 +19863,34 @@ describe("matter harness", () => {
       const pptxRendererValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/pptx-renderer-validations?status=passed", apiOptions)).body);
       assert.equal(pptxRendererValidationsResponse.collection, "pptx_renderer_validations");
       assert.equal(pptxRendererValidationsResponse.count, pptxRenderer.summary.validation_item_count);
+
+      const pdfHtmlRenderersResponse = JSON.parse((await buildReviewApiResponse("/api/pdf-html-renderers?pdf_html_renderer_status=complete", apiOptions)).body);
+      assert.equal(pdfHtmlRenderersResponse.collection, "pdf_html_renderers");
+      assert.equal(pdfHtmlRenderersResponse.count, 1);
+
+      const pdfHtmlRenderJobsResponse = JSON.parse((await buildReviewApiResponse("/api/pdf-html-render-jobs?pdf_html_render_job_status=complete", apiOptions)).body);
+      assert.equal(pdfHtmlRenderJobsResponse.collection, "pdf_html_render_jobs");
+      assert.equal(pdfHtmlRenderJobsResponse.count, pdfHtmlRenderer.summary.completed_render_job_count);
+
+      const htmlPreviewArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/html-preview-artifacts?html_preview_status=draft_generated", apiOptions)).body);
+      assert.equal(htmlPreviewArtifactsResponse.collection, "html_preview_artifacts");
+      assert.equal(htmlPreviewArtifactsResponse.count, pdfHtmlRenderer.summary.generated_html_preview_artifact_count);
+
+      const pdfExportArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/pdf-export-artifacts?pdf_export_status=draft_generated", apiOptions)).body);
+      assert.equal(pdfExportArtifactsResponse.collection, "pdf_export_artifacts");
+      assert.equal(pdfExportArtifactsResponse.count, pdfHtmlRenderer.summary.generated_pdf_export_artifact_count);
+
+      const pdfHtmlOutputArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/pdf-html-output-artifacts?pdf_html_output_artifact_status=draft_generated", apiOptions)).body);
+      assert.equal(pdfHtmlOutputArtifactsResponse.collection, "pdf_html_output_artifacts");
+      assert.equal(pdfHtmlOutputArtifactsResponse.count, pdfHtmlRenderer.summary.draft_output_artifact_count);
+
+      const pdfHtmlFormatValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/pdf-html-format-validations?pdf_html_format_validation_status=passed", apiOptions)).body);
+      assert.equal(pdfHtmlFormatValidationsResponse.collection, "pdf_html_format_validations");
+      assert.equal(pdfHtmlFormatValidationsResponse.count, pdfHtmlRenderer.summary.passed_format_validation_result_count);
+
+      const pdfHtmlRendererValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/pdf-html-renderer-validations?status=passed", apiOptions)).body);
+      assert.equal(pdfHtmlRendererValidationsResponse.collection, "pdf_html_renderer_validations");
+      assert.equal(pdfHtmlRendererValidationsResponse.count, pdfHtmlRenderer.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

@@ -2064,6 +2064,34 @@ try {
   assert.equal(pptxRendererValidations.collection, "pptx_renderer_validations");
   assert.ok(pptxRendererValidations.count <= 5);
 
+  const pdfHtmlRenderers = await fetchJson(`${url}/api/pdf-html-renderers?pdf_html_renderer_status=complete&limit=1`);
+  assert.equal(pdfHtmlRenderers.collection, "pdf_html_renderers");
+  assert.ok(pdfHtmlRenderers.count <= 1);
+
+  const pdfHtmlRenderJobs = await fetchJson(`${url}/api/pdf-html-render-jobs?pdf_html_render_job_status=complete&limit=5`);
+  assert.equal(pdfHtmlRenderJobs.collection, "pdf_html_render_jobs");
+  assert.ok(pdfHtmlRenderJobs.count <= 5);
+
+  const htmlPreviewArtifacts = await fetchJson(`${url}/api/html-preview-artifacts?html_preview_status=draft_generated&limit=5`);
+  assert.equal(htmlPreviewArtifacts.collection, "html_preview_artifacts");
+  assert.ok(htmlPreviewArtifacts.count <= 5);
+
+  const pdfExportArtifacts = await fetchJson(`${url}/api/pdf-export-artifacts?pdf_export_status=draft_generated&limit=5`);
+  assert.equal(pdfExportArtifacts.collection, "pdf_export_artifacts");
+  assert.ok(pdfExportArtifacts.count <= 5);
+
+  const pdfHtmlOutputArtifacts = await fetchJson(`${url}/api/pdf-html-output-artifacts?pdf_html_output_artifact_status=draft_generated&limit=5`);
+  assert.equal(pdfHtmlOutputArtifacts.collection, "pdf_html_output_artifacts");
+  assert.ok(pdfHtmlOutputArtifacts.count <= 5);
+
+  const pdfHtmlFormatValidations = await fetchJson(`${url}/api/pdf-html-format-validations?pdf_html_format_validation_status=passed&limit=5`);
+  assert.equal(pdfHtmlFormatValidations.collection, "pdf_html_format_validations");
+  assert.ok(pdfHtmlFormatValidations.count <= 5);
+
+  const pdfHtmlRendererValidations = await fetchJson(`${url}/api/pdf-html-renderer-validations?status=passed&limit=5`);
+  assert.equal(pdfHtmlRendererValidations.collection, "pdf_html_renderer_validations");
+  assert.ok(pdfHtmlRendererValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

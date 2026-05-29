@@ -1,0 +1,302 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/pdf-html-renderer.schema.json",
+  "title": "PDF/HTML Renderer",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "pdf_html_renderer_id",
+    "pdf_html_renderer_status",
+    "safe_handling",
+    "pdf_html_renderer_contract",
+    "pdf_html_renderer_boundary",
+    "pdf_html_render_jobs",
+    "html_preview_artifacts",
+    "pdf_export_artifacts",
+    "pdf_html_output_artifacts",
+    "pdf_html_format_validation_results",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "pdf-html-renderer.v1" },
+    "generated_at": { "type": "string", "minLength": 1 },
+    "pdf_html_renderer_id": { "type": "string", "minLength": 1 },
+    "pdf_html_renderer_status": { "const": "complete" },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "report_only",
+        "pdf_html_renderer_generated",
+        "draft_artifact_only",
+        "html_preview_generated",
+        "pdf_export_generated",
+        "local_deterministic_render_performed",
+        "document_renderer_runtime_execution_performed",
+        "external_renderer_execution_performed",
+        "network_access_performed",
+        "html_preview_write_performed",
+        "pdf_export_write_performed",
+        "source_attribution_required",
+        "citation_review_required",
+        "human_review_required",
+        "attorney_review_required",
+        "format_validation_required",
+        "legal_advice_generated",
+        "delivery_execution_performed",
+        "protected_mutation_performed",
+        "core_registry_mutation_performed",
+        "client_facing_output_generated"
+      ],
+      "properties": {
+        "report_only": { "const": true },
+        "pdf_html_renderer_generated": { "const": true },
+        "draft_artifact_only": { "const": true },
+        "html_preview_generated": { "const": true },
+        "pdf_export_generated": { "const": true },
+        "local_deterministic_render_performed": { "const": true },
+        "document_renderer_runtime_execution_performed": { "const": false },
+        "external_renderer_execution_performed": { "const": false },
+        "network_access_performed": { "const": false },
+        "html_preview_write_performed": { "const": true },
+        "pdf_export_write_performed": { "const": true },
+        "source_attribution_required": { "const": true },
+        "citation_review_required": { "const": true },
+        "human_review_required": { "const": true },
+        "attorney_review_required": { "const": true },
+        "format_validation_required": { "const": true },
+        "legal_advice_generated": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "protected_mutation_performed": { "const": false },
+        "core_registry_mutation_performed": { "const": false },
+        "client_facing_output_generated": { "const": false }
+      }
+    },
+    "pdf_html_renderer_contract": {
+      "type": "object",
+      "required": ["contract_id", "renderer_scope", "required_template_format", "required_output_formats"],
+      "properties": {
+        "contract_id": { "const": "pdf-html-renderer.v1" },
+        "renderer_scope": { "const": "creative_and_document_domain_pack_pdf_html" },
+        "required_template_format": { "const": "html" },
+        "required_output_formats": {
+          "type": "array",
+          "contains": { "const": "html" },
+          "minItems": 2
+        }
+      }
+    },
+    "pdf_html_renderer_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "read_only_sources",
+        "local_deterministic_renderer",
+        "renderer_execution_allowed",
+        "document_renderer_runtime_execution_allowed",
+        "external_renderer_execution_allowed",
+        "network_access_allowed",
+        "html_preview_write_allowed",
+        "pdf_export_write_allowed",
+        "core_registry_mutation_allowed",
+        "delivery_execution_allowed",
+        "protected_action_allowed",
+        "client_facing_output_generated",
+        "client_facing_ready_count",
+        "human_review_required",
+        "attorney_review_required",
+        "legal_advice_generated"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "read_only_sources": { "const": true },
+        "local_deterministic_renderer": { "const": true },
+        "renderer_execution_allowed": { "const": true },
+        "document_renderer_runtime_execution_allowed": { "const": false },
+        "external_renderer_execution_allowed": { "const": false },
+        "network_access_allowed": { "const": false },
+        "html_preview_write_allowed": { "const": true },
+        "pdf_export_write_allowed": { "const": true },
+        "core_registry_mutation_allowed": { "const": false },
+        "delivery_execution_allowed": { "const": false },
+        "protected_action_allowed": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "client_facing_ready_count": { "const": 0 },
+        "human_review_required": { "const": true },
+        "attorney_review_required": { "const": true },
+        "legal_advice_generated": { "const": false }
+      }
+    },
+    "pdf_html_render_jobs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "pdf_html_render_job_id",
+          "pdf_html_render_job_status",
+          "template_id",
+          "template_format",
+          "metadata_hash",
+          "renderer_execution_performed",
+          "local_deterministic_render_performed",
+          "document_renderer_runtime_execution_performed",
+          "external_renderer_execution_performed",
+          "network_access_performed",
+          "html_preview_write_performed",
+          "pdf_export_write_performed",
+          "format_validation_required",
+          "human_review_required",
+          "attorney_review_required",
+          "legal_advice_generated",
+          "delivery_execution_performed",
+          "protected_action_executed",
+          "client_facing_ready",
+          "client_facing_output_generated"
+        ],
+        "properties": {
+          "pdf_html_render_job_status": { "const": "complete" },
+          "template_format": { "const": "html" },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "renderer_execution_performed": { "const": true },
+          "local_deterministic_render_performed": { "const": true },
+          "document_renderer_runtime_execution_performed": { "const": false },
+          "external_renderer_execution_performed": { "const": false },
+          "network_access_performed": { "const": false },
+          "html_preview_write_performed": { "const": true },
+          "pdf_export_write_performed": { "const": true },
+          "format_validation_required": { "const": true },
+          "human_review_required": { "const": true },
+          "attorney_review_required": { "const": true },
+          "legal_advice_generated": { "const": false },
+          "delivery_execution_performed": { "const": false },
+          "protected_action_executed": { "const": false },
+          "client_facing_ready": { "const": false },
+          "client_facing_output_generated": { "const": false }
+        }
+      }
+    },
+    "html_preview_artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["html_preview_artifact_id", "html_preview_status", "output_format", "html_payload_hash", "metadata_hash", "human_review_note"],
+        "properties": {
+          "html_preview_status": { "const": "draft_generated" },
+          "output_format": { "const": "html" },
+          "html_payload_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "human_review_note": { "type": "string", "minLength": 20 }
+        }
+      }
+    },
+    "pdf_export_artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["pdf_export_artifact_id", "pdf_export_status", "output_format", "pdf_binary_hash", "metadata_hash", "human_review_note"],
+        "properties": {
+          "pdf_export_status": { "const": "draft_generated" },
+          "output_format": { "const": "pdf" },
+          "pdf_binary_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "human_review_note": { "type": "string", "minLength": 20 }
+        }
+      }
+    },
+    "pdf_html_output_artifacts": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [
+          "pdf_html_output_artifact_id",
+          "output_format",
+          "output_artifact_status",
+          "content_hash",
+          "metadata_hash",
+          "artifact_write_performed",
+          "human_review_required",
+          "attorney_review_required",
+          "legal_advice_generated",
+          "delivery_execution_performed",
+          "protected_action_executed",
+          "client_facing_ready",
+          "client_facing_output_generated"
+        ],
+        "properties": {
+          "output_format": { "enum": ["html", "pdf"] },
+          "output_artifact_status": { "const": "draft_generated" },
+          "content_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "artifact_write_performed": { "const": true },
+          "human_review_required": { "const": true },
+          "attorney_review_required": { "const": true },
+          "legal_advice_generated": { "const": false },
+          "delivery_execution_performed": { "const": false },
+          "protected_action_executed": { "const": false },
+          "client_facing_ready": { "const": false },
+          "client_facing_output_generated": { "const": false }
+        }
+      }
+    },
+    "pdf_html_format_validation_results": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["pdf_html_format_validation_result_id", "pdf_html_format_validation_status", "output_format", "failed_check_count", "checks"],
+        "properties": {
+          "pdf_html_format_validation_status": { "const": "passed" },
+          "output_format": { "enum": ["html", "pdf"] },
+          "failed_check_count": { "const": 0 },
+          "checks": { "type": "array", "minItems": 1 }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "errors": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "pdf_html_renderer_status",
+        "pdf_html_renderer_contract_id",
+        "html_template_count",
+        "pdf_html_render_job_count",
+        "html_preview_artifact_count",
+        "pdf_export_artifact_count",
+        "pdf_html_output_artifact_count",
+        "pdf_html_format_validation_result_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "pdf_html_renderer_status": { "const": "complete" },
+        "pdf_html_renderer_contract_id": { "const": "pdf-html-renderer.v1" },
+        "html_template_count": { "type": "integer", "minimum": 1 },
+        "pdf_html_render_job_count": { "type": "integer", "minimum": 1 },
+        "html_preview_artifact_count": { "type": "integer", "minimum": 1 },
+        "pdf_export_artifact_count": { "type": "integer", "minimum": 1 },
+        "pdf_html_output_artifact_count": { "type": "integer", "minimum": 2 },
+        "html_output_artifact_count": { "type": "integer", "minimum": 1 },
+        "pdf_output_artifact_count": { "type": "integer", "minimum": 1 },
+        "pdf_html_format_validation_result_count": { "type": "integer", "minimum": 2 },
+        "passed_format_validation_result_count": { "type": "integer", "minimum": 2 },
+        "validation_error_count": { "const": 0 },
+        "document_renderer_pdf_target_supported": { "const": true },
+        "client_facing_ready_count": { "const": 0 },
+        "legal_advice_generated": { "const": false }
+      }
+    }
+  }
+}

@@ -140,6 +140,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "creative-document:asset-registry",
   "creative-document:docx-renderer",
   "creative-document:pptx-renderer",
+  "creative-document:pdf-html-renderer",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

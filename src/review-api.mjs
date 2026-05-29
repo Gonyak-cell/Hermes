@@ -4666,6 +4666,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("pptx_renderer_validations", pptxRendererResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/pdf-html-renderers") {
+    const pdfHtmlRendererResult = await readDashboardSourceArtifact(dashboard, "pdf_html_renderer");
+    if (!pdfHtmlRendererResult.available) {
+      return jsonResponse(503, buildError("pdf_html_renderer_unavailable", pdfHtmlRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pdf_html_renderers", [pdfHtmlRendererResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/pdf-html-render-jobs") {
+    const pdfHtmlRendererResult = await readDashboardSourceArtifact(dashboard, "pdf_html_renderer");
+    if (!pdfHtmlRendererResult.available) {
+      return jsonResponse(503, buildError("pdf_html_renderer_unavailable", pdfHtmlRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pdf_html_render_jobs", pdfHtmlRendererResult.artifact.pdf_html_render_jobs ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/html-preview-artifacts") {
+    const pdfHtmlRendererResult = await readDashboardSourceArtifact(dashboard, "pdf_html_renderer");
+    if (!pdfHtmlRendererResult.available) {
+      return jsonResponse(503, buildError("pdf_html_renderer_unavailable", pdfHtmlRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("html_preview_artifacts", pdfHtmlRendererResult.artifact.html_preview_artifacts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/pdf-export-artifacts") {
+    const pdfHtmlRendererResult = await readDashboardSourceArtifact(dashboard, "pdf_html_renderer");
+    if (!pdfHtmlRendererResult.available) {
+      return jsonResponse(503, buildError("pdf_html_renderer_unavailable", pdfHtmlRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pdf_export_artifacts", pdfHtmlRendererResult.artifact.pdf_export_artifacts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/pdf-html-output-artifacts") {
+    const pdfHtmlRendererResult = await readDashboardSourceArtifact(dashboard, "pdf_html_renderer");
+    if (!pdfHtmlRendererResult.available) {
+      return jsonResponse(503, buildError("pdf_html_renderer_unavailable", pdfHtmlRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pdf_html_output_artifacts", pdfHtmlRendererResult.artifact.pdf_html_output_artifacts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/pdf-html-format-validations") {
+    const pdfHtmlRendererResult = await readDashboardSourceArtifact(dashboard, "pdf_html_renderer");
+    if (!pdfHtmlRendererResult.available) {
+      return jsonResponse(503, buildError("pdf_html_renderer_unavailable", pdfHtmlRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pdf_html_format_validations", pdfHtmlRendererResult.artifact.pdf_html_format_validation_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/pdf-html-renderer-validations") {
+    const pdfHtmlRendererResult = await readDashboardSourceArtifact(dashboard, "pdf_html_renderer");
+    if (!pdfHtmlRendererResult.available) {
+      return jsonResponse(503, buildError("pdf_html_renderer_unavailable", pdfHtmlRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pdf_html_renderer_validations", pdfHtmlRendererResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -10937,6 +10986,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/pptx-overflow-checks", "PPTX overflow check rows"),
       route("GET", "/api/pptx-format-validations", "PPTX format validation rows"),
       route("GET", "/api/pptx-renderer-validations", "PPTX renderer validation rows"),
+      route("GET", "/api/pdf-html-renderers", "PDF/HTML renderer artifact"),
+      route("GET", "/api/pdf-html-render-jobs", "PDF/HTML render job rows"),
+      route("GET", "/api/html-preview-artifacts", "HTML preview artifact rows"),
+      route("GET", "/api/pdf-export-artifacts", "PDF export artifact rows"),
+      route("GET", "/api/pdf-html-output-artifacts", "PDF/HTML output artifact rows"),
+      route("GET", "/api/pdf-html-format-validations", "PDF/HTML format validation rows"),
+      route("GET", "/api/pdf-html-renderer-validations", "PDF/HTML renderer validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -11936,6 +11992,12 @@ function filterItems(items, searchParams) {
     "pptx_output_artifact_status",
     "pptx_overflow_check_status",
     "pptx_format_validation_status",
+    "pdf_html_renderer_status",
+    "pdf_html_render_job_status",
+    "html_preview_status",
+    "pdf_export_status",
+    "pdf_html_output_artifact_status",
+    "pdf_html_format_validation_status",
     "matter_os_profile_status",
     "profile_card_status",
     "display_field_status",
@@ -13663,6 +13725,12 @@ function readFilterValue(item, key) {
   if (key === "pptx_output_artifact_status") return item.output_artifact_status;
   if (key === "pptx_overflow_check_status") return item.overflow_check_status ?? item.validation_status;
   if (key === "pptx_format_validation_status") return item.pptx_format_validation_status ?? item.validation_status;
+  if (key === "pdf_html_renderer_status") return item.summary?.pdf_html_renderer_status ?? item.pdf_html_renderer_status;
+  if (key === "pdf_html_render_job_status") return item.pdf_html_render_job_status ?? item.render_job_status;
+  if (key === "html_preview_status") return item.html_preview_status ?? item.output_artifact_status;
+  if (key === "pdf_export_status") return item.pdf_export_status ?? item.output_artifact_status;
+  if (key === "pdf_html_output_artifact_status") return item.output_artifact_status;
+  if (key === "pdf_html_format_validation_status") return item.pdf_html_format_validation_status ?? item.validation_status;
   if (key === "matter_os_profile_status") return item.summary?.matter_os_profile_status ?? item.matter_os_profile_status;
   if (key === "profile_card_status") return item.profile_card_status;
   if (key === "display_field_status") return item.display_field_status;

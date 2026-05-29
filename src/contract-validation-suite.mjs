@@ -132,6 +132,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "law-firm:meeting-minutes",
   "law-firm:contract-draft",
   "law-firm:provided-materials-review",
+  "law-firm:approval-matrix",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

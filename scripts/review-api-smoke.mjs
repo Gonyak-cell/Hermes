@@ -2496,6 +2496,38 @@ try {
   assert.equal(providedMaterialReviewValidations.collection, "provided_material_review_validations");
   assert.ok(providedMaterialReviewValidations.count <= 5);
 
+  const legalApprovalMatrixArtifacts = await fetchJson(`${url}/api/legal-approval-matrix-artifacts?legal_approval_matrix_status=complete&limit=1`);
+  assert.equal(legalApprovalMatrixArtifacts.collection, "legal_approval_matrix_artifacts");
+  assert.ok(legalApprovalMatrixArtifacts.count <= 1);
+
+  const legalApprovalMatrixRules = await fetchJson(`${url}/api/legal-approval-matrix-rules?legal_approval_rule_type=partner_approval_required&limit=5`);
+  assert.equal(legalApprovalMatrixRules.collection, "legal_approval_matrix_rules");
+  assert.ok(legalApprovalMatrixRules.count <= 5);
+
+  const legalApprovalOutputRows = await fetchJson(`${url}/api/legal-approval-output-rows?client_use_blocked_until_approval=true&partner_approval_required_before_client_use=true&limit=6`);
+  assert.equal(legalApprovalOutputRows.collection, "legal_approval_output_rows");
+  assert.ok(legalApprovalOutputRows.count <= 6);
+
+  const legalApprovalRequirements = await fetchJson(`${url}/api/legal-approval-requirements?approval_requirement_type=partner_approval&approval_requirement_status=pending_required&limit=6`);
+  assert.equal(legalApprovalRequirements.collection, "legal_approval_requirements");
+  assert.ok(legalApprovalRequirements.count <= 6);
+
+  const legalApprovalGateLinks = await fetchJson(`${url}/api/legal-approval-gate-links?gate_link_status=linked_pending_approval&limit=6`);
+  assert.equal(legalApprovalGateLinks.collection, "legal_approval_gate_links");
+  assert.ok(legalApprovalGateLinks.count <= 6);
+
+  const legalApprovalMatterSummaries = await fetchJson(`${url}/api/legal-approval-matter-summaries?legal_approval_matter_status=pending_attorney_and_partner_approval&limit=5`);
+  assert.equal(legalApprovalMatterSummaries.collection, "legal_approval_matter_summaries");
+  assert.ok(legalApprovalMatterSummaries.count <= 5);
+
+  const legalApprovalMatrixBoundary = await fetchJson(`${url}/api/legal-approval-matrix-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(legalApprovalMatrixBoundary.collection, "legal_approval_matrix_boundary");
+  assert.ok(legalApprovalMatrixBoundary.count <= 1);
+
+  const legalApprovalMatrixValidations = await fetchJson(`${url}/api/legal-approval-matrix-validations?status=passed&limit=5`);
+  assert.equal(legalApprovalMatrixValidations.collection, "legal_approval_matrix_validations");
+  assert.ok(legalApprovalMatrixValidations.count <= 5);
+
   const repoProfileDetectors = await fetchJson(`${url}/api/repo-profile-detectors?repo_profile_detector_status=complete&limit=1`);
   assert.equal(repoProfileDetectors.collection, "repo_profile_detectors");
   assert.ok(repoProfileDetectors.count <= 1);

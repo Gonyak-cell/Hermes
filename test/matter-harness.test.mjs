@@ -50,6 +50,7 @@ import { runLitigationBriefDraft } from "../src/litigation-brief-draft.mjs";
 import { runMeetingMinutesWorkflow } from "../src/meeting-minutes-workflow.mjs";
 import { runContractDraftWorkflow } from "../src/contract-draft-workflow.mjs";
 import { runProvidedMaterialReview } from "../src/provided-material-review-ledger.mjs";
+import { runLegalApprovalMatrix } from "../src/legal-approval-matrix.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1895,6 +1896,7 @@ describe("matter harness", () => {
         meetingMinutesWorkflowPath: path.join(outDir, "meeting-minutes-workflow", "meeting-minutes-workflow.json"),
         contractDraftWorkflowPath: path.join(outDir, "contract-draft-workflow", "contract-draft-workflow.json"),
         providedMaterialReviewPath: path.join(outDir, "provided-material-review", "provided-material-review-ledger.json"),
+        legalApprovalMatrixPath: path.join(outDir, "legal-approval-matrix", "legal-approval-matrix.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -9655,6 +9657,75 @@ describe("matter harness", () => {
       assert.ok(providedMaterialReview.provided_material_review_gates.every((gate) => gate.review_gate_status === "pending_attorney_review" && gate.source_ref_count > 0 && gate.final_review_decision_recorded === false && gate.client_facing_ready === false));
       assert.match(await readFile(path.join(outDir, "provided-material-review", "summary.md"), "utf8"), /Provided Material Review Ledger/);
 
+      const legalApprovalMatrix = await runLegalApprovalMatrix({
+        lddRfiGeneratorPath: path.join(outDir, "ldd-rfi-generator", "ldd-rfi-generator.json"),
+        lddReportDraftPath: path.join(outDir, "ldd-report-draft", "ldd-report-draft.json"),
+        litigationBriefDraftPath: path.join(outDir, "litigation-brief-draft", "litigation-brief-draft.json"),
+        meetingMinutesWorkflowPath: path.join(outDir, "meeting-minutes-workflow", "meeting-minutes-workflow.json"),
+        contractDraftWorkflowPath: path.join(outDir, "contract-draft-workflow", "contract-draft-workflow.json"),
+        providedMaterialReviewPath: path.join(outDir, "provided-material-review", "provided-material-review-ledger.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "legal-approval-matrix"),
+        runAt: "2026-05-23T07:00:10.000Z",
+      });
+      const legalApprovalMatrixSchema = JSON.parse(await readFile("schemas/legal-approval-matrix.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(legalApprovalMatrix, legalApprovalMatrixSchema, {}, "legal_approval_matrix"), []);
+      assert.equal(legalApprovalMatrix.summary.legal_approval_matrix_status, "complete");
+      assert.equal(legalApprovalMatrix.summary.source_ldd_rfi_generator_status, "complete");
+      assert.equal(legalApprovalMatrix.summary.source_ldd_rfi_generator_phase_status, "complete");
+      assert.equal(legalApprovalMatrix.summary.source_ldd_report_draft_status, "complete");
+      assert.equal(legalApprovalMatrix.summary.source_ldd_report_draft_phase_status, "complete");
+      assert.equal(legalApprovalMatrix.summary.source_litigation_brief_draft_status, "complete");
+      assert.equal(legalApprovalMatrix.summary.source_litigation_brief_draft_phase_status, "complete");
+      assert.equal(legalApprovalMatrix.summary.source_meeting_minutes_workflow_status, "complete");
+      assert.equal(legalApprovalMatrix.summary.source_meeting_minutes_workflow_phase_status, "complete");
+      assert.equal(legalApprovalMatrix.summary.source_contract_draft_workflow_status, "complete");
+      assert.equal(legalApprovalMatrix.summary.source_contract_draft_workflow_phase_status, "complete");
+      assert.equal(legalApprovalMatrix.summary.source_provided_material_review_status, "complete");
+      assert.equal(legalApprovalMatrix.summary.source_provided_material_review_phase_status, "complete");
+      assert.equal(legalApprovalMatrix.summary.legal_approval_rule_count, 6);
+      assert.equal(legalApprovalMatrix.summary.legal_approval_output_count, 6);
+      assert.equal(legalApprovalMatrix.summary.legal_approval_requirement_count, legalApprovalMatrix.summary.legal_approval_output_count * 2);
+      assert.equal(legalApprovalMatrix.summary.legal_approval_gate_link_count, legalApprovalMatrix.summary.legal_approval_output_count);
+      assert.equal(legalApprovalMatrix.summary.matter_count, 2);
+      assert.equal(legalApprovalMatrix.summary.attorney_review_requirement_count, legalApprovalMatrix.summary.legal_approval_output_count);
+      assert.equal(legalApprovalMatrix.summary.partner_approval_requirement_count, legalApprovalMatrix.summary.legal_approval_output_count);
+      assert.equal(legalApprovalMatrix.summary.attorney_review_required_output_count, legalApprovalMatrix.summary.legal_approval_output_count);
+      assert.equal(legalApprovalMatrix.summary.human_review_required_output_count, legalApprovalMatrix.summary.legal_approval_output_count);
+      assert.equal(legalApprovalMatrix.summary.partner_approval_required_output_count, legalApprovalMatrix.summary.legal_approval_output_count);
+      assert.equal(legalApprovalMatrix.summary.output_with_native_gate_count, legalApprovalMatrix.summary.legal_approval_output_count);
+      assert.equal(legalApprovalMatrix.summary.output_with_gate_link_count, legalApprovalMatrix.summary.legal_approval_output_count);
+      assert.equal(legalApprovalMatrix.summary.client_use_blocked_output_count, legalApprovalMatrix.summary.legal_approval_output_count);
+      assert.equal(legalApprovalMatrix.summary.finalization_blocked_output_count, legalApprovalMatrix.summary.legal_approval_output_count);
+      assert.equal(legalApprovalMatrix.summary.delivery_blocked_output_count, legalApprovalMatrix.summary.legal_approval_output_count);
+      assert.equal(legalApprovalMatrix.summary.filing_blocked_output_count, legalApprovalMatrix.summary.legal_approval_output_count);
+      assert.equal(legalApprovalMatrix.summary.approval_decision_recorded_count, 0);
+      assert.equal(legalApprovalMatrix.summary.attorney_approval_recorded_count, 0);
+      assert.equal(legalApprovalMatrix.summary.partner_approval_recorded_count, 0);
+      assert.equal(legalApprovalMatrix.summary.client_facing_ready_count, 0);
+      assert.equal(legalApprovalMatrix.summary.legal_conclusion_asserted_count, 0);
+      assert.equal(legalApprovalMatrix.summary.legal_advice_provided, false);
+      assert.equal(legalApprovalMatrix.summary.client_facing_output_generated, false);
+      assert.equal(legalApprovalMatrix.summary.desktop_boundary_status, "enforced");
+      assert.equal(legalApprovalMatrix.summary.desktop_read_only, true);
+      assert.equal(legalApprovalMatrix.summary.desktop_mutation_allowed, false);
+      assert.equal(legalApprovalMatrix.summary.desktop_source_of_truth, false);
+      assert.equal(legalApprovalMatrix.summary.matter_data_write_allowed, false);
+      assert.equal(legalApprovalMatrix.summary.task_state_write_allowed, false);
+      assert.equal(legalApprovalMatrix.summary.workflow_transition_allowed, false);
+      assert.equal(legalApprovalMatrix.summary.runtime_execution_allowed, false);
+      assert.equal(legalApprovalMatrix.summary.delivery_execution_allowed, false);
+      assert.equal(legalApprovalMatrix.summary.protected_action_allowed, false);
+      assert.equal(legalApprovalMatrix.summary.approval_decision_write_allowed, false);
+      assert.equal(legalApprovalMatrix.summary.client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(legalApprovalMatrix.summary.partner_approval_bypass_allowed, false);
+      assert.equal(legalApprovalMatrix.summary.validation_error_count, 0);
+      assert.ok(legalApprovalMatrix.legal_approval_output_rows.every((row) => row.source_ref_count > 0 && row.attorney_review_required && row.human_review_required && row.partner_approval_required_before_client_use && row.client_use_blocked_until_approval && row.finalization_blocked_until_approval && row.approval_decision_recorded === false && row.client_facing_ready === false));
+      assert.ok(legalApprovalMatrix.legal_approval_requirements.every((row) => ["attorney_review", "partner_approval"].includes(row.approval_requirement_type) && row.approval_requirement_status === "pending_required" && row.gate_status === "blocked_until_human_approval" && row.approval_decision_recorded === false && row.client_facing_ready === false));
+      assert.ok(legalApprovalMatrix.legal_approval_gate_links.every((link) => link.gate_link_status === "linked_pending_approval" && link.attorney_requirement_linked && link.partner_requirement_linked && link.approval_decision_recorded === false));
+      assert.match(await readFile(path.join(outDir, "legal-approval-matrix", "summary.md"), "utf8"), /Legal Approval Matrix/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -9829,6 +9900,7 @@ describe("matter harness", () => {
           meeting_minutes_workflow: path.join(outDir, "meeting-minutes-workflow", "meeting-minutes-workflow.json"),
           contract_draft_workflow: path.join(outDir, "contract-draft-workflow", "contract-draft-workflow.json"),
           provided_material_review: path.join(outDir, "provided-material-review", "provided-material-review-ledger.json"),
+          legal_approval_matrix: path.join(outDir, "legal-approval-matrix", "legal-approval-matrix.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -9880,8 +9952,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 152);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 152);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 153);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 153);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -10021,6 +10093,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "meeting_minutes_workflow"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "contract_draft_workflow"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "provided_material_review"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "legal_approval_matrix"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -10064,6 +10137,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:validate"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:runtime-interface"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:approval-matrix"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:hermes-adapter"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:claude-code-adapter"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:codex-adapter"));
@@ -10776,6 +10850,10 @@ describe("matter harness", () => {
       assert.equal(providedMaterialReviewCheckpoint?.acceptance_profile, "provided_material_review_gate");
       assert.equal(providedMaterialReviewCheckpoint?.status, "passed");
       assert.equal(providedMaterialReviewCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const legalApprovalMatrixCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-legal-approval-matrix");
+      assert.equal(legalApprovalMatrixCheckpoint?.acceptance_profile, "legal_approval_matrix_gate");
+      assert.equal(legalApprovalMatrixCheckpoint?.status, "passed");
+      assert.equal(legalApprovalMatrixCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -14377,6 +14455,56 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.provided_material_review_protected_action_allowed, false);
       assert.equal(dashboard.summary.provided_material_review_failed_checkpoint_count, 0);
       assert.equal(dashboard.summary.provided_material_review_validation_error_count, 0);
+      assert.equal(dashboard.summary.legal_approval_matrix_status, "complete");
+      assert.equal(dashboard.summary.legal_approval_matrix_source_ldd_rfi_generator_status, "complete");
+      assert.equal(dashboard.summary.legal_approval_matrix_source_ldd_rfi_generator_phase_status, "complete");
+      assert.equal(dashboard.summary.legal_approval_matrix_source_ldd_report_draft_status, "complete");
+      assert.equal(dashboard.summary.legal_approval_matrix_source_ldd_report_draft_phase_status, "complete");
+      assert.equal(dashboard.summary.legal_approval_matrix_source_litigation_brief_draft_status, "complete");
+      assert.equal(dashboard.summary.legal_approval_matrix_source_litigation_brief_draft_phase_status, "complete");
+      assert.equal(dashboard.summary.legal_approval_matrix_source_meeting_minutes_workflow_status, "complete");
+      assert.equal(dashboard.summary.legal_approval_matrix_source_meeting_minutes_workflow_phase_status, "complete");
+      assert.equal(dashboard.summary.legal_approval_matrix_source_contract_draft_workflow_status, "complete");
+      assert.equal(dashboard.summary.legal_approval_matrix_source_contract_draft_workflow_phase_status, "complete");
+      assert.equal(dashboard.summary.legal_approval_matrix_source_provided_material_review_status, "complete");
+      assert.equal(dashboard.summary.legal_approval_matrix_source_provided_material_review_phase_status, "complete");
+      assert.equal(dashboard.summary.legal_approval_matrix_rule_count, legalApprovalMatrix.summary.legal_approval_rule_count);
+      assert.equal(dashboard.summary.legal_approval_matrix_output_count, legalApprovalMatrix.summary.legal_approval_output_count);
+      assert.equal(dashboard.summary.legal_approval_matrix_requirement_count, legalApprovalMatrix.summary.legal_approval_requirement_count);
+      assert.equal(dashboard.summary.legal_approval_matrix_gate_link_count, legalApprovalMatrix.summary.legal_approval_gate_link_count);
+      assert.equal(dashboard.summary.legal_approval_matrix_matter_count, legalApprovalMatrix.summary.matter_count);
+      assert.equal(dashboard.summary.legal_approval_matrix_attorney_review_requirement_count, legalApprovalMatrix.summary.attorney_review_requirement_count);
+      assert.equal(dashboard.summary.legal_approval_matrix_partner_approval_requirement_count, legalApprovalMatrix.summary.partner_approval_requirement_count);
+      assert.equal(dashboard.summary.legal_approval_matrix_attorney_review_required_output_count, legalApprovalMatrix.summary.attorney_review_required_output_count);
+      assert.equal(dashboard.summary.legal_approval_matrix_human_review_required_output_count, legalApprovalMatrix.summary.human_review_required_output_count);
+      assert.equal(dashboard.summary.legal_approval_matrix_partner_approval_required_output_count, legalApprovalMatrix.summary.partner_approval_required_output_count);
+      assert.equal(dashboard.summary.legal_approval_matrix_output_with_native_gate_count, legalApprovalMatrix.summary.output_with_native_gate_count);
+      assert.equal(dashboard.summary.legal_approval_matrix_output_with_gate_link_count, legalApprovalMatrix.summary.output_with_gate_link_count);
+      assert.equal(dashboard.summary.legal_approval_matrix_client_use_blocked_output_count, legalApprovalMatrix.summary.client_use_blocked_output_count);
+      assert.equal(dashboard.summary.legal_approval_matrix_finalization_blocked_output_count, legalApprovalMatrix.summary.finalization_blocked_output_count);
+      assert.equal(dashboard.summary.legal_approval_matrix_delivery_blocked_output_count, legalApprovalMatrix.summary.delivery_blocked_output_count);
+      assert.equal(dashboard.summary.legal_approval_matrix_filing_blocked_output_count, legalApprovalMatrix.summary.filing_blocked_output_count);
+      assert.equal(dashboard.summary.legal_approval_matrix_approval_decision_recorded_count, 0);
+      assert.equal(dashboard.summary.legal_approval_matrix_attorney_approval_recorded_count, 0);
+      assert.equal(dashboard.summary.legal_approval_matrix_partner_approval_recorded_count, 0);
+      assert.equal(dashboard.summary.legal_approval_matrix_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.legal_approval_matrix_legal_advice_provided, false);
+      assert.equal(dashboard.summary.legal_approval_matrix_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.legal_approval_matrix_legal_conclusion_asserted_count, 0);
+      assert.equal(dashboard.summary.legal_approval_matrix_desktop_boundary_status, "enforced");
+      assert.equal(dashboard.summary.legal_approval_matrix_desktop_read_only, true);
+      assert.equal(dashboard.summary.legal_approval_matrix_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.legal_approval_matrix_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.legal_approval_matrix_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.legal_approval_matrix_workflow_transition_allowed, false);
+      assert.equal(dashboard.summary.legal_approval_matrix_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.legal_approval_matrix_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.legal_approval_matrix_protected_action_allowed, false);
+      assert.equal(dashboard.summary.legal_approval_matrix_approval_decision_write_allowed, false);
+      assert.equal(dashboard.summary.legal_approval_matrix_client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(dashboard.summary.legal_approval_matrix_partner_approval_bypass_allowed, false);
+      assert.equal(dashboard.summary.legal_approval_matrix_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.legal_approval_matrix_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -16427,6 +16555,58 @@ describe("matter harness", () => {
       assert.equal(providedMaterialReviewStage?.metrics.protected_action_allowed, false);
       assert.equal(providedMaterialReviewStage?.metrics.client_facing_output_allowed_without_attorney_review, false);
       assert.equal(providedMaterialReviewStage?.metrics.validation_error_count, 0);
+      const legalApprovalMatrixStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "legal_approval_matrix");
+      assert.equal(legalApprovalMatrixStage?.status, "passed");
+      assert.equal(legalApprovalMatrixStage?.metrics.legal_approval_matrix_status, "complete");
+      assert.equal(legalApprovalMatrixStage?.metrics.source_ldd_rfi_generator_status, "complete");
+      assert.equal(legalApprovalMatrixStage?.metrics.source_ldd_rfi_generator_phase_status, "complete");
+      assert.equal(legalApprovalMatrixStage?.metrics.source_ldd_report_draft_status, "complete");
+      assert.equal(legalApprovalMatrixStage?.metrics.source_ldd_report_draft_phase_status, "complete");
+      assert.equal(legalApprovalMatrixStage?.metrics.source_litigation_brief_draft_status, "complete");
+      assert.equal(legalApprovalMatrixStage?.metrics.source_litigation_brief_draft_phase_status, "complete");
+      assert.equal(legalApprovalMatrixStage?.metrics.source_meeting_minutes_workflow_status, "complete");
+      assert.equal(legalApprovalMatrixStage?.metrics.source_meeting_minutes_workflow_phase_status, "complete");
+      assert.equal(legalApprovalMatrixStage?.metrics.source_contract_draft_workflow_status, "complete");
+      assert.equal(legalApprovalMatrixStage?.metrics.source_contract_draft_workflow_phase_status, "complete");
+      assert.equal(legalApprovalMatrixStage?.metrics.source_provided_material_review_status, "complete");
+      assert.equal(legalApprovalMatrixStage?.metrics.source_provided_material_review_phase_status, "complete");
+      assert.equal(legalApprovalMatrixStage?.metrics.legal_approval_rule_count, legalApprovalMatrix.summary.legal_approval_rule_count);
+      assert.equal(legalApprovalMatrixStage?.metrics.legal_approval_output_count, legalApprovalMatrix.summary.legal_approval_output_count);
+      assert.equal(legalApprovalMatrixStage?.metrics.legal_approval_requirement_count, legalApprovalMatrix.summary.legal_approval_requirement_count);
+      assert.equal(legalApprovalMatrixStage?.metrics.legal_approval_gate_link_count, legalApprovalMatrix.summary.legal_approval_gate_link_count);
+      assert.equal(legalApprovalMatrixStage?.metrics.matter_count, legalApprovalMatrix.summary.matter_count);
+      assert.equal(legalApprovalMatrixStage?.metrics.attorney_review_requirement_count, legalApprovalMatrix.summary.attorney_review_requirement_count);
+      assert.equal(legalApprovalMatrixStage?.metrics.partner_approval_requirement_count, legalApprovalMatrix.summary.partner_approval_requirement_count);
+      assert.equal(legalApprovalMatrixStage?.metrics.attorney_review_required_output_count, legalApprovalMatrix.summary.attorney_review_required_output_count);
+      assert.equal(legalApprovalMatrixStage?.metrics.human_review_required_output_count, legalApprovalMatrix.summary.human_review_required_output_count);
+      assert.equal(legalApprovalMatrixStage?.metrics.partner_approval_required_output_count, legalApprovalMatrix.summary.partner_approval_required_output_count);
+      assert.equal(legalApprovalMatrixStage?.metrics.output_with_native_gate_count, legalApprovalMatrix.summary.output_with_native_gate_count);
+      assert.equal(legalApprovalMatrixStage?.metrics.output_with_gate_link_count, legalApprovalMatrix.summary.output_with_gate_link_count);
+      assert.equal(legalApprovalMatrixStage?.metrics.client_use_blocked_output_count, legalApprovalMatrix.summary.client_use_blocked_output_count);
+      assert.equal(legalApprovalMatrixStage?.metrics.finalization_blocked_output_count, legalApprovalMatrix.summary.finalization_blocked_output_count);
+      assert.equal(legalApprovalMatrixStage?.metrics.delivery_blocked_output_count, legalApprovalMatrix.summary.delivery_blocked_output_count);
+      assert.equal(legalApprovalMatrixStage?.metrics.filing_blocked_output_count, legalApprovalMatrix.summary.filing_blocked_output_count);
+      assert.equal(legalApprovalMatrixStage?.metrics.approval_decision_recorded_count, 0);
+      assert.equal(legalApprovalMatrixStage?.metrics.attorney_approval_recorded_count, 0);
+      assert.equal(legalApprovalMatrixStage?.metrics.partner_approval_recorded_count, 0);
+      assert.equal(legalApprovalMatrixStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(legalApprovalMatrixStage?.metrics.legal_advice_provided, false);
+      assert.equal(legalApprovalMatrixStage?.metrics.client_facing_output_generated, false);
+      assert.equal(legalApprovalMatrixStage?.metrics.legal_conclusion_asserted_count, 0);
+      assert.equal(legalApprovalMatrixStage?.metrics.desktop_boundary_status, "enforced");
+      assert.equal(legalApprovalMatrixStage?.metrics.desktop_read_only, true);
+      assert.equal(legalApprovalMatrixStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(legalApprovalMatrixStage?.metrics.desktop_source_of_truth, false);
+      assert.equal(legalApprovalMatrixStage?.metrics.matter_data_write_allowed, false);
+      assert.equal(legalApprovalMatrixStage?.metrics.task_state_write_allowed, false);
+      assert.equal(legalApprovalMatrixStage?.metrics.workflow_transition_allowed, false);
+      assert.equal(legalApprovalMatrixStage?.metrics.runtime_execution_allowed, false);
+      assert.equal(legalApprovalMatrixStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(legalApprovalMatrixStage?.metrics.protected_action_allowed, false);
+      assert.equal(legalApprovalMatrixStage?.metrics.approval_decision_write_allowed, false);
+      assert.equal(legalApprovalMatrixStage?.metrics.client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(legalApprovalMatrixStage?.metrics.partner_approval_bypass_allowed, false);
+      assert.equal(legalApprovalMatrixStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -18819,6 +18999,38 @@ describe("matter harness", () => {
       const providedMaterialReviewValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/provided-material-review-validations?status=passed", apiOptions)).body);
       assert.equal(providedMaterialReviewValidationsResponse.collection, "provided_material_review_validations");
       assert.equal(providedMaterialReviewValidationsResponse.count, providedMaterialReview.summary.validation_item_count);
+
+      const legalApprovalMatrixArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/legal-approval-matrix-artifacts?legal_approval_matrix_status=complete", apiOptions)).body);
+      assert.equal(legalApprovalMatrixArtifactsResponse.collection, "legal_approval_matrix_artifacts");
+      assert.equal(legalApprovalMatrixArtifactsResponse.count, 1);
+
+      const legalApprovalMatrixRulesResponse = JSON.parse((await buildReviewApiResponse("/api/legal-approval-matrix-rules?legal_approval_rule_type=partner_approval_required", apiOptions)).body);
+      assert.equal(legalApprovalMatrixRulesResponse.collection, "legal_approval_matrix_rules");
+      assert.equal(legalApprovalMatrixRulesResponse.count, 1);
+
+      const legalApprovalOutputRowsResponse = JSON.parse((await buildReviewApiResponse("/api/legal-approval-output-rows?client_use_blocked_until_approval=true&partner_approval_required_before_client_use=true", apiOptions)).body);
+      assert.equal(legalApprovalOutputRowsResponse.collection, "legal_approval_output_rows");
+      assert.equal(legalApprovalOutputRowsResponse.count, legalApprovalMatrix.summary.legal_approval_output_count);
+
+      const legalApprovalRequirementsResponse = JSON.parse((await buildReviewApiResponse("/api/legal-approval-requirements?approval_requirement_type=partner_approval&approval_requirement_status=pending_required", apiOptions)).body);
+      assert.equal(legalApprovalRequirementsResponse.collection, "legal_approval_requirements");
+      assert.equal(legalApprovalRequirementsResponse.count, legalApprovalMatrix.summary.partner_approval_requirement_count);
+
+      const legalApprovalGateLinksResponse = JSON.parse((await buildReviewApiResponse("/api/legal-approval-gate-links?gate_link_status=linked_pending_approval", apiOptions)).body);
+      assert.equal(legalApprovalGateLinksResponse.collection, "legal_approval_gate_links");
+      assert.equal(legalApprovalGateLinksResponse.count, legalApprovalMatrix.summary.legal_approval_gate_link_count);
+
+      const legalApprovalMatterSummariesResponse = JSON.parse((await buildReviewApiResponse("/api/legal-approval-matter-summaries?legal_approval_matter_status=pending_attorney_and_partner_approval", apiOptions)).body);
+      assert.equal(legalApprovalMatterSummariesResponse.collection, "legal_approval_matter_summaries");
+      assert.equal(legalApprovalMatterSummariesResponse.count, legalApprovalMatrix.summary.matter_count);
+
+      const legalApprovalMatrixBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/legal-approval-matrix-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(legalApprovalMatrixBoundaryResponse.collection, "legal_approval_matrix_boundary");
+      assert.equal(legalApprovalMatrixBoundaryResponse.count, 1);
+
+      const legalApprovalMatrixValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/legal-approval-matrix-validations?status=passed", apiOptions)).body);
+      assert.equal(legalApprovalMatrixValidationsResponse.collection, "legal_approval_matrix_validations");
+      assert.equal(legalApprovalMatrixValidationsResponse.count, legalApprovalMatrix.summary.validation_item_count);
 
       const repoProfileDetectorsResponse = JSON.parse((await buildReviewApiResponse("/api/repo-profile-detectors?repo_profile_detector_status=complete", apiOptions)).body);
       assert.equal(repoProfileDetectorsResponse.collection, "repo_profile_detectors");

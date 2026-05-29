@@ -5408,6 +5408,62 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("provided_material_review_validations", materialResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/legal-approval-matrix-artifacts") {
+    const approvalResult = await readDashboardSourceArtifact(dashboard, "legal_approval_matrix");
+    if (!approvalResult.available) {
+      return jsonResponse(503, buildError("legal_approval_matrix_unavailable", approvalResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("legal_approval_matrix_artifacts", [approvalResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/legal-approval-matrix-rules") {
+    const approvalResult = await readDashboardSourceArtifact(dashboard, "legal_approval_matrix");
+    if (!approvalResult.available) {
+      return jsonResponse(503, buildError("legal_approval_matrix_unavailable", approvalResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("legal_approval_matrix_rules", approvalResult.artifact.legal_approval_matrix_rules ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/legal-approval-output-rows") {
+    const approvalResult = await readDashboardSourceArtifact(dashboard, "legal_approval_matrix");
+    if (!approvalResult.available) {
+      return jsonResponse(503, buildError("legal_approval_matrix_unavailable", approvalResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("legal_approval_output_rows", approvalResult.artifact.legal_approval_output_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/legal-approval-requirements") {
+    const approvalResult = await readDashboardSourceArtifact(dashboard, "legal_approval_matrix");
+    if (!approvalResult.available) {
+      return jsonResponse(503, buildError("legal_approval_matrix_unavailable", approvalResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("legal_approval_requirements", approvalResult.artifact.legal_approval_requirements ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/legal-approval-gate-links") {
+    const approvalResult = await readDashboardSourceArtifact(dashboard, "legal_approval_matrix");
+    if (!approvalResult.available) {
+      return jsonResponse(503, buildError("legal_approval_matrix_unavailable", approvalResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("legal_approval_gate_links", approvalResult.artifact.legal_approval_gate_links ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/legal-approval-matter-summaries") {
+    const approvalResult = await readDashboardSourceArtifact(dashboard, "legal_approval_matrix");
+    if (!approvalResult.available) {
+      return jsonResponse(503, buildError("legal_approval_matrix_unavailable", approvalResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("legal_approval_matter_summaries", approvalResult.artifact.legal_approval_matter_summaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/legal-approval-matrix-boundary") {
+    const approvalResult = await readDashboardSourceArtifact(dashboard, "legal_approval_matrix");
+    if (!approvalResult.available) {
+      return jsonResponse(503, buildError("legal_approval_matrix_unavailable", approvalResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("legal_approval_matrix_boundary", [approvalResult.artifact.legal_approval_matrix_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/legal-approval-matrix-validations") {
+    const approvalResult = await readDashboardSourceArtifact(dashboard, "legal_approval_matrix");
+    if (!approvalResult.available) {
+      return jsonResponse(503, buildError("legal_approval_matrix_unavailable", approvalResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("legal_approval_matrix_validations", approvalResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/repo-profile-detectors") {
     const repoProfileDetectorResult = await readDashboardSourceArtifact(dashboard, "repo_profile_detector");
     if (!repoProfileDetectorResult.available) {
@@ -10658,6 +10714,14 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/provided-material-matter-summaries", "Provided material matter summary rows"),
       route("GET", "/api/provided-material-review-boundary", "Provided material review Desktop boundary"),
       route("GET", "/api/provided-material-review-validations", "Provided material review validation rows"),
+      route("GET", "/api/legal-approval-matrix-artifacts", "Legal approval matrix artifact"),
+      route("GET", "/api/legal-approval-matrix-rules", "Legal approval matrix rule rows"),
+      route("GET", "/api/legal-approval-output-rows", "Legal approval output rows"),
+      route("GET", "/api/legal-approval-requirements", "Legal approval requirement rows"),
+      route("GET", "/api/legal-approval-gate-links", "Legal approval gate link rows"),
+      route("GET", "/api/legal-approval-matter-summaries", "Legal approval matter summary rows"),
+      route("GET", "/api/legal-approval-matrix-boundary", "Legal approval matrix Desktop boundary"),
+      route("GET", "/api/legal-approval-matrix-validations", "Legal approval matrix validation rows"),
       route("GET", "/api/repo-profile-detectors", "Repo profile detector artifact"),
       route("GET", "/api/repo-profiles", "Detected repository profile rows"),
       route("GET", "/api/repo-profile-languages", "Detected repository language profiles"),
@@ -11668,6 +11732,20 @@ function filterItems(items, searchParams) {
     "provided_material_gap_link_id",
     "provided_material_review_gate_id",
     "source_document_id",
+    "legal_approval_matrix_status",
+    "legal_approval_rule_type",
+    "legal_approval_output_id",
+    "legal_approval_output_kind",
+    "legal_approval_requirement_id",
+    "approval_requirement_type",
+    "approval_requirement_status",
+    "required_actor",
+    "gate_link_status",
+    "legal_approval_gate_link_id",
+    "legal_approval_matter_status",
+    "approval_decision_recorded",
+    "client_use_blocked_until_approval",
+    "partner_approval_required_before_client_use",
     "repo_profile_detector_status",
     "repo_profile_status",
     "language_id",
@@ -13337,6 +13415,20 @@ function readFilterValue(item, key) {
   if (key === "provided_material_gap_link_id") return item.provided_material_gap_link_id;
   if (key === "provided_material_review_gate_id") return item.provided_material_review_gate_id;
   if (key === "source_document_id") return item.source_document_id;
+  if (key === "legal_approval_matrix_status") return item.summary?.legal_approval_matrix_status ?? item.legal_approval_matrix_status;
+  if (key === "legal_approval_rule_type") return item.legal_approval_rule_type;
+  if (key === "legal_approval_output_id") return item.legal_approval_output_id;
+  if (key === "legal_approval_output_kind") return item.legal_approval_output_kind;
+  if (key === "legal_approval_requirement_id") return item.legal_approval_requirement_id;
+  if (key === "approval_requirement_type") return item.approval_requirement_type;
+  if (key === "approval_requirement_status") return item.approval_requirement_status;
+  if (key === "required_actor") return item.required_actor;
+  if (key === "gate_link_status") return item.gate_link_status;
+  if (key === "legal_approval_gate_link_id") return item.legal_approval_gate_link_id;
+  if (key === "legal_approval_matter_status") return item.legal_approval_matter_status;
+  if (key === "approval_decision_recorded") return String(Boolean(item.approval_decision_recorded));
+  if (key === "client_use_blocked_until_approval") return String(Boolean(item.client_use_blocked_until_approval));
+  if (key === "partner_approval_required_before_client_use") return String(Boolean(item.partner_approval_required_before_client_use));
   if (key === "repo_profile_detector_status") return item.summary?.repo_profile_detector_status ?? item.repo_profile_detector_status;
   if (key === "repo_profile_status") return item.summary?.repo_profile_status ?? item.profile_status ?? item.repo_profile_status;
   if (key === "language_id") return item.language_id ?? item.primary_language_id;

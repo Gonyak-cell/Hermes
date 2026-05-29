@@ -123,6 +123,7 @@ const GOAL_ITEMS = [
   sourceItem("meeting_minutes_workflow", "Meeting minutes workflow", "law_firm", "meeting_minutes_workflow", "control-plane-meeting-minutes-workflow", { acceptance_profile: "meeting_minutes_workflow_gate" }),
   sourceItem("contract_draft_workflow", "Contract draft workflow", "law_firm", "contract_draft_workflow", "control-plane-contract-draft-workflow", { acceptance_profile: "contract_draft_workflow_gate" }),
   sourceItem("provided_material_review", "Provided material review ledger", "law_firm", "provided_material_review", "control-plane-provided-material-review", { acceptance_profile: "provided_material_review_gate" }),
+  sourceItem("legal_approval_matrix", "Legal approval matrix", "law_firm", "legal_approval_matrix", "control-plane-legal-approval-matrix", { acceptance_profile: "legal_approval_matrix_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -605,6 +606,7 @@ function evaluateStageAcceptance(item, stage) {
     "meeting_minutes_workflow_gate",
     "contract_draft_workflow_gate",
     "provided_material_review_gate",
+    "legal_approval_matrix_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -4036,6 +4038,64 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.failed_checkpoint_count === 0
     ) {
       return passedWithOperationalGate(stage, "Provided Material Review records material, index-status, gap-link, and attorney-review rows without final review decisions, legal/client-facing output, or state mutation.");
+    }
+  }
+
+  if (item.acceptance_profile === "legal_approval_matrix_gate") {
+    const outputCount = metrics.legal_approval_output_count ?? 0;
+    if (
+      metrics.validation_error_count === 0
+      && metrics.legal_approval_matrix_status === "complete"
+      && metrics.source_ldd_rfi_generator_status === "complete"
+      && metrics.source_ldd_rfi_generator_phase_status === "complete"
+      && metrics.source_ldd_report_draft_status === "complete"
+      && metrics.source_ldd_report_draft_phase_status === "complete"
+      && metrics.source_litigation_brief_draft_status === "complete"
+      && metrics.source_litigation_brief_draft_phase_status === "complete"
+      && metrics.source_meeting_minutes_workflow_status === "complete"
+      && metrics.source_meeting_minutes_workflow_phase_status === "complete"
+      && metrics.source_contract_draft_workflow_status === "complete"
+      && metrics.source_contract_draft_workflow_phase_status === "complete"
+      && metrics.source_provided_material_review_status === "complete"
+      && metrics.source_provided_material_review_phase_status === "complete"
+      && (metrics.legal_approval_rule_count ?? 0) >= 6
+      && outputCount === 6
+      && metrics.legal_approval_requirement_count === outputCount * 2
+      && metrics.legal_approval_gate_link_count === outputCount
+      && metrics.attorney_review_requirement_count === outputCount
+      && metrics.partner_approval_requirement_count === outputCount
+      && metrics.attorney_review_required_output_count === outputCount
+      && metrics.human_review_required_output_count === outputCount
+      && metrics.partner_approval_required_output_count === outputCount
+      && metrics.output_with_native_gate_count === outputCount
+      && metrics.output_with_gate_link_count === outputCount
+      && metrics.client_use_blocked_output_count === outputCount
+      && metrics.finalization_blocked_output_count === outputCount
+      && metrics.delivery_blocked_output_count === outputCount
+      && metrics.filing_blocked_output_count === outputCount
+      && metrics.approval_decision_recorded_count === 0
+      && metrics.attorney_approval_recorded_count === 0
+      && metrics.partner_approval_recorded_count === 0
+      && metrics.client_facing_ready_count === 0
+      && metrics.legal_conclusion_asserted_count === 0
+      && metrics.legal_advice_provided === false
+      && metrics.client_facing_output_generated === false
+      && metrics.desktop_boundary_status === "enforced"
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.matter_data_write_allowed === false
+      && metrics.task_state_write_allowed === false
+      && metrics.workflow_transition_allowed === false
+      && metrics.runtime_execution_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.protected_action_allowed === false
+      && metrics.approval_decision_write_allowed === false
+      && metrics.client_facing_output_allowed_without_attorney_review === false
+      && metrics.partner_approval_bypass_allowed === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Legal Approval Matrix enforces attorney and partner approval requirements for law-firm outputs without recording approval decisions, legal/client-facing output, or state mutation.");
     }
   }
 

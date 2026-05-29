@@ -108,6 +108,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   meetingMinutesWorkflowPath: "artifacts/meeting-minutes-workflow/latest/meeting-minutes-workflow.json",
   contractDraftWorkflowPath: "artifacts/contract-draft-workflow/latest/contract-draft-workflow.json",
   providedMaterialReviewPath: "artifacts/provided-material-review/latest/provided-material-review-ledger.json",
+  legalApprovalMatrixPath: "artifacts/legal-approval-matrix/latest/legal-approval-matrix.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -769,6 +770,11 @@ const SOURCE_DEFINITIONS = [
     option: "providedMaterialReviewPath",
     source_id: "provided_material_review",
     label: "Provided Material Review Ledger",
+  },
+  {
+    option: "legalApprovalMatrixPath",
+    source_id: "legal_approval_matrix",
+    label: "Legal Approval Matrix",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1614,6 +1620,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "meeting_minutes_workflow") return data.summary ?? {};
   if (sourceId === "contract_draft_workflow") return data.summary ?? {};
   if (sourceId === "provided_material_review") return data.summary ?? {};
+  if (sourceId === "legal_approval_matrix") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -1981,6 +1988,7 @@ function buildStageStatuses(artifacts, sources) {
     buildMeetingMinutesWorkflowStage(artifacts.meeting_minutes_workflow, sourceById.get("meeting_minutes_workflow")),
     buildContractDraftWorkflowStage(artifacts.contract_draft_workflow, sourceById.get("contract_draft_workflow")),
     buildProvidedMaterialReviewStage(artifacts.provided_material_review, sourceById.get("provided_material_review")),
+    buildLegalApprovalMatrixStage(artifacts.legal_approval_matrix, sourceById.get("legal_approval_matrix")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -10124,6 +10132,127 @@ function buildProvidedMaterialReviewStage(artifact, source) {
   };
 }
 
+function buildLegalApprovalMatrixStage(artifact, source) {
+  if (!artifact) return missingStage("legal_approval_matrix", "Legal Approval Matrix", source);
+  const summary = artifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.legal_approval_matrix_status !== "complete"
+    || summary.source_ldd_rfi_generator_status !== "complete"
+    || summary.source_ldd_rfi_generator_phase_status !== "complete"
+    || summary.source_ldd_report_draft_status !== "complete"
+    || summary.source_ldd_report_draft_phase_status !== "complete"
+    || summary.source_litigation_brief_draft_status !== "complete"
+    || summary.source_litigation_brief_draft_phase_status !== "complete"
+    || summary.source_meeting_minutes_workflow_status !== "complete"
+    || summary.source_meeting_minutes_workflow_phase_status !== "complete"
+    || summary.source_contract_draft_workflow_status !== "complete"
+    || summary.source_contract_draft_workflow_phase_status !== "complete"
+    || summary.source_provided_material_review_status !== "complete"
+    || summary.source_provided_material_review_phase_status !== "complete"
+    || (summary.legal_approval_rule_count ?? 0) < 6
+    || summary.legal_approval_output_count !== 6
+    || summary.legal_approval_requirement_count !== summary.legal_approval_output_count * 2
+    || summary.legal_approval_gate_link_count !== summary.legal_approval_output_count
+    || summary.attorney_review_requirement_count !== summary.legal_approval_output_count
+    || summary.partner_approval_requirement_count !== summary.legal_approval_output_count
+    || summary.attorney_review_required_output_count !== summary.legal_approval_output_count
+    || summary.human_review_required_output_count !== summary.legal_approval_output_count
+    || summary.partner_approval_required_output_count !== summary.legal_approval_output_count
+    || summary.output_with_native_gate_count !== summary.legal_approval_output_count
+    || summary.output_with_gate_link_count !== summary.legal_approval_output_count
+    || summary.client_use_blocked_output_count !== summary.legal_approval_output_count
+    || summary.finalization_blocked_output_count !== summary.legal_approval_output_count
+    || summary.delivery_blocked_output_count !== summary.legal_approval_output_count
+    || summary.filing_blocked_output_count !== summary.legal_approval_output_count
+    || summary.approval_decision_recorded_count !== 0
+    || summary.attorney_approval_recorded_count !== 0
+    || summary.partner_approval_recorded_count !== 0
+    || summary.client_facing_ready_count !== 0
+    || summary.legal_conclusion_asserted_count !== 0
+    || summary.legal_advice_provided === true
+    || summary.client_facing_output_generated === true
+    || summary.desktop_boundary_status !== "enforced"
+    || summary.desktop_read_only !== true
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_source_of_truth === true
+    || summary.matter_data_write_allowed === true
+    || summary.task_state_write_allowed === true
+    || summary.workflow_transition_allowed === true
+    || summary.runtime_execution_allowed === true
+    || summary.delivery_execution_allowed === true
+    || summary.protected_action_allowed === true
+    || summary.approval_decision_write_allowed === true
+    || summary.client_facing_output_allowed_without_attorney_review === true
+    || summary.partner_approval_bypass_allowed === true
+    || summary.failed_checkpoint_count !== 0
+    || artifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "legal_approval_matrix",
+    label: "Legal Approval Matrix",
+    status,
+    message: `${summary.legal_approval_output_count ?? 0} output(s), ${summary.legal_approval_requirement_count ?? 0} approval requirement(s), ${summary.legal_approval_gate_link_count ?? 0} gate link(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      legal_approval_matrix_status: summary.legal_approval_matrix_status ?? "unknown",
+      legal_approval_matrix_contract_id: summary.legal_approval_matrix_contract_id ?? null,
+      source_of_truth: summary.source_of_truth ?? "unknown",
+      source_ldd_rfi_generator_status: summary.source_ldd_rfi_generator_status ?? "unknown",
+      source_ldd_rfi_generator_phase_status: summary.source_ldd_rfi_generator_phase_status ?? "unknown",
+      source_ldd_report_draft_status: summary.source_ldd_report_draft_status ?? "unknown",
+      source_ldd_report_draft_phase_status: summary.source_ldd_report_draft_phase_status ?? "unknown",
+      source_litigation_brief_draft_status: summary.source_litigation_brief_draft_status ?? "unknown",
+      source_litigation_brief_draft_phase_status: summary.source_litigation_brief_draft_phase_status ?? "unknown",
+      source_meeting_minutes_workflow_status: summary.source_meeting_minutes_workflow_status ?? "unknown",
+      source_meeting_minutes_workflow_phase_status: summary.source_meeting_minutes_workflow_phase_status ?? "unknown",
+      source_contract_draft_workflow_status: summary.source_contract_draft_workflow_status ?? "unknown",
+      source_contract_draft_workflow_phase_status: summary.source_contract_draft_workflow_phase_status ?? "unknown",
+      source_provided_material_review_status: summary.source_provided_material_review_status ?? "unknown",
+      source_provided_material_review_phase_status: summary.source_provided_material_review_phase_status ?? "unknown",
+      legal_approval_rule_count: summary.legal_approval_rule_count ?? 0,
+      legal_approval_output_count: summary.legal_approval_output_count ?? 0,
+      legal_approval_requirement_count: summary.legal_approval_requirement_count ?? 0,
+      legal_approval_gate_link_count: summary.legal_approval_gate_link_count ?? 0,
+      matter_count: summary.matter_count ?? 0,
+      attorney_review_requirement_count: summary.attorney_review_requirement_count ?? 0,
+      partner_approval_requirement_count: summary.partner_approval_requirement_count ?? 0,
+      attorney_review_required_output_count: summary.attorney_review_required_output_count ?? 0,
+      human_review_required_output_count: summary.human_review_required_output_count ?? 0,
+      partner_approval_required_output_count: summary.partner_approval_required_output_count ?? 0,
+      output_with_native_gate_count: summary.output_with_native_gate_count ?? 0,
+      output_with_gate_link_count: summary.output_with_gate_link_count ?? 0,
+      client_use_blocked_output_count: summary.client_use_blocked_output_count ?? 0,
+      finalization_blocked_output_count: summary.finalization_blocked_output_count ?? 0,
+      delivery_blocked_output_count: summary.delivery_blocked_output_count ?? 0,
+      filing_blocked_output_count: summary.filing_blocked_output_count ?? 0,
+      approval_decision_recorded_count: summary.approval_decision_recorded_count ?? 0,
+      attorney_approval_recorded_count: summary.attorney_approval_recorded_count ?? 0,
+      partner_approval_recorded_count: summary.partner_approval_recorded_count ?? 0,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      legal_conclusion_asserted_count: summary.legal_conclusion_asserted_count ?? 0,
+      legal_advice_provided: summary.legal_advice_provided ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      desktop_boundary_status: summary.desktop_boundary_status ?? "unknown",
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_source_of_truth: summary.desktop_source_of_truth ?? false,
+      matter_data_write_allowed: summary.matter_data_write_allowed ?? false,
+      task_state_write_allowed: summary.task_state_write_allowed ?? false,
+      workflow_transition_allowed: summary.workflow_transition_allowed ?? false,
+      runtime_execution_allowed: summary.runtime_execution_allowed ?? false,
+      delivery_execution_allowed: summary.delivery_execution_allowed ?? false,
+      protected_action_allowed: summary.protected_action_allowed ?? false,
+      approval_decision_write_allowed: summary.approval_decision_write_allowed ?? false,
+      client_facing_output_allowed_without_attorney_review: summary.client_facing_output_allowed_without_attorney_review ?? false,
+      partner_approval_bypass_allowed: summary.partner_approval_bypass_allowed ?? false,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -16124,6 +16253,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.legal_approval_matrix?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "legal_approval_matrix";
+    items.push({
+      action_item_id: `dashboard.action.legal_approval_matrix.${slugify(subjectId)}`,
+      source_stage: "legal_approval_matrix",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix legal approval matrix",
+      subject_ref: {
+        subject_type: "legal_approval_matrix_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_legal_approval_matrix", "rerun_legal_approval_matrix", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -21440,6 +21587,57 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     provided_material_review_protected_action_allowed: artifacts.provided_material_review?.summary?.protected_action_allowed ?? false,
     provided_material_review_failed_checkpoint_count: artifacts.provided_material_review?.summary?.failed_checkpoint_count ?? 0,
     provided_material_review_validation_error_count: artifacts.provided_material_review?.summary?.validation_error_count ?? artifacts.provided_material_review?.validation?.errors?.length ?? 0,
+    legal_approval_matrix_status: artifacts.legal_approval_matrix?.summary?.legal_approval_matrix_status ?? "unknown",
+    legal_approval_matrix_contract_id: artifacts.legal_approval_matrix?.summary?.legal_approval_matrix_contract_id ?? null,
+    legal_approval_matrix_source_ldd_rfi_generator_status: artifacts.legal_approval_matrix?.summary?.source_ldd_rfi_generator_status ?? "unknown",
+    legal_approval_matrix_source_ldd_rfi_generator_phase_status: artifacts.legal_approval_matrix?.summary?.source_ldd_rfi_generator_phase_status ?? "unknown",
+    legal_approval_matrix_source_ldd_report_draft_status: artifacts.legal_approval_matrix?.summary?.source_ldd_report_draft_status ?? "unknown",
+    legal_approval_matrix_source_ldd_report_draft_phase_status: artifacts.legal_approval_matrix?.summary?.source_ldd_report_draft_phase_status ?? "unknown",
+    legal_approval_matrix_source_litigation_brief_draft_status: artifacts.legal_approval_matrix?.summary?.source_litigation_brief_draft_status ?? "unknown",
+    legal_approval_matrix_source_litigation_brief_draft_phase_status: artifacts.legal_approval_matrix?.summary?.source_litigation_brief_draft_phase_status ?? "unknown",
+    legal_approval_matrix_source_meeting_minutes_workflow_status: artifacts.legal_approval_matrix?.summary?.source_meeting_minutes_workflow_status ?? "unknown",
+    legal_approval_matrix_source_meeting_minutes_workflow_phase_status: artifacts.legal_approval_matrix?.summary?.source_meeting_minutes_workflow_phase_status ?? "unknown",
+    legal_approval_matrix_source_contract_draft_workflow_status: artifacts.legal_approval_matrix?.summary?.source_contract_draft_workflow_status ?? "unknown",
+    legal_approval_matrix_source_contract_draft_workflow_phase_status: artifacts.legal_approval_matrix?.summary?.source_contract_draft_workflow_phase_status ?? "unknown",
+    legal_approval_matrix_source_provided_material_review_status: artifacts.legal_approval_matrix?.summary?.source_provided_material_review_status ?? "unknown",
+    legal_approval_matrix_source_provided_material_review_phase_status: artifacts.legal_approval_matrix?.summary?.source_provided_material_review_phase_status ?? "unknown",
+    legal_approval_matrix_rule_count: artifacts.legal_approval_matrix?.summary?.legal_approval_rule_count ?? 0,
+    legal_approval_matrix_output_count: artifacts.legal_approval_matrix?.summary?.legal_approval_output_count ?? 0,
+    legal_approval_matrix_requirement_count: artifacts.legal_approval_matrix?.summary?.legal_approval_requirement_count ?? 0,
+    legal_approval_matrix_gate_link_count: artifacts.legal_approval_matrix?.summary?.legal_approval_gate_link_count ?? 0,
+    legal_approval_matrix_matter_count: artifacts.legal_approval_matrix?.summary?.matter_count ?? 0,
+    legal_approval_matrix_attorney_review_requirement_count: artifacts.legal_approval_matrix?.summary?.attorney_review_requirement_count ?? 0,
+    legal_approval_matrix_partner_approval_requirement_count: artifacts.legal_approval_matrix?.summary?.partner_approval_requirement_count ?? 0,
+    legal_approval_matrix_attorney_review_required_output_count: artifacts.legal_approval_matrix?.summary?.attorney_review_required_output_count ?? 0,
+    legal_approval_matrix_human_review_required_output_count: artifacts.legal_approval_matrix?.summary?.human_review_required_output_count ?? 0,
+    legal_approval_matrix_partner_approval_required_output_count: artifacts.legal_approval_matrix?.summary?.partner_approval_required_output_count ?? 0,
+    legal_approval_matrix_output_with_native_gate_count: artifacts.legal_approval_matrix?.summary?.output_with_native_gate_count ?? 0,
+    legal_approval_matrix_output_with_gate_link_count: artifacts.legal_approval_matrix?.summary?.output_with_gate_link_count ?? 0,
+    legal_approval_matrix_client_use_blocked_output_count: artifacts.legal_approval_matrix?.summary?.client_use_blocked_output_count ?? 0,
+    legal_approval_matrix_finalization_blocked_output_count: artifacts.legal_approval_matrix?.summary?.finalization_blocked_output_count ?? 0,
+    legal_approval_matrix_delivery_blocked_output_count: artifacts.legal_approval_matrix?.summary?.delivery_blocked_output_count ?? 0,
+    legal_approval_matrix_filing_blocked_output_count: artifacts.legal_approval_matrix?.summary?.filing_blocked_output_count ?? 0,
+    legal_approval_matrix_approval_decision_recorded_count: artifacts.legal_approval_matrix?.summary?.approval_decision_recorded_count ?? 0,
+    legal_approval_matrix_attorney_approval_recorded_count: artifacts.legal_approval_matrix?.summary?.attorney_approval_recorded_count ?? 0,
+    legal_approval_matrix_partner_approval_recorded_count: artifacts.legal_approval_matrix?.summary?.partner_approval_recorded_count ?? 0,
+    legal_approval_matrix_client_facing_ready_count: artifacts.legal_approval_matrix?.summary?.client_facing_ready_count ?? 0,
+    legal_approval_matrix_legal_advice_provided: artifacts.legal_approval_matrix?.summary?.legal_advice_provided ?? false,
+    legal_approval_matrix_client_facing_output_generated: artifacts.legal_approval_matrix?.summary?.client_facing_output_generated ?? false,
+    legal_approval_matrix_legal_conclusion_asserted_count: artifacts.legal_approval_matrix?.summary?.legal_conclusion_asserted_count ?? 0,
+    legal_approval_matrix_desktop_boundary_status: artifacts.legal_approval_matrix?.summary?.desktop_boundary_status ?? "unknown",
+    legal_approval_matrix_desktop_read_only: artifacts.legal_approval_matrix?.summary?.desktop_read_only ?? false,
+    legal_approval_matrix_desktop_mutation_allowed: artifacts.legal_approval_matrix?.summary?.desktop_mutation_allowed ?? false,
+    legal_approval_matrix_matter_data_write_allowed: artifacts.legal_approval_matrix?.summary?.matter_data_write_allowed ?? false,
+    legal_approval_matrix_task_state_write_allowed: artifacts.legal_approval_matrix?.summary?.task_state_write_allowed ?? false,
+    legal_approval_matrix_workflow_transition_allowed: artifacts.legal_approval_matrix?.summary?.workflow_transition_allowed ?? false,
+    legal_approval_matrix_runtime_execution_allowed: artifacts.legal_approval_matrix?.summary?.runtime_execution_allowed ?? false,
+    legal_approval_matrix_delivery_execution_allowed: artifacts.legal_approval_matrix?.summary?.delivery_execution_allowed ?? false,
+    legal_approval_matrix_protected_action_allowed: artifacts.legal_approval_matrix?.summary?.protected_action_allowed ?? false,
+    legal_approval_matrix_approval_decision_write_allowed: artifacts.legal_approval_matrix?.summary?.approval_decision_write_allowed ?? false,
+    legal_approval_matrix_client_facing_output_allowed_without_attorney_review: artifacts.legal_approval_matrix?.summary?.client_facing_output_allowed_without_attorney_review ?? false,
+    legal_approval_matrix_partner_approval_bypass_allowed: artifacts.legal_approval_matrix?.summary?.partner_approval_bypass_allowed ?? false,
+    legal_approval_matrix_failed_checkpoint_count: artifacts.legal_approval_matrix?.summary?.failed_checkpoint_count ?? 0,
+    legal_approval_matrix_validation_error_count: artifacts.legal_approval_matrix?.summary?.validation_error_count ?? artifacts.legal_approval_matrix?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -23239,6 +23437,8 @@ function parseArgs(argv) {
     else if (arg === "--no-contract-draft-workflow") parsed.contractDraftWorkflowPath = false;
     else if (arg === "--provided-material-review") parsed.providedMaterialReviewPath = argv[++index];
     else if (arg === "--no-provided-material-review") parsed.providedMaterialReviewPath = false;
+    else if (arg === "--legal-approval-matrix") parsed.legalApprovalMatrixPath = argv[++index];
+    else if (arg === "--no-legal-approval-matrix") parsed.legalApprovalMatrixPath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];

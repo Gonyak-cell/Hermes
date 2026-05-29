@@ -159,6 +159,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     meeting_minutes_workflow: "artifacts/meeting-minutes-workflow/latest/meeting-minutes-workflow.json",
     contract_draft_workflow: "artifacts/contract-draft-workflow/latest/contract-draft-workflow.json",
     provided_material_review: "artifacts/provided-material-review/latest/provided-material-review-ledger.json",
+    legal_approval_matrix: "artifacts/legal-approval-matrix/latest/legal-approval-matrix.json",
   },
 };
 
@@ -311,6 +312,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("meeting_minutes_workflow", "Meeting Minutes Workflow", "law_firm", "meeting-minutes-workflow.schema.json"),
   fixtureDefinition("contract_draft_workflow", "Contract Draft Workflow", "law_firm", "contract-draft-workflow.schema.json"),
   fixtureDefinition("provided_material_review", "Provided Material Review Ledger", "law_firm", "provided-material-review-ledger.schema.json"),
+  fixtureDefinition("legal_approval_matrix", "Legal Approval Matrix", "law_firm", "legal-approval-matrix.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),

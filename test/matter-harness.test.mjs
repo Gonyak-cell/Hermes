@@ -81,6 +81,7 @@ import { runExpansionCursorLedger } from "../src/expansion-cursor-ledger.mjs";
 import { runExpansionDedupLedger } from "../src/expansion-dedup-ledger.mjs";
 import { runExpansionQuarantineLedger } from "../src/expansion-quarantine-ledger.mjs";
 import { runBatchClassificationResult } from "../src/batch-classification-result.mjs";
+import { runBatchMatterTaggingResult } from "../src/batch-matter-tagging-result.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1957,6 +1958,7 @@ describe("matter harness", () => {
         expansionDedupLedgerPath: path.join(outDir, "expansion-dedup-ledger", "expansion-dedup-ledger.json"),
         expansionQuarantineLedgerPath: path.join(outDir, "expansion-quarantine-ledger", "expansion-quarantine-ledger.json"),
         batchClassificationResultPath: path.join(outDir, "batch-classification-result", "batch-classification-result.json"),
+        batchMatterTaggingResultPath: path.join(outDir, "batch-matter-tagging-result", "batch-matter-tagging-result.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11677,6 +11679,66 @@ describe("matter harness", () => {
       assert.ok(batchClassificationResult.classification_policy_binding_rows.every((row) => row.policy_binding_status === "bound" && row.classified_pending_human_review_count > 0));
       assert.match(await readFile(path.join(outDir, "batch-classification-result", "summary.md"), "utf8"), /Batch Classification Result/);
 
+      const batchMatterTaggingResult = await runBatchMatterTaggingResult({
+        resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
+        batchClassificationResultPath: path.join(outDir, "batch-classification-result", "batch-classification-result.json"),
+        matterTaggingDecisionLedgerPath: path.join(outDir, "matter-tagging", "matter-tagging-ledger.json"),
+        outDir: path.join(outDir, "batch-matter-tagging-result"),
+        runAt: "2026-05-23T07:23:24.000Z",
+      });
+      const batchMatterTaggingResultSchema = JSON.parse(await readFile("schemas/batch-matter-tagging-result.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(batchMatterTaggingResult, batchMatterTaggingResultSchema, {}, "batch_matter_tagging_result"), [], JSON.stringify(batchMatterTaggingResult.validation.errors));
+      assert.equal(batchMatterTaggingResult.summary.batch_matter_tagging_result_status, "complete");
+      assert.equal(batchMatterTaggingResult.summary.phase_slot, "P282");
+      assert.equal(batchMatterTaggingResult.summary.previous_phase_slot, "P281");
+      assert.equal(batchMatterTaggingResult.summary.next_phase_slot, "P283");
+      assert.equal(batchMatterTaggingResult.summary.source_batch_classification_result_status, "complete");
+      assert.equal(batchMatterTaggingResult.summary.source_batch_classification_phase_slot, "P281");
+      assert.equal(batchMatterTaggingResult.summary.source_matter_tagging_ledger_status, "complete");
+      assert.equal(batchMatterTaggingResult.summary.batch_matter_tagging_row_count, second.items.length);
+      assert.equal(batchMatterTaggingResult.summary.tagging_decision_present_count, second.items.length);
+      assert.equal(batchMatterTaggingResult.summary.automatic_candidate_present_count, second.items.length);
+      assert.equal(batchMatterTaggingResult.summary.pending_human_confirmation_count, second.items.length);
+      assert.equal(batchMatterTaggingResult.summary.human_confirmation_pending_count, second.items.length);
+      assert.equal(batchMatterTaggingResult.summary.separated_automatic_candidate_row_count, batchMatterTaggingResult.summary.automatic_tagging_candidate_row_count);
+      assert.equal(batchMatterTaggingResult.summary.separated_human_confirmation_row_count, batchMatterTaggingResult.summary.human_confirmation_row_count);
+      assert.equal(batchMatterTaggingResult.summary.passed_separation_row_count, batchMatterTaggingResult.summary.matter_tagging_separation_row_count);
+      assert.equal(batchMatterTaggingResult.summary.human_review_required_count, second.items.length);
+      assert.equal(batchMatterTaggingResult.summary.auto_apply_allowed_count, 0);
+      assert.equal(batchMatterTaggingResult.summary.auto_tag_apply_performed_count, 0);
+      assert.equal(batchMatterTaggingResult.summary.human_confirmation_applied_count, 0);
+      assert.equal(batchMatterTaggingResult.summary.matter_tag_write_performed_count, 0);
+      assert.equal(batchMatterTaggingResult.summary.resource_mutation_performed_count, 0);
+      assert.equal(batchMatterTaggingResult.summary.state_mutation_performed_count, 0);
+      assert.equal(batchMatterTaggingResult.summary.protected_action_executed_count, 0);
+      assert.equal(batchMatterTaggingResult.summary.legal_advice_generated_count, 0);
+      assert.equal(batchMatterTaggingResult.summary.client_facing_ready_count, 0);
+      assert.equal(batchMatterTaggingResult.summary.read_only, true);
+      assert.equal(batchMatterTaggingResult.summary.batch_matter_tagging_report_only, true);
+      assert.equal(batchMatterTaggingResult.summary.backfill_execution_performed, false);
+      assert.equal(batchMatterTaggingResult.summary.matter_tag_write_performed, false);
+      assert.equal(batchMatterTaggingResult.summary.auto_tag_apply_performed, false);
+      assert.equal(batchMatterTaggingResult.summary.human_confirmation_applied, false);
+      assert.equal(batchMatterTaggingResult.summary.source_ingest_performed, false);
+      assert.equal(batchMatterTaggingResult.summary.file_content_read_performed, false);
+      assert.equal(batchMatterTaggingResult.summary.external_model_used, false);
+      assert.equal(batchMatterTaggingResult.summary.source_mutation_performed, false);
+      assert.equal(batchMatterTaggingResult.summary.resource_mutation_performed, false);
+      assert.equal(batchMatterTaggingResult.summary.state_mutation_performed, false);
+      assert.equal(batchMatterTaggingResult.summary.matter_data_write_performed, false);
+      assert.equal(batchMatterTaggingResult.summary.delivery_execution_performed, false);
+      assert.equal(batchMatterTaggingResult.summary.protected_action_executed, false);
+      assert.equal(batchMatterTaggingResult.summary.legal_advice_generated, false);
+      assert.equal(batchMatterTaggingResult.summary.client_facing_output_generated, false);
+      assert.equal(batchMatterTaggingResult.summary.windows_baseline_stability_preserved, true);
+      assert.equal(batchMatterTaggingResult.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(batchMatterTaggingResult.summary.validation_error_count, 0);
+      assert.ok(batchMatterTaggingResult.batch_matter_tagging_rows.every((row) => row.batch_matter_tagging_status === "pending_human_confirmation" && row.automatic_candidate_status === "requires_human_confirmation" && row.human_confirmation_status === "pending" && row.auto_apply_allowed === false && row.matter_tag_write_performed === false));
+      assert.ok(batchMatterTaggingResult.automatic_tagging_candidate_rows.every((row) => row.candidate_separation_status === "candidate_separated_from_confirmation" && row.auto_apply_allowed === false));
+      assert.ok(batchMatterTaggingResult.human_confirmation_rows.every((row) => row.confirmation_separation_status === "pending_human_confirmation_separated" && row.confirmation_applied === false));
+      assert.ok(batchMatterTaggingResult.matter_tagging_separation_rows.every((row) => row.separation_status === "automatic_candidate_separated_from_human_confirmation" && row.auto_apply_allowed_count === 0));
+      assert.match(await readFile(path.join(outDir, "batch-matter-tagging-result", "summary.md"), "utf8"), /Batch Matter Tagging Result/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -11882,6 +11944,7 @@ describe("matter harness", () => {
           expansion_dedup_ledger: path.join(outDir, "expansion-dedup-ledger", "expansion-dedup-ledger.json"),
           expansion_quarantine_ledger: path.join(outDir, "expansion-quarantine-ledger", "expansion-quarantine-ledger.json"),
           batch_classification_result: path.join(outDir, "batch-classification-result", "batch-classification-result.json"),
+          batch_matter_tagging_result: path.join(outDir, "batch-matter-tagging-result", "batch-matter-tagging-result.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11933,8 +11996,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 183);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 183);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 184);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 184);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -12105,6 +12168,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "expansion_dedup_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "expansion_quarantine_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "batch_classification_result"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "batch_matter_tagging_result"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -12151,6 +12215,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:expansion-dedup-ledger"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:expansion-quarantine-ledger"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:batch-classification"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:batch-matter-tagging"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:runtime-interface"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:approval-matrix"));
@@ -13006,6 +13071,10 @@ describe("matter harness", () => {
       assert.equal(batchClassificationResultCheckpoint?.acceptance_profile, "batch_classification_result_gate");
       assert.equal(batchClassificationResultCheckpoint?.status, "passed");
       assert.equal(batchClassificationResultCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const batchMatterTaggingResultCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-batch-matter-tagging-result");
+      assert.equal(batchMatterTaggingResultCheckpoint?.acceptance_profile, "batch_matter_tagging_result_gate");
+      assert.equal(batchMatterTaggingResultCheckpoint?.status, "passed");
+      assert.equal(batchMatterTaggingResultCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -17868,6 +17937,47 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.batch_classification_result_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.batch_classification_result_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.batch_classification_result_validation_error_count, 0);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_status, "complete");
+      assert.equal(dashboard.summary.batch_matter_tagging_result_phase_slot, "P282");
+      assert.equal(dashboard.summary.batch_matter_tagging_result_previous_phase_slot, "P281");
+      assert.equal(dashboard.summary.batch_matter_tagging_result_next_phase_slot, "P283");
+      assert.equal(dashboard.summary.batch_matter_tagging_result_source_batch_classification_result_status, "complete");
+      assert.equal(dashboard.summary.batch_matter_tagging_result_source_batch_classification_phase_slot, "P281");
+      assert.equal(dashboard.summary.batch_matter_tagging_result_source_matter_tagging_ledger_status, "complete");
+      assert.equal(dashboard.summary.batch_matter_tagging_result_batch_matter_tagging_row_count, batchMatterTaggingResult.summary.batch_matter_tagging_row_count);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_tagging_decision_present_count, batchMatterTaggingResult.summary.tagging_decision_present_count);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_automatic_candidate_present_count, batchMatterTaggingResult.summary.automatic_candidate_present_count);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_pending_human_confirmation_count, batchMatterTaggingResult.summary.pending_human_confirmation_count);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_human_confirmation_pending_count, batchMatterTaggingResult.summary.human_confirmation_pending_count);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_auto_apply_allowed_count, 0);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_auto_tag_apply_performed_count, 0);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_human_confirmation_applied_count, 0);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_matter_tag_write_performed_count, 0);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_resource_mutation_performed_count, 0);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_state_mutation_performed_count, 0);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_protected_action_executed_count, 0);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_legal_advice_generated_count, 0);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_read_only, true);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_report_only, true);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_backfill_execution_performed, false);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_matter_tag_write_performed, false);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_auto_tag_apply_performed, false);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_human_confirmation_applied, false);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_source_ingest_performed, false);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_file_content_read_performed, false);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_external_model_used, false);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_source_mutation_performed, false);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_resource_mutation_performed, false);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_state_mutation_performed, false);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_matter_data_write_performed, false);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_protected_action_executed, false);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_legal_advice_generated, false);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.batch_matter_tagging_result_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -21152,6 +21262,40 @@ describe("matter harness", () => {
       assert.equal(batchClassificationResultStage?.metrics.client_facing_output_generated, false);
       assert.equal(batchClassificationResultStage?.metrics.windows_baseline_stability_preserved, true);
       assert.equal(batchClassificationResultStage?.metrics.validation_error_count, 0);
+      const batchMatterTaggingResultStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "batch_matter_tagging_result");
+      assert.equal(batchMatterTaggingResultStage?.status, "passed");
+      assert.equal(batchMatterTaggingResultStage?.metrics.batch_matter_tagging_result_status, "complete");
+      assert.equal(batchMatterTaggingResultStage?.metrics.phase_slot, "P282");
+      assert.equal(batchMatterTaggingResultStage?.metrics.previous_phase_slot, "P281");
+      assert.equal(batchMatterTaggingResultStage?.metrics.next_phase_slot, "P283");
+      assert.equal(batchMatterTaggingResultStage?.metrics.source_batch_classification_result_status, "complete");
+      assert.equal(batchMatterTaggingResultStage?.metrics.source_batch_classification_phase_slot, "P281");
+      assert.equal(batchMatterTaggingResultStage?.metrics.source_matter_tagging_ledger_status, "complete");
+      assert.equal(batchMatterTaggingResultStage?.metrics.batch_matter_tagging_row_count, batchMatterTaggingResult.summary.batch_matter_tagging_row_count);
+      assert.equal(batchMatterTaggingResultStage?.metrics.tagging_decision_present_count, batchMatterTaggingResult.summary.tagging_decision_present_count);
+      assert.equal(batchMatterTaggingResultStage?.metrics.automatic_candidate_present_count, batchMatterTaggingResult.summary.automatic_candidate_present_count);
+      assert.equal(batchMatterTaggingResultStage?.metrics.pending_human_confirmation_count, batchMatterTaggingResult.summary.pending_human_confirmation_count);
+      assert.equal(batchMatterTaggingResultStage?.metrics.human_confirmation_pending_count, batchMatterTaggingResult.summary.human_confirmation_pending_count);
+      assert.equal(batchMatterTaggingResultStage?.metrics.auto_apply_allowed_count, 0);
+      assert.equal(batchMatterTaggingResultStage?.metrics.auto_tag_apply_performed_count, 0);
+      assert.equal(batchMatterTaggingResultStage?.metrics.human_confirmation_applied_count, 0);
+      assert.equal(batchMatterTaggingResultStage?.metrics.matter_tag_write_performed_count, 0);
+      assert.equal(batchMatterTaggingResultStage?.metrics.resource_mutation_performed_count, 0);
+      assert.equal(batchMatterTaggingResultStage?.metrics.state_mutation_performed_count, 0);
+      assert.equal(batchMatterTaggingResultStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(batchMatterTaggingResultStage?.metrics.read_only, true);
+      assert.equal(batchMatterTaggingResultStage?.metrics.batch_matter_tagging_report_only, true);
+      assert.equal(batchMatterTaggingResultStage?.metrics.matter_tag_write_performed, false);
+      assert.equal(batchMatterTaggingResultStage?.metrics.auto_tag_apply_performed, false);
+      assert.equal(batchMatterTaggingResultStage?.metrics.human_confirmation_applied, false);
+      assert.equal(batchMatterTaggingResultStage?.metrics.file_content_read_performed, false);
+      assert.equal(batchMatterTaggingResultStage?.metrics.external_model_used, false);
+      assert.equal(batchMatterTaggingResultStage?.metrics.matter_data_write_performed, false);
+      assert.equal(batchMatterTaggingResultStage?.metrics.delivery_execution_performed, false);
+      assert.equal(batchMatterTaggingResultStage?.metrics.legal_advice_generated, false);
+      assert.equal(batchMatterTaggingResultStage?.metrics.client_facing_output_generated, false);
+      assert.equal(batchMatterTaggingResultStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(batchMatterTaggingResultStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -21268,6 +21412,13 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/batch-classification-policy-bindings"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/batch-classification-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/batch-classification-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/batch-matter-tagging-results"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/batch-matter-tagging-rows"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/batch-matter-tagging-candidates"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/batch-matter-tagging-confirmations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/batch-matter-tagging-separations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/batch-matter-tagging-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/batch-matter-tagging-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -23836,6 +23987,34 @@ describe("matter harness", () => {
       const batchClassificationValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/batch-classification-validations?status=passed", apiOptions)).body);
       assert.equal(batchClassificationValidationsResponse.collection, "batch_classification_validations");
       assert.equal(batchClassificationValidationsResponse.count, batchClassificationResult.summary.validation_item_count);
+
+      const batchMatterTaggingResultsResponse = JSON.parse((await buildReviewApiResponse("/api/batch-matter-tagging-results?batch_matter_tagging_result_status=complete", apiOptions)).body);
+      assert.equal(batchMatterTaggingResultsResponse.collection, "batch_matter_tagging_results");
+      assert.equal(batchMatterTaggingResultsResponse.count, 1);
+
+      const batchMatterTaggingRowsResponse = JSON.parse((await buildReviewApiResponse("/api/batch-matter-tagging-rows?batch_matter_tagging_status=pending_human_confirmation", apiOptions)).body);
+      assert.equal(batchMatterTaggingRowsResponse.collection, "batch_matter_tagging_rows");
+      assert.equal(batchMatterTaggingRowsResponse.count, batchMatterTaggingResult.summary.batch_matter_tagging_row_count);
+
+      const batchMatterTaggingCandidatesResponse = JSON.parse((await buildReviewApiResponse("/api/batch-matter-tagging-candidates?batch_matter_tagging_candidate_status=requires_human_confirmation", apiOptions)).body);
+      assert.equal(batchMatterTaggingCandidatesResponse.collection, "batch_matter_tagging_candidates");
+      assert.equal(batchMatterTaggingCandidatesResponse.count, batchMatterTaggingResult.summary.automatic_tagging_candidate_row_count);
+
+      const batchMatterTaggingConfirmationsResponse = JSON.parse((await buildReviewApiResponse("/api/batch-matter-tagging-confirmations?batch_matter_tagging_confirmation_status=pending", apiOptions)).body);
+      assert.equal(batchMatterTaggingConfirmationsResponse.collection, "batch_matter_tagging_confirmations");
+      assert.equal(batchMatterTaggingConfirmationsResponse.count, batchMatterTaggingResult.summary.human_confirmation_row_count);
+
+      const batchMatterTaggingSeparationsResponse = JSON.parse((await buildReviewApiResponse("/api/batch-matter-tagging-separations?batch_matter_tagging_separation_status=automatic_candidate_separated_from_human_confirmation", apiOptions)).body);
+      assert.equal(batchMatterTaggingSeparationsResponse.collection, "batch_matter_tagging_separations");
+      assert.equal(batchMatterTaggingSeparationsResponse.count, batchMatterTaggingResult.summary.matter_tagging_separation_row_count);
+
+      const batchMatterTaggingChecksResponse = JSON.parse((await buildReviewApiResponse("/api/batch-matter-tagging-checks?batch_matter_tagging_check_status=passed", apiOptions)).body);
+      assert.equal(batchMatterTaggingChecksResponse.collection, "batch_matter_tagging_checks");
+      assert.equal(batchMatterTaggingChecksResponse.count, batchMatterTaggingResult.summary.validation_item_count);
+
+      const batchMatterTaggingValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/batch-matter-tagging-validations?status=passed", apiOptions)).body);
+      assert.equal(batchMatterTaggingValidationsResponse.collection, "batch_matter_tagging_validations");
+      assert.equal(batchMatterTaggingValidationsResponse.count, batchMatterTaggingResult.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

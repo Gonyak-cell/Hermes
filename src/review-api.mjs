@@ -5821,6 +5821,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("batch_classification_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/batch-matter-tagging-results") {
+    const result = await readDashboardSourceArtifact(dashboard, "batch_matter_tagging_result");
+    if (!result.available) {
+      return jsonResponse(503, buildError("batch_matter_tagging_result_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("batch_matter_tagging_results", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/batch-matter-tagging-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "batch_matter_tagging_result");
+    if (!result.available) {
+      return jsonResponse(503, buildError("batch_matter_tagging_result_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("batch_matter_tagging_rows", result.artifact.batch_matter_tagging_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/batch-matter-tagging-candidates") {
+    const result = await readDashboardSourceArtifact(dashboard, "batch_matter_tagging_result");
+    if (!result.available) {
+      return jsonResponse(503, buildError("batch_matter_tagging_result_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("batch_matter_tagging_candidates", result.artifact.automatic_tagging_candidate_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/batch-matter-tagging-confirmations") {
+    const result = await readDashboardSourceArtifact(dashboard, "batch_matter_tagging_result");
+    if (!result.available) {
+      return jsonResponse(503, buildError("batch_matter_tagging_result_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("batch_matter_tagging_confirmations", result.artifact.human_confirmation_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/batch-matter-tagging-separations") {
+    const result = await readDashboardSourceArtifact(dashboard, "batch_matter_tagging_result");
+    if (!result.available) {
+      return jsonResponse(503, buildError("batch_matter_tagging_result_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("batch_matter_tagging_separations", result.artifact.matter_tagging_separation_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/batch-matter-tagging-checks") {
+    const result = await readDashboardSourceArtifact(dashboard, "batch_matter_tagging_result");
+    if (!result.available) {
+      return jsonResponse(503, buildError("batch_matter_tagging_result_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("batch_matter_tagging_checks", result.artifact.batch_matter_tagging_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/batch-matter-tagging-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "batch_matter_tagging_result");
+    if (!result.available) {
+      return jsonResponse(503, buildError("batch_matter_tagging_result_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("batch_matter_tagging_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -12257,6 +12306,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/batch-classification-policy-bindings", "Batch classification policy binding rows"),
       route("GET", "/api/batch-classification-checks", "Batch classification check rows"),
       route("GET", "/api/batch-classification-validations", "Batch classification validation rows"),
+      route("GET", "/api/batch-matter-tagging-results", "Batch Matter Tagging Result artifact"),
+      route("GET", "/api/batch-matter-tagging-rows", "Batch matter tagging rows"),
+      route("GET", "/api/batch-matter-tagging-candidates", "Batch matter tagging automatic candidate rows"),
+      route("GET", "/api/batch-matter-tagging-confirmations", "Batch matter tagging human confirmation rows"),
+      route("GET", "/api/batch-matter-tagging-separations", "Batch matter tagging separation rows"),
+      route("GET", "/api/batch-matter-tagging-checks", "Batch matter tagging check rows"),
+      route("GET", "/api/batch-matter-tagging-validations", "Batch matter tagging validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -13407,6 +13463,12 @@ function filterItems(items, searchParams) {
     "batch_policy_binding_status",
     "batch_classification_rule_status",
     "batch_classification_check_status",
+    "batch_matter_tagging_result_status",
+    "batch_matter_tagging_status",
+    "batch_matter_tagging_candidate_status",
+    "batch_matter_tagging_confirmation_status",
+    "batch_matter_tagging_separation_status",
+    "batch_matter_tagging_check_status",
     "path_kind",
     "gate_id",
     "thread_status",
@@ -15292,6 +15354,12 @@ function readFilterValue(item, key) {
   if (key === "batch_policy_binding_status") return item.policy_binding_status;
   if (key === "batch_classification_rule_status") return item.rule_status;
   if (key === "batch_classification_check_status") return item.status;
+  if (key === "batch_matter_tagging_result_status") return item.summary?.batch_matter_tagging_result_status ?? item.batch_matter_tagging_result_status;
+  if (key === "batch_matter_tagging_status") return item.batch_matter_tagging_status ?? item.tagging_status;
+  if (key === "batch_matter_tagging_candidate_status") return item.candidate_status ?? item.candidate_separation_status;
+  if (key === "batch_matter_tagging_confirmation_status") return item.confirmation_status ?? item.confirmation_separation_status;
+  if (key === "batch_matter_tagging_separation_status") return item.separation_status;
+  if (key === "batch_matter_tagging_check_status") return item.status;
   if (key === "path_kind") return item.path_kind;
   if (key === "gate_id") return item.gate_id;
   if (key === "thread_status") return item.thread_status;

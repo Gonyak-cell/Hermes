@@ -256,6 +256,7 @@
     "resource:expansion-dedup-ledger": "node scripts/expansion-dedup-ledger.mjs",
     "resource:expansion-quarantine-ledger": "node scripts/expansion-quarantine-ledger.mjs",
     "resource:batch-classification": "node scripts/batch-classification-result.mjs",
+    "resource:batch-matter-tagging": "node scripts/batch-matter-tagging-result.mjs",
     "resource:extract": "node scripts/resource-extract.mjs",
     "resource:extractor-adapters": "node scripts/extractor-adapter-contract.mjs",
     "resource:evidence-items": "node scripts/evidence-item-store.mjs",

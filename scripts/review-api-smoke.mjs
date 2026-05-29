@@ -2728,6 +2728,34 @@ try {
   assert.equal(batchClassificationValidations.collection, "batch_classification_validations");
   assert.ok(batchClassificationValidations.count <= 21);
 
+  const batchMatterTaggingResults = await fetchJson(`${url}/api/batch-matter-tagging-results?batch_matter_tagging_result_status=complete&limit=1`);
+  assert.equal(batchMatterTaggingResults.collection, "batch_matter_tagging_results");
+  assert.ok(batchMatterTaggingResults.count <= 1);
+
+  const batchMatterTaggingRows = await fetchJson(`${url}/api/batch-matter-tagging-rows?batch_matter_tagging_status=pending_human_confirmation&limit=16`);
+  assert.equal(batchMatterTaggingRows.collection, "batch_matter_tagging_rows");
+  assert.ok(batchMatterTaggingRows.count <= 16);
+
+  const batchMatterTaggingCandidates = await fetchJson(`${url}/api/batch-matter-tagging-candidates?batch_matter_tagging_candidate_status=requires_human_confirmation&limit=16`);
+  assert.equal(batchMatterTaggingCandidates.collection, "batch_matter_tagging_candidates");
+  assert.ok(batchMatterTaggingCandidates.count <= 16);
+
+  const batchMatterTaggingConfirmations = await fetchJson(`${url}/api/batch-matter-tagging-confirmations?batch_matter_tagging_confirmation_status=pending&limit=16`);
+  assert.equal(batchMatterTaggingConfirmations.collection, "batch_matter_tagging_confirmations");
+  assert.ok(batchMatterTaggingConfirmations.count <= 16);
+
+  const batchMatterTaggingSeparations = await fetchJson(`${url}/api/batch-matter-tagging-separations?batch_matter_tagging_separation_status=automatic_candidate_separated_from_human_confirmation&limit=6`);
+  assert.equal(batchMatterTaggingSeparations.collection, "batch_matter_tagging_separations");
+  assert.ok(batchMatterTaggingSeparations.count <= 6);
+
+  const batchMatterTaggingChecks = await fetchJson(`${url}/api/batch-matter-tagging-checks?batch_matter_tagging_check_status=passed&limit=24`);
+  assert.equal(batchMatterTaggingChecks.collection, "batch_matter_tagging_checks");
+  assert.ok(batchMatterTaggingChecks.count <= 24);
+
+  const batchMatterTaggingValidations = await fetchJson(`${url}/api/batch-matter-tagging-validations?status=passed&limit=24`);
+  assert.equal(batchMatterTaggingValidations.collection, "batch_matter_tagging_validations");
+  assert.ok(batchMatterTaggingValidations.count <= 24);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

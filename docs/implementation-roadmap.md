@@ -7501,6 +7501,24 @@ Verification:
 - Golden fixture count increased to 183 and `batch_classification_result` is included as a regression fixture.
 - `npm run resource:batch-classification -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
 
+## Phase 282 - Batch Matter Tagging Result
+
+Goal: P282 locks batch matter tagging separation after P281 classification. It proves automatic matter tagging candidates and pending human confirmation rows are both present for every Resource Expansion item, while tag application and matter writes remain blocked.
+
+Implementation:
+- Added `src/batch-matter-tagging-result.mjs`, `scripts/batch-matter-tagging-result.mjs`, `schemas/batch-matter-tagging-result.schema.json`, and `docs/batch-matter-tagging-result.md`.
+- Added `resource:batch-matter-tagging` npm script.
+- The artifact reads Resource Expansion Job, Batch Classification Result, Matter Tagging Decision Ledger, package, ledger, roadmap, loop, dashboard, and API sources as read-only inputs and emits batch matter tagging rows, automatic candidate rows, human confirmation rows, separation rows, checks, validation, and summary artifacts.
+- Review Dashboard stage/summary, Review API routes/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests were wired to the new artifact.
+
+Verification:
+- Every Resource Expansion item is linked to one matter tagging decision, one automatic candidate, and one pending human confirmation row.
+- Automatic candidate rows are separated from confirmation/application rows.
+- Human confirmation rows remain pending and unapplied.
+- The report performs no matter tag write, auto-apply, confirmation application, backfill execution, source ingest, source file content read, external model use, source/resource/state/matter mutation, delivery execution, protected action, legal advice, or client-facing output.
+- Golden fixture count increased to 184 and `batch_matter_tagging_result` is included as a regression fixture.
+- `npm run resource:batch-matter-tagging -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -7509,9 +7527,9 @@ Verification:
 
 운영 원칙:
 
-- Current actual completion baseline is Phase 281.
+- Current actual completion baseline is Phase 282.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- Remaining planned slots are P282-P312, 31 total.
+- Remaining planned slots are P283-P312, 30 total.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - P217 이후 personal-dev 작업은 Mac Phase 216 결과를 Windows 작업공간에서 계속 이어가되, Phase 217 본작업보다 Windows 기준선 안정화 게이트를 선행 조건으로 둔 판단을 기준으로 운영한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.

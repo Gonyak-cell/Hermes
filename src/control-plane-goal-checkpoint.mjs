@@ -154,6 +154,7 @@ const GOAL_ITEMS = [
   sourceItem("expansion_dedup_ledger", "Expansion Dedup Ledger", "resource_evidence", "expansion_dedup_ledger", "control-plane-expansion-dedup-ledger", { acceptance_profile: "expansion_dedup_ledger_gate" }),
   sourceItem("expansion_quarantine_ledger", "Expansion Quarantine Ledger", "resource_evidence", "expansion_quarantine_ledger", "control-plane-expansion-quarantine-ledger", { acceptance_profile: "expansion_quarantine_ledger_gate" }),
   sourceItem("batch_classification_result", "Batch Classification Result", "resource_evidence", "batch_classification_result", "control-plane-batch-classification-result", { acceptance_profile: "batch_classification_result_gate" }),
+  sourceItem("batch_matter_tagging_result", "Batch Matter Tagging Result", "resource_evidence", "batch_matter_tagging_result", "control-plane-batch-matter-tagging-result", { acceptance_profile: "batch_matter_tagging_result_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -667,6 +668,7 @@ function evaluateStageAcceptance(item, stage) {
     "expansion_dedup_ledger_gate",
     "expansion_quarantine_ledger_gate",
     "batch_classification_result_gate",
+    "batch_matter_tagging_result_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -5558,6 +5560,62 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Batch Classification Result locks P281 classification, confidence, policy binding, and human-review coverage after P280 quarantine stabilization without backfill execution, source file content reads, models, classification writes, mutation, delivery, legal advice, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "batch_matter_tagging_result_gate") {
+    const rowCount = metrics.batch_matter_tagging_row_count ?? 0;
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.batch_matter_tagging_result_status === "complete"
+      && metrics.phase_slot === "P282"
+      && metrics.previous_phase_slot === "P281"
+      && metrics.next_phase_slot === "P283"
+      && metrics.source_batch_classification_result_status === "complete"
+      && metrics.source_batch_classification_phase_slot === "P281"
+      && metrics.source_batch_classification_next_phase_slot === "P282"
+      && metrics.source_matter_tagging_ledger_status === "complete"
+      && rowCount > 0
+      && metrics.tagging_decision_present_count === rowCount
+      && metrics.automatic_candidate_present_count === rowCount
+      && metrics.pending_human_confirmation_count === rowCount
+      && metrics.human_confirmation_pending_count === rowCount
+      && metrics.separated_automatic_candidate_row_count === metrics.automatic_tagging_candidate_row_count
+      && metrics.separated_human_confirmation_row_count === metrics.human_confirmation_row_count
+      && metrics.passed_separation_row_count === metrics.matter_tagging_separation_row_count
+      && metrics.human_review_required_count === rowCount
+      && metrics.auto_apply_allowed_count === 0
+      && metrics.auto_tag_apply_performed_count === 0
+      && metrics.human_confirmation_applied_count === 0
+      && metrics.matter_tag_write_performed_count === 0
+      && metrics.resource_mutation_performed_count === 0
+      && metrics.state_mutation_performed_count === 0
+      && metrics.protected_action_executed_count === 0
+      && metrics.legal_advice_generated_count === 0
+      && metrics.client_facing_ready_count === 0
+      && metrics.read_only === true
+      && metrics.batch_matter_tagging_report_only === true
+      && metrics.source_artifact_read_performed === true
+      && metrics.backfill_execution_performed === false
+      && metrics.matter_tag_write_performed === false
+      && metrics.auto_tag_apply_performed === false
+      && metrics.human_confirmation_applied === false
+      && metrics.source_ingest_performed === false
+      && metrics.file_content_read_performed === false
+      && metrics.external_model_used === false
+      && metrics.source_mutation_performed === false
+      && metrics.resource_mutation_performed === false
+      && metrics.state_mutation_performed === false
+      && metrics.matter_data_write_performed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Batch Matter Tagging Result locks P282 automatic candidate, pending human confirmation, and no-auto-apply separation after P281 classification without tag writes, confirmation application, mutation, delivery, legal advice, or client-facing output.");
     }
   }
 

@@ -117,6 +117,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   expansionDedupLedgerPath: "artifacts/expansion-dedup-ledger/latest/expansion-dedup-ledger.json",
   expansionQuarantineLedgerPath: "artifacts/expansion-quarantine-ledger/latest/expansion-quarantine-ledger.json",
   batchClassificationResultPath: "artifacts/batch-classification-result/latest/batch-classification-result.json",
+  batchMatterTaggingResultPath: "artifacts/batch-matter-tagging-result/latest/batch-matter-tagging-result.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -845,6 +846,11 @@ const SOURCE_DEFINITIONS = [
     option: "batchClassificationResultPath",
     source_id: "batch_classification_result",
     label: "Batch Classification Result",
+  },
+  {
+    option: "batchMatterTaggingResultPath",
+    source_id: "batch_matter_tagging_result",
+    label: "Batch Matter Tagging Result",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1831,6 +1837,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "expansion_dedup_ledger") return data.summary ?? {};
   if (sourceId === "expansion_quarantine_ledger") return data.summary ?? {};
   if (sourceId === "batch_classification_result") return data.summary ?? {};
+  if (sourceId === "batch_matter_tagging_result") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2229,6 +2236,7 @@ function buildStageStatuses(artifacts, sources) {
     buildExpansionDedupLedgerStage(artifacts.expansion_dedup_ledger, sourceById.get("expansion_dedup_ledger")),
     buildExpansionQuarantineLedgerStage(artifacts.expansion_quarantine_ledger, sourceById.get("expansion_quarantine_ledger")),
     buildBatchClassificationResultStage(artifacts.batch_classification_result, sourceById.get("batch_classification_result")),
+    buildBatchMatterTaggingResultStage(artifacts.batch_matter_tagging_result, sourceById.get("batch_matter_tagging_result")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -13676,6 +13684,131 @@ function buildBatchClassificationResultStage(artifact, source) {
   };
 }
 
+function buildBatchMatterTaggingResultStage(artifact, source) {
+  if (!artifact) return missingStage("batch_matter_tagging_result", "Batch Matter Tagging Result", source);
+  const summary = artifact.summary ?? {};
+  const rowCount = summary.batch_matter_tagging_row_count ?? 0;
+  const status = artifact.validation?.valid === false
+    || summary.batch_matter_tagging_result_status !== "complete"
+    || summary.phase_slot !== "P282"
+    || summary.previous_phase_slot !== "P281"
+    || summary.next_phase_slot !== "P283"
+    || summary.source_batch_classification_result_status !== "complete"
+    || summary.source_batch_classification_phase_slot !== "P281"
+    || summary.source_batch_classification_next_phase_slot !== "P282"
+    || summary.source_matter_tagging_ledger_status !== "complete"
+    || rowCount <= 0
+    || summary.tagging_decision_present_count !== rowCount
+    || summary.automatic_candidate_present_count !== rowCount
+    || summary.pending_human_confirmation_count !== rowCount
+    || summary.human_confirmation_pending_count !== rowCount
+    || summary.separated_automatic_candidate_row_count !== summary.automatic_tagging_candidate_row_count
+    || summary.separated_human_confirmation_row_count !== summary.human_confirmation_row_count
+    || summary.passed_separation_row_count !== summary.matter_tagging_separation_row_count
+    || summary.human_review_required_count !== rowCount
+    || summary.auto_apply_allowed_count !== 0
+    || summary.auto_tag_apply_performed_count !== 0
+    || summary.human_confirmation_applied_count !== 0
+    || summary.matter_tag_write_performed_count !== 0
+    || summary.resource_mutation_performed_count !== 0
+    || summary.state_mutation_performed_count !== 0
+    || summary.protected_action_executed_count !== 0
+    || summary.legal_advice_generated_count !== 0
+    || summary.client_facing_ready_count !== 0
+    || summary.read_only !== true
+    || summary.batch_matter_tagging_report_only !== true
+    || summary.backfill_execution_performed !== false
+    || summary.matter_tag_write_performed !== false
+    || summary.auto_tag_apply_performed !== false
+    || summary.human_confirmation_applied !== false
+    || summary.source_ingest_performed !== false
+    || summary.file_content_read_performed !== false
+    || summary.external_model_used !== false
+    || summary.source_mutation_performed !== false
+    || summary.resource_mutation_performed !== false
+    || summary.state_mutation_performed !== false
+    || summary.matter_data_write_performed !== false
+    || summary.delivery_execution_performed !== false
+    || summary.protected_action_executed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || summary.failed_checkpoint_count !== 0
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "batch_matter_tagging_result",
+    label: "Batch Matter Tagging Result",
+    status,
+    message: `${summary.pending_human_confirmation_count ?? 0}/${rowCount} pending human confirmation row(s), ${summary.automatic_candidate_present_count ?? 0}/${rowCount} automatic candidate(s), and ${summary.matter_tag_write_performed_count ?? 0} tag write(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      batch_matter_tagging_result_status: summary.batch_matter_tagging_result_status ?? "unknown",
+      batch_matter_tagging_result_id: summary.batch_matter_tagging_result_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_resource_expansion_job_id: summary.source_resource_expansion_job_id ?? null,
+      source_batch_classification_result_status: summary.source_batch_classification_result_status ?? "unknown",
+      source_batch_classification_phase_slot: summary.source_batch_classification_phase_slot ?? null,
+      source_batch_classification_next_phase_slot: summary.source_batch_classification_next_phase_slot ?? null,
+      source_matter_tagging_ledger_status: summary.source_matter_tagging_ledger_status ?? "unknown",
+      source_matter_tagging_decision_count: summary.source_matter_tagging_decision_count ?? 0,
+      source_automatic_candidate_count: summary.source_automatic_candidate_count ?? 0,
+      source_pending_human_confirmation_count: summary.source_pending_human_confirmation_count ?? 0,
+      resource_item_count: summary.resource_item_count ?? 0,
+      batch_matter_tagging_row_count: rowCount,
+      tagging_decision_present_count: summary.tagging_decision_present_count ?? 0,
+      automatic_candidate_present_count: summary.automatic_candidate_present_count ?? 0,
+      pending_human_confirmation_count: summary.pending_human_confirmation_count ?? 0,
+      human_confirmation_pending_count: summary.human_confirmation_pending_count ?? 0,
+      automatic_tagging_candidate_row_count: summary.automatic_tagging_candidate_row_count ?? 0,
+      separated_automatic_candidate_row_count: summary.separated_automatic_candidate_row_count ?? 0,
+      human_confirmation_row_count: summary.human_confirmation_row_count ?? 0,
+      separated_human_confirmation_row_count: summary.separated_human_confirmation_row_count ?? 0,
+      matter_tagging_separation_row_count: summary.matter_tagging_separation_row_count ?? 0,
+      passed_separation_row_count: summary.passed_separation_row_count ?? 0,
+      tenant_boundary_mismatch_count: summary.tenant_boundary_mismatch_count ?? 0,
+      matter_tagging_gate_required_count: summary.matter_tagging_gate_required_count ?? 0,
+      human_review_required_count: summary.human_review_required_count ?? 0,
+      auto_apply_allowed_count: summary.auto_apply_allowed_count ?? 0,
+      auto_tag_apply_performed_count: summary.auto_tag_apply_performed_count ?? 0,
+      human_confirmation_applied_count: summary.human_confirmation_applied_count ?? 0,
+      matter_tag_write_performed_count: summary.matter_tag_write_performed_count ?? 0,
+      resource_mutation_performed_count: summary.resource_mutation_performed_count ?? 0,
+      state_mutation_performed_count: summary.state_mutation_performed_count ?? 0,
+      protected_action_executed_count: summary.protected_action_executed_count ?? 0,
+      legal_advice_generated_count: summary.legal_advice_generated_count ?? 0,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      read_only: summary.read_only ?? false,
+      batch_matter_tagging_report_only: summary.batch_matter_tagging_report_only ?? false,
+      source_artifact_read_performed: summary.source_artifact_read_performed ?? false,
+      backfill_execution_performed: summary.backfill_execution_performed ?? false,
+      matter_tag_write_performed: summary.matter_tag_write_performed ?? false,
+      auto_tag_apply_performed: summary.auto_tag_apply_performed ?? false,
+      human_confirmation_applied: summary.human_confirmation_applied ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      file_content_read_performed: summary.file_content_read_performed ?? false,
+      external_model_used: summary.external_model_used ?? false,
+      source_mutation_performed: summary.source_mutation_performed ?? false,
+      resource_mutation_performed: summary.resource_mutation_performed ?? false,
+      state_mutation_performed: summary.state_mutation_performed ?? false,
+      matter_data_write_performed: summary.matter_data_write_performed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -20230,6 +20363,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_batch_classification_result", "rerun_batch_classification_result", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.batch_matter_tagging_result?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "batch_matter_tagging_result";
+    items.push({
+      action_item_id: `dashboard.action.batch_matter_tagging_result.${slugify(subjectId)}`,
+      source_stage: "batch_matter_tagging_result",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Batch Matter Tagging Result",
+      subject_ref: {
+        subject_type: "batch_matter_tagging_result_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_batch_matter_tagging_result", "rerun_batch_matter_tagging_result", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -26973,6 +27124,58 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     batch_classification_result_validation_item_count: artifacts.batch_classification_result?.summary?.validation_item_count ?? 0,
     batch_classification_result_failed_checkpoint_count: artifacts.batch_classification_result?.summary?.failed_checkpoint_count ?? 0,
     batch_classification_result_validation_error_count: artifacts.batch_classification_result?.summary?.validation_error_count ?? artifacts.batch_classification_result?.validation?.errors?.length ?? 0,
+    batch_matter_tagging_result_status: artifacts.batch_matter_tagging_result?.summary?.batch_matter_tagging_result_status ?? "unknown",
+    batch_matter_tagging_result_id: artifacts.batch_matter_tagging_result?.summary?.batch_matter_tagging_result_id ?? null,
+    batch_matter_tagging_result_phase_slot: artifacts.batch_matter_tagging_result?.summary?.phase_slot ?? null,
+    batch_matter_tagging_result_previous_phase_slot: artifacts.batch_matter_tagging_result?.summary?.previous_phase_slot ?? null,
+    batch_matter_tagging_result_next_phase_slot: artifacts.batch_matter_tagging_result?.summary?.next_phase_slot ?? null,
+    batch_matter_tagging_result_source_batch_classification_result_status: artifacts.batch_matter_tagging_result?.summary?.source_batch_classification_result_status ?? "unknown",
+    batch_matter_tagging_result_source_batch_classification_phase_slot: artifacts.batch_matter_tagging_result?.summary?.source_batch_classification_phase_slot ?? null,
+    batch_matter_tagging_result_source_matter_tagging_ledger_status: artifacts.batch_matter_tagging_result?.summary?.source_matter_tagging_ledger_status ?? "unknown",
+    batch_matter_tagging_result_resource_item_count: artifacts.batch_matter_tagging_result?.summary?.resource_item_count ?? 0,
+    batch_matter_tagging_result_batch_matter_tagging_row_count: artifacts.batch_matter_tagging_result?.summary?.batch_matter_tagging_row_count ?? 0,
+    batch_matter_tagging_result_tagging_decision_present_count: artifacts.batch_matter_tagging_result?.summary?.tagging_decision_present_count ?? 0,
+    batch_matter_tagging_result_automatic_candidate_present_count: artifacts.batch_matter_tagging_result?.summary?.automatic_candidate_present_count ?? 0,
+    batch_matter_tagging_result_pending_human_confirmation_count: artifacts.batch_matter_tagging_result?.summary?.pending_human_confirmation_count ?? 0,
+    batch_matter_tagging_result_human_confirmation_pending_count: artifacts.batch_matter_tagging_result?.summary?.human_confirmation_pending_count ?? 0,
+    batch_matter_tagging_result_automatic_tagging_candidate_row_count: artifacts.batch_matter_tagging_result?.summary?.automatic_tagging_candidate_row_count ?? 0,
+    batch_matter_tagging_result_separated_automatic_candidate_row_count: artifacts.batch_matter_tagging_result?.summary?.separated_automatic_candidate_row_count ?? 0,
+    batch_matter_tagging_result_human_confirmation_row_count: artifacts.batch_matter_tagging_result?.summary?.human_confirmation_row_count ?? 0,
+    batch_matter_tagging_result_separated_human_confirmation_row_count: artifacts.batch_matter_tagging_result?.summary?.separated_human_confirmation_row_count ?? 0,
+    batch_matter_tagging_result_matter_tagging_separation_row_count: artifacts.batch_matter_tagging_result?.summary?.matter_tagging_separation_row_count ?? 0,
+    batch_matter_tagging_result_passed_separation_row_count: artifacts.batch_matter_tagging_result?.summary?.passed_separation_row_count ?? 0,
+    batch_matter_tagging_result_human_review_required_count: artifacts.batch_matter_tagging_result?.summary?.human_review_required_count ?? 0,
+    batch_matter_tagging_result_auto_apply_allowed_count: artifacts.batch_matter_tagging_result?.summary?.auto_apply_allowed_count ?? 0,
+    batch_matter_tagging_result_auto_tag_apply_performed_count: artifacts.batch_matter_tagging_result?.summary?.auto_tag_apply_performed_count ?? 0,
+    batch_matter_tagging_result_human_confirmation_applied_count: artifacts.batch_matter_tagging_result?.summary?.human_confirmation_applied_count ?? 0,
+    batch_matter_tagging_result_matter_tag_write_performed_count: artifacts.batch_matter_tagging_result?.summary?.matter_tag_write_performed_count ?? 0,
+    batch_matter_tagging_result_resource_mutation_performed_count: artifacts.batch_matter_tagging_result?.summary?.resource_mutation_performed_count ?? 0,
+    batch_matter_tagging_result_state_mutation_performed_count: artifacts.batch_matter_tagging_result?.summary?.state_mutation_performed_count ?? 0,
+    batch_matter_tagging_result_protected_action_executed_count: artifacts.batch_matter_tagging_result?.summary?.protected_action_executed_count ?? 0,
+    batch_matter_tagging_result_legal_advice_generated_count: artifacts.batch_matter_tagging_result?.summary?.legal_advice_generated_count ?? 0,
+    batch_matter_tagging_result_client_facing_ready_count: artifacts.batch_matter_tagging_result?.summary?.client_facing_ready_count ?? 0,
+    batch_matter_tagging_result_read_only: artifacts.batch_matter_tagging_result?.summary?.read_only ?? false,
+    batch_matter_tagging_result_report_only: artifacts.batch_matter_tagging_result?.summary?.batch_matter_tagging_report_only ?? false,
+    batch_matter_tagging_result_backfill_execution_performed: artifacts.batch_matter_tagging_result?.summary?.backfill_execution_performed ?? false,
+    batch_matter_tagging_result_matter_tag_write_performed: artifacts.batch_matter_tagging_result?.summary?.matter_tag_write_performed ?? false,
+    batch_matter_tagging_result_auto_tag_apply_performed: artifacts.batch_matter_tagging_result?.summary?.auto_tag_apply_performed ?? false,
+    batch_matter_tagging_result_human_confirmation_applied: artifacts.batch_matter_tagging_result?.summary?.human_confirmation_applied ?? false,
+    batch_matter_tagging_result_source_ingest_performed: artifacts.batch_matter_tagging_result?.summary?.source_ingest_performed ?? false,
+    batch_matter_tagging_result_file_content_read_performed: artifacts.batch_matter_tagging_result?.summary?.file_content_read_performed ?? false,
+    batch_matter_tagging_result_external_model_used: artifacts.batch_matter_tagging_result?.summary?.external_model_used ?? false,
+    batch_matter_tagging_result_source_mutation_performed: artifacts.batch_matter_tagging_result?.summary?.source_mutation_performed ?? false,
+    batch_matter_tagging_result_resource_mutation_performed: artifacts.batch_matter_tagging_result?.summary?.resource_mutation_performed ?? false,
+    batch_matter_tagging_result_state_mutation_performed: artifacts.batch_matter_tagging_result?.summary?.state_mutation_performed ?? false,
+    batch_matter_tagging_result_matter_data_write_performed: artifacts.batch_matter_tagging_result?.summary?.matter_data_write_performed ?? false,
+    batch_matter_tagging_result_delivery_execution_performed: artifacts.batch_matter_tagging_result?.summary?.delivery_execution_performed ?? false,
+    batch_matter_tagging_result_protected_action_executed: artifacts.batch_matter_tagging_result?.summary?.protected_action_executed ?? false,
+    batch_matter_tagging_result_legal_advice_generated: artifacts.batch_matter_tagging_result?.summary?.legal_advice_generated ?? false,
+    batch_matter_tagging_result_client_facing_output_generated: artifacts.batch_matter_tagging_result?.summary?.client_facing_output_generated ?? false,
+    batch_matter_tagging_result_windows_baseline_stability_preserved: artifacts.batch_matter_tagging_result?.summary?.windows_baseline_stability_preserved ?? false,
+    batch_matter_tagging_result_mac_windows_completion_instability_guard: artifacts.batch_matter_tagging_result?.summary?.mac_windows_completion_instability_guard ?? false,
+    batch_matter_tagging_result_validation_item_count: artifacts.batch_matter_tagging_result?.summary?.validation_item_count ?? 0,
+    batch_matter_tagging_result_failed_checkpoint_count: artifacts.batch_matter_tagging_result?.summary?.failed_checkpoint_count ?? 0,
+    batch_matter_tagging_result_validation_error_count: artifacts.batch_matter_tagging_result?.summary?.validation_error_count ?? artifacts.batch_matter_tagging_result?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -28790,6 +28993,8 @@ function parseArgs(argv) {
     else if (arg === "--no-expansion-quarantine-ledger") parsed.expansionQuarantineLedgerPath = false;
     else if (arg === "--batch-classification-result") parsed.batchClassificationResultPath = argv[++index];
     else if (arg === "--no-batch-classification-result") parsed.batchClassificationResultPath = false;
+    else if (arg === "--batch-matter-tagging-result") parsed.batchMatterTaggingResultPath = argv[++index];
+    else if (arg === "--no-batch-matter-tagging-result") parsed.batchMatterTaggingResultPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

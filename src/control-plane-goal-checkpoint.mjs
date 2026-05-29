@@ -144,6 +144,7 @@ const GOAL_ITEMS = [
   sourceItem("onedrive_connector_boundary", "OneDrive Connector Boundary", "connectors", "onedrive_connector_boundary", "control-plane-onedrive-connector-boundary", { acceptance_profile: "onedrive_connector_boundary_gate" }),
   sourceItem("outlook_email_connector", "Outlook Email Connector", "connectors", "outlook_email_connector", "control-plane-outlook-email-connector", { acceptance_profile: "outlook_email_connector_gate" }),
   sourceItem("kakaotalk_import_boundary", "KakaoTalk Import Boundary", "connectors", "kakaotalk_import_boundary", "control-plane-kakaotalk-import-boundary", { acceptance_profile: "kakaotalk_import_boundary_gate" }),
+  sourceItem("github_connector", "GitHub Connector", "connectors", "github_connector", "control-plane-github-connector", { acceptance_profile: "github_connector_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -647,6 +648,7 @@ function evaluateStageAcceptance(item, stage) {
     "onedrive_connector_boundary_gate",
     "outlook_email_connector_gate",
     "kakaotalk_import_boundary_gate",
+    "github_connector_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -5030,6 +5032,63 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.human_review_required_count === metrics.resource_candidate_count
     ) {
       return passedWithOperationalGate(stage, "KakaoTalk Import Boundary projects operator-provided export messages, attachments, and conversation line-offset cursor rows into review-gated resource candidates without live app/API calls, network access, credentials, mutation, delivery, legal advice, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "github_connector_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.github_connector_status === "complete"
+      && metrics.source_kakaotalk_import_boundary_status === "complete"
+      && metrics.repository_count > 0
+      && metrics.issue_count > 0
+      && metrics.pull_request_count > 0
+      && metrics.commit_count > 0
+      && metrics.review_count > 0
+      && metrics.workflow_input_count === metrics.resource_candidate_count
+      && metrics.issue_resource_count === metrics.issue_count
+      && metrics.pull_request_resource_count === metrics.pull_request_count
+      && metrics.commit_resource_count === metrics.commit_count
+      && metrics.review_resource_count === metrics.review_count
+      && metrics.resource_candidate_count === metrics.issue_count + metrics.pull_request_count + metrics.commit_count + metrics.review_count
+      && metrics.metadata_complete_issue_count === metrics.issue_count
+      && metrics.metadata_complete_pull_request_count === metrics.pull_request_count
+      && metrics.metadata_complete_commit_count === metrics.commit_count
+      && metrics.metadata_complete_review_count === metrics.review_count
+      && metrics.review_parent_link_count === metrics.review_count
+      && metrics.workflow_input_link_count === metrics.workflow_input_count
+      && metrics.cursor_status === "complete"
+      && metrics.cursor_resume_supported === true
+      && metrics.raw_since_cursor_material_allowed === false
+      && metrics.auth_boundary_status === "enforced"
+      && metrics.credential_ref_required === true
+      && metrics.credential_reference_only === true
+      && metrics.raw_secret_material_allowed === false
+      && metrics.write_operations_allowed === false
+      && metrics.external_network_access_required_for_runtime === true
+      && metrics.local_export_read_performed === true
+      && metrics.github_api_execution_performed === false
+      && metrics.external_network_access_performed === false
+      && metrics.connector_execution_performed === true
+      && metrics.source_read_performed === true
+      && metrics.credential_material_read === false
+      && metrics.source_mutation_performed === false
+      && metrics.resource_mutation_performed === false
+      && metrics.issue_mutation_performed === false
+      && metrics.pull_request_mutation_performed === false
+      && metrics.repository_mutation_performed === false
+      && metrics.branch_push_performed === false
+      && metrics.merge_performed === false
+      && metrics.release_performed === false
+      && metrics.workflow_state_mutation_performed === false
+      && metrics.output_delivery_performed === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.human_review_required_count === metrics.resource_candidate_count
+      && metrics.workflow_input_human_review_required_count === metrics.workflow_input_count
+    ) {
+      return passedWithOperationalGate(stage, "GitHub Connector projects operator-provided export issues, pull requests, commits, reviews, and workflow inputs into review-gated resource candidates without live GitHub API calls, network access, credential reads, mutation, push, merge, release, delivery, legal advice, or client-facing output.");
     }
   }
 

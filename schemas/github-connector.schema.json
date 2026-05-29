@@ -1,0 +1,341 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "github-connector.schema.json",
+  "title": "GitHub Connector",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "github_connector_id",
+    "connector_id",
+    "connector_status",
+    "connector_contract_binding",
+    "source_binding",
+    "auth_boundary",
+    "github_repository_records",
+    "github_issue_records",
+    "github_pull_request_records",
+    "github_commit_records",
+    "github_review_records",
+    "github_workflow_input_records",
+    "cursor_state",
+    "github_connector_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "github-connector.v1" },
+    "generated_at": { "type": "string" },
+    "github_connector_id": { "type": "string" },
+    "connector_id": { "const": "connector.github.v2" },
+    "connector_status": { "enum": ["complete", "attention"] },
+    "connector_contract_binding": {
+      "type": "object",
+      "required": ["binding_status", "connector_id", "source_id", "source_system", "connector_family", "phase_slot"],
+      "properties": {
+        "binding_status": { "const": "bound" },
+        "connector_id": { "const": "connector.github.v2" },
+        "source_id": { "type": "string" },
+        "source_system": { "const": "github" },
+        "connector_family": { "const": "github" },
+        "phase_slot": { "const": "P272" }
+      }
+    },
+    "source_binding": {
+      "type": "object",
+      "required": [
+        "source_binding_status",
+        "source_id",
+        "source_system",
+        "source_kind",
+        "tenant_id_required",
+        "matter_id_required",
+        "classification_required",
+        "policy_snapshot_required"
+      ],
+      "properties": {
+        "source_binding_status": { "const": "bound" },
+        "source_id": { "type": "string" },
+        "source_system": { "const": "github" },
+        "source_kind": { "const": "repo_api" },
+        "tenant_id_required": { "const": true },
+        "matter_id_required": { "const": true },
+        "classification_required": { "const": true },
+        "policy_snapshot_required": { "const": true }
+      }
+    },
+    "auth_boundary": {
+      "type": "object",
+      "required": [
+        "auth_boundary_status",
+        "auth_mode",
+        "credential_ref_required",
+        "credential_reference_only",
+        "credential_material_read",
+        "raw_secret_material_allowed",
+        "external_network_access_required_for_runtime",
+        "external_network_access_performed",
+        "github_api_execution_performed",
+        "connector_execution_performed",
+        "local_export_read_performed",
+        "read_operations_allowed",
+        "write_operations_allowed",
+        "source_mutation_performed"
+      ],
+      "properties": {
+        "auth_boundary_status": { "const": "enforced" },
+        "auth_mode": { "const": "app_installation_or_pat_readonly" },
+        "credential_ref_required": { "const": true },
+        "credential_reference_only": { "const": true },
+        "credential_material_read": { "const": false },
+        "raw_secret_material_allowed": { "const": false },
+        "external_network_access_required_for_runtime": { "const": true },
+        "external_network_access_performed": { "const": false },
+        "github_api_execution_performed": { "const": false },
+        "connector_execution_performed": { "const": true },
+        "local_export_read_performed": { "const": true },
+        "read_operations_allowed": { "const": true },
+        "write_operations_allowed": { "const": false },
+        "source_mutation_performed": { "const": false }
+      }
+    },
+    "github_repository_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["repository_record_id", "connector_id", "source_id", "matter_id", "repository_full_name", "external_id", "resource_id", "repository_status", "human_review_required"],
+        "properties": {
+          "connector_id": { "const": "connector.github.v2" },
+          "source_system": { "const": "github" },
+          "repository_status": { "const": "resource_candidate_ready" },
+          "github_resource_status": { "const": "ready" },
+          "resource_projection_status": { "const": "ready" },
+          "review_status": { "const": "needs_review" },
+          "human_review_required": { "const": true },
+          "source_mutation_performed": { "const": false },
+          "resource_mutation_performed": { "const": false }
+        }
+      }
+    },
+    "github_issue_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["issue_record_id", "connector_id", "source_id", "matter_id", "node_id", "number", "title", "external_id", "external_version_id", "resource_id", "resource_version_id", "resource_type", "issue_status", "metadata_complete", "human_review_required"],
+        "properties": {
+          "connector_id": { "const": "connector.github.v2" },
+          "source_system": { "const": "github" },
+          "resource_type": { "const": "github_issue" },
+          "issue_status": { "const": "resource_candidate_ready" },
+          "github_resource_status": { "const": "ready" },
+          "workflow_input_status": { "const": "ready" },
+          "resource_projection_status": { "const": "ready" },
+          "review_status": { "const": "needs_review" },
+          "metadata_complete": { "const": true },
+          "human_review_required": { "const": true },
+          "source_mutation_performed": { "const": false },
+          "resource_mutation_performed": { "const": false }
+        }
+      }
+    },
+    "github_pull_request_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["pull_request_record_id", "connector_id", "source_id", "matter_id", "node_id", "number", "title", "base_ref", "external_id", "external_version_id", "resource_id", "resource_version_id", "resource_type", "pull_request_status", "metadata_complete", "human_review_required"],
+        "properties": {
+          "connector_id": { "const": "connector.github.v2" },
+          "source_system": { "const": "github" },
+          "resource_type": { "const": "github_pull_request" },
+          "pull_request_status": { "const": "resource_candidate_ready" },
+          "github_resource_status": { "const": "ready" },
+          "workflow_input_status": { "const": "ready" },
+          "resource_projection_status": { "const": "ready" },
+          "review_status": { "const": "needs_review" },
+          "metadata_complete": { "const": true },
+          "human_review_required": { "const": true },
+          "source_mutation_performed": { "const": false },
+          "resource_mutation_performed": { "const": false }
+        }
+      }
+    },
+    "github_commit_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["commit_record_id", "connector_id", "source_id", "matter_id", "node_id", "sha", "external_id", "external_version_id", "resource_id", "resource_version_id", "resource_type", "commit_status", "metadata_complete", "human_review_required"],
+        "properties": {
+          "connector_id": { "const": "connector.github.v2" },
+          "source_system": { "const": "github" },
+          "resource_type": { "const": "github_commit" },
+          "commit_status": { "const": "resource_candidate_ready" },
+          "github_resource_status": { "const": "ready" },
+          "workflow_input_status": { "const": "ready" },
+          "resource_projection_status": { "const": "ready" },
+          "review_status": { "const": "needs_review" },
+          "metadata_complete": { "const": true },
+          "human_review_required": { "const": true },
+          "source_mutation_performed": { "const": false },
+          "resource_mutation_performed": { "const": false }
+        }
+      }
+    },
+    "github_review_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["review_record_id", "pull_request_record_id", "parent_pull_request_resource_id", "connector_id", "source_id", "matter_id", "node_id", "pull_request_number", "external_id", "external_version_id", "resource_id", "resource_version_id", "resource_type", "github_review_status", "metadata_complete", "human_review_required"],
+        "properties": {
+          "connector_id": { "const": "connector.github.v2" },
+          "source_system": { "const": "github" },
+          "resource_type": { "const": "github_review" },
+          "github_review_status": { "const": "resource_candidate_ready" },
+          "github_resource_status": { "const": "ready" },
+          "workflow_input_status": { "const": "ready" },
+          "resource_projection_status": { "const": "ready" },
+          "review_status": { "const": "needs_review" },
+          "metadata_complete": { "const": true },
+          "human_review_required": { "const": true },
+          "source_mutation_performed": { "const": false },
+          "resource_mutation_performed": { "const": false }
+        }
+      }
+    },
+    "github_workflow_input_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["workflow_input_record_id", "connector_id", "source_id", "matter_id", "source_resource_id", "source_resource_type", "workflow_input_type", "workflow_input_status", "human_review_required"],
+        "properties": {
+          "connector_id": { "const": "connector.github.v2" },
+          "source_system": { "const": "github" },
+          "workflow_input_status": { "const": "ready" },
+          "task_signal_status": { "const": "candidate" },
+          "review_status": { "const": "needs_review" },
+          "human_review_required": { "const": true },
+          "source_mutation_performed": { "const": false },
+          "workflow_state_mutation_performed": { "const": false },
+          "protected_action_executed": { "const": false }
+        }
+      }
+    },
+    "cursor_state": {
+      "type": "object",
+      "required": ["cursor_status", "cursor_kind", "resume_supported", "cursor_storage_mode", "resume_token_hash", "raw_since_cursor_material_allowed", "cross_matter_cursor_reuse_allowed", "reset_requires_human_review"],
+      "properties": {
+        "cursor_status": { "const": "complete" },
+        "cursor_kind": { "const": "repo_event_since_cursor" },
+        "resume_supported": { "const": true },
+        "cursor_storage_mode": { "const": "repo_since_timestamp_hash_only" },
+        "resume_token_hash": { "type": "string" },
+        "raw_since_cursor_material_allowed": { "const": false },
+        "raw_cursor_material_allowed": { "const": false },
+        "cross_matter_cursor_reuse_allowed": { "const": false },
+        "reset_requires_human_review": { "const": true }
+      }
+    },
+    "github_connector_boundary": {
+      "type": "object",
+      "required": ["boundary_status", "local_export_read_performed", "github_api_execution_performed", "external_network_access_performed", "connector_execution_performed", "source_read_performed", "credential_material_read", "source_mutation_performed", "resource_mutation_performed", "issue_mutation_performed", "pull_request_mutation_performed", "repository_mutation_performed", "branch_push_performed", "merge_performed", "release_performed", "output_delivery_performed", "protected_action_executed", "legal_advice_generated", "client_facing_output_generated", "human_review_required"],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "local_export_read_performed": { "const": true },
+        "github_api_execution_performed": { "const": false },
+        "external_network_access_performed": { "const": false },
+        "connector_execution_performed": { "const": true },
+        "source_read_performed": { "const": true },
+        "credential_material_read": { "const": false },
+        "raw_secret_material_allowed": { "const": false },
+        "source_mutation_performed": { "const": false },
+        "resource_mutation_performed": { "const": false },
+        "issue_mutation_performed": { "const": false },
+        "pull_request_mutation_performed": { "const": false },
+        "repository_mutation_performed": { "const": false },
+        "branch_push_performed": { "const": false },
+        "merge_performed": { "const": false },
+        "release_performed": { "const": false },
+        "output_delivery_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "type": "object" } },
+    "validation": { "type": "object" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "github_connector_status",
+        "connector_id",
+        "source_id",
+        "phase_slot",
+        "source_kakaotalk_import_boundary_status",
+        "repository_count",
+        "issue_count",
+        "pull_request_count",
+        "commit_count",
+        "review_count",
+        "workflow_input_count",
+        "resource_candidate_count",
+        "workflow_input_link_count",
+        "cursor_status",
+        "cursor_resume_supported",
+        "raw_since_cursor_material_allowed",
+        "credential_ref_required",
+        "credential_reference_only",
+        "raw_secret_material_allowed",
+        "github_api_execution_performed",
+        "external_network_access_performed",
+        "source_mutation_performed",
+        "resource_mutation_performed",
+        "branch_push_performed",
+        "merge_performed",
+        "release_performed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "validation_error_count"
+      ],
+      "properties": {
+        "github_connector_status": { "const": "complete" },
+        "connector_id": { "const": "connector.github.v2" },
+        "source_id": { "type": "string" },
+        "phase_slot": { "const": "P272" },
+        "source_kakaotalk_import_boundary_status": { "const": "complete" },
+        "repository_count": { "type": "integer", "minimum": 1 },
+        "issue_count": { "type": "integer", "minimum": 1 },
+        "pull_request_count": { "type": "integer", "minimum": 1 },
+        "commit_count": { "type": "integer", "minimum": 1 },
+        "review_count": { "type": "integer", "minimum": 1 },
+        "workflow_input_count": { "type": "integer", "minimum": 1 },
+        "resource_candidate_count": { "type": "integer", "minimum": 4 },
+        "workflow_input_link_count": { "type": "integer", "minimum": 4 },
+        "cursor_status": { "const": "complete" },
+        "cursor_resume_supported": { "const": true },
+        "raw_since_cursor_material_allowed": { "const": false },
+        "credential_ref_required": { "const": true },
+        "credential_reference_only": { "const": true },
+        "raw_secret_material_allowed": { "const": false },
+        "github_api_execution_performed": { "const": false },
+        "external_network_access_performed": { "const": false },
+        "source_mutation_performed": { "const": false },
+        "resource_mutation_performed": { "const": false },
+        "branch_push_performed": { "const": false },
+        "merge_performed": { "const": false },
+        "release_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

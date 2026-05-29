@@ -5247,6 +5247,76 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("kakaotalk_import_validations", kakaoResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/github-connector") {
+    const githubResult = await readDashboardSourceArtifact(dashboard, "github_connector");
+    if (!githubResult.available) {
+      return jsonResponse(503, buildError("github_connector_unavailable", githubResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("github_connector", [githubResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/github-repositories") {
+    const githubResult = await readDashboardSourceArtifact(dashboard, "github_connector");
+    if (!githubResult.available) {
+      return jsonResponse(503, buildError("github_connector_unavailable", githubResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("github_repositories", githubResult.artifact.github_repository_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/github-issues") {
+    const githubResult = await readDashboardSourceArtifact(dashboard, "github_connector");
+    if (!githubResult.available) {
+      return jsonResponse(503, buildError("github_connector_unavailable", githubResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("github_issues", githubResult.artifact.github_issue_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/github-pull-requests") {
+    const githubResult = await readDashboardSourceArtifact(dashboard, "github_connector");
+    if (!githubResult.available) {
+      return jsonResponse(503, buildError("github_connector_unavailable", githubResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("github_pull_requests", githubResult.artifact.github_pull_request_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/github-commits") {
+    const githubResult = await readDashboardSourceArtifact(dashboard, "github_connector");
+    if (!githubResult.available) {
+      return jsonResponse(503, buildError("github_connector_unavailable", githubResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("github_commits", githubResult.artifact.github_commit_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/github-reviews") {
+    const githubResult = await readDashboardSourceArtifact(dashboard, "github_connector");
+    if (!githubResult.available) {
+      return jsonResponse(503, buildError("github_connector_unavailable", githubResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("github_reviews", githubResult.artifact.github_review_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/github-workflow-inputs") {
+    const githubResult = await readDashboardSourceArtifact(dashboard, "github_connector");
+    if (!githubResult.available) {
+      return jsonResponse(503, buildError("github_connector_unavailable", githubResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("github_workflow_inputs", githubResult.artifact.github_workflow_input_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/github-cursor") {
+    const githubResult = await readDashboardSourceArtifact(dashboard, "github_connector");
+    if (!githubResult.available) {
+      return jsonResponse(503, buildError("github_connector_unavailable", githubResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("github_cursor", [githubResult.artifact.cursor_state].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/github-auth-boundary") {
+    const githubResult = await readDashboardSourceArtifact(dashboard, "github_connector");
+    if (!githubResult.available) {
+      return jsonResponse(503, buildError("github_connector_unavailable", githubResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("github_auth_boundary", [githubResult.artifact.auth_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/github-connector-validations") {
+    const githubResult = await readDashboardSourceArtifact(dashboard, "github_connector");
+    if (!githubResult.available) {
+      return jsonResponse(503, buildError("github_connector_unavailable", githubResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("github_connector_validations", githubResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -11601,6 +11671,16 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/kakaotalk-cursor", "KakaoTalk import cursor state"),
       route("GET", "/api/kakaotalk-auth-boundary", "KakaoTalk import auth boundary"),
       route("GET", "/api/kakaotalk-import-validations", "KakaoTalk Import Boundary validation rows"),
+      route("GET", "/api/github-connector", "GitHub Connector artifact"),
+      route("GET", "/api/github-repositories", "GitHub repository resource rows"),
+      route("GET", "/api/github-issues", "GitHub issue resource rows"),
+      route("GET", "/api/github-pull-requests", "GitHub pull request resource rows"),
+      route("GET", "/api/github-commits", "GitHub commit resource rows"),
+      route("GET", "/api/github-reviews", "GitHub review resource rows"),
+      route("GET", "/api/github-workflow-inputs", "GitHub workflow input rows"),
+      route("GET", "/api/github-cursor", "GitHub connector cursor state"),
+      route("GET", "/api/github-auth-boundary", "GitHub connector auth boundary"),
+      route("GET", "/api/github-connector-validations", "GitHub Connector validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -12677,6 +12757,15 @@ function filterItems(items, searchParams) {
     "kakaotalk_message_status",
     "kakaotalk_attachment_status",
     "kakaotalk_conversation_status",
+    "github_connector_status",
+    "repository_status",
+    "github_issue_status",
+    "github_pull_request_status",
+    "github_commit_status",
+    "github_review_status",
+    "github_workflow_input_status",
+    "github_resource_status",
+    "workflow_input_status",
     "thread_status",
     "email_resource_status",
     "chat_resource_status",
@@ -14486,6 +14575,15 @@ function readFilterValue(item, key) {
   if (key === "kakaotalk_message_status") return item.message_status;
   if (key === "kakaotalk_attachment_status") return item.attachment_status;
   if (key === "kakaotalk_conversation_status") return item.conversation_status;
+  if (key === "github_connector_status") return item.summary?.github_connector_status ?? item.connector_status ?? item.github_connector_status;
+  if (key === "repository_status") return item.repository_status;
+  if (key === "github_issue_status") return item.issue_status;
+  if (key === "github_pull_request_status") return item.pull_request_status;
+  if (key === "github_commit_status") return item.commit_status;
+  if (key === "github_review_status") return item.github_review_status;
+  if (key === "github_workflow_input_status") return item.workflow_input_status;
+  if (key === "github_resource_status") return item.github_resource_status;
+  if (key === "workflow_input_status") return item.workflow_input_status;
   if (key === "thread_status") return item.thread_status;
   if (key === "email_resource_status") return item.email_resource_status;
   if (key === "chat_resource_status") return item.chat_resource_status;

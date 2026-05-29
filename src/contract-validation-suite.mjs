@@ -153,6 +153,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "connectors:onedrive-boundary",
   "connectors:outlook-email",
   "connectors:kakaotalk-import-boundary",
+  "connectors:github",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

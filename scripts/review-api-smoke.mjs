@@ -2396,6 +2396,46 @@ try {
   assert.equal(kakaoTalkImportValidations.collection, "kakaotalk_import_validations");
   assert.ok(kakaoTalkImportValidations.count <= 5);
 
+  const githubConnector = await fetchJson(`${url}/api/github-connector?github_connector_status=complete&limit=1`);
+  assert.equal(githubConnector.collection, "github_connector");
+  assert.ok(githubConnector.count <= 1);
+
+  const githubRepositories = await fetchJson(`${url}/api/github-repositories?repository_status=resource_candidate_ready&github_resource_status=ready&review_status=needs_review&limit=5`);
+  assert.equal(githubRepositories.collection, "github_repositories");
+  assert.ok(githubRepositories.count <= 5);
+
+  const githubIssues = await fetchJson(`${url}/api/github-issues?github_issue_status=resource_candidate_ready&github_resource_status=ready&review_status=needs_review&limit=5`);
+  assert.equal(githubIssues.collection, "github_issues");
+  assert.ok(githubIssues.count <= 5);
+
+  const githubPullRequests = await fetchJson(`${url}/api/github-pull-requests?github_pull_request_status=resource_candidate_ready&github_resource_status=ready&review_status=needs_review&limit=5`);
+  assert.equal(githubPullRequests.collection, "github_pull_requests");
+  assert.ok(githubPullRequests.count <= 5);
+
+  const githubCommits = await fetchJson(`${url}/api/github-commits?github_commit_status=resource_candidate_ready&github_resource_status=ready&review_status=needs_review&limit=5`);
+  assert.equal(githubCommits.collection, "github_commits");
+  assert.ok(githubCommits.count <= 5);
+
+  const githubReviews = await fetchJson(`${url}/api/github-reviews?github_review_status=resource_candidate_ready&github_resource_status=ready&review_status=needs_review&limit=5`);
+  assert.equal(githubReviews.collection, "github_reviews");
+  assert.ok(githubReviews.count <= 5);
+
+  const githubWorkflowInputs = await fetchJson(`${url}/api/github-workflow-inputs?github_workflow_input_status=ready&review_status=needs_review&limit=5`);
+  assert.equal(githubWorkflowInputs.collection, "github_workflow_inputs");
+  assert.ok(githubWorkflowInputs.count <= 5);
+
+  const githubCursor = await fetchJson(`${url}/api/github-cursor?cursor_status=complete&limit=1`);
+  assert.equal(githubCursor.collection, "github_cursor");
+  assert.ok(githubCursor.count <= 1);
+
+  const githubAuthBoundary = await fetchJson(`${url}/api/github-auth-boundary?auth_boundary_status=enforced&credential_reference_only=true&limit=1`);
+  assert.equal(githubAuthBoundary.collection, "github_auth_boundary");
+  assert.ok(githubAuthBoundary.count <= 1);
+
+  const githubConnectorValidations = await fetchJson(`${url}/api/github-connector-validations?status=passed&limit=5`);
+  assert.equal(githubConnectorValidations.collection, "github_connector_validations");
+  assert.ok(githubConnectorValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

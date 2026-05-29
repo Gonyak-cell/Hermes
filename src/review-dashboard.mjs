@@ -107,6 +107,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   onedriveConnectorBoundaryPath: "artifacts/onedrive-connector-boundary/latest/onedrive-connector-boundary.json",
   outlookEmailConnectorPath: "artifacts/outlook-email-connector/latest/outlook-email-connector.json",
   kakaotalkImportBoundaryPath: "artifacts/kakaotalk-import-boundary/latest/kakaotalk-import-boundary.json",
+  githubConnectorPath: "artifacts/github-connector/latest/github-connector.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -785,6 +786,11 @@ const SOURCE_DEFINITIONS = [
     option: "kakaotalkImportBoundaryPath",
     source_id: "kakaotalk_import_boundary",
     label: "KakaoTalk Import Boundary",
+  },
+  {
+    option: "githubConnectorPath",
+    source_id: "github_connector",
+    label: "GitHub Connector",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1761,6 +1767,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "onedrive_connector_boundary") return data.summary ?? {};
   if (sourceId === "outlook_email_connector") return data.summary ?? {};
   if (sourceId === "kakaotalk_import_boundary") return data.summary ?? {};
+  if (sourceId === "github_connector") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2149,6 +2156,7 @@ function buildStageStatuses(artifacts, sources) {
     buildOneDriveConnectorBoundaryStage(artifacts.onedrive_connector_boundary, sourceById.get("onedrive_connector_boundary")),
     buildOutlookEmailConnectorStage(artifacts.outlook_email_connector, sourceById.get("outlook_email_connector")),
     buildKakaoTalkImportBoundaryStage(artifacts.kakaotalk_import_boundary, sourceById.get("kakaotalk_import_boundary")),
+    buildGitHubConnectorStage(artifacts.github_connector, sourceById.get("github_connector")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -12418,6 +12426,130 @@ function buildKakaoTalkImportBoundaryStage(artifact, source) {
   };
 }
 
+function buildGitHubConnectorStage(artifact, source) {
+  if (!artifact) return missingStage("github_connector", "GitHub Connector", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.github_connector_status !== "complete"
+    || summary.source_kakaotalk_import_boundary_status !== "complete"
+    || summary.repository_count <= 0
+    || summary.issue_count <= 0
+    || summary.pull_request_count <= 0
+    || summary.commit_count <= 0
+    || summary.review_count <= 0
+    || summary.workflow_input_count !== summary.resource_candidate_count
+    || summary.issue_resource_count !== summary.issue_count
+    || summary.pull_request_resource_count !== summary.pull_request_count
+    || summary.commit_resource_count !== summary.commit_count
+    || summary.review_resource_count !== summary.review_count
+    || summary.resource_candidate_count !== summary.issue_count + summary.pull_request_count + summary.commit_count + summary.review_count
+    || summary.metadata_complete_issue_count !== summary.issue_count
+    || summary.metadata_complete_pull_request_count !== summary.pull_request_count
+    || summary.metadata_complete_commit_count !== summary.commit_count
+    || summary.metadata_complete_review_count !== summary.review_count
+    || summary.review_parent_link_count !== summary.review_count
+    || summary.workflow_input_link_count !== summary.workflow_input_count
+    || summary.cursor_status !== "complete"
+    || summary.cursor_resume_supported !== true
+    || summary.raw_since_cursor_material_allowed === true
+    || summary.auth_boundary_status !== "enforced"
+    || summary.credential_ref_required !== true
+    || summary.credential_reference_only !== true
+    || summary.raw_secret_material_allowed === true
+    || summary.write_operations_allowed === true
+    || summary.external_network_access_required_for_runtime !== true
+    || summary.local_export_read_performed !== true
+    || summary.github_api_execution_performed === true
+    || summary.external_network_access_performed === true
+    || summary.connector_execution_performed !== true
+    || summary.source_read_performed !== true
+    || summary.credential_material_read === true
+    || summary.source_mutation_performed === true
+    || summary.resource_mutation_performed === true
+    || summary.issue_mutation_performed === true
+    || summary.pull_request_mutation_performed === true
+    || summary.repository_mutation_performed === true
+    || summary.branch_push_performed === true
+    || summary.merge_performed === true
+    || summary.release_performed === true
+    || summary.workflow_state_mutation_performed === true
+    || summary.output_delivery_performed === true
+    || summary.protected_action_executed === true
+    || summary.legal_advice_generated === true
+    || summary.client_facing_output_generated === true
+    || summary.human_review_required_count !== summary.resource_candidate_count
+    || summary.workflow_input_human_review_required_count !== summary.workflow_input_count
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "github_connector",
+    label: "GitHub Connector",
+    status,
+    message: `${summary.issue_count ?? 0} issue(s), ${summary.pull_request_count ?? 0} PR(s), ${summary.commit_count ?? 0} commit(s), ${summary.review_count ?? 0} review(s), ${summary.workflow_input_count ?? 0} workflow input(s) projected.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      github_connector_status: summary.github_connector_status ?? "unknown",
+      connector_id: summary.connector_id ?? artifact.connector_id ?? null,
+      source_id: summary.source_id ?? artifact.connector_contract_binding?.source_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      source_kakaotalk_import_boundary_status: summary.source_kakaotalk_import_boundary_status ?? "unknown",
+      repository_count: summary.repository_count ?? artifact.github_repository_records?.length ?? 0,
+      issue_count: summary.issue_count ?? artifact.github_issue_records?.length ?? 0,
+      pull_request_count: summary.pull_request_count ?? artifact.github_pull_request_records?.length ?? 0,
+      commit_count: summary.commit_count ?? artifact.github_commit_records?.length ?? 0,
+      review_count: summary.review_count ?? artifact.github_review_records?.length ?? 0,
+      workflow_input_count: summary.workflow_input_count ?? artifact.github_workflow_input_records?.length ?? 0,
+      issue_resource_count: summary.issue_resource_count ?? 0,
+      pull_request_resource_count: summary.pull_request_resource_count ?? 0,
+      commit_resource_count: summary.commit_resource_count ?? 0,
+      review_resource_count: summary.review_resource_count ?? 0,
+      resource_candidate_count: summary.resource_candidate_count ?? 0,
+      metadata_complete_issue_count: summary.metadata_complete_issue_count ?? 0,
+      metadata_complete_pull_request_count: summary.metadata_complete_pull_request_count ?? 0,
+      metadata_complete_commit_count: summary.metadata_complete_commit_count ?? 0,
+      metadata_complete_review_count: summary.metadata_complete_review_count ?? 0,
+      review_parent_link_count: summary.review_parent_link_count ?? 0,
+      workflow_input_link_count: summary.workflow_input_link_count ?? 0,
+      cursor_status: summary.cursor_status ?? artifact.cursor_state?.cursor_status ?? "unknown",
+      cursor_kind: summary.cursor_kind ?? artifact.cursor_state?.cursor_kind ?? null,
+      cursor_resume_supported: summary.cursor_resume_supported ?? artifact.cursor_state?.resume_supported ?? false,
+      raw_since_cursor_material_allowed: summary.raw_since_cursor_material_allowed ?? artifact.cursor_state?.raw_since_cursor_material_allowed ?? false,
+      auth_boundary_status: summary.auth_boundary_status ?? artifact.auth_boundary?.auth_boundary_status ?? "unknown",
+      credential_ref_required: summary.credential_ref_required ?? artifact.auth_boundary?.credential_ref_required ?? false,
+      credential_reference_only: summary.credential_reference_only ?? artifact.auth_boundary?.credential_reference_only ?? false,
+      raw_secret_material_allowed: summary.raw_secret_material_allowed ?? artifact.auth_boundary?.raw_secret_material_allowed ?? false,
+      least_privilege_scope_count: summary.least_privilege_scope_count ?? artifact.auth_boundary?.least_privilege_scopes?.length ?? 0,
+      read_operations_allowed: summary.read_operations_allowed ?? artifact.auth_boundary?.read_operations_allowed ?? false,
+      write_operations_allowed: summary.write_operations_allowed ?? artifact.auth_boundary?.write_operations_allowed ?? false,
+      external_network_access_required_for_runtime: summary.external_network_access_required_for_runtime ?? artifact.auth_boundary?.external_network_access_required_for_runtime ?? false,
+      local_export_read_performed: summary.local_export_read_performed ?? artifact.github_connector_boundary?.local_export_read_performed ?? false,
+      github_api_execution_performed: summary.github_api_execution_performed ?? artifact.github_connector_boundary?.github_api_execution_performed ?? false,
+      external_network_access_performed: summary.external_network_access_performed ?? artifact.github_connector_boundary?.external_network_access_performed ?? false,
+      connector_execution_performed: summary.connector_execution_performed ?? artifact.github_connector_boundary?.connector_execution_performed ?? false,
+      source_read_performed: summary.source_read_performed ?? artifact.github_connector_boundary?.source_read_performed ?? false,
+      credential_material_read: summary.credential_material_read ?? artifact.github_connector_boundary?.credential_material_read ?? false,
+      source_mutation_performed: summary.source_mutation_performed ?? artifact.github_connector_boundary?.source_mutation_performed ?? false,
+      resource_mutation_performed: summary.resource_mutation_performed ?? artifact.github_connector_boundary?.resource_mutation_performed ?? false,
+      issue_mutation_performed: summary.issue_mutation_performed ?? artifact.github_connector_boundary?.issue_mutation_performed ?? false,
+      pull_request_mutation_performed: summary.pull_request_mutation_performed ?? artifact.github_connector_boundary?.pull_request_mutation_performed ?? false,
+      repository_mutation_performed: summary.repository_mutation_performed ?? artifact.github_connector_boundary?.repository_mutation_performed ?? false,
+      branch_push_performed: summary.branch_push_performed ?? artifact.github_connector_boundary?.branch_push_performed ?? false,
+      merge_performed: summary.merge_performed ?? artifact.github_connector_boundary?.merge_performed ?? false,
+      release_performed: summary.release_performed ?? artifact.github_connector_boundary?.release_performed ?? false,
+      workflow_state_mutation_performed: summary.workflow_state_mutation_performed ?? artifact.github_connector_boundary?.workflow_state_mutation_performed ?? false,
+      output_delivery_performed: summary.output_delivery_performed ?? artifact.github_connector_boundary?.output_delivery_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? artifact.github_connector_boundary?.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? artifact.github_connector_boundary?.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? artifact.github_connector_boundary?.client_facing_output_generated ?? false,
+      human_review_required_count: summary.human_review_required_count ?? 0,
+      workflow_input_human_review_required_count: summary.workflow_input_human_review_required_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -18796,6 +18928,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.github_connector?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "github_connector";
+    items.push({
+      action_item_id: `dashboard.action.github_connector.${slugify(subjectId)}`,
+      source_stage: "github_connector",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix GitHub Connector",
+      subject_ref: {
+        subject_type: "github_connector_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_github_connector", "rerun_github_connector", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -25023,6 +25173,59 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     kakaotalk_import_boundary_client_facing_output_generated: artifacts.kakaotalk_import_boundary?.summary?.client_facing_output_generated ?? false,
     kakaotalk_import_boundary_human_review_required_count: artifacts.kakaotalk_import_boundary?.summary?.human_review_required_count ?? 0,
     kakaotalk_import_boundary_validation_error_count: artifacts.kakaotalk_import_boundary?.summary?.validation_error_count ?? artifacts.kakaotalk_import_boundary?.validation?.errors?.length ?? 0,
+    github_connector_status: artifacts.github_connector?.summary?.github_connector_status ?? "unknown",
+    github_connector_connector_id: artifacts.github_connector?.summary?.connector_id ?? null,
+    github_connector_source_id: artifacts.github_connector?.summary?.source_id ?? null,
+    github_connector_source_kakaotalk_import_boundary_status: artifacts.github_connector?.summary?.source_kakaotalk_import_boundary_status ?? "unknown",
+    github_connector_repository_count: artifacts.github_connector?.summary?.repository_count ?? 0,
+    github_connector_issue_count: artifacts.github_connector?.summary?.issue_count ?? 0,
+    github_connector_pull_request_count: artifacts.github_connector?.summary?.pull_request_count ?? 0,
+    github_connector_commit_count: artifacts.github_connector?.summary?.commit_count ?? 0,
+    github_connector_review_count: artifacts.github_connector?.summary?.review_count ?? 0,
+    github_connector_workflow_input_count: artifacts.github_connector?.summary?.workflow_input_count ?? 0,
+    github_connector_issue_resource_count: artifacts.github_connector?.summary?.issue_resource_count ?? 0,
+    github_connector_pull_request_resource_count: artifacts.github_connector?.summary?.pull_request_resource_count ?? 0,
+    github_connector_commit_resource_count: artifacts.github_connector?.summary?.commit_resource_count ?? 0,
+    github_connector_review_resource_count: artifacts.github_connector?.summary?.review_resource_count ?? 0,
+    github_connector_resource_candidate_count: artifacts.github_connector?.summary?.resource_candidate_count ?? 0,
+    github_connector_metadata_complete_issue_count: artifacts.github_connector?.summary?.metadata_complete_issue_count ?? 0,
+    github_connector_metadata_complete_pull_request_count: artifacts.github_connector?.summary?.metadata_complete_pull_request_count ?? 0,
+    github_connector_metadata_complete_commit_count: artifacts.github_connector?.summary?.metadata_complete_commit_count ?? 0,
+    github_connector_metadata_complete_review_count: artifacts.github_connector?.summary?.metadata_complete_review_count ?? 0,
+    github_connector_review_parent_link_count: artifacts.github_connector?.summary?.review_parent_link_count ?? 0,
+    github_connector_workflow_input_link_count: artifacts.github_connector?.summary?.workflow_input_link_count ?? 0,
+    github_connector_cursor_status: artifacts.github_connector?.summary?.cursor_status ?? "unknown",
+    github_connector_cursor_resume_supported: artifacts.github_connector?.summary?.cursor_resume_supported ?? false,
+    github_connector_raw_since_cursor_material_allowed: artifacts.github_connector?.summary?.raw_since_cursor_material_allowed ?? false,
+    github_connector_auth_boundary_status: artifacts.github_connector?.summary?.auth_boundary_status ?? "unknown",
+    github_connector_credential_ref_required: artifacts.github_connector?.summary?.credential_ref_required ?? true,
+    github_connector_credential_reference_only: artifacts.github_connector?.summary?.credential_reference_only ?? false,
+    github_connector_raw_secret_material_allowed: artifacts.github_connector?.summary?.raw_secret_material_allowed ?? false,
+    github_connector_read_operations_allowed: artifacts.github_connector?.summary?.read_operations_allowed ?? false,
+    github_connector_write_operations_allowed: artifacts.github_connector?.summary?.write_operations_allowed ?? false,
+    github_connector_external_network_access_required_for_runtime: artifacts.github_connector?.summary?.external_network_access_required_for_runtime ?? false,
+    github_connector_local_export_read_performed: artifacts.github_connector?.summary?.local_export_read_performed ?? false,
+    github_connector_github_api_execution_performed: artifacts.github_connector?.summary?.github_api_execution_performed ?? false,
+    github_connector_external_network_access_performed: artifacts.github_connector?.summary?.external_network_access_performed ?? false,
+    github_connector_connector_execution_performed: artifacts.github_connector?.summary?.connector_execution_performed ?? false,
+    github_connector_source_read_performed: artifacts.github_connector?.summary?.source_read_performed ?? false,
+    github_connector_credential_material_read: artifacts.github_connector?.summary?.credential_material_read ?? false,
+    github_connector_source_mutation_performed: artifacts.github_connector?.summary?.source_mutation_performed ?? false,
+    github_connector_resource_mutation_performed: artifacts.github_connector?.summary?.resource_mutation_performed ?? false,
+    github_connector_issue_mutation_performed: artifacts.github_connector?.summary?.issue_mutation_performed ?? false,
+    github_connector_pull_request_mutation_performed: artifacts.github_connector?.summary?.pull_request_mutation_performed ?? false,
+    github_connector_repository_mutation_performed: artifacts.github_connector?.summary?.repository_mutation_performed ?? false,
+    github_connector_branch_push_performed: artifacts.github_connector?.summary?.branch_push_performed ?? false,
+    github_connector_merge_performed: artifacts.github_connector?.summary?.merge_performed ?? false,
+    github_connector_release_performed: artifacts.github_connector?.summary?.release_performed ?? false,
+    github_connector_workflow_state_mutation_performed: artifacts.github_connector?.summary?.workflow_state_mutation_performed ?? false,
+    github_connector_output_delivery_performed: artifacts.github_connector?.summary?.output_delivery_performed ?? false,
+    github_connector_protected_action_executed: artifacts.github_connector?.summary?.protected_action_executed ?? false,
+    github_connector_legal_advice_generated: artifacts.github_connector?.summary?.legal_advice_generated ?? false,
+    github_connector_client_facing_output_generated: artifacts.github_connector?.summary?.client_facing_output_generated ?? false,
+    github_connector_human_review_required_count: artifacts.github_connector?.summary?.human_review_required_count ?? 0,
+    github_connector_workflow_input_human_review_required_count: artifacts.github_connector?.summary?.workflow_input_human_review_required_count ?? 0,
+    github_connector_validation_error_count: artifacts.github_connector?.summary?.validation_error_count ?? artifacts.github_connector?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -26820,6 +27023,8 @@ function parseArgs(argv) {
     else if (arg === "--no-outlook-email-connector") parsed.outlookEmailConnectorPath = false;
     else if (arg === "--kakaotalk-import-boundary") parsed.kakaotalkImportBoundaryPath = argv[++index];
     else if (arg === "--no-kakaotalk-import-boundary") parsed.kakaotalkImportBoundaryPath = false;
+    else if (arg === "--github-connector") parsed.githubConnectorPath = argv[++index];
+    else if (arg === "--no-github-connector") parsed.githubConnectorPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

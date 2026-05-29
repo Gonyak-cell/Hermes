@@ -71,6 +71,7 @@ import { runLocalFolderConnector } from "../src/local-folder-connector.mjs";
 import { runOneDriveConnectorBoundary } from "../src/onedrive-connector-boundary.mjs";
 import { runOutlookEmailConnector } from "../src/outlook-email-connector.mjs";
 import { runKakaoTalkImportBoundary } from "../src/kakaotalk-import-boundary.mjs";
+import { runGitHubConnector } from "../src/github-connector.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1937,6 +1938,7 @@ describe("matter harness", () => {
         onedriveConnectorBoundaryPath: path.join(outDir, "onedrive-connector-boundary", "onedrive-connector-boundary.json"),
         outlookEmailConnectorPath: path.join(outDir, "outlook-email-connector", "outlook-email-connector.json"),
         kakaotalkImportBoundaryPath: path.join(outDir, "kakaotalk-import-boundary", "kakaotalk-import-boundary.json"),
+        githubConnectorPath: path.join(outDir, "github-connector", "github-connector.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11011,6 +11013,78 @@ describe("matter harness", () => {
       assert.equal(kakaoTalkImportBoundary.kakaotalk_import_boundary.import_boundary_only, true);
       assert.match(await readFile(path.join(outDir, "kakaotalk-import-boundary", "summary.md"), "utf8"), /KakaoTalk Import Boundary/);
 
+      const gitHubConnector = await runGitHubConnector({
+        connectorContractV2Path: path.join(outDir, "connector-contract-v2", "connector-contract-v2.json"),
+        kakaotalkImportBoundaryPath: path.join(outDir, "kakaotalk-import-boundary", "kakaotalk-import-boundary.json"),
+        githubInputs: ["examples/github-connector"],
+        outDir: path.join(outDir, "github-connector"),
+        runAt: "2026-05-23T07:13:24.000Z",
+      });
+      const gitHubConnectorSchema = JSON.parse(await readFile("schemas/github-connector.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(gitHubConnector, gitHubConnectorSchema, {}, "github_connector"), [], JSON.stringify(gitHubConnector.validation.errors));
+      assert.equal(gitHubConnector.summary.github_connector_status, "complete");
+      assert.equal(gitHubConnector.summary.connector_id, "connector.github.v2");
+      assert.equal(gitHubConnector.summary.source_id, "source.github.v2");
+      assert.equal(gitHubConnector.summary.source_kakaotalk_import_boundary_status, "complete");
+      assert.equal(gitHubConnector.summary.repository_count, 1);
+      assert.equal(gitHubConnector.summary.issue_count, 2);
+      assert.equal(gitHubConnector.summary.pull_request_count, 1);
+      assert.equal(gitHubConnector.summary.commit_count, 2);
+      assert.equal(gitHubConnector.summary.review_count, 1);
+      assert.equal(gitHubConnector.summary.workflow_input_count, 6);
+      assert.equal(gitHubConnector.summary.issue_resource_count, gitHubConnector.summary.issue_count);
+      assert.equal(gitHubConnector.summary.pull_request_resource_count, gitHubConnector.summary.pull_request_count);
+      assert.equal(gitHubConnector.summary.commit_resource_count, gitHubConnector.summary.commit_count);
+      assert.equal(gitHubConnector.summary.review_resource_count, gitHubConnector.summary.review_count);
+      assert.equal(gitHubConnector.summary.resource_candidate_count, gitHubConnector.summary.issue_count + gitHubConnector.summary.pull_request_count + gitHubConnector.summary.commit_count + gitHubConnector.summary.review_count);
+      assert.equal(gitHubConnector.summary.metadata_complete_issue_count, gitHubConnector.summary.issue_count);
+      assert.equal(gitHubConnector.summary.metadata_complete_pull_request_count, gitHubConnector.summary.pull_request_count);
+      assert.equal(gitHubConnector.summary.metadata_complete_commit_count, gitHubConnector.summary.commit_count);
+      assert.equal(gitHubConnector.summary.metadata_complete_review_count, gitHubConnector.summary.review_count);
+      assert.equal(gitHubConnector.summary.review_parent_link_count, gitHubConnector.summary.review_count);
+      assert.equal(gitHubConnector.summary.workflow_input_link_count, gitHubConnector.summary.workflow_input_count);
+      assert.equal(gitHubConnector.summary.cursor_status, "complete");
+      assert.equal(gitHubConnector.summary.cursor_resume_supported, true);
+      assert.equal(gitHubConnector.summary.raw_since_cursor_material_allowed, false);
+      assert.equal(gitHubConnector.summary.auth_boundary_status, "enforced");
+      assert.equal(gitHubConnector.summary.credential_ref_required, true);
+      assert.equal(gitHubConnector.summary.credential_reference_only, true);
+      assert.equal(gitHubConnector.summary.raw_secret_material_allowed, false);
+      assert.equal(gitHubConnector.summary.external_network_access_required_for_runtime, true);
+      assert.equal(gitHubConnector.summary.local_export_read_performed, true);
+      assert.equal(gitHubConnector.summary.github_api_execution_performed, false);
+      assert.equal(gitHubConnector.summary.external_network_access_performed, false);
+      assert.equal(gitHubConnector.summary.connector_execution_performed, true);
+      assert.equal(gitHubConnector.summary.source_read_performed, true);
+      assert.equal(gitHubConnector.summary.credential_material_read, false);
+      assert.equal(gitHubConnector.summary.source_mutation_performed, false);
+      assert.equal(gitHubConnector.summary.resource_mutation_performed, false);
+      assert.equal(gitHubConnector.summary.issue_mutation_performed, false);
+      assert.equal(gitHubConnector.summary.pull_request_mutation_performed, false);
+      assert.equal(gitHubConnector.summary.repository_mutation_performed, false);
+      assert.equal(gitHubConnector.summary.branch_push_performed, false);
+      assert.equal(gitHubConnector.summary.merge_performed, false);
+      assert.equal(gitHubConnector.summary.release_performed, false);
+      assert.equal(gitHubConnector.summary.workflow_state_mutation_performed, false);
+      assert.equal(gitHubConnector.summary.output_delivery_performed, false);
+      assert.equal(gitHubConnector.summary.protected_action_executed, false);
+      assert.equal(gitHubConnector.summary.legal_advice_generated, false);
+      assert.equal(gitHubConnector.summary.client_facing_output_generated, false);
+      assert.equal(gitHubConnector.summary.human_review_required_count, gitHubConnector.summary.resource_candidate_count);
+      assert.equal(gitHubConnector.summary.workflow_input_human_review_required_count, gitHubConnector.summary.workflow_input_count);
+      assert.equal(gitHubConnector.summary.validation_error_count, 0);
+      assert.ok(gitHubConnector.github_repository_records.every((repository) => repository.connector_id === "connector.github.v2" && repository.source_id === "source.github.v2" && repository.repository_status === "resource_candidate_ready" && repository.github_resource_status === "ready" && repository.human_review_required));
+      assert.ok(gitHubConnector.github_issue_records.every((issue) => issue.resource_type === "github_issue" && issue.number > 0 && issue.issue_status === "resource_candidate_ready" && issue.github_resource_status === "ready" && issue.metadata_complete && issue.human_review_required));
+      assert.ok(gitHubConnector.github_pull_request_records.every((pullRequest) => pullRequest.resource_type === "github_pull_request" && pullRequest.number > 0 && pullRequest.pull_request_status === "resource_candidate_ready" && pullRequest.github_resource_status === "ready" && pullRequest.metadata_complete && pullRequest.human_review_required));
+      assert.ok(gitHubConnector.github_commit_records.every((commit) => commit.resource_type === "github_commit" && commit.sha && commit.commit_status === "resource_candidate_ready" && commit.github_resource_status === "ready" && commit.metadata_complete && commit.human_review_required));
+      assert.ok(gitHubConnector.github_review_records.every((review) => review.resource_type === "github_review" && review.parent_pull_request_resource_id && review.github_review_status === "resource_candidate_ready" && review.github_resource_status === "ready" && review.metadata_complete && review.human_review_required));
+      assert.ok(gitHubConnector.github_workflow_input_records.every((input) => input.workflow_input_status === "ready" && input.source_resource_id && input.review_status === "needs_review" && input.human_review_required));
+      assert.equal(gitHubConnector.cursor_state.cursor_kind, "repo_event_since_cursor");
+      assert.equal(gitHubConnector.cursor_state.raw_since_cursor_material_allowed, false);
+      assert.equal(gitHubConnector.auth_boundary.auth_mode, "app_installation_or_pat_readonly");
+      assert.equal(gitHubConnector.github_connector_boundary.github_api_execution_performed, false);
+      assert.match(await readFile(path.join(outDir, "github-connector", "summary.md"), "utf8"), /GitHub Connector/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -11206,6 +11280,7 @@ describe("matter harness", () => {
           onedrive_connector_boundary: path.join(outDir, "onedrive-connector-boundary", "onedrive-connector-boundary.json"),
           outlook_email_connector: path.join(outDir, "outlook-email-connector", "outlook-email-connector.json"),
           kakaotalk_import_boundary: path.join(outDir, "kakaotalk-import-boundary", "kakaotalk-import-boundary.json"),
+          github_connector: path.join(outDir, "github-connector", "github-connector.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11257,8 +11332,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 173);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 173);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 174);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 174);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -11419,6 +11494,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "onedrive_connector_boundary"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "outlook_email_connector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "kakaotalk_import_boundary"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "github_connector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -12275,6 +12351,10 @@ describe("matter harness", () => {
       assert.equal(kakaoTalkImportBoundaryCheckpoint?.acceptance_profile, "kakaotalk_import_boundary_gate");
       assert.equal(kakaoTalkImportBoundaryCheckpoint?.status, "passed");
       assert.equal(kakaoTalkImportBoundaryCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const gitHubConnectorCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-github-connector");
+      assert.equal(gitHubConnectorCheckpoint?.acceptance_profile, "github_connector_gate");
+      assert.equal(gitHubConnectorCheckpoint?.status, "passed");
+      assert.equal(gitHubConnectorCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -16716,6 +16796,57 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.kakaotalk_import_boundary_client_facing_output_generated, false);
       assert.equal(dashboard.summary.kakaotalk_import_boundary_human_review_required_count, kakaoTalkImportBoundary.summary.human_review_required_count);
       assert.equal(dashboard.summary.kakaotalk_import_boundary_validation_error_count, 0);
+      assert.equal(dashboard.summary.github_connector_status, "complete");
+      assert.equal(dashboard.summary.github_connector_connector_id, gitHubConnector.summary.connector_id);
+      assert.equal(dashboard.summary.github_connector_source_id, gitHubConnector.summary.source_id);
+      assert.equal(dashboard.summary.github_connector_source_kakaotalk_import_boundary_status, "complete");
+      assert.equal(dashboard.summary.github_connector_repository_count, gitHubConnector.summary.repository_count);
+      assert.equal(dashboard.summary.github_connector_issue_count, gitHubConnector.summary.issue_count);
+      assert.equal(dashboard.summary.github_connector_pull_request_count, gitHubConnector.summary.pull_request_count);
+      assert.equal(dashboard.summary.github_connector_commit_count, gitHubConnector.summary.commit_count);
+      assert.equal(dashboard.summary.github_connector_review_count, gitHubConnector.summary.review_count);
+      assert.equal(dashboard.summary.github_connector_workflow_input_count, gitHubConnector.summary.workflow_input_count);
+      assert.equal(dashboard.summary.github_connector_issue_resource_count, gitHubConnector.summary.issue_resource_count);
+      assert.equal(dashboard.summary.github_connector_pull_request_resource_count, gitHubConnector.summary.pull_request_resource_count);
+      assert.equal(dashboard.summary.github_connector_commit_resource_count, gitHubConnector.summary.commit_resource_count);
+      assert.equal(dashboard.summary.github_connector_review_resource_count, gitHubConnector.summary.review_resource_count);
+      assert.equal(dashboard.summary.github_connector_resource_candidate_count, gitHubConnector.summary.resource_candidate_count);
+      assert.equal(dashboard.summary.github_connector_metadata_complete_issue_count, gitHubConnector.summary.metadata_complete_issue_count);
+      assert.equal(dashboard.summary.github_connector_metadata_complete_pull_request_count, gitHubConnector.summary.metadata_complete_pull_request_count);
+      assert.equal(dashboard.summary.github_connector_metadata_complete_commit_count, gitHubConnector.summary.metadata_complete_commit_count);
+      assert.equal(dashboard.summary.github_connector_metadata_complete_review_count, gitHubConnector.summary.metadata_complete_review_count);
+      assert.equal(dashboard.summary.github_connector_review_parent_link_count, gitHubConnector.summary.review_parent_link_count);
+      assert.equal(dashboard.summary.github_connector_workflow_input_link_count, gitHubConnector.summary.workflow_input_link_count);
+      assert.equal(dashboard.summary.github_connector_cursor_status, "complete");
+      assert.equal(dashboard.summary.github_connector_cursor_resume_supported, true);
+      assert.equal(dashboard.summary.github_connector_raw_since_cursor_material_allowed, false);
+      assert.equal(dashboard.summary.github_connector_auth_boundary_status, "enforced");
+      assert.equal(dashboard.summary.github_connector_credential_ref_required, true);
+      assert.equal(dashboard.summary.github_connector_credential_reference_only, true);
+      assert.equal(dashboard.summary.github_connector_raw_secret_material_allowed, false);
+      assert.equal(dashboard.summary.github_connector_external_network_access_required_for_runtime, true);
+      assert.equal(dashboard.summary.github_connector_local_export_read_performed, true);
+      assert.equal(dashboard.summary.github_connector_github_api_execution_performed, false);
+      assert.equal(dashboard.summary.github_connector_external_network_access_performed, false);
+      assert.equal(dashboard.summary.github_connector_connector_execution_performed, true);
+      assert.equal(dashboard.summary.github_connector_source_read_performed, true);
+      assert.equal(dashboard.summary.github_connector_credential_material_read, false);
+      assert.equal(dashboard.summary.github_connector_source_mutation_performed, false);
+      assert.equal(dashboard.summary.github_connector_resource_mutation_performed, false);
+      assert.equal(dashboard.summary.github_connector_issue_mutation_performed, false);
+      assert.equal(dashboard.summary.github_connector_pull_request_mutation_performed, false);
+      assert.equal(dashboard.summary.github_connector_repository_mutation_performed, false);
+      assert.equal(dashboard.summary.github_connector_branch_push_performed, false);
+      assert.equal(dashboard.summary.github_connector_merge_performed, false);
+      assert.equal(dashboard.summary.github_connector_release_performed, false);
+      assert.equal(dashboard.summary.github_connector_workflow_state_mutation_performed, false);
+      assert.equal(dashboard.summary.github_connector_output_delivery_performed, false);
+      assert.equal(dashboard.summary.github_connector_protected_action_executed, false);
+      assert.equal(dashboard.summary.github_connector_legal_advice_generated, false);
+      assert.equal(dashboard.summary.github_connector_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.github_connector_human_review_required_count, gitHubConnector.summary.human_review_required_count);
+      assert.equal(dashboard.summary.github_connector_workflow_input_human_review_required_count, gitHubConnector.summary.workflow_input_human_review_required_count);
+      assert.equal(dashboard.summary.github_connector_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -19602,6 +19733,51 @@ describe("matter harness", () => {
       assert.equal(kakaoTalkImportBoundaryStage?.metrics.client_facing_output_generated, false);
       assert.equal(kakaoTalkImportBoundaryStage?.metrics.human_review_required_count, kakaoTalkImportBoundary.summary.human_review_required_count);
       assert.equal(kakaoTalkImportBoundaryStage?.metrics.validation_error_count, 0);
+      const gitHubConnectorStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "github_connector");
+      assert.equal(gitHubConnectorStage?.status, "passed");
+      assert.equal(gitHubConnectorStage?.metrics.github_connector_status, "complete");
+      assert.equal(gitHubConnectorStage?.metrics.connector_id, gitHubConnector.summary.connector_id);
+      assert.equal(gitHubConnectorStage?.metrics.source_id, gitHubConnector.summary.source_id);
+      assert.equal(gitHubConnectorStage?.metrics.source_kakaotalk_import_boundary_status, "complete");
+      assert.equal(gitHubConnectorStage?.metrics.repository_count, gitHubConnector.summary.repository_count);
+      assert.equal(gitHubConnectorStage?.metrics.issue_count, gitHubConnector.summary.issue_count);
+      assert.equal(gitHubConnectorStage?.metrics.pull_request_count, gitHubConnector.summary.pull_request_count);
+      assert.equal(gitHubConnectorStage?.metrics.commit_count, gitHubConnector.summary.commit_count);
+      assert.equal(gitHubConnectorStage?.metrics.review_count, gitHubConnector.summary.review_count);
+      assert.equal(gitHubConnectorStage?.metrics.workflow_input_count, gitHubConnector.summary.workflow_input_count);
+      assert.equal(gitHubConnectorStage?.metrics.resource_candidate_count, gitHubConnector.summary.resource_candidate_count);
+      assert.equal(gitHubConnectorStage?.metrics.review_parent_link_count, gitHubConnector.summary.review_parent_link_count);
+      assert.equal(gitHubConnectorStage?.metrics.workflow_input_link_count, gitHubConnector.summary.workflow_input_link_count);
+      assert.equal(gitHubConnectorStage?.metrics.cursor_status, "complete");
+      assert.equal(gitHubConnectorStage?.metrics.cursor_resume_supported, true);
+      assert.equal(gitHubConnectorStage?.metrics.raw_since_cursor_material_allowed, false);
+      assert.equal(gitHubConnectorStage?.metrics.auth_boundary_status, "enforced");
+      assert.equal(gitHubConnectorStage?.metrics.credential_ref_required, true);
+      assert.equal(gitHubConnectorStage?.metrics.credential_reference_only, true);
+      assert.equal(gitHubConnectorStage?.metrics.raw_secret_material_allowed, false);
+      assert.equal(gitHubConnectorStage?.metrics.external_network_access_required_for_runtime, true);
+      assert.equal(gitHubConnectorStage?.metrics.local_export_read_performed, true);
+      assert.equal(gitHubConnectorStage?.metrics.github_api_execution_performed, false);
+      assert.equal(gitHubConnectorStage?.metrics.external_network_access_performed, false);
+      assert.equal(gitHubConnectorStage?.metrics.connector_execution_performed, true);
+      assert.equal(gitHubConnectorStage?.metrics.source_read_performed, true);
+      assert.equal(gitHubConnectorStage?.metrics.credential_material_read, false);
+      assert.equal(gitHubConnectorStage?.metrics.source_mutation_performed, false);
+      assert.equal(gitHubConnectorStage?.metrics.resource_mutation_performed, false);
+      assert.equal(gitHubConnectorStage?.metrics.issue_mutation_performed, false);
+      assert.equal(gitHubConnectorStage?.metrics.pull_request_mutation_performed, false);
+      assert.equal(gitHubConnectorStage?.metrics.repository_mutation_performed, false);
+      assert.equal(gitHubConnectorStage?.metrics.branch_push_performed, false);
+      assert.equal(gitHubConnectorStage?.metrics.merge_performed, false);
+      assert.equal(gitHubConnectorStage?.metrics.release_performed, false);
+      assert.equal(gitHubConnectorStage?.metrics.workflow_state_mutation_performed, false);
+      assert.equal(gitHubConnectorStage?.metrics.output_delivery_performed, false);
+      assert.equal(gitHubConnectorStage?.metrics.protected_action_executed, false);
+      assert.equal(gitHubConnectorStage?.metrics.legal_advice_generated, false);
+      assert.equal(gitHubConnectorStage?.metrics.client_facing_output_generated, false);
+      assert.equal(gitHubConnectorStage?.metrics.human_review_required_count, gitHubConnector.summary.human_review_required_count);
+      assert.equal(gitHubConnectorStage?.metrics.workflow_input_human_review_required_count, gitHubConnector.summary.workflow_input_human_review_required_count);
+      assert.equal(gitHubConnectorStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -21914,6 +22090,46 @@ describe("matter harness", () => {
       const kakaoTalkImportValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/kakaotalk-import-validations?status=passed", apiOptions)).body);
       assert.equal(kakaoTalkImportValidationsResponse.collection, "kakaotalk_import_validations");
       assert.equal(kakaoTalkImportValidationsResponse.count, kakaoTalkImportBoundary.summary.validation_item_count);
+
+      const gitHubConnectorResponse = JSON.parse((await buildReviewApiResponse("/api/github-connector?github_connector_status=complete", apiOptions)).body);
+      assert.equal(gitHubConnectorResponse.collection, "github_connector");
+      assert.equal(gitHubConnectorResponse.count, 1);
+
+      const gitHubRepositoriesResponse = JSON.parse((await buildReviewApiResponse("/api/github-repositories?repository_status=resource_candidate_ready&github_resource_status=ready&review_status=needs_review", apiOptions)).body);
+      assert.equal(gitHubRepositoriesResponse.collection, "github_repositories");
+      assert.equal(gitHubRepositoriesResponse.count, gitHubConnector.summary.repository_count);
+
+      const gitHubIssuesResponse = JSON.parse((await buildReviewApiResponse("/api/github-issues?github_issue_status=resource_candidate_ready&github_resource_status=ready&review_status=needs_review", apiOptions)).body);
+      assert.equal(gitHubIssuesResponse.collection, "github_issues");
+      assert.equal(gitHubIssuesResponse.count, gitHubConnector.summary.issue_count);
+
+      const gitHubPullRequestsResponse = JSON.parse((await buildReviewApiResponse("/api/github-pull-requests?github_pull_request_status=resource_candidate_ready&github_resource_status=ready&review_status=needs_review", apiOptions)).body);
+      assert.equal(gitHubPullRequestsResponse.collection, "github_pull_requests");
+      assert.equal(gitHubPullRequestsResponse.count, gitHubConnector.summary.pull_request_count);
+
+      const gitHubCommitsResponse = JSON.parse((await buildReviewApiResponse("/api/github-commits?github_commit_status=resource_candidate_ready&github_resource_status=ready&review_status=needs_review", apiOptions)).body);
+      assert.equal(gitHubCommitsResponse.collection, "github_commits");
+      assert.equal(gitHubCommitsResponse.count, gitHubConnector.summary.commit_count);
+
+      const gitHubReviewsResponse = JSON.parse((await buildReviewApiResponse("/api/github-reviews?github_review_status=resource_candidate_ready&github_resource_status=ready&review_status=needs_review", apiOptions)).body);
+      assert.equal(gitHubReviewsResponse.collection, "github_reviews");
+      assert.equal(gitHubReviewsResponse.count, gitHubConnector.summary.review_count);
+
+      const gitHubWorkflowInputsResponse = JSON.parse((await buildReviewApiResponse("/api/github-workflow-inputs?github_workflow_input_status=ready&review_status=needs_review", apiOptions)).body);
+      assert.equal(gitHubWorkflowInputsResponse.collection, "github_workflow_inputs");
+      assert.equal(gitHubWorkflowInputsResponse.count, gitHubConnector.summary.workflow_input_count);
+
+      const gitHubCursorResponse = JSON.parse((await buildReviewApiResponse("/api/github-cursor?cursor_status=complete", apiOptions)).body);
+      assert.equal(gitHubCursorResponse.collection, "github_cursor");
+      assert.equal(gitHubCursorResponse.count, 1);
+
+      const gitHubAuthBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/github-auth-boundary?auth_boundary_status=enforced&credential_reference_only=true", apiOptions)).body);
+      assert.equal(gitHubAuthBoundaryResponse.collection, "github_auth_boundary");
+      assert.equal(gitHubAuthBoundaryResponse.count, 1);
+
+      const gitHubConnectorValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/github-connector-validations?status=passed", apiOptions)).body);
+      assert.equal(gitHubConnectorValidationsResponse.collection, "github_connector_validations");
+      assert.equal(gitHubConnectorValidationsResponse.count, gitHubConnector.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

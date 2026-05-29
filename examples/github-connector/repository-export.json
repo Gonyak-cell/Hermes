@@ -1,0 +1,100 @@
+{
+  "schema_version": "github-connector-export.v1",
+  "tenant_id": "tenant.hermes.github.demo",
+  "matter_id": "matter.github.demo",
+  "policy_snapshot_id": "policy.github_connector.default.v1",
+  "owner": "hermes-demo",
+  "repo": "matter-ops",
+  "repository_id": "100200300",
+  "repository_node_id": "R_kgDOHermesMatterOps",
+  "default_branch": "main",
+  "exported_at": "2026-05-24T08:00:00.000Z",
+  "issues": [
+    {
+      "node_id": "I_kgDOHermesMatterOps001",
+      "number": 41,
+      "title": "Normalize diligence issue owner fields",
+      "body": "Owner metadata needs a deterministic fallback before evidence routing.",
+      "state": "open",
+      "author_login": "partner-kim",
+      "labels": ["matter-ops", "evidence"],
+      "assignees": ["associate-park"],
+      "milestone": "P272-demo",
+      "created_at": "2026-05-20T09:10:00.000Z",
+      "updated_at": "2026-05-24T07:40:00.000Z",
+      "html_url": "https://github.example/hermes-demo/matter-ops/issues/41"
+    },
+    {
+      "node_id": "I_kgDOHermesMatterOps002",
+      "number": 42,
+      "title": "Add human review marker to PR summaries",
+      "body": "PR summary output must remain attorney-reviewable and non-client-facing.",
+      "state": "open",
+      "author_login": "senior-lee",
+      "labels": ["review-gate"],
+      "assignees": ["senior-lee"],
+      "milestone": "P272-demo",
+      "created_at": "2026-05-21T10:12:00.000Z",
+      "updated_at": "2026-05-24T07:50:00.000Z",
+      "html_url": "https://github.example/hermes-demo/matter-ops/issues/42"
+    }
+  ],
+  "pull_requests": [
+    {
+      "node_id": "PR_kgDOHermesMatterOps010",
+      "number": 10,
+      "title": "Wire deterministic issue projection",
+      "body": "Maps exported issue records into review-gated workflow input candidates.",
+      "state": "OPEN",
+      "author_login": "associate-park",
+      "base_ref": "main",
+      "head_ref": "feature/issue-projection",
+      "head_sha": "2efc8c1b8b4b0c0ffee00112233445566778899a",
+      "merge_commit_sha": null,
+      "changed_files": 4,
+      "additions": 128,
+      "deletions": 12,
+      "review_decision": "REVIEW_REQUIRED",
+      "created_at": "2026-05-22T11:00:00.000Z",
+      "updated_at": "2026-05-24T07:55:00.000Z",
+      "html_url": "https://github.example/hermes-demo/matter-ops/pull/10"
+    }
+  ],
+  "commits": [
+    {
+      "node_id": "C_kwDOHermesMatterOps001",
+      "sha": "2efc8c1b8b4b0c0ffee00112233445566778899a",
+      "message": "Add deterministic issue projection rows",
+      "author_login": "associate-park",
+      "author_name": "Associate Park",
+      "committed_at": "2026-05-24T07:20:00.000Z",
+      "parent_shas": ["98a44b771a000000000000000000000000000000"],
+      "changed_files": 3,
+      "additions": 96,
+      "deletions": 8
+    },
+    {
+      "node_id": "C_kwDOHermesMatterOps002",
+      "sha": "7b91f00d00001111222233334444555566667777",
+      "message": "Add workflow input assertions for PR review rows",
+      "author_login": "senior-lee",
+      "author_name": "Senior Lee",
+      "committed_at": "2026-05-24T07:35:00.000Z",
+      "parent_shas": ["2efc8c1b8b4b0c0ffee00112233445566778899a"],
+      "changed_files": 2,
+      "additions": 48,
+      "deletions": 4
+    }
+  ],
+  "reviews": [
+    {
+      "node_id": "PRR_kgDOHermesMatterOpsReview001",
+      "pull_request_number": 10,
+      "reviewer_login": "partner-kim",
+      "state": "COMMENTED",
+      "body": "Please keep this as an internal workflow input until human review clears it.",
+      "submitted_at": "2026-05-24T07:58:00.000Z",
+      "commit_sha": "7b91f00d00001111222233334444555566667777"
+    }
+  ]
+}

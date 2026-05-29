@@ -2376,6 +2376,46 @@ try {
   assert.equal(litigationBriefDraftValidations.collection, "litigation_brief_draft_validations");
   assert.ok(litigationBriefDraftValidations.count <= 5);
 
+  const meetingMinutesWorkflowArtifacts = await fetchJson(`${url}/api/meeting-minutes-workflow-artifacts?meeting_minutes_workflow_status=complete&limit=1`);
+  assert.equal(meetingMinutesWorkflowArtifacts.collection, "meeting_minutes_workflow_artifacts");
+  assert.ok(meetingMinutesWorkflowArtifacts.count <= 1);
+
+  const meetingMinutesRules = await fetchJson(`${url}/api/meeting-minutes-rules?meeting_minutes_rule_type=agenda_extraction&limit=5`);
+  assert.equal(meetingMinutesRules.collection, "meeting_minutes_rules");
+  assert.ok(meetingMinutesRules.count <= 5);
+
+  const meetingMinutesSources = await fetchJson(`${url}/api/meeting-minutes-sources?meeting_minutes_source_status=source_loaded_pending_attorney_review&limit=5`);
+  assert.equal(meetingMinutesSources.collection, "meeting_minutes_sources");
+  assert.ok(meetingMinutesSources.count <= 5);
+
+  const meetingMinutesAgendaItems = await fetchJson(`${url}/api/meeting-minutes-agenda-items?agenda_status=draft_pending_attorney_review&limit=5`);
+  assert.equal(meetingMinutesAgendaItems.collection, "meeting_minutes_agenda_items");
+  assert.ok(meetingMinutesAgendaItems.count <= 5);
+
+  const meetingMinutesDecisions = await fetchJson(`${url}/api/meeting-minutes-decisions?decision_status=draft_pending_attorney_review&limit=5`);
+  assert.equal(meetingMinutesDecisions.collection, "meeting_minutes_decisions");
+  assert.ok(meetingMinutesDecisions.count <= 5);
+
+  const meetingMinutesActionItems = await fetchJson(`${url}/api/meeting-minutes-action-items?action_status=draft_pending_attorney_review&evidence_required=true&limit=10`);
+  assert.equal(meetingMinutesActionItems.collection, "meeting_minutes_action_items");
+  assert.ok(meetingMinutesActionItems.count <= 10);
+
+  const meetingMinutesEvidenceLinks = await fetchJson(`${url}/api/meeting-minutes-evidence-links?evidence_link_status=linked_pending_attorney_review&limit=10`);
+  assert.equal(meetingMinutesEvidenceLinks.collection, "meeting_minutes_evidence_links");
+  assert.ok(meetingMinutesEvidenceLinks.count <= 10);
+
+  const meetingMinutesMatterSummaries = await fetchJson(`${url}/api/meeting-minutes-matter-summaries?meeting_minutes_matter_status=draft_pending_attorney_review&limit=5`);
+  assert.equal(meetingMinutesMatterSummaries.collection, "meeting_minutes_matter_summaries");
+  assert.ok(meetingMinutesMatterSummaries.count <= 5);
+
+  const meetingMinutesWorkflowBoundary = await fetchJson(`${url}/api/meeting-minutes-workflow-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(meetingMinutesWorkflowBoundary.collection, "meeting_minutes_workflow_boundary");
+  assert.ok(meetingMinutesWorkflowBoundary.count <= 1);
+
+  const meetingMinutesWorkflowValidations = await fetchJson(`${url}/api/meeting-minutes-workflow-validations?status=passed&limit=5`);
+  assert.equal(meetingMinutesWorkflowValidations.collection, "meeting_minutes_workflow_validations");
+  assert.ok(meetingMinutesWorkflowValidations.count <= 5);
+
   const repoProfileDetectors = await fetchJson(`${url}/api/repo-profile-detectors?repo_profile_detector_status=complete&limit=1`);
   assert.equal(repoProfileDetectors.collection, "repo_profile_detectors");
   assert.ok(repoProfileDetectors.count <= 1);

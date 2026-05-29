@@ -5198,6 +5198,76 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("litigation_brief_draft_validations", briefResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/meeting-minutes-workflow-artifacts") {
+    const minutesResult = await readDashboardSourceArtifact(dashboard, "meeting_minutes_workflow");
+    if (!minutesResult.available) {
+      return jsonResponse(503, buildError("meeting_minutes_workflow_unavailable", minutesResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("meeting_minutes_workflow_artifacts", [minutesResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/meeting-minutes-rules") {
+    const minutesResult = await readDashboardSourceArtifact(dashboard, "meeting_minutes_workflow");
+    if (!minutesResult.available) {
+      return jsonResponse(503, buildError("meeting_minutes_workflow_unavailable", minutesResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("meeting_minutes_rules", minutesResult.artifact.meeting_minutes_rules ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/meeting-minutes-sources") {
+    const minutesResult = await readDashboardSourceArtifact(dashboard, "meeting_minutes_workflow");
+    if (!minutesResult.available) {
+      return jsonResponse(503, buildError("meeting_minutes_workflow_unavailable", minutesResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("meeting_minutes_sources", minutesResult.artifact.meeting_minutes_sources ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/meeting-minutes-agenda-items") {
+    const minutesResult = await readDashboardSourceArtifact(dashboard, "meeting_minutes_workflow");
+    if (!minutesResult.available) {
+      return jsonResponse(503, buildError("meeting_minutes_workflow_unavailable", minutesResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("meeting_minutes_agenda_items", minutesResult.artifact.meeting_minutes_agenda_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/meeting-minutes-decisions") {
+    const minutesResult = await readDashboardSourceArtifact(dashboard, "meeting_minutes_workflow");
+    if (!minutesResult.available) {
+      return jsonResponse(503, buildError("meeting_minutes_workflow_unavailable", minutesResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("meeting_minutes_decisions", minutesResult.artifact.meeting_minutes_decisions ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/meeting-minutes-action-items") {
+    const minutesResult = await readDashboardSourceArtifact(dashboard, "meeting_minutes_workflow");
+    if (!minutesResult.available) {
+      return jsonResponse(503, buildError("meeting_minutes_workflow_unavailable", minutesResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("meeting_minutes_action_items", minutesResult.artifact.meeting_minutes_action_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/meeting-minutes-evidence-links") {
+    const minutesResult = await readDashboardSourceArtifact(dashboard, "meeting_minutes_workflow");
+    if (!minutesResult.available) {
+      return jsonResponse(503, buildError("meeting_minutes_workflow_unavailable", minutesResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("meeting_minutes_evidence_links", minutesResult.artifact.meeting_minutes_evidence_links ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/meeting-minutes-matter-summaries") {
+    const minutesResult = await readDashboardSourceArtifact(dashboard, "meeting_minutes_workflow");
+    if (!minutesResult.available) {
+      return jsonResponse(503, buildError("meeting_minutes_workflow_unavailable", minutesResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("meeting_minutes_matter_summaries", minutesResult.artifact.meeting_minutes_matter_summaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/meeting-minutes-workflow-boundary") {
+    const minutesResult = await readDashboardSourceArtifact(dashboard, "meeting_minutes_workflow");
+    if (!minutesResult.available) {
+      return jsonResponse(503, buildError("meeting_minutes_workflow_unavailable", minutesResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("meeting_minutes_workflow_boundary", [minutesResult.artifact.meeting_minutes_workflow_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/meeting-minutes-workflow-validations") {
+    const minutesResult = await readDashboardSourceArtifact(dashboard, "meeting_minutes_workflow");
+    if (!minutesResult.available) {
+      return jsonResponse(503, buildError("meeting_minutes_workflow_unavailable", minutesResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("meeting_minutes_workflow_validations", minutesResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/repo-profile-detectors") {
     const repoProfileDetectorResult = await readDashboardSourceArtifact(dashboard, "repo_profile_detector");
     if (!repoProfileDetectorResult.available) {
@@ -10418,6 +10488,16 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/litigation-brief-matter-summaries", "Litigation brief matter summary rows"),
       route("GET", "/api/litigation-brief-draft-boundary", "Litigation brief draft Desktop boundary"),
       route("GET", "/api/litigation-brief-draft-validations", "Litigation brief draft validation rows"),
+      route("GET", "/api/meeting-minutes-workflow-artifacts", "Meeting minutes workflow artifact"),
+      route("GET", "/api/meeting-minutes-rules", "Meeting minutes workflow rule rows"),
+      route("GET", "/api/meeting-minutes-sources", "Meeting minutes source rows"),
+      route("GET", "/api/meeting-minutes-agenda-items", "Meeting minutes agenda rows"),
+      route("GET", "/api/meeting-minutes-decisions", "Meeting minutes decision rows"),
+      route("GET", "/api/meeting-minutes-action-items", "Meeting minutes action item rows"),
+      route("GET", "/api/meeting-minutes-evidence-links", "Meeting minutes evidence link rows"),
+      route("GET", "/api/meeting-minutes-matter-summaries", "Meeting minutes matter summary rows"),
+      route("GET", "/api/meeting-minutes-workflow-boundary", "Meeting minutes workflow Desktop boundary"),
+      route("GET", "/api/meeting-minutes-workflow-validations", "Meeting minutes workflow validation rows"),
       route("GET", "/api/repo-profile-detectors", "Repo profile detector artifact"),
       route("GET", "/api/repo-profiles", "Detected repository profile rows"),
       route("GET", "/api/repo-profile-languages", "Detected repository language profiles"),
@@ -11374,6 +11454,27 @@ function filterItems(items, searchParams) {
     "litigation_brief_legal_basis_placeholder_id",
     "litigation_brief_citation_gate_result_id",
     "claim_id",
+    "meeting_minutes_workflow_status",
+    "meeting_minutes_matter_status",
+    "meeting_minutes_rule_type",
+    "meeting_minutes_source_status",
+    "source_kind",
+    "source_type",
+    "agenda_status",
+    "agenda_type",
+    "decision_status",
+    "decision_type",
+    "action_status",
+    "action_owner",
+    "evidence_required",
+    "evidence_source_kind",
+    "evidence_link_status",
+    "deterministic_meeting_minutes_generation_performed",
+    "meeting_minutes_source_id",
+    "meeting_minutes_agenda_item_id",
+    "meeting_minutes_decision_id",
+    "meeting_minutes_action_item_id",
+    "meeting_minutes_evidence_link_id",
     "repo_profile_detector_status",
     "repo_profile_status",
     "language_id",
@@ -12989,6 +13090,27 @@ function readFilterValue(item, key) {
   if (key === "litigation_brief_legal_basis_placeholder_id") return item.litigation_brief_legal_basis_placeholder_id;
   if (key === "litigation_brief_citation_gate_result_id") return item.litigation_brief_citation_gate_result_id;
   if (key === "claim_id") return item.claim_id;
+  if (key === "meeting_minutes_workflow_status") return item.summary?.meeting_minutes_workflow_status ?? item.meeting_minutes_workflow_status;
+  if (key === "meeting_minutes_matter_status") return item.meeting_minutes_matter_status;
+  if (key === "meeting_minutes_rule_type") return item.meeting_minutes_rule_type;
+  if (key === "meeting_minutes_source_status") return item.meeting_minutes_source_status;
+  if (key === "source_kind") return item.source_kind;
+  if (key === "source_type") return item.source_type;
+  if (key === "agenda_status") return item.agenda_status;
+  if (key === "agenda_type") return item.agenda_type;
+  if (key === "decision_status") return item.decision_status;
+  if (key === "decision_type") return item.decision_type;
+  if (key === "action_status") return item.action_status;
+  if (key === "action_owner") return item.action_owner;
+  if (key === "evidence_required") return String(Boolean(item.evidence_required));
+  if (key === "evidence_source_kind") return item.evidence_source_kind;
+  if (key === "evidence_link_status") return item.evidence_link_status;
+  if (key === "deterministic_meeting_minutes_generation_performed") return String(Boolean(item.deterministic_meeting_minutes_generation_performed));
+  if (key === "meeting_minutes_source_id") return item.meeting_minutes_source_id;
+  if (key === "meeting_minutes_agenda_item_id") return item.meeting_minutes_agenda_item_id;
+  if (key === "meeting_minutes_decision_id") return item.meeting_minutes_decision_id;
+  if (key === "meeting_minutes_action_item_id") return item.meeting_minutes_action_item_id;
+  if (key === "meeting_minutes_evidence_link_id") return item.meeting_minutes_evidence_link_id;
   if (key === "repo_profile_detector_status") return item.summary?.repo_profile_detector_status ?? item.repo_profile_detector_status;
   if (key === "repo_profile_status") return item.summary?.repo_profile_status ?? item.profile_status ?? item.repo_profile_status;
   if (key === "language_id") return item.language_id ?? item.primary_language_id;

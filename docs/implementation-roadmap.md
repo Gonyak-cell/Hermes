@@ -6873,6 +6873,25 @@ Completion criteria:
 - Golden fixture count increased to 149 and `litigation_brief_draft` is included as a regression fixture.
 - `npm run law-firm:litigation-brief-draft -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
 
+## Phase 248 - Meeting Minutes Workflow
+
+Goal: P248 Law Firm Domain Pack adds a deterministic meeting-minutes workflow that turns local meeting notes, matter meeting communications, and Matter Timeline context into attorney-reviewable agenda rows, operational decision rows, draft action items, evidence links, and matter summaries. The generated rows remain internal work product only and do not write task state, provide legal advice, assert legal conclusions, or generate client-facing output.
+
+Implementation:
+- Added `src/meeting-minutes-workflow.mjs`, `scripts/meeting-minutes-workflow.mjs`, `schemas/meeting-minutes-workflow.schema.json`, and `docs/meeting-minutes-workflow.md`.
+- Added `law-firm:meeting-minutes` npm script.
+- The artifact emits `meeting_minutes_rules`, `meeting_minutes_sources`, `meeting_minutes_agenda_items`, `meeting_minutes_decisions`, `meeting_minutes_action_items`, `meeting_minutes_evidence_links`, and `meeting_minutes_matter_summaries`.
+- Review Dashboard stage/summary, Review API route/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests were wired to the new artifact.
+
+Completion criteria:
+- 6 rules, 2 source rows, 2 agenda rows, 2 operational decision rows, 7 draft action items, 7 evidence links, and 1 matter summary are generated from the Project Alpha meeting baseline.
+- Every agenda has a decision, action item, and evidence link.
+- Every draft action item has an evidence link and remains a task candidate only; no task state write is performed.
+- Every source, agenda, decision, action item, evidence link, and matter summary remains `matter_id`-scoped, source-referenced, attorney/human-review gated, and not client-facing-ready.
+- Legal advice, legal conclusions, client-facing output, matter data write, task state write, workflow transition, runtime execution, delivery execution, protected action, Desktop mutation, and Desktop source-of-truth are all 0/false.
+- Golden fixture count increased to 150 and `meeting_minutes_workflow` is included as a regression fixture.
+- `npm run law-firm:meeting-minutes -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -6881,9 +6900,9 @@ Completion criteria:
 
 운영 원칙:
 
-- Current actual completion baseline is Phase 247.
+- Current actual completion baseline is Phase 248.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- Remaining planned slots are P248-P312, 65 total.
+- Remaining planned slots are P249-P312, 64 total.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - P217 이후 personal-dev 작업은 Mac Phase 216 결과를 Windows 작업공간에서 계속 이어가되, Phase 217 본작업보다 Windows 기준선 안정화 게이트를 선행 조건으로 둔 판단을 기준으로 운영한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.

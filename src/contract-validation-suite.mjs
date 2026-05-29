@@ -129,6 +129,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "law-firm:rfi-generator",
   "law-firm:report-draft",
   "law-firm:litigation-brief-draft",
+  "law-firm:meeting-minutes",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

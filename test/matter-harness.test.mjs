@@ -47,6 +47,7 @@ import { runLddIssueDetection } from "../src/ldd-issue-detection.mjs";
 import { runLddRfiGenerator } from "../src/ldd-rfi-generator.mjs";
 import { runLddReportDraft } from "../src/ldd-report-draft.mjs";
 import { runLitigationBriefDraft } from "../src/litigation-brief-draft.mjs";
+import { runMeetingMinutesWorkflow } from "../src/meeting-minutes-workflow.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1889,6 +1890,7 @@ describe("matter harness", () => {
         lddRfiGeneratorPath: path.join(outDir, "ldd-rfi-generator", "ldd-rfi-generator.json"),
         lddReportDraftPath: path.join(outDir, "ldd-report-draft", "ldd-report-draft.json"),
         litigationBriefDraftPath: path.join(outDir, "litigation-brief-draft", "litigation-brief-draft.json"),
+        meetingMinutesWorkflowPath: path.join(outDir, "meeting-minutes-workflow", "meeting-minutes-workflow.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -9476,6 +9478,57 @@ describe("matter harness", () => {
       assert.ok(litigationBriefDraft.litigation_brief_citation_gate_results.every((gate) => gate.citation_gate_passed && gate.source_bound && gate.currentness_check_status === "currentness_review_required" && gate.legal_authority_status === "review_required_not_authoritative" && gate.legal_authority_finalized === false && gate.client_facing_ready === false));
       assert.match(await readFile(path.join(outDir, "litigation-brief-draft", "summary.md"), "utf8"), /Litigation Brief Draft/);
 
+      const meetingMinutesWorkflow = await runMeetingMinutesWorkflow({
+        matterPath: "examples/project-alpha-matter.json",
+        meetingNotePath: "examples/core/sample-board-minutes.md",
+        matterTimelinePath: path.join(outDir, "matter-timeline", "matter-timeline.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "meeting-minutes-workflow"),
+        runAt: "2026-05-23T07:00:07.000Z",
+      });
+      const meetingMinutesWorkflowSchema = JSON.parse(await readFile("schemas/meeting-minutes-workflow.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(meetingMinutesWorkflow, meetingMinutesWorkflowSchema, {}, "meeting_minutes_workflow"), []);
+      assert.equal(meetingMinutesWorkflow.summary.meeting_minutes_workflow_status, "complete");
+      assert.equal(meetingMinutesWorkflow.summary.source_matter_status, "complete");
+      assert.equal(meetingMinutesWorkflow.summary.source_matter_id, "MNA-2026-ALPHA");
+      assert.equal(meetingMinutesWorkflow.summary.source_matter_timeline_status, "complete");
+      assert.equal(meetingMinutesWorkflow.summary.source_matter_timeline_phase_status, "complete");
+      assert.equal(meetingMinutesWorkflow.summary.source_meeting_note_status, "complete");
+      assert.equal(meetingMinutesWorkflow.summary.source_meeting_communication_count, 1);
+      assert.equal(meetingMinutesWorkflow.summary.meeting_minutes_rule_count, 6);
+      assert.equal(meetingMinutesWorkflow.summary.meeting_minutes_source_count, 2);
+      assert.equal(meetingMinutesWorkflow.summary.agenda_item_count, 2);
+      assert.equal(meetingMinutesWorkflow.summary.decision_count, meetingMinutesWorkflow.summary.agenda_item_count);
+      assert.equal(meetingMinutesWorkflow.summary.action_item_count, 7);
+      assert.equal(meetingMinutesWorkflow.summary.evidence_link_count, meetingMinutesWorkflow.summary.action_item_count);
+      assert.equal(meetingMinutesWorkflow.summary.action_item_with_evidence_link_count, meetingMinutesWorkflow.summary.action_item_count);
+      assert.equal(meetingMinutesWorkflow.summary.agenda_with_decision_count, meetingMinutesWorkflow.summary.agenda_item_count);
+      assert.equal(meetingMinutesWorkflow.summary.agenda_with_action_item_count, meetingMinutesWorkflow.summary.agenda_item_count);
+      assert.equal(meetingMinutesWorkflow.summary.decision_with_action_item_count, meetingMinutesWorkflow.summary.decision_count);
+      assert.equal(meetingMinutesWorkflow.summary.client_facing_ready_count, 0);
+      assert.equal(meetingMinutesWorkflow.summary.legal_conclusion_asserted_count, 0);
+      assert.equal(meetingMinutesWorkflow.summary.legal_advice_provided, false);
+      assert.equal(meetingMinutesWorkflow.summary.client_facing_output_generated, false);
+      assert.equal(meetingMinutesWorkflow.summary.desktop_boundary_status, "enforced");
+      assert.equal(meetingMinutesWorkflow.summary.desktop_read_only, true);
+      assert.equal(meetingMinutesWorkflow.summary.desktop_mutation_allowed, false);
+      assert.equal(meetingMinutesWorkflow.summary.desktop_source_of_truth, false);
+      assert.equal(meetingMinutesWorkflow.summary.matter_data_write_allowed, false);
+      assert.equal(meetingMinutesWorkflow.summary.task_state_write_allowed, false);
+      assert.equal(meetingMinutesWorkflow.summary.workflow_transition_allowed, false);
+      assert.equal(meetingMinutesWorkflow.summary.runtime_execution_allowed, false);
+      assert.equal(meetingMinutesWorkflow.summary.delivery_execution_allowed, false);
+      assert.equal(meetingMinutesWorkflow.summary.protected_action_allowed, false);
+      assert.equal(meetingMinutesWorkflow.summary.client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(meetingMinutesWorkflow.summary.validation_error_count, 0);
+      assert.ok(meetingMinutesWorkflow.meeting_minutes_sources.every((source) => source.source_ref_count > 0 && source.attorney_review_required && source.client_facing_ready === false));
+      assert.ok(meetingMinutesWorkflow.meeting_minutes_agenda_items.every((agenda) => agenda.decision_count > 0 && agenda.action_item_count > 0 && agenda.evidence_link_count > 0 && agenda.client_facing_ready === false));
+      assert.ok(meetingMinutesWorkflow.meeting_minutes_decisions.every((decision) => decision.action_item_count > 0 && decision.evidence_link_count > 0 && decision.legal_conclusion_asserted === false && decision.legal_advice_provided === false && decision.client_facing_ready === false));
+      assert.ok(meetingMinutesWorkflow.meeting_minutes_action_items.every((action) => action.evidence_required && action.evidence_link_count > 0 && action.task_state_write_allowed === false && action.workflow_transition_allowed === false && action.client_facing_ready === false));
+      assert.ok(meetingMinutesWorkflow.meeting_minutes_evidence_links.every((link) => link.source_ref_count > 0 && link.attorney_review_required && link.client_facing_ready === false));
+      assert.match(await readFile(path.join(outDir, "meeting-minutes-workflow", "summary.md"), "utf8"), /Meeting Minutes Workflow/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -9647,6 +9700,7 @@ describe("matter harness", () => {
           ldd_rfi_generator: path.join(outDir, "ldd-rfi-generator", "ldd-rfi-generator.json"),
           ldd_report_draft: path.join(outDir, "ldd-report-draft", "ldd-report-draft.json"),
           litigation_brief_draft: path.join(outDir, "litigation-brief-draft", "litigation-brief-draft.json"),
+          meeting_minutes_workflow: path.join(outDir, "meeting-minutes-workflow", "meeting-minutes-workflow.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -9698,8 +9752,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 149);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 149);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 150);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 150);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -9836,6 +9890,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "ldd_rfi_generator"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "ldd_report_draft"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "litigation_brief_draft"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "meeting_minutes_workflow"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -10577,6 +10632,10 @@ describe("matter harness", () => {
       assert.equal(litigationBriefDraftCheckpoint?.acceptance_profile, "litigation_brief_draft_gate");
       assert.equal(litigationBriefDraftCheckpoint?.status, "passed");
       assert.equal(litigationBriefDraftCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const meetingMinutesWorkflowCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-meeting-minutes-workflow");
+      assert.equal(meetingMinutesWorkflowCheckpoint?.acceptance_profile, "meeting_minutes_workflow_gate");
+      assert.equal(meetingMinutesWorkflowCheckpoint?.status, "passed");
+      assert.equal(meetingMinutesWorkflowCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -14063,6 +14122,38 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.litigation_brief_draft_protected_action_allowed, false);
       assert.equal(dashboard.summary.litigation_brief_draft_failed_checkpoint_count, 0);
       assert.equal(dashboard.summary.litigation_brief_draft_validation_error_count, 0);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_status, "complete");
+      assert.equal(dashboard.summary.meeting_minutes_workflow_source_matter_status, "complete");
+      assert.equal(dashboard.summary.meeting_minutes_workflow_source_matter_id, "MNA-2026-ALPHA");
+      assert.equal(dashboard.summary.meeting_minutes_workflow_source_matter_timeline_status, "complete");
+      assert.equal(dashboard.summary.meeting_minutes_workflow_source_matter_timeline_phase_status, "complete");
+      assert.equal(dashboard.summary.meeting_minutes_workflow_source_meeting_note_status, "complete");
+      assert.equal(dashboard.summary.meeting_minutes_workflow_source_meeting_communication_count, meetingMinutesWorkflow.summary.source_meeting_communication_count);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_rule_count, meetingMinutesWorkflow.summary.meeting_minutes_rule_count);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_source_count, meetingMinutesWorkflow.summary.meeting_minutes_source_count);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_agenda_item_count, meetingMinutesWorkflow.summary.agenda_item_count);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_decision_count, meetingMinutesWorkflow.summary.decision_count);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_action_item_count, meetingMinutesWorkflow.summary.action_item_count);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_evidence_link_count, meetingMinutesWorkflow.summary.evidence_link_count);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_action_item_with_evidence_link_count, meetingMinutesWorkflow.summary.action_item_with_evidence_link_count);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_agenda_with_decision_count, meetingMinutesWorkflow.summary.agenda_with_decision_count);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_agenda_with_action_item_count, meetingMinutesWorkflow.summary.agenda_with_action_item_count);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_decision_with_action_item_count, meetingMinutesWorkflow.summary.decision_with_action_item_count);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_legal_advice_provided, false);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_legal_conclusion_asserted_count, 0);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_desktop_boundary_status, "enforced");
+      assert.equal(dashboard.summary.meeting_minutes_workflow_desktop_read_only, true);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_workflow_transition_allowed, false);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_protected_action_allowed, false);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.meeting_minutes_workflow_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -15993,6 +16084,41 @@ describe("matter harness", () => {
       assert.equal(litigationBriefDraftStage?.metrics.protected_action_allowed, false);
       assert.equal(litigationBriefDraftStage?.metrics.client_facing_output_allowed_without_attorney_review, false);
       assert.equal(litigationBriefDraftStage?.metrics.validation_error_count, 0);
+      const meetingMinutesWorkflowStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "meeting_minutes_workflow");
+      assert.equal(meetingMinutesWorkflowStage?.status, "passed");
+      assert.equal(meetingMinutesWorkflowStage?.metrics.meeting_minutes_workflow_status, "complete");
+      assert.equal(meetingMinutesWorkflowStage?.metrics.source_matter_status, "complete");
+      assert.equal(meetingMinutesWorkflowStage?.metrics.source_matter_id, "MNA-2026-ALPHA");
+      assert.equal(meetingMinutesWorkflowStage?.metrics.source_matter_timeline_status, "complete");
+      assert.equal(meetingMinutesWorkflowStage?.metrics.source_matter_timeline_phase_status, "complete");
+      assert.equal(meetingMinutesWorkflowStage?.metrics.source_meeting_note_status, "complete");
+      assert.equal(meetingMinutesWorkflowStage?.metrics.source_meeting_communication_count, meetingMinutesWorkflow.summary.source_meeting_communication_count);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.meeting_minutes_rule_count, meetingMinutesWorkflow.summary.meeting_minutes_rule_count);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.meeting_minutes_source_count, meetingMinutesWorkflow.summary.meeting_minutes_source_count);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.agenda_item_count, meetingMinutesWorkflow.summary.agenda_item_count);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.decision_count, meetingMinutesWorkflow.summary.decision_count);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.action_item_count, meetingMinutesWorkflow.summary.action_item_count);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.evidence_link_count, meetingMinutesWorkflow.summary.evidence_link_count);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.action_item_with_evidence_link_count, meetingMinutesWorkflow.summary.action_item_with_evidence_link_count);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.agenda_with_decision_count, meetingMinutesWorkflow.summary.agenda_with_decision_count);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.agenda_with_action_item_count, meetingMinutesWorkflow.summary.agenda_with_action_item_count);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.decision_with_action_item_count, meetingMinutesWorkflow.summary.decision_with_action_item_count);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.legal_advice_provided, false);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.client_facing_output_generated, false);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.legal_conclusion_asserted_count, 0);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.desktop_boundary_status, "enforced");
+      assert.equal(meetingMinutesWorkflowStage?.metrics.desktop_read_only, true);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.desktop_source_of_truth, false);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.matter_data_write_allowed, false);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.task_state_write_allowed, false);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.workflow_transition_allowed, false);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.runtime_execution_allowed, false);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.protected_action_allowed, false);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(meetingMinutesWorkflowStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -18265,6 +18391,46 @@ describe("matter harness", () => {
       const litigationBriefDraftValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/litigation-brief-draft-validations?status=passed", apiOptions)).body);
       assert.equal(litigationBriefDraftValidationsResponse.collection, "litigation_brief_draft_validations");
       assert.equal(litigationBriefDraftValidationsResponse.count, litigationBriefDraft.summary.validation_item_count);
+
+      const meetingMinutesWorkflowArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/meeting-minutes-workflow-artifacts?meeting_minutes_workflow_status=complete", apiOptions)).body);
+      assert.equal(meetingMinutesWorkflowArtifactsResponse.collection, "meeting_minutes_workflow_artifacts");
+      assert.equal(meetingMinutesWorkflowArtifactsResponse.count, 1);
+
+      const meetingMinutesRulesResponse = JSON.parse((await buildReviewApiResponse("/api/meeting-minutes-rules?meeting_minutes_rule_type=agenda_extraction", apiOptions)).body);
+      assert.equal(meetingMinutesRulesResponse.collection, "meeting_minutes_rules");
+      assert.equal(meetingMinutesRulesResponse.count, 1);
+
+      const meetingMinutesSourcesResponse = JSON.parse((await buildReviewApiResponse("/api/meeting-minutes-sources?meeting_minutes_source_status=source_loaded_pending_attorney_review", apiOptions)).body);
+      assert.equal(meetingMinutesSourcesResponse.collection, "meeting_minutes_sources");
+      assert.equal(meetingMinutesSourcesResponse.count, meetingMinutesWorkflow.summary.meeting_minutes_source_count);
+
+      const meetingMinutesAgendaItemsResponse = JSON.parse((await buildReviewApiResponse("/api/meeting-minutes-agenda-items?agenda_status=draft_pending_attorney_review", apiOptions)).body);
+      assert.equal(meetingMinutesAgendaItemsResponse.collection, "meeting_minutes_agenda_items");
+      assert.equal(meetingMinutesAgendaItemsResponse.count, meetingMinutesWorkflow.summary.agenda_item_count);
+
+      const meetingMinutesDecisionsResponse = JSON.parse((await buildReviewApiResponse("/api/meeting-minutes-decisions?decision_status=draft_pending_attorney_review", apiOptions)).body);
+      assert.equal(meetingMinutesDecisionsResponse.collection, "meeting_minutes_decisions");
+      assert.equal(meetingMinutesDecisionsResponse.count, meetingMinutesWorkflow.summary.decision_count);
+
+      const meetingMinutesActionItemsResponse = JSON.parse((await buildReviewApiResponse("/api/meeting-minutes-action-items?action_status=draft_pending_attorney_review&evidence_required=true", apiOptions)).body);
+      assert.equal(meetingMinutesActionItemsResponse.collection, "meeting_minutes_action_items");
+      assert.equal(meetingMinutesActionItemsResponse.count, meetingMinutesWorkflow.summary.action_item_count);
+
+      const meetingMinutesEvidenceLinksResponse = JSON.parse((await buildReviewApiResponse("/api/meeting-minutes-evidence-links?evidence_link_status=linked_pending_attorney_review", apiOptions)).body);
+      assert.equal(meetingMinutesEvidenceLinksResponse.collection, "meeting_minutes_evidence_links");
+      assert.equal(meetingMinutesEvidenceLinksResponse.count, meetingMinutesWorkflow.summary.evidence_link_count);
+
+      const meetingMinutesMatterSummariesResponse = JSON.parse((await buildReviewApiResponse("/api/meeting-minutes-matter-summaries?meeting_minutes_matter_status=draft_pending_attorney_review", apiOptions)).body);
+      assert.equal(meetingMinutesMatterSummariesResponse.collection, "meeting_minutes_matter_summaries");
+      assert.equal(meetingMinutesMatterSummariesResponse.count, meetingMinutesWorkflow.summary.matter_count);
+
+      const meetingMinutesWorkflowBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/meeting-minutes-workflow-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(meetingMinutesWorkflowBoundaryResponse.collection, "meeting_minutes_workflow_boundary");
+      assert.equal(meetingMinutesWorkflowBoundaryResponse.count, 1);
+
+      const meetingMinutesWorkflowValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/meeting-minutes-workflow-validations?status=passed", apiOptions)).body);
+      assert.equal(meetingMinutesWorkflowValidationsResponse.collection, "meeting_minutes_workflow_validations");
+      assert.equal(meetingMinutesWorkflowValidationsResponse.count, meetingMinutesWorkflow.summary.validation_item_count);
 
       const repoProfileDetectorsResponse = JSON.parse((await buildReviewApiResponse("/api/repo-profile-detectors?repo_profile_detector_status=complete", apiOptions)).body);
       assert.equal(repoProfileDetectorsResponse.collection, "repo_profile_detectors");

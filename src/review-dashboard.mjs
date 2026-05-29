@@ -105,6 +105,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   lddRfiGeneratorPath: "artifacts/ldd-rfi-generator/latest/ldd-rfi-generator.json",
   lddReportDraftPath: "artifacts/ldd-report-draft/latest/ldd-report-draft.json",
   litigationBriefDraftPath: "artifacts/litigation-brief-draft/latest/litigation-brief-draft.json",
+  meetingMinutesWorkflowPath: "artifacts/meeting-minutes-workflow/latest/meeting-minutes-workflow.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -751,6 +752,11 @@ const SOURCE_DEFINITIONS = [
     option: "litigationBriefDraftPath",
     source_id: "litigation_brief_draft",
     label: "Litigation Brief Draft",
+  },
+  {
+    option: "meetingMinutesWorkflowPath",
+    source_id: "meeting_minutes_workflow",
+    label: "Meeting Minutes Workflow",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1593,6 +1599,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "ldd_rfi_generator") return data.summary ?? {};
   if (sourceId === "ldd_report_draft") return data.summary ?? {};
   if (sourceId === "litigation_brief_draft") return data.summary ?? {};
+  if (sourceId === "meeting_minutes_workflow") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -1957,6 +1964,7 @@ function buildStageStatuses(artifacts, sources) {
     buildLddRfiGeneratorStage(artifacts.ldd_rfi_generator, sourceById.get("ldd_rfi_generator")),
     buildLddReportDraftStage(artifacts.ldd_report_draft, sourceById.get("ldd_report_draft")),
     buildLitigationBriefDraftStage(artifacts.litigation_brief_draft, sourceById.get("litigation_brief_draft")),
+    buildMeetingMinutesWorkflowStage(artifacts.meeting_minutes_workflow, sourceById.get("meeting_minutes_workflow")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -9798,6 +9806,100 @@ function buildLitigationBriefDraftStage(artifact, source) {
   };
 }
 
+function buildMeetingMinutesWorkflowStage(artifact, source) {
+  if (!artifact) return missingStage("meeting_minutes_workflow", "Meeting Minutes Workflow", source);
+  const summary = artifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.meeting_minutes_workflow_status !== "complete"
+    || summary.source_matter_status !== "complete"
+    || summary.source_matter_timeline_status !== "complete"
+    || summary.source_matter_timeline_phase_status !== "complete"
+    || summary.source_meeting_note_status !== "complete"
+    || (summary.meeting_minutes_rule_count ?? 0) < 6
+    || (summary.meeting_minutes_source_count ?? 0) < 2
+    || summary.agenda_item_count < summary.meeting_minutes_source_count
+    || summary.decision_count !== summary.agenda_item_count
+    || (summary.action_item_count ?? 0) <= 0
+    || summary.evidence_link_count !== summary.action_item_count
+    || summary.action_item_with_evidence_link_count !== summary.action_item_count
+    || summary.agenda_with_decision_count !== summary.agenda_item_count
+    || summary.agenda_with_action_item_count !== summary.agenda_item_count
+    || summary.decision_with_action_item_count !== summary.decision_count
+    || summary.client_facing_ready_count !== 0
+    || summary.legal_conclusion_asserted_count !== 0
+    || summary.legal_advice_provided === true
+    || summary.client_facing_output_generated === true
+    || summary.desktop_boundary_status !== "enforced"
+    || summary.desktop_read_only !== true
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_source_of_truth === true
+    || summary.matter_data_write_allowed === true
+    || summary.task_state_write_allowed === true
+    || summary.workflow_transition_allowed === true
+    || summary.runtime_execution_allowed === true
+    || summary.delivery_execution_allowed === true
+    || summary.protected_action_allowed === true
+    || summary.client_facing_output_allowed_without_attorney_review === true
+    || summary.failed_checkpoint_count !== 0
+    || artifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "meeting_minutes_workflow",
+    label: "Meeting Minutes Workflow",
+    status,
+    message: `${summary.agenda_item_count ?? 0} agenda item(s), ${summary.decision_count ?? 0} decision(s), ${summary.action_item_count ?? 0} action item(s), ${summary.evidence_link_count ?? 0} evidence link(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      meeting_minutes_workflow_status: summary.meeting_minutes_workflow_status ?? "unknown",
+      meeting_minutes_workflow_contract_id: summary.meeting_minutes_workflow_contract_id ?? null,
+      source_of_truth: summary.source_of_truth ?? "unknown",
+      source_matter_status: summary.source_matter_status ?? "unknown",
+      source_matter_id: summary.source_matter_id ?? null,
+      source_matter_timeline_status: summary.source_matter_timeline_status ?? "unknown",
+      source_matter_timeline_phase_status: summary.source_matter_timeline_phase_status ?? "unknown",
+      source_matter_timeline_meeting_event_count: summary.source_matter_timeline_meeting_event_count ?? 0,
+      source_meeting_note_status: summary.source_meeting_note_status ?? "unknown",
+      source_meeting_note_character_count: summary.source_meeting_note_character_count ?? 0,
+      source_communication_count: summary.source_communication_count ?? 0,
+      source_meeting_communication_count: summary.source_meeting_communication_count ?? 0,
+      meeting_minutes_rule_count: summary.meeting_minutes_rule_count ?? 0,
+      meeting_minutes_source_count: summary.meeting_minutes_source_count ?? 0,
+      agenda_item_count: summary.agenda_item_count ?? 0,
+      decision_count: summary.decision_count ?? 0,
+      action_item_count: summary.action_item_count ?? 0,
+      evidence_link_count: summary.evidence_link_count ?? 0,
+      matter_count: summary.matter_count ?? 0,
+      evidence_required_action_count: summary.evidence_required_action_count ?? 0,
+      action_item_with_evidence_link_count: summary.action_item_with_evidence_link_count ?? 0,
+      agenda_with_decision_count: summary.agenda_with_decision_count ?? 0,
+      agenda_with_action_item_count: summary.agenda_with_action_item_count ?? 0,
+      decision_with_action_item_count: summary.decision_with_action_item_count ?? 0,
+      draft_only_count: summary.draft_only_count ?? 0,
+      attorney_review_required_count: summary.attorney_review_required_count ?? 0,
+      human_review_required_count: summary.human_review_required_count ?? 0,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      legal_conclusion_asserted_count: summary.legal_conclusion_asserted_count ?? 0,
+      legal_advice_provided: summary.legal_advice_provided ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      desktop_boundary_status: summary.desktop_boundary_status ?? "unknown",
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_source_of_truth: summary.desktop_source_of_truth ?? false,
+      matter_data_write_allowed: summary.matter_data_write_allowed ?? false,
+      task_state_write_allowed: summary.task_state_write_allowed ?? false,
+      workflow_transition_allowed: summary.workflow_transition_allowed ?? false,
+      runtime_execution_allowed: summary.runtime_execution_allowed ?? false,
+      delivery_execution_allowed: summary.delivery_execution_allowed ?? false,
+      protected_action_allowed: summary.protected_action_allowed ?? false,
+      client_facing_output_allowed_without_attorney_review: summary.client_facing_output_allowed_without_attorney_review ?? false,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -15744,6 +15846,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.meeting_minutes_workflow?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "meeting_minutes_workflow";
+    items.push({
+      action_item_id: `dashboard.action.meeting_minutes_workflow.${slugify(subjectId)}`,
+      source_stage: "meeting_minutes_workflow",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix meeting minutes workflow",
+      subject_ref: {
+        subject_type: "meeting_minutes_workflow_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_meeting_minutes_workflow", "rerun_meeting_minutes_workflow", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -20940,6 +21060,39 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     litigation_brief_draft_protected_action_allowed: artifacts.litigation_brief_draft?.summary?.protected_action_allowed ?? false,
     litigation_brief_draft_failed_checkpoint_count: artifacts.litigation_brief_draft?.summary?.failed_checkpoint_count ?? 0,
     litigation_brief_draft_validation_error_count: artifacts.litigation_brief_draft?.summary?.validation_error_count ?? artifacts.litigation_brief_draft?.validation?.errors?.length ?? 0,
+    meeting_minutes_workflow_status: artifacts.meeting_minutes_workflow?.summary?.meeting_minutes_workflow_status ?? "unknown",
+    meeting_minutes_workflow_contract_id: artifacts.meeting_minutes_workflow?.summary?.meeting_minutes_workflow_contract_id ?? null,
+    meeting_minutes_workflow_source_matter_status: artifacts.meeting_minutes_workflow?.summary?.source_matter_status ?? "unknown",
+    meeting_minutes_workflow_source_matter_id: artifacts.meeting_minutes_workflow?.summary?.source_matter_id ?? null,
+    meeting_minutes_workflow_source_matter_timeline_status: artifacts.meeting_minutes_workflow?.summary?.source_matter_timeline_status ?? "unknown",
+    meeting_minutes_workflow_source_matter_timeline_phase_status: artifacts.meeting_minutes_workflow?.summary?.source_matter_timeline_phase_status ?? "unknown",
+    meeting_minutes_workflow_source_meeting_note_status: artifacts.meeting_minutes_workflow?.summary?.source_meeting_note_status ?? "unknown",
+    meeting_minutes_workflow_source_meeting_communication_count: artifacts.meeting_minutes_workflow?.summary?.source_meeting_communication_count ?? 0,
+    meeting_minutes_workflow_rule_count: artifacts.meeting_minutes_workflow?.summary?.meeting_minutes_rule_count ?? 0,
+    meeting_minutes_workflow_source_count: artifacts.meeting_minutes_workflow?.summary?.meeting_minutes_source_count ?? 0,
+    meeting_minutes_workflow_agenda_item_count: artifacts.meeting_minutes_workflow?.summary?.agenda_item_count ?? 0,
+    meeting_minutes_workflow_decision_count: artifacts.meeting_minutes_workflow?.summary?.decision_count ?? 0,
+    meeting_minutes_workflow_action_item_count: artifacts.meeting_minutes_workflow?.summary?.action_item_count ?? 0,
+    meeting_minutes_workflow_evidence_link_count: artifacts.meeting_minutes_workflow?.summary?.evidence_link_count ?? 0,
+    meeting_minutes_workflow_action_item_with_evidence_link_count: artifacts.meeting_minutes_workflow?.summary?.action_item_with_evidence_link_count ?? 0,
+    meeting_minutes_workflow_agenda_with_decision_count: artifacts.meeting_minutes_workflow?.summary?.agenda_with_decision_count ?? 0,
+    meeting_minutes_workflow_agenda_with_action_item_count: artifacts.meeting_minutes_workflow?.summary?.agenda_with_action_item_count ?? 0,
+    meeting_minutes_workflow_decision_with_action_item_count: artifacts.meeting_minutes_workflow?.summary?.decision_with_action_item_count ?? 0,
+    meeting_minutes_workflow_client_facing_ready_count: artifacts.meeting_minutes_workflow?.summary?.client_facing_ready_count ?? 0,
+    meeting_minutes_workflow_legal_advice_provided: artifacts.meeting_minutes_workflow?.summary?.legal_advice_provided ?? false,
+    meeting_minutes_workflow_client_facing_output_generated: artifacts.meeting_minutes_workflow?.summary?.client_facing_output_generated ?? false,
+    meeting_minutes_workflow_legal_conclusion_asserted_count: artifacts.meeting_minutes_workflow?.summary?.legal_conclusion_asserted_count ?? 0,
+    meeting_minutes_workflow_desktop_boundary_status: artifacts.meeting_minutes_workflow?.summary?.desktop_boundary_status ?? "unknown",
+    meeting_minutes_workflow_desktop_read_only: artifacts.meeting_minutes_workflow?.summary?.desktop_read_only ?? false,
+    meeting_minutes_workflow_desktop_mutation_allowed: artifacts.meeting_minutes_workflow?.summary?.desktop_mutation_allowed ?? false,
+    meeting_minutes_workflow_matter_data_write_allowed: artifacts.meeting_minutes_workflow?.summary?.matter_data_write_allowed ?? false,
+    meeting_minutes_workflow_task_state_write_allowed: artifacts.meeting_minutes_workflow?.summary?.task_state_write_allowed ?? false,
+    meeting_minutes_workflow_workflow_transition_allowed: artifacts.meeting_minutes_workflow?.summary?.workflow_transition_allowed ?? false,
+    meeting_minutes_workflow_runtime_execution_allowed: artifacts.meeting_minutes_workflow?.summary?.runtime_execution_allowed ?? false,
+    meeting_minutes_workflow_delivery_execution_allowed: artifacts.meeting_minutes_workflow?.summary?.delivery_execution_allowed ?? false,
+    meeting_minutes_workflow_protected_action_allowed: artifacts.meeting_minutes_workflow?.summary?.protected_action_allowed ?? false,
+    meeting_minutes_workflow_failed_checkpoint_count: artifacts.meeting_minutes_workflow?.summary?.failed_checkpoint_count ?? 0,
+    meeting_minutes_workflow_validation_error_count: artifacts.meeting_minutes_workflow?.summary?.validation_error_count ?? artifacts.meeting_minutes_workflow?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -22733,6 +22886,8 @@ function parseArgs(argv) {
     else if (arg === "--no-ldd-report-draft") parsed.lddReportDraftPath = false;
     else if (arg === "--litigation-brief-draft") parsed.litigationBriefDraftPath = argv[++index];
     else if (arg === "--no-litigation-brief-draft") parsed.litigationBriefDraftPath = false;
+    else if (arg === "--meeting-minutes-workflow") parsed.meetingMinutesWorkflowPath = argv[++index];
+    else if (arg === "--no-meeting-minutes-workflow") parsed.meetingMinutesWorkflowPath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];

@@ -18,6 +18,12 @@ Litigation Brief Draft routes expose read-only, draft-only litigation brief scaf
 
 Routes: `/api/litigation-brief-draft-artifacts`, `/api/litigation-brief-rules`, `/api/litigation-brief-drafts`, `/api/litigation-brief-claims`, `/api/litigation-brief-facts`, `/api/litigation-brief-evidence-links`, `/api/litigation-brief-legal-basis-placeholders`, `/api/litigation-brief-citation-gates`, `/api/litigation-brief-matter-summaries`, `/api/litigation-brief-draft-boundary`, `/api/litigation-brief-draft-validations`.
 
+## P248 Meeting Minutes Workflow Routes
+
+Meeting Minutes Workflow routes expose read-only agenda, operational decision, draft action item, evidence link, matter summary, and validation/boundary rows generated from local meeting notes and matter meeting context. Supported filters include `meeting_minutes_workflow_status`, `meeting_minutes_matter_status`, `meeting_minutes_rule_type`, `meeting_minutes_source_status`, `source_kind`, `source_type`, `agenda_status`, `agenda_type`, `decision_status`, `decision_type`, `action_status`, `action_owner`, `evidence_required`, `evidence_source_kind`, `evidence_link_status`, `meeting_minutes_source_id`, `meeting_minutes_agenda_item_id`, `meeting_minutes_decision_id`, `meeting_minutes_action_item_id`, `meeting_minutes_evidence_link_id`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.
+
+Routes: `/api/meeting-minutes-workflow-artifacts`, `/api/meeting-minutes-rules`, `/api/meeting-minutes-sources`, `/api/meeting-minutes-agenda-items`, `/api/meeting-minutes-decisions`, `/api/meeting-minutes-action-items`, `/api/meeting-minutes-evidence-links`, `/api/meeting-minutes-matter-summaries`, `/api/meeting-minutes-workflow-boundary`, `/api/meeting-minutes-workflow-validations`.
+
 ## P244 LDD Issue Detection Routes
 
 LDD Issue Detection routes expose read-only deterministic issue candidate rows, red/yellow operational flags, follow-up rows, severity summaries, matter summaries, and validation/boundary rows. Supported filters include `ldd_issue_detection_status`, `ldd_issue_matter_status`, `issue_type`, `issue_status`, `issue_severity`, `issue_flag`, `source_gap`, `follow_up_status`, `follow_up_owner`, `deterministic_issue_detection_performed`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.

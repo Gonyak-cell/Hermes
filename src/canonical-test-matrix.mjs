@@ -847,6 +847,10 @@ function runCommand(command, options) {
     const spawnSpec = resolveCommandSpawn(command);
     const child = spawn(spawnSpec.command, spawnSpec.args, {
       cwd: options.cwd,
+      env: {
+        ...process.env,
+        HERMES_CANONICAL_TEST_MATRIX_CHILD: "1",
+      },
       stdio: ["ignore", "pipe", "pipe"],
     });
     let stdout = "";

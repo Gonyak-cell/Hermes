@@ -92,6 +92,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   templateRegistryPath: "artifacts/template-registry/latest/template-registry.json",
   styleRegistryPath: "artifacts/style-registry/latest/style-registry.json",
   assetRegistryPath: "artifacts/asset-registry/latest/asset-registry.json",
+  docxRendererPath: "artifacts/docx-renderer/latest/docx-renderer.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -695,6 +696,11 @@ const SOURCE_DEFINITIONS = [
     option: "assetRegistryPath",
     source_id: "asset_registry",
     label: "Asset Registry",
+  },
+  {
+    option: "docxRendererPath",
+    source_id: "docx_renderer",
+    label: "DOCX Renderer",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1656,6 +1662,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "template_registry") return data.summary ?? {};
   if (sourceId === "style_registry") return data.summary ?? {};
   if (sourceId === "asset_registry") return data.summary ?? {};
+  if (sourceId === "docx_renderer") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2029,6 +2036,7 @@ function buildStageStatuses(artifacts, sources) {
     buildTemplateRegistryStage(artifacts.template_registry, sourceById.get("template_registry")),
     buildStyleRegistryStage(artifacts.style_registry, sourceById.get("style_registry")),
     buildAssetRegistryStage(artifacts.asset_registry, sourceById.get("asset_registry")),
+    buildDocxRendererStage(artifacts.docx_renderer, sourceById.get("docx_renderer")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -10787,6 +10795,118 @@ function buildAssetRegistryStage(artifact, source) {
   };
 }
 
+function buildDocxRendererStage(artifact, source) {
+  if (!artifact) return missingStage("docx_renderer", "DOCX Renderer", source);
+  const summary = artifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.docx_renderer_status !== "complete"
+    || summary.source_asset_registry_status !== "complete"
+    || summary.source_style_registry_status !== "complete"
+    || summary.source_template_registry_status !== "complete"
+    || summary.source_creative_document_pack_manifest_status !== "complete"
+    || summary.docx_template_count < 1
+    || summary.docx_render_job_count < 1
+    || summary.completed_render_job_count !== summary.docx_render_job_count
+    || summary.docx_template_data_packet_count !== summary.docx_render_job_count
+    || summary.generated_template_data_packet_count !== summary.docx_template_data_packet_count
+    || summary.docx_openxml_part_count < summary.docx_render_job_count * (summary.required_openxml_part_count_per_artifact ?? 4)
+    || summary.generated_openxml_part_count !== summary.docx_openxml_part_count
+    || summary.openxml_payload_hash_count !== summary.docx_openxml_part_count
+    || summary.docx_output_artifact_count !== summary.docx_render_job_count
+    || summary.draft_output_artifact_count !== summary.docx_output_artifact_count
+    || summary.docx_binary_hash_count !== summary.docx_output_artifact_count
+    || summary.docx_binary_write_count !== summary.docx_output_artifact_count
+    || summary.docx_format_validation_result_count !== summary.docx_output_artifact_count
+    || summary.passed_format_validation_result_count !== summary.docx_format_validation_result_count
+    || summary.human_review_required_output_count !== summary.docx_output_artifact_count
+    || summary.attorney_review_required_output_count !== summary.docx_output_artifact_count
+    || summary.source_attribution_required_output_count !== summary.docx_output_artifact_count
+    || summary.citation_review_required_output_count !== summary.docx_output_artifact_count
+    || summary.format_validation_required_output_count !== summary.docx_output_artifact_count
+    || summary.local_deterministic_renderer !== true
+    || summary.renderer_execution_performed !== true
+    || summary.local_deterministic_render_performed !== true
+    || summary.document_renderer_runtime_execution_performed === true
+    || summary.external_renderer_execution_performed === true
+    || summary.network_access_performed === true
+    || summary.docx_binary_write_performed !== true
+    || summary.core_registry_mutation_allowed === true
+    || summary.delivery_execution_allowed === true
+    || summary.delivery_execution_performed === true
+    || summary.protected_action_allowed === true
+    || summary.protected_action_executed === true
+    || summary.legal_advice_generated === true
+    || summary.client_facing_output_generated === true
+    || summary.client_facing_ready_count !== 0
+    || summary.runtime_freeze_status !== "complete"
+    || summary.document_renderer_adapter_status !== "complete"
+    || summary.document_renderer_docx_target_supported !== true
+    || summary.output_delivery_contract_freeze_status !== "complete"
+    || summary.failed_checkpoint_count !== 0
+    || artifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "docx_renderer",
+    label: "DOCX Renderer",
+    status,
+    message: `${summary.completed_render_job_count ?? 0}/${summary.docx_render_job_count ?? 0} render job(s), ${summary.draft_output_artifact_count ?? 0}/${summary.docx_output_artifact_count ?? 0} draft DOCX artifact(s), ${summary.passed_format_validation_result_count ?? 0}/${summary.docx_format_validation_result_count ?? 0} validation(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      docx_renderer_status: summary.docx_renderer_status ?? "unknown",
+      docx_renderer_contract_id: summary.docx_renderer_contract_id ?? null,
+      source_asset_registry_status: summary.source_asset_registry_status ?? "unknown",
+      source_style_registry_status: summary.source_style_registry_status ?? "unknown",
+      source_template_registry_status: summary.source_template_registry_status ?? "unknown",
+      source_creative_document_pack_manifest_status: summary.source_creative_document_pack_manifest_status ?? "unknown",
+      source_domain_pack_registry_status: summary.source_domain_pack_registry_status ?? "unknown",
+      docx_template_count: summary.docx_template_count ?? 0,
+      docx_render_job_count: summary.docx_render_job_count ?? 0,
+      completed_render_job_count: summary.completed_render_job_count ?? 0,
+      docx_template_data_packet_count: summary.docx_template_data_packet_count ?? 0,
+      generated_template_data_packet_count: summary.generated_template_data_packet_count ?? 0,
+      docx_openxml_part_count: summary.docx_openxml_part_count ?? 0,
+      generated_openxml_part_count: summary.generated_openxml_part_count ?? 0,
+      required_openxml_part_count_per_artifact: summary.required_openxml_part_count_per_artifact ?? 0,
+      openxml_payload_hash_count: summary.openxml_payload_hash_count ?? 0,
+      docx_output_artifact_count: summary.docx_output_artifact_count ?? 0,
+      draft_output_artifact_count: summary.draft_output_artifact_count ?? 0,
+      docx_binary_hash_count: summary.docx_binary_hash_count ?? 0,
+      docx_binary_write_count: summary.docx_binary_write_count ?? 0,
+      docx_format_validation_result_count: summary.docx_format_validation_result_count ?? 0,
+      passed_format_validation_result_count: summary.passed_format_validation_result_count ?? 0,
+      human_review_required_output_count: summary.human_review_required_output_count ?? 0,
+      attorney_review_required_output_count: summary.attorney_review_required_output_count ?? 0,
+      source_attribution_required_output_count: summary.source_attribution_required_output_count ?? 0,
+      citation_review_required_output_count: summary.citation_review_required_output_count ?? 0,
+      format_validation_required_output_count: summary.format_validation_required_output_count ?? 0,
+      local_deterministic_renderer: summary.local_deterministic_renderer ?? false,
+      renderer_execution_performed: summary.renderer_execution_performed ?? false,
+      local_deterministic_render_performed: summary.local_deterministic_render_performed ?? false,
+      document_renderer_runtime_execution_performed: summary.document_renderer_runtime_execution_performed ?? false,
+      external_renderer_execution_performed: summary.external_renderer_execution_performed ?? false,
+      network_access_performed: summary.network_access_performed ?? false,
+      docx_binary_write_performed: summary.docx_binary_write_performed ?? false,
+      core_registry_mutation_allowed: summary.core_registry_mutation_allowed ?? false,
+      delivery_execution_allowed: summary.delivery_execution_allowed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      protected_action_allowed: summary.protected_action_allowed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      runtime_freeze_status: summary.runtime_freeze_status ?? "unknown",
+      document_renderer_adapter_status: summary.document_renderer_adapter_status ?? "unknown",
+      document_renderer_docx_target_supported: summary.document_renderer_docx_target_supported ?? false,
+      output_delivery_contract_freeze_status: summary.output_delivery_contract_freeze_status ?? "unknown",
+      metadata_hash_count: summary.metadata_hash_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -16895,6 +17015,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.docx_renderer?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "docx_renderer";
+    items.push({
+      action_item_id: `dashboard.action.docx_renderer.${slugify(subjectId)}`,
+      source_stage: "docx_renderer",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix DOCX renderer",
+      subject_ref: {
+        subject_type: "docx_renderer_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_docx_renderer", "rerun_docx_renderer", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -22487,6 +22625,55 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     asset_registry_client_facing_ready_count: artifacts.asset_registry?.summary?.client_facing_ready_count ?? 0,
     asset_registry_failed_checkpoint_count: artifacts.asset_registry?.summary?.failed_checkpoint_count ?? 0,
     asset_registry_validation_error_count: artifacts.asset_registry?.summary?.validation_error_count ?? artifacts.asset_registry?.validation?.errors?.length ?? 0,
+    docx_renderer_status: artifacts.docx_renderer?.summary?.docx_renderer_status ?? "unknown",
+    docx_renderer_contract_id: artifacts.docx_renderer?.summary?.docx_renderer_contract_id ?? null,
+    docx_renderer_source_asset_registry_status: artifacts.docx_renderer?.summary?.source_asset_registry_status ?? "unknown",
+    docx_renderer_source_style_registry_status: artifacts.docx_renderer?.summary?.source_style_registry_status ?? "unknown",
+    docx_renderer_source_template_registry_status: artifacts.docx_renderer?.summary?.source_template_registry_status ?? "unknown",
+    docx_renderer_source_creative_document_pack_manifest_status: artifacts.docx_renderer?.summary?.source_creative_document_pack_manifest_status ?? "unknown",
+    docx_renderer_source_domain_pack_registry_status: artifacts.docx_renderer?.summary?.source_domain_pack_registry_status ?? "unknown",
+    docx_renderer_docx_template_count: artifacts.docx_renderer?.summary?.docx_template_count ?? 0,
+    docx_renderer_render_job_count: artifacts.docx_renderer?.summary?.docx_render_job_count ?? 0,
+    docx_renderer_completed_render_job_count: artifacts.docx_renderer?.summary?.completed_render_job_count ?? 0,
+    docx_renderer_template_data_packet_count: artifacts.docx_renderer?.summary?.docx_template_data_packet_count ?? 0,
+    docx_renderer_generated_template_data_packet_count: artifacts.docx_renderer?.summary?.generated_template_data_packet_count ?? 0,
+    docx_renderer_openxml_part_count: artifacts.docx_renderer?.summary?.docx_openxml_part_count ?? 0,
+    docx_renderer_generated_openxml_part_count: artifacts.docx_renderer?.summary?.generated_openxml_part_count ?? 0,
+    docx_renderer_required_openxml_part_count_per_artifact: artifacts.docx_renderer?.summary?.required_openxml_part_count_per_artifact ?? 0,
+    docx_renderer_openxml_payload_hash_count: artifacts.docx_renderer?.summary?.openxml_payload_hash_count ?? 0,
+    docx_renderer_output_artifact_count: artifacts.docx_renderer?.summary?.docx_output_artifact_count ?? 0,
+    docx_renderer_draft_output_artifact_count: artifacts.docx_renderer?.summary?.draft_output_artifact_count ?? 0,
+    docx_renderer_binary_hash_count: artifacts.docx_renderer?.summary?.docx_binary_hash_count ?? 0,
+    docx_renderer_binary_write_count: artifacts.docx_renderer?.summary?.docx_binary_write_count ?? 0,
+    docx_renderer_format_validation_result_count: artifacts.docx_renderer?.summary?.docx_format_validation_result_count ?? 0,
+    docx_renderer_passed_format_validation_result_count: artifacts.docx_renderer?.summary?.passed_format_validation_result_count ?? 0,
+    docx_renderer_human_review_required_output_count: artifacts.docx_renderer?.summary?.human_review_required_output_count ?? 0,
+    docx_renderer_attorney_review_required_output_count: artifacts.docx_renderer?.summary?.attorney_review_required_output_count ?? 0,
+    docx_renderer_source_attribution_required_output_count: artifacts.docx_renderer?.summary?.source_attribution_required_output_count ?? 0,
+    docx_renderer_citation_review_required_output_count: artifacts.docx_renderer?.summary?.citation_review_required_output_count ?? 0,
+    docx_renderer_format_validation_required_output_count: artifacts.docx_renderer?.summary?.format_validation_required_output_count ?? 0,
+    docx_renderer_local_deterministic_renderer: artifacts.docx_renderer?.summary?.local_deterministic_renderer ?? false,
+    docx_renderer_renderer_execution_performed: artifacts.docx_renderer?.summary?.renderer_execution_performed ?? false,
+    docx_renderer_local_deterministic_render_performed: artifacts.docx_renderer?.summary?.local_deterministic_render_performed ?? false,
+    docx_renderer_document_renderer_runtime_execution_performed: artifacts.docx_renderer?.summary?.document_renderer_runtime_execution_performed ?? false,
+    docx_renderer_external_renderer_execution_performed: artifacts.docx_renderer?.summary?.external_renderer_execution_performed ?? false,
+    docx_renderer_network_access_performed: artifacts.docx_renderer?.summary?.network_access_performed ?? false,
+    docx_renderer_binary_write_performed: artifacts.docx_renderer?.summary?.docx_binary_write_performed ?? false,
+    docx_renderer_core_registry_mutation_allowed: artifacts.docx_renderer?.summary?.core_registry_mutation_allowed ?? false,
+    docx_renderer_delivery_execution_allowed: artifacts.docx_renderer?.summary?.delivery_execution_allowed ?? false,
+    docx_renderer_delivery_execution_performed: artifacts.docx_renderer?.summary?.delivery_execution_performed ?? false,
+    docx_renderer_protected_action_allowed: artifacts.docx_renderer?.summary?.protected_action_allowed ?? false,
+    docx_renderer_protected_action_executed: artifacts.docx_renderer?.summary?.protected_action_executed ?? false,
+    docx_renderer_legal_advice_generated: artifacts.docx_renderer?.summary?.legal_advice_generated ?? false,
+    docx_renderer_client_facing_output_generated: artifacts.docx_renderer?.summary?.client_facing_output_generated ?? false,
+    docx_renderer_client_facing_ready_count: artifacts.docx_renderer?.summary?.client_facing_ready_count ?? 0,
+    docx_renderer_runtime_freeze_status: artifacts.docx_renderer?.summary?.runtime_freeze_status ?? "unknown",
+    docx_renderer_document_renderer_adapter_status: artifacts.docx_renderer?.summary?.document_renderer_adapter_status ?? "unknown",
+    docx_renderer_document_renderer_docx_target_supported: artifacts.docx_renderer?.summary?.document_renderer_docx_target_supported ?? false,
+    docx_renderer_output_delivery_contract_freeze_status: artifacts.docx_renderer?.summary?.output_delivery_contract_freeze_status ?? "unknown",
+    docx_renderer_metadata_hash_count: artifacts.docx_renderer?.summary?.metadata_hash_count ?? 0,
+    docx_renderer_failed_checkpoint_count: artifacts.docx_renderer?.summary?.failed_checkpoint_count ?? 0,
+    docx_renderer_validation_error_count: artifacts.docx_renderer?.summary?.validation_error_count ?? artifacts.docx_renderer?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -24254,6 +24441,8 @@ function parseArgs(argv) {
     else if (arg === "--no-style-registry") parsed.styleRegistryPath = false;
     else if (arg === "--asset-registry") parsed.assetRegistryPath = argv[++index];
     else if (arg === "--no-asset-registry") parsed.assetRegistryPath = false;
+    else if (arg === "--docx-renderer") parsed.docxRendererPath = argv[++index];
+    else if (arg === "--no-docx-renderer") parsed.docxRendererPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

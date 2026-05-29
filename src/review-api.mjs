@@ -4554,6 +4554,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("asset_registry_validations", assetRegistryResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/docx-renderers") {
+    const docxRendererResult = await readDashboardSourceArtifact(dashboard, "docx_renderer");
+    if (!docxRendererResult.available) {
+      return jsonResponse(503, buildError("docx_renderer_unavailable", docxRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("docx_renderers", [docxRendererResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/docx-render-jobs") {
+    const docxRendererResult = await readDashboardSourceArtifact(dashboard, "docx_renderer");
+    if (!docxRendererResult.available) {
+      return jsonResponse(503, buildError("docx_renderer_unavailable", docxRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("docx_render_jobs", docxRendererResult.artifact.docx_render_jobs ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/docx-template-data-packets") {
+    const docxRendererResult = await readDashboardSourceArtifact(dashboard, "docx_renderer");
+    if (!docxRendererResult.available) {
+      return jsonResponse(503, buildError("docx_renderer_unavailable", docxRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("docx_template_data_packets", docxRendererResult.artifact.docx_template_data_packets ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/docx-openxml-parts") {
+    const docxRendererResult = await readDashboardSourceArtifact(dashboard, "docx_renderer");
+    if (!docxRendererResult.available) {
+      return jsonResponse(503, buildError("docx_renderer_unavailable", docxRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("docx_openxml_parts", docxRendererResult.artifact.docx_openxml_parts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/docx-output-artifacts") {
+    const docxRendererResult = await readDashboardSourceArtifact(dashboard, "docx_renderer");
+    if (!docxRendererResult.available) {
+      return jsonResponse(503, buildError("docx_renderer_unavailable", docxRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("docx_output_artifacts", docxRendererResult.artifact.docx_output_artifacts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/docx-format-validations") {
+    const docxRendererResult = await readDashboardSourceArtifact(dashboard, "docx_renderer");
+    if (!docxRendererResult.available) {
+      return jsonResponse(503, buildError("docx_renderer_unavailable", docxRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("docx_format_validations", docxRendererResult.artifact.docx_format_validation_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/docx-renderer-validations") {
+    const docxRendererResult = await readDashboardSourceArtifact(dashboard, "docx_renderer");
+    if (!docxRendererResult.available) {
+      return jsonResponse(503, buildError("docx_renderer_unavailable", docxRendererResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("docx_renderer_validations", docxRendererResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -10809,6 +10858,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/template-asset-bindings", "Template asset binding rows"),
       route("GET", "/api/asset-format-coverage", "Asset format coverage rows"),
       route("GET", "/api/asset-registry-validations", "Asset registry validation rows"),
+      route("GET", "/api/docx-renderers", "DOCX renderer artifact"),
+      route("GET", "/api/docx-render-jobs", "DOCX render job rows"),
+      route("GET", "/api/docx-template-data-packets", "DOCX template data packet rows"),
+      route("GET", "/api/docx-openxml-parts", "DOCX OpenXML part rows"),
+      route("GET", "/api/docx-output-artifacts", "DOCX output artifact rows"),
+      route("GET", "/api/docx-format-validations", "DOCX format validation rows"),
+      route("GET", "/api/docx-renderer-validations", "DOCX renderer validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -11795,6 +11851,12 @@ function filterItems(items, searchParams) {
     "template_asset_binding_status",
     "asset_format",
     "asset_format_coverage_status",
+    "docx_renderer_status",
+    "docx_render_job_status",
+    "docx_template_data_packet_status",
+    "openxml_part_status",
+    "docx_output_artifact_status",
+    "docx_format_validation_status",
     "matter_os_profile_status",
     "profile_card_status",
     "display_field_status",
@@ -13509,6 +13571,12 @@ function readFilterValue(item, key) {
   if (key === "template_asset_binding_status") return item.binding_status;
   if (key === "asset_format") return item.asset_format ?? item.template_format;
   if (key === "asset_format_coverage_status") return item.asset_format_coverage_status;
+  if (key === "docx_renderer_status") return item.summary?.docx_renderer_status ?? item.docx_renderer_status;
+  if (key === "docx_render_job_status") return item.docx_render_job_status ?? item.render_job_status;
+  if (key === "docx_template_data_packet_status") return item.packet_status;
+  if (key === "openxml_part_status") return item.openxml_part_status;
+  if (key === "docx_output_artifact_status") return item.output_artifact_status;
+  if (key === "docx_format_validation_status") return item.docx_format_validation_status ?? item.validation_status;
   if (key === "matter_os_profile_status") return item.summary?.matter_os_profile_status ?? item.matter_os_profile_status;
   if (key === "profile_card_status") return item.profile_card_status;
   if (key === "display_field_status") return item.display_field_status;

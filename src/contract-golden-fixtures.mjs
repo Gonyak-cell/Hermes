@@ -165,6 +165,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     template_registry: "artifacts/template-registry/latest/template-registry.json",
     style_registry: "artifacts/style-registry/latest/style-registry.json",
     asset_registry: "artifacts/asset-registry/latest/asset-registry.json",
+    docx_renderer: "artifacts/docx-renderer/latest/docx-renderer.json",
   },
 };
 
@@ -323,6 +324,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("template_registry", "Template Registry", "creative_document", "template-registry.schema.json"),
   fixtureDefinition("style_registry", "Style Registry", "creative_document", "style-registry.schema.json"),
   fixtureDefinition("asset_registry", "Asset Registry", "creative_document", "asset-registry.schema.json"),
+  fixtureDefinition("docx_renderer", "DOCX Renderer", "creative_document", "docx-renderer.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),

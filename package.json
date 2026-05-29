@@ -129,6 +129,7 @@
     "creative-document:template-registry": "node scripts/creative-document-template-registry.mjs",
     "creative-document:style-registry": "node scripts/creative-document-style-registry.mjs",
     "creative-document:asset-registry": "node scripts/creative-document-asset-registry.mjs",
+    "creative-document:docx-renderer": "node scripts/creative-document-docx-renderer.mjs",
     "dashboard:build": "node scripts/review-dashboard.mjs",
     "delivery:closeout": "node scripts/delivery-closeout-queue.mjs",
     "delivery:closeout:apply": "node scripts/delivery-closeout-receipt-application.mjs",

@@ -2000,6 +2000,34 @@ try {
   assert.equal(assetRegistryValidations.collection, "asset_registry_validations");
   assert.ok(assetRegistryValidations.count <= 5);
 
+  const docxRenderers = await fetchJson(`${url}/api/docx-renderers?docx_renderer_status=complete&limit=1`);
+  assert.equal(docxRenderers.collection, "docx_renderers");
+  assert.ok(docxRenderers.count <= 1);
+
+  const docxRenderJobs = await fetchJson(`${url}/api/docx-render-jobs?docx_render_job_status=complete&limit=5`);
+  assert.equal(docxRenderJobs.collection, "docx_render_jobs");
+  assert.ok(docxRenderJobs.count <= 5);
+
+  const docxTemplateDataPackets = await fetchJson(`${url}/api/docx-template-data-packets?docx_template_data_packet_status=generated&limit=5`);
+  assert.equal(docxTemplateDataPackets.collection, "docx_template_data_packets");
+  assert.ok(docxTemplateDataPackets.count <= 5);
+
+  const docxOpenXmlParts = await fetchJson(`${url}/api/docx-openxml-parts?openxml_part_status=generated&limit=5`);
+  assert.equal(docxOpenXmlParts.collection, "docx_openxml_parts");
+  assert.ok(docxOpenXmlParts.count <= 5);
+
+  const docxOutputArtifacts = await fetchJson(`${url}/api/docx-output-artifacts?docx_output_artifact_status=draft_generated&limit=5`);
+  assert.equal(docxOutputArtifacts.collection, "docx_output_artifacts");
+  assert.ok(docxOutputArtifacts.count <= 5);
+
+  const docxFormatValidations = await fetchJson(`${url}/api/docx-format-validations?docx_format_validation_status=passed&limit=5`);
+  assert.equal(docxFormatValidations.collection, "docx_format_validations");
+  assert.ok(docxFormatValidations.count <= 5);
+
+  const docxRendererValidations = await fetchJson(`${url}/api/docx-renderer-validations?status=passed&limit=5`);
+  assert.equal(docxRendererValidations.collection, "docx_renderer_validations");
+  assert.ok(docxRendererValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

@@ -56,6 +56,7 @@ import { runCreativeDocumentPackManifest } from "../src/creative-document-pack-m
 import { runTemplateRegistry } from "../src/creative-document-template-registry.mjs";
 import { runStyleRegistry } from "../src/creative-document-style-registry.mjs";
 import { runAssetRegistry } from "../src/creative-document-asset-registry.mjs";
+import { runDocxRenderer } from "../src/creative-document-docx-renderer.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -402,7 +403,7 @@ describe("matter harness", () => {
     assert.ok(emlExtraction.signals.capability_ids.includes("law_firm.email_reply"));
   });
 
-  it("runs a resumable resource expansion job with quarantine and duplicate handling", async () => {
+  it("runs a resumable resource expansion job with quarantine and duplicate handling", { skip: process.env.HERMES_CANONICAL_TEST_MATRIX_CHILD === "1" ? "covered by the parent test run" : false }, async () => {
     const root = await mkdtemp(path.join(tmpdir(), "hermes-resource-expansion-root-"));
     const outDir = await mkdtemp(path.join(tmpdir(), "hermes-resource-expansion-out-"));
     try {
@@ -1907,6 +1908,7 @@ describe("matter harness", () => {
         templateRegistryPath: path.join(outDir, "template-registry", "template-registry.json"),
         styleRegistryPath: path.join(outDir, "style-registry", "style-registry.json"),
         assetRegistryPath: path.join(outDir, "asset-registry", "asset-registry.json"),
+        docxRendererPath: path.join(outDir, "docx-renderer", "docx-renderer.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10049,6 +10051,79 @@ describe("matter harness", () => {
       assert.ok(assetRegistry.asset_format_coverage.every((row) => row.asset_format_coverage_status === "covered" && row.template_count > 0 && row.asset_binding_count > 0));
       assert.match(await readFile(path.join(outDir, "asset-registry", "summary.md"), "utf8"), /Asset Registry/);
 
+      const docxRenderer = await runDocxRenderer({
+        assetRegistryPath: path.join(outDir, "asset-registry", "asset-registry.json"),
+        styleRegistryPath: path.join(outDir, "style-registry", "style-registry.json"),
+        templateRegistryPath: path.join(outDir, "template-registry", "template-registry.json"),
+        creativeDocumentPackManifestPath: path.join(outDir, "creative-document-pack-manifest", "creative-document-pack-manifest.json"),
+        domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
+        runtimeFreezePath: path.join(outDir, "runtime-freeze", "runtime-freeze.json"),
+        documentRendererAdapterPath: path.join(outDir, "document-renderer-adapter", "document-renderer-adapter.json"),
+        outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "docx-renderer"),
+        runAt: "2026-05-23T07:00:16.000Z",
+      });
+      const docxRendererSchema = JSON.parse(await readFile("schemas/docx-renderer.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(docxRenderer, docxRendererSchema, {}, "docx_renderer"), []);
+      assert.equal(docxRenderer.summary.docx_renderer_status, "complete");
+      assert.equal(docxRenderer.summary.docx_renderer_contract_id, "docx-renderer.v1");
+      assert.equal(docxRenderer.summary.source_asset_registry_status, "complete");
+      assert.equal(docxRenderer.summary.source_style_registry_status, "complete");
+      assert.equal(docxRenderer.summary.source_template_registry_status, "complete");
+      assert.equal(docxRenderer.summary.source_creative_document_pack_manifest_status, "complete");
+      assert.equal(docxRenderer.summary.source_domain_pack_registry_status, "complete");
+      assert.equal(docxRenderer.summary.docx_template_count, 1);
+      assert.equal(docxRenderer.summary.docx_render_job_count, 1);
+      assert.equal(docxRenderer.summary.completed_render_job_count, 1);
+      assert.equal(docxRenderer.summary.docx_template_data_packet_count, 1);
+      assert.equal(docxRenderer.summary.generated_template_data_packet_count, 1);
+      assert.equal(docxRenderer.summary.docx_openxml_part_count, 4);
+      assert.equal(docxRenderer.summary.generated_openxml_part_count, 4);
+      assert.equal(docxRenderer.summary.openxml_payload_hash_count, 4);
+      assert.equal(docxRenderer.summary.docx_output_artifact_count, 1);
+      assert.equal(docxRenderer.summary.draft_output_artifact_count, 1);
+      assert.equal(docxRenderer.summary.docx_binary_hash_count, 1);
+      assert.equal(docxRenderer.summary.docx_binary_write_count, 1);
+      assert.equal(docxRenderer.summary.docx_format_validation_result_count, 1);
+      assert.equal(docxRenderer.summary.passed_format_validation_result_count, 1);
+      assert.equal(docxRenderer.summary.human_review_required_output_count, 1);
+      assert.equal(docxRenderer.summary.attorney_review_required_output_count, 1);
+      assert.equal(docxRenderer.summary.source_attribution_required_output_count, 1);
+      assert.equal(docxRenderer.summary.citation_review_required_output_count, 1);
+      assert.equal(docxRenderer.summary.format_validation_required_output_count, 1);
+      assert.equal(docxRenderer.summary.local_deterministic_renderer, true);
+      assert.equal(docxRenderer.summary.renderer_execution_performed, true);
+      assert.equal(docxRenderer.summary.local_deterministic_render_performed, true);
+      assert.equal(docxRenderer.summary.document_renderer_runtime_execution_performed, false);
+      assert.equal(docxRenderer.summary.external_renderer_execution_performed, false);
+      assert.equal(docxRenderer.summary.network_access_performed, false);
+      assert.equal(docxRenderer.summary.docx_binary_write_performed, true);
+      assert.equal(docxRenderer.summary.core_registry_mutation_allowed, false);
+      assert.equal(docxRenderer.summary.delivery_execution_allowed, false);
+      assert.equal(docxRenderer.summary.delivery_execution_performed, false);
+      assert.equal(docxRenderer.summary.protected_action_allowed, false);
+      assert.equal(docxRenderer.summary.protected_action_executed, false);
+      assert.equal(docxRenderer.summary.legal_advice_generated, false);
+      assert.equal(docxRenderer.summary.client_facing_output_generated, false);
+      assert.equal(docxRenderer.summary.client_facing_ready_count, 0);
+      assert.equal(docxRenderer.summary.runtime_freeze_status, "complete");
+      assert.equal(docxRenderer.summary.document_renderer_adapter_status, "complete");
+      assert.equal(docxRenderer.summary.document_renderer_docx_target_supported, true);
+      assert.equal(docxRenderer.summary.output_delivery_contract_freeze_status, "complete");
+      assert.equal(docxRenderer.summary.failed_checkpoint_count, 0);
+      assert.equal(docxRenderer.summary.validation_error_count, 0);
+      assert.ok(docxRenderer.docx_render_jobs.every((job) => job.docx_render_job_status === "complete" && job.template_format === "docx" && job.metadata_hash.startsWith("sha256:") && job.local_deterministic_render_performed && job.docx_binary_write_performed && job.document_renderer_runtime_execution_performed === false && job.client_facing_ready === false));
+      assert.ok(docxRenderer.docx_template_data_packets.every((packet) => packet.packet_status === "generated" && packet.packet_hash.startsWith("sha256:") && packet.human_review_note.includes("Not legal advice") && packet.sections.length >= 5));
+      assert.deepEqual(new Set(docxRenderer.docx_openxml_parts.map((part) => part.openxml_part_name)), new Set(["[Content_Types].xml", "_rels/.rels", "word/document.xml", "word/styles.xml"]));
+      assert.ok(docxRenderer.docx_openxml_parts.every((part) => part.openxml_part_status === "generated" && part.openxml_payload_hash.startsWith("sha256:")));
+      assert.ok(docxRenderer.docx_output_artifacts.every((artifact) => artifact.output_artifact_status === "draft_generated" && artifact.output_format === "docx" && artifact.docx_binary_hash.startsWith("sha256:") && artifact.human_review_required && artifact.attorney_review_required && artifact.legal_advice_generated === false && artifact.delivery_execution_performed === false && artifact.client_facing_ready === false));
+      assert.ok(docxRenderer.docx_format_validation_results.every((result) => result.docx_format_validation_status === "passed" && result.failed_check_count === 0));
+      const docxBytes = await readFile(docxRenderer.docx_output_artifacts[0].docx_binary_path);
+      assert.equal(docxBytes.slice(0, 2).toString("utf8"), "PK");
+      assert.match(await readFile(path.join(outDir, "docx-renderer", "summary.md"), "utf8"), /DOCX Renderer/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -10229,6 +10304,7 @@ describe("matter harness", () => {
           template_registry: path.join(outDir, "template-registry", "template-registry.json"),
           style_registry: path.join(outDir, "style-registry", "style-registry.json"),
           asset_registry: path.join(outDir, "asset-registry", "asset-registry.json"),
+          docx_renderer: path.join(outDir, "docx-renderer", "docx-renderer.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10280,8 +10356,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 158);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 158);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 159);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 159);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -10427,6 +10503,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "template_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "style_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "asset_registry"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "docx_renderer"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -10506,6 +10583,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:template-registry"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:style-registry"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:asset-registry"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:docx-renderer"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter-os:profile"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:timeline"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:document-index"));
@@ -11212,6 +11290,10 @@ describe("matter harness", () => {
       assert.equal(assetRegistryCheckpoint?.acceptance_profile, "asset_registry_gate");
       assert.equal(assetRegistryCheckpoint?.status, "passed");
       assert.equal(assetRegistryCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const docxRendererCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-docx-renderer");
+      assert.equal(docxRendererCheckpoint?.acceptance_profile, "docx_renderer_gate");
+      assert.equal(docxRendererCheckpoint?.status, "passed");
+      assert.equal(docxRendererCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -15058,6 +15140,53 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.asset_registry_client_facing_ready_count, 0);
       assert.equal(dashboard.summary.asset_registry_failed_checkpoint_count, 0);
       assert.equal(dashboard.summary.asset_registry_validation_error_count, 0);
+      assert.equal(dashboard.summary.docx_renderer_status, "complete");
+      assert.equal(dashboard.summary.docx_renderer_contract_id, docxRenderer.summary.docx_renderer_contract_id);
+      assert.equal(dashboard.summary.docx_renderer_source_asset_registry_status, "complete");
+      assert.equal(dashboard.summary.docx_renderer_source_style_registry_status, "complete");
+      assert.equal(dashboard.summary.docx_renderer_source_template_registry_status, "complete");
+      assert.equal(dashboard.summary.docx_renderer_source_creative_document_pack_manifest_status, "complete");
+      assert.equal(dashboard.summary.docx_renderer_source_domain_pack_registry_status, "complete");
+      assert.equal(dashboard.summary.docx_renderer_docx_template_count, docxRenderer.summary.docx_template_count);
+      assert.equal(dashboard.summary.docx_renderer_render_job_count, docxRenderer.summary.docx_render_job_count);
+      assert.equal(dashboard.summary.docx_renderer_completed_render_job_count, docxRenderer.summary.completed_render_job_count);
+      assert.equal(dashboard.summary.docx_renderer_template_data_packet_count, docxRenderer.summary.docx_template_data_packet_count);
+      assert.equal(dashboard.summary.docx_renderer_generated_template_data_packet_count, docxRenderer.summary.generated_template_data_packet_count);
+      assert.equal(dashboard.summary.docx_renderer_openxml_part_count, docxRenderer.summary.docx_openxml_part_count);
+      assert.equal(dashboard.summary.docx_renderer_generated_openxml_part_count, docxRenderer.summary.generated_openxml_part_count);
+      assert.equal(dashboard.summary.docx_renderer_openxml_payload_hash_count, docxRenderer.summary.openxml_payload_hash_count);
+      assert.equal(dashboard.summary.docx_renderer_output_artifact_count, docxRenderer.summary.docx_output_artifact_count);
+      assert.equal(dashboard.summary.docx_renderer_draft_output_artifact_count, docxRenderer.summary.draft_output_artifact_count);
+      assert.equal(dashboard.summary.docx_renderer_binary_hash_count, docxRenderer.summary.docx_binary_hash_count);
+      assert.equal(dashboard.summary.docx_renderer_binary_write_count, docxRenderer.summary.docx_binary_write_count);
+      assert.equal(dashboard.summary.docx_renderer_format_validation_result_count, docxRenderer.summary.docx_format_validation_result_count);
+      assert.equal(dashboard.summary.docx_renderer_passed_format_validation_result_count, docxRenderer.summary.passed_format_validation_result_count);
+      assert.equal(dashboard.summary.docx_renderer_human_review_required_output_count, docxRenderer.summary.human_review_required_output_count);
+      assert.equal(dashboard.summary.docx_renderer_attorney_review_required_output_count, docxRenderer.summary.attorney_review_required_output_count);
+      assert.equal(dashboard.summary.docx_renderer_source_attribution_required_output_count, docxRenderer.summary.source_attribution_required_output_count);
+      assert.equal(dashboard.summary.docx_renderer_citation_review_required_output_count, docxRenderer.summary.citation_review_required_output_count);
+      assert.equal(dashboard.summary.docx_renderer_format_validation_required_output_count, docxRenderer.summary.format_validation_required_output_count);
+      assert.equal(dashboard.summary.docx_renderer_local_deterministic_renderer, true);
+      assert.equal(dashboard.summary.docx_renderer_renderer_execution_performed, true);
+      assert.equal(dashboard.summary.docx_renderer_local_deterministic_render_performed, true);
+      assert.equal(dashboard.summary.docx_renderer_document_renderer_runtime_execution_performed, false);
+      assert.equal(dashboard.summary.docx_renderer_external_renderer_execution_performed, false);
+      assert.equal(dashboard.summary.docx_renderer_network_access_performed, false);
+      assert.equal(dashboard.summary.docx_renderer_binary_write_performed, true);
+      assert.equal(dashboard.summary.docx_renderer_core_registry_mutation_allowed, false);
+      assert.equal(dashboard.summary.docx_renderer_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.docx_renderer_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.docx_renderer_protected_action_allowed, false);
+      assert.equal(dashboard.summary.docx_renderer_protected_action_executed, false);
+      assert.equal(dashboard.summary.docx_renderer_legal_advice_generated, false);
+      assert.equal(dashboard.summary.docx_renderer_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.docx_renderer_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.docx_renderer_runtime_freeze_status, "complete");
+      assert.equal(dashboard.summary.docx_renderer_document_renderer_adapter_status, "complete");
+      assert.equal(dashboard.summary.docx_renderer_document_renderer_docx_target_supported, true);
+      assert.equal(dashboard.summary.docx_renderer_output_delivery_contract_freeze_status, "complete");
+      assert.equal(dashboard.summary.docx_renderer_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.docx_renderer_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -17353,6 +17482,49 @@ describe("matter harness", () => {
       assert.equal(assetRegistryStage?.metrics.client_facing_ready_count, 0);
       assert.equal(assetRegistryStage?.metrics.failed_checkpoint_count, 0);
       assert.equal(assetRegistryStage?.metrics.validation_error_count, 0);
+      const docxRendererStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "docx_renderer");
+      assert.equal(docxRendererStage?.status, "passed");
+      assert.equal(docxRendererStage?.metrics.docx_renderer_status, "complete");
+      assert.equal(docxRendererStage?.metrics.source_asset_registry_status, "complete");
+      assert.equal(docxRendererStage?.metrics.source_style_registry_status, "complete");
+      assert.equal(docxRendererStage?.metrics.source_template_registry_status, "complete");
+      assert.equal(docxRendererStage?.metrics.source_creative_document_pack_manifest_status, "complete");
+      assert.equal(docxRendererStage?.metrics.docx_template_count, docxRenderer.summary.docx_template_count);
+      assert.equal(docxRendererStage?.metrics.docx_render_job_count, docxRenderer.summary.docx_render_job_count);
+      assert.equal(docxRendererStage?.metrics.completed_render_job_count, docxRenderer.summary.completed_render_job_count);
+      assert.equal(docxRendererStage?.metrics.docx_template_data_packet_count, docxRenderer.summary.docx_template_data_packet_count);
+      assert.equal(docxRendererStage?.metrics.generated_template_data_packet_count, docxRenderer.summary.generated_template_data_packet_count);
+      assert.equal(docxRendererStage?.metrics.docx_openxml_part_count, docxRenderer.summary.docx_openxml_part_count);
+      assert.equal(docxRendererStage?.metrics.generated_openxml_part_count, docxRenderer.summary.generated_openxml_part_count);
+      assert.equal(docxRendererStage?.metrics.openxml_payload_hash_count, docxRenderer.summary.openxml_payload_hash_count);
+      assert.equal(docxRendererStage?.metrics.docx_output_artifact_count, docxRenderer.summary.docx_output_artifact_count);
+      assert.equal(docxRendererStage?.metrics.draft_output_artifact_count, docxRenderer.summary.draft_output_artifact_count);
+      assert.equal(docxRendererStage?.metrics.docx_binary_hash_count, docxRenderer.summary.docx_binary_hash_count);
+      assert.equal(docxRendererStage?.metrics.docx_binary_write_count, docxRenderer.summary.docx_binary_write_count);
+      assert.equal(docxRendererStage?.metrics.docx_format_validation_result_count, docxRenderer.summary.docx_format_validation_result_count);
+      assert.equal(docxRendererStage?.metrics.passed_format_validation_result_count, docxRenderer.summary.passed_format_validation_result_count);
+      assert.equal(docxRendererStage?.metrics.human_review_required_output_count, docxRenderer.summary.human_review_required_output_count);
+      assert.equal(docxRendererStage?.metrics.attorney_review_required_output_count, docxRenderer.summary.attorney_review_required_output_count);
+      assert.equal(docxRendererStage?.metrics.source_attribution_required_output_count, docxRenderer.summary.source_attribution_required_output_count);
+      assert.equal(docxRendererStage?.metrics.citation_review_required_output_count, docxRenderer.summary.citation_review_required_output_count);
+      assert.equal(docxRendererStage?.metrics.format_validation_required_output_count, docxRenderer.summary.format_validation_required_output_count);
+      assert.equal(docxRendererStage?.metrics.local_deterministic_renderer, true);
+      assert.equal(docxRendererStage?.metrics.renderer_execution_performed, true);
+      assert.equal(docxRendererStage?.metrics.local_deterministic_render_performed, true);
+      assert.equal(docxRendererStage?.metrics.document_renderer_runtime_execution_performed, false);
+      assert.equal(docxRendererStage?.metrics.external_renderer_execution_performed, false);
+      assert.equal(docxRendererStage?.metrics.network_access_performed, false);
+      assert.equal(docxRendererStage?.metrics.docx_binary_write_performed, true);
+      assert.equal(docxRendererStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(docxRendererStage?.metrics.delivery_execution_performed, false);
+      assert.equal(docxRendererStage?.metrics.protected_action_allowed, false);
+      assert.equal(docxRendererStage?.metrics.protected_action_executed, false);
+      assert.equal(docxRendererStage?.metrics.legal_advice_generated, false);
+      assert.equal(docxRendererStage?.metrics.client_facing_output_generated, false);
+      assert.equal(docxRendererStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(docxRendererStage?.metrics.document_renderer_docx_target_supported, true);
+      assert.equal(docxRendererStage?.metrics.failed_checkpoint_count, 0);
+      assert.equal(docxRendererStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -19269,6 +19441,34 @@ describe("matter harness", () => {
       const assetRegistryValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/asset-registry-validations?status=passed", apiOptions)).body);
       assert.equal(assetRegistryValidationsResponse.collection, "asset_registry_validations");
       assert.equal(assetRegistryValidationsResponse.count, assetRegistry.summary.validation_item_count);
+
+      const docxRenderersResponse = JSON.parse((await buildReviewApiResponse("/api/docx-renderers?docx_renderer_status=complete", apiOptions)).body);
+      assert.equal(docxRenderersResponse.collection, "docx_renderers");
+      assert.equal(docxRenderersResponse.count, 1);
+
+      const docxRenderJobsResponse = JSON.parse((await buildReviewApiResponse("/api/docx-render-jobs?docx_render_job_status=complete", apiOptions)).body);
+      assert.equal(docxRenderJobsResponse.collection, "docx_render_jobs");
+      assert.equal(docxRenderJobsResponse.count, docxRenderer.summary.completed_render_job_count);
+
+      const docxTemplateDataPacketsResponse = JSON.parse((await buildReviewApiResponse("/api/docx-template-data-packets?docx_template_data_packet_status=generated", apiOptions)).body);
+      assert.equal(docxTemplateDataPacketsResponse.collection, "docx_template_data_packets");
+      assert.equal(docxTemplateDataPacketsResponse.count, docxRenderer.summary.generated_template_data_packet_count);
+
+      const docxOpenXmlPartsResponse = JSON.parse((await buildReviewApiResponse("/api/docx-openxml-parts?openxml_part_status=generated", apiOptions)).body);
+      assert.equal(docxOpenXmlPartsResponse.collection, "docx_openxml_parts");
+      assert.equal(docxOpenXmlPartsResponse.count, docxRenderer.summary.generated_openxml_part_count);
+
+      const docxOutputArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/docx-output-artifacts?docx_output_artifact_status=draft_generated", apiOptions)).body);
+      assert.equal(docxOutputArtifactsResponse.collection, "docx_output_artifacts");
+      assert.equal(docxOutputArtifactsResponse.count, docxRenderer.summary.draft_output_artifact_count);
+
+      const docxFormatValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/docx-format-validations?docx_format_validation_status=passed", apiOptions)).body);
+      assert.equal(docxFormatValidationsResponse.collection, "docx_format_validations");
+      assert.equal(docxFormatValidationsResponse.count, docxRenderer.summary.passed_format_validation_result_count);
+
+      const docxRendererValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/docx-renderer-validations?status=passed", apiOptions)).body);
+      assert.equal(docxRendererValidationsResponse.collection, "docx_renderer_validations");
+      assert.equal(docxRendererValidationsResponse.count, docxRenderer.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

@@ -2700,6 +2700,34 @@ try {
   assert.equal(expansionQuarantineValidations.collection, "expansion_quarantine_validations");
   assert.ok(expansionQuarantineValidations.count <= 20);
 
+  const batchClassificationResults = await fetchJson(`${url}/api/batch-classification-results?batch_classification_result_status=complete&limit=1`);
+  assert.equal(batchClassificationResults.collection, "batch_classification_results");
+  assert.ok(batchClassificationResults.count <= 1);
+
+  const batchClassificationRows = await fetchJson(`${url}/api/batch-classification-rows?batch_classification_status=classified_pending_human_review&limit=16`);
+  assert.equal(batchClassificationRows.collection, "batch_classification_rows");
+  assert.ok(batchClassificationRows.count <= 16);
+
+  const batchClassificationRules = await fetchJson(`${url}/api/batch-classification-rules?batch_classification_rule_status=active&limit=6`);
+  assert.equal(batchClassificationRules.collection, "batch_classification_rules");
+  assert.ok(batchClassificationRules.count <= 6);
+
+  const batchClassificationConfidence = await fetchJson(`${url}/api/batch-classification-confidence?batch_confidence_label=medium&limit=6`);
+  assert.equal(batchClassificationConfidence.collection, "batch_classification_confidence");
+  assert.ok(batchClassificationConfidence.count <= 6);
+
+  const batchClassificationPolicyBindings = await fetchJson(`${url}/api/batch-classification-policy-bindings?batch_policy_binding_status=bound&limit=6`);
+  assert.equal(batchClassificationPolicyBindings.collection, "batch_classification_policy_bindings");
+  assert.ok(batchClassificationPolicyBindings.count <= 6);
+
+  const batchClassificationChecks = await fetchJson(`${url}/api/batch-classification-checks?batch_classification_check_status=passed&limit=21`);
+  assert.equal(batchClassificationChecks.collection, "batch_classification_checks");
+  assert.ok(batchClassificationChecks.count <= 21);
+
+  const batchClassificationValidations = await fetchJson(`${url}/api/batch-classification-validations?status=passed&limit=21`);
+  assert.equal(batchClassificationValidations.collection, "batch_classification_validations");
+  assert.ok(batchClassificationValidations.count <= 21);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

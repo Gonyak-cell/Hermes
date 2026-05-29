@@ -80,6 +80,7 @@ import { runBackfillJobContract } from "../src/backfill-job-contract.mjs";
 import { runExpansionCursorLedger } from "../src/expansion-cursor-ledger.mjs";
 import { runExpansionDedupLedger } from "../src/expansion-dedup-ledger.mjs";
 import { runExpansionQuarantineLedger } from "../src/expansion-quarantine-ledger.mjs";
+import { runBatchClassificationResult } from "../src/batch-classification-result.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1955,6 +1956,7 @@ describe("matter harness", () => {
         expansionCursorLedgerPath: path.join(outDir, "expansion-cursor-ledger", "expansion-cursor-ledger.json"),
         expansionDedupLedgerPath: path.join(outDir, "expansion-dedup-ledger", "expansion-dedup-ledger.json"),
         expansionQuarantineLedgerPath: path.join(outDir, "expansion-quarantine-ledger", "expansion-quarantine-ledger.json"),
+        batchClassificationResultPath: path.join(outDir, "batch-classification-result", "batch-classification-result.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11619,6 +11621,62 @@ describe("matter harness", () => {
       assert.ok(expansionQuarantineLedger.quarantine_status_audits.every((row) => row.audit_status === "passed" && row.release_event_present === false));
       assert.match(await readFile(path.join(outDir, "expansion-quarantine-ledger", "summary.md"), "utf8"), /Expansion Quarantine Ledger/);
 
+      const batchClassificationResult = await runBatchClassificationResult({
+        resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
+        expansionCursorLedgerPath: path.join(outDir, "expansion-cursor-ledger", "expansion-cursor-ledger.json"),
+        expansionDedupLedgerPath: path.join(outDir, "expansion-dedup-ledger", "expansion-dedup-ledger.json"),
+        expansionQuarantineLedgerPath: path.join(outDir, "expansion-quarantine-ledger", "expansion-quarantine-ledger.json"),
+        dataClassificationRuleEnginePath: path.join(outDir, "data-classification-rules", "data-classification-rule-engine.json"),
+        backfillJobContractPath: path.join(outDir, "backfill-job-contract", "backfill-job-contract.json"),
+        outDir: path.join(outDir, "batch-classification-result"),
+        runAt: "2026-05-23T07:22:24.000Z",
+      });
+      const batchClassificationResultSchema = JSON.parse(await readFile("schemas/batch-classification-result.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(batchClassificationResult, batchClassificationResultSchema, {}, "batch_classification_result"), [], JSON.stringify(batchClassificationResult.validation.errors));
+      assert.equal(batchClassificationResult.summary.batch_classification_result_status, "complete");
+      assert.equal(batchClassificationResult.summary.phase_slot, "P281");
+      assert.equal(batchClassificationResult.summary.previous_phase_slot, "P280");
+      assert.equal(batchClassificationResult.summary.next_phase_slot, "P282");
+      assert.equal(batchClassificationResult.summary.source_expansion_quarantine_ledger_status, "complete");
+      assert.equal(batchClassificationResult.summary.source_expansion_quarantine_phase_slot, "P280");
+      assert.equal(batchClassificationResult.summary.source_data_classification_rule_engine_status, "complete");
+      assert.equal(batchClassificationResult.summary.classification_rule_count, dataClassificationRuleEngine.summary.classification_rule_count);
+      assert.equal(batchClassificationResult.summary.classification_row_count, second.items.length);
+      assert.equal(batchClassificationResult.summary.classified_resource_count, second.items.length);
+      assert.equal(batchClassificationResult.summary.classification_present_count, second.items.length);
+      assert.equal(batchClassificationResult.summary.missing_classification_count, 0);
+      assert.equal(batchClassificationResult.summary.confidence_present_count, second.items.length);
+      assert.equal(batchClassificationResult.summary.missing_confidence_count, 0);
+      assert.equal(batchClassificationResult.summary.low_confidence_count, 0);
+      assert.equal(batchClassificationResult.summary.policy_bound_classification_count, second.items.length);
+      assert.equal(batchClassificationResult.summary.unbound_classification_count, 0);
+      assert.equal(batchClassificationResult.summary.human_review_required_count, second.items.length);
+      assert.equal(batchClassificationResult.summary.client_facing_ready_count, 0);
+      assert.equal(batchClassificationResult.summary.source_path_used_for_classification_identity_count, 0);
+      assert.equal(batchClassificationResult.summary.file_content_read_performed_count, 0);
+      assert.equal(batchClassificationResult.summary.external_model_used_count, 0);
+      assert.equal(batchClassificationResult.summary.read_only, true);
+      assert.equal(batchClassificationResult.summary.batch_classification_report_only, true);
+      assert.equal(batchClassificationResult.summary.backfill_execution_performed, false);
+      assert.equal(batchClassificationResult.summary.classification_write_performed, false);
+      assert.equal(batchClassificationResult.summary.source_ingest_performed, false);
+      assert.equal(batchClassificationResult.summary.file_content_read_performed, false);
+      assert.equal(batchClassificationResult.summary.external_model_used, false);
+      assert.equal(batchClassificationResult.summary.source_mutation_performed, false);
+      assert.equal(batchClassificationResult.summary.resource_mutation_performed, false);
+      assert.equal(batchClassificationResult.summary.state_mutation_performed, false);
+      assert.equal(batchClassificationResult.summary.delivery_execution_performed, false);
+      assert.equal(batchClassificationResult.summary.protected_action_executed, false);
+      assert.equal(batchClassificationResult.summary.legal_advice_generated, false);
+      assert.equal(batchClassificationResult.summary.client_facing_output_generated, false);
+      assert.equal(batchClassificationResult.summary.windows_baseline_stability_preserved, true);
+      assert.equal(batchClassificationResult.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(batchClassificationResult.summary.validation_error_count, 0);
+      assert.ok(batchClassificationResult.batch_classification_rows.every((row) => row.classification_status === "classified_pending_human_review" && row.confidence_score >= 0.7 && row.policy_binding_status === "bound" && row.human_review_required && row.client_facing_ready === false));
+      assert.ok(batchClassificationResult.classification_confidence_rows.every((row) => row.confidence_status === "passed" && row.missing_confidence_count === 0));
+      assert.ok(batchClassificationResult.classification_policy_binding_rows.every((row) => row.policy_binding_status === "bound" && row.classified_pending_human_review_count > 0));
+      assert.match(await readFile(path.join(outDir, "batch-classification-result", "summary.md"), "utf8"), /Batch Classification Result/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -11823,6 +11881,7 @@ describe("matter harness", () => {
           expansion_cursor_ledger: path.join(outDir, "expansion-cursor-ledger", "expansion-cursor-ledger.json"),
           expansion_dedup_ledger: path.join(outDir, "expansion-dedup-ledger", "expansion-dedup-ledger.json"),
           expansion_quarantine_ledger: path.join(outDir, "expansion-quarantine-ledger", "expansion-quarantine-ledger.json"),
+          batch_classification_result: path.join(outDir, "batch-classification-result", "batch-classification-result.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11874,8 +11933,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 182);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 182);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 183);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 183);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -12045,6 +12104,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "expansion_cursor_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "expansion_dedup_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "expansion_quarantine_ledger"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "batch_classification_result"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -12090,6 +12150,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:expansion-cursor-ledger"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:expansion-dedup-ledger"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:expansion-quarantine-ledger"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:batch-classification"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:runtime-interface"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:approval-matrix"));
@@ -12941,6 +13002,10 @@ describe("matter harness", () => {
       assert.equal(expansionQuarantineLedgerCheckpoint?.acceptance_profile, "expansion_quarantine_ledger_gate");
       assert.equal(expansionQuarantineLedgerCheckpoint?.status, "passed");
       assert.equal(expansionQuarantineLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const batchClassificationResultCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-batch-classification-result");
+      assert.equal(batchClassificationResultCheckpoint?.acceptance_profile, "batch_classification_result_gate");
+      assert.equal(batchClassificationResultCheckpoint?.status, "passed");
+      assert.equal(batchClassificationResultCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -17764,6 +17829,45 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.expansion_quarantine_ledger_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.expansion_quarantine_ledger_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.expansion_quarantine_ledger_validation_error_count, 0);
+      assert.equal(dashboard.summary.batch_classification_result_status, "complete");
+      assert.equal(dashboard.summary.batch_classification_result_phase_slot, "P281");
+      assert.equal(dashboard.summary.batch_classification_result_previous_phase_slot, "P280");
+      assert.equal(dashboard.summary.batch_classification_result_next_phase_slot, "P282");
+      assert.equal(dashboard.summary.batch_classification_result_source_expansion_quarantine_ledger_status, "complete");
+      assert.equal(dashboard.summary.batch_classification_result_source_expansion_quarantine_phase_slot, "P280");
+      assert.equal(dashboard.summary.batch_classification_result_source_data_classification_rule_engine_status, "complete");
+      assert.equal(dashboard.summary.batch_classification_result_classification_rule_count, batchClassificationResult.summary.classification_rule_count);
+      assert.equal(dashboard.summary.batch_classification_result_classification_row_count, batchClassificationResult.summary.classification_row_count);
+      assert.equal(dashboard.summary.batch_classification_result_classified_resource_count, batchClassificationResult.summary.classified_resource_count);
+      assert.equal(dashboard.summary.batch_classification_result_classification_present_count, batchClassificationResult.summary.classification_present_count);
+      assert.equal(dashboard.summary.batch_classification_result_missing_classification_count, 0);
+      assert.equal(dashboard.summary.batch_classification_result_confidence_present_count, batchClassificationResult.summary.confidence_present_count);
+      assert.equal(dashboard.summary.batch_classification_result_missing_confidence_count, 0);
+      assert.equal(dashboard.summary.batch_classification_result_low_confidence_count, 0);
+      assert.equal(dashboard.summary.batch_classification_result_policy_bound_classification_count, batchClassificationResult.summary.policy_bound_classification_count);
+      assert.equal(dashboard.summary.batch_classification_result_unbound_classification_count, 0);
+      assert.equal(dashboard.summary.batch_classification_result_human_review_required_count, batchClassificationResult.summary.human_review_required_count);
+      assert.equal(dashboard.summary.batch_classification_result_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.batch_classification_result_source_path_used_for_classification_identity_count, 0);
+      assert.equal(dashboard.summary.batch_classification_result_file_content_read_performed_count, 0);
+      assert.equal(dashboard.summary.batch_classification_result_external_model_used_count, 0);
+      assert.equal(dashboard.summary.batch_classification_result_read_only, true);
+      assert.equal(dashboard.summary.batch_classification_result_report_only, true);
+      assert.equal(dashboard.summary.batch_classification_result_backfill_execution_performed, false);
+      assert.equal(dashboard.summary.batch_classification_result_classification_write_performed, false);
+      assert.equal(dashboard.summary.batch_classification_result_source_ingest_performed, false);
+      assert.equal(dashboard.summary.batch_classification_result_file_content_read_performed, false);
+      assert.equal(dashboard.summary.batch_classification_result_external_model_used, false);
+      assert.equal(dashboard.summary.batch_classification_result_source_mutation_performed, false);
+      assert.equal(dashboard.summary.batch_classification_result_resource_mutation_performed, false);
+      assert.equal(dashboard.summary.batch_classification_result_state_mutation_performed, false);
+      assert.equal(dashboard.summary.batch_classification_result_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.batch_classification_result_protected_action_executed, false);
+      assert.equal(dashboard.summary.batch_classification_result_legal_advice_generated, false);
+      assert.equal(dashboard.summary.batch_classification_result_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.batch_classification_result_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.batch_classification_result_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.batch_classification_result_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -21013,6 +21117,41 @@ describe("matter harness", () => {
       assert.equal(expansionQuarantineLedgerStage?.metrics.client_facing_ready_count, 0);
       assert.equal(expansionQuarantineLedgerStage?.metrics.windows_baseline_stability_preserved, true);
       assert.equal(expansionQuarantineLedgerStage?.metrics.validation_error_count, 0);
+      const batchClassificationResultStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "batch_classification_result");
+      assert.equal(batchClassificationResultStage?.status, "passed");
+      assert.equal(batchClassificationResultStage?.metrics.batch_classification_result_status, "complete");
+      assert.equal(batchClassificationResultStage?.metrics.phase_slot, "P281");
+      assert.equal(batchClassificationResultStage?.metrics.previous_phase_slot, "P280");
+      assert.equal(batchClassificationResultStage?.metrics.next_phase_slot, "P282");
+      assert.equal(batchClassificationResultStage?.metrics.source_expansion_quarantine_ledger_status, "complete");
+      assert.equal(batchClassificationResultStage?.metrics.source_expansion_quarantine_phase_slot, "P280");
+      assert.equal(batchClassificationResultStage?.metrics.source_data_classification_rule_engine_status, "complete");
+      assert.equal(batchClassificationResultStage?.metrics.classification_rule_count, batchClassificationResult.summary.classification_rule_count);
+      assert.equal(batchClassificationResultStage?.metrics.classification_row_count, batchClassificationResult.summary.classification_row_count);
+      assert.equal(batchClassificationResultStage?.metrics.classified_resource_count, batchClassificationResult.summary.classified_resource_count);
+      assert.equal(batchClassificationResultStage?.metrics.classification_present_count, batchClassificationResult.summary.classification_present_count);
+      assert.equal(batchClassificationResultStage?.metrics.missing_classification_count, 0);
+      assert.equal(batchClassificationResultStage?.metrics.confidence_present_count, batchClassificationResult.summary.confidence_present_count);
+      assert.equal(batchClassificationResultStage?.metrics.missing_confidence_count, 0);
+      assert.equal(batchClassificationResultStage?.metrics.low_confidence_count, 0);
+      assert.equal(batchClassificationResultStage?.metrics.policy_bound_classification_count, batchClassificationResult.summary.policy_bound_classification_count);
+      assert.equal(batchClassificationResultStage?.metrics.unbound_classification_count, 0);
+      assert.equal(batchClassificationResultStage?.metrics.human_review_required_count, batchClassificationResult.summary.human_review_required_count);
+      assert.equal(batchClassificationResultStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(batchClassificationResultStage?.metrics.source_path_used_for_classification_identity_count, 0);
+      assert.equal(batchClassificationResultStage?.metrics.file_content_read_performed_count, 0);
+      assert.equal(batchClassificationResultStage?.metrics.external_model_used_count, 0);
+      assert.equal(batchClassificationResultStage?.metrics.read_only, true);
+      assert.equal(batchClassificationResultStage?.metrics.batch_classification_report_only, true);
+      assert.equal(batchClassificationResultStage?.metrics.backfill_execution_performed, false);
+      assert.equal(batchClassificationResultStage?.metrics.classification_write_performed, false);
+      assert.equal(batchClassificationResultStage?.metrics.source_ingest_performed, false);
+      assert.equal(batchClassificationResultStage?.metrics.file_content_read_performed, false);
+      assert.equal(batchClassificationResultStage?.metrics.external_model_used, false);
+      assert.equal(batchClassificationResultStage?.metrics.legal_advice_generated, false);
+      assert.equal(batchClassificationResultStage?.metrics.client_facing_output_generated, false);
+      assert.equal(batchClassificationResultStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(batchClassificationResultStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -21122,6 +21261,13 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-quarantine-status-audits"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-quarantine-resume-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-quarantine-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/batch-classification-results"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/batch-classification-rows"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/batch-classification-rules"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/batch-classification-confidence"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/batch-classification-policy-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/batch-classification-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/batch-classification-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -23662,6 +23808,34 @@ describe("matter harness", () => {
       const expansionQuarantineValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-quarantine-validations?status=passed", apiOptions)).body);
       assert.equal(expansionQuarantineValidationsResponse.collection, "expansion_quarantine_validations");
       assert.equal(expansionQuarantineValidationsResponse.count, expansionQuarantineLedger.summary.validation_item_count);
+
+      const batchClassificationResultsResponse = JSON.parse((await buildReviewApiResponse("/api/batch-classification-results?batch_classification_result_status=complete", apiOptions)).body);
+      assert.equal(batchClassificationResultsResponse.collection, "batch_classification_results");
+      assert.equal(batchClassificationResultsResponse.count, 1);
+
+      const batchClassificationRowsResponse = JSON.parse((await buildReviewApiResponse("/api/batch-classification-rows?batch_classification_status=classified_pending_human_review", apiOptions)).body);
+      assert.equal(batchClassificationRowsResponse.collection, "batch_classification_rows");
+      assert.equal(batchClassificationRowsResponse.count, batchClassificationResult.summary.classification_row_count);
+
+      const batchClassificationRulesResponse = JSON.parse((await buildReviewApiResponse("/api/batch-classification-rules?batch_classification_rule_status=active", apiOptions)).body);
+      assert.equal(batchClassificationRulesResponse.collection, "batch_classification_rules");
+      assert.equal(batchClassificationRulesResponse.count, batchClassificationResult.summary.classification_rule_count);
+
+      const batchClassificationConfidenceResponse = JSON.parse((await buildReviewApiResponse("/api/batch-classification-confidence?batch_confidence_label=high", apiOptions)).body);
+      assert.equal(batchClassificationConfidenceResponse.collection, "batch_classification_confidence");
+      assert.equal(batchClassificationConfidenceResponse.count, batchClassificationResult.classification_confidence_rows.filter((row) => row.confidence_label === "high").length);
+
+      const batchClassificationPolicyBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/batch-classification-policy-bindings?batch_policy_binding_status=bound", apiOptions)).body);
+      assert.equal(batchClassificationPolicyBindingsResponse.collection, "batch_classification_policy_bindings");
+      assert.equal(batchClassificationPolicyBindingsResponse.count, batchClassificationResult.summary.classification_policy_binding_row_count);
+
+      const batchClassificationChecksResponse = JSON.parse((await buildReviewApiResponse("/api/batch-classification-checks?batch_classification_check_status=passed", apiOptions)).body);
+      assert.equal(batchClassificationChecksResponse.collection, "batch_classification_checks");
+      assert.equal(batchClassificationChecksResponse.count, batchClassificationResult.summary.validation_item_count);
+
+      const batchClassificationValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/batch-classification-validations?status=passed", apiOptions)).body);
+      assert.equal(batchClassificationValidationsResponse.collection, "batch_classification_validations");
+      assert.equal(batchClassificationValidationsResponse.count, batchClassificationResult.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

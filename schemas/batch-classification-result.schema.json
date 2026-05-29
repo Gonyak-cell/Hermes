@@ -1,0 +1,394 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/batch-classification-result.schema.json",
+  "title": "Batch Classification Result",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "batch_classification_result_id",
+    "batch_classification_result_status",
+    "phase_slot",
+    "previous_phase_slot",
+    "next_phase_slot",
+    "batch_classification_contract",
+    "batch_classification_rule_rows",
+    "batch_classification_rows",
+    "classification_confidence_rows",
+    "classification_policy_binding_rows",
+    "batch_classification_checks",
+    "batch_classification_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "batch-classification-result.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "batch_classification_result_id": { "type": "string", "minLength": 1 },
+    "batch_classification_result_status": { "const": "complete" },
+    "pack_id": { "const": "resource-expansion" },
+    "capability_id": { "const": "resource.batch_classification_result" },
+    "phase_slot": { "const": "P281" },
+    "previous_phase_slot": { "const": "P280" },
+    "next_phase_slot": { "const": "P282" },
+    "source_contracts": {
+      "type": "array",
+      "minItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["label", "available"],
+        "properties": {
+          "label": { "type": "string" },
+          "available": { "type": "boolean" },
+          "schema_version": { "type": ["string", "null"] },
+          "content_hash": { "type": ["string", "null"], "pattern": "^sha256:" }
+        }
+      }
+    },
+    "batch_classification_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "contract_id",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "confidence_floor",
+        "source_file_content_read_allowed",
+        "external_model_use_allowed",
+        "client_facing_output_allowed"
+      ],
+      "properties": {
+        "schema_version": { "const": "batch-classification-contract.v1" },
+        "contract_id": { "const": "batch-classification-result.v1" },
+        "phase_slot": { "const": "P281" },
+        "previous_phase_slot": { "const": "P280" },
+        "next_phase_slot": { "const": "P282" },
+        "confidence_floor": { "const": 0.7 },
+        "classification_row_count": { "type": "integer", "minimum": 1 },
+        "confidence_row_count": { "type": "integer", "minimum": 1 },
+        "source_file_content_read_allowed": { "const": false },
+        "external_model_use_allowed": { "const": false },
+        "client_facing_output_allowed": { "const": false }
+      }
+    },
+    "batch_classification_rule_rows": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": [
+          "batch_classification_rule_row_id",
+          "classification",
+          "rule_status",
+          "default_policy_decision",
+          "external_model_decision",
+          "human_review_required",
+          "client_facing_ready"
+        ],
+        "properties": {
+          "batch_classification_rule_row_id": { "type": "string", "minLength": 1 },
+          "classification": { "$ref": "#/$defs/classification" },
+          "ordinal": { "type": "integer", "minimum": 0 },
+          "rule_status": { "const": "active" },
+          "default_policy_decision": { "enum": ["allow", "review", "deny"] },
+          "external_model_decision": { "enum": ["allow", "review", "deny"] },
+          "redaction_required": { "type": "boolean" },
+          "required_gates": { "type": "array", "items": { "type": "string" } },
+          "human_review_required": { "const": true },
+          "client_facing_ready": { "const": false }
+        }
+      }
+    },
+    "batch_classification_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/batch_classification_row" }
+    },
+    "classification_confidence_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "classification_confidence_row_id",
+          "data_classification",
+          "confidence_label",
+          "classified_item_count",
+          "min_confidence_score",
+          "max_confidence_score",
+          "average_confidence_score",
+          "confidence_status",
+          "missing_confidence_count",
+          "human_review_required",
+          "client_facing_ready"
+        ],
+        "properties": {
+          "classification_confidence_row_id": { "type": "string", "minLength": 1 },
+          "data_classification": { "$ref": "#/$defs/classification" },
+          "confidence_label": { "enum": ["high", "medium"] },
+          "classified_item_count": { "type": "integer", "minimum": 1 },
+          "min_confidence_score": { "type": "number", "minimum": 0.7, "maximum": 1 },
+          "max_confidence_score": { "type": "number", "minimum": 0.7, "maximum": 1 },
+          "average_confidence_score": { "type": "number", "minimum": 0.7, "maximum": 1 },
+          "confidence_status": { "const": "passed" },
+          "missing_confidence_count": { "const": 0 },
+          "human_review_required": { "const": true },
+          "client_facing_ready": { "const": false }
+        }
+      }
+    },
+    "classification_policy_binding_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "classification_policy_binding_row_id",
+          "data_classification",
+          "policy_binding_status",
+          "classified_item_count",
+          "classified_pending_human_review_count",
+          "human_review_required",
+          "client_facing_ready"
+        ],
+        "properties": {
+          "classification_policy_binding_row_id": { "type": "string", "minLength": 1 },
+          "data_classification": { "$ref": "#/$defs/classification" },
+          "source_classification_rule_id": { "type": ["string", "null"] },
+          "policy_binding_status": { "const": "bound" },
+          "classified_item_count": { "type": "integer", "minimum": 1 },
+          "classified_pending_human_review_count": { "type": "integer", "minimum": 1 },
+          "policy_decision": { "enum": ["allow", "review", "deny"] },
+          "external_model_decision": { "enum": ["allow", "review", "deny"] },
+          "redaction_required": { "type": "boolean" },
+          "human_review_required": { "const": true },
+          "client_facing_ready": { "const": false }
+        }
+      }
+    },
+    "batch_classification_checks": {
+      "type": "array",
+      "minItems": 21,
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "batch_classification_boundary": {
+      "type": "object",
+      "required": [
+        "read_only",
+        "batch_classification_report_only",
+        "source_artifact_read_performed",
+        "backfill_execution_performed",
+        "classification_write_performed",
+        "source_ingest_performed",
+        "file_content_read_performed",
+        "external_model_used",
+        "source_mutation_performed",
+        "resource_mutation_performed",
+        "state_mutation_performed",
+        "delivery_execution_performed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "client_facing_ready_count",
+        "windows_baseline_stability_preserved",
+        "mac_windows_completion_instability_guard"
+      ],
+      "properties": {
+        "read_only": { "const": true },
+        "batch_classification_report_only": { "const": true },
+        "source_artifact_read_performed": { "const": true },
+        "backfill_execution_performed": { "const": false },
+        "classification_write_performed": { "const": false },
+        "source_ingest_performed": { "const": false },
+        "file_content_read_performed": { "const": false },
+        "external_model_used": { "const": false },
+        "source_mutation_performed": { "const": false },
+        "resource_mutation_performed": { "const": false },
+        "state_mutation_performed": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true },
+        "client_facing_ready_count": { "const": 0 },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "minItems": 21,
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "error_count": { "const": 0 },
+        "errors": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "batch_classification_result_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "source_expansion_quarantine_ledger_status",
+        "source_data_classification_rule_engine_status",
+        "resource_item_count",
+        "classification_row_count",
+        "classified_resource_count",
+        "classification_present_count",
+        "missing_classification_count",
+        "confidence_present_count",
+        "missing_confidence_count",
+        "policy_bound_classification_count",
+        "unbound_classification_count",
+        "human_review_required_count",
+        "client_facing_ready_count",
+        "source_path_used_for_classification_identity_count",
+        "file_content_read_performed_count",
+        "external_model_used_count",
+        "read_only",
+        "batch_classification_report_only",
+        "backfill_execution_performed",
+        "classification_write_performed",
+        "source_ingest_performed",
+        "file_content_read_performed",
+        "external_model_used",
+        "source_mutation_performed",
+        "resource_mutation_performed",
+        "state_mutation_performed",
+        "delivery_execution_performed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "windows_baseline_stability_preserved",
+        "mac_windows_completion_instability_guard",
+        "failed_checkpoint_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "batch_classification_result_status": { "const": "complete" },
+        "phase_slot": { "const": "P281" },
+        "previous_phase_slot": { "const": "P280" },
+        "next_phase_slot": { "const": "P282" },
+        "source_expansion_quarantine_ledger_status": { "const": "complete" },
+        "source_expansion_quarantine_phase_slot": { "const": "P280" },
+        "source_data_classification_rule_engine_status": { "const": "complete" },
+        "source_backfill_job_contract_status": { "const": "complete" },
+        "source_backfill_job_contract_phase_slot": { "const": "P277" },
+        "resource_item_count": { "type": "integer", "minimum": 1 },
+        "classification_rule_count": { "type": "integer", "minimum": 3 },
+        "classification_row_count": { "type": "integer", "minimum": 1 },
+        "classified_resource_count": { "type": "integer", "minimum": 1 },
+        "classification_present_count": { "type": "integer", "minimum": 1 },
+        "missing_classification_count": { "const": 0 },
+        "confidence_present_count": { "type": "integer", "minimum": 1 },
+        "missing_confidence_count": { "const": 0 },
+        "low_confidence_count": { "const": 0 },
+        "policy_bound_classification_count": { "type": "integer", "minimum": 1 },
+        "unbound_classification_count": { "const": 0 },
+        "passed_confidence_summary_row_count": { "type": "integer", "minimum": 1 },
+        "passed_policy_binding_row_count": { "type": "integer", "minimum": 1 },
+        "human_review_required_count": { "type": "integer", "minimum": 1 },
+        "client_facing_ready_count": { "const": 0 },
+        "source_path_used_for_classification_identity_count": { "const": 0 },
+        "file_content_read_performed_count": { "const": 0 },
+        "external_model_used_count": { "const": 0 },
+        "read_only": { "const": true },
+        "batch_classification_report_only": { "const": true },
+        "backfill_execution_performed": { "const": false },
+        "classification_write_performed": { "const": false },
+        "source_ingest_performed": { "const": false },
+        "file_content_read_performed": { "const": false },
+        "external_model_used": { "const": false },
+        "source_mutation_performed": { "const": false },
+        "resource_mutation_performed": { "const": false },
+        "state_mutation_performed": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true },
+        "failed_checkpoint_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "classification": {
+      "enum": ["P0_PUBLIC", "P1_INTERNAL", "P2_CLIENT_CONFIDENTIAL", "P3_PRIVILEGED", "P4_HIGHLY_RESTRICTED", "P5_SECRET"]
+    },
+    "batch_classification_row": {
+      "type": "object",
+      "required": [
+        "batch_classification_row_id",
+        "item_id",
+        "item_status",
+        "data_classification",
+        "classification_present",
+        "classification_status",
+        "confidence_score",
+        "confidence_label",
+        "confidence_present",
+        "classification_source",
+        "policy_binding_status",
+        "source_path_used_for_classification_identity",
+        "file_content_read_performed",
+        "external_model_used",
+        "backfill_execution_performed",
+        "source_mutation_performed",
+        "resource_mutation_performed",
+        "state_mutation_performed",
+        "human_review_required",
+        "client_facing_ready"
+      ],
+      "properties": {
+        "batch_classification_row_id": { "type": "string", "minLength": 1 },
+        "item_id": { "type": "string", "minLength": 1 },
+        "item_status": { "enum": ["queued", "extracted", "quarantined", "failed", "skipped_duplicate"] },
+        "data_classification": { "$ref": "#/$defs/classification" },
+        "classification_present": { "const": true },
+        "classification_status": { "const": "classified_pending_human_review" },
+        "confidence_score": { "type": "number", "minimum": 0.7, "maximum": 1 },
+        "confidence_label": { "enum": ["high", "medium"] },
+        "confidence_present": { "const": true },
+        "confidence_reason_codes": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "classification_source": { "const": "resource_expansion_metadata" },
+        "policy_binding_status": { "const": "bound" },
+        "policy_decision": { "enum": ["allow", "review", "deny"] },
+        "external_model_decision": { "enum": ["allow", "review", "deny"] },
+        "redaction_required": { "type": "boolean" },
+        "source_path_reference_hash": { "type": ["string", "null"], "pattern": "^sha256:" },
+        "source_path_used_for_classification_identity": { "const": false },
+        "file_content_read_performed": { "const": false },
+        "external_model_used": { "const": false },
+        "backfill_execution_performed": { "const": false },
+        "source_mutation_performed": { "const": false },
+        "resource_mutation_performed": { "const": false },
+        "state_mutation_performed": { "const": false },
+        "human_review_required": { "const": true },
+        "legal_advice_generated": { "const": false },
+        "client_facing_ready": { "const": false }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["checkpoint_id", "status", "message"],
+      "properties": {
+        "checkpoint_id": { "type": "string", "minLength": 1 },
+        "status": { "const": "passed" },
+        "message": { "type": "string" },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false }
+      }
+    }
+  }
+}

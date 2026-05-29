@@ -189,6 +189,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     expansion_cursor_ledger: "artifacts/expansion-cursor-ledger/latest/expansion-cursor-ledger.json",
     expansion_dedup_ledger: "artifacts/expansion-dedup-ledger/latest/expansion-dedup-ledger.json",
     expansion_quarantine_ledger: "artifacts/expansion-quarantine-ledger/latest/expansion-quarantine-ledger.json",
+    batch_classification_result: "artifacts/batch-classification-result/latest/batch-classification-result.json",
   },
 };
 
@@ -371,6 +372,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("expansion_cursor_ledger", "Expansion Cursor Ledger", "resource_evidence", "expansion-cursor-ledger.schema.json"),
   fixtureDefinition("expansion_dedup_ledger", "Expansion Dedup Ledger", "resource_evidence", "expansion-dedup-ledger.schema.json"),
   fixtureDefinition("expansion_quarantine_ledger", "Expansion Quarantine Ledger", "resource_evidence", "expansion-quarantine-ledger.schema.json"),
+  fixtureDefinition("batch_classification_result", "Batch Classification Result", "resource_evidence", "batch-classification-result.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),

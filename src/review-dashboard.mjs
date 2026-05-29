@@ -116,6 +116,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   expansionCursorLedgerPath: "artifacts/expansion-cursor-ledger/latest/expansion-cursor-ledger.json",
   expansionDedupLedgerPath: "artifacts/expansion-dedup-ledger/latest/expansion-dedup-ledger.json",
   expansionQuarantineLedgerPath: "artifacts/expansion-quarantine-ledger/latest/expansion-quarantine-ledger.json",
+  batchClassificationResultPath: "artifacts/batch-classification-result/latest/batch-classification-result.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -839,6 +840,11 @@ const SOURCE_DEFINITIONS = [
     option: "expansionQuarantineLedgerPath",
     source_id: "expansion_quarantine_ledger",
     label: "Expansion Quarantine Ledger",
+  },
+  {
+    option: "batchClassificationResultPath",
+    source_id: "batch_classification_result",
+    label: "Batch Classification Result",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1824,6 +1830,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "expansion_cursor_ledger") return data.summary ?? {};
   if (sourceId === "expansion_dedup_ledger") return data.summary ?? {};
   if (sourceId === "expansion_quarantine_ledger") return data.summary ?? {};
+  if (sourceId === "batch_classification_result") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2221,6 +2228,7 @@ function buildStageStatuses(artifacts, sources) {
     buildExpansionCursorLedgerStage(artifacts.expansion_cursor_ledger, sourceById.get("expansion_cursor_ledger")),
     buildExpansionDedupLedgerStage(artifacts.expansion_dedup_ledger, sourceById.get("expansion_dedup_ledger")),
     buildExpansionQuarantineLedgerStage(artifacts.expansion_quarantine_ledger, sourceById.get("expansion_quarantine_ledger")),
+    buildBatchClassificationResultStage(artifacts.batch_classification_result, sourceById.get("batch_classification_result")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -13550,6 +13558,124 @@ function buildExpansionQuarantineLedgerStage(artifact, source) {
   };
 }
 
+function buildBatchClassificationResultStage(artifact, source) {
+  if (!artifact) return missingStage("batch_classification_result", "Batch Classification Result", source);
+  const summary = artifact.summary ?? {};
+  const classificationRowCount = summary.classification_row_count ?? 0;
+  const status = artifact.validation?.valid === false
+    || summary.batch_classification_result_status !== "complete"
+    || summary.phase_slot !== "P281"
+    || summary.previous_phase_slot !== "P280"
+    || summary.next_phase_slot !== "P282"
+    || summary.source_expansion_quarantine_ledger_status !== "complete"
+    || summary.source_expansion_quarantine_phase_slot !== "P280"
+    || summary.source_data_classification_rule_engine_status !== "complete"
+    || summary.classification_rule_count < 3
+    || classificationRowCount <= 0
+    || summary.classified_resource_count !== classificationRowCount
+    || summary.classification_present_count !== classificationRowCount
+    || summary.missing_classification_count !== 0
+    || summary.confidence_present_count !== classificationRowCount
+    || summary.missing_confidence_count !== 0
+    || summary.low_confidence_count !== 0
+    || summary.policy_bound_classification_count !== classificationRowCount
+    || summary.unbound_classification_count !== 0
+    || summary.passed_confidence_summary_row_count !== summary.confidence_summary_row_count
+    || summary.passed_policy_binding_row_count !== summary.classification_policy_binding_row_count
+    || summary.human_review_required_count !== classificationRowCount
+    || summary.client_facing_ready_count !== 0
+    || summary.source_path_used_for_classification_identity_count !== 0
+    || summary.file_content_read_performed_count !== 0
+    || summary.external_model_used_count !== 0
+    || summary.read_only !== true
+    || summary.batch_classification_report_only !== true
+    || summary.backfill_execution_performed !== false
+    || summary.classification_write_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.file_content_read_performed !== false
+    || summary.external_model_used !== false
+    || summary.source_mutation_performed !== false
+    || summary.resource_mutation_performed !== false
+    || summary.state_mutation_performed !== false
+    || summary.delivery_execution_performed !== false
+    || summary.protected_action_executed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || summary.failed_checkpoint_count !== 0
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "batch_classification_result",
+    label: "Batch Classification Result",
+    status,
+    message: `${summary.classified_resource_count ?? 0}/${classificationRowCount} classification row(s), ${summary.confidence_present_count ?? 0}/${classificationRowCount} confidence value(s), and ${summary.policy_bound_classification_count ?? 0}/${classificationRowCount} policy binding(s) passed.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      batch_classification_result_status: summary.batch_classification_result_status ?? "unknown",
+      batch_classification_result_id: summary.batch_classification_result_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_resource_expansion_job_id: summary.source_resource_expansion_job_id ?? null,
+      source_resource_expansion_source_id: summary.source_resource_expansion_source_id ?? null,
+      source_expansion_cursor_ledger_status: summary.source_expansion_cursor_ledger_status ?? "unknown",
+      source_expansion_cursor_phase_slot: summary.source_expansion_cursor_phase_slot ?? null,
+      source_expansion_dedup_ledger_status: summary.source_expansion_dedup_ledger_status ?? "unknown",
+      source_expansion_dedup_phase_slot: summary.source_expansion_dedup_phase_slot ?? null,
+      source_expansion_quarantine_ledger_status: summary.source_expansion_quarantine_ledger_status ?? "unknown",
+      source_expansion_quarantine_phase_slot: summary.source_expansion_quarantine_phase_slot ?? null,
+      source_data_classification_rule_engine_status: summary.source_data_classification_rule_engine_status ?? "unknown",
+      source_backfill_job_contract_status: summary.source_backfill_job_contract_status ?? "unknown",
+      resource_item_count: summary.resource_item_count ?? 0,
+      terminal_count: summary.terminal_count ?? 0,
+      classification_rule_count: summary.classification_rule_count ?? 0,
+      classification_row_count: classificationRowCount,
+      classified_resource_count: summary.classified_resource_count ?? 0,
+      classification_present_count: summary.classification_present_count ?? 0,
+      missing_classification_count: summary.missing_classification_count ?? 0,
+      confidence_present_count: summary.confidence_present_count ?? 0,
+      missing_confidence_count: summary.missing_confidence_count ?? 0,
+      high_confidence_count: summary.high_confidence_count ?? 0,
+      medium_confidence_count: summary.medium_confidence_count ?? 0,
+      low_confidence_count: summary.low_confidence_count ?? 0,
+      policy_bound_classification_count: summary.policy_bound_classification_count ?? 0,
+      unbound_classification_count: summary.unbound_classification_count ?? 0,
+      confidence_summary_row_count: summary.confidence_summary_row_count ?? 0,
+      passed_confidence_summary_row_count: summary.passed_confidence_summary_row_count ?? 0,
+      classification_policy_binding_row_count: summary.classification_policy_binding_row_count ?? 0,
+      passed_policy_binding_row_count: summary.passed_policy_binding_row_count ?? 0,
+      human_review_required_count: summary.human_review_required_count ?? 0,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      source_path_used_for_classification_identity_count: summary.source_path_used_for_classification_identity_count ?? 0,
+      file_content_read_performed_count: summary.file_content_read_performed_count ?? 0,
+      external_model_used_count: summary.external_model_used_count ?? 0,
+      read_only: summary.read_only ?? false,
+      batch_classification_report_only: summary.batch_classification_report_only ?? false,
+      source_artifact_read_performed: summary.source_artifact_read_performed ?? false,
+      backfill_execution_performed: summary.backfill_execution_performed ?? false,
+      classification_write_performed: summary.classification_write_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      file_content_read_performed: summary.file_content_read_performed ?? false,
+      external_model_used: summary.external_model_used ?? false,
+      source_mutation_performed: summary.source_mutation_performed ?? false,
+      resource_mutation_performed: summary.resource_mutation_performed ?? false,
+      state_mutation_performed: summary.state_mutation_performed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -20086,6 +20212,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_expansion_quarantine_ledger", "rerun_expansion_quarantine_ledger", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.batch_classification_result?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "batch_classification_result";
+    items.push({
+      action_item_id: `dashboard.action.batch_classification_result.${slugify(subjectId)}`,
+      source_stage: "batch_classification_result",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Batch Classification Result",
+      subject_ref: {
+        subject_type: "batch_classification_result_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_batch_classification_result", "rerun_batch_classification_result", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -26779,6 +26923,56 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     expansion_quarantine_ledger_validation_item_count: artifacts.expansion_quarantine_ledger?.summary?.validation_item_count ?? 0,
     expansion_quarantine_ledger_failed_checkpoint_count: artifacts.expansion_quarantine_ledger?.summary?.failed_checkpoint_count ?? 0,
     expansion_quarantine_ledger_validation_error_count: artifacts.expansion_quarantine_ledger?.summary?.validation_error_count ?? artifacts.expansion_quarantine_ledger?.validation?.errors?.length ?? 0,
+    batch_classification_result_status: artifacts.batch_classification_result?.summary?.batch_classification_result_status ?? "unknown",
+    batch_classification_result_id: artifacts.batch_classification_result?.summary?.batch_classification_result_id ?? null,
+    batch_classification_result_phase_slot: artifacts.batch_classification_result?.summary?.phase_slot ?? null,
+    batch_classification_result_previous_phase_slot: artifacts.batch_classification_result?.summary?.previous_phase_slot ?? null,
+    batch_classification_result_next_phase_slot: artifacts.batch_classification_result?.summary?.next_phase_slot ?? null,
+    batch_classification_result_source_expansion_quarantine_ledger_status: artifacts.batch_classification_result?.summary?.source_expansion_quarantine_ledger_status ?? "unknown",
+    batch_classification_result_source_expansion_quarantine_phase_slot: artifacts.batch_classification_result?.summary?.source_expansion_quarantine_phase_slot ?? null,
+    batch_classification_result_source_data_classification_rule_engine_status: artifacts.batch_classification_result?.summary?.source_data_classification_rule_engine_status ?? "unknown",
+    batch_classification_result_source_backfill_job_contract_status: artifacts.batch_classification_result?.summary?.source_backfill_job_contract_status ?? "unknown",
+    batch_classification_result_resource_item_count: artifacts.batch_classification_result?.summary?.resource_item_count ?? 0,
+    batch_classification_result_classification_rule_count: artifacts.batch_classification_result?.summary?.classification_rule_count ?? 0,
+    batch_classification_result_classification_row_count: artifacts.batch_classification_result?.summary?.classification_row_count ?? 0,
+    batch_classification_result_classified_resource_count: artifacts.batch_classification_result?.summary?.classified_resource_count ?? 0,
+    batch_classification_result_classification_present_count: artifacts.batch_classification_result?.summary?.classification_present_count ?? 0,
+    batch_classification_result_missing_classification_count: artifacts.batch_classification_result?.summary?.missing_classification_count ?? 0,
+    batch_classification_result_confidence_present_count: artifacts.batch_classification_result?.summary?.confidence_present_count ?? 0,
+    batch_classification_result_missing_confidence_count: artifacts.batch_classification_result?.summary?.missing_confidence_count ?? 0,
+    batch_classification_result_high_confidence_count: artifacts.batch_classification_result?.summary?.high_confidence_count ?? 0,
+    batch_classification_result_medium_confidence_count: artifacts.batch_classification_result?.summary?.medium_confidence_count ?? 0,
+    batch_classification_result_low_confidence_count: artifacts.batch_classification_result?.summary?.low_confidence_count ?? 0,
+    batch_classification_result_policy_bound_classification_count: artifacts.batch_classification_result?.summary?.policy_bound_classification_count ?? 0,
+    batch_classification_result_unbound_classification_count: artifacts.batch_classification_result?.summary?.unbound_classification_count ?? 0,
+    batch_classification_result_confidence_summary_row_count: artifacts.batch_classification_result?.summary?.confidence_summary_row_count ?? 0,
+    batch_classification_result_passed_confidence_summary_row_count: artifacts.batch_classification_result?.summary?.passed_confidence_summary_row_count ?? 0,
+    batch_classification_result_classification_policy_binding_row_count: artifacts.batch_classification_result?.summary?.classification_policy_binding_row_count ?? 0,
+    batch_classification_result_passed_policy_binding_row_count: artifacts.batch_classification_result?.summary?.passed_policy_binding_row_count ?? 0,
+    batch_classification_result_human_review_required_count: artifacts.batch_classification_result?.summary?.human_review_required_count ?? 0,
+    batch_classification_result_client_facing_ready_count: artifacts.batch_classification_result?.summary?.client_facing_ready_count ?? 0,
+    batch_classification_result_source_path_used_for_classification_identity_count: artifacts.batch_classification_result?.summary?.source_path_used_for_classification_identity_count ?? 0,
+    batch_classification_result_file_content_read_performed_count: artifacts.batch_classification_result?.summary?.file_content_read_performed_count ?? 0,
+    batch_classification_result_external_model_used_count: artifacts.batch_classification_result?.summary?.external_model_used_count ?? 0,
+    batch_classification_result_read_only: artifacts.batch_classification_result?.summary?.read_only ?? false,
+    batch_classification_result_report_only: artifacts.batch_classification_result?.summary?.batch_classification_report_only ?? false,
+    batch_classification_result_backfill_execution_performed: artifacts.batch_classification_result?.summary?.backfill_execution_performed ?? false,
+    batch_classification_result_classification_write_performed: artifacts.batch_classification_result?.summary?.classification_write_performed ?? false,
+    batch_classification_result_source_ingest_performed: artifacts.batch_classification_result?.summary?.source_ingest_performed ?? false,
+    batch_classification_result_file_content_read_performed: artifacts.batch_classification_result?.summary?.file_content_read_performed ?? false,
+    batch_classification_result_external_model_used: artifacts.batch_classification_result?.summary?.external_model_used ?? false,
+    batch_classification_result_source_mutation_performed: artifacts.batch_classification_result?.summary?.source_mutation_performed ?? false,
+    batch_classification_result_resource_mutation_performed: artifacts.batch_classification_result?.summary?.resource_mutation_performed ?? false,
+    batch_classification_result_state_mutation_performed: artifacts.batch_classification_result?.summary?.state_mutation_performed ?? false,
+    batch_classification_result_delivery_execution_performed: artifacts.batch_classification_result?.summary?.delivery_execution_performed ?? false,
+    batch_classification_result_protected_action_executed: artifacts.batch_classification_result?.summary?.protected_action_executed ?? false,
+    batch_classification_result_legal_advice_generated: artifacts.batch_classification_result?.summary?.legal_advice_generated ?? false,
+    batch_classification_result_client_facing_output_generated: artifacts.batch_classification_result?.summary?.client_facing_output_generated ?? false,
+    batch_classification_result_windows_baseline_stability_preserved: artifacts.batch_classification_result?.summary?.windows_baseline_stability_preserved ?? false,
+    batch_classification_result_mac_windows_completion_instability_guard: artifacts.batch_classification_result?.summary?.mac_windows_completion_instability_guard ?? false,
+    batch_classification_result_validation_item_count: artifacts.batch_classification_result?.summary?.validation_item_count ?? 0,
+    batch_classification_result_failed_checkpoint_count: artifacts.batch_classification_result?.summary?.failed_checkpoint_count ?? 0,
+    batch_classification_result_validation_error_count: artifacts.batch_classification_result?.summary?.validation_error_count ?? artifacts.batch_classification_result?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -28594,6 +28788,8 @@ function parseArgs(argv) {
     else if (arg === "--no-expansion-dedup-ledger") parsed.expansionDedupLedgerPath = false;
     else if (arg === "--expansion-quarantine-ledger") parsed.expansionQuarantineLedgerPath = argv[++index];
     else if (arg === "--no-expansion-quarantine-ledger") parsed.expansionQuarantineLedgerPath = false;
+    else if (arg === "--batch-classification-result") parsed.batchClassificationResultPath = argv[++index];
+    else if (arg === "--no-batch-classification-result") parsed.batchClassificationResultPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

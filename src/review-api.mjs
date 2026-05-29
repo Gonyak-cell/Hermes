@@ -5772,6 +5772,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("expansion_quarantine_validations", ledgerResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/batch-classification-results") {
+    const result = await readDashboardSourceArtifact(dashboard, "batch_classification_result");
+    if (!result.available) {
+      return jsonResponse(503, buildError("batch_classification_result_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("batch_classification_results", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/batch-classification-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "batch_classification_result");
+    if (!result.available) {
+      return jsonResponse(503, buildError("batch_classification_result_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("batch_classification_rows", result.artifact.batch_classification_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/batch-classification-rules") {
+    const result = await readDashboardSourceArtifact(dashboard, "batch_classification_result");
+    if (!result.available) {
+      return jsonResponse(503, buildError("batch_classification_result_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("batch_classification_rules", result.artifact.batch_classification_rule_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/batch-classification-confidence") {
+    const result = await readDashboardSourceArtifact(dashboard, "batch_classification_result");
+    if (!result.available) {
+      return jsonResponse(503, buildError("batch_classification_result_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("batch_classification_confidence", result.artifact.classification_confidence_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/batch-classification-policy-bindings") {
+    const result = await readDashboardSourceArtifact(dashboard, "batch_classification_result");
+    if (!result.available) {
+      return jsonResponse(503, buildError("batch_classification_result_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("batch_classification_policy_bindings", result.artifact.classification_policy_binding_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/batch-classification-checks") {
+    const result = await readDashboardSourceArtifact(dashboard, "batch_classification_result");
+    if (!result.available) {
+      return jsonResponse(503, buildError("batch_classification_result_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("batch_classification_checks", result.artifact.batch_classification_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/batch-classification-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "batch_classification_result");
+    if (!result.available) {
+      return jsonResponse(503, buildError("batch_classification_result_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("batch_classification_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -12201,6 +12250,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/expansion-quarantine-status-audits", "Expansion quarantine status audit rows"),
       route("GET", "/api/expansion-quarantine-resume-checks", "Expansion quarantine resume check rows"),
       route("GET", "/api/expansion-quarantine-validations", "Expansion quarantine validation rows"),
+      route("GET", "/api/batch-classification-results", "Batch Classification Result artifact"),
+      route("GET", "/api/batch-classification-rows", "Batch classification rows"),
+      route("GET", "/api/batch-classification-rules", "Batch classification rule rows"),
+      route("GET", "/api/batch-classification-confidence", "Batch classification confidence rows"),
+      route("GET", "/api/batch-classification-policy-bindings", "Batch classification policy binding rows"),
+      route("GET", "/api/batch-classification-checks", "Batch classification check rows"),
+      route("GET", "/api/batch-classification-validations", "Batch classification validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -13344,6 +13400,13 @@ function filterItems(items, searchParams) {
     "expansion_quarantine_rule_status",
     "expansion_quarantine_audit_status",
     "expansion_quarantine_check_status",
+    "batch_classification_result_status",
+    "batch_classification_status",
+    "batch_data_classification",
+    "batch_confidence_label",
+    "batch_policy_binding_status",
+    "batch_classification_rule_status",
+    "batch_classification_check_status",
     "path_kind",
     "gate_id",
     "thread_status",
@@ -15222,6 +15285,13 @@ function readFilterValue(item, key) {
   if (key === "expansion_quarantine_rule_status") return item.rule_status;
   if (key === "expansion_quarantine_audit_status") return item.audit_status;
   if (key === "expansion_quarantine_check_status") return item.status;
+  if (key === "batch_classification_result_status") return item.summary?.batch_classification_result_status ?? item.batch_classification_result_status;
+  if (key === "batch_classification_status") return item.classification_status;
+  if (key === "batch_data_classification") return item.data_classification;
+  if (key === "batch_confidence_label") return item.confidence_label;
+  if (key === "batch_policy_binding_status") return item.policy_binding_status;
+  if (key === "batch_classification_rule_status") return item.rule_status;
+  if (key === "batch_classification_check_status") return item.status;
   if (key === "path_kind") return item.path_kind;
   if (key === "gate_id") return item.gate_id;
   if (key === "thread_status") return item.thread_status;

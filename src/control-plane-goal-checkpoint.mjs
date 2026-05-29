@@ -153,6 +153,7 @@ const GOAL_ITEMS = [
   sourceItem("expansion_cursor_ledger", "Expansion Cursor Ledger", "resource_evidence", "expansion_cursor_ledger", "control-plane-expansion-cursor-ledger", { acceptance_profile: "expansion_cursor_ledger_gate" }),
   sourceItem("expansion_dedup_ledger", "Expansion Dedup Ledger", "resource_evidence", "expansion_dedup_ledger", "control-plane-expansion-dedup-ledger", { acceptance_profile: "expansion_dedup_ledger_gate" }),
   sourceItem("expansion_quarantine_ledger", "Expansion Quarantine Ledger", "resource_evidence", "expansion_quarantine_ledger", "control-plane-expansion-quarantine-ledger", { acceptance_profile: "expansion_quarantine_ledger_gate" }),
+  sourceItem("batch_classification_result", "Batch Classification Result", "resource_evidence", "batch_classification_result", "control-plane-batch-classification-result", { acceptance_profile: "batch_classification_result_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -665,6 +666,7 @@ function evaluateStageAcceptance(item, stage) {
     "expansion_cursor_ledger_gate",
     "expansion_dedup_ledger_gate",
     "expansion_quarantine_ledger_gate",
+    "batch_classification_result_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -5505,6 +5507,57 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Expansion Quarantine Ledger locks P280 failure, sensitive, unknown, materialization-required, and oversized file holds without retrying extraction, reading source file contents, releasing quarantine, mutating resources/state, delivering output, legal advice, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "batch_classification_result_gate") {
+    const classificationRowCount = metrics.classification_row_count ?? 0;
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.batch_classification_result_status === "complete"
+      && metrics.phase_slot === "P281"
+      && metrics.previous_phase_slot === "P280"
+      && metrics.next_phase_slot === "P282"
+      && metrics.source_expansion_quarantine_ledger_status === "complete"
+      && metrics.source_expansion_quarantine_phase_slot === "P280"
+      && metrics.source_data_classification_rule_engine_status === "complete"
+      && metrics.classification_rule_count >= 3
+      && classificationRowCount > 0
+      && metrics.classified_resource_count === classificationRowCount
+      && metrics.classification_present_count === classificationRowCount
+      && metrics.missing_classification_count === 0
+      && metrics.confidence_present_count === classificationRowCount
+      && metrics.missing_confidence_count === 0
+      && metrics.low_confidence_count === 0
+      && metrics.policy_bound_classification_count === classificationRowCount
+      && metrics.unbound_classification_count === 0
+      && metrics.passed_confidence_summary_row_count === metrics.confidence_summary_row_count
+      && metrics.passed_policy_binding_row_count === metrics.classification_policy_binding_row_count
+      && metrics.human_review_required_count === classificationRowCount
+      && metrics.client_facing_ready_count === 0
+      && metrics.source_path_used_for_classification_identity_count === 0
+      && metrics.file_content_read_performed_count === 0
+      && metrics.external_model_used_count === 0
+      && metrics.read_only === true
+      && metrics.batch_classification_report_only === true
+      && metrics.source_artifact_read_performed === true
+      && metrics.backfill_execution_performed === false
+      && metrics.classification_write_performed === false
+      && metrics.source_ingest_performed === false
+      && metrics.file_content_read_performed === false
+      && metrics.external_model_used === false
+      && metrics.source_mutation_performed === false
+      && metrics.resource_mutation_performed === false
+      && metrics.state_mutation_performed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Batch Classification Result locks P281 classification, confidence, policy binding, and human-review coverage after P280 quarantine stabilization without backfill execution, source file content reads, models, classification writes, mutation, delivery, legal advice, or client-facing output.");
     }
   }
 

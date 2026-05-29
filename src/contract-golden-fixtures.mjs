@@ -173,6 +173,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     version_comparator: "artifacts/version-comparator/latest/version-comparator.json",
     design_system_profile: "artifacts/design-system-profile/latest/design-system-profile.json",
     web_novel_workflow: "artifacts/web-novel-workflow/latest/web-novel-workflow.json",
+    video_ppt_workflow: "artifacts/video-ppt-workflow/latest/video-ppt-workflow.json",
   },
 };
 
@@ -339,6 +340,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("version_comparator", "Version Comparator", "creative_document", "version-comparator.schema.json"),
   fixtureDefinition("design_system_profile", "Design System Profile", "creative_document", "design-system-profile.schema.json"),
   fixtureDefinition("web_novel_workflow", "Web Novel Workflow", "creative_document", "web-novel-workflow.schema.json"),
+  fixtureDefinition("video_ppt_workflow", "Video/PPT Workflow", "creative_document", "video-ppt-workflow.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),

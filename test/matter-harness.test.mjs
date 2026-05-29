@@ -64,6 +64,7 @@ import { runCitationRenderer } from "../src/creative-document-citation-renderer.
 import { runVersionComparator } from "../src/creative-document-version-comparator.mjs";
 import { runDesignSystemProfile } from "../src/creative-document-design-system-profile.mjs";
 import { runWebNovelWorkflow } from "../src/creative-document-web-novel-workflow.mjs";
+import { runVideoPptWorkflow } from "../src/creative-document-video-ppt-workflow.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1923,6 +1924,7 @@ describe("matter harness", () => {
         versionComparatorPath: path.join(outDir, "version-comparator", "version-comparator.json"),
         designSystemProfilePath: path.join(outDir, "design-system-profile", "design-system-profile.json"),
         webNovelWorkflowPath: path.join(outDir, "web-novel-workflow", "web-novel-workflow.json"),
+        videoPptWorkflowPath: path.join(outDir, "video-ppt-workflow", "video-ppt-workflow.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10595,6 +10597,89 @@ describe("matter harness", () => {
       assert.match(await readFile(path.join(outDir, "web-novel-workflow", "summary.md"), "utf8"), /Web Novel Workflow/);
       assert.match(await readFile(path.join(outDir, "web-novel-workflow", "web-novel-draft.md"), "utf8"), /Draft web novel workflow artifact for human review/);
 
+      const videoPptWorkflow = await runVideoPptWorkflow({
+        creativeDocumentBriefPath: "examples/creative-document-brief.json",
+        creativeDocumentPackManifestPath: path.join(outDir, "creative-document-pack-manifest", "creative-document-pack-manifest.json"),
+        assetRegistryPath: path.join(outDir, "asset-registry", "asset-registry.json"),
+        pptxRendererPath: path.join(outDir, "pptx-renderer", "pptx-renderer.json"),
+        designSystemProfilePath: path.join(outDir, "design-system-profile", "design-system-profile.json"),
+        webNovelWorkflowPath: path.join(outDir, "web-novel-workflow", "web-novel-workflow.json"),
+        outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "video-ppt-workflow"),
+        runAt: "2026-05-23T07:05:24.000Z",
+      });
+      const videoPptWorkflowSchema = JSON.parse(await readFile("schemas/video-ppt-workflow.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(videoPptWorkflow, videoPptWorkflowSchema, {}, "video_ppt_workflow"), [], JSON.stringify(videoPptWorkflow.validation.errors));
+      assert.equal(videoPptWorkflow.summary.video_ppt_workflow_status, "complete");
+      assert.equal(videoPptWorkflow.summary.video_ppt_workflow_contract_id, "video-ppt-workflow.v1");
+      assert.equal(videoPptWorkflow.summary.source_brief_status, "complete");
+      assert.equal(videoPptWorkflow.summary.source_creative_document_pack_manifest_status, "complete");
+      assert.equal(videoPptWorkflow.summary.source_asset_registry_status, "complete");
+      assert.equal(videoPptWorkflow.summary.source_pptx_renderer_status, "complete");
+      assert.equal(videoPptWorkflow.summary.source_design_system_profile_status, "complete");
+      assert.equal(videoPptWorkflow.summary.source_web_novel_workflow_status, "complete");
+      assert.equal(videoPptWorkflow.summary.source_output_delivery_contract_freeze_status, "complete");
+      assert.equal(videoPptWorkflow.summary.source_section_count, 3);
+      assert.ok(videoPptWorkflow.summary.source_video_asset_count >= 1);
+      assert.ok(videoPptWorkflow.summary.source_pptx_slide_deck_count >= 1);
+      assert.equal(videoPptWorkflow.summary.video_ppt_workflow_record_count, 1);
+      assert.equal(videoPptWorkflow.summary.complete_workflow_record_count, 1);
+      assert.equal(videoPptWorkflow.summary.video_ppt_script_count, 3);
+      assert.equal(videoPptWorkflow.summary.draft_script_count, videoPptWorkflow.summary.video_ppt_script_count);
+      assert.equal(videoPptWorkflow.summary.video_ppt_storyboard_count, videoPptWorkflow.summary.video_ppt_script_count);
+      assert.equal(videoPptWorkflow.summary.draft_storyboard_count, videoPptWorkflow.summary.video_ppt_storyboard_count);
+      assert.equal(videoPptWorkflow.summary.caption_required_storyboard_count, videoPptWorkflow.summary.video_ppt_storyboard_count);
+      assert.equal(videoPptWorkflow.summary.video_ppt_slide_deck_count, 1);
+      assert.equal(videoPptWorkflow.summary.draft_slide_deck_count, 1);
+      assert.equal(videoPptWorkflow.summary.total_slide_count, videoPptWorkflow.summary.source_section_count);
+      assert.equal(videoPptWorkflow.summary.video_ppt_approval_artifact_count, 1);
+      assert.equal(videoPptWorkflow.summary.ready_approval_artifact_count, 1);
+      assert.equal(videoPptWorkflow.summary.video_ppt_output_artifact_count, 2);
+      assert.equal(videoPptWorkflow.summary.draft_output_artifact_count, 2);
+      assert.equal(videoPptWorkflow.summary.markdown_output_artifact_count, 1);
+      assert.equal(videoPptWorkflow.summary.json_output_artifact_count, 1);
+      assert.equal(videoPptWorkflow.summary.human_review_required_output_count, 2);
+      assert.equal(videoPptWorkflow.summary.format_validation_required_output_count, 2);
+      assert.equal(videoPptWorkflow.summary.source_attribution_required_output_count, 2);
+      assert.equal(videoPptWorkflow.summary.metadata_hash_count, 11);
+      assert.equal(videoPptWorkflow.summary.draft_production_only, true);
+      assert.equal(videoPptWorkflow.summary.deterministic_generation_performed, true);
+      assert.equal(videoPptWorkflow.summary.deterministic_generation_only, true);
+      assert.equal(videoPptWorkflow.summary.external_model_execution_performed, false);
+      assert.equal(videoPptWorkflow.summary.external_model_execution_allowed, false);
+      assert.equal(videoPptWorkflow.summary.network_access_performed, false);
+      assert.equal(videoPptWorkflow.summary.network_access_allowed, false);
+      assert.equal(videoPptWorkflow.summary.media_generation_performed, false);
+      assert.equal(videoPptWorkflow.summary.media_generation_allowed, false);
+      assert.equal(videoPptWorkflow.summary.video_binary_generation_allowed, false);
+      assert.equal(videoPptWorkflow.summary.pptx_binary_generation_allowed, false);
+      assert.equal(videoPptWorkflow.summary.existing_pptx_artifact_reuse_allowed, true);
+      assert.equal(videoPptWorkflow.summary.template_mutation_allowed, false);
+      assert.equal(videoPptWorkflow.summary.style_mutation_allowed, false);
+      assert.equal(videoPptWorkflow.summary.asset_mutation_allowed, false);
+      assert.equal(videoPptWorkflow.summary.document_runtime_mutation_allowed, false);
+      assert.equal(videoPptWorkflow.summary.renderer_execution_allowed, false);
+      assert.equal(videoPptWorkflow.summary.artifact_write_allowed, true);
+      assert.equal(videoPptWorkflow.summary.delivery_execution_allowed, false);
+      assert.equal(videoPptWorkflow.summary.delivery_execution_performed, false);
+      assert.equal(videoPptWorkflow.summary.protected_action_allowed, false);
+      assert.equal(videoPptWorkflow.summary.protected_action_executed, false);
+      assert.equal(videoPptWorkflow.summary.legal_advice_generated, false);
+      assert.equal(videoPptWorkflow.summary.client_facing_output_generated, false);
+      assert.equal(videoPptWorkflow.summary.client_facing_ready_count, 0);
+      assert.equal(videoPptWorkflow.summary.failed_checkpoint_count, 0);
+      assert.equal(videoPptWorkflow.summary.validation_error_count, 0);
+      assert.ok(videoPptWorkflow.video_ppt_workflows.every((workflow) => workflow.video_ppt_workflow_status === "complete" && workflow.workflow_id === "workflow.creative_document.video_ppt_production.v1" && workflow.metadata_hash.startsWith("sha256:") && workflow.human_review_required && workflow.format_validation_required && workflow.client_facing_ready === false));
+      assert.ok(videoPptWorkflow.video_ppt_scripts.every((script) => script.script_status === "draft_needs_review" && script.caption_required && script.source_attribution_required && script.metadata_hash.startsWith("sha256:") && script.human_review_required && script.format_validation_required && script.client_facing_ready === false));
+      assert.ok(videoPptWorkflow.video_ppt_storyboards.every((storyboard) => storyboard.storyboard_status === "draft_needs_review" && storyboard.caption_required && storyboard.license_review_required && storyboard.metadata_hash.startsWith("sha256:") && storyboard.human_review_required && storyboard.format_validation_required && storyboard.client_facing_ready === false));
+      assert.ok(videoPptWorkflow.video_ppt_slide_decks.every((deck) => deck.slide_deck_status === "draft_needs_review" && deck.deck_hash.startsWith("sha256:") && deck.human_review_required && deck.format_validation_required && deck.layout_validation_required && deck.client_facing_ready === false));
+      assert.ok(videoPptWorkflow.video_ppt_approval_artifacts.every((artifact) => artifact.approval_artifact_status === "ready_for_human_review" && artifact.metadata_hash.startsWith("sha256:") && artifact.human_review_required && artifact.format_validation_required && artifact.client_facing_ready === false));
+      assert.ok(videoPptWorkflow.video_ppt_output_artifacts.every((artifact) => artifact.output_artifact_status === "draft_generated_needs_review" && ["markdown", "json"].includes(artifact.output_format) && artifact.metadata_hash.startsWith("sha256:") && artifact.human_review_required && artifact.format_validation_required && artifact.client_facing_ready === false));
+      assert.match(await readFile(path.join(outDir, "video-ppt-workflow", "summary.md"), "utf8"), /Video\/PPT Workflow/);
+      assert.match(await readFile(path.join(outDir, "video-ppt-workflow", "storyboard.md"), "utf8"), /Draft video\/PPT production workflow artifact for human review/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -10783,6 +10868,7 @@ describe("matter harness", () => {
           version_comparator: path.join(outDir, "version-comparator", "version-comparator.json"),
           design_system_profile: path.join(outDir, "design-system-profile", "design-system-profile.json"),
           web_novel_workflow: path.join(outDir, "web-novel-workflow", "web-novel-workflow.json"),
+          video_ppt_workflow: path.join(outDir, "video-ppt-workflow", "video-ppt-workflow.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10834,8 +10920,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 166);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 166);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 167);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 167);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -10989,6 +11075,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "version_comparator"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "design_system_profile"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "web_novel_workflow"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "video_ppt_workflow"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -11076,6 +11163,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:version-comparator"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:design-system-profile"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:web-novel-workflow"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:video-ppt-workflow"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter-os:profile"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:timeline"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:document-index"));
@@ -11814,6 +11902,10 @@ describe("matter harness", () => {
       assert.equal(webNovelWorkflowCheckpoint?.acceptance_profile, "web_novel_workflow_gate");
       assert.equal(webNovelWorkflowCheckpoint?.status, "passed");
       assert.equal(webNovelWorkflowCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const videoPptWorkflowCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-video-ppt-workflow");
+      assert.equal(videoPptWorkflowCheckpoint?.acceptance_profile, "video_ppt_workflow_gate");
+      assert.equal(videoPptWorkflowCheckpoint?.status, "passed");
+      assert.equal(videoPptWorkflowCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -16017,6 +16109,57 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.web_novel_workflow_client_facing_ready_count, 0);
       assert.equal(dashboard.summary.web_novel_workflow_failed_checkpoint_count, 0);
       assert.equal(dashboard.summary.web_novel_workflow_validation_error_count, 0);
+      assert.equal(dashboard.summary.video_ppt_workflow_status, "complete");
+      assert.equal(dashboard.summary.video_ppt_workflow_contract_id, videoPptWorkflow.summary.video_ppt_workflow_contract_id);
+      assert.equal(dashboard.summary.video_ppt_workflow_source_brief_status, "complete");
+      assert.equal(dashboard.summary.video_ppt_workflow_source_creative_document_pack_manifest_status, "complete");
+      assert.equal(dashboard.summary.video_ppt_workflow_source_asset_registry_status, "complete");
+      assert.equal(dashboard.summary.video_ppt_workflow_source_pptx_renderer_status, "complete");
+      assert.equal(dashboard.summary.video_ppt_workflow_source_design_system_profile_status, "complete");
+      assert.equal(dashboard.summary.video_ppt_workflow_source_web_novel_workflow_status, "complete");
+      assert.equal(dashboard.summary.video_ppt_workflow_source_output_delivery_contract_freeze_status, "complete");
+      assert.equal(dashboard.summary.video_ppt_workflow_record_count, videoPptWorkflow.summary.video_ppt_workflow_record_count);
+      assert.equal(dashboard.summary.video_ppt_workflow_complete_record_count, videoPptWorkflow.summary.complete_workflow_record_count);
+      assert.equal(dashboard.summary.video_ppt_workflow_script_count, videoPptWorkflow.summary.video_ppt_script_count);
+      assert.equal(dashboard.summary.video_ppt_workflow_draft_script_count, videoPptWorkflow.summary.draft_script_count);
+      assert.equal(dashboard.summary.video_ppt_workflow_storyboard_count, videoPptWorkflow.summary.video_ppt_storyboard_count);
+      assert.equal(dashboard.summary.video_ppt_workflow_draft_storyboard_count, videoPptWorkflow.summary.draft_storyboard_count);
+      assert.equal(dashboard.summary.video_ppt_workflow_caption_required_storyboard_count, videoPptWorkflow.summary.caption_required_storyboard_count);
+      assert.equal(dashboard.summary.video_ppt_workflow_slide_deck_count, videoPptWorkflow.summary.video_ppt_slide_deck_count);
+      assert.equal(dashboard.summary.video_ppt_workflow_draft_slide_deck_count, videoPptWorkflow.summary.draft_slide_deck_count);
+      assert.equal(dashboard.summary.video_ppt_workflow_total_slide_count, videoPptWorkflow.summary.total_slide_count);
+      assert.equal(dashboard.summary.video_ppt_workflow_approval_artifact_count, videoPptWorkflow.summary.video_ppt_approval_artifact_count);
+      assert.equal(dashboard.summary.video_ppt_workflow_ready_approval_artifact_count, videoPptWorkflow.summary.ready_approval_artifact_count);
+      assert.equal(dashboard.summary.video_ppt_workflow_output_artifact_count, videoPptWorkflow.summary.video_ppt_output_artifact_count);
+      assert.equal(dashboard.summary.video_ppt_workflow_draft_output_artifact_count, videoPptWorkflow.summary.draft_output_artifact_count);
+      assert.equal(dashboard.summary.video_ppt_workflow_markdown_output_artifact_count, videoPptWorkflow.summary.markdown_output_artifact_count);
+      assert.equal(dashboard.summary.video_ppt_workflow_json_output_artifact_count, videoPptWorkflow.summary.json_output_artifact_count);
+      assert.equal(dashboard.summary.video_ppt_workflow_human_review_required_output_count, videoPptWorkflow.summary.human_review_required_output_count);
+      assert.equal(dashboard.summary.video_ppt_workflow_format_validation_required_output_count, videoPptWorkflow.summary.format_validation_required_output_count);
+      assert.equal(dashboard.summary.video_ppt_workflow_source_attribution_required_output_count, videoPptWorkflow.summary.source_attribution_required_output_count);
+      assert.equal(dashboard.summary.video_ppt_workflow_draft_production_only, true);
+      assert.equal(dashboard.summary.video_ppt_workflow_deterministic_generation_performed, true);
+      assert.equal(dashboard.summary.video_ppt_workflow_external_model_execution_performed, false);
+      assert.equal(dashboard.summary.video_ppt_workflow_network_access_performed, false);
+      assert.equal(dashboard.summary.video_ppt_workflow_media_generation_performed, false);
+      assert.equal(dashboard.summary.video_ppt_workflow_media_generation_allowed, false);
+      assert.equal(dashboard.summary.video_ppt_workflow_video_binary_generation_allowed, false);
+      assert.equal(dashboard.summary.video_ppt_workflow_pptx_binary_generation_allowed, false);
+      assert.equal(dashboard.summary.video_ppt_workflow_template_mutation_allowed, false);
+      assert.equal(dashboard.summary.video_ppt_workflow_style_mutation_allowed, false);
+      assert.equal(dashboard.summary.video_ppt_workflow_asset_mutation_allowed, false);
+      assert.equal(dashboard.summary.video_ppt_workflow_document_runtime_mutation_allowed, false);
+      assert.equal(dashboard.summary.video_ppt_workflow_renderer_execution_allowed, false);
+      assert.equal(dashboard.summary.video_ppt_workflow_artifact_write_allowed, true);
+      assert.equal(dashboard.summary.video_ppt_workflow_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.video_ppt_workflow_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.video_ppt_workflow_protected_action_allowed, false);
+      assert.equal(dashboard.summary.video_ppt_workflow_protected_action_executed, false);
+      assert.equal(dashboard.summary.video_ppt_workflow_legal_advice_generated, false);
+      assert.equal(dashboard.summary.video_ppt_workflow_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.video_ppt_workflow_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.video_ppt_workflow_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.video_ppt_workflow_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -18653,6 +18796,58 @@ describe("matter harness", () => {
       assert.equal(webNovelWorkflowStage?.metrics.client_facing_ready_count, 0);
       assert.equal(webNovelWorkflowStage?.metrics.failed_checkpoint_count, 0);
       assert.equal(webNovelWorkflowStage?.metrics.validation_error_count, 0);
+      const videoPptWorkflowStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "video_ppt_workflow");
+      assert.equal(videoPptWorkflowStage?.status, "passed");
+      assert.equal(videoPptWorkflowStage?.metrics.video_ppt_workflow_status, "complete");
+      assert.equal(videoPptWorkflowStage?.metrics.video_ppt_workflow_contract_id, videoPptWorkflow.summary.video_ppt_workflow_contract_id);
+      assert.equal(videoPptWorkflowStage?.metrics.source_brief_status, "complete");
+      assert.equal(videoPptWorkflowStage?.metrics.source_creative_document_pack_manifest_status, "complete");
+      assert.equal(videoPptWorkflowStage?.metrics.source_asset_registry_status, "complete");
+      assert.equal(videoPptWorkflowStage?.metrics.source_pptx_renderer_status, "complete");
+      assert.equal(videoPptWorkflowStage?.metrics.source_design_system_profile_status, "complete");
+      assert.equal(videoPptWorkflowStage?.metrics.source_web_novel_workflow_status, "complete");
+      assert.equal(videoPptWorkflowStage?.metrics.source_output_delivery_contract_freeze_status, "complete");
+      assert.equal(videoPptWorkflowStage?.metrics.video_ppt_workflow_record_count, videoPptWorkflow.summary.video_ppt_workflow_record_count);
+      assert.equal(videoPptWorkflowStage?.metrics.complete_workflow_record_count, videoPptWorkflow.summary.complete_workflow_record_count);
+      assert.equal(videoPptWorkflowStage?.metrics.video_ppt_script_count, videoPptWorkflow.summary.video_ppt_script_count);
+      assert.equal(videoPptWorkflowStage?.metrics.draft_script_count, videoPptWorkflow.summary.draft_script_count);
+      assert.equal(videoPptWorkflowStage?.metrics.video_ppt_storyboard_count, videoPptWorkflow.summary.video_ppt_storyboard_count);
+      assert.equal(videoPptWorkflowStage?.metrics.draft_storyboard_count, videoPptWorkflow.summary.draft_storyboard_count);
+      assert.equal(videoPptWorkflowStage?.metrics.caption_required_storyboard_count, videoPptWorkflow.summary.caption_required_storyboard_count);
+      assert.equal(videoPptWorkflowStage?.metrics.video_ppt_slide_deck_count, videoPptWorkflow.summary.video_ppt_slide_deck_count);
+      assert.equal(videoPptWorkflowStage?.metrics.draft_slide_deck_count, videoPptWorkflow.summary.draft_slide_deck_count);
+      assert.equal(videoPptWorkflowStage?.metrics.video_ppt_approval_artifact_count, videoPptWorkflow.summary.video_ppt_approval_artifact_count);
+      assert.equal(videoPptWorkflowStage?.metrics.ready_approval_artifact_count, videoPptWorkflow.summary.ready_approval_artifact_count);
+      assert.equal(videoPptWorkflowStage?.metrics.video_ppt_output_artifact_count, videoPptWorkflow.summary.video_ppt_output_artifact_count);
+      assert.equal(videoPptWorkflowStage?.metrics.draft_output_artifact_count, videoPptWorkflow.summary.draft_output_artifact_count);
+      assert.equal(videoPptWorkflowStage?.metrics.markdown_output_artifact_count, videoPptWorkflow.summary.markdown_output_artifact_count);
+      assert.equal(videoPptWorkflowStage?.metrics.json_output_artifact_count, videoPptWorkflow.summary.json_output_artifact_count);
+      assert.equal(videoPptWorkflowStage?.metrics.human_review_required_output_count, videoPptWorkflow.summary.human_review_required_output_count);
+      assert.equal(videoPptWorkflowStage?.metrics.format_validation_required_output_count, videoPptWorkflow.summary.format_validation_required_output_count);
+      assert.equal(videoPptWorkflowStage?.metrics.source_attribution_required_output_count, videoPptWorkflow.summary.source_attribution_required_output_count);
+      assert.equal(videoPptWorkflowStage?.metrics.draft_production_only, true);
+      assert.equal(videoPptWorkflowStage?.metrics.deterministic_generation_performed, true);
+      assert.equal(videoPptWorkflowStage?.metrics.external_model_execution_performed, false);
+      assert.equal(videoPptWorkflowStage?.metrics.network_access_performed, false);
+      assert.equal(videoPptWorkflowStage?.metrics.media_generation_performed, false);
+      assert.equal(videoPptWorkflowStage?.metrics.media_generation_allowed, false);
+      assert.equal(videoPptWorkflowStage?.metrics.video_binary_generation_allowed, false);
+      assert.equal(videoPptWorkflowStage?.metrics.pptx_binary_generation_allowed, false);
+      assert.equal(videoPptWorkflowStage?.metrics.template_mutation_allowed, false);
+      assert.equal(videoPptWorkflowStage?.metrics.style_mutation_allowed, false);
+      assert.equal(videoPptWorkflowStage?.metrics.asset_mutation_allowed, false);
+      assert.equal(videoPptWorkflowStage?.metrics.document_runtime_mutation_allowed, false);
+      assert.equal(videoPptWorkflowStage?.metrics.renderer_execution_allowed, false);
+      assert.equal(videoPptWorkflowStage?.metrics.artifact_write_allowed, true);
+      assert.equal(videoPptWorkflowStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(videoPptWorkflowStage?.metrics.delivery_execution_performed, false);
+      assert.equal(videoPptWorkflowStage?.metrics.protected_action_allowed, false);
+      assert.equal(videoPptWorkflowStage?.metrics.protected_action_executed, false);
+      assert.equal(videoPptWorkflowStage?.metrics.legal_advice_generated, false);
+      assert.equal(videoPptWorkflowStage?.metrics.client_facing_output_generated, false);
+      assert.equal(videoPptWorkflowStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(videoPptWorkflowStage?.metrics.failed_checkpoint_count, 0);
+      assert.equal(videoPptWorkflowStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -20781,6 +20976,34 @@ describe("matter harness", () => {
       const webNovelWorkflowValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/web-novel-workflow-validations?status=passed", apiOptions)).body);
       assert.equal(webNovelWorkflowValidationsResponse.collection, "web_novel_workflow_validations");
       assert.equal(webNovelWorkflowValidationsResponse.count, webNovelWorkflow.summary.validation_item_count);
+
+      const videoPptWorkflowsResponse = JSON.parse((await buildReviewApiResponse("/api/video-ppt-workflows?video_ppt_workflow_status=complete", apiOptions)).body);
+      assert.equal(videoPptWorkflowsResponse.collection, "video_ppt_workflows");
+      assert.equal(videoPptWorkflowsResponse.count, videoPptWorkflow.summary.video_ppt_workflow_record_count);
+
+      const videoPptScriptsResponse = JSON.parse((await buildReviewApiResponse("/api/video-ppt-scripts?video_ppt_script_status=draft_needs_review", apiOptions)).body);
+      assert.equal(videoPptScriptsResponse.collection, "video_ppt_scripts");
+      assert.equal(videoPptScriptsResponse.count, videoPptWorkflow.summary.video_ppt_script_count);
+
+      const videoPptStoryboardsResponse = JSON.parse((await buildReviewApiResponse("/api/video-ppt-storyboards?video_ppt_storyboard_status=draft_needs_review", apiOptions)).body);
+      assert.equal(videoPptStoryboardsResponse.collection, "video_ppt_storyboards");
+      assert.equal(videoPptStoryboardsResponse.count, videoPptWorkflow.summary.video_ppt_storyboard_count);
+
+      const videoPptSlideDecksResponse = JSON.parse((await buildReviewApiResponse("/api/video-ppt-slide-decks?video_ppt_slide_deck_status=draft_needs_review", apiOptions)).body);
+      assert.equal(videoPptSlideDecksResponse.collection, "video_ppt_slide_decks");
+      assert.equal(videoPptSlideDecksResponse.count, videoPptWorkflow.summary.video_ppt_slide_deck_count);
+
+      const videoPptApprovalArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/video-ppt-approval-artifacts?video_ppt_approval_artifact_status=ready_for_human_review", apiOptions)).body);
+      assert.equal(videoPptApprovalArtifactsResponse.collection, "video_ppt_approval_artifacts");
+      assert.equal(videoPptApprovalArtifactsResponse.count, videoPptWorkflow.summary.video_ppt_approval_artifact_count);
+
+      const videoPptOutputArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/video-ppt-output-artifacts?video_ppt_output_artifact_status=draft_generated_needs_review&video_ppt_output_format=markdown", apiOptions)).body);
+      assert.equal(videoPptOutputArtifactsResponse.collection, "video_ppt_output_artifacts");
+      assert.equal(videoPptOutputArtifactsResponse.count, videoPptWorkflow.summary.markdown_output_artifact_count);
+
+      const videoPptWorkflowValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/video-ppt-workflow-validations?status=passed", apiOptions)).body);
+      assert.equal(videoPptWorkflowValidationsResponse.collection, "video_ppt_workflow_validations");
+      assert.equal(videoPptWorkflowValidationsResponse.count, videoPptWorkflow.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

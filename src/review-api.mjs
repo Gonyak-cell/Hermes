@@ -4925,6 +4925,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("web_novel_workflow_validations", webNovelWorkflowResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/video-ppt-workflows") {
+    const videoPptWorkflowResult = await readDashboardSourceArtifact(dashboard, "video_ppt_workflow");
+    if (!videoPptWorkflowResult.available) {
+      return jsonResponse(503, buildError("video_ppt_workflow_unavailable", videoPptWorkflowResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("video_ppt_workflows", videoPptWorkflowResult.artifact.video_ppt_workflows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/video-ppt-scripts") {
+    const videoPptWorkflowResult = await readDashboardSourceArtifact(dashboard, "video_ppt_workflow");
+    if (!videoPptWorkflowResult.available) {
+      return jsonResponse(503, buildError("video_ppt_workflow_unavailable", videoPptWorkflowResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("video_ppt_scripts", videoPptWorkflowResult.artifact.video_ppt_scripts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/video-ppt-storyboards") {
+    const videoPptWorkflowResult = await readDashboardSourceArtifact(dashboard, "video_ppt_workflow");
+    if (!videoPptWorkflowResult.available) {
+      return jsonResponse(503, buildError("video_ppt_workflow_unavailable", videoPptWorkflowResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("video_ppt_storyboards", videoPptWorkflowResult.artifact.video_ppt_storyboards ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/video-ppt-slide-decks") {
+    const videoPptWorkflowResult = await readDashboardSourceArtifact(dashboard, "video_ppt_workflow");
+    if (!videoPptWorkflowResult.available) {
+      return jsonResponse(503, buildError("video_ppt_workflow_unavailable", videoPptWorkflowResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("video_ppt_slide_decks", videoPptWorkflowResult.artifact.video_ppt_slide_decks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/video-ppt-approval-artifacts") {
+    const videoPptWorkflowResult = await readDashboardSourceArtifact(dashboard, "video_ppt_workflow");
+    if (!videoPptWorkflowResult.available) {
+      return jsonResponse(503, buildError("video_ppt_workflow_unavailable", videoPptWorkflowResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("video_ppt_approval_artifacts", videoPptWorkflowResult.artifact.video_ppt_approval_artifacts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/video-ppt-output-artifacts") {
+    const videoPptWorkflowResult = await readDashboardSourceArtifact(dashboard, "video_ppt_workflow");
+    if (!videoPptWorkflowResult.available) {
+      return jsonResponse(503, buildError("video_ppt_workflow_unavailable", videoPptWorkflowResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("video_ppt_output_artifacts", videoPptWorkflowResult.artifact.video_ppt_output_artifacts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/video-ppt-workflow-validations") {
+    const videoPptWorkflowResult = await readDashboardSourceArtifact(dashboard, "video_ppt_workflow");
+    if (!videoPptWorkflowResult.available) {
+      return jsonResponse(503, buildError("video_ppt_workflow_unavailable", videoPptWorkflowResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("video_ppt_workflow_validations", videoPptWorkflowResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -11233,6 +11282,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/web-novel-revision-packets", "Web novel revision packet rows"),
       route("GET", "/api/web-novel-output-artifacts", "Web novel output artifact rows"),
       route("GET", "/api/web-novel-workflow-validations", "Web novel workflow validation rows"),
+      route("GET", "/api/video-ppt-workflows", "Video/PPT workflow rows"),
+      route("GET", "/api/video-ppt-scripts", "Video/PPT script rows"),
+      route("GET", "/api/video-ppt-storyboards", "Video/PPT storyboard rows"),
+      route("GET", "/api/video-ppt-slide-decks", "Video/PPT slide deck rows"),
+      route("GET", "/api/video-ppt-approval-artifacts", "Video/PPT approval artifact rows"),
+      route("GET", "/api/video-ppt-output-artifacts", "Video/PPT output artifact rows"),
+      route("GET", "/api/video-ppt-workflow-validations", "Video/PPT workflow validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -12270,6 +12326,13 @@ function filterItems(items, searchParams) {
     "web_novel_revision_packet_status",
     "web_novel_output_artifact_status",
     "web_novel_output_format",
+    "video_ppt_workflow_status",
+    "video_ppt_script_status",
+    "video_ppt_storyboard_status",
+    "video_ppt_slide_deck_status",
+    "video_ppt_approval_artifact_status",
+    "video_ppt_output_artifact_status",
+    "video_ppt_output_format",
     "matter_os_profile_status",
     "profile_card_status",
     "display_field_status",
@@ -14035,6 +14098,13 @@ function readFilterValue(item, key) {
   if (key === "web_novel_revision_packet_status") return item.revision_packet_status;
   if (key === "web_novel_output_artifact_status") return item.output_artifact_status;
   if (key === "web_novel_output_format") return item.output_format;
+  if (key === "video_ppt_workflow_status") return item.summary?.video_ppt_workflow_status ?? item.video_ppt_workflow_status;
+  if (key === "video_ppt_script_status") return item.script_status;
+  if (key === "video_ppt_storyboard_status") return item.storyboard_status;
+  if (key === "video_ppt_slide_deck_status") return item.slide_deck_status;
+  if (key === "video_ppt_approval_artifact_status") return item.approval_artifact_status;
+  if (key === "video_ppt_output_artifact_status") return item.output_artifact_status;
+  if (key === "video_ppt_output_format") return item.output_format;
   if (key === "matter_os_profile_status") return item.summary?.matter_os_profile_status ?? item.matter_os_profile_status;
   if (key === "profile_card_status") return item.profile_card_status;
   if (key === "display_field_status") return item.display_field_status;

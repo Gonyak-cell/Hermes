@@ -2212,6 +2212,34 @@ try {
   assert.equal(webNovelWorkflowValidations.collection, "web_novel_workflow_validations");
   assert.ok(webNovelWorkflowValidations.count <= 5);
 
+  const videoPptWorkflows = await fetchJson(`${url}/api/video-ppt-workflows?video_ppt_workflow_status=complete&limit=1`);
+  assert.equal(videoPptWorkflows.collection, "video_ppt_workflows");
+  assert.ok(videoPptWorkflows.count <= 1);
+
+  const videoPptScripts = await fetchJson(`${url}/api/video-ppt-scripts?video_ppt_script_status=draft_needs_review&limit=5`);
+  assert.equal(videoPptScripts.collection, "video_ppt_scripts");
+  assert.ok(videoPptScripts.count <= 5);
+
+  const videoPptStoryboards = await fetchJson(`${url}/api/video-ppt-storyboards?video_ppt_storyboard_status=draft_needs_review&limit=5`);
+  assert.equal(videoPptStoryboards.collection, "video_ppt_storyboards");
+  assert.ok(videoPptStoryboards.count <= 5);
+
+  const videoPptSlideDecks = await fetchJson(`${url}/api/video-ppt-slide-decks?video_ppt_slide_deck_status=draft_needs_review&limit=5`);
+  assert.equal(videoPptSlideDecks.collection, "video_ppt_slide_decks");
+  assert.ok(videoPptSlideDecks.count <= 5);
+
+  const videoPptApprovalArtifacts = await fetchJson(`${url}/api/video-ppt-approval-artifacts?video_ppt_approval_artifact_status=ready_for_human_review&limit=5`);
+  assert.equal(videoPptApprovalArtifacts.collection, "video_ppt_approval_artifacts");
+  assert.ok(videoPptApprovalArtifacts.count <= 5);
+
+  const videoPptOutputArtifacts = await fetchJson(`${url}/api/video-ppt-output-artifacts?video_ppt_output_artifact_status=draft_generated_needs_review&video_ppt_output_format=markdown&limit=5`);
+  assert.equal(videoPptOutputArtifacts.collection, "video_ppt_output_artifacts");
+  assert.ok(videoPptOutputArtifacts.count <= 5);
+
+  const videoPptWorkflowValidations = await fetchJson(`${url}/api/video-ppt-workflow-validations?status=passed&limit=5`);
+  assert.equal(videoPptWorkflowValidations.collection, "video_ppt_workflow_validations");
+  assert.ok(videoPptWorkflowValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

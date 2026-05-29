@@ -7188,6 +7188,23 @@ Completion criteria:
 - Golden fixture count increased to 166 and `web_novel_workflow` is included as a regression fixture.
 - `npm run creative-document:web-novel-workflow -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
 
+## Phase 265 - Video/PPT Workflow
+
+Goal: P265 establishes the Creative and Document Domain Pack video/PPT production workflow. It converts the creative-document brief and prior creative workflow outputs into deterministic production-planning artifacts while preserving the Windows baseline stabilization posture and all human-review/no-legal-advice gates.
+
+Implementation:
+- Added `src/creative-document-video-ppt-workflow.mjs`, `scripts/creative-document-video-ppt-workflow.mjs`, `schemas/video-ppt-workflow.schema.json`, and `docs/video-ppt-workflow.md`.
+- Added `creative-document:video-ppt-workflow` npm script.
+- The artifact reads Creative Document Brief, Creative Document Pack Manifest, Asset Registry, PPTX Renderer, Design System Profile, Web Novel Workflow, and Output Delivery Freeze as read-only sources and emits `video_ppt_workflows`, `video_ppt_scripts`, `video_ppt_storyboards`, `video_ppt_slide_decks`, `video_ppt_approval_artifacts`, `video_ppt_output_artifacts`, checkpoint rows, a validation report, storyboard markdown, and a slide-deck plan JSON file.
+- Review Dashboard stage/summary, Review API route/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests were wired to the new artifact.
+
+Completion criteria:
+- 1 workflow row, 3 draft script rows, 3 draft storyboard rows, 1 draft slide deck plan, 1 human-review approval artifact, and 2 draft output artifacts are generated.
+- All generated production rows remain human-review and format-validation gated; storyboard caption/license review and output source attribution remain required.
+- The workflow remains deterministic and draft-only: no external model execution, no network access, no media generation, no video binary generation, no PPTX binary generation, no template/style/asset/runtime mutation, no renderer execution, no delivery, no protected action, no legal advice, and no client-facing output generation.
+- Golden fixture count increased to 167 and `video_ppt_workflow` is included as a regression fixture.
+- `npm run creative-document:video-ppt-workflow -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -7196,9 +7213,9 @@ Completion criteria:
 
 운영 원칙:
 
-- Current actual completion baseline is Phase 264.
+- Current actual completion baseline is Phase 265.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- Remaining planned slots are P265-P312, 48 total.
+- Remaining planned slots are P266-P312, 47 total.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - P217 이후 personal-dev 작업은 Mac Phase 216 결과를 Windows 작업공간에서 계속 이어가되, Phase 217 본작업보다 Windows 기준선 안정화 게이트를 선행 조건으로 둔 판단을 기준으로 운영한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.

@@ -146,6 +146,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "creative-document:version-comparator",
   "creative-document:design-system-profile",
   "creative-document:web-novel-workflow",
+  "creative-document:video-ppt-workflow",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

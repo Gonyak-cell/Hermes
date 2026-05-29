@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "video-ppt-workflow.schema.json",
+  "title": "Video/PPT Workflow",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "video_ppt_workflow_id",
+    "video_ppt_workflow_status",
+    "safe_handling",
+    "video_ppt_workflow_contract",
+    "video_ppt_workflow_boundary",
+    "video_ppt_workflows",
+    "video_ppt_scripts",
+    "video_ppt_storyboards",
+    "video_ppt_slide_decks",
+    "video_ppt_approval_artifacts",
+    "video_ppt_output_artifacts",
+    "video_ppt_workflow_checkpoints",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "video-ppt-workflow.v1" },
+    "video_ppt_workflow_id": { "type": "string", "minLength": 1 },
+    "video_ppt_workflow_status": { "const": "complete" },
+    "safe_handling": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "draft_only",
+        "video_ppt_workflow_generated",
+        "deterministic_draft_generation",
+        "external_model_execution_performed",
+        "network_access_performed",
+        "media_generation_performed",
+        "delivery_execution_performed",
+        "protected_mutation_performed",
+        "human_review_required",
+        "legal_advice_generated",
+        "client_facing_output_generated"
+      ],
+      "properties": {
+        "draft_only": { "const": true },
+        "video_ppt_workflow_generated": { "const": true },
+        "deterministic_draft_generation": { "const": true },
+        "external_model_execution_performed": { "const": false },
+        "network_access_performed": { "const": false },
+        "media_generation_performed": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "protected_mutation_performed": { "const": false },
+        "human_review_required": { "const": true },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false }
+      }
+    },
+    "video_ppt_workflow_boundary": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "boundary_status",
+        "draft_production_only",
+        "deterministic_generation_only",
+        "external_model_execution_allowed",
+        "network_access_allowed",
+        "media_generation_allowed",
+        "renderer_execution_allowed",
+        "delivery_execution_allowed",
+        "protected_action_allowed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "client_facing_ready_count"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "draft_production_only": { "const": true },
+        "deterministic_generation_only": { "const": true },
+        "external_model_execution_allowed": { "const": false },
+        "network_access_allowed": { "const": false },
+        "media_generation_allowed": { "const": false },
+        "renderer_execution_allowed": { "const": false },
+        "delivery_execution_allowed": { "const": false },
+        "protected_action_allowed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "client_facing_ready_count": { "const": 0 }
+      }
+    },
+    "video_ppt_workflows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["video_ppt_workflow_status", "workflow_id", "human_review_required", "format_validation_required", "client_facing_ready", "metadata_hash"],
+        "properties": {
+          "video_ppt_workflow_status": { "const": "complete" },
+          "workflow_id": { "const": "workflow.creative_document.video_ppt_production.v1" },
+          "human_review_required": { "const": true },
+          "format_validation_required": { "const": true },
+          "client_facing_ready": { "const": false },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:" }
+        }
+      }
+    },
+    "video_ppt_scripts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["script_status", "caption_required", "source_attribution_required", "human_review_required", "format_validation_required", "client_facing_ready", "metadata_hash"],
+        "properties": {
+          "script_status": { "const": "draft_needs_review" },
+          "caption_required": { "const": true },
+          "source_attribution_required": { "const": true },
+          "human_review_required": { "const": true },
+          "format_validation_required": { "const": true },
+          "client_facing_ready": { "const": false },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:" }
+        }
+      }
+    },
+    "video_ppt_storyboards": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["storyboard_status", "caption_required", "license_review_required", "human_review_required", "format_validation_required", "client_facing_ready", "metadata_hash"],
+        "properties": {
+          "storyboard_status": { "const": "draft_needs_review" },
+          "caption_required": { "const": true },
+          "license_review_required": { "const": true },
+          "human_review_required": { "const": true },
+          "format_validation_required": { "const": true },
+          "client_facing_ready": { "const": false },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:" }
+        }
+      }
+    },
+    "video_ppt_slide_decks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["slide_deck_status", "slide_count", "source_attribution_required", "human_review_required", "format_validation_required", "client_facing_ready", "deck_hash"],
+        "properties": {
+          "slide_deck_status": { "const": "draft_needs_review" },
+          "slide_count": { "type": "integer", "minimum": 1, "maximum": 6 },
+          "source_attribution_required": { "const": true },
+          "human_review_required": { "const": true },
+          "format_validation_required": { "const": true },
+          "client_facing_ready": { "const": false },
+          "deck_hash": { "type": "string", "pattern": "^sha256:" }
+        }
+      }
+    },
+    "video_ppt_approval_artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["approval_artifact_status", "human_review_required", "format_validation_required", "client_facing_ready", "metadata_hash"],
+        "properties": {
+          "approval_artifact_status": { "const": "ready_for_human_review" },
+          "human_review_required": { "const": true },
+          "format_validation_required": { "const": true },
+          "client_facing_ready": { "const": false },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:" }
+        }
+      }
+    },
+    "video_ppt_output_artifacts": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["output_artifact_status", "output_format", "source_attribution_required", "human_review_required", "format_validation_required", "client_facing_ready", "metadata_hash"],
+        "properties": {
+          "output_artifact_status": { "const": "draft_generated_needs_review" },
+          "output_format": { "enum": ["markdown", "json"] },
+          "source_attribution_required": { "const": true },
+          "human_review_required": { "const": true },
+          "format_validation_required": { "const": true },
+          "client_facing_ready": { "const": false },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:" }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "errors": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "video_ppt_workflow_status",
+        "video_ppt_workflow_contract_id",
+        "video_ppt_workflow_record_count",
+        "video_ppt_script_count",
+        "video_ppt_storyboard_count",
+        "video_ppt_slide_deck_count",
+        "video_ppt_approval_artifact_count",
+        "video_ppt_output_artifact_count",
+        "delivery_execution_allowed",
+        "delivery_execution_performed",
+        "protected_action_allowed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "client_facing_ready_count",
+        "failed_checkpoint_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "video_ppt_workflow_status": { "const": "complete" },
+        "video_ppt_workflow_contract_id": { "const": "video-ppt-workflow.v1" },
+        "video_ppt_workflow_record_count": { "const": 1 },
+        "video_ppt_script_count": { "type": "integer", "minimum": 1 },
+        "video_ppt_storyboard_count": { "type": "integer", "minimum": 1 },
+        "video_ppt_slide_deck_count": { "const": 1 },
+        "video_ppt_approval_artifact_count": { "const": 1 },
+        "video_ppt_output_artifact_count": { "const": 2 },
+        "delivery_execution_allowed": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "protected_action_allowed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "client_facing_ready_count": { "const": 0 },
+        "failed_checkpoint_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

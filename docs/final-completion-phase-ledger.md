@@ -4,8 +4,8 @@
 
 운영 규칙:
 
-- Current actual completion baseline is Phase 264.
-- Remaining planned slots are P265-P312, 48 total.
+- Current actual completion baseline is Phase 265.
+- Remaining planned slots are P266-P312, 47 total.
 - 각 slot은 `검증 -> 보강 -> 구현 -> 검증 -> commit -> roadmap 승격` 순서로 처리한다.
 - 모든 slot은 가능하면 `npm run validate`, `npm test`, 해당 slice command, `npm run control-plane:loop`, API/dashboard smoke 중 관련 검증을 통과해야 한다.
 - For P217 and later, continue on the Windows workspace only after preserving the Windows baseline stabilization posture.
@@ -42,7 +42,7 @@
 | P108 | Error/Cost/Observability contract 고정 | error, cost, trace projection schema | Promoted to Phase 108; ErrorRecord v2, CostObservation v2, TraceProjection v2가 실패, retry, token, cost, latency를 독립 projection으로 검증 |
 | P109 | schema versioning rule 확정 | schema versioning guideline | Promoted to Phase 109; optional addition, deprecation, migration manifest rule이 schema-versioning validator와 dashboard/API/checkpoint에 반영 |
 | P110 | migration manifest 구조 확정 | migration manifest schema | Promoted to Phase 110; core/pack/index migration manifest, migration record, validation, dashboard/API/checkpoint/loop가 분리 추적 |
-| P111 | contract golden fixtures | golden fixture set | Promoted to Phase 111; contract artifact, schema validation, and regression hash manifest are locked; Phase 113-P264 identity/policy/resource/evidence/event/workflow/runtime/personal-dev/law-firm/creative-document fixtures are included, including matter_os_profile through web_novel_workflow, for 166 total fixtures |
+| P111 | contract golden fixtures | golden fixture set | Promoted to Phase 111; contract artifact, schema validation, and regression hash manifest are locked; Phase 113-P265 identity/policy/resource/evidence/event/workflow/runtime/personal-dev/law-firm/creative-document fixtures are included, including matter_os_profile through video_ppt_workflow, for 167 total fixtures |
 | P112 | contract validation CLI 통합 | contract validation command | Promoted to Phase 112; 전체 contract fixture가 `npm run contracts:validate -- --check` 한 명령으로 검증되고 dashboard/API/checkpoint/loop에 반영 |
 
 ## P113-P132 Identity, Policy, Matter Boundary
@@ -236,7 +236,7 @@
 | P262 | version comparator 구현 | document comparison artifact | Promoted to Phase 262; Version Comparator reads DOCX, PPTX, PDF/HTML renderer outputs plus layout-validator and citation-renderer artifacts as read-only sources and emits 7 document version pairs, 28 document change records, and 7 attorney-review comparison packets covering content hash, layout validation, citation rendering, and review-gate deltas while preserving no draft/source mutation, no document runtime mutation, no network access, no delivery, no protected action, no legal advice, and no client-facing readiness; golden/checkpoint/dashboard/API/loop/test verification passed |
 | P263 | design system profile 구현 | design system profile | Promoted to Phase 263; Design System Profile reads Template Registry, Style Registry, Asset Registry, PPTX Renderer, Version Comparator, and the PPTX design-system capability manifest as read-only sources and emits 1 PPTX design-system profile, 9 linked design rules, 2 template design bindings, 10 asset design bindings, and 2 attorney-review design review packets while preserving metadata-only design rules, no template/style/asset mutation, no renderer execution, no network access, no delivery, no protected action, no legal advice, and no client-facing readiness; golden/checkpoint/dashboard/API/loop/test verification passed |
 | P264 | web novel generator workflow 구현 | web novel workflow | Promoted to Phase 264; Web Novel Workflow reads Creative Document Brief, Creative Document Pack Manifest, Template Registry, Style Registry, Design System Profile, and Output Delivery Freeze as read-only sources and emits 1 workflow row, 1 draft synopsis, 1 draft style guide, 3 draft chapters, 3 human-review revision packets, and 1 draft markdown output artifact while preserving deterministic generation, human review, format validation, source attribution, no external model/network/template/style/asset/runtime mutation, no delivery, no protected action, no legal advice, and no client-facing readiness; golden/checkpoint/dashboard/API/loop/test verification passed |
-| P265 | video/PPT production workflow 구현 | video/PPT content workflow | script, storyboard, slide deck, approval artifact 생성 |
+| P265 | video/PPT production workflow 구현 | video/PPT content workflow | Promoted to Phase 265; Video/PPT Workflow reads Creative Document Brief, Creative Document Pack Manifest, Asset Registry, PPTX Renderer, Design System Profile, Web Novel Workflow, and Output Delivery Freeze as read-only sources and emits 1 workflow row, 3 draft script rows, 3 draft storyboard rows, 1 draft slide deck plan, 1 human-review approval artifact, and 2 draft output artifacts while preserving deterministic draft production, human review, caption/source/format/license gates, no external model/network/media generation, no video or PPTX binary generation, no template/style/asset/runtime mutation, no delivery, no protected action, no legal advice, and no client-facing readiness; golden/checkpoint/dashboard/API/loop/test verification passed |
 | P266 | Creative Document freeze | creative document freeze report | document/content 대표 workflow가 render/layout/approval 통과 |
 
 ## P267-P276 Connector and Ingestion Layer

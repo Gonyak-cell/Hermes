@@ -120,6 +120,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   batchMatterTaggingResultPath: "artifacts/batch-matter-tagging-result/latest/batch-matter-tagging-result.json",
   extractorRegistryPath: "artifacts/extractor-registry/latest/extractor-registry.json",
   extractorCoverageReportPath: "artifacts/extractor-coverage-report/latest/extractor-coverage-report.json",
+  expansionStatusDashboardPath: "artifacts/expansion-status-dashboard/latest/expansion-status-dashboard.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -863,6 +864,11 @@ const SOURCE_DEFINITIONS = [
     option: "extractorCoverageReportPath",
     source_id: "extractor_coverage_report",
     label: "Extractor Coverage Report",
+  },
+  {
+    option: "expansionStatusDashboardPath",
+    source_id: "expansion_status_dashboard",
+    label: "Expansion Status Dashboard",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1852,6 +1858,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "batch_matter_tagging_result") return data.summary ?? {};
   if (sourceId === "extractor_registry") return data.summary ?? {};
   if (sourceId === "extractor_coverage_report") return data.summary ?? {};
+  if (sourceId === "expansion_status_dashboard") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2253,6 +2260,7 @@ function buildStageStatuses(artifacts, sources) {
     buildBatchMatterTaggingResultStage(artifacts.batch_matter_tagging_result, sourceById.get("batch_matter_tagging_result")),
     buildExtractorRegistryStage(artifacts.extractor_registry, sourceById.get("extractor_registry")),
     buildExtractorCoverageReportStage(artifacts.extractor_coverage_report, sourceById.get("extractor_coverage_report")),
+    buildExpansionStatusDashboardStage(artifacts.expansion_status_dashboard, sourceById.get("expansion_status_dashboard")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -14084,6 +14092,129 @@ function buildExtractorCoverageReportStage(artifact, source) {
   };
 }
 
+function buildExpansionStatusDashboardStage(artifact, source) {
+  if (!artifact) return missingStage("expansion_status_dashboard", "Expansion Status Dashboard", source);
+  const summary = artifact.summary ?? {};
+  const rowCount = summary.status_item_row_count ?? 0;
+  const status = artifact.validation?.valid === false
+    || summary.expansion_status_dashboard_status !== "complete"
+    || summary.phase_slot !== "P285"
+    || summary.previous_phase_slot !== "P284"
+    || summary.next_phase_slot !== "P286"
+    || summary.source_expansion_dedup_ledger_status !== "complete"
+    || summary.source_expansion_dedup_phase_slot !== "P279"
+    || summary.source_expansion_quarantine_ledger_status !== "complete"
+    || summary.source_expansion_quarantine_phase_slot !== "P280"
+    || summary.source_extractor_coverage_report_status !== "complete"
+    || summary.source_extractor_coverage_phase_slot !== "P284"
+    || summary.source_extractor_coverage_next_phase_slot !== "P285"
+    || rowCount <= 0
+    || summary.resource_item_count !== rowCount
+    || summary.discovered_item_count !== rowCount
+    || summary.status_rollup_row_count !== summary.required_status_bucket_count
+    || summary.queryable_status_bucket_count !== summary.required_status_bucket_count
+    || summary.queryable_status_panel_count !== summary.status_panel_row_count
+    || summary.queryable_api_route_count !== summary.api_route_row_count
+    || summary.linked_dedup_row_count !== rowCount
+    || summary.linked_quarantine_row_count !== rowCount
+    || summary.linked_coverage_row_count !== rowCount
+    || summary.human_review_required_count !== rowCount
+    || summary.client_facing_ready_count !== 0
+    || summary.source_path_used_for_status_identity_count !== 0
+    || summary.read_only !== true
+    || summary.expansion_status_dashboard_report_only !== true
+    || summary.source_artifact_read_performed !== true
+    || summary.expansion_execution_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.file_content_read_performed !== false
+    || summary.extraction_retry_performed !== false
+    || summary.quarantine_release_performed !== false
+    || summary.source_mutation_performed !== false
+    || summary.resource_mutation_performed !== false
+    || summary.state_mutation_performed !== false
+    || summary.matter_data_write_performed !== false
+    || summary.delivery_execution_performed !== false
+    || summary.protected_action_executed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || summary.failed_checkpoint_count !== 0
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "expansion_status_dashboard",
+    label: "Expansion Status Dashboard",
+    status,
+    message: `${summary.discovered_item_count ?? 0} discovered, ${summary.queued_item_count ?? 0} queued, ${summary.ingested_item_count ?? 0} ingested, ${summary.failed_item_count ?? 0} failed, and ${summary.quarantined_item_count ?? 0} quarantined item(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      expansion_status_dashboard_status: summary.expansion_status_dashboard_status ?? "unknown",
+      expansion_status_dashboard_id: summary.expansion_status_dashboard_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_resource_expansion_schema_version: summary.source_resource_expansion_schema_version ?? null,
+      source_resource_expansion_job_id: summary.source_resource_expansion_job_id ?? null,
+      source_resource_expansion_source_id: summary.source_resource_expansion_source_id ?? null,
+      source_resource_expansion_discovered_count: summary.source_resource_expansion_discovered_count ?? 0,
+      source_resource_expansion_remaining_count: summary.source_resource_expansion_remaining_count ?? 0,
+      source_expansion_dedup_ledger_status: summary.source_expansion_dedup_ledger_status ?? "unknown",
+      source_expansion_dedup_phase_slot: summary.source_expansion_dedup_phase_slot ?? null,
+      source_expansion_quarantine_ledger_status: summary.source_expansion_quarantine_ledger_status ?? "unknown",
+      source_expansion_quarantine_phase_slot: summary.source_expansion_quarantine_phase_slot ?? null,
+      source_extractor_coverage_report_status: summary.source_extractor_coverage_report_status ?? "unknown",
+      source_extractor_coverage_phase_slot: summary.source_extractor_coverage_phase_slot ?? null,
+      source_extractor_coverage_next_phase_slot: summary.source_extractor_coverage_next_phase_slot ?? null,
+      resource_item_count: summary.resource_item_count ?? 0,
+      status_item_row_count: rowCount,
+      discovered_item_count: summary.discovered_item_count ?? 0,
+      queued_item_count: summary.queued_item_count ?? 0,
+      ingested_item_count: summary.ingested_item_count ?? 0,
+      extracted_item_count: summary.extracted_item_count ?? 0,
+      failed_item_count: summary.failed_item_count ?? 0,
+      quarantined_item_count: summary.quarantined_item_count ?? 0,
+      skipped_duplicate_item_count: summary.skipped_duplicate_item_count ?? 0,
+      terminal_item_count: summary.terminal_item_count ?? 0,
+      status_rollup_row_count: summary.status_rollup_row_count ?? 0,
+      required_status_bucket_count: summary.required_status_bucket_count ?? 0,
+      queryable_status_bucket_count: summary.queryable_status_bucket_count ?? 0,
+      status_panel_row_count: summary.status_panel_row_count ?? 0,
+      queryable_status_panel_count: summary.queryable_status_panel_count ?? 0,
+      api_route_row_count: summary.api_route_row_count ?? 0,
+      queryable_api_route_count: summary.queryable_api_route_count ?? 0,
+      linked_dedup_row_count: summary.linked_dedup_row_count ?? 0,
+      linked_quarantine_row_count: summary.linked_quarantine_row_count ?? 0,
+      linked_coverage_row_count: summary.linked_coverage_row_count ?? 0,
+      human_review_required_count: summary.human_review_required_count ?? 0,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      source_path_used_for_status_identity_count: summary.source_path_used_for_status_identity_count ?? 0,
+      read_only: summary.read_only ?? false,
+      expansion_status_dashboard_report_only: summary.expansion_status_dashboard_report_only ?? false,
+      source_artifact_read_performed: summary.source_artifact_read_performed ?? false,
+      expansion_execution_performed: summary.expansion_execution_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      file_content_read_performed: summary.file_content_read_performed ?? false,
+      extraction_retry_performed: summary.extraction_retry_performed ?? false,
+      quarantine_release_performed: summary.quarantine_release_performed ?? false,
+      source_mutation_performed: summary.source_mutation_performed ?? false,
+      resource_mutation_performed: summary.resource_mutation_performed ?? false,
+      state_mutation_performed: summary.state_mutation_performed ?? false,
+      matter_data_write_performed: summary.matter_data_write_performed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -20692,6 +20823,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_extractor_coverage_report", "rerun_extractor_coverage_report", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.expansion_status_dashboard?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "expansion_status_dashboard";
+    items.push({
+      action_item_id: `dashboard.action.expansion_status_dashboard.${slugify(subjectId)}`,
+      source_stage: "expansion_status_dashboard",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Expansion Status Dashboard",
+      subject_ref: {
+        subject_type: "expansion_status_dashboard_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_expansion_status_dashboard", "rerun_expansion_status_dashboard", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -27606,6 +27755,67 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     extractor_coverage_report_validation_item_count: artifacts.extractor_coverage_report?.summary?.validation_item_count ?? 0,
     extractor_coverage_report_failed_checkpoint_count: artifacts.extractor_coverage_report?.summary?.failed_checkpoint_count ?? 0,
     extractor_coverage_report_validation_error_count: artifacts.extractor_coverage_report?.summary?.validation_error_count ?? artifacts.extractor_coverage_report?.validation?.errors?.length ?? 0,
+    expansion_status_dashboard_status: artifacts.expansion_status_dashboard?.summary?.expansion_status_dashboard_status ?? "unknown",
+    expansion_status_dashboard_id: artifacts.expansion_status_dashboard?.summary?.expansion_status_dashboard_id ?? null,
+    expansion_status_dashboard_phase_slot: artifacts.expansion_status_dashboard?.summary?.phase_slot ?? null,
+    expansion_status_dashboard_previous_phase_slot: artifacts.expansion_status_dashboard?.summary?.previous_phase_slot ?? null,
+    expansion_status_dashboard_next_phase_slot: artifacts.expansion_status_dashboard?.summary?.next_phase_slot ?? null,
+    expansion_status_dashboard_source_resource_expansion_schema_version: artifacts.expansion_status_dashboard?.summary?.source_resource_expansion_schema_version ?? null,
+    expansion_status_dashboard_source_resource_expansion_job_id: artifacts.expansion_status_dashboard?.summary?.source_resource_expansion_job_id ?? null,
+    expansion_status_dashboard_source_resource_expansion_source_id: artifacts.expansion_status_dashboard?.summary?.source_resource_expansion_source_id ?? null,
+    expansion_status_dashboard_source_resource_expansion_discovered_count: artifacts.expansion_status_dashboard?.summary?.source_resource_expansion_discovered_count ?? 0,
+    expansion_status_dashboard_source_resource_expansion_remaining_count: artifacts.expansion_status_dashboard?.summary?.source_resource_expansion_remaining_count ?? 0,
+    expansion_status_dashboard_source_expansion_dedup_ledger_status: artifacts.expansion_status_dashboard?.summary?.source_expansion_dedup_ledger_status ?? "unknown",
+    expansion_status_dashboard_source_expansion_dedup_phase_slot: artifacts.expansion_status_dashboard?.summary?.source_expansion_dedup_phase_slot ?? null,
+    expansion_status_dashboard_source_expansion_quarantine_ledger_status: artifacts.expansion_status_dashboard?.summary?.source_expansion_quarantine_ledger_status ?? "unknown",
+    expansion_status_dashboard_source_expansion_quarantine_phase_slot: artifacts.expansion_status_dashboard?.summary?.source_expansion_quarantine_phase_slot ?? null,
+    expansion_status_dashboard_source_extractor_coverage_report_status: artifacts.expansion_status_dashboard?.summary?.source_extractor_coverage_report_status ?? "unknown",
+    expansion_status_dashboard_source_extractor_coverage_phase_slot: artifacts.expansion_status_dashboard?.summary?.source_extractor_coverage_phase_slot ?? null,
+    expansion_status_dashboard_source_extractor_coverage_next_phase_slot: artifacts.expansion_status_dashboard?.summary?.source_extractor_coverage_next_phase_slot ?? null,
+    expansion_status_dashboard_resource_item_count: artifacts.expansion_status_dashboard?.summary?.resource_item_count ?? 0,
+    expansion_status_dashboard_status_item_row_count: artifacts.expansion_status_dashboard?.summary?.status_item_row_count ?? 0,
+    expansion_status_dashboard_discovered_item_count: artifacts.expansion_status_dashboard?.summary?.discovered_item_count ?? 0,
+    expansion_status_dashboard_queued_item_count: artifacts.expansion_status_dashboard?.summary?.queued_item_count ?? 0,
+    expansion_status_dashboard_ingested_item_count: artifacts.expansion_status_dashboard?.summary?.ingested_item_count ?? 0,
+    expansion_status_dashboard_extracted_item_count: artifacts.expansion_status_dashboard?.summary?.extracted_item_count ?? 0,
+    expansion_status_dashboard_failed_item_count: artifacts.expansion_status_dashboard?.summary?.failed_item_count ?? 0,
+    expansion_status_dashboard_quarantined_item_count: artifacts.expansion_status_dashboard?.summary?.quarantined_item_count ?? 0,
+    expansion_status_dashboard_skipped_duplicate_item_count: artifacts.expansion_status_dashboard?.summary?.skipped_duplicate_item_count ?? 0,
+    expansion_status_dashboard_terminal_item_count: artifacts.expansion_status_dashboard?.summary?.terminal_item_count ?? 0,
+    expansion_status_dashboard_status_rollup_row_count: artifacts.expansion_status_dashboard?.summary?.status_rollup_row_count ?? 0,
+    expansion_status_dashboard_required_status_bucket_count: artifacts.expansion_status_dashboard?.summary?.required_status_bucket_count ?? 0,
+    expansion_status_dashboard_queryable_status_bucket_count: artifacts.expansion_status_dashboard?.summary?.queryable_status_bucket_count ?? 0,
+    expansion_status_dashboard_status_panel_row_count: artifacts.expansion_status_dashboard?.summary?.status_panel_row_count ?? 0,
+    expansion_status_dashboard_queryable_status_panel_count: artifacts.expansion_status_dashboard?.summary?.queryable_status_panel_count ?? 0,
+    expansion_status_dashboard_api_route_row_count: artifacts.expansion_status_dashboard?.summary?.api_route_row_count ?? 0,
+    expansion_status_dashboard_queryable_api_route_count: artifacts.expansion_status_dashboard?.summary?.queryable_api_route_count ?? 0,
+    expansion_status_dashboard_linked_dedup_row_count: artifacts.expansion_status_dashboard?.summary?.linked_dedup_row_count ?? 0,
+    expansion_status_dashboard_linked_quarantine_row_count: artifacts.expansion_status_dashboard?.summary?.linked_quarantine_row_count ?? 0,
+    expansion_status_dashboard_linked_coverage_row_count: artifacts.expansion_status_dashboard?.summary?.linked_coverage_row_count ?? 0,
+    expansion_status_dashboard_human_review_required_count: artifacts.expansion_status_dashboard?.summary?.human_review_required_count ?? 0,
+    expansion_status_dashboard_client_facing_ready_count: artifacts.expansion_status_dashboard?.summary?.client_facing_ready_count ?? 0,
+    expansion_status_dashboard_source_path_used_for_status_identity_count: artifacts.expansion_status_dashboard?.summary?.source_path_used_for_status_identity_count ?? 0,
+    expansion_status_dashboard_read_only: artifacts.expansion_status_dashboard?.summary?.read_only ?? false,
+    expansion_status_dashboard_report_only: artifacts.expansion_status_dashboard?.summary?.expansion_status_dashboard_report_only ?? false,
+    expansion_status_dashboard_source_artifact_read_performed: artifacts.expansion_status_dashboard?.summary?.source_artifact_read_performed ?? false,
+    expansion_status_dashboard_expansion_execution_performed: artifacts.expansion_status_dashboard?.summary?.expansion_execution_performed ?? false,
+    expansion_status_dashboard_source_ingest_performed: artifacts.expansion_status_dashboard?.summary?.source_ingest_performed ?? false,
+    expansion_status_dashboard_file_content_read_performed: artifacts.expansion_status_dashboard?.summary?.file_content_read_performed ?? false,
+    expansion_status_dashboard_extraction_retry_performed: artifacts.expansion_status_dashboard?.summary?.extraction_retry_performed ?? false,
+    expansion_status_dashboard_quarantine_release_performed: artifacts.expansion_status_dashboard?.summary?.quarantine_release_performed ?? false,
+    expansion_status_dashboard_source_mutation_performed: artifacts.expansion_status_dashboard?.summary?.source_mutation_performed ?? false,
+    expansion_status_dashboard_resource_mutation_performed: artifacts.expansion_status_dashboard?.summary?.resource_mutation_performed ?? false,
+    expansion_status_dashboard_state_mutation_performed: artifacts.expansion_status_dashboard?.summary?.state_mutation_performed ?? false,
+    expansion_status_dashboard_matter_data_write_performed: artifacts.expansion_status_dashboard?.summary?.matter_data_write_performed ?? false,
+    expansion_status_dashboard_delivery_execution_performed: artifacts.expansion_status_dashboard?.summary?.delivery_execution_performed ?? false,
+    expansion_status_dashboard_protected_action_executed: artifacts.expansion_status_dashboard?.summary?.protected_action_executed ?? false,
+    expansion_status_dashboard_legal_advice_generated: artifacts.expansion_status_dashboard?.summary?.legal_advice_generated ?? false,
+    expansion_status_dashboard_client_facing_output_generated: artifacts.expansion_status_dashboard?.summary?.client_facing_output_generated ?? false,
+    expansion_status_dashboard_windows_baseline_stability_preserved: artifacts.expansion_status_dashboard?.summary?.windows_baseline_stability_preserved ?? false,
+    expansion_status_dashboard_mac_windows_completion_instability_guard: artifacts.expansion_status_dashboard?.summary?.mac_windows_completion_instability_guard ?? false,
+    expansion_status_dashboard_validation_item_count: artifacts.expansion_status_dashboard?.summary?.validation_item_count ?? 0,
+    expansion_status_dashboard_failed_checkpoint_count: artifacts.expansion_status_dashboard?.summary?.failed_checkpoint_count ?? 0,
+    expansion_status_dashboard_validation_error_count: artifacts.expansion_status_dashboard?.summary?.validation_error_count ?? artifacts.expansion_status_dashboard?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -29429,6 +29639,8 @@ function parseArgs(argv) {
     else if (arg === "--no-extractor-registry") parsed.extractorRegistryPath = false;
     else if (arg === "--extractor-coverage-report") parsed.extractorCoverageReportPath = argv[++index];
     else if (arg === "--no-extractor-coverage-report") parsed.extractorCoverageReportPath = false;
+    else if (arg === "--expansion-status-dashboard") parsed.expansionStatusDashboardPath = argv[++index];
+    else if (arg === "--no-expansion-status-dashboard") parsed.expansionStatusDashboardPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

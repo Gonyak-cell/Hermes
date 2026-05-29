@@ -1,0 +1,258 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/hermes/expansion-status-dashboard.schema.json",
+  "title": "Hermes Expansion Status Dashboard",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "expansion_status_dashboard_id",
+    "expansion_status_dashboard_status",
+    "summary",
+    "expansion_status_item_rows",
+    "expansion_status_rollup_rows",
+    "expansion_status_panel_rows",
+    "expansion_status_api_route_rows"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "expansion-status-dashboard.v1"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expansion_status_dashboard_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "expansion_status_dashboard_status": {
+      "enum": ["complete", "attention"]
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "expansion_status_dashboard_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "discovered_item_count",
+        "queued_item_count",
+        "ingested_item_count",
+        "failed_item_count",
+        "quarantined_item_count",
+        "api_route_row_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "expansion_status_dashboard_status": {
+          "enum": ["complete", "attention"]
+        },
+        "phase_slot": {
+          "const": "P285"
+        },
+        "previous_phase_slot": {
+          "const": "P284"
+        },
+        "next_phase_slot": {
+          "const": "P286"
+        },
+        "discovered_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "queued_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ingested_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "quarantined_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "api_route_row_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "validation_error_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "expansion_status_item_rows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/status_item_row"
+      }
+    },
+    "expansion_status_rollup_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "$ref": "#/$defs/status_rollup_row"
+      }
+    },
+    "expansion_status_panel_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "$ref": "#/$defs/status_panel_row"
+      }
+    },
+    "expansion_status_api_route_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "$ref": "#/$defs/api_route_row"
+      }
+    }
+  },
+  "$defs": {
+    "status_item_row": {
+      "type": "object",
+      "required": [
+        "expansion_status_item_row_id",
+        "resource_id",
+        "relative_path",
+        "item_status",
+        "status_buckets",
+        "discovered_status",
+        "queued_status",
+        "ingested_status",
+        "failed_status",
+        "quarantined_status",
+        "api_queryable",
+        "human_review_required",
+        "client_facing_ready"
+      ],
+      "properties": {
+        "expansion_status_item_row_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resource_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "relative_path": {
+          "type": ["string", "null"]
+        },
+        "item_status": {
+          "enum": ["queued", "extracted", "quarantined", "failed", "skipped_duplicate"]
+        },
+        "status_buckets": {
+          "type": "array",
+          "contains": {
+            "const": "discovered"
+          },
+          "items": {
+            "type": "string"
+          }
+        },
+        "discovered_status": {
+          "const": "discovered"
+        },
+        "queued_status": {
+          "enum": ["queued", "not_queued"]
+        },
+        "ingested_status": {
+          "enum": ["ingested", "not_ingested"]
+        },
+        "failed_status": {
+          "enum": ["failed", "not_failed"]
+        },
+        "quarantined_status": {
+          "enum": ["quarantined", "not_quarantined"]
+        },
+        "api_queryable": {
+          "const": true
+        },
+        "human_review_required": {
+          "const": true
+        },
+        "client_facing_ready": {
+          "const": false
+        }
+      }
+    },
+    "status_rollup_row": {
+      "type": "object",
+      "required": ["status_bucket", "item_count", "query_route", "panel_status", "api_queryable"],
+      "properties": {
+        "status_bucket": {
+          "enum": ["discovered", "queued", "ingested", "failed", "quarantined"]
+        },
+        "item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "query_route": {
+          "type": "string",
+          "minLength": 1
+        },
+        "panel_status": {
+          "const": "queryable"
+        },
+        "api_queryable": {
+          "const": true
+        }
+      }
+    },
+    "status_panel_row": {
+      "type": "object",
+      "required": ["panel_key", "item_count", "route_path", "panel_status", "read_only", "mutation_allowed"],
+      "properties": {
+        "panel_key": {
+          "enum": ["discovered", "queued", "ingested", "failed", "quarantined"]
+        },
+        "item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "route_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "panel_status": {
+          "const": "queryable"
+        },
+        "read_only": {
+          "const": true
+        },
+        "mutation_allowed": {
+          "const": false
+        }
+      }
+    },
+    "api_route_row": {
+      "type": "object",
+      "required": ["method", "route_path", "route_status", "read_only", "mutation_allowed"],
+      "properties": {
+        "method": {
+          "const": "GET"
+        },
+        "route_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "route_status": {
+          "const": "queryable"
+        },
+        "read_only": {
+          "const": true
+        },
+        "mutation_allowed": {
+          "const": false
+        }
+      }
+    }
+  }
+}

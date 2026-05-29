@@ -84,6 +84,7 @@ import { runBatchClassificationResult } from "../src/batch-classification-result
 import { runBatchMatterTaggingResult } from "../src/batch-matter-tagging-result.mjs";
 import { runExtractorRegistry } from "../src/extractor-registry.mjs";
 import { runExtractorCoverageReport } from "../src/extractor-coverage-report.mjs";
+import { runExpansionStatusDashboard } from "../src/expansion-status-dashboard.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1963,6 +1964,7 @@ describe("matter harness", () => {
         batchMatterTaggingResultPath: path.join(outDir, "batch-matter-tagging-result", "batch-matter-tagging-result.json"),
         extractorRegistryPath: path.join(outDir, "extractor-registry", "extractor-registry.json"),
         extractorCoverageReportPath: path.join(outDir, "extractor-coverage-report", "extractor-coverage-report.json"),
+        expansionStatusDashboardPath: path.join(outDir, "expansion-status-dashboard", "expansion-status-dashboard.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11872,6 +11874,71 @@ describe("matter harness", () => {
       assert.ok(extractorCoverageReport.status_coverage_rows.every((row) => row.coverage_status !== "attention"));
       assert.match(await readFile(path.join(outDir, "extractor-coverage-report", "summary.md"), "utf8"), /Extractor Coverage Report/);
 
+      const expansionStatusDashboard = await runExpansionStatusDashboard({
+        resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
+        expansionDedupLedgerPath: path.join(outDir, "expansion-dedup-ledger", "expansion-dedup-ledger.json"),
+        expansionQuarantineLedgerPath: path.join(outDir, "expansion-quarantine-ledger", "expansion-quarantine-ledger.json"),
+        extractorCoverageReportPath: path.join(outDir, "extractor-coverage-report", "extractor-coverage-report.json"),
+        outDir: path.join(outDir, "expansion-status-dashboard"),
+        runAt: "2026-05-23T07:24:26.000Z",
+      });
+      const expansionStatusDashboardSchema = JSON.parse(await readFile("schemas/expansion-status-dashboard.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(expansionStatusDashboard, expansionStatusDashboardSchema, {}, "expansion_status_dashboard"), [], JSON.stringify(expansionStatusDashboard.validation.errors));
+      assert.equal(expansionStatusDashboard.summary.expansion_status_dashboard_status, "complete");
+      assert.equal(expansionStatusDashboard.summary.phase_slot, "P285");
+      assert.equal(expansionStatusDashboard.summary.previous_phase_slot, "P284");
+      assert.equal(expansionStatusDashboard.summary.next_phase_slot, "P286");
+      assert.equal(expansionStatusDashboard.summary.source_extractor_coverage_report_status, "complete");
+      assert.equal(expansionStatusDashboard.summary.source_extractor_coverage_phase_slot, "P284");
+      assert.equal(expansionStatusDashboard.summary.source_extractor_coverage_next_phase_slot, "P285");
+      assert.equal(expansionStatusDashboard.summary.source_expansion_dedup_ledger_status, "complete");
+      assert.equal(expansionStatusDashboard.summary.source_expansion_dedup_phase_slot, "P279");
+      assert.equal(expansionStatusDashboard.summary.source_expansion_quarantine_ledger_status, "complete");
+      assert.equal(expansionStatusDashboard.summary.source_expansion_quarantine_phase_slot, "P280");
+      assert.equal(expansionStatusDashboard.summary.resource_item_count, second.items.length);
+      assert.equal(expansionStatusDashboard.summary.status_item_row_count, second.items.length);
+      assert.equal(expansionStatusDashboard.summary.discovered_item_count, second.items.length);
+      assert.equal(expansionStatusDashboard.summary.queued_item_count, second.summary.remaining_count);
+      assert.equal(expansionStatusDashboard.summary.failed_item_count, second.summary.failed_count);
+      assert.equal(expansionStatusDashboard.summary.quarantined_item_count, second.summary.quarantine_count);
+      assert.ok(expansionStatusDashboard.summary.ingested_item_count >= (second.summary.extracted_count ?? 0) + (second.summary.skipped_duplicate_count ?? 0) + (second.summary.failed_count ?? 0));
+      assert.equal(expansionStatusDashboard.summary.status_rollup_row_count, expansionStatusDashboard.summary.required_status_bucket_count);
+      assert.equal(expansionStatusDashboard.summary.required_status_bucket_count, 5);
+      assert.equal(expansionStatusDashboard.summary.queryable_status_bucket_count, expansionStatusDashboard.summary.required_status_bucket_count);
+      assert.equal(expansionStatusDashboard.summary.status_panel_row_count, expansionStatusDashboard.summary.required_status_bucket_count);
+      assert.equal(expansionStatusDashboard.summary.queryable_status_panel_count, expansionStatusDashboard.summary.status_panel_row_count);
+      assert.equal(expansionStatusDashboard.summary.queryable_api_route_count, expansionStatusDashboard.summary.api_route_row_count);
+      assert.equal(expansionStatusDashboard.summary.linked_dedup_row_count, expansionStatusDashboard.summary.status_item_row_count);
+      assert.equal(expansionStatusDashboard.summary.linked_quarantine_row_count, expansionStatusDashboard.summary.status_item_row_count);
+      assert.equal(expansionStatusDashboard.summary.linked_coverage_row_count, expansionStatusDashboard.summary.status_item_row_count);
+      assert.equal(expansionStatusDashboard.summary.human_review_required_count, second.items.length);
+      assert.equal(expansionStatusDashboard.summary.client_facing_ready_count, 0);
+      assert.equal(expansionStatusDashboard.summary.source_path_used_for_status_identity_count, 0);
+      assert.equal(expansionStatusDashboard.summary.read_only, true);
+      assert.equal(expansionStatusDashboard.summary.expansion_status_dashboard_report_only, true);
+      assert.equal(expansionStatusDashboard.summary.source_artifact_read_performed, true);
+      assert.equal(expansionStatusDashboard.summary.expansion_execution_performed, false);
+      assert.equal(expansionStatusDashboard.summary.source_ingest_performed, false);
+      assert.equal(expansionStatusDashboard.summary.file_content_read_performed, false);
+      assert.equal(expansionStatusDashboard.summary.extraction_retry_performed, false);
+      assert.equal(expansionStatusDashboard.summary.quarantine_release_performed, false);
+      assert.equal(expansionStatusDashboard.summary.source_mutation_performed, false);
+      assert.equal(expansionStatusDashboard.summary.resource_mutation_performed, false);
+      assert.equal(expansionStatusDashboard.summary.state_mutation_performed, false);
+      assert.equal(expansionStatusDashboard.summary.matter_data_write_performed, false);
+      assert.equal(expansionStatusDashboard.summary.delivery_execution_performed, false);
+      assert.equal(expansionStatusDashboard.summary.protected_action_executed, false);
+      assert.equal(expansionStatusDashboard.summary.legal_advice_generated, false);
+      assert.equal(expansionStatusDashboard.summary.client_facing_output_generated, false);
+      assert.equal(expansionStatusDashboard.summary.windows_baseline_stability_preserved, true);
+      assert.equal(expansionStatusDashboard.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(expansionStatusDashboard.summary.validation_error_count, 0);
+      assert.ok(expansionStatusDashboard.expansion_status_item_rows.every((row) => row.status_buckets.includes("discovered") && row.api_queryable && row.source_path_reference_hash && row.source_path_used_for_status_identity === false));
+      assert.ok(expansionStatusDashboard.expansion_status_rollup_rows.every((row) => row.panel_status === "queryable" && row.api_queryable));
+      assert.ok(expansionStatusDashboard.expansion_status_panel_rows.every((row) => row.panel_status === "queryable" && row.read_only && row.mutation_allowed === false));
+      assert.ok(expansionStatusDashboard.expansion_status_api_route_rows.every((row) => row.route_status === "queryable" && row.read_only && row.mutation_allowed === false));
+      assert.match(await readFile(path.join(outDir, "expansion-status-dashboard", "summary.md"), "utf8"), /Expansion Status Dashboard/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -12080,6 +12147,7 @@ describe("matter harness", () => {
           batch_matter_tagging_result: path.join(outDir, "batch-matter-tagging-result", "batch-matter-tagging-result.json"),
           extractor_registry: path.join(outDir, "extractor-registry", "extractor-registry.json"),
           extractor_coverage_report: path.join(outDir, "extractor-coverage-report", "extractor-coverage-report.json"),
+          expansion_status_dashboard: path.join(outDir, "expansion-status-dashboard", "expansion-status-dashboard.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -12131,8 +12199,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 186);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 186);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 187);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 187);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -12306,6 +12374,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "batch_matter_tagging_result"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "extractor_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "extractor_coverage_report"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "expansion_status_dashboard"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -12355,6 +12424,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:batch-matter-tagging"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:extractor-registry"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:extractor-coverage"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:expansion-status"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:runtime-interface"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:approval-matrix"));
@@ -13222,6 +13292,10 @@ describe("matter harness", () => {
       assert.equal(extractorCoverageReportCheckpoint?.acceptance_profile, "extractor_coverage_report_gate");
       assert.equal(extractorCoverageReportCheckpoint?.status, "passed");
       assert.equal(extractorCoverageReportCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const expansionStatusDashboardCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-expansion-status-dashboard");
+      assert.equal(expansionStatusDashboardCheckpoint?.acceptance_profile, "expansion_status_dashboard_gate");
+      assert.equal(expansionStatusDashboardCheckpoint?.status, "passed");
+      assert.equal(expansionStatusDashboardCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -18214,6 +18288,56 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.extractor_coverage_report_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.extractor_coverage_report_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.extractor_coverage_report_validation_error_count, 0);
+      assert.equal(dashboard.summary.expansion_status_dashboard_status, "complete");
+      assert.equal(dashboard.summary.expansion_status_dashboard_phase_slot, "P285");
+      assert.equal(dashboard.summary.expansion_status_dashboard_previous_phase_slot, "P284");
+      assert.equal(dashboard.summary.expansion_status_dashboard_next_phase_slot, "P286");
+      assert.equal(dashboard.summary.expansion_status_dashboard_source_extractor_coverage_report_status, "complete");
+      assert.equal(dashboard.summary.expansion_status_dashboard_source_extractor_coverage_phase_slot, "P284");
+      assert.equal(dashboard.summary.expansion_status_dashboard_source_extractor_coverage_next_phase_slot, "P285");
+      assert.equal(dashboard.summary.expansion_status_dashboard_source_expansion_dedup_ledger_status, "complete");
+      assert.equal(dashboard.summary.expansion_status_dashboard_source_expansion_dedup_phase_slot, "P279");
+      assert.equal(dashboard.summary.expansion_status_dashboard_source_expansion_quarantine_ledger_status, "complete");
+      assert.equal(dashboard.summary.expansion_status_dashboard_source_expansion_quarantine_phase_slot, "P280");
+      assert.equal(dashboard.summary.expansion_status_dashboard_resource_item_count, expansionStatusDashboard.summary.resource_item_count);
+      assert.equal(dashboard.summary.expansion_status_dashboard_status_item_row_count, expansionStatusDashboard.summary.status_item_row_count);
+      assert.equal(dashboard.summary.expansion_status_dashboard_discovered_item_count, expansionStatusDashboard.summary.discovered_item_count);
+      assert.equal(dashboard.summary.expansion_status_dashboard_queued_item_count, expansionStatusDashboard.summary.queued_item_count);
+      assert.equal(dashboard.summary.expansion_status_dashboard_ingested_item_count, expansionStatusDashboard.summary.ingested_item_count);
+      assert.equal(dashboard.summary.expansion_status_dashboard_failed_item_count, expansionStatusDashboard.summary.failed_item_count);
+      assert.equal(dashboard.summary.expansion_status_dashboard_quarantined_item_count, expansionStatusDashboard.summary.quarantined_item_count);
+      assert.equal(dashboard.summary.expansion_status_dashboard_status_rollup_row_count, expansionStatusDashboard.summary.status_rollup_row_count);
+      assert.equal(dashboard.summary.expansion_status_dashboard_required_status_bucket_count, expansionStatusDashboard.summary.required_status_bucket_count);
+      assert.equal(dashboard.summary.expansion_status_dashboard_queryable_status_bucket_count, expansionStatusDashboard.summary.queryable_status_bucket_count);
+      assert.equal(dashboard.summary.expansion_status_dashboard_status_panel_row_count, expansionStatusDashboard.summary.status_panel_row_count);
+      assert.equal(dashboard.summary.expansion_status_dashboard_queryable_status_panel_count, expansionStatusDashboard.summary.queryable_status_panel_count);
+      assert.equal(dashboard.summary.expansion_status_dashboard_api_route_row_count, expansionStatusDashboard.summary.api_route_row_count);
+      assert.equal(dashboard.summary.expansion_status_dashboard_queryable_api_route_count, expansionStatusDashboard.summary.queryable_api_route_count);
+      assert.equal(dashboard.summary.expansion_status_dashboard_linked_dedup_row_count, expansionStatusDashboard.summary.linked_dedup_row_count);
+      assert.equal(dashboard.summary.expansion_status_dashboard_linked_quarantine_row_count, expansionStatusDashboard.summary.linked_quarantine_row_count);
+      assert.equal(dashboard.summary.expansion_status_dashboard_linked_coverage_row_count, expansionStatusDashboard.summary.linked_coverage_row_count);
+      assert.equal(dashboard.summary.expansion_status_dashboard_human_review_required_count, expansionStatusDashboard.summary.human_review_required_count);
+      assert.equal(dashboard.summary.expansion_status_dashboard_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.expansion_status_dashboard_source_path_used_for_status_identity_count, 0);
+      assert.equal(dashboard.summary.expansion_status_dashboard_read_only, true);
+      assert.equal(dashboard.summary.expansion_status_dashboard_report_only, true);
+      assert.equal(dashboard.summary.expansion_status_dashboard_source_artifact_read_performed, true);
+      assert.equal(dashboard.summary.expansion_status_dashboard_expansion_execution_performed, false);
+      assert.equal(dashboard.summary.expansion_status_dashboard_source_ingest_performed, false);
+      assert.equal(dashboard.summary.expansion_status_dashboard_file_content_read_performed, false);
+      assert.equal(dashboard.summary.expansion_status_dashboard_extraction_retry_performed, false);
+      assert.equal(dashboard.summary.expansion_status_dashboard_quarantine_release_performed, false);
+      assert.equal(dashboard.summary.expansion_status_dashboard_source_mutation_performed, false);
+      assert.equal(dashboard.summary.expansion_status_dashboard_resource_mutation_performed, false);
+      assert.equal(dashboard.summary.expansion_status_dashboard_state_mutation_performed, false);
+      assert.equal(dashboard.summary.expansion_status_dashboard_matter_data_write_performed, false);
+      assert.equal(dashboard.summary.expansion_status_dashboard_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.expansion_status_dashboard_protected_action_executed, false);
+      assert.equal(dashboard.summary.expansion_status_dashboard_legal_advice_generated, false);
+      assert.equal(dashboard.summary.expansion_status_dashboard_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.expansion_status_dashboard_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.expansion_status_dashboard_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.expansion_status_dashboard_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -21621,6 +21745,54 @@ describe("matter harness", () => {
       assert.equal(extractorCoverageReportStage?.metrics.client_facing_output_generated, false);
       assert.equal(extractorCoverageReportStage?.metrics.windows_baseline_stability_preserved, true);
       assert.equal(extractorCoverageReportStage?.metrics.validation_error_count, 0);
+      const expansionStatusDashboardStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "expansion_status_dashboard");
+      assert.equal(expansionStatusDashboardStage?.status, "passed");
+      assert.equal(expansionStatusDashboardStage?.metrics.expansion_status_dashboard_status, "complete");
+      assert.equal(expansionStatusDashboardStage?.metrics.phase_slot, "P285");
+      assert.equal(expansionStatusDashboardStage?.metrics.previous_phase_slot, "P284");
+      assert.equal(expansionStatusDashboardStage?.metrics.next_phase_slot, "P286");
+      assert.equal(expansionStatusDashboardStage?.metrics.source_extractor_coverage_report_status, "complete");
+      assert.equal(expansionStatusDashboardStage?.metrics.source_extractor_coverage_phase_slot, "P284");
+      assert.equal(expansionStatusDashboardStage?.metrics.source_extractor_coverage_next_phase_slot, "P285");
+      assert.equal(expansionStatusDashboardStage?.metrics.source_expansion_dedup_ledger_status, "complete");
+      assert.equal(expansionStatusDashboardStage?.metrics.source_expansion_dedup_phase_slot, "P279");
+      assert.equal(expansionStatusDashboardStage?.metrics.source_expansion_quarantine_ledger_status, "complete");
+      assert.equal(expansionStatusDashboardStage?.metrics.source_expansion_quarantine_phase_slot, "P280");
+      assert.equal(expansionStatusDashboardStage?.metrics.status_item_row_count, expansionStatusDashboard.summary.status_item_row_count);
+      assert.equal(expansionStatusDashboardStage?.metrics.resource_item_count, expansionStatusDashboard.summary.resource_item_count);
+      assert.equal(expansionStatusDashboardStage?.metrics.discovered_item_count, expansionStatusDashboard.summary.discovered_item_count);
+      assert.equal(expansionStatusDashboardStage?.metrics.queued_item_count, expansionStatusDashboard.summary.queued_item_count);
+      assert.equal(expansionStatusDashboardStage?.metrics.ingested_item_count, expansionStatusDashboard.summary.ingested_item_count);
+      assert.equal(expansionStatusDashboardStage?.metrics.failed_item_count, expansionStatusDashboard.summary.failed_item_count);
+      assert.equal(expansionStatusDashboardStage?.metrics.quarantined_item_count, expansionStatusDashboard.summary.quarantined_item_count);
+      assert.equal(expansionStatusDashboardStage?.metrics.status_rollup_row_count, expansionStatusDashboard.summary.status_rollup_row_count);
+      assert.equal(expansionStatusDashboardStage?.metrics.required_status_bucket_count, 5);
+      assert.equal(expansionStatusDashboardStage?.metrics.queryable_status_bucket_count, expansionStatusDashboard.summary.required_status_bucket_count);
+      assert.equal(expansionStatusDashboardStage?.metrics.queryable_status_panel_count, expansionStatusDashboard.summary.status_panel_row_count);
+      assert.equal(expansionStatusDashboardStage?.metrics.queryable_api_route_count, expansionStatusDashboard.summary.api_route_row_count);
+      assert.equal(expansionStatusDashboardStage?.metrics.linked_dedup_row_count, expansionStatusDashboard.summary.status_item_row_count);
+      assert.equal(expansionStatusDashboardStage?.metrics.linked_quarantine_row_count, expansionStatusDashboard.summary.status_item_row_count);
+      assert.equal(expansionStatusDashboardStage?.metrics.linked_coverage_row_count, expansionStatusDashboard.summary.status_item_row_count);
+      assert.equal(expansionStatusDashboardStage?.metrics.human_review_required_count, expansionStatusDashboard.summary.human_review_required_count);
+      assert.equal(expansionStatusDashboardStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(expansionStatusDashboardStage?.metrics.source_path_used_for_status_identity_count, 0);
+      assert.equal(expansionStatusDashboardStage?.metrics.read_only, true);
+      assert.equal(expansionStatusDashboardStage?.metrics.expansion_status_dashboard_report_only, true);
+      assert.equal(expansionStatusDashboardStage?.metrics.source_artifact_read_performed, true);
+      assert.equal(expansionStatusDashboardStage?.metrics.expansion_execution_performed, false);
+      assert.equal(expansionStatusDashboardStage?.metrics.source_ingest_performed, false);
+      assert.equal(expansionStatusDashboardStage?.metrics.file_content_read_performed, false);
+      assert.equal(expansionStatusDashboardStage?.metrics.extraction_retry_performed, false);
+      assert.equal(expansionStatusDashboardStage?.metrics.quarantine_release_performed, false);
+      assert.equal(expansionStatusDashboardStage?.metrics.resource_mutation_performed, false);
+      assert.equal(expansionStatusDashboardStage?.metrics.state_mutation_performed, false);
+      assert.equal(expansionStatusDashboardStage?.metrics.matter_data_write_performed, false);
+      assert.equal(expansionStatusDashboardStage?.metrics.delivery_execution_performed, false);
+      assert.equal(expansionStatusDashboardStage?.metrics.protected_action_executed, false);
+      assert.equal(expansionStatusDashboardStage?.metrics.legal_advice_generated, false);
+      assert.equal(expansionStatusDashboardStage?.metrics.client_facing_output_generated, false);
+      assert.equal(expansionStatusDashboardStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(expansionStatusDashboardStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -21760,6 +21932,18 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/extractor-coverage-failures"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/extractor-coverage-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/extractor-coverage-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-status-dashboards"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-status-items"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-status-rollups"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-discovered-items"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-queued-items"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-ingested-items"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-failed-items"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-quarantined-items"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-status-panels"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-status-api-routes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-status-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-status-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -24420,6 +24604,54 @@ describe("matter harness", () => {
       const extractorCoverageValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/extractor-coverage-validations?status=passed", apiOptions)).body);
       assert.equal(extractorCoverageValidationsResponse.collection, "extractor_coverage_validations");
       assert.equal(extractorCoverageValidationsResponse.count, extractorCoverageReport.summary.validation_item_count);
+
+      const expansionStatusDashboardsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-status-dashboards?expansion_status_dashboard_status=complete", apiOptions)).body);
+      assert.equal(expansionStatusDashboardsResponse.collection, "expansion_status_dashboards");
+      assert.equal(expansionStatusDashboardsResponse.count, 1);
+
+      const expansionStatusItemsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-status-items?expansion_status_bucket=discovered", apiOptions)).body);
+      assert.equal(expansionStatusItemsResponse.collection, "expansion_status_items");
+      assert.equal(expansionStatusItemsResponse.count, expansionStatusDashboard.summary.status_item_row_count);
+
+      const expansionStatusRollupsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-status-rollups", apiOptions)).body);
+      assert.equal(expansionStatusRollupsResponse.collection, "expansion_status_rollups");
+      assert.equal(expansionStatusRollupsResponse.count, expansionStatusDashboard.summary.status_rollup_row_count);
+
+      const expansionDiscoveredItemsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-discovered-items", apiOptions)).body);
+      assert.equal(expansionDiscoveredItemsResponse.collection, "expansion_discovered_items");
+      assert.equal(expansionDiscoveredItemsResponse.count, expansionStatusDashboard.summary.discovered_item_count);
+
+      const expansionQueuedItemsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-queued-items", apiOptions)).body);
+      assert.equal(expansionQueuedItemsResponse.collection, "expansion_queued_items");
+      assert.equal(expansionQueuedItemsResponse.count, expansionStatusDashboard.summary.queued_item_count);
+
+      const expansionIngestedItemsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-ingested-items", apiOptions)).body);
+      assert.equal(expansionIngestedItemsResponse.collection, "expansion_ingested_items");
+      assert.equal(expansionIngestedItemsResponse.count, expansionStatusDashboard.summary.ingested_item_count);
+
+      const expansionFailedItemsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-failed-items", apiOptions)).body);
+      assert.equal(expansionFailedItemsResponse.collection, "expansion_failed_items");
+      assert.equal(expansionFailedItemsResponse.count, expansionStatusDashboard.summary.failed_item_count);
+
+      const expansionQuarantinedItemsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-quarantined-items", apiOptions)).body);
+      assert.equal(expansionQuarantinedItemsResponse.collection, "expansion_quarantined_items");
+      assert.equal(expansionQuarantinedItemsResponse.count, expansionStatusDashboard.summary.quarantined_item_count);
+
+      const expansionStatusPanelsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-status-panels?expansion_status_panel_status=queryable", apiOptions)).body);
+      assert.equal(expansionStatusPanelsResponse.collection, "expansion_status_panels");
+      assert.equal(expansionStatusPanelsResponse.count, expansionStatusDashboard.summary.status_panel_row_count);
+
+      const expansionStatusApiRoutesResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-status-api-routes?expansion_status_route_status=queryable", apiOptions)).body);
+      assert.equal(expansionStatusApiRoutesResponse.collection, "expansion_status_api_routes");
+      assert.equal(expansionStatusApiRoutesResponse.count, expansionStatusDashboard.summary.api_route_row_count);
+
+      const expansionStatusChecksResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-status-checks?expansion_status_check_status=passed", apiOptions)).body);
+      assert.equal(expansionStatusChecksResponse.collection, "expansion_status_checks");
+      assert.equal(expansionStatusChecksResponse.count, expansionStatusDashboard.summary.validation_item_count);
+
+      const expansionStatusValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-status-validations?status=passed", apiOptions)).body);
+      assert.equal(expansionStatusValidationsResponse.collection, "expansion_status_validations");
+      assert.equal(expansionStatusValidationsResponse.count, expansionStatusDashboard.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

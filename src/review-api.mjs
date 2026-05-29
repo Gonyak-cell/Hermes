@@ -5982,6 +5982,95 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("extractor_coverage_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/expansion-status-dashboards") {
+    const result = await readDashboardSourceArtifact(dashboard, "expansion_status_dashboard");
+    if (!result.available) {
+      return jsonResponse(503, buildError("expansion_status_dashboard_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_status_dashboards", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-status-items") {
+    const result = await readDashboardSourceArtifact(dashboard, "expansion_status_dashboard");
+    if (!result.available) {
+      return jsonResponse(503, buildError("expansion_status_dashboard_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_status_items", result.artifact.expansion_status_item_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-status-rollups") {
+    const result = await readDashboardSourceArtifact(dashboard, "expansion_status_dashboard");
+    if (!result.available) {
+      return jsonResponse(503, buildError("expansion_status_dashboard_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_status_rollups", result.artifact.expansion_status_rollup_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-discovered-items") {
+    const result = await readDashboardSourceArtifact(dashboard, "expansion_status_dashboard");
+    if (!result.available) {
+      return jsonResponse(503, buildError("expansion_status_dashboard_unavailable", result.error), method);
+    }
+    const rows = (result.artifact.expansion_status_item_rows ?? []).filter((row) => row.status_buckets?.includes("discovered"));
+    return jsonResponse(200, buildCollectionResponse("expansion_discovered_items", rows, url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-queued-items") {
+    const result = await readDashboardSourceArtifact(dashboard, "expansion_status_dashboard");
+    if (!result.available) {
+      return jsonResponse(503, buildError("expansion_status_dashboard_unavailable", result.error), method);
+    }
+    const rows = (result.artifact.expansion_status_item_rows ?? []).filter((row) => row.status_buckets?.includes("queued"));
+    return jsonResponse(200, buildCollectionResponse("expansion_queued_items", rows, url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-ingested-items") {
+    const result = await readDashboardSourceArtifact(dashboard, "expansion_status_dashboard");
+    if (!result.available) {
+      return jsonResponse(503, buildError("expansion_status_dashboard_unavailable", result.error), method);
+    }
+    const rows = (result.artifact.expansion_status_item_rows ?? []).filter((row) => row.status_buckets?.includes("ingested"));
+    return jsonResponse(200, buildCollectionResponse("expansion_ingested_items", rows, url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-failed-items") {
+    const result = await readDashboardSourceArtifact(dashboard, "expansion_status_dashboard");
+    if (!result.available) {
+      return jsonResponse(503, buildError("expansion_status_dashboard_unavailable", result.error), method);
+    }
+    const rows = (result.artifact.expansion_status_item_rows ?? []).filter((row) => row.status_buckets?.includes("failed"));
+    return jsonResponse(200, buildCollectionResponse("expansion_failed_items", rows, url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-quarantined-items") {
+    const result = await readDashboardSourceArtifact(dashboard, "expansion_status_dashboard");
+    if (!result.available) {
+      return jsonResponse(503, buildError("expansion_status_dashboard_unavailable", result.error), method);
+    }
+    const rows = (result.artifact.expansion_status_item_rows ?? []).filter((row) => row.status_buckets?.includes("quarantined"));
+    return jsonResponse(200, buildCollectionResponse("expansion_quarantined_items", rows, url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-status-panels") {
+    const result = await readDashboardSourceArtifact(dashboard, "expansion_status_dashboard");
+    if (!result.available) {
+      return jsonResponse(503, buildError("expansion_status_dashboard_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_status_panels", result.artifact.expansion_status_panel_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-status-api-routes") {
+    const result = await readDashboardSourceArtifact(dashboard, "expansion_status_dashboard");
+    if (!result.available) {
+      return jsonResponse(503, buildError("expansion_status_dashboard_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_status_api_routes", result.artifact.expansion_status_api_route_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-status-checks") {
+    const result = await readDashboardSourceArtifact(dashboard, "expansion_status_dashboard");
+    if (!result.available) {
+      return jsonResponse(503, buildError("expansion_status_dashboard_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_status_checks", result.artifact.expansion_status_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/expansion-status-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "expansion_status_dashboard");
+    if (!result.available) {
+      return jsonResponse(503, buildError("expansion_status_dashboard_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_status_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -12441,6 +12530,18 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/extractor-coverage-failures", "Extractor coverage failure rows"),
       route("GET", "/api/extractor-coverage-checks", "Extractor coverage check rows"),
       route("GET", "/api/extractor-coverage-validations", "Extractor coverage validation rows"),
+      route("GET", "/api/expansion-status-dashboards", "Expansion Status Dashboard artifact"),
+      route("GET", "/api/expansion-status-items", "Expansion status item rows"),
+      route("GET", "/api/expansion-status-rollups", "Expansion status rollup rows"),
+      route("GET", "/api/expansion-discovered-items", "Discovered expansion status items"),
+      route("GET", "/api/expansion-queued-items", "Queued expansion status items"),
+      route("GET", "/api/expansion-ingested-items", "Ingested expansion status items"),
+      route("GET", "/api/expansion-failed-items", "Failed expansion status items"),
+      route("GET", "/api/expansion-quarantined-items", "Quarantined expansion status items"),
+      route("GET", "/api/expansion-status-panels", "Expansion status panel rows"),
+      route("GET", "/api/expansion-status-api-routes", "Expansion status API route rows"),
+      route("GET", "/api/expansion-status-checks", "Expansion status check rows"),
+      route("GET", "/api/expansion-status-validations", "Expansion status validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -13611,6 +13712,12 @@ function filterItems(items, searchParams) {
     "extractor_unsupported_type_status",
     "extractor_failure_status",
     "extractor_coverage_check_status",
+    "expansion_status_dashboard_status",
+    "expansion_status_bucket",
+    "expansion_lifecycle_status",
+    "expansion_status_panel_status",
+    "expansion_status_route_status",
+    "expansion_status_check_status",
     "path_kind",
     "gate_id",
     "thread_status",
@@ -15516,6 +15623,12 @@ function readFilterValue(item, key) {
   if (key === "extractor_unsupported_type_status") return item.unsupported_type_status;
   if (key === "extractor_failure_status") return item.failure_status;
   if (key === "extractor_coverage_check_status") return item.status;
+  if (key === "expansion_status_dashboard_status") return item.summary?.expansion_status_dashboard_status ?? item.expansion_status_dashboard_status;
+  if (key === "expansion_status_bucket") return item.status_buckets ?? item.status_bucket ?? item.panel_key;
+  if (key === "expansion_lifecycle_status") return item.expansion_lifecycle_status;
+  if (key === "expansion_status_panel_status") return item.panel_status;
+  if (key === "expansion_status_route_status") return item.route_status;
+  if (key === "expansion_status_check_status") return item.status;
   if (key === "path_kind") return item.path_kind;
   if (key === "gate_id") return item.gate_id;
   if (key === "thread_status") return item.thread_status;

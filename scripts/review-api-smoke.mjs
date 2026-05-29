@@ -2820,6 +2820,54 @@ try {
   assert.equal(extractorCoverageValidations.collection, "extractor_coverage_validations");
   assert.ok(extractorCoverageValidations.count <= 30);
 
+  const expansionStatusDashboards = await fetchJson(`${url}/api/expansion-status-dashboards?expansion_status_dashboard_status=complete&limit=1`);
+  assert.equal(expansionStatusDashboards.collection, "expansion_status_dashboards");
+  assert.ok(expansionStatusDashboards.count <= 1);
+
+  const expansionStatusItems = await fetchJson(`${url}/api/expansion-status-items?expansion_status_bucket=discovered&limit=16`);
+  assert.equal(expansionStatusItems.collection, "expansion_status_items");
+  assert.ok(expansionStatusItems.count <= 16);
+
+  const expansionStatusRollups = await fetchJson(`${url}/api/expansion-status-rollups?expansion_status_bucket=discovered&limit=5`);
+  assert.equal(expansionStatusRollups.collection, "expansion_status_rollups");
+  assert.ok(expansionStatusRollups.count <= 5);
+
+  const expansionDiscoveredItems = await fetchJson(`${url}/api/expansion-discovered-items?limit=16`);
+  assert.equal(expansionDiscoveredItems.collection, "expansion_discovered_items");
+  assert.ok(expansionDiscoveredItems.count <= 16);
+
+  const expansionQueuedItems = await fetchJson(`${url}/api/expansion-queued-items?limit=16`);
+  assert.equal(expansionQueuedItems.collection, "expansion_queued_items");
+  assert.ok(expansionQueuedItems.count <= 16);
+
+  const expansionIngestedItems = await fetchJson(`${url}/api/expansion-ingested-items?limit=16`);
+  assert.equal(expansionIngestedItems.collection, "expansion_ingested_items");
+  assert.ok(expansionIngestedItems.count <= 16);
+
+  const expansionFailedItems = await fetchJson(`${url}/api/expansion-failed-items?limit=16`);
+  assert.equal(expansionFailedItems.collection, "expansion_failed_items");
+  assert.ok(expansionFailedItems.count <= 16);
+
+  const expansionQuarantinedItems = await fetchJson(`${url}/api/expansion-quarantined-items?limit=16`);
+  assert.equal(expansionQuarantinedItems.collection, "expansion_quarantined_items");
+  assert.ok(expansionQuarantinedItems.count <= 16);
+
+  const expansionStatusPanels = await fetchJson(`${url}/api/expansion-status-panels?expansion_status_panel_status=queryable&limit=5`);
+  assert.equal(expansionStatusPanels.collection, "expansion_status_panels");
+  assert.ok(expansionStatusPanels.count <= 5);
+
+  const expansionStatusApiRoutes = await fetchJson(`${url}/api/expansion-status-api-routes?expansion_status_route_status=queryable&limit=12`);
+  assert.equal(expansionStatusApiRoutes.collection, "expansion_status_api_routes");
+  assert.ok(expansionStatusApiRoutes.count <= 12);
+
+  const expansionStatusChecks = await fetchJson(`${url}/api/expansion-status-checks?expansion_status_check_status=passed&limit=24`);
+  assert.equal(expansionStatusChecks.collection, "expansion_status_checks");
+  assert.ok(expansionStatusChecks.count <= 24);
+
+  const expansionStatusValidations = await fetchJson(`${url}/api/expansion-status-validations?status=passed&limit=24`);
+  assert.equal(expansionStatusValidations.collection, "expansion_status_validations");
+  assert.ok(expansionStatusValidations.count <= 24);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

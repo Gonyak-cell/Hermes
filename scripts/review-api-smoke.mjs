@@ -3044,6 +3044,42 @@ try {
   assert.equal(evidenceViewerUiValidations.collection, "evidence_viewer_ui_validations");
   assert.ok(evidenceViewerUiValidations.count <= 20);
 
+  const sourceSpanInspectorArtifacts = await fetchJson(`${url}/api/source-span-inspector-artifacts?source_span_inspector_status=complete&limit=1`);
+  assert.equal(sourceSpanInspectorArtifacts.collection, "source_span_inspector_artifacts");
+  assert.ok(sourceSpanInspectorArtifacts.count <= 1);
+
+  const sourceSpanInspectorPanels = await fetchJson(`${url}/api/source-span-inspector-panels?source_span_inspector_panel_status=ready&limit=4`);
+  assert.equal(sourceSpanInspectorPanels.collection, "source_span_inspector_panels");
+  assert.ok(sourceSpanInspectorPanels.count <= 4);
+
+  const sourceSpanInspectorRows = await fetchJson(`${url}/api/source-span-inspector-rows?source_span_inspector_row_status=ready&comparison_status=matched&read_only=true&preview_only=true&limit=20`);
+  assert.equal(sourceSpanInspectorRows.collection, "source_span_inspector_rows");
+  assert.ok(sourceSpanInspectorRows.count <= 20);
+
+  const sourceSpanLocationComparisons = await fetchJson(`${url}/api/source-span-location-comparisons?comparison_status=matched&read_only=true&limit=20`);
+  assert.equal(sourceSpanLocationComparisons.collection, "source_span_location_comparisons");
+  assert.ok(sourceSpanLocationComparisons.count <= 20);
+
+  const normalizedTextComparisons = await fetchJson(`${url}/api/normalized-text-comparisons?comparison_status=matched&preview_match_status=matched&read_only=true&limit=20`);
+  assert.equal(normalizedTextComparisons.collection, "normalized_text_comparisons");
+  assert.ok(normalizedTextComparisons.count <= 20);
+
+  const extractedFactComparisons = await fetchJson(`${url}/api/extracted-fact-comparisons?comparison_status=matched&human_review_required=true&client_facing_ready=false&limit=20`);
+  assert.equal(extractedFactComparisons.collection, "extracted_fact_comparisons");
+  assert.ok(extractedFactComparisons.count <= 20);
+
+  const sourceSpanInspectorBoundary = await fetchJson(`${url}/api/source-span-inspector-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(sourceSpanInspectorBoundary.collection, "source_span_inspector_boundary");
+  assert.ok(sourceSpanInspectorBoundary.count <= 1);
+
+  const sourceSpanInspectorChecks = await fetchJson(`${url}/api/source-span-inspector-checks?status=passed&limit=20`);
+  assert.equal(sourceSpanInspectorChecks.collection, "source_span_inspector_checks");
+  assert.ok(sourceSpanInspectorChecks.count <= 20);
+
+  const sourceSpanInspectorValidations = await fetchJson(`${url}/api/source-span-inspector-validations?status=passed&limit=20`);
+  assert.equal(sourceSpanInspectorValidations.collection, "source_span_inspector_validations");
+  assert.ok(sourceSpanInspectorValidations.count <= 20);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

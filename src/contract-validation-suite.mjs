@@ -21,6 +21,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "dashboard:ia",
   "approval:queue-ui",
   "evidence:viewer-ui",
+  "evidence:source-span-inspector",
   "contracts:identity",
   "contracts:party-registry",
   "contracts:matter-teams",

@@ -24,6 +24,12 @@ Evidence Viewer UI routes expose the read-only evidence viewer UI artifact, pane
 
 Routes: `/api/evidence-viewer-ui-artifacts`, `/api/evidence-viewer-ui-panels`, `/api/evidence-viewer-ui-cards`, `/api/evidence-viewer-ui-source-spans`, `/api/evidence-viewer-ui-citations`, `/api/evidence-viewer-ui-coverage`, `/api/evidence-viewer-ui-flags`, `/api/evidence-viewer-ui-boundary`, `/api/evidence-viewer-ui-checks`, `/api/evidence-viewer-ui-validations`.
 
+## P291 Source Span Inspector Routes
+
+Source Span Inspector routes expose the read-only source span inspector artifact, panel rows, source span comparison rows, location comparisons, normalized text comparisons, extracted fact comparisons, checks, boundary, and validation rows. Supported filters include `source_span_inspector_status`, `source_span_inspector_panel_status`, `source_span_inspector_row_status`, `comparison_status`, `location_comparison_status`, `normalized_text_comparison_status`, `extracted_fact_comparison_status`, `preview_match_status`, `source_span_id`, `normalized_text_id`, `fact_id`, `read_only`, `preview_only`, `boundary_status`, `status`, and `limit`.
+
+Routes: `/api/source-span-inspector-artifacts`, `/api/source-span-inspector-panels`, `/api/source-span-inspector-rows`, `/api/source-span-location-comparisons`, `/api/normalized-text-comparisons`, `/api/extracted-fact-comparisons`, `/api/source-span-inspector-boundary`, `/api/source-span-inspector-checks`, `/api/source-span-inspector-validations`.
+
 ## P245 LDD RFI Generator Routes
 
 LDD RFI Generator routes expose read-only draft-only RFI packets, draft questions, missing-material links, issue links, matter summaries, and validation/boundary rows. Supported filters include `ldd_rfi_generator_status`, `ldd_rfi_matter_status`, `rfi_rule_type`, `rfi_draft_status`, `rfi_question_type`, `rfi_question_priority`, `rfi_question_status`, `rfi_missing_material_status`, `rfi_issue_link_status`, `deterministic_rfi_generation_performed`, `ldd_rfi_question_id`, `ldd_issue_record_id`, `ldd_vdr_missing_data_record_id`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.

@@ -6358,6 +6358,69 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("evidence_viewer_ui_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/source-span-inspector-artifacts") {
+    const result = await readDashboardSourceArtifact(dashboard, "source_span_inspector");
+    if (!result.available) {
+      return jsonResponse(503, buildError("source_span_inspector_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("source_span_inspector_artifacts", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/source-span-inspector-panels") {
+    const result = await readDashboardSourceArtifact(dashboard, "source_span_inspector");
+    if (!result.available) {
+      return jsonResponse(503, buildError("source_span_inspector_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("source_span_inspector_panels", result.artifact.source_span_inspector_panels ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/source-span-inspector-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "source_span_inspector");
+    if (!result.available) {
+      return jsonResponse(503, buildError("source_span_inspector_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("source_span_inspector_rows", result.artifact.source_span_inspector_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/source-span-location-comparisons") {
+    const result = await readDashboardSourceArtifact(dashboard, "source_span_inspector");
+    if (!result.available) {
+      return jsonResponse(503, buildError("source_span_inspector_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("source_span_location_comparisons", result.artifact.source_span_location_comparisons ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/normalized-text-comparisons") {
+    const result = await readDashboardSourceArtifact(dashboard, "source_span_inspector");
+    if (!result.available) {
+      return jsonResponse(503, buildError("source_span_inspector_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("normalized_text_comparisons", result.artifact.normalized_text_comparisons ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/extracted-fact-comparisons") {
+    const result = await readDashboardSourceArtifact(dashboard, "source_span_inspector");
+    if (!result.available) {
+      return jsonResponse(503, buildError("source_span_inspector_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("extracted_fact_comparisons", result.artifact.extracted_fact_comparisons ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/source-span-inspector-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "source_span_inspector");
+    if (!result.available) {
+      return jsonResponse(503, buildError("source_span_inspector_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("source_span_inspector_boundary", [result.artifact.source_span_inspector_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/source-span-inspector-checks") {
+    const result = await readDashboardSourceArtifact(dashboard, "source_span_inspector");
+    if (!result.available) {
+      return jsonResponse(503, buildError("source_span_inspector_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("source_span_inspector_checks", result.artifact.source_span_inspector_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/source-span-inspector-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "source_span_inspector");
+    if (!result.available) {
+      return jsonResponse(503, buildError("source_span_inspector_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("source_span_inspector_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -12870,6 +12933,15 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/evidence-viewer-ui-boundary", "Evidence Viewer UI read-only boundary"),
       route("GET", "/api/evidence-viewer-ui-checks", "Evidence Viewer UI check rows"),
       route("GET", "/api/evidence-viewer-ui-validations", "Evidence Viewer UI validation rows"),
+      route("GET", "/api/source-span-inspector-artifacts", "Source Span Inspector artifact"),
+      route("GET", "/api/source-span-inspector-panels", "Source Span Inspector panel rows"),
+      route("GET", "/api/source-span-inspector-rows", "Source Span Inspector comparison rows"),
+      route("GET", "/api/source-span-location-comparisons", "Source Span Inspector location comparison rows"),
+      route("GET", "/api/normalized-text-comparisons", "Source Span Inspector normalized text comparison rows"),
+      route("GET", "/api/extracted-fact-comparisons", "Source Span Inspector extracted fact comparison rows"),
+      route("GET", "/api/source-span-inspector-boundary", "Source Span Inspector read-only boundary"),
+      route("GET", "/api/source-span-inspector-checks", "Source Span Inspector check rows"),
+      route("GET", "/api/source-span-inspector-validations", "Source Span Inspector validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -14080,6 +14152,14 @@ function filterItems(items, searchParams) {
     "source_span_binding_status",
     "citation_binding_status",
     "card_binding_status",
+    "source_span_inspector_status",
+    "source_span_inspector_panel_status",
+    "source_span_inspector_row_status",
+    "comparison_status",
+    "location_comparison_status",
+    "normalized_text_comparison_status",
+    "extracted_fact_comparison_status",
+    "preview_match_status",
     "preview_only",
     "boundary_status",
     "path_kind",
@@ -16027,6 +16107,14 @@ function readFilterValue(item, key) {
   if (key === "source_span_binding_status") return item.source_span_binding_status;
   if (key === "citation_binding_status") return item.citation_binding_status;
   if (key === "card_binding_status") return item.card_binding_status;
+  if (key === "source_span_inspector_status") return item.summary?.source_span_inspector_status ?? item.source_span_inspector_status;
+  if (key === "source_span_inspector_panel_status") return item.panel_status;
+  if (key === "source_span_inspector_row_status") return item.inspection_status;
+  if (key === "comparison_status") return item.comparison_status;
+  if (key === "location_comparison_status") return item.location_comparison_status;
+  if (key === "normalized_text_comparison_status") return item.normalized_text_comparison_status;
+  if (key === "extracted_fact_comparison_status") return item.extracted_fact_comparison_status;
+  if (key === "preview_match_status") return item.preview_match_status;
   if (key === "path_kind") return item.path_kind;
   if (key === "gate_id") return item.gate_id;
   if (key === "thread_status") return item.thread_status;

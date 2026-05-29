@@ -163,6 +163,7 @@ const GOAL_ITEMS = [
   sourceItem("dashboard_information_architecture", "Review Dashboard Information Architecture", "api", "dashboard_information_architecture", "control-plane-dashboard-information-architecture", { acceptance_profile: "dashboard_information_architecture_gate" }),
   sourceItem("approval_queue_ui", "Approval Queue UI", "api", "approval_queue_ui", "control-plane-approval-queue-ui", { acceptance_profile: "approval_queue_ui_gate" }),
   sourceItem("evidence_viewer_ui", "Evidence Viewer UI", "api", "evidence_viewer_ui", "control-plane-evidence-viewer-ui", { acceptance_profile: "evidence_viewer_ui_gate" }),
+  sourceItem("source_span_inspector", "Source Span Inspector", "api", "source_span_inspector", "control-plane-source-span-inspector", { acceptance_profile: "source_span_inspector_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -685,6 +686,7 @@ function evaluateStageAcceptance(item, stage) {
     "dashboard_information_architecture_gate",
     "approval_queue_ui_gate",
     "evidence_viewer_ui_gate",
+    "source_span_inspector_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -6058,6 +6060,61 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Evidence Viewer UI locks P290 evidence cards, source span previews, citation rows, coverage rows, and review flag panels from existing evidence artifacts without source file content reads, source ingest, evidence mutation, citation approval, output delivery, route execution, server start, mutation, legal advice, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "source_span_inspector_gate") {
+    const rowCount = metrics.inspected_source_span_count ?? 0;
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.source_span_inspector_status === "complete"
+      && metrics.phase_slot === "P291"
+      && metrics.previous_phase_slot === "P290"
+      && metrics.next_phase_slot === "P292"
+      && metrics.source_source_span_store_status === "complete"
+      && metrics.source_normalized_text_contract_status === "complete"
+      && metrics.source_fact_claim_store_status === "complete"
+      && metrics.source_evidence_viewer_ui_status === "complete"
+      && metrics.source_evidence_viewer_ui_phase_slot === "P290"
+      && metrics.source_evidence_viewer_ui_next_phase_slot === "P291"
+      && metrics.source_span_inspector_panel_count === 4
+      && metrics.required_panel_count === 4
+      && metrics.ready_panel_count === 4
+      && rowCount > 0
+      && metrics.location_comparison_count === rowCount
+      && metrics.normalized_text_comparison_count === rowCount
+      && metrics.extracted_fact_comparison_count === rowCount
+      && metrics.location_matched_count === rowCount
+      && metrics.normalized_text_matched_count === rowCount
+      && metrics.extracted_fact_matched_count === rowCount
+      && metrics.fully_matched_row_count === rowCount
+      && metrics.attention_row_count === 0
+      && metrics.evidence_viewer_bound_row_count === rowCount
+      && metrics.human_review_required_row_count === rowCount
+      && metrics.client_facing_ready_row_count === 0
+      && metrics.read_only_row_count === rowCount
+      && metrics.preview_only_row_count === rowCount
+      && metrics.read_only === true
+      && metrics.preview_only === true
+      && metrics.inspector_projection_only === true
+      && metrics.source_file_content_read_performed === false
+      && metrics.normalized_text_object_read_performed === false
+      && metrics.source_ingest_performed === false
+      && metrics.fact_mutation_performed === false
+      && metrics.output_delivery_performed === false
+      && metrics.route_execution_performed === false
+      && metrics.server_started === false
+      && metrics.mutation_allowed === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.human_review_required === true
+      && metrics.client_facing_ready === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Source Span Inspector locks P291 source location, normalized text, and extracted fact comparison panels from existing source span artifacts without source file reads, normalized text object reads, source ingest, fact mutation, output delivery, route execution, server start, mutation, legal advice, or client-facing output.");
     }
   }
 

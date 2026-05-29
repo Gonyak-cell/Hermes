@@ -89,6 +89,7 @@ import { runResourceExpansionFreeze } from "../src/resource-expansion-freeze.mjs
 import { runApiRouteInventory } from "../src/api-route-inventory.mjs";
 import { runApprovalQueueUi } from "../src/approval-queue-ui.mjs";
 import { runEvidenceViewerUi } from "../src/evidence-viewer-ui.mjs";
+import { runSourceSpanInspector } from "../src/source-span-inspector.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -1975,6 +1976,7 @@ describe("matter harness", () => {
         dashboardInformationArchitecturePath: path.join(outDir, "review-dashboard-ia", "review-dashboard-ia.json"),
         approvalQueueUiPath: path.join(outDir, "approval-queue-ui", "approval-queue-ui.json"),
         evidenceViewerUiPath: path.join(outDir, "evidence-viewer-ui", "evidence-viewer-ui.json"),
+        sourceSpanInspectorPath: path.join(outDir, "source-span-inspector", "source-span-inspector.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -12284,6 +12286,92 @@ describe("matter harness", () => {
       assert.ok(evidenceViewerUi.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "evidence-viewer-ui", "summary.md"), "utf8"), /Evidence Viewer UI/);
 
+      const sourceSpanInspector = await runSourceSpanInspector({
+        sourceSpanStorePath: path.join(outDir, "source-span-store", "source-span-store.json"),
+        normalizedTextContractPath: path.join(outDir, "normalized-text-contract", "normalized-text-contract.json"),
+        factClaimStorePath: path.join(outDir, "fact-claim-store", "fact-claim-store.json"),
+        evidenceViewerUiPath: path.join(outDir, "evidence-viewer-ui", "evidence-viewer-ui.json"),
+        outDir: path.join(outDir, "source-span-inspector"),
+        runAt: "2026-05-23T07:25:31.000Z",
+      });
+      const sourceSpanInspectorSchema = JSON.parse(await readFile("schemas/source-span-inspector.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(sourceSpanInspector, sourceSpanInspectorSchema, {}, "source_span_inspector"), [], JSON.stringify(sourceSpanInspector.validation.errors));
+      assert.equal(sourceSpanInspector.summary.source_span_inspector_status, "complete");
+      assert.equal(sourceSpanInspector.summary.phase_slot, "P291");
+      assert.equal(sourceSpanInspector.summary.previous_phase_slot, "P290");
+      assert.equal(sourceSpanInspector.summary.next_phase_slot, "P292");
+      assert.equal(sourceSpanInspector.summary.source_source_span_store_status, "complete");
+      assert.equal(sourceSpanInspector.summary.source_source_span_count, sourceSpanStore.summary.source_span_count);
+      assert.equal(sourceSpanInspector.summary.source_normalized_text_contract_status, "complete");
+      assert.equal(sourceSpanInspector.summary.source_normalized_text_artifact_count, normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.equal(sourceSpanInspector.summary.source_fact_claim_store_status, "complete");
+      assert.equal(sourceSpanInspector.summary.source_fact_claim_count, factClaimStore.summary.fact_claim_count);
+      assert.equal(sourceSpanInspector.summary.source_evidence_viewer_ui_status, "complete");
+      assert.equal(sourceSpanInspector.summary.source_evidence_viewer_ui_phase_slot, "P290");
+      assert.equal(sourceSpanInspector.summary.source_evidence_viewer_ui_next_phase_slot, "P291");
+      assert.equal(sourceSpanInspector.summary.source_span_inspector_panel_count, 4);
+      assert.equal(sourceSpanInspector.summary.required_panel_count, 4);
+      assert.equal(sourceSpanInspector.summary.ready_panel_count, 4);
+      assert.equal(sourceSpanInspector.summary.inspected_source_span_count, sourceSpanStore.summary.source_span_count);
+      assert.equal(sourceSpanInspector.summary.location_comparison_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(sourceSpanInspector.summary.normalized_text_comparison_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(sourceSpanInspector.summary.extracted_fact_comparison_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(sourceSpanInspector.summary.location_matched_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(sourceSpanInspector.summary.normalized_text_matched_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(sourceSpanInspector.summary.extracted_fact_matched_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(sourceSpanInspector.summary.fully_matched_row_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(sourceSpanInspector.summary.attention_row_count, 0);
+      assert.equal(sourceSpanInspector.summary.evidence_viewer_bound_row_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(sourceSpanInspector.summary.human_review_required_row_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(sourceSpanInspector.summary.client_facing_ready_row_count, 0);
+      assert.equal(sourceSpanInspector.summary.read_only_row_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(sourceSpanInspector.summary.preview_only_row_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(sourceSpanInspector.summary.read_only, true);
+      assert.equal(sourceSpanInspector.summary.preview_only, true);
+      assert.equal(sourceSpanInspector.summary.inspector_projection_only, true);
+      assert.equal(sourceSpanInspector.summary.source_file_content_read_performed, false);
+      assert.equal(sourceSpanInspector.summary.normalized_text_object_read_performed, false);
+      assert.equal(sourceSpanInspector.summary.source_ingest_performed, false);
+      assert.equal(sourceSpanInspector.summary.fact_mutation_performed, false);
+      assert.equal(sourceSpanInspector.summary.output_delivery_performed, false);
+      assert.equal(sourceSpanInspector.summary.route_execution_performed, false);
+      assert.equal(sourceSpanInspector.summary.server_started, false);
+      assert.equal(sourceSpanInspector.summary.mutation_allowed, false);
+      assert.equal(sourceSpanInspector.summary.protected_action_executed, false);
+      assert.equal(sourceSpanInspector.summary.legal_advice_generated, false);
+      assert.equal(sourceSpanInspector.summary.client_facing_output_generated, false);
+      assert.equal(sourceSpanInspector.summary.human_review_required, true);
+      assert.equal(sourceSpanInspector.summary.client_facing_ready, false);
+      assert.equal(sourceSpanInspector.summary.windows_baseline_stability_preserved, true);
+      assert.equal(sourceSpanInspector.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(sourceSpanInspector.summary.validation_error_count, 0);
+      const sourceSpanInspectorPanelKeys = new Set(["source_locations", "normalized_text", "extracted_facts", "inspection_status"]);
+      assert.ok(sourceSpanInspector.source_span_inspector_panels.every((row) => sourceSpanInspectorPanelKeys.has(row.panel_key) && row.panel_status === "ready" && row.read_only && row.preview_only && row.source_file_content_read_allowed === false && row.normalized_text_object_read_allowed === false && row.source_ingest_allowed === false && row.fact_mutation_allowed === false && row.output_delivery_allowed === false && row.human_review_required && row.client_facing_ready === false));
+      assert.ok(sourceSpanInspector.source_span_inspector_rows.every((row) => row.inspection_status === "ready" && row.comparison_status === "matched" && row.location_comparison_status === "matched" && row.normalized_text_comparison_status === "matched" && row.extracted_fact_comparison_status === "matched" && row.preview_match_status === "matched" && row.evidence_binding_status === "bound" && row.evidence_viewer_ui_card_id && row.evidence_viewer_ui_source_span_row_id && row.read_only && row.preview_only && row.source_file_content_read_performed === false && row.normalized_text_object_read_performed === false && row.source_ingest_performed === false && row.fact_mutation_performed === false && row.human_review_required && row.client_facing_ready === false));
+      assert.ok(sourceSpanInspector.source_span_location_comparisons.every((row) => row.comparison_status === "matched" && row.raw_source_binding_status === "bound" && row.read_only && row.preview_only && row.source_file_content_read_performed === false));
+      assert.ok(sourceSpanInspector.normalized_text_comparisons.every((row) => row.comparison_status === "matched" && row.preview_match_status === "matched" && row.normalized_text_object_key && row.normalized_text_preview && row.source_span_preview && row.read_only && row.preview_only && row.normalized_text_object_read_performed === false));
+      assert.ok(sourceSpanInspector.extracted_fact_comparisons.every((row) => row.comparison_status === "matched" && row.evidence_binding_status === "bound" && row.fact_id && row.fact_review_status === "needs_review" && row.human_review_required && row.client_facing_ready === false && row.read_only && row.preview_only && row.fact_mutation_performed === false));
+      assert.equal(sourceSpanInspector.source_span_inspector_boundary.boundary_status, "enforced");
+      assert.equal(sourceSpanInspector.source_span_inspector_boundary.read_only, true);
+      assert.equal(sourceSpanInspector.source_span_inspector_boundary.preview_only, true);
+      assert.equal(sourceSpanInspector.source_span_inspector_boundary.inspector_projection_only, true);
+      assert.equal(sourceSpanInspector.source_span_inspector_boundary.source_file_content_read_performed, false);
+      assert.equal(sourceSpanInspector.source_span_inspector_boundary.normalized_text_object_read_performed, false);
+      assert.equal(sourceSpanInspector.source_span_inspector_boundary.source_ingest_performed, false);
+      assert.equal(sourceSpanInspector.source_span_inspector_boundary.fact_mutation_performed, false);
+      assert.equal(sourceSpanInspector.source_span_inspector_boundary.output_delivery_performed, false);
+      assert.equal(sourceSpanInspector.source_span_inspector_boundary.route_execution_performed, false);
+      assert.equal(sourceSpanInspector.source_span_inspector_boundary.server_started, false);
+      assert.equal(sourceSpanInspector.source_span_inspector_boundary.mutation_allowed, false);
+      assert.equal(sourceSpanInspector.source_span_inspector_boundary.protected_action_executed, false);
+      assert.equal(sourceSpanInspector.source_span_inspector_boundary.legal_advice_generated, false);
+      assert.equal(sourceSpanInspector.source_span_inspector_boundary.client_facing_output_generated, false);
+      assert.equal(sourceSpanInspector.source_span_inspector_boundary.windows_baseline_stability_preserved, true);
+      assert.equal(sourceSpanInspector.source_span_inspector_boundary.mac_windows_completion_instability_guard, true);
+      assert.ok(sourceSpanInspector.source_span_inspector_checks.every((item) => item.status === "passed"));
+      assert.ok(sourceSpanInspector.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "source-span-inspector", "summary.md"), "utf8"), /Source Span Inspector/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -12498,6 +12586,7 @@ describe("matter harness", () => {
           dashboard_information_architecture: path.join(outDir, "review-dashboard-ia", "review-dashboard-ia.json"),
           approval_queue_ui: path.join(outDir, "approval-queue-ui", "approval-queue-ui.json"),
           evidence_viewer_ui: path.join(outDir, "evidence-viewer-ui", "evidence-viewer-ui.json"),
+          source_span_inspector: path.join(outDir, "source-span-inspector", "source-span-inspector.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -12549,8 +12638,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 192);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 192);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 193);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 193);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -12730,6 +12819,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "dashboard_information_architecture"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "approval_queue_ui"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_viewer_ui"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "source_span_inspector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -12785,6 +12875,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "dashboard:ia"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "approval:queue-ui"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "evidence:viewer-ui"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "evidence:source-span-inspector"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:runtime-interface"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:approval-matrix"));
@@ -13676,6 +13767,10 @@ describe("matter harness", () => {
       assert.equal(evidenceViewerUiCheckpoint?.acceptance_profile, "evidence_viewer_ui_gate");
       assert.equal(evidenceViewerUiCheckpoint?.status, "passed");
       assert.equal(evidenceViewerUiCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const sourceSpanInspectorCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-source-span-inspector");
+      assert.equal(sourceSpanInspectorCheckpoint?.acceptance_profile, "source_span_inspector_gate");
+      assert.equal(sourceSpanInspectorCheckpoint?.status, "passed");
+      assert.equal(sourceSpanInspectorCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -18963,6 +19058,58 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.evidence_viewer_ui_validation_item_count, evidenceViewerUi.summary.validation_item_count);
       assert.equal(dashboard.summary.evidence_viewer_ui_failed_checkpoint_count, 0);
       assert.equal(dashboard.summary.evidence_viewer_ui_validation_error_count, 0);
+      assert.equal(dashboard.summary.source_span_inspector_status, "complete");
+      assert.equal(dashboard.summary.source_span_inspector_id, sourceSpanInspector.summary.source_span_inspector_id);
+      assert.equal(dashboard.summary.source_span_inspector_phase_slot, "P291");
+      assert.equal(dashboard.summary.source_span_inspector_previous_phase_slot, "P290");
+      assert.equal(dashboard.summary.source_span_inspector_next_phase_slot, "P292");
+      assert.equal(dashboard.summary.source_span_inspector_source_source_span_store_status, "complete");
+      assert.equal(dashboard.summary.source_span_inspector_source_source_span_count, sourceSpanStore.summary.source_span_count);
+      assert.equal(dashboard.summary.source_span_inspector_source_normalized_text_contract_status, "complete");
+      assert.equal(dashboard.summary.source_span_inspector_source_normalized_text_artifact_count, normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.equal(dashboard.summary.source_span_inspector_source_fact_claim_store_status, "complete");
+      assert.equal(dashboard.summary.source_span_inspector_source_fact_claim_count, factClaimStore.summary.fact_claim_count);
+      assert.equal(dashboard.summary.source_span_inspector_source_evidence_viewer_ui_status, "complete");
+      assert.equal(dashboard.summary.source_span_inspector_source_evidence_viewer_ui_phase_slot, "P290");
+      assert.equal(dashboard.summary.source_span_inspector_source_evidence_viewer_ui_next_phase_slot, "P291");
+      assert.equal(dashboard.summary.source_span_inspector_panel_count, 4);
+      assert.equal(dashboard.summary.source_span_inspector_required_panel_count, 4);
+      assert.equal(dashboard.summary.source_span_inspector_ready_panel_count, 4);
+      assert.equal(dashboard.summary.source_span_inspector_inspected_source_span_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(dashboard.summary.source_span_inspector_location_comparison_count, sourceSpanInspector.summary.location_comparison_count);
+      assert.equal(dashboard.summary.source_span_inspector_normalized_text_comparison_count, sourceSpanInspector.summary.normalized_text_comparison_count);
+      assert.equal(dashboard.summary.source_span_inspector_extracted_fact_comparison_count, sourceSpanInspector.summary.extracted_fact_comparison_count);
+      assert.equal(dashboard.summary.source_span_inspector_location_matched_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(dashboard.summary.source_span_inspector_normalized_text_matched_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(dashboard.summary.source_span_inspector_extracted_fact_matched_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(dashboard.summary.source_span_inspector_fully_matched_row_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(dashboard.summary.source_span_inspector_attention_row_count, 0);
+      assert.equal(dashboard.summary.source_span_inspector_evidence_viewer_bound_row_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(dashboard.summary.source_span_inspector_human_review_required_row_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(dashboard.summary.source_span_inspector_client_facing_ready_row_count, 0);
+      assert.equal(dashboard.summary.source_span_inspector_read_only_row_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(dashboard.summary.source_span_inspector_preview_only_row_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(dashboard.summary.source_span_inspector_read_only, true);
+      assert.equal(dashboard.summary.source_span_inspector_preview_only, true);
+      assert.equal(dashboard.summary.source_span_inspector_inspector_projection_only, true);
+      assert.equal(dashboard.summary.source_span_inspector_source_file_content_read_performed, false);
+      assert.equal(dashboard.summary.source_span_inspector_normalized_text_object_read_performed, false);
+      assert.equal(dashboard.summary.source_span_inspector_source_ingest_performed, false);
+      assert.equal(dashboard.summary.source_span_inspector_fact_mutation_performed, false);
+      assert.equal(dashboard.summary.source_span_inspector_output_delivery_performed, false);
+      assert.equal(dashboard.summary.source_span_inspector_route_execution_performed, false);
+      assert.equal(dashboard.summary.source_span_inspector_server_started, false);
+      assert.equal(dashboard.summary.source_span_inspector_mutation_allowed, false);
+      assert.equal(dashboard.summary.source_span_inspector_protected_action_executed, false);
+      assert.equal(dashboard.summary.source_span_inspector_legal_advice_generated, false);
+      assert.equal(dashboard.summary.source_span_inspector_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.source_span_inspector_human_review_required, true);
+      assert.equal(dashboard.summary.source_span_inspector_client_facing_ready, false);
+      assert.equal(dashboard.summary.source_span_inspector_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.source_span_inspector_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.source_span_inspector_validation_item_count, sourceSpanInspector.summary.validation_item_count);
+      assert.equal(dashboard.summary.source_span_inspector_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.source_span_inspector_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -22661,6 +22808,60 @@ describe("matter harness", () => {
       assert.equal(evidenceViewerUiStage?.metrics.validation_item_count, evidenceViewerUi.summary.validation_item_count);
       assert.equal(evidenceViewerUiStage?.metrics.failed_checkpoint_count, 0);
       assert.equal(evidenceViewerUiStage?.metrics.validation_error_count, 0);
+      const sourceSpanInspectorStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "source_span_inspector");
+      assert.equal(sourceSpanInspectorStage?.status, "passed");
+      assert.equal(sourceSpanInspectorStage?.metrics.source_span_inspector_status, "complete");
+      assert.equal(sourceSpanInspectorStage?.metrics.source_span_inspector_id, sourceSpanInspector.summary.source_span_inspector_id);
+      assert.equal(sourceSpanInspectorStage?.metrics.phase_slot, "P291");
+      assert.equal(sourceSpanInspectorStage?.metrics.previous_phase_slot, "P290");
+      assert.equal(sourceSpanInspectorStage?.metrics.next_phase_slot, "P292");
+      assert.equal(sourceSpanInspectorStage?.metrics.source_source_span_store_status, "complete");
+      assert.equal(sourceSpanInspectorStage?.metrics.source_source_span_count, sourceSpanStore.summary.source_span_count);
+      assert.equal(sourceSpanInspectorStage?.metrics.source_normalized_text_contract_status, "complete");
+      assert.equal(sourceSpanInspectorStage?.metrics.source_normalized_text_artifact_count, normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.equal(sourceSpanInspectorStage?.metrics.source_fact_claim_store_status, "complete");
+      assert.equal(sourceSpanInspectorStage?.metrics.source_fact_claim_count, factClaimStore.summary.fact_claim_count);
+      assert.equal(sourceSpanInspectorStage?.metrics.source_evidence_viewer_ui_status, "complete");
+      assert.equal(sourceSpanInspectorStage?.metrics.source_evidence_viewer_ui_phase_slot, "P290");
+      assert.equal(sourceSpanInspectorStage?.metrics.source_evidence_viewer_ui_next_phase_slot, "P291");
+      assert.equal(sourceSpanInspectorStage?.metrics.source_span_inspector_panel_count, 4);
+      assert.equal(sourceSpanInspectorStage?.metrics.required_panel_count, 4);
+      assert.equal(sourceSpanInspectorStage?.metrics.ready_panel_count, 4);
+      assert.equal(sourceSpanInspectorStage?.metrics.inspected_source_span_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(sourceSpanInspectorStage?.metrics.location_comparison_count, sourceSpanInspector.summary.location_comparison_count);
+      assert.equal(sourceSpanInspectorStage?.metrics.normalized_text_comparison_count, sourceSpanInspector.summary.normalized_text_comparison_count);
+      assert.equal(sourceSpanInspectorStage?.metrics.extracted_fact_comparison_count, sourceSpanInspector.summary.extracted_fact_comparison_count);
+      assert.equal(sourceSpanInspectorStage?.metrics.location_matched_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(sourceSpanInspectorStage?.metrics.normalized_text_matched_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(sourceSpanInspectorStage?.metrics.extracted_fact_matched_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(sourceSpanInspectorStage?.metrics.fully_matched_row_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(sourceSpanInspectorStage?.metrics.attention_row_count, 0);
+      assert.equal(sourceSpanInspectorStage?.metrics.evidence_viewer_bound_row_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(sourceSpanInspectorStage?.metrics.human_review_required_row_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(sourceSpanInspectorStage?.metrics.client_facing_ready_row_count, 0);
+      assert.equal(sourceSpanInspectorStage?.metrics.read_only_row_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(sourceSpanInspectorStage?.metrics.preview_only_row_count, sourceSpanInspector.summary.inspected_source_span_count);
+      assert.equal(sourceSpanInspectorStage?.metrics.read_only, true);
+      assert.equal(sourceSpanInspectorStage?.metrics.preview_only, true);
+      assert.equal(sourceSpanInspectorStage?.metrics.inspector_projection_only, true);
+      assert.equal(sourceSpanInspectorStage?.metrics.source_file_content_read_performed, false);
+      assert.equal(sourceSpanInspectorStage?.metrics.normalized_text_object_read_performed, false);
+      assert.equal(sourceSpanInspectorStage?.metrics.source_ingest_performed, false);
+      assert.equal(sourceSpanInspectorStage?.metrics.fact_mutation_performed, false);
+      assert.equal(sourceSpanInspectorStage?.metrics.output_delivery_performed, false);
+      assert.equal(sourceSpanInspectorStage?.metrics.route_execution_performed, false);
+      assert.equal(sourceSpanInspectorStage?.metrics.server_started, false);
+      assert.equal(sourceSpanInspectorStage?.metrics.mutation_allowed, false);
+      assert.equal(sourceSpanInspectorStage?.metrics.protected_action_executed, false);
+      assert.equal(sourceSpanInspectorStage?.metrics.legal_advice_generated, false);
+      assert.equal(sourceSpanInspectorStage?.metrics.client_facing_output_generated, false);
+      assert.equal(sourceSpanInspectorStage?.metrics.human_review_required, true);
+      assert.equal(sourceSpanInspectorStage?.metrics.client_facing_ready, false);
+      assert.equal(sourceSpanInspectorStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(sourceSpanInspectorStage?.metrics.mac_windows_completion_instability_guard, true);
+      assert.equal(sourceSpanInspectorStage?.metrics.validation_item_count, sourceSpanInspector.summary.validation_item_count);
+      assert.equal(sourceSpanInspectorStage?.metrics.failed_checkpoint_count, 0);
+      assert.equal(sourceSpanInspectorStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -22853,6 +23054,15 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-viewer-ui-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-viewer-ui-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-viewer-ui-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/source-span-inspector-artifacts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/source-span-inspector-panels"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/source-span-inspector-rows"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/source-span-location-comparisons"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/normalized-text-comparisons"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/extracted-fact-comparisons"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/source-span-inspector-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/source-span-inspector-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/source-span-inspector-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -25741,6 +25951,42 @@ describe("matter harness", () => {
       const evidenceViewerUiValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/evidence-viewer-ui-validations?status=passed", apiOptions)).body);
       assert.equal(evidenceViewerUiValidationsResponse.collection, "evidence_viewer_ui_validations");
       assert.equal(evidenceViewerUiValidationsResponse.count, evidenceViewerUi.summary.validation_item_count);
+
+      const sourceSpanInspectorArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/source-span-inspector-artifacts?source_span_inspector_status=complete", apiOptions)).body);
+      assert.equal(sourceSpanInspectorArtifactsResponse.collection, "source_span_inspector_artifacts");
+      assert.equal(sourceSpanInspectorArtifactsResponse.count, 1);
+
+      const sourceSpanInspectorPanelsResponse = JSON.parse((await buildReviewApiResponse("/api/source-span-inspector-panels?source_span_inspector_panel_status=ready", apiOptions)).body);
+      assert.equal(sourceSpanInspectorPanelsResponse.collection, "source_span_inspector_panels");
+      assert.equal(sourceSpanInspectorPanelsResponse.count, sourceSpanInspector.summary.source_span_inspector_panel_count);
+
+      const sourceSpanInspectorRowsResponse = JSON.parse((await buildReviewApiResponse("/api/source-span-inspector-rows?source_span_inspector_row_status=ready&comparison_status=matched&read_only=true&preview_only=true", apiOptions)).body);
+      assert.equal(sourceSpanInspectorRowsResponse.collection, "source_span_inspector_rows");
+      assert.equal(sourceSpanInspectorRowsResponse.count, sourceSpanInspector.summary.inspected_source_span_count);
+
+      const sourceSpanLocationComparisonsResponse = JSON.parse((await buildReviewApiResponse("/api/source-span-location-comparisons?comparison_status=matched&read_only=true", apiOptions)).body);
+      assert.equal(sourceSpanLocationComparisonsResponse.collection, "source_span_location_comparisons");
+      assert.equal(sourceSpanLocationComparisonsResponse.count, sourceSpanInspector.summary.location_comparison_count);
+
+      const normalizedTextComparisonsResponse = JSON.parse((await buildReviewApiResponse("/api/normalized-text-comparisons?comparison_status=matched&preview_match_status=matched&read_only=true", apiOptions)).body);
+      assert.equal(normalizedTextComparisonsResponse.collection, "normalized_text_comparisons");
+      assert.equal(normalizedTextComparisonsResponse.count, sourceSpanInspector.summary.normalized_text_comparison_count);
+
+      const extractedFactComparisonsResponse = JSON.parse((await buildReviewApiResponse("/api/extracted-fact-comparisons?comparison_status=matched&human_review_required=true&client_facing_ready=false", apiOptions)).body);
+      assert.equal(extractedFactComparisonsResponse.collection, "extracted_fact_comparisons");
+      assert.equal(extractedFactComparisonsResponse.count, sourceSpanInspector.summary.extracted_fact_comparison_count);
+
+      const sourceSpanInspectorBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/source-span-inspector-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(sourceSpanInspectorBoundaryResponse.collection, "source_span_inspector_boundary");
+      assert.equal(sourceSpanInspectorBoundaryResponse.count, 1);
+
+      const sourceSpanInspectorChecksResponse = JSON.parse((await buildReviewApiResponse("/api/source-span-inspector-checks?status=passed", apiOptions)).body);
+      assert.equal(sourceSpanInspectorChecksResponse.collection, "source_span_inspector_checks");
+      assert.equal(sourceSpanInspectorChecksResponse.count, sourceSpanInspector.summary.validation_item_count);
+
+      const sourceSpanInspectorValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/source-span-inspector-validations?status=passed", apiOptions)).body);
+      assert.equal(sourceSpanInspectorValidationsResponse.collection, "source_span_inspector_validations");
+      assert.equal(sourceSpanInspectorValidationsResponse.count, sourceSpanInspector.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

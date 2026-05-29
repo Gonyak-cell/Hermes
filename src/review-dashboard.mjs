@@ -126,6 +126,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   dashboardInformationArchitecturePath: "artifacts/review-dashboard-ia/latest/review-dashboard-ia.json",
   approvalQueueUiPath: "artifacts/approval-queue-ui/latest/approval-queue-ui.json",
   evidenceViewerUiPath: "artifacts/evidence-viewer-ui/latest/evidence-viewer-ui.json",
+  sourceSpanInspectorPath: "artifacts/source-span-inspector/latest/source-span-inspector.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -899,6 +900,11 @@ const SOURCE_DEFINITIONS = [
     option: "evidenceViewerUiPath",
     source_id: "evidence_viewer_ui",
     label: "Evidence Viewer UI",
+  },
+  {
+    option: "sourceSpanInspectorPath",
+    source_id: "source_span_inspector",
+    label: "Source Span Inspector",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -2300,6 +2306,7 @@ function buildStageStatuses(artifacts, sources) {
     buildDashboardInformationArchitectureStage(artifacts.dashboard_information_architecture, sourceById.get("dashboard_information_architecture")),
     buildApprovalQueueUiStage(artifacts.approval_queue_ui, sourceById.get("approval_queue_ui")),
     buildEvidenceViewerUiStage(artifacts.evidence_viewer_ui, sourceById.get("evidence_viewer_ui")),
+    buildSourceSpanInspectorStage(artifacts.source_span_inspector, sourceById.get("source_span_inspector")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -14842,6 +14849,122 @@ function buildEvidenceViewerUiStage(artifact, source) {
   };
 }
 
+function buildSourceSpanInspectorStage(artifact, source) {
+  if (!artifact) return missingStage("source_span_inspector", "Source Span Inspector", source);
+  const summary = artifact.summary ?? {};
+  const rowCount = summary.inspected_source_span_count ?? 0;
+  const status = artifact.validation?.valid === false
+    || summary.source_span_inspector_status !== "complete"
+    || summary.phase_slot !== "P291"
+    || summary.previous_phase_slot !== "P290"
+    || summary.next_phase_slot !== "P292"
+    || summary.source_source_span_store_status !== "complete"
+    || summary.source_normalized_text_contract_status !== "complete"
+    || summary.source_fact_claim_store_status !== "complete"
+    || summary.source_evidence_viewer_ui_status !== "complete"
+    || summary.source_evidence_viewer_ui_phase_slot !== "P290"
+    || summary.source_evidence_viewer_ui_next_phase_slot !== "P291"
+    || summary.source_span_inspector_panel_count !== 4
+    || summary.required_panel_count !== 4
+    || summary.ready_panel_count !== 4
+    || rowCount <= 0
+    || summary.location_comparison_count !== rowCount
+    || summary.normalized_text_comparison_count !== rowCount
+    || summary.extracted_fact_comparison_count !== rowCount
+    || summary.location_matched_count !== rowCount
+    || summary.normalized_text_matched_count !== rowCount
+    || summary.extracted_fact_matched_count !== rowCount
+    || summary.fully_matched_row_count !== rowCount
+    || summary.attention_row_count !== 0
+    || summary.evidence_viewer_bound_row_count !== rowCount
+    || summary.human_review_required_row_count !== rowCount
+    || summary.client_facing_ready_row_count !== 0
+    || summary.read_only_row_count !== rowCount
+    || summary.preview_only_row_count !== rowCount
+    || summary.read_only !== true
+    || summary.preview_only !== true
+    || summary.inspector_projection_only !== true
+    || summary.source_file_content_read_performed !== false
+    || summary.normalized_text_object_read_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.fact_mutation_performed !== false
+    || summary.output_delivery_performed !== false
+    || summary.route_execution_performed !== false
+    || summary.server_started !== false
+    || summary.mutation_allowed !== false
+    || summary.protected_action_executed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.human_review_required !== true
+    || summary.client_facing_ready !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "source_span_inspector",
+    label: "Source Span Inspector",
+    status,
+    message: `${rowCount} source span(s) compared across location, normalized text, and extracted fact views.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      source_span_inspector_status: summary.source_span_inspector_status ?? "unknown",
+      source_span_inspector_id: summary.source_span_inspector_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_source_span_store_status: summary.source_source_span_store_status ?? "unknown",
+      source_source_span_count: summary.source_source_span_count ?? 0,
+      source_normalized_text_contract_status: summary.source_normalized_text_contract_status ?? "unknown",
+      source_normalized_text_artifact_count: summary.source_normalized_text_artifact_count ?? 0,
+      source_fact_claim_store_status: summary.source_fact_claim_store_status ?? "unknown",
+      source_fact_claim_count: summary.source_fact_claim_count ?? 0,
+      source_evidence_viewer_ui_status: summary.source_evidence_viewer_ui_status ?? "unknown",
+      source_evidence_viewer_ui_phase_slot: summary.source_evidence_viewer_ui_phase_slot ?? null,
+      source_evidence_viewer_ui_next_phase_slot: summary.source_evidence_viewer_ui_next_phase_slot ?? null,
+      source_span_inspector_panel_count: summary.source_span_inspector_panel_count ?? 0,
+      required_panel_count: summary.required_panel_count ?? 0,
+      ready_panel_count: summary.ready_panel_count ?? 0,
+      inspected_source_span_count: rowCount,
+      location_comparison_count: summary.location_comparison_count ?? 0,
+      normalized_text_comparison_count: summary.normalized_text_comparison_count ?? 0,
+      extracted_fact_comparison_count: summary.extracted_fact_comparison_count ?? 0,
+      location_matched_count: summary.location_matched_count ?? 0,
+      normalized_text_matched_count: summary.normalized_text_matched_count ?? 0,
+      extracted_fact_matched_count: summary.extracted_fact_matched_count ?? 0,
+      fully_matched_row_count: summary.fully_matched_row_count ?? 0,
+      attention_row_count: summary.attention_row_count ?? 0,
+      evidence_viewer_bound_row_count: summary.evidence_viewer_bound_row_count ?? 0,
+      human_review_required_row_count: summary.human_review_required_row_count ?? 0,
+      client_facing_ready_row_count: summary.client_facing_ready_row_count ?? 0,
+      read_only_row_count: summary.read_only_row_count ?? 0,
+      preview_only_row_count: summary.preview_only_row_count ?? 0,
+      read_only: summary.read_only ?? false,
+      preview_only: summary.preview_only ?? false,
+      inspector_projection_only: summary.inspector_projection_only ?? false,
+      source_file_content_read_performed: summary.source_file_content_read_performed ?? false,
+      normalized_text_object_read_performed: summary.normalized_text_object_read_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      fact_mutation_performed: summary.fact_mutation_performed ?? false,
+      output_delivery_performed: summary.output_delivery_performed ?? false,
+      route_execution_performed: summary.route_execution_performed ?? false,
+      server_started: summary.server_started ?? false,
+      mutation_allowed: summary.mutation_allowed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      human_review_required: summary.human_review_required ?? false,
+      client_facing_ready: summary.client_facing_ready ?? true,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -21558,6 +21681,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_evidence_viewer_ui", "rerun_evidence_viewer_ui", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.source_span_inspector?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "source_span_inspector";
+    items.push({
+      action_item_id: `dashboard.action.source_span_inspector.${slugify(subjectId)}`,
+      source_stage: "source_span_inspector",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Source Span Inspector",
+      subject_ref: {
+        subject_type: "source_span_inspector_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_source_span_inspector", "rerun_source_span_inspector", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -28811,6 +28952,58 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     evidence_viewer_ui_validation_item_count: artifacts.evidence_viewer_ui?.summary?.validation_item_count ?? 0,
     evidence_viewer_ui_failed_checkpoint_count: artifacts.evidence_viewer_ui?.summary?.failed_checkpoint_count ?? 0,
     evidence_viewer_ui_validation_error_count: artifacts.evidence_viewer_ui?.summary?.validation_error_count ?? artifacts.evidence_viewer_ui?.validation?.errors?.length ?? 0,
+    source_span_inspector_status: artifacts.source_span_inspector?.summary?.source_span_inspector_status ?? "unknown",
+    source_span_inspector_id: artifacts.source_span_inspector?.summary?.source_span_inspector_id ?? null,
+    source_span_inspector_phase_slot: artifacts.source_span_inspector?.summary?.phase_slot ?? null,
+    source_span_inspector_previous_phase_slot: artifacts.source_span_inspector?.summary?.previous_phase_slot ?? null,
+    source_span_inspector_next_phase_slot: artifacts.source_span_inspector?.summary?.next_phase_slot ?? null,
+    source_span_inspector_source_source_span_store_status: artifacts.source_span_inspector?.summary?.source_source_span_store_status ?? "unknown",
+    source_span_inspector_source_source_span_count: artifacts.source_span_inspector?.summary?.source_source_span_count ?? 0,
+    source_span_inspector_source_normalized_text_contract_status: artifacts.source_span_inspector?.summary?.source_normalized_text_contract_status ?? "unknown",
+    source_span_inspector_source_normalized_text_artifact_count: artifacts.source_span_inspector?.summary?.source_normalized_text_artifact_count ?? 0,
+    source_span_inspector_source_fact_claim_store_status: artifacts.source_span_inspector?.summary?.source_fact_claim_store_status ?? "unknown",
+    source_span_inspector_source_fact_claim_count: artifacts.source_span_inspector?.summary?.source_fact_claim_count ?? 0,
+    source_span_inspector_source_evidence_viewer_ui_status: artifacts.source_span_inspector?.summary?.source_evidence_viewer_ui_status ?? "unknown",
+    source_span_inspector_source_evidence_viewer_ui_phase_slot: artifacts.source_span_inspector?.summary?.source_evidence_viewer_ui_phase_slot ?? null,
+    source_span_inspector_source_evidence_viewer_ui_next_phase_slot: artifacts.source_span_inspector?.summary?.source_evidence_viewer_ui_next_phase_slot ?? null,
+    source_span_inspector_panel_count: artifacts.source_span_inspector?.summary?.source_span_inspector_panel_count ?? 0,
+    source_span_inspector_required_panel_count: artifacts.source_span_inspector?.summary?.required_panel_count ?? 0,
+    source_span_inspector_ready_panel_count: artifacts.source_span_inspector?.summary?.ready_panel_count ?? 0,
+    source_span_inspector_inspected_source_span_count: artifacts.source_span_inspector?.summary?.inspected_source_span_count ?? 0,
+    source_span_inspector_location_comparison_count: artifacts.source_span_inspector?.summary?.location_comparison_count ?? 0,
+    source_span_inspector_normalized_text_comparison_count: artifacts.source_span_inspector?.summary?.normalized_text_comparison_count ?? 0,
+    source_span_inspector_extracted_fact_comparison_count: artifacts.source_span_inspector?.summary?.extracted_fact_comparison_count ?? 0,
+    source_span_inspector_location_matched_count: artifacts.source_span_inspector?.summary?.location_matched_count ?? 0,
+    source_span_inspector_normalized_text_matched_count: artifacts.source_span_inspector?.summary?.normalized_text_matched_count ?? 0,
+    source_span_inspector_extracted_fact_matched_count: artifacts.source_span_inspector?.summary?.extracted_fact_matched_count ?? 0,
+    source_span_inspector_fully_matched_row_count: artifacts.source_span_inspector?.summary?.fully_matched_row_count ?? 0,
+    source_span_inspector_attention_row_count: artifacts.source_span_inspector?.summary?.attention_row_count ?? 0,
+    source_span_inspector_evidence_viewer_bound_row_count: artifacts.source_span_inspector?.summary?.evidence_viewer_bound_row_count ?? 0,
+    source_span_inspector_human_review_required_row_count: artifacts.source_span_inspector?.summary?.human_review_required_row_count ?? 0,
+    source_span_inspector_client_facing_ready_row_count: artifacts.source_span_inspector?.summary?.client_facing_ready_row_count ?? 0,
+    source_span_inspector_read_only_row_count: artifacts.source_span_inspector?.summary?.read_only_row_count ?? 0,
+    source_span_inspector_preview_only_row_count: artifacts.source_span_inspector?.summary?.preview_only_row_count ?? 0,
+    source_span_inspector_read_only: artifacts.source_span_inspector?.summary?.read_only ?? false,
+    source_span_inspector_preview_only: artifacts.source_span_inspector?.summary?.preview_only ?? false,
+    source_span_inspector_inspector_projection_only: artifacts.source_span_inspector?.summary?.inspector_projection_only ?? false,
+    source_span_inspector_source_file_content_read_performed: artifacts.source_span_inspector?.summary?.source_file_content_read_performed ?? false,
+    source_span_inspector_normalized_text_object_read_performed: artifacts.source_span_inspector?.summary?.normalized_text_object_read_performed ?? false,
+    source_span_inspector_source_ingest_performed: artifacts.source_span_inspector?.summary?.source_ingest_performed ?? false,
+    source_span_inspector_fact_mutation_performed: artifacts.source_span_inspector?.summary?.fact_mutation_performed ?? false,
+    source_span_inspector_output_delivery_performed: artifacts.source_span_inspector?.summary?.output_delivery_performed ?? false,
+    source_span_inspector_route_execution_performed: artifacts.source_span_inspector?.summary?.route_execution_performed ?? false,
+    source_span_inspector_server_started: artifacts.source_span_inspector?.summary?.server_started ?? false,
+    source_span_inspector_mutation_allowed: artifacts.source_span_inspector?.summary?.mutation_allowed ?? false,
+    source_span_inspector_protected_action_executed: artifacts.source_span_inspector?.summary?.protected_action_executed ?? false,
+    source_span_inspector_legal_advice_generated: artifacts.source_span_inspector?.summary?.legal_advice_generated ?? false,
+    source_span_inspector_client_facing_output_generated: artifacts.source_span_inspector?.summary?.client_facing_output_generated ?? false,
+    source_span_inspector_human_review_required: artifacts.source_span_inspector?.summary?.human_review_required ?? false,
+    source_span_inspector_client_facing_ready: artifacts.source_span_inspector?.summary?.client_facing_ready ?? true,
+    source_span_inspector_windows_baseline_stability_preserved: artifacts.source_span_inspector?.summary?.windows_baseline_stability_preserved ?? false,
+    source_span_inspector_mac_windows_completion_instability_guard: artifacts.source_span_inspector?.summary?.mac_windows_completion_instability_guard ?? false,
+    source_span_inspector_validation_item_count: artifacts.source_span_inspector?.summary?.validation_item_count ?? 0,
+    source_span_inspector_failed_checkpoint_count: artifacts.source_span_inspector?.summary?.failed_checkpoint_count ?? 0,
+    source_span_inspector_validation_error_count: artifacts.source_span_inspector?.summary?.validation_error_count ?? artifacts.source_span_inspector?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -30646,6 +30839,8 @@ function parseArgs(argv) {
     else if (arg === "--no-approval-queue-ui") parsed.approvalQueueUiPath = false;
     else if (arg === "--evidence-viewer-ui") parsed.evidenceViewerUiPath = argv[++index];
     else if (arg === "--no-evidence-viewer-ui") parsed.evidenceViewerUiPath = false;
+    else if (arg === "--source-span-inspector") parsed.sourceSpanInspectorPath = argv[++index];
+    else if (arg === "--no-source-span-inspector") parsed.sourceSpanInspectorPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

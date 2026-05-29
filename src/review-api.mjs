@@ -5870,6 +5870,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("batch_matter_tagging_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/extractor-registries") {
+    const result = await readDashboardSourceArtifact(dashboard, "extractor_registry");
+    if (!result.available) {
+      return jsonResponse(503, buildError("extractor_registry_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("extractor_registries", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/extractor-registry-entries") {
+    const result = await readDashboardSourceArtifact(dashboard, "extractor_registry");
+    if (!result.available) {
+      return jsonResponse(503, buildError("extractor_registry_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("extractor_registry_entries", result.artifact.extractor_registry_entries ?? result.artifact.extractors ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/extractor-compatibility-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "extractor_registry");
+    if (!result.available) {
+      return jsonResponse(503, buildError("extractor_registry_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("extractor_compatibility_rows", result.artifact.extractor_compatibility_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/extractor-document-type-compatibility") {
+    const result = await readDashboardSourceArtifact(dashboard, "extractor_registry");
+    if (!result.available) {
+      return jsonResponse(503, buildError("extractor_registry_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("extractor_document_type_compatibility", result.artifact.document_type_compatibility_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/extractor-extension-compatibility") {
+    const result = await readDashboardSourceArtifact(dashboard, "extractor_registry");
+    if (!result.available) {
+      return jsonResponse(503, buildError("extractor_registry_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("extractor_extension_compatibility", result.artifact.extension_compatibility_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/extractor-registry-checks") {
+    const result = await readDashboardSourceArtifact(dashboard, "extractor_registry");
+    if (!result.available) {
+      return jsonResponse(503, buildError("extractor_registry_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("extractor_registry_checks", result.artifact.extractor_registry_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/extractor-registry-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "extractor_registry");
+    if (!result.available) {
+      return jsonResponse(503, buildError("extractor_registry_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("extractor_registry_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -12313,6 +12362,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/batch-matter-tagging-separations", "Batch matter tagging separation rows"),
       route("GET", "/api/batch-matter-tagging-checks", "Batch matter tagging check rows"),
       route("GET", "/api/batch-matter-tagging-validations", "Batch matter tagging validation rows"),
+      route("GET", "/api/extractor-registries", "Extractor Registry artifact"),
+      route("GET", "/api/extractor-registry-entries", "Extractor registry entries"),
+      route("GET", "/api/extractor-compatibility-rows", "Extractor compatibility rows"),
+      route("GET", "/api/extractor-document-type-compatibility", "Extractor document type compatibility rows"),
+      route("GET", "/api/extractor-extension-compatibility", "Extractor extension compatibility rows"),
+      route("GET", "/api/extractor-registry-checks", "Extractor registry check rows"),
+      route("GET", "/api/extractor-registry-validations", "Extractor registry validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -13469,6 +13525,12 @@ function filterItems(items, searchParams) {
     "batch_matter_tagging_confirmation_status",
     "batch_matter_tagging_separation_status",
     "batch_matter_tagging_check_status",
+    "extractor_registry_status",
+    "extractor_registry_entry_status",
+    "extractor_compatibility_status",
+    "extractor_document_type_status",
+    "extractor_extension_status",
+    "extractor_registry_check_status",
     "path_kind",
     "gate_id",
     "thread_status",
@@ -15360,6 +15422,12 @@ function readFilterValue(item, key) {
   if (key === "batch_matter_tagging_confirmation_status") return item.confirmation_status ?? item.confirmation_separation_status;
   if (key === "batch_matter_tagging_separation_status") return item.separation_status;
   if (key === "batch_matter_tagging_check_status") return item.status;
+  if (key === "extractor_registry_status") return item.summary?.extractor_registry_status ?? item.extractor_registry_status;
+  if (key === "extractor_registry_entry_status") return item.compatibility_status;
+  if (key === "extractor_compatibility_status") return item.compatibility_status;
+  if (key === "extractor_document_type_status") return item.compatibility_status;
+  if (key === "extractor_extension_status") return item.compatibility_status;
+  if (key === "extractor_registry_check_status") return item.status;
   if (key === "path_kind") return item.path_kind;
   if (key === "gate_id") return item.gate_id;
   if (key === "thread_status") return item.thread_status;

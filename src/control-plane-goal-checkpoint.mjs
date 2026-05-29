@@ -155,6 +155,7 @@ const GOAL_ITEMS = [
   sourceItem("expansion_quarantine_ledger", "Expansion Quarantine Ledger", "resource_evidence", "expansion_quarantine_ledger", "control-plane-expansion-quarantine-ledger", { acceptance_profile: "expansion_quarantine_ledger_gate" }),
   sourceItem("batch_classification_result", "Batch Classification Result", "resource_evidence", "batch_classification_result", "control-plane-batch-classification-result", { acceptance_profile: "batch_classification_result_gate" }),
   sourceItem("batch_matter_tagging_result", "Batch Matter Tagging Result", "resource_evidence", "batch_matter_tagging_result", "control-plane-batch-matter-tagging-result", { acceptance_profile: "batch_matter_tagging_result_gate" }),
+  sourceItem("extractor_registry", "Extractor Registry", "resource_evidence", "extractor_registry", "control-plane-extractor-registry", { acceptance_profile: "extractor_registry_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -669,6 +670,7 @@ function evaluateStageAcceptance(item, stage) {
     "expansion_quarantine_ledger_gate",
     "batch_classification_result_gate",
     "batch_matter_tagging_result_gate",
+    "extractor_registry_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -5616,6 +5618,59 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Batch Matter Tagging Result locks P282 automatic candidate, pending human confirmation, and no-auto-apply separation after P281 classification without tag writes, confirmation application, mutation, delivery, legal advice, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "extractor_registry_gate") {
+    const rowCount = metrics.compatibility_row_count ?? 0;
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.extractor_registry_status === "complete"
+      && metrics.phase_slot === "P283"
+      && metrics.previous_phase_slot === "P282"
+      && metrics.next_phase_slot === "P284"
+      && metrics.source_extractor_adapter_contract_status === "complete"
+      && metrics.source_batch_classification_result_status === "complete"
+      && metrics.source_batch_classification_phase_slot === "P281"
+      && metrics.source_batch_matter_tagging_result_status === "complete"
+      && metrics.source_batch_matter_tagging_phase_slot === "P282"
+      && rowCount > 0
+      && metrics.compatible_resource_item_count === rowCount
+      && metrics.incompatible_resource_item_count === 0
+      && metrics.local_only_registry_entry_count === metrics.extractor_registry_entry_count
+      && metrics.external_service_allowed_entry_count === 0
+      && metrics.network_access_allowed_entry_count === 0
+      && metrics.passed_document_type_compatibility_row_count === metrics.document_type_compatibility_row_count
+      && metrics.passed_extension_compatibility_row_count === metrics.extension_compatibility_row_count
+      && metrics.human_review_required_count === rowCount
+      && metrics.client_facing_ready_count === 0
+      && metrics.extractor_execution_count === 0
+      && metrics.file_content_read_count === 0
+      && metrics.ocr_execution_count === 0
+      && metrics.external_model_used_count === 0
+      && metrics.matter_data_write_performed_count === 0
+      && metrics.read_only === true
+      && metrics.extractor_registry_report_only === true
+      && metrics.extractor_execution_performed === false
+      && metrics.ocr_execution_performed === false
+      && metrics.file_content_read_performed === false
+      && metrics.external_model_used === false
+      && metrics.external_service_called === false
+      && metrics.network_access_performed === false
+      && metrics.source_ingest_performed === false
+      && metrics.source_mutation_performed === false
+      && metrics.resource_mutation_performed === false
+      && metrics.state_mutation_performed === false
+      && metrics.matter_data_write_performed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Extractor Registry locks P283 document type, extension, extractor chain, fact schema, citation, confidence, fallback, and per-resource compatibility cataloging after P282 without extractor/OCR execution, file content reads, external services, mutation, delivery, legal advice, or client-facing output.");
     }
   }
 

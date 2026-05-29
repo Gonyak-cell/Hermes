@@ -164,6 +164,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "resource:expansion-quarantine-ledger",
   "resource:batch-classification",
   "resource:batch-matter-tagging",
+  "resource:extractor-registry",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

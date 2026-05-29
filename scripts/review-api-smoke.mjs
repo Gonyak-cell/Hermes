@@ -2756,6 +2756,34 @@ try {
   assert.equal(batchMatterTaggingValidations.collection, "batch_matter_tagging_validations");
   assert.ok(batchMatterTaggingValidations.count <= 24);
 
+  const extractorRegistries = await fetchJson(`${url}/api/extractor-registries?extractor_registry_status=complete&limit=1`);
+  assert.equal(extractorRegistries.collection, "extractor_registries");
+  assert.ok(extractorRegistries.count <= 1);
+
+  const extractorRegistryEntries = await fetchJson(`${url}/api/extractor-registry-entries?extractor_registry_entry_status=compatible_pending_human_review&limit=16`);
+  assert.equal(extractorRegistryEntries.collection, "extractor_registry_entries");
+  assert.ok(extractorRegistryEntries.count <= 16);
+
+  const extractorCompatibilityRows = await fetchJson(`${url}/api/extractor-compatibility-rows?extractor_compatibility_status=compatible_pending_human_review&limit=16`);
+  assert.equal(extractorCompatibilityRows.collection, "extractor_compatibility_rows");
+  assert.ok(extractorCompatibilityRows.count <= 16);
+
+  const extractorDocumentTypes = await fetchJson(`${url}/api/extractor-document-type-compatibility?extractor_document_type_status=compatible_pending_human_review&limit=16`);
+  assert.equal(extractorDocumentTypes.collection, "extractor_document_type_compatibility");
+  assert.ok(extractorDocumentTypes.count <= 16);
+
+  const extractorExtensions = await fetchJson(`${url}/api/extractor-extension-compatibility?extractor_extension_status=compatible_pending_human_review&limit=16`);
+  assert.equal(extractorExtensions.collection, "extractor_extension_compatibility");
+  assert.ok(extractorExtensions.count <= 16);
+
+  const extractorRegistryChecks = await fetchJson(`${url}/api/extractor-registry-checks?extractor_registry_check_status=passed&limit=24`);
+  assert.equal(extractorRegistryChecks.collection, "extractor_registry_checks");
+  assert.ok(extractorRegistryChecks.count <= 24);
+
+  const extractorRegistryValidations = await fetchJson(`${url}/api/extractor-registry-validations?status=passed&limit=24`);
+  assert.equal(extractorRegistryValidations.collection, "extractor_registry_validations");
+  assert.ok(extractorRegistryValidations.count <= 24);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

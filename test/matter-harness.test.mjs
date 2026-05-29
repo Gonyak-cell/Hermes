@@ -82,6 +82,7 @@ import { runExpansionDedupLedger } from "../src/expansion-dedup-ledger.mjs";
 import { runExpansionQuarantineLedger } from "../src/expansion-quarantine-ledger.mjs";
 import { runBatchClassificationResult } from "../src/batch-classification-result.mjs";
 import { runBatchMatterTaggingResult } from "../src/batch-matter-tagging-result.mjs";
+import { runExtractorRegistry } from "../src/extractor-registry.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1959,6 +1960,7 @@ describe("matter harness", () => {
         expansionQuarantineLedgerPath: path.join(outDir, "expansion-quarantine-ledger", "expansion-quarantine-ledger.json"),
         batchClassificationResultPath: path.join(outDir, "batch-classification-result", "batch-classification-result.json"),
         batchMatterTaggingResultPath: path.join(outDir, "batch-matter-tagging-result", "batch-matter-tagging-result.json"),
+        extractorRegistryPath: path.join(outDir, "extractor-registry", "extractor-registry.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11739,6 +11741,66 @@ describe("matter harness", () => {
       assert.ok(batchMatterTaggingResult.matter_tagging_separation_rows.every((row) => row.separation_status === "automatic_candidate_separated_from_human_confirmation" && row.auto_apply_allowed_count === 0));
       assert.match(await readFile(path.join(outDir, "batch-matter-tagging-result", "summary.md"), "utf8"), /Batch Matter Tagging Result/);
 
+      const extractorRegistry = await runExtractorRegistry({
+        extractorAdapterContractPath: path.join(outDir, "extractor-adapter-contract", "extractor-adapter-contract.json"),
+        resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
+        batchClassificationResultPath: path.join(outDir, "batch-classification-result", "batch-classification-result.json"),
+        batchMatterTaggingResultPath: path.join(outDir, "batch-matter-tagging-result", "batch-matter-tagging-result.json"),
+        outDir: path.join(outDir, "extractor-registry"),
+        runAt: "2026-05-23T07:24:24.000Z",
+      });
+      const extractorRegistrySchema = JSON.parse(await readFile("schemas/extractor-registry.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(extractorRegistry, extractorRegistrySchema, {}, "extractor_registry"), [], JSON.stringify(extractorRegistry.validation.errors));
+      assert.equal(extractorRegistry.summary.extractor_registry_status, "complete");
+      assert.equal(extractorRegistry.summary.phase_slot, "P283");
+      assert.equal(extractorRegistry.summary.previous_phase_slot, "P282");
+      assert.equal(extractorRegistry.summary.next_phase_slot, "P284");
+      assert.equal(extractorRegistry.summary.source_extractor_adapter_contract_status, "complete");
+      assert.equal(extractorRegistry.summary.source_batch_classification_result_status, "complete");
+      assert.equal(extractorRegistry.summary.source_batch_classification_phase_slot, "P281");
+      assert.equal(extractorRegistry.summary.source_batch_matter_tagging_result_status, "complete");
+      assert.equal(extractorRegistry.summary.source_batch_matter_tagging_phase_slot, "P282");
+      assert.ok(extractorRegistry.summary.extractor_registry_entry_count >= extractorAdapterContract.summary.document_type_binding_count);
+      assert.equal(extractorRegistry.summary.compatibility_row_count, second.items.length);
+      assert.equal(extractorRegistry.summary.compatible_resource_item_count, second.items.length);
+      assert.equal(extractorRegistry.summary.incompatible_resource_item_count, 0);
+      assert.equal(extractorRegistry.summary.local_only_registry_entry_count, extractorRegistry.summary.extractor_registry_entry_count);
+      assert.equal(extractorRegistry.summary.external_service_allowed_entry_count, 0);
+      assert.equal(extractorRegistry.summary.network_access_allowed_entry_count, 0);
+      assert.equal(extractorRegistry.summary.passed_document_type_compatibility_row_count, extractorRegistry.summary.document_type_compatibility_row_count);
+      assert.equal(extractorRegistry.summary.passed_extension_compatibility_row_count, extractorRegistry.summary.extension_compatibility_row_count);
+      assert.equal(extractorRegistry.summary.human_review_required_count, second.items.length);
+      assert.equal(extractorRegistry.summary.client_facing_ready_count, 0);
+      assert.equal(extractorRegistry.summary.extractor_execution_count, 0);
+      assert.equal(extractorRegistry.summary.file_content_read_count, 0);
+      assert.equal(extractorRegistry.summary.ocr_execution_count, 0);
+      assert.equal(extractorRegistry.summary.external_model_used_count, 0);
+      assert.equal(extractorRegistry.summary.matter_data_write_performed_count, 0);
+      assert.equal(extractorRegistry.summary.read_only, true);
+      assert.equal(extractorRegistry.summary.extractor_registry_report_only, true);
+      assert.equal(extractorRegistry.summary.extractor_execution_performed, false);
+      assert.equal(extractorRegistry.summary.ocr_execution_performed, false);
+      assert.equal(extractorRegistry.summary.file_content_read_performed, false);
+      assert.equal(extractorRegistry.summary.external_service_called, false);
+      assert.equal(extractorRegistry.summary.network_access_performed, false);
+      assert.equal(extractorRegistry.summary.source_ingest_performed, false);
+      assert.equal(extractorRegistry.summary.source_mutation_performed, false);
+      assert.equal(extractorRegistry.summary.resource_mutation_performed, false);
+      assert.equal(extractorRegistry.summary.state_mutation_performed, false);
+      assert.equal(extractorRegistry.summary.matter_data_write_performed, false);
+      assert.equal(extractorRegistry.summary.delivery_execution_performed, false);
+      assert.equal(extractorRegistry.summary.protected_action_executed, false);
+      assert.equal(extractorRegistry.summary.legal_advice_generated, false);
+      assert.equal(extractorRegistry.summary.client_facing_output_generated, false);
+      assert.equal(extractorRegistry.summary.windows_baseline_stability_preserved, true);
+      assert.equal(extractorRegistry.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(extractorRegistry.summary.validation_error_count, 0);
+      assert.ok(extractorRegistry.extractor_registry_entries.every((row) => row.compatibility_status === "compatible_pending_human_review" && row.local_only && row.external_service_allowed === false && row.network_access_allowed === false && row.review_required));
+      assert.ok(extractorRegistry.extractor_compatibility_rows.every((row) => row.compatibility_status === "compatible_pending_human_review" && row.extractor_execution_performed === false && row.file_content_read_performed === false && row.human_review_required && row.client_facing_ready === false));
+      assert.ok(extractorRegistry.document_type_compatibility_rows.every((row) => row.compatibility_status === "compatible_pending_human_review"));
+      assert.ok(extractorRegistry.extension_compatibility_rows.every((row) => row.compatibility_status === "compatible_pending_human_review"));
+      assert.match(await readFile(path.join(outDir, "extractor-registry", "summary.md"), "utf8"), /Extractor Registry/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -11945,6 +12007,7 @@ describe("matter harness", () => {
           expansion_quarantine_ledger: path.join(outDir, "expansion-quarantine-ledger", "expansion-quarantine-ledger.json"),
           batch_classification_result: path.join(outDir, "batch-classification-result", "batch-classification-result.json"),
           batch_matter_tagging_result: path.join(outDir, "batch-matter-tagging-result", "batch-matter-tagging-result.json"),
+          extractor_registry: path.join(outDir, "extractor-registry", "extractor-registry.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11996,8 +12059,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 184);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 184);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 185);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 185);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -12169,6 +12232,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "expansion_quarantine_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "batch_classification_result"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "batch_matter_tagging_result"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "extractor_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -12216,6 +12280,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:expansion-quarantine-ledger"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:batch-classification"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:batch-matter-tagging"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:extractor-registry"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:runtime-interface"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:approval-matrix"));
@@ -13075,6 +13140,10 @@ describe("matter harness", () => {
       assert.equal(batchMatterTaggingResultCheckpoint?.acceptance_profile, "batch_matter_tagging_result_gate");
       assert.equal(batchMatterTaggingResultCheckpoint?.status, "passed");
       assert.equal(batchMatterTaggingResultCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const extractorRegistryCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-extractor-registry");
+      assert.equal(extractorRegistryCheckpoint?.acceptance_profile, "extractor_registry_gate");
+      assert.equal(extractorRegistryCheckpoint?.status, "passed");
+      assert.equal(extractorRegistryCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -17978,6 +18047,50 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.batch_matter_tagging_result_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.batch_matter_tagging_result_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.batch_matter_tagging_result_validation_error_count, 0);
+      assert.equal(dashboard.summary.extractor_registry_status, "complete");
+      assert.equal(dashboard.summary.extractor_registry_phase_slot, "P283");
+      assert.equal(dashboard.summary.extractor_registry_previous_phase_slot, "P282");
+      assert.equal(dashboard.summary.extractor_registry_next_phase_slot, "P284");
+      assert.equal(dashboard.summary.extractor_registry_source_extractor_adapter_contract_status, "complete");
+      assert.equal(dashboard.summary.extractor_registry_source_batch_classification_result_status, "complete");
+      assert.equal(dashboard.summary.extractor_registry_source_batch_classification_phase_slot, "P281");
+      assert.equal(dashboard.summary.extractor_registry_source_batch_matter_tagging_result_status, "complete");
+      assert.equal(dashboard.summary.extractor_registry_source_batch_matter_tagging_phase_slot, "P282");
+      assert.equal(dashboard.summary.extractor_registry_entry_count, extractorRegistry.summary.extractor_registry_entry_count);
+      assert.equal(dashboard.summary.extractor_registry_document_type_count, extractorRegistry.summary.registry_document_type_count);
+      assert.equal(dashboard.summary.extractor_registry_extension_count, extractorRegistry.summary.registry_extension_count);
+      assert.equal(dashboard.summary.extractor_registry_compatibility_row_count, extractorRegistry.summary.compatibility_row_count);
+      assert.equal(dashboard.summary.extractor_registry_compatible_resource_item_count, extractorRegistry.summary.compatible_resource_item_count);
+      assert.equal(dashboard.summary.extractor_registry_incompatible_resource_item_count, 0);
+      assert.equal(dashboard.summary.extractor_registry_local_only_entry_count, extractorRegistry.summary.extractor_registry_entry_count);
+      assert.equal(dashboard.summary.extractor_registry_external_service_allowed_entry_count, 0);
+      assert.equal(dashboard.summary.extractor_registry_network_access_allowed_entry_count, 0);
+      assert.equal(dashboard.summary.extractor_registry_human_review_required_count, extractorRegistry.summary.human_review_required_count);
+      assert.equal(dashboard.summary.extractor_registry_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.extractor_registry_extractor_execution_count, 0);
+      assert.equal(dashboard.summary.extractor_registry_file_content_read_count, 0);
+      assert.equal(dashboard.summary.extractor_registry_ocr_execution_count, 0);
+      assert.equal(dashboard.summary.extractor_registry_external_model_used_count, 0);
+      assert.equal(dashboard.summary.extractor_registry_matter_data_write_performed_count, 0);
+      assert.equal(dashboard.summary.extractor_registry_read_only, true);
+      assert.equal(dashboard.summary.extractor_registry_report_only, true);
+      assert.equal(dashboard.summary.extractor_registry_extractor_execution_performed, false);
+      assert.equal(dashboard.summary.extractor_registry_ocr_execution_performed, false);
+      assert.equal(dashboard.summary.extractor_registry_file_content_read_performed, false);
+      assert.equal(dashboard.summary.extractor_registry_external_service_called, false);
+      assert.equal(dashboard.summary.extractor_registry_network_access_performed, false);
+      assert.equal(dashboard.summary.extractor_registry_source_ingest_performed, false);
+      assert.equal(dashboard.summary.extractor_registry_source_mutation_performed, false);
+      assert.equal(dashboard.summary.extractor_registry_resource_mutation_performed, false);
+      assert.equal(dashboard.summary.extractor_registry_state_mutation_performed, false);
+      assert.equal(dashboard.summary.extractor_registry_matter_data_write_performed, false);
+      assert.equal(dashboard.summary.extractor_registry_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.extractor_registry_protected_action_executed, false);
+      assert.equal(dashboard.summary.extractor_registry_legal_advice_generated, false);
+      assert.equal(dashboard.summary.extractor_registry_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.extractor_registry_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.extractor_registry_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.extractor_registry_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -21296,6 +21409,49 @@ describe("matter harness", () => {
       assert.equal(batchMatterTaggingResultStage?.metrics.client_facing_output_generated, false);
       assert.equal(batchMatterTaggingResultStage?.metrics.windows_baseline_stability_preserved, true);
       assert.equal(batchMatterTaggingResultStage?.metrics.validation_error_count, 0);
+      const extractorRegistryStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "extractor_registry");
+      assert.equal(extractorRegistryStage?.status, "passed");
+      assert.equal(extractorRegistryStage?.metrics.extractor_registry_status, "complete");
+      assert.equal(extractorRegistryStage?.metrics.phase_slot, "P283");
+      assert.equal(extractorRegistryStage?.metrics.previous_phase_slot, "P282");
+      assert.equal(extractorRegistryStage?.metrics.next_phase_slot, "P284");
+      assert.equal(extractorRegistryStage?.metrics.source_extractor_adapter_contract_status, "complete");
+      assert.equal(extractorRegistryStage?.metrics.source_batch_classification_result_status, "complete");
+      assert.equal(extractorRegistryStage?.metrics.source_batch_classification_phase_slot, "P281");
+      assert.equal(extractorRegistryStage?.metrics.source_batch_matter_tagging_result_status, "complete");
+      assert.equal(extractorRegistryStage?.metrics.source_batch_matter_tagging_phase_slot, "P282");
+      assert.equal(extractorRegistryStage?.metrics.extractor_registry_entry_count, extractorRegistry.summary.extractor_registry_entry_count);
+      assert.equal(extractorRegistryStage?.metrics.compatibility_row_count, extractorRegistry.summary.compatibility_row_count);
+      assert.equal(extractorRegistryStage?.metrics.compatible_resource_item_count, extractorRegistry.summary.compatible_resource_item_count);
+      assert.equal(extractorRegistryStage?.metrics.incompatible_resource_item_count, 0);
+      assert.equal(extractorRegistryStage?.metrics.local_only_registry_entry_count, extractorRegistry.summary.extractor_registry_entry_count);
+      assert.equal(extractorRegistryStage?.metrics.external_service_allowed_entry_count, 0);
+      assert.equal(extractorRegistryStage?.metrics.network_access_allowed_entry_count, 0);
+      assert.equal(extractorRegistryStage?.metrics.human_review_required_count, extractorRegistry.summary.human_review_required_count);
+      assert.equal(extractorRegistryStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(extractorRegistryStage?.metrics.extractor_execution_count, 0);
+      assert.equal(extractorRegistryStage?.metrics.file_content_read_count, 0);
+      assert.equal(extractorRegistryStage?.metrics.ocr_execution_count, 0);
+      assert.equal(extractorRegistryStage?.metrics.external_model_used_count, 0);
+      assert.equal(extractorRegistryStage?.metrics.matter_data_write_performed_count, 0);
+      assert.equal(extractorRegistryStage?.metrics.read_only, true);
+      assert.equal(extractorRegistryStage?.metrics.extractor_registry_report_only, true);
+      assert.equal(extractorRegistryStage?.metrics.extractor_execution_performed, false);
+      assert.equal(extractorRegistryStage?.metrics.ocr_execution_performed, false);
+      assert.equal(extractorRegistryStage?.metrics.file_content_read_performed, false);
+      assert.equal(extractorRegistryStage?.metrics.external_service_called, false);
+      assert.equal(extractorRegistryStage?.metrics.network_access_performed, false);
+      assert.equal(extractorRegistryStage?.metrics.source_ingest_performed, false);
+      assert.equal(extractorRegistryStage?.metrics.source_mutation_performed, false);
+      assert.equal(extractorRegistryStage?.metrics.resource_mutation_performed, false);
+      assert.equal(extractorRegistryStage?.metrics.state_mutation_performed, false);
+      assert.equal(extractorRegistryStage?.metrics.matter_data_write_performed, false);
+      assert.equal(extractorRegistryStage?.metrics.delivery_execution_performed, false);
+      assert.equal(extractorRegistryStage?.metrics.protected_action_executed, false);
+      assert.equal(extractorRegistryStage?.metrics.legal_advice_generated, false);
+      assert.equal(extractorRegistryStage?.metrics.client_facing_output_generated, false);
+      assert.equal(extractorRegistryStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(extractorRegistryStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -21419,6 +21575,13 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/batch-matter-tagging-separations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/batch-matter-tagging-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/batch-matter-tagging-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/extractor-registries"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/extractor-registry-entries"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/extractor-compatibility-rows"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/extractor-document-type-compatibility"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/extractor-extension-compatibility"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/extractor-registry-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/extractor-registry-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -24015,6 +24178,34 @@ describe("matter harness", () => {
       const batchMatterTaggingValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/batch-matter-tagging-validations?status=passed", apiOptions)).body);
       assert.equal(batchMatterTaggingValidationsResponse.collection, "batch_matter_tagging_validations");
       assert.equal(batchMatterTaggingValidationsResponse.count, batchMatterTaggingResult.summary.validation_item_count);
+
+      const extractorRegistriesResponse = JSON.parse((await buildReviewApiResponse("/api/extractor-registries?extractor_registry_status=complete", apiOptions)).body);
+      assert.equal(extractorRegistriesResponse.collection, "extractor_registries");
+      assert.equal(extractorRegistriesResponse.count, 1);
+
+      const extractorRegistryEntriesResponse = JSON.parse((await buildReviewApiResponse("/api/extractor-registry-entries?extractor_registry_entry_status=compatible_pending_human_review", apiOptions)).body);
+      assert.equal(extractorRegistryEntriesResponse.collection, "extractor_registry_entries");
+      assert.equal(extractorRegistryEntriesResponse.count, extractorRegistry.summary.extractor_registry_entry_count);
+
+      const extractorCompatibilityRowsResponse = JSON.parse((await buildReviewApiResponse("/api/extractor-compatibility-rows?extractor_compatibility_status=compatible_pending_human_review", apiOptions)).body);
+      assert.equal(extractorCompatibilityRowsResponse.collection, "extractor_compatibility_rows");
+      assert.equal(extractorCompatibilityRowsResponse.count, extractorRegistry.summary.compatibility_row_count);
+
+      const extractorDocumentTypesResponse = JSON.parse((await buildReviewApiResponse("/api/extractor-document-type-compatibility?extractor_document_type_status=compatible_pending_human_review", apiOptions)).body);
+      assert.equal(extractorDocumentTypesResponse.collection, "extractor_document_type_compatibility");
+      assert.equal(extractorDocumentTypesResponse.count, extractorRegistry.summary.document_type_compatibility_row_count);
+
+      const extractorExtensionsResponse = JSON.parse((await buildReviewApiResponse("/api/extractor-extension-compatibility?extractor_extension_status=compatible_pending_human_review", apiOptions)).body);
+      assert.equal(extractorExtensionsResponse.collection, "extractor_extension_compatibility");
+      assert.equal(extractorExtensionsResponse.count, extractorRegistry.summary.extension_compatibility_row_count);
+
+      const extractorRegistryChecksResponse = JSON.parse((await buildReviewApiResponse("/api/extractor-registry-checks?extractor_registry_check_status=passed", apiOptions)).body);
+      assert.equal(extractorRegistryChecksResponse.collection, "extractor_registry_checks");
+      assert.equal(extractorRegistryChecksResponse.count, extractorRegistry.summary.validation_item_count);
+
+      const extractorRegistryValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/extractor-registry-validations?status=passed", apiOptions)).body);
+      assert.equal(extractorRegistryValidationsResponse.collection, "extractor_registry_validations");
+      assert.equal(extractorRegistryValidationsResponse.count, extractorRegistry.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

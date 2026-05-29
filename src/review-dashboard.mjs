@@ -118,6 +118,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   expansionQuarantineLedgerPath: "artifacts/expansion-quarantine-ledger/latest/expansion-quarantine-ledger.json",
   batchClassificationResultPath: "artifacts/batch-classification-result/latest/batch-classification-result.json",
   batchMatterTaggingResultPath: "artifacts/batch-matter-tagging-result/latest/batch-matter-tagging-result.json",
+  extractorRegistryPath: "artifacts/extractor-registry/latest/extractor-registry.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -851,6 +852,11 @@ const SOURCE_DEFINITIONS = [
     option: "batchMatterTaggingResultPath",
     source_id: "batch_matter_tagging_result",
     label: "Batch Matter Tagging Result",
+  },
+  {
+    option: "extractorRegistryPath",
+    source_id: "extractor_registry",
+    label: "Extractor Registry",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1838,6 +1844,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "expansion_quarantine_ledger") return data.summary ?? {};
   if (sourceId === "batch_classification_result") return data.summary ?? {};
   if (sourceId === "batch_matter_tagging_result") return data.summary ?? {};
+  if (sourceId === "extractor_registry") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2237,6 +2244,7 @@ function buildStageStatuses(artifacts, sources) {
     buildExpansionQuarantineLedgerStage(artifacts.expansion_quarantine_ledger, sourceById.get("expansion_quarantine_ledger")),
     buildBatchClassificationResultStage(artifacts.batch_classification_result, sourceById.get("batch_classification_result")),
     buildBatchMatterTaggingResultStage(artifacts.batch_matter_tagging_result, sourceById.get("batch_matter_tagging_result")),
+    buildExtractorRegistryStage(artifacts.extractor_registry, sourceById.get("extractor_registry")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -13809,6 +13817,128 @@ function buildBatchMatterTaggingResultStage(artifact, source) {
   };
 }
 
+function buildExtractorRegistryStage(artifact, source) {
+  if (!artifact) return missingStage("extractor_registry", "Extractor Registry", source);
+  const summary = artifact.summary ?? {};
+  const rowCount = summary.compatibility_row_count ?? 0;
+  const status = artifact.validation?.valid === false
+    || summary.extractor_registry_status !== "complete"
+    || summary.phase_slot !== "P283"
+    || summary.previous_phase_slot !== "P282"
+    || summary.next_phase_slot !== "P284"
+    || summary.source_extractor_adapter_contract_status !== "complete"
+    || summary.source_batch_classification_result_status !== "complete"
+    || summary.source_batch_classification_phase_slot !== "P281"
+    || summary.source_batch_matter_tagging_result_status !== "complete"
+    || summary.source_batch_matter_tagging_phase_slot !== "P282"
+    || rowCount <= 0
+    || summary.compatible_resource_item_count !== rowCount
+    || summary.incompatible_resource_item_count !== 0
+    || summary.local_only_registry_entry_count !== summary.extractor_registry_entry_count
+    || summary.external_service_allowed_entry_count !== 0
+    || summary.network_access_allowed_entry_count !== 0
+    || summary.passed_document_type_compatibility_row_count !== summary.document_type_compatibility_row_count
+    || summary.passed_extension_compatibility_row_count !== summary.extension_compatibility_row_count
+    || summary.human_review_required_count !== rowCount
+    || summary.client_facing_ready_count !== 0
+    || summary.extractor_execution_count !== 0
+    || summary.file_content_read_count !== 0
+    || summary.ocr_execution_count !== 0
+    || summary.external_model_used_count !== 0
+    || summary.matter_data_write_performed_count !== 0
+    || summary.read_only !== true
+    || summary.extractor_registry_report_only !== true
+    || summary.extractor_execution_performed !== false
+    || summary.ocr_execution_performed !== false
+    || summary.file_content_read_performed !== false
+    || summary.external_model_used !== false
+    || summary.external_service_called !== false
+    || summary.network_access_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.source_mutation_performed !== false
+    || summary.resource_mutation_performed !== false
+    || summary.state_mutation_performed !== false
+    || summary.matter_data_write_performed !== false
+    || summary.delivery_execution_performed !== false
+    || summary.protected_action_executed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || summary.failed_checkpoint_count !== 0
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "extractor_registry",
+    label: "Extractor Registry",
+    status,
+    message: `${summary.extractor_registry_entry_count ?? 0} registry entry row(s), ${summary.registry_document_type_count ?? 0} document type(s), and ${summary.compatible_resource_item_count ?? 0}/${rowCount} compatible resource item(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      extractor_registry_status: summary.extractor_registry_status ?? "unknown",
+      extractor_registry_id: summary.extractor_registry_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_extractor_adapter_contract_status: summary.source_extractor_adapter_contract_status ?? "unknown",
+      source_extractor_adapter_count: summary.source_extractor_adapter_count ?? 0,
+      source_document_type_binding_count: summary.source_document_type_binding_count ?? 0,
+      source_ocr_fallback_policy_count: summary.source_ocr_fallback_policy_count ?? 0,
+      source_resource_expansion_job_id: summary.source_resource_expansion_job_id ?? null,
+      source_batch_classification_result_status: summary.source_batch_classification_result_status ?? "unknown",
+      source_batch_classification_phase_slot: summary.source_batch_classification_phase_slot ?? null,
+      source_batch_matter_tagging_result_status: summary.source_batch_matter_tagging_result_status ?? "unknown",
+      source_batch_matter_tagging_phase_slot: summary.source_batch_matter_tagging_phase_slot ?? null,
+      resource_item_count: summary.resource_item_count ?? 0,
+      extractor_registry_entry_count: summary.extractor_registry_entry_count ?? 0,
+      registry_document_type_count: summary.registry_document_type_count ?? 0,
+      registry_extension_count: summary.registry_extension_count ?? 0,
+      local_only_registry_entry_count: summary.local_only_registry_entry_count ?? 0,
+      external_service_allowed_entry_count: summary.external_service_allowed_entry_count ?? 0,
+      network_access_allowed_entry_count: summary.network_access_allowed_entry_count ?? 0,
+      compatibility_row_count: rowCount,
+      compatible_resource_item_count: summary.compatible_resource_item_count ?? 0,
+      incompatible_resource_item_count: summary.incompatible_resource_item_count ?? 0,
+      supported_extension_match_count: summary.supported_extension_match_count ?? 0,
+      fallback_registry_entry_used_count: summary.fallback_registry_entry_used_count ?? 0,
+      document_type_compatibility_row_count: summary.document_type_compatibility_row_count ?? 0,
+      passed_document_type_compatibility_row_count: summary.passed_document_type_compatibility_row_count ?? 0,
+      extension_compatibility_row_count: summary.extension_compatibility_row_count ?? 0,
+      passed_extension_compatibility_row_count: summary.passed_extension_compatibility_row_count ?? 0,
+      human_review_required_count: summary.human_review_required_count ?? 0,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      extractor_execution_count: summary.extractor_execution_count ?? 0,
+      file_content_read_count: summary.file_content_read_count ?? 0,
+      ocr_execution_count: summary.ocr_execution_count ?? 0,
+      external_model_used_count: summary.external_model_used_count ?? 0,
+      matter_data_write_performed_count: summary.matter_data_write_performed_count ?? 0,
+      read_only: summary.read_only ?? false,
+      extractor_registry_report_only: summary.extractor_registry_report_only ?? false,
+      extractor_execution_performed: summary.extractor_execution_performed ?? false,
+      ocr_execution_performed: summary.ocr_execution_performed ?? false,
+      file_content_read_performed: summary.file_content_read_performed ?? false,
+      external_model_used: summary.external_model_used ?? false,
+      external_service_called: summary.external_service_called ?? false,
+      network_access_performed: summary.network_access_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      source_mutation_performed: summary.source_mutation_performed ?? false,
+      resource_mutation_performed: summary.resource_mutation_performed ?? false,
+      state_mutation_performed: summary.state_mutation_performed ?? false,
+      matter_data_write_performed: summary.matter_data_write_performed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -20381,6 +20511,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_batch_matter_tagging_result", "rerun_batch_matter_tagging_result", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.extractor_registry?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "extractor_registry";
+    items.push({
+      action_item_id: `dashboard.action.extractor_registry.${slugify(subjectId)}`,
+      source_stage: "extractor_registry",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Extractor Registry",
+      subject_ref: {
+        subject_type: "extractor_registry_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_extractor_registry", "rerun_extractor_registry", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -27176,6 +27324,62 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     batch_matter_tagging_result_validation_item_count: artifacts.batch_matter_tagging_result?.summary?.validation_item_count ?? 0,
     batch_matter_tagging_result_failed_checkpoint_count: artifacts.batch_matter_tagging_result?.summary?.failed_checkpoint_count ?? 0,
     batch_matter_tagging_result_validation_error_count: artifacts.batch_matter_tagging_result?.summary?.validation_error_count ?? artifacts.batch_matter_tagging_result?.validation?.errors?.length ?? 0,
+    extractor_registry_status: artifacts.extractor_registry?.summary?.extractor_registry_status ?? "unknown",
+    extractor_registry_id: artifacts.extractor_registry?.summary?.extractor_registry_id ?? null,
+    extractor_registry_phase_slot: artifacts.extractor_registry?.summary?.phase_slot ?? null,
+    extractor_registry_previous_phase_slot: artifacts.extractor_registry?.summary?.previous_phase_slot ?? null,
+    extractor_registry_next_phase_slot: artifacts.extractor_registry?.summary?.next_phase_slot ?? null,
+    extractor_registry_source_extractor_adapter_contract_status: artifacts.extractor_registry?.summary?.source_extractor_adapter_contract_status ?? "unknown",
+    extractor_registry_source_extractor_adapter_count: artifacts.extractor_registry?.summary?.source_extractor_adapter_count ?? 0,
+    extractor_registry_source_document_type_binding_count: artifacts.extractor_registry?.summary?.source_document_type_binding_count ?? 0,
+    extractor_registry_source_batch_classification_result_status: artifacts.extractor_registry?.summary?.source_batch_classification_result_status ?? "unknown",
+    extractor_registry_source_batch_classification_phase_slot: artifacts.extractor_registry?.summary?.source_batch_classification_phase_slot ?? null,
+    extractor_registry_source_batch_matter_tagging_result_status: artifacts.extractor_registry?.summary?.source_batch_matter_tagging_result_status ?? "unknown",
+    extractor_registry_source_batch_matter_tagging_phase_slot: artifacts.extractor_registry?.summary?.source_batch_matter_tagging_phase_slot ?? null,
+    extractor_registry_resource_item_count: artifacts.extractor_registry?.summary?.resource_item_count ?? 0,
+    extractor_registry_entry_count: artifacts.extractor_registry?.summary?.extractor_registry_entry_count ?? 0,
+    extractor_registry_document_type_count: artifacts.extractor_registry?.summary?.registry_document_type_count ?? 0,
+    extractor_registry_extension_count: artifacts.extractor_registry?.summary?.registry_extension_count ?? 0,
+    extractor_registry_local_only_entry_count: artifacts.extractor_registry?.summary?.local_only_registry_entry_count ?? 0,
+    extractor_registry_external_service_allowed_entry_count: artifacts.extractor_registry?.summary?.external_service_allowed_entry_count ?? 0,
+    extractor_registry_network_access_allowed_entry_count: artifacts.extractor_registry?.summary?.network_access_allowed_entry_count ?? 0,
+    extractor_registry_compatibility_row_count: artifacts.extractor_registry?.summary?.compatibility_row_count ?? 0,
+    extractor_registry_compatible_resource_item_count: artifacts.extractor_registry?.summary?.compatible_resource_item_count ?? 0,
+    extractor_registry_incompatible_resource_item_count: artifacts.extractor_registry?.summary?.incompatible_resource_item_count ?? 0,
+    extractor_registry_supported_extension_match_count: artifacts.extractor_registry?.summary?.supported_extension_match_count ?? 0,
+    extractor_registry_fallback_registry_entry_used_count: artifacts.extractor_registry?.summary?.fallback_registry_entry_used_count ?? 0,
+    extractor_registry_document_type_row_count: artifacts.extractor_registry?.summary?.document_type_compatibility_row_count ?? 0,
+    extractor_registry_passed_document_type_row_count: artifacts.extractor_registry?.summary?.passed_document_type_compatibility_row_count ?? 0,
+    extractor_registry_extension_row_count: artifacts.extractor_registry?.summary?.extension_compatibility_row_count ?? 0,
+    extractor_registry_passed_extension_row_count: artifacts.extractor_registry?.summary?.passed_extension_compatibility_row_count ?? 0,
+    extractor_registry_human_review_required_count: artifacts.extractor_registry?.summary?.human_review_required_count ?? 0,
+    extractor_registry_client_facing_ready_count: artifacts.extractor_registry?.summary?.client_facing_ready_count ?? 0,
+    extractor_registry_extractor_execution_count: artifacts.extractor_registry?.summary?.extractor_execution_count ?? 0,
+    extractor_registry_file_content_read_count: artifacts.extractor_registry?.summary?.file_content_read_count ?? 0,
+    extractor_registry_ocr_execution_count: artifacts.extractor_registry?.summary?.ocr_execution_count ?? 0,
+    extractor_registry_external_model_used_count: artifacts.extractor_registry?.summary?.external_model_used_count ?? 0,
+    extractor_registry_matter_data_write_performed_count: artifacts.extractor_registry?.summary?.matter_data_write_performed_count ?? 0,
+    extractor_registry_read_only: artifacts.extractor_registry?.summary?.read_only ?? false,
+    extractor_registry_report_only: artifacts.extractor_registry?.summary?.extractor_registry_report_only ?? false,
+    extractor_registry_extractor_execution_performed: artifacts.extractor_registry?.summary?.extractor_execution_performed ?? false,
+    extractor_registry_ocr_execution_performed: artifacts.extractor_registry?.summary?.ocr_execution_performed ?? false,
+    extractor_registry_file_content_read_performed: artifacts.extractor_registry?.summary?.file_content_read_performed ?? false,
+    extractor_registry_external_service_called: artifacts.extractor_registry?.summary?.external_service_called ?? false,
+    extractor_registry_network_access_performed: artifacts.extractor_registry?.summary?.network_access_performed ?? false,
+    extractor_registry_source_ingest_performed: artifacts.extractor_registry?.summary?.source_ingest_performed ?? false,
+    extractor_registry_source_mutation_performed: artifacts.extractor_registry?.summary?.source_mutation_performed ?? false,
+    extractor_registry_resource_mutation_performed: artifacts.extractor_registry?.summary?.resource_mutation_performed ?? false,
+    extractor_registry_state_mutation_performed: artifacts.extractor_registry?.summary?.state_mutation_performed ?? false,
+    extractor_registry_matter_data_write_performed: artifacts.extractor_registry?.summary?.matter_data_write_performed ?? false,
+    extractor_registry_delivery_execution_performed: artifacts.extractor_registry?.summary?.delivery_execution_performed ?? false,
+    extractor_registry_protected_action_executed: artifacts.extractor_registry?.summary?.protected_action_executed ?? false,
+    extractor_registry_legal_advice_generated: artifacts.extractor_registry?.summary?.legal_advice_generated ?? false,
+    extractor_registry_client_facing_output_generated: artifacts.extractor_registry?.summary?.client_facing_output_generated ?? false,
+    extractor_registry_windows_baseline_stability_preserved: artifacts.extractor_registry?.summary?.windows_baseline_stability_preserved ?? false,
+    extractor_registry_mac_windows_completion_instability_guard: artifacts.extractor_registry?.summary?.mac_windows_completion_instability_guard ?? false,
+    extractor_registry_validation_item_count: artifacts.extractor_registry?.summary?.validation_item_count ?? 0,
+    extractor_registry_failed_checkpoint_count: artifacts.extractor_registry?.summary?.failed_checkpoint_count ?? 0,
+    extractor_registry_validation_error_count: artifacts.extractor_registry?.summary?.validation_error_count ?? artifacts.extractor_registry?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -28995,6 +29199,8 @@ function parseArgs(argv) {
     else if (arg === "--no-batch-classification-result") parsed.batchClassificationResultPath = false;
     else if (arg === "--batch-matter-tagging-result") parsed.batchMatterTaggingResultPath = argv[++index];
     else if (arg === "--no-batch-matter-tagging-result") parsed.batchMatterTaggingResultPath = false;
+    else if (arg === "--extractor-registry") parsed.extractorRegistryPath = argv[++index];
+    else if (arg === "--no-extractor-registry") parsed.extractorRegistryPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

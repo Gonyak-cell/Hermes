@@ -148,6 +148,7 @@ const GOAL_ITEMS = [
   sourceItem("vdr_connector", "VDR Connector", "connectors", "vdr_connector", "control-plane-vdr-connector", { acceptance_profile: "vdr_connector_gate" }),
   sourceItem("plaud_transcript_connector", "Plaud Transcript Connector", "connectors", "plaud_transcript_connector", "control-plane-plaud-transcript-connector", { acceptance_profile: "plaud_transcript_connector_gate" }),
   sourceItem("erp_draft_connector", "ERP Draft Connector", "connectors", "erp_draft_connector", "control-plane-erp-draft-connector", { acceptance_profile: "erp_draft_connector_gate" }),
+  sourceItem("connector_freeze", "Connector Freeze", "connectors", "connector_freeze", "control-plane-connector-freeze", { acceptance_profile: "connector_freeze_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -655,6 +656,7 @@ function evaluateStageAcceptance(item, stage) {
     "vdr_connector_gate",
     "plaud_transcript_connector_gate",
     "erp_draft_connector_gate",
+    "connector_freeze_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -5264,6 +5266,56 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.approval_hold_human_review_required_count === metrics.approval_hold_count
     ) {
       return passedWithOperationalGate(stage, "ERP Draft Connector projects operator-provided estimate, invoice, and tax invoice draft rows into review-gated draft-only candidates without live ERP API calls, network access, credential reads, issue/finalize actions, mutation, delivery, legal advice, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "connector_freeze_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.connector_freeze_status === "complete"
+      && metrics.source_count === 9
+      && metrics.passed_source_count === metrics.source_count
+      && metrics.connector_artifact_count === 8
+      && metrics.connector_contract_count === 8
+      && metrics.contracted_connector_count === 8
+      && metrics.source_contract_count === 8
+      && metrics.cursor_contract_count === 8
+      && metrics.external_id_contract_count === 8
+      && metrics.auth_boundary_count === 8
+      && metrics.path_count === 7
+      && metrics.passed_path_count === metrics.path_count
+      && metrics.representative_source_ingest_path_count === 6
+      && metrics.passed_representative_source_ingest_path_count === metrics.representative_source_ingest_path_count
+      && metrics.gate_count >= 7
+      && metrics.passed_gate_count === metrics.gate_count
+      && metrics.connector_resource_candidate_count > 0
+      && metrics.cursor_resume_supported_count === 8
+      && metrics.raw_cursor_material_allowed_count === 0
+      && metrics.credential_reference_only_connector_count === 8
+      && metrics.credential_material_read_count === 0
+      && metrics.raw_secret_material_allowed_count === 0
+      && metrics.external_network_access_performed_count === 0
+      && metrics.write_operations_allowed_count === 0
+      && metrics.source_mutation_performed_count === 0
+      && metrics.resource_mutation_performed_count === 0
+      && metrics.billing_mutation_performed_count === 0
+      && metrics.output_delivery_performed_count === 0
+      && metrics.protected_action_executed_count === 0
+      && metrics.legal_advice_generated_count === 0
+      && metrics.client_facing_output_generated_count === 0
+      && metrics.read_only === true
+      && metrics.freeze_report_only === true
+      && metrics.connector_runtime_execution_performed === false
+      && metrics.source_ingest_performed === false
+      && metrics.source_artifact_mutation_performed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.client_facing_ready_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Connector Freeze locks the P267-P275 connector layer with complete source artifacts, representative ingest paths, hash-only cursors, credential-reference-only auth, and no freeze-time execution, mutation, delivery, legal advice, or client-facing output.");
     }
   }
 

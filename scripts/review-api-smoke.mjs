@@ -2556,6 +2556,34 @@ try {
   assert.equal(erpValidations.collection, "erp_draft_validations");
   assert.ok(erpValidations.count <= 5);
 
+  const connectorFreezes = await fetchJson(`${url}/api/connector-freezes?connector_freeze_status=complete&limit=1`);
+  assert.equal(connectorFreezes.collection, "connector_freezes");
+  assert.ok(connectorFreezes.count <= 1);
+
+  const connectorFreezeSources = await fetchJson(`${url}/api/connector-freeze-sources?connector_freeze_source_status=complete&limit=9`);
+  assert.equal(connectorFreezeSources.collection, "connector_freeze_sources");
+  assert.ok(connectorFreezeSources.count <= 9);
+
+  const connectorFreezeIngestPaths = await fetchJson(`${url}/api/connector-freeze-ingest-paths?connector_freeze_path_status=passed&limit=7`);
+  assert.equal(connectorFreezeIngestPaths.collection, "connector_freeze_ingest_paths");
+  assert.ok(connectorFreezeIngestPaths.count <= 7);
+
+  const connectorFreezeGates = await fetchJson(`${url}/api/connector-freeze-gates?connector_freeze_gate_status=passed&limit=7`);
+  assert.equal(connectorFreezeGates.collection, "connector_freeze_gates");
+  assert.ok(connectorFreezeGates.count <= 7);
+
+  const connectorFreezeBoundary = await fetchJson(`${url}/api/connector-freeze-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(connectorFreezeBoundary.collection, "connector_freeze_boundary");
+  assert.ok(connectorFreezeBoundary.count <= 1);
+
+  const connectorFreezeCheckpoints = await fetchJson(`${url}/api/connector-freeze-checkpoints?status=passed&limit=13`);
+  assert.equal(connectorFreezeCheckpoints.collection, "connector_freeze_checkpoints");
+  assert.ok(connectorFreezeCheckpoints.count <= 13);
+
+  const connectorFreezeValidations = await fetchJson(`${url}/api/connector-freeze-validations?status=passed&limit=13`);
+  assert.equal(connectorFreezeValidations.collection, "connector_freeze_validations");
+  assert.ok(connectorFreezeValidations.count <= 13);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

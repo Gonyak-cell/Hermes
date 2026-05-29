@@ -184,6 +184,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     vdr_connector: "artifacts/vdr-connector/latest/vdr-connector.json",
     plaud_transcript_connector: "artifacts/plaud-transcript-connector/latest/plaud-transcript-connector.json",
     erp_draft_connector: "artifacts/erp-draft-connector/latest/erp-draft-connector.json",
+    connector_freeze: "artifacts/connector-freeze/latest/connector-freeze.json",
   },
 };
 
@@ -361,6 +362,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("vdr_connector", "VDR Connector", "connectors", "vdr-connector.schema.json"),
   fixtureDefinition("plaud_transcript_connector", "Plaud Transcript Connector", "connectors", "plaud-transcript-connector.schema.json"),
   fixtureDefinition("erp_draft_connector", "ERP Draft Connector", "connectors", "erp-draft-connector.schema.json"),
+  fixtureDefinition("connector_freeze", "Connector Freeze", "connectors", "connector-freeze.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),

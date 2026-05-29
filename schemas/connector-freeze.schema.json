@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/connector-freeze.schema.json",
+  "title": "Connector Freeze",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "connector_freeze_status",
+    "connector_freeze_sources",
+    "connector_freeze_ingest_paths",
+    "connector_freeze_gates",
+    "connector_freeze_boundary",
+    "connector_freeze_checkpoints",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "connector-freeze.v1" },
+    "connector_freeze_status": { "const": "complete" },
+    "connector_freeze_sources": {
+      "type": "array",
+      "minItems": 9,
+      "items": {
+        "type": "object",
+        "required": ["source_id", "phase_slot", "source_status", "validation_error_count", "client_facing_ready", "source_contract_hash"],
+        "properties": {
+          "source_id": { "type": "string" },
+          "phase_slot": { "type": "string" },
+          "source_status": { "const": "complete" },
+          "validation_error_count": { "const": 0 },
+          "client_facing_ready": { "const": false },
+          "source_contract_hash": { "type": "string", "pattern": "^sha256:" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "connector_freeze_ingest_paths": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "object",
+        "required": ["path_id", "path_status", "path_gate_passed", "sources_complete", "human_review_required", "client_facing_ready"],
+        "properties": {
+          "path_id": { "type": "string" },
+          "path_status": { "const": "passed" },
+          "path_gate_passed": { "const": true },
+          "sources_complete": { "const": true },
+          "human_review_required": { "const": true },
+          "client_facing_ready": { "const": false }
+        },
+        "additionalProperties": true
+      }
+    },
+    "connector_freeze_gates": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "object",
+        "required": ["gate_id", "gate_status", "human_review_required", "client_facing_ready"],
+        "properties": {
+          "gate_id": { "type": "string" },
+          "gate_status": { "const": "passed" },
+          "human_review_required": { "const": true },
+          "client_facing_ready": { "const": false }
+        },
+        "additionalProperties": true
+      }
+    },
+    "connector_freeze_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "read_only",
+        "freeze_report_only",
+        "connector_runtime_execution_performed",
+        "source_ingest_performed",
+        "source_artifact_mutation_allowed",
+        "delivery_execution_performed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "client_facing_ready_count"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "read_only": { "const": true },
+        "freeze_report_only": { "const": true },
+        "connector_runtime_execution_performed": { "const": false },
+        "source_ingest_performed": { "const": false },
+        "source_artifact_mutation_allowed": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "client_facing_ready_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    },
+    "connector_freeze_checkpoints": {
+      "type": "array",
+      "minItems": 13,
+      "items": {
+        "type": "object",
+        "required": ["checkpoint_id", "status"],
+        "properties": {
+          "checkpoint_id": { "type": "string" },
+          "status": { "const": "passed" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "minItems": 13,
+      "items": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": { "const": "passed" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "failed_count"],
+      "properties": {
+        "valid": { "const": true },
+        "failed_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "connector_freeze_status",
+        "source_count",
+        "passed_source_count",
+        "path_count",
+        "passed_path_count",
+        "representative_source_ingest_path_count",
+        "passed_representative_source_ingest_path_count",
+        "gate_count",
+        "passed_gate_count",
+        "connector_contract_count",
+        "failed_checkpoint_count",
+        "validation_error_count",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "client_facing_ready_count"
+      ],
+      "properties": {
+        "connector_freeze_status": { "const": "complete" },
+        "source_count": { "const": 9 },
+        "passed_source_count": { "const": 9 },
+        "path_count": { "const": 7 },
+        "passed_path_count": { "const": 7 },
+        "representative_source_ingest_path_count": { "const": 6 },
+        "passed_representative_source_ingest_path_count": { "const": 6 },
+        "gate_count": { "type": "integer", "minimum": 7 },
+        "passed_gate_count": { "type": "integer", "minimum": 7 },
+        "connector_contract_count": { "const": 8 },
+        "failed_checkpoint_count": { "const": 0 },
+        "validation_error_count": { "const": 0 },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "client_facing_ready_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

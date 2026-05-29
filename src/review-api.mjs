@@ -5520,6 +5520,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("erp_draft_validations", erpResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/connector-freezes") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "connector_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("connector_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("connector_freezes", [freezeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/connector-freeze-sources") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "connector_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("connector_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("connector_freeze_sources", freezeResult.artifact.connector_freeze_sources ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/connector-freeze-ingest-paths") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "connector_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("connector_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("connector_freeze_ingest_paths", freezeResult.artifact.connector_freeze_ingest_paths ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/connector-freeze-gates") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "connector_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("connector_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("connector_freeze_gates", freezeResult.artifact.connector_freeze_gates ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/connector-freeze-boundary") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "connector_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("connector_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("connector_freeze_boundary", [freezeResult.artifact.connector_freeze_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/connector-freeze-checkpoints") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "connector_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("connector_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("connector_freeze_checkpoints", freezeResult.artifact.connector_freeze_checkpoints ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/connector-freeze-validations") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "connector_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("connector_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("connector_freeze_validations", freezeResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -11913,6 +11962,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/erp-cursor", "ERP draft cursor state"),
       route("GET", "/api/erp-auth-boundary", "ERP connector auth boundary"),
       route("GET", "/api/erp-draft-validations", "ERP Draft Connector validation rows"),
+      route("GET", "/api/connector-freezes", "Connector Freeze artifact"),
+      route("GET", "/api/connector-freeze-sources", "Connector Freeze source rows"),
+      route("GET", "/api/connector-freeze-ingest-paths", "Connector Freeze representative ingest path rows"),
+      route("GET", "/api/connector-freeze-gates", "Connector Freeze gate rows"),
+      route("GET", "/api/connector-freeze-boundary", "Connector Freeze boundary row"),
+      route("GET", "/api/connector-freeze-checkpoints", "Connector Freeze checkpoint rows"),
+      route("GET", "/api/connector-freeze-validations", "Connector Freeze validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -13023,6 +13079,12 @@ function filterItems(items, searchParams) {
     "erp_approval_hold_status",
     "erp_resource_status",
     "draft_kind",
+    "connector_freeze_status",
+    "connector_freeze_source_status",
+    "connector_freeze_path_status",
+    "connector_freeze_gate_status",
+    "path_kind",
+    "gate_id",
     "thread_status",
     "email_resource_status",
     "chat_resource_status",
@@ -14866,6 +14928,12 @@ function readFilterValue(item, key) {
   if (key === "erp_approval_hold_status") return item.approval_hold_status;
   if (key === "erp_resource_status") return item.erp_resource_status;
   if (key === "draft_kind") return item.draft_kind;
+  if (key === "connector_freeze_status") return item.summary?.connector_freeze_status ?? item.connector_freeze_status;
+  if (key === "connector_freeze_source_status") return item.source_status;
+  if (key === "connector_freeze_path_status") return item.path_status;
+  if (key === "connector_freeze_gate_status") return item.gate_status;
+  if (key === "path_kind") return item.path_kind;
+  if (key === "gate_id") return item.gate_id;
   if (key === "thread_status") return item.thread_status;
   if (key === "email_resource_status") return item.email_resource_status;
   if (key === "chat_resource_status") return item.chat_resource_status;

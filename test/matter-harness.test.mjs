@@ -75,6 +75,7 @@ import { runGitHubConnector } from "../src/github-connector.mjs";
 import { runVdrConnector } from "../src/vdr-connector.mjs";
 import { runPlaudTranscriptConnector } from "../src/plaud-transcript-connector.mjs";
 import { runErpDraftConnector } from "../src/erp-draft-connector.mjs";
+import { runConnectorFreeze } from "../src/connector-freeze.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1945,6 +1946,7 @@ describe("matter harness", () => {
         vdrConnectorPath: path.join(outDir, "vdr-connector", "vdr-connector.json"),
         plaudTranscriptConnectorPath: path.join(outDir, "plaud-transcript-connector", "plaud-transcript-connector.json"),
         erpDraftConnectorPath: path.join(outDir, "erp-draft-connector", "erp-draft-connector.json"),
+        connectorFreezePath: path.join(outDir, "connector-freeze", "connector-freeze.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11311,6 +11313,83 @@ describe("matter harness", () => {
       assert.equal(erpDraftConnector.erp_connector_boundary.erp_api_execution_performed, false);
       assert.match(await readFile(path.join(outDir, "erp-draft-connector", "summary.md"), "utf8"), /ERP Draft Connector/);
 
+      const connectorFreeze = await runConnectorFreeze({
+        connectorContractV2Path: path.join(outDir, "connector-contract-v2", "connector-contract-v2.json"),
+        localFolderConnectorPath: path.join(outDir, "local-folder-connector", "local-folder-connector.json"),
+        onedriveConnectorBoundaryPath: path.join(outDir, "onedrive-connector-boundary", "onedrive-connector-boundary.json"),
+        outlookEmailConnectorPath: path.join(outDir, "outlook-email-connector", "outlook-email-connector.json"),
+        kakaotalkImportBoundaryPath: path.join(outDir, "kakaotalk-import-boundary", "kakaotalk-import-boundary.json"),
+        githubConnectorPath: path.join(outDir, "github-connector", "github-connector.json"),
+        vdrConnectorPath: path.join(outDir, "vdr-connector", "vdr-connector.json"),
+        plaudTranscriptConnectorPath: path.join(outDir, "plaud-transcript-connector", "plaud-transcript-connector.json"),
+        erpDraftConnectorPath: path.join(outDir, "erp-draft-connector", "erp-draft-connector.json"),
+        outDir: path.join(outDir, "connector-freeze"),
+        runAt: "2026-05-23T07:17:24.000Z",
+      });
+      const connectorFreezeSchema = JSON.parse(await readFile("schemas/connector-freeze.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(connectorFreeze, connectorFreezeSchema, {}, "connector_freeze"), [], JSON.stringify(connectorFreeze.validation.errors));
+      assert.equal(connectorFreeze.summary.connector_freeze_status, "complete");
+      assert.equal(connectorFreeze.summary.phase_range, "P267-P276");
+      assert.equal(connectorFreeze.summary.source_phase_range, "P267-P275");
+      assert.equal(connectorFreeze.summary.next_phase_slot, "P277");
+      assert.equal(connectorFreeze.summary.source_count, 9);
+      assert.equal(connectorFreeze.summary.passed_source_count, 9);
+      assert.equal(connectorFreeze.summary.connector_artifact_count, 8);
+      assert.equal(connectorFreeze.summary.connector_contract_count, 8);
+      assert.equal(connectorFreeze.summary.contracted_connector_count, 8);
+      assert.equal(connectorFreeze.summary.source_contract_count, 8);
+      assert.equal(connectorFreeze.summary.cursor_contract_count, 8);
+      assert.equal(connectorFreeze.summary.external_id_contract_count, 8);
+      assert.equal(connectorFreeze.summary.auth_boundary_count, 8);
+      assert.equal(connectorFreeze.summary.path_count, 7);
+      assert.equal(connectorFreeze.summary.passed_path_count, 7);
+      assert.equal(connectorFreeze.summary.representative_source_ingest_path_count, 6);
+      assert.equal(connectorFreeze.summary.passed_representative_source_ingest_path_count, 6);
+      assert.equal(connectorFreeze.summary.gate_count, 7);
+      assert.equal(connectorFreeze.summary.passed_gate_count, 7);
+      assert.ok(connectorFreeze.summary.connector_resource_candidate_count > 0);
+      assert.equal(connectorFreeze.summary.local_ingest_record_count, localFolderConnector.summary.ingest_record_count);
+      assert.equal(connectorFreeze.summary.onedrive_sample_item_count, oneDriveConnectorBoundary.summary.sample_item_count);
+      assert.equal(connectorFreeze.summary.communication_resource_candidate_count, outlookEmailConnector.summary.resource_candidate_count + kakaoTalkImportBoundary.summary.resource_candidate_count);
+      assert.equal(connectorFreeze.summary.github_resource_candidate_count, gitHubConnector.summary.resource_candidate_count);
+      assert.equal(connectorFreeze.summary.vdr_resource_candidate_count, vdrConnector.summary.resource_candidate_count);
+      assert.equal(connectorFreeze.summary.plaud_resource_candidate_count, plaudTranscriptConnector.summary.resource_candidate_count);
+      assert.equal(connectorFreeze.summary.erp_draft_count, erpDraftConnector.summary.draft_count);
+      assert.equal(connectorFreeze.summary.erp_draft_output_count, erpDraftConnector.summary.draft_output_count);
+      assert.equal(connectorFreeze.summary.erp_approval_hold_count, erpDraftConnector.summary.approval_hold_count);
+      assert.equal(connectorFreeze.summary.cursor_resume_supported_count, 8);
+      assert.equal(connectorFreeze.summary.raw_cursor_material_allowed_count, 0);
+      assert.equal(connectorFreeze.summary.credential_reference_only_connector_count, 8);
+      assert.equal(connectorFreeze.summary.credential_material_read_count, 0);
+      assert.equal(connectorFreeze.summary.raw_secret_material_allowed_count, 0);
+      assert.equal(connectorFreeze.summary.external_network_access_performed_count, 0);
+      assert.equal(connectorFreeze.summary.write_operations_allowed_count, 0);
+      assert.equal(connectorFreeze.summary.source_mutation_performed_count, 0);
+      assert.equal(connectorFreeze.summary.resource_mutation_performed_count, 0);
+      assert.equal(connectorFreeze.summary.billing_mutation_performed_count, 0);
+      assert.equal(connectorFreeze.summary.output_delivery_performed_count, 0);
+      assert.equal(connectorFreeze.summary.protected_action_executed_count, 0);
+      assert.equal(connectorFreeze.summary.legal_advice_generated_count, 0);
+      assert.equal(connectorFreeze.summary.client_facing_output_generated_count, 0);
+      assert.equal(connectorFreeze.summary.read_only, true);
+      assert.equal(connectorFreeze.summary.freeze_report_only, true);
+      assert.equal(connectorFreeze.summary.connector_runtime_execution_performed, false);
+      assert.equal(connectorFreeze.summary.source_ingest_performed, false);
+      assert.equal(connectorFreeze.summary.source_artifact_mutation_performed, false);
+      assert.equal(connectorFreeze.summary.delivery_execution_performed, false);
+      assert.equal(connectorFreeze.summary.protected_action_executed, false);
+      assert.equal(connectorFreeze.summary.legal_advice_generated, false);
+      assert.equal(connectorFreeze.summary.client_facing_output_generated, false);
+      assert.equal(connectorFreeze.summary.client_facing_ready_count, 0);
+      assert.equal(connectorFreeze.summary.failed_checkpoint_count, 0);
+      assert.equal(connectorFreeze.summary.validation_error_count, 0);
+      assert.ok(connectorFreeze.connector_freeze_sources.every((source) => source.source_status === "complete" && source.validation_error_count === 0 && source.client_facing_ready === false));
+      assert.ok(connectorFreeze.connector_freeze_ingest_paths.every((item) => item.path_status === "passed" && item.path_gate_passed && item.sources_complete && item.human_review_required && item.client_facing_ready === false));
+      assert.ok(connectorFreeze.connector_freeze_gates.every((gate) => gate.gate_status === "passed" && gate.human_review_required && gate.client_facing_ready === false));
+      assert.equal(connectorFreeze.connector_freeze_boundary.connector_runtime_execution_performed, false);
+      assert.equal(connectorFreeze.connector_freeze_boundary.source_ingest_performed, false);
+      assert.match(await readFile(path.join(outDir, "connector-freeze", "summary.md"), "utf8"), /Connector Freeze/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -11510,6 +11589,7 @@ describe("matter harness", () => {
           vdr_connector: path.join(outDir, "vdr-connector", "vdr-connector.json"),
           plaud_transcript_connector: path.join(outDir, "plaud-transcript-connector", "plaud-transcript-connector.json"),
           erp_draft_connector: path.join(outDir, "erp-draft-connector", "erp-draft-connector.json"),
+          connector_freeze: path.join(outDir, "connector-freeze", "connector-freeze.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11561,8 +11641,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 177);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 177);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 178);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 178);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -11727,6 +11807,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "vdr_connector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "plaud_transcript_connector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "erp_draft_connector"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "connector_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -12599,6 +12680,10 @@ describe("matter harness", () => {
       assert.equal(erpDraftConnectorCheckpoint?.acceptance_profile, "erp_draft_connector_gate");
       assert.equal(erpDraftConnectorCheckpoint?.status, "passed");
       assert.equal(erpDraftConnectorCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const connectorFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-connector-freeze");
+      assert.equal(connectorFreezeCheckpoint?.acceptance_profile, "connector_freeze_gate");
+      assert.equal(connectorFreezeCheckpoint?.status, "passed");
+      assert.equal(connectorFreezeCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -17251,6 +17336,53 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.erp_draft_connector_human_review_required_count, erpDraftConnector.summary.human_review_required_count);
       assert.equal(dashboard.summary.erp_draft_connector_approval_hold_human_review_required_count, erpDraftConnector.summary.approval_hold_human_review_required_count);
       assert.equal(dashboard.summary.erp_draft_connector_validation_error_count, 0);
+      assert.equal(dashboard.summary.connector_freeze_status, "complete");
+      assert.equal(dashboard.summary.connector_freeze_contract_id, connectorFreeze.summary.connector_freeze_contract_id);
+      assert.equal(dashboard.summary.connector_freeze_phase_range, "P267-P276");
+      assert.equal(dashboard.summary.connector_freeze_source_phase_range, "P267-P275");
+      assert.equal(dashboard.summary.connector_freeze_next_phase_slot, "P277");
+      assert.equal(dashboard.summary.connector_freeze_source_count, connectorFreeze.summary.source_count);
+      assert.equal(dashboard.summary.connector_freeze_passed_source_count, connectorFreeze.summary.passed_source_count);
+      assert.equal(dashboard.summary.connector_freeze_connector_artifact_count, connectorFreeze.summary.connector_artifact_count);
+      assert.equal(dashboard.summary.connector_freeze_connector_contract_count, connectorFreeze.summary.connector_contract_count);
+      assert.equal(dashboard.summary.connector_freeze_contracted_connector_count, connectorFreeze.summary.contracted_connector_count);
+      assert.equal(dashboard.summary.connector_freeze_source_contract_count, connectorFreeze.summary.source_contract_count);
+      assert.equal(dashboard.summary.connector_freeze_cursor_contract_count, connectorFreeze.summary.cursor_contract_count);
+      assert.equal(dashboard.summary.connector_freeze_external_id_contract_count, connectorFreeze.summary.external_id_contract_count);
+      assert.equal(dashboard.summary.connector_freeze_auth_boundary_count, connectorFreeze.summary.auth_boundary_count);
+      assert.equal(dashboard.summary.connector_freeze_path_count, connectorFreeze.summary.path_count);
+      assert.equal(dashboard.summary.connector_freeze_passed_path_count, connectorFreeze.summary.passed_path_count);
+      assert.equal(dashboard.summary.connector_freeze_representative_source_ingest_path_count, connectorFreeze.summary.representative_source_ingest_path_count);
+      assert.equal(dashboard.summary.connector_freeze_passed_representative_source_ingest_path_count, connectorFreeze.summary.passed_representative_source_ingest_path_count);
+      assert.equal(dashboard.summary.connector_freeze_gate_count, connectorFreeze.summary.gate_count);
+      assert.equal(dashboard.summary.connector_freeze_passed_gate_count, connectorFreeze.summary.passed_gate_count);
+      assert.equal(dashboard.summary.connector_freeze_connector_resource_candidate_count, connectorFreeze.summary.connector_resource_candidate_count);
+      assert.equal(dashboard.summary.connector_freeze_cursor_resume_supported_count, connectorFreeze.summary.cursor_resume_supported_count);
+      assert.equal(dashboard.summary.connector_freeze_raw_cursor_material_allowed_count, 0);
+      assert.equal(dashboard.summary.connector_freeze_credential_reference_only_connector_count, connectorFreeze.summary.credential_reference_only_connector_count);
+      assert.equal(dashboard.summary.connector_freeze_credential_material_read_count, 0);
+      assert.equal(dashboard.summary.connector_freeze_raw_secret_material_allowed_count, 0);
+      assert.equal(dashboard.summary.connector_freeze_external_network_access_performed_count, 0);
+      assert.equal(dashboard.summary.connector_freeze_write_operations_allowed_count, 0);
+      assert.equal(dashboard.summary.connector_freeze_source_mutation_performed_count, 0);
+      assert.equal(dashboard.summary.connector_freeze_resource_mutation_performed_count, 0);
+      assert.equal(dashboard.summary.connector_freeze_billing_mutation_performed_count, 0);
+      assert.equal(dashboard.summary.connector_freeze_output_delivery_performed_count, 0);
+      assert.equal(dashboard.summary.connector_freeze_protected_action_executed_count, 0);
+      assert.equal(dashboard.summary.connector_freeze_legal_advice_generated_count, 0);
+      assert.equal(dashboard.summary.connector_freeze_client_facing_output_generated_count, 0);
+      assert.equal(dashboard.summary.connector_freeze_read_only, true);
+      assert.equal(dashboard.summary.connector_freeze_freeze_report_only, true);
+      assert.equal(dashboard.summary.connector_freeze_connector_runtime_execution_performed, false);
+      assert.equal(dashboard.summary.connector_freeze_source_ingest_performed, false);
+      assert.equal(dashboard.summary.connector_freeze_source_artifact_mutation_performed, false);
+      assert.equal(dashboard.summary.connector_freeze_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.connector_freeze_protected_action_executed, false);
+      assert.equal(dashboard.summary.connector_freeze_legal_advice_generated, false);
+      assert.equal(dashboard.summary.connector_freeze_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.connector_freeze_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.connector_freeze_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.connector_freeze_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -20336,6 +20468,54 @@ describe("matter harness", () => {
       assert.equal(erpDraftConnectorStage?.metrics.human_review_required_count, erpDraftConnector.summary.human_review_required_count);
       assert.equal(erpDraftConnectorStage?.metrics.approval_hold_human_review_required_count, erpDraftConnector.summary.approval_hold_human_review_required_count);
       assert.equal(erpDraftConnectorStage?.metrics.validation_error_count, 0);
+      const connectorFreezeStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "connector_freeze");
+      assert.equal(connectorFreezeStage?.status, "passed");
+      assert.equal(connectorFreezeStage?.metrics.connector_freeze_status, "complete");
+      assert.equal(connectorFreezeStage?.metrics.phase_range, "P267-P276");
+      assert.equal(connectorFreezeStage?.metrics.source_phase_range, "P267-P275");
+      assert.equal(connectorFreezeStage?.metrics.next_phase_slot, "P277");
+      assert.equal(connectorFreezeStage?.metrics.source_count, connectorFreeze.summary.source_count);
+      assert.equal(connectorFreezeStage?.metrics.passed_source_count, connectorFreeze.summary.passed_source_count);
+      assert.equal(connectorFreezeStage?.metrics.connector_artifact_count, connectorFreeze.summary.connector_artifact_count);
+      assert.equal(connectorFreezeStage?.metrics.connector_contract_count, connectorFreeze.summary.connector_contract_count);
+      assert.equal(connectorFreezeStage?.metrics.contracted_connector_count, connectorFreeze.summary.contracted_connector_count);
+      assert.equal(connectorFreezeStage?.metrics.source_contract_count, connectorFreeze.summary.source_contract_count);
+      assert.equal(connectorFreezeStage?.metrics.cursor_contract_count, connectorFreeze.summary.cursor_contract_count);
+      assert.equal(connectorFreezeStage?.metrics.external_id_contract_count, connectorFreeze.summary.external_id_contract_count);
+      assert.equal(connectorFreezeStage?.metrics.auth_boundary_count, connectorFreeze.summary.auth_boundary_count);
+      assert.equal(connectorFreezeStage?.metrics.path_count, connectorFreeze.summary.path_count);
+      assert.equal(connectorFreezeStage?.metrics.passed_path_count, connectorFreeze.summary.passed_path_count);
+      assert.equal(connectorFreezeStage?.metrics.representative_source_ingest_path_count, connectorFreeze.summary.representative_source_ingest_path_count);
+      assert.equal(connectorFreezeStage?.metrics.passed_representative_source_ingest_path_count, connectorFreeze.summary.passed_representative_source_ingest_path_count);
+      assert.equal(connectorFreezeStage?.metrics.gate_count, connectorFreeze.summary.gate_count);
+      assert.equal(connectorFreezeStage?.metrics.passed_gate_count, connectorFreeze.summary.passed_gate_count);
+      assert.equal(connectorFreezeStage?.metrics.connector_resource_candidate_count, connectorFreeze.summary.connector_resource_candidate_count);
+      assert.equal(connectorFreezeStage?.metrics.cursor_resume_supported_count, connectorFreeze.summary.cursor_resume_supported_count);
+      assert.equal(connectorFreezeStage?.metrics.raw_cursor_material_allowed_count, 0);
+      assert.equal(connectorFreezeStage?.metrics.credential_reference_only_connector_count, connectorFreeze.summary.credential_reference_only_connector_count);
+      assert.equal(connectorFreezeStage?.metrics.credential_material_read_count, 0);
+      assert.equal(connectorFreezeStage?.metrics.raw_secret_material_allowed_count, 0);
+      assert.equal(connectorFreezeStage?.metrics.external_network_access_performed_count, 0);
+      assert.equal(connectorFreezeStage?.metrics.write_operations_allowed_count, 0);
+      assert.equal(connectorFreezeStage?.metrics.source_mutation_performed_count, 0);
+      assert.equal(connectorFreezeStage?.metrics.resource_mutation_performed_count, 0);
+      assert.equal(connectorFreezeStage?.metrics.billing_mutation_performed_count, 0);
+      assert.equal(connectorFreezeStage?.metrics.output_delivery_performed_count, 0);
+      assert.equal(connectorFreezeStage?.metrics.protected_action_executed_count, 0);
+      assert.equal(connectorFreezeStage?.metrics.legal_advice_generated_count, 0);
+      assert.equal(connectorFreezeStage?.metrics.client_facing_output_generated_count, 0);
+      assert.equal(connectorFreezeStage?.metrics.read_only, true);
+      assert.equal(connectorFreezeStage?.metrics.freeze_report_only, true);
+      assert.equal(connectorFreezeStage?.metrics.connector_runtime_execution_performed, false);
+      assert.equal(connectorFreezeStage?.metrics.source_ingest_performed, false);
+      assert.equal(connectorFreezeStage?.metrics.source_artifact_mutation_performed, false);
+      assert.equal(connectorFreezeStage?.metrics.delivery_execution_performed, false);
+      assert.equal(connectorFreezeStage?.metrics.protected_action_executed, false);
+      assert.equal(connectorFreezeStage?.metrics.legal_advice_generated, false);
+      assert.equal(connectorFreezeStage?.metrics.client_facing_output_generated, false);
+      assert.equal(connectorFreezeStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(connectorFreezeStage?.metrics.failed_checkpoint_count, 0);
+      assert.equal(connectorFreezeStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -22808,6 +22988,38 @@ describe("matter harness", () => {
       const erpDraftValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/erp-draft-validations?status=passed", apiOptions)).body);
       assert.equal(erpDraftValidationsResponse.collection, "erp_draft_validations");
       assert.equal(erpDraftValidationsResponse.count, erpDraftConnector.summary.validation_item_count);
+
+      const connectorFreezesResponse = JSON.parse((await buildReviewApiResponse("/api/connector-freezes?connector_freeze_status=complete", apiOptions)).body);
+      assert.equal(connectorFreezesResponse.collection, "connector_freezes");
+      assert.equal(connectorFreezesResponse.count, 1);
+
+      const connectorFreezeSourcesResponse = JSON.parse((await buildReviewApiResponse("/api/connector-freeze-sources?connector_freeze_source_status=complete", apiOptions)).body);
+      assert.equal(connectorFreezeSourcesResponse.collection, "connector_freeze_sources");
+      assert.equal(connectorFreezeSourcesResponse.count, connectorFreeze.summary.source_count);
+
+      const connectorFreezeIngestPathsResponse = JSON.parse((await buildReviewApiResponse("/api/connector-freeze-ingest-paths?connector_freeze_path_status=passed", apiOptions)).body);
+      assert.equal(connectorFreezeIngestPathsResponse.collection, "connector_freeze_ingest_paths");
+      assert.equal(connectorFreezeIngestPathsResponse.count, connectorFreeze.summary.path_count);
+
+      const connectorFreezeRepresentativePathsResponse = JSON.parse((await buildReviewApiResponse("/api/connector-freeze-ingest-paths?path_kind=erp_draft&connector_freeze_path_status=passed", apiOptions)).body);
+      assert.equal(connectorFreezeRepresentativePathsResponse.collection, "connector_freeze_ingest_paths");
+      assert.equal(connectorFreezeRepresentativePathsResponse.count, 1);
+
+      const connectorFreezeGatesResponse = JSON.parse((await buildReviewApiResponse("/api/connector-freeze-gates?connector_freeze_gate_status=passed", apiOptions)).body);
+      assert.equal(connectorFreezeGatesResponse.collection, "connector_freeze_gates");
+      assert.equal(connectorFreezeGatesResponse.count, connectorFreeze.summary.gate_count);
+
+      const connectorFreezeBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/connector-freeze-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(connectorFreezeBoundaryResponse.collection, "connector_freeze_boundary");
+      assert.equal(connectorFreezeBoundaryResponse.count, 1);
+
+      const connectorFreezeCheckpointsResponse = JSON.parse((await buildReviewApiResponse("/api/connector-freeze-checkpoints?status=passed", apiOptions)).body);
+      assert.equal(connectorFreezeCheckpointsResponse.collection, "connector_freeze_checkpoints");
+      assert.equal(connectorFreezeCheckpointsResponse.count, connectorFreeze.summary.validation_item_count);
+
+      const connectorFreezeValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/connector-freeze-validations?status=passed", apiOptions)).body);
+      assert.equal(connectorFreezeValidationsResponse.collection, "connector_freeze_validations");
+      assert.equal(connectorFreezeValidationsResponse.count, connectorFreeze.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

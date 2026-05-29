@@ -111,6 +111,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   vdrConnectorPath: "artifacts/vdr-connector/latest/vdr-connector.json",
   plaudTranscriptConnectorPath: "artifacts/plaud-transcript-connector/latest/plaud-transcript-connector.json",
   erpDraftConnectorPath: "artifacts/erp-draft-connector/latest/erp-draft-connector.json",
+  connectorFreezePath: "artifacts/connector-freeze/latest/connector-freeze.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -809,6 +810,11 @@ const SOURCE_DEFINITIONS = [
     option: "erpDraftConnectorPath",
     source_id: "erp_draft_connector",
     label: "ERP Draft Connector",
+  },
+  {
+    option: "connectorFreezePath",
+    source_id: "connector_freeze",
+    label: "Connector Freeze",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1789,6 +1795,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "vdr_connector") return data.summary ?? {};
   if (sourceId === "plaud_transcript_connector") return data.summary ?? {};
   if (sourceId === "erp_draft_connector") return data.summary ?? {};
+  if (sourceId === "connector_freeze") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2181,6 +2188,7 @@ function buildStageStatuses(artifacts, sources) {
     buildVdrConnectorStage(artifacts.vdr_connector, sourceById.get("vdr_connector")),
     buildPlaudTranscriptConnectorStage(artifacts.plaud_transcript_connector, sourceById.get("plaud_transcript_connector")),
     buildErpDraftConnectorStage(artifacts.erp_draft_connector, sourceById.get("erp_draft_connector")),
+    buildConnectorFreezeStage(artifacts.connector_freeze, sourceById.get("connector_freeze")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -12943,6 +12951,127 @@ function buildErpDraftConnectorStage(artifact, source) {
   };
 }
 
+function buildConnectorFreezeStage(artifact, source) {
+  if (!artifact) return missingStage("connector_freeze", "Connector Freeze", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.connector_freeze_status !== "complete"
+    || summary.source_count !== 9
+    || summary.passed_source_count !== summary.source_count
+    || summary.connector_artifact_count !== 8
+    || summary.connector_contract_count !== 8
+    || summary.contracted_connector_count !== 8
+    || summary.source_contract_count !== 8
+    || summary.cursor_contract_count !== 8
+    || summary.external_id_contract_count !== 8
+    || summary.auth_boundary_count !== 8
+    || summary.path_count !== 7
+    || summary.passed_path_count !== summary.path_count
+    || summary.representative_source_ingest_path_count !== 6
+    || summary.passed_representative_source_ingest_path_count !== summary.representative_source_ingest_path_count
+    || summary.gate_count < 7
+    || summary.passed_gate_count !== summary.gate_count
+    || summary.cursor_resume_supported_count !== 8
+    || summary.raw_cursor_material_allowed_count !== 0
+    || summary.credential_reference_only_connector_count !== 8
+    || summary.credential_material_read_count !== 0
+    || summary.raw_secret_material_allowed_count !== 0
+    || summary.external_network_access_performed_count !== 0
+    || summary.write_operations_allowed_count !== 0
+    || summary.source_mutation_performed_count !== 0
+    || summary.resource_mutation_performed_count !== 0
+    || summary.billing_mutation_performed_count !== 0
+    || summary.output_delivery_performed_count !== 0
+    || summary.protected_action_executed_count !== 0
+    || summary.legal_advice_generated_count !== 0
+    || summary.client_facing_output_generated_count !== 0
+    || summary.read_only !== true
+    || summary.freeze_report_only !== true
+    || summary.connector_runtime_execution_performed === true
+    || summary.source_ingest_performed === true
+    || summary.source_artifact_mutation_performed === true
+    || summary.delivery_execution_performed === true
+    || summary.protected_action_executed === true
+    || summary.legal_advice_generated === true
+    || summary.client_facing_output_generated === true
+    || summary.client_facing_ready_count !== 0
+    || summary.failed_checkpoint_count !== 0
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "connector_freeze",
+    label: "Connector Freeze",
+    status,
+    message: `${summary.passed_source_count ?? 0}/${summary.source_count ?? 0} connector source artifact(s), ${summary.passed_representative_source_ingest_path_count ?? 0}/${summary.representative_source_ingest_path_count ?? 0} representative ingest path(s), and ${summary.passed_gate_count ?? 0}/${summary.gate_count ?? 0} freeze gate(s) passed.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      connector_freeze_status: summary.connector_freeze_status ?? "unknown",
+      connector_freeze_contract_id: summary.connector_freeze_contract_id ?? null,
+      phase_range: summary.phase_range ?? null,
+      source_phase_range: summary.source_phase_range ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_count: summary.source_count ?? artifact.connector_freeze_sources?.length ?? 0,
+      passed_source_count: summary.passed_source_count ?? 0,
+      connector_artifact_count: summary.connector_artifact_count ?? 0,
+      connector_contract_count: summary.connector_contract_count ?? 0,
+      contracted_connector_count: summary.contracted_connector_count ?? 0,
+      source_contract_count: summary.source_contract_count ?? 0,
+      cursor_contract_count: summary.cursor_contract_count ?? 0,
+      external_id_contract_count: summary.external_id_contract_count ?? 0,
+      auth_boundary_count: summary.auth_boundary_count ?? 0,
+      path_count: summary.path_count ?? artifact.connector_freeze_ingest_paths?.length ?? 0,
+      passed_path_count: summary.passed_path_count ?? 0,
+      representative_source_ingest_path_count: summary.representative_source_ingest_path_count ?? 0,
+      passed_representative_source_ingest_path_count: summary.passed_representative_source_ingest_path_count ?? 0,
+      gate_count: summary.gate_count ?? artifact.connector_freeze_gates?.length ?? 0,
+      passed_gate_count: summary.passed_gate_count ?? 0,
+      connector_resource_candidate_count: summary.connector_resource_candidate_count ?? 0,
+      local_ingest_record_count: summary.local_ingest_record_count ?? 0,
+      onedrive_sample_item_count: summary.onedrive_sample_item_count ?? 0,
+      communication_resource_candidate_count: summary.communication_resource_candidate_count ?? 0,
+      github_resource_candidate_count: summary.github_resource_candidate_count ?? 0,
+      vdr_resource_candidate_count: summary.vdr_resource_candidate_count ?? 0,
+      plaud_resource_candidate_count: summary.plaud_resource_candidate_count ?? 0,
+      erp_draft_count: summary.erp_draft_count ?? 0,
+      erp_draft_output_count: summary.erp_draft_output_count ?? 0,
+      erp_approval_hold_count: summary.erp_approval_hold_count ?? 0,
+      cursor_resume_supported_count: summary.cursor_resume_supported_count ?? 0,
+      raw_cursor_material_allowed_count: summary.raw_cursor_material_allowed_count ?? 0,
+      credential_reference_only_connector_count: summary.credential_reference_only_connector_count ?? 0,
+      credential_material_read_count: summary.credential_material_read_count ?? 0,
+      raw_secret_material_allowed_count: summary.raw_secret_material_allowed_count ?? 0,
+      external_network_access_required_connector_count: summary.external_network_access_required_connector_count ?? 0,
+      external_network_access_performed_count: summary.external_network_access_performed_count ?? 0,
+      write_operations_allowed_count: summary.write_operations_allowed_count ?? 0,
+      source_mutation_performed_count: summary.source_mutation_performed_count ?? 0,
+      resource_mutation_performed_count: summary.resource_mutation_performed_count ?? 0,
+      billing_mutation_performed_count: summary.billing_mutation_performed_count ?? 0,
+      matter_data_write_allowed_count: summary.matter_data_write_allowed_count ?? 0,
+      task_state_write_allowed_count: summary.task_state_write_allowed_count ?? 0,
+      workflow_transition_allowed_count: summary.workflow_transition_allowed_count ?? 0,
+      output_delivery_performed_count: summary.output_delivery_performed_count ?? 0,
+      protected_action_executed_count: summary.protected_action_executed_count ?? 0,
+      legal_advice_generated_count: summary.legal_advice_generated_count ?? 0,
+      client_facing_output_generated_count: summary.client_facing_output_generated_count ?? 0,
+      read_only: summary.read_only ?? artifact.connector_freeze_boundary?.read_only ?? false,
+      freeze_report_only: summary.freeze_report_only ?? artifact.connector_freeze_boundary?.freeze_report_only ?? false,
+      connector_runtime_execution_performed: summary.connector_runtime_execution_performed ?? artifact.connector_freeze_boundary?.connector_runtime_execution_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? artifact.connector_freeze_boundary?.source_ingest_performed ?? false,
+      source_artifact_mutation_performed: summary.source_artifact_mutation_performed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? artifact.connector_freeze_boundary?.delivery_execution_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? artifact.connector_freeze_boundary?.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? artifact.connector_freeze_boundary?.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? artifact.connector_freeze_boundary?.client_facing_output_generated ?? false,
+      client_facing_ready_count: summary.client_facing_ready_count ?? artifact.connector_freeze_boundary?.client_facing_ready_count ?? 0,
+      human_review_required: summary.human_review_required ?? artifact.connector_freeze_boundary?.human_review_required ?? true,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -19393,6 +19522,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.connector_freeze?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "connector_freeze";
+    items.push({
+      action_item_id: `dashboard.action.connector_freeze.${slugify(subjectId)}`,
+      source_stage: "connector_freeze",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Connector Freeze",
+      subject_ref: {
+        subject_type: "connector_freeze_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_connector_freeze", "rerun_connector_freeze", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -25834,6 +25981,63 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     erp_draft_connector_human_review_required_count: artifacts.erp_draft_connector?.summary?.human_review_required_count ?? 0,
     erp_draft_connector_approval_hold_human_review_required_count: artifacts.erp_draft_connector?.summary?.approval_hold_human_review_required_count ?? 0,
     erp_draft_connector_validation_error_count: artifacts.erp_draft_connector?.summary?.validation_error_count ?? artifacts.erp_draft_connector?.validation?.errors?.length ?? 0,
+    connector_freeze_status: artifacts.connector_freeze?.summary?.connector_freeze_status ?? "unknown",
+    connector_freeze_contract_id: artifacts.connector_freeze?.summary?.connector_freeze_contract_id ?? null,
+    connector_freeze_phase_range: artifacts.connector_freeze?.summary?.phase_range ?? null,
+    connector_freeze_source_phase_range: artifacts.connector_freeze?.summary?.source_phase_range ?? null,
+    connector_freeze_next_phase_slot: artifacts.connector_freeze?.summary?.next_phase_slot ?? null,
+    connector_freeze_source_count: artifacts.connector_freeze?.summary?.source_count ?? 0,
+    connector_freeze_passed_source_count: artifacts.connector_freeze?.summary?.passed_source_count ?? 0,
+    connector_freeze_connector_artifact_count: artifacts.connector_freeze?.summary?.connector_artifact_count ?? 0,
+    connector_freeze_connector_contract_count: artifacts.connector_freeze?.summary?.connector_contract_count ?? 0,
+    connector_freeze_contracted_connector_count: artifacts.connector_freeze?.summary?.contracted_connector_count ?? 0,
+    connector_freeze_source_contract_count: artifacts.connector_freeze?.summary?.source_contract_count ?? 0,
+    connector_freeze_cursor_contract_count: artifacts.connector_freeze?.summary?.cursor_contract_count ?? 0,
+    connector_freeze_external_id_contract_count: artifacts.connector_freeze?.summary?.external_id_contract_count ?? 0,
+    connector_freeze_auth_boundary_count: artifacts.connector_freeze?.summary?.auth_boundary_count ?? 0,
+    connector_freeze_path_count: artifacts.connector_freeze?.summary?.path_count ?? 0,
+    connector_freeze_passed_path_count: artifacts.connector_freeze?.summary?.passed_path_count ?? 0,
+    connector_freeze_representative_source_ingest_path_count: artifacts.connector_freeze?.summary?.representative_source_ingest_path_count ?? 0,
+    connector_freeze_passed_representative_source_ingest_path_count: artifacts.connector_freeze?.summary?.passed_representative_source_ingest_path_count ?? 0,
+    connector_freeze_gate_count: artifacts.connector_freeze?.summary?.gate_count ?? 0,
+    connector_freeze_passed_gate_count: artifacts.connector_freeze?.summary?.passed_gate_count ?? 0,
+    connector_freeze_connector_resource_candidate_count: artifacts.connector_freeze?.summary?.connector_resource_candidate_count ?? 0,
+    connector_freeze_local_ingest_record_count: artifacts.connector_freeze?.summary?.local_ingest_record_count ?? 0,
+    connector_freeze_onedrive_sample_item_count: artifacts.connector_freeze?.summary?.onedrive_sample_item_count ?? 0,
+    connector_freeze_communication_resource_candidate_count: artifacts.connector_freeze?.summary?.communication_resource_candidate_count ?? 0,
+    connector_freeze_github_resource_candidate_count: artifacts.connector_freeze?.summary?.github_resource_candidate_count ?? 0,
+    connector_freeze_vdr_resource_candidate_count: artifacts.connector_freeze?.summary?.vdr_resource_candidate_count ?? 0,
+    connector_freeze_plaud_resource_candidate_count: artifacts.connector_freeze?.summary?.plaud_resource_candidate_count ?? 0,
+    connector_freeze_erp_draft_count: artifacts.connector_freeze?.summary?.erp_draft_count ?? 0,
+    connector_freeze_erp_draft_output_count: artifacts.connector_freeze?.summary?.erp_draft_output_count ?? 0,
+    connector_freeze_erp_approval_hold_count: artifacts.connector_freeze?.summary?.erp_approval_hold_count ?? 0,
+    connector_freeze_cursor_resume_supported_count: artifacts.connector_freeze?.summary?.cursor_resume_supported_count ?? 0,
+    connector_freeze_raw_cursor_material_allowed_count: artifacts.connector_freeze?.summary?.raw_cursor_material_allowed_count ?? 0,
+    connector_freeze_credential_reference_only_connector_count: artifacts.connector_freeze?.summary?.credential_reference_only_connector_count ?? 0,
+    connector_freeze_credential_material_read_count: artifacts.connector_freeze?.summary?.credential_material_read_count ?? 0,
+    connector_freeze_raw_secret_material_allowed_count: artifacts.connector_freeze?.summary?.raw_secret_material_allowed_count ?? 0,
+    connector_freeze_external_network_access_required_connector_count: artifacts.connector_freeze?.summary?.external_network_access_required_connector_count ?? 0,
+    connector_freeze_external_network_access_performed_count: artifacts.connector_freeze?.summary?.external_network_access_performed_count ?? 0,
+    connector_freeze_write_operations_allowed_count: artifacts.connector_freeze?.summary?.write_operations_allowed_count ?? 0,
+    connector_freeze_source_mutation_performed_count: artifacts.connector_freeze?.summary?.source_mutation_performed_count ?? 0,
+    connector_freeze_resource_mutation_performed_count: artifacts.connector_freeze?.summary?.resource_mutation_performed_count ?? 0,
+    connector_freeze_billing_mutation_performed_count: artifacts.connector_freeze?.summary?.billing_mutation_performed_count ?? 0,
+    connector_freeze_output_delivery_performed_count: artifacts.connector_freeze?.summary?.output_delivery_performed_count ?? 0,
+    connector_freeze_protected_action_executed_count: artifacts.connector_freeze?.summary?.protected_action_executed_count ?? 0,
+    connector_freeze_legal_advice_generated_count: artifacts.connector_freeze?.summary?.legal_advice_generated_count ?? 0,
+    connector_freeze_client_facing_output_generated_count: artifacts.connector_freeze?.summary?.client_facing_output_generated_count ?? 0,
+    connector_freeze_read_only: artifacts.connector_freeze?.summary?.read_only ?? false,
+    connector_freeze_freeze_report_only: artifacts.connector_freeze?.summary?.freeze_report_only ?? false,
+    connector_freeze_connector_runtime_execution_performed: artifacts.connector_freeze?.summary?.connector_runtime_execution_performed ?? false,
+    connector_freeze_source_ingest_performed: artifacts.connector_freeze?.summary?.source_ingest_performed ?? false,
+    connector_freeze_source_artifact_mutation_performed: artifacts.connector_freeze?.summary?.source_artifact_mutation_performed ?? false,
+    connector_freeze_delivery_execution_performed: artifacts.connector_freeze?.summary?.delivery_execution_performed ?? false,
+    connector_freeze_protected_action_executed: artifacts.connector_freeze?.summary?.protected_action_executed ?? false,
+    connector_freeze_legal_advice_generated: artifacts.connector_freeze?.summary?.legal_advice_generated ?? false,
+    connector_freeze_client_facing_output_generated: artifacts.connector_freeze?.summary?.client_facing_output_generated ?? false,
+    connector_freeze_client_facing_ready_count: artifacts.connector_freeze?.summary?.client_facing_ready_count ?? 0,
+    connector_freeze_failed_checkpoint_count: artifacts.connector_freeze?.summary?.failed_checkpoint_count ?? 0,
+    connector_freeze_validation_error_count: artifacts.connector_freeze?.summary?.validation_error_count ?? artifacts.connector_freeze?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -27639,6 +27843,8 @@ function parseArgs(argv) {
     else if (arg === "--no-plaud-transcript-connector") parsed.plaudTranscriptConnectorPath = false;
     else if (arg === "--erp-draft-connector") parsed.erpDraftConnectorPath = argv[++index];
     else if (arg === "--no-erp-draft-connector") parsed.erpDraftConnectorPath = false;
+    else if (arg === "--connector-freeze") parsed.connectorFreezePath = argv[++index];
+    else if (arg === "--no-connector-freeze") parsed.connectorFreezePath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

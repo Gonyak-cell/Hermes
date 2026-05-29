@@ -148,6 +148,7 @@
     "connectors:vdr": "node scripts/vdr-connector.mjs",
     "connectors:plaud-transcript": "node scripts/plaud-transcript-connector.mjs",
     "connectors:erp-draft": "node scripts/erp-draft-connector.mjs",
+    "connectors:freeze": "node scripts/connector-freeze.mjs",
     "dashboard:build": "node scripts/review-dashboard.mjs",
     "delivery:closeout": "node scripts/delivery-closeout-queue.mjs",
     "delivery:closeout:apply": "node scripts/delivery-closeout-receipt-application.mjs",

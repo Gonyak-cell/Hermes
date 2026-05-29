@@ -2240,6 +2240,30 @@ try {
   assert.equal(videoPptWorkflowValidations.collection, "video_ppt_workflow_validations");
   assert.ok(videoPptWorkflowValidations.count <= 5);
 
+  const creativeDocumentFreezes = await fetchJson(`${url}/api/creative-document-freezes?creative_document_freeze_status=complete&limit=1`);
+  assert.equal(creativeDocumentFreezes.collection, "creative_document_freezes");
+  assert.ok(creativeDocumentFreezes.count <= 1);
+
+  const creativeDocumentFreezeSources = await fetchJson(`${url}/api/creative-document-freeze-sources?creative_document_freeze_source_status=complete&limit=5`);
+  assert.equal(creativeDocumentFreezeSources.collection, "creative_document_freeze_sources");
+  assert.ok(creativeDocumentFreezeSources.count <= 5);
+
+  const creativeDocumentFreezePaths = await fetchJson(`${url}/api/creative-document-freeze-paths?creative_document_freeze_path_status=passed&limit=5`);
+  assert.equal(creativeDocumentFreezePaths.collection, "creative_document_freeze_paths");
+  assert.ok(creativeDocumentFreezePaths.count <= 5);
+
+  const creativeDocumentFreezeGates = await fetchJson(`${url}/api/creative-document-freeze-gates?creative_document_freeze_gate_status=passed&limit=5`);
+  assert.equal(creativeDocumentFreezeGates.collection, "creative_document_freeze_gates");
+  assert.ok(creativeDocumentFreezeGates.count <= 5);
+
+  const creativeDocumentFreezeBoundary = await fetchJson(`${url}/api/creative-document-freeze-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(creativeDocumentFreezeBoundary.collection, "creative_document_freeze_boundary");
+  assert.ok(creativeDocumentFreezeBoundary.count <= 1);
+
+  const creativeDocumentFreezeValidations = await fetchJson(`${url}/api/creative-document-freeze-validations?status=passed&limit=5`);
+  assert.equal(creativeDocumentFreezeValidations.collection, "creative_document_freeze_validations");
+  assert.ok(creativeDocumentFreezeValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

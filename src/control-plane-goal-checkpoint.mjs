@@ -138,6 +138,7 @@ const GOAL_ITEMS = [
   sourceItem("design_system_profile", "Design system profile", "creative_document", "design_system_profile", "control-plane-design-system-profile", { acceptance_profile: "design_system_profile_gate" }),
   sourceItem("web_novel_workflow", "Web novel workflow", "creative_document", "web_novel_workflow", "control-plane-web-novel-workflow", { acceptance_profile: "web_novel_workflow_gate" }),
   sourceItem("video_ppt_workflow", "Video/PPT workflow", "creative_document", "video_ppt_workflow", "control-plane-video-ppt-workflow", { acceptance_profile: "video_ppt_workflow_gate" }),
+  sourceItem("creative_document_freeze", "Creative Document freeze", "creative_document", "creative_document_freeze", "control-plane-creative-document-freeze", { acceptance_profile: "creative_document_freeze_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -635,6 +636,7 @@ function evaluateStageAcceptance(item, stage) {
     "design_system_profile_gate",
     "web_novel_workflow_gate",
     "video_ppt_workflow_gate",
+    "creative_document_freeze_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -4791,6 +4793,47 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.failed_checkpoint_count === 0
     ) {
       return passedWithOperationalGate(stage, "Video/PPT Workflow creates deterministic draft scripts, storyboards, slide deck plan, approval artifact, and draft output artifacts while preserving human review, caption/source/format gates, no media generation, no legal advice, no protected action, and no delivery gates.");
+    }
+  }
+
+  if (item.acceptance_profile === "creative_document_freeze_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.creative_document_freeze_status === "complete"
+      && metrics.source_count === 13
+      && metrics.passed_source_count === metrics.source_count
+      && metrics.path_count === 3
+      && metrics.passed_path_count === metrics.path_count
+      && metrics.gate_count >= 6
+      && metrics.passed_gate_count === metrics.gate_count
+      && metrics.rendered_output_artifact_count >= 7
+      && metrics.passed_format_validation_result_count === metrics.format_validation_result_count
+      && metrics.passed_layout_validation_result_count === metrics.layout_validation_result_count
+      && metrics.failed_layout_validation_result_count === 0
+      && metrics.citation_render_packet_count >= 1
+      && metrics.comparison_packet_count >= 1
+      && metrics.design_review_packet_count >= 1
+      && metrics.web_novel_output_artifact_count >= 1
+      && metrics.video_ppt_output_artifact_count >= 2
+      && metrics.approval_request_count >= 1
+      && metrics.executed_delivery_action_count === 0
+      && metrics.ready_delivery_action_count === 0
+      && metrics.read_only === true
+      && metrics.freeze_report_only === true
+      && metrics.source_artifact_mutation_performed === false
+      && metrics.document_runtime_mutation_performed === false
+      && metrics.renderer_execution_performed === false
+      && metrics.external_model_execution_performed === false
+      && metrics.network_access_performed === false
+      && metrics.media_generation_performed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.client_facing_ready_count === 0
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Creative Document Freeze locks P253-P265 representative document, presentation, and content paths with render, layout, approval, human-review, no-legal-advice, and no-delivery gates preserved.");
     }
   }
 

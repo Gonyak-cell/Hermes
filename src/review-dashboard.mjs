@@ -101,6 +101,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   designSystemProfilePath: "artifacts/design-system-profile/latest/design-system-profile.json",
   webNovelWorkflowPath: "artifacts/web-novel-workflow/latest/web-novel-workflow.json",
   videoPptWorkflowPath: "artifacts/video-ppt-workflow/latest/video-ppt-workflow.json",
+  creativeDocumentFreezePath: "artifacts/creative-document-freeze/latest/creative-document-freeze.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -749,6 +750,11 @@ const SOURCE_DEFINITIONS = [
     option: "videoPptWorkflowPath",
     source_id: "video_ppt_workflow",
     label: "Video/PPT Workflow",
+  },
+  {
+    option: "creativeDocumentFreezePath",
+    source_id: "creative_document_freeze",
+    label: "Creative Document Freeze",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1719,6 +1725,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "design_system_profile") return data.summary ?? {};
   if (sourceId === "web_novel_workflow") return data.summary ?? {};
   if (sourceId === "video_ppt_workflow") return data.summary ?? {};
+  if (sourceId === "creative_document_freeze") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2101,6 +2108,7 @@ function buildStageStatuses(artifacts, sources) {
     buildDesignSystemProfileStage(artifacts.design_system_profile, sourceById.get("design_system_profile")),
     buildWebNovelWorkflowStage(artifacts.web_novel_workflow, sourceById.get("web_novel_workflow")),
     buildVideoPptWorkflowStage(artifacts.video_ppt_workflow, sourceById.get("video_ppt_workflow")),
+    buildCreativeDocumentFreezeStage(artifacts.creative_document_freeze, sourceById.get("creative_document_freeze")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -11847,6 +11855,78 @@ function buildVideoPptWorkflowStage(artifact, source) {
   };
 }
 
+function buildCreativeDocumentFreezeStage(artifact, source) {
+  if (!artifact) return missingStage("creative_document_freeze", "Creative Document Freeze", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.creative_document_freeze_status !== "complete"
+    || summary.passed_source_count !== summary.source_count
+    || summary.passed_path_count !== summary.path_count
+    || summary.passed_gate_count !== summary.gate_count
+    || summary.failed_checkpoint_count > 0
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "creative_document_freeze",
+    label: "Creative Document Freeze",
+    status,
+    message: `${summary.passed_source_count ?? 0}/${summary.source_count ?? 0} source(s), ${summary.passed_path_count ?? 0}/${summary.path_count ?? 0} path(s), ${summary.passed_gate_count ?? 0}/${summary.gate_count ?? 0} gate(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      creative_document_freeze_status: summary.creative_document_freeze_status ?? "unknown",
+      creative_document_freeze_contract_id: summary.creative_document_freeze_contract_id ?? null,
+      pack_id: summary.pack_id ?? null,
+      capability_id: summary.capability_id ?? null,
+      freeze_authority: summary.freeze_authority ?? "unknown",
+      source_of_truth: summary.source_of_truth ?? "unknown",
+      phase_range: summary.phase_range ?? null,
+      source_phase_range: summary.source_phase_range ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_count: summary.source_count ?? 0,
+      passed_source_count: summary.passed_source_count ?? 0,
+      path_count: summary.path_count ?? 0,
+      passed_path_count: summary.passed_path_count ?? 0,
+      gate_count: summary.gate_count ?? 0,
+      passed_gate_count: summary.passed_gate_count ?? 0,
+      rendered_output_artifact_count: summary.rendered_output_artifact_count ?? 0,
+      draft_output_artifact_count: summary.draft_output_artifact_count ?? 0,
+      format_validation_result_count: summary.format_validation_result_count ?? 0,
+      passed_format_validation_result_count: summary.passed_format_validation_result_count ?? 0,
+      layout_validation_result_count: summary.layout_validation_result_count ?? 0,
+      passed_layout_validation_result_count: summary.passed_layout_validation_result_count ?? 0,
+      failed_layout_validation_result_count: summary.failed_layout_validation_result_count ?? 0,
+      citation_render_packet_count: summary.citation_render_packet_count ?? 0,
+      comparison_packet_count: summary.comparison_packet_count ?? 0,
+      design_review_packet_count: summary.design_review_packet_count ?? 0,
+      web_novel_output_artifact_count: summary.web_novel_output_artifact_count ?? 0,
+      video_ppt_output_artifact_count: summary.video_ppt_output_artifact_count ?? 0,
+      approval_request_count: summary.approval_request_count ?? 0,
+      pending_approval_request_count: summary.pending_approval_request_count ?? 0,
+      approval_request_linked_artifact_count: summary.approval_request_linked_artifact_count ?? 0,
+      executed_delivery_action_count: summary.executed_delivery_action_count ?? 0,
+      ready_delivery_action_count: summary.ready_delivery_action_count ?? 0,
+      read_only: summary.read_only ?? false,
+      freeze_report_only: summary.freeze_report_only ?? false,
+      source_artifact_mutation_performed: summary.source_artifact_mutation_performed ?? false,
+      document_runtime_mutation_performed: summary.document_runtime_mutation_performed ?? false,
+      renderer_execution_performed: summary.renderer_execution_performed ?? false,
+      external_model_execution_performed: summary.external_model_execution_performed ?? false,
+      network_access_performed: summary.network_access_performed ?? false,
+      media_generation_performed: summary.media_generation_performed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      human_review_required: summary.human_review_required ?? false,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -18117,6 +18197,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.creative_document_freeze?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "creative_document_freeze";
+    items.push({
+      action_item_id: `dashboard.action.creative_document_freeze.${slugify(subjectId)}`,
+      source_stage: "creative_document_freeze",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Creative Document freeze",
+      subject_ref: {
+        subject_type: "creative_document_freeze_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_creative_document_freeze", "rerun_creative_document_freeze", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -24131,6 +24229,33 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     video_ppt_workflow_metadata_hash_count: artifacts.video_ppt_workflow?.summary?.metadata_hash_count ?? 0,
     video_ppt_workflow_failed_checkpoint_count: artifacts.video_ppt_workflow?.summary?.failed_checkpoint_count ?? 0,
     video_ppt_workflow_validation_error_count: artifacts.video_ppt_workflow?.summary?.validation_error_count ?? artifacts.video_ppt_workflow?.validation?.errors?.length ?? 0,
+    creative_document_freeze_status: artifacts.creative_document_freeze?.summary?.creative_document_freeze_status ?? "unknown",
+    creative_document_freeze_contract_id: artifacts.creative_document_freeze?.summary?.creative_document_freeze_contract_id ?? null,
+    creative_document_freeze_pack_id: artifacts.creative_document_freeze?.summary?.pack_id ?? null,
+    creative_document_freeze_capability_id: artifacts.creative_document_freeze?.summary?.capability_id ?? null,
+    creative_document_freeze_source_count: artifacts.creative_document_freeze?.summary?.source_count ?? 0,
+    creative_document_freeze_passed_source_count: artifacts.creative_document_freeze?.summary?.passed_source_count ?? 0,
+    creative_document_freeze_path_count: artifacts.creative_document_freeze?.summary?.path_count ?? 0,
+    creative_document_freeze_passed_path_count: artifacts.creative_document_freeze?.summary?.passed_path_count ?? 0,
+    creative_document_freeze_gate_count: artifacts.creative_document_freeze?.summary?.gate_count ?? 0,
+    creative_document_freeze_passed_gate_count: artifacts.creative_document_freeze?.summary?.passed_gate_count ?? 0,
+    creative_document_freeze_rendered_output_artifact_count: artifacts.creative_document_freeze?.summary?.rendered_output_artifact_count ?? 0,
+    creative_document_freeze_draft_output_artifact_count: artifacts.creative_document_freeze?.summary?.draft_output_artifact_count ?? 0,
+    creative_document_freeze_format_validation_result_count: artifacts.creative_document_freeze?.summary?.format_validation_result_count ?? 0,
+    creative_document_freeze_passed_format_validation_result_count: artifacts.creative_document_freeze?.summary?.passed_format_validation_result_count ?? 0,
+    creative_document_freeze_layout_validation_result_count: artifacts.creative_document_freeze?.summary?.layout_validation_result_count ?? 0,
+    creative_document_freeze_passed_layout_validation_result_count: artifacts.creative_document_freeze?.summary?.passed_layout_validation_result_count ?? 0,
+    creative_document_freeze_approval_request_count: artifacts.creative_document_freeze?.summary?.approval_request_count ?? 0,
+    creative_document_freeze_executed_delivery_action_count: artifacts.creative_document_freeze?.summary?.executed_delivery_action_count ?? 0,
+    creative_document_freeze_read_only: artifacts.creative_document_freeze?.summary?.read_only ?? false,
+    creative_document_freeze_freeze_report_only: artifacts.creative_document_freeze?.summary?.freeze_report_only ?? false,
+    creative_document_freeze_delivery_execution_performed: artifacts.creative_document_freeze?.summary?.delivery_execution_performed ?? false,
+    creative_document_freeze_protected_action_executed: artifacts.creative_document_freeze?.summary?.protected_action_executed ?? false,
+    creative_document_freeze_legal_advice_generated: artifacts.creative_document_freeze?.summary?.legal_advice_generated ?? false,
+    creative_document_freeze_client_facing_output_generated: artifacts.creative_document_freeze?.summary?.client_facing_output_generated ?? false,
+    creative_document_freeze_client_facing_ready_count: artifacts.creative_document_freeze?.summary?.client_facing_ready_count ?? 0,
+    creative_document_freeze_failed_checkpoint_count: artifacts.creative_document_freeze?.summary?.failed_checkpoint_count ?? 0,
+    creative_document_freeze_validation_error_count: artifacts.creative_document_freeze?.summary?.validation_error_count ?? artifacts.creative_document_freeze?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -25916,6 +26041,8 @@ function parseArgs(argv) {
     else if (arg === "--no-web-novel-workflow") parsed.webNovelWorkflowPath = false;
     else if (arg === "--video-ppt-workflow") parsed.videoPptWorkflowPath = argv[++index];
     else if (arg === "--no-video-ppt-workflow") parsed.videoPptWorkflowPath = false;
+    else if (arg === "--creative-document-freeze") parsed.creativeDocumentFreezePath = argv[++index];
+    else if (arg === "--no-creative-document-freeze") parsed.creativeDocumentFreezePath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

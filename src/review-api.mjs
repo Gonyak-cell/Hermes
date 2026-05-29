@@ -4974,6 +4974,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("video_ppt_workflow_validations", videoPptWorkflowResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/creative-document-freezes") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "creative_document_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("creative_document_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("creative_document_freezes", [freezeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/creative-document-freeze-sources") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "creative_document_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("creative_document_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("creative_document_freeze_sources", freezeResult.artifact.creative_document_freeze_sources ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/creative-document-freeze-paths") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "creative_document_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("creative_document_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("creative_document_freeze_paths", freezeResult.artifact.creative_document_freeze_paths ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/creative-document-freeze-gates") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "creative_document_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("creative_document_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("creative_document_freeze_gates", freezeResult.artifact.creative_document_freeze_gates ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/creative-document-freeze-boundary") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "creative_document_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("creative_document_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("creative_document_freeze_boundary", [freezeResult.artifact.creative_document_freeze_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/creative-document-freeze-validations") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "creative_document_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("creative_document_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("creative_document_freeze_validations", freezeResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -11289,6 +11331,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/video-ppt-approval-artifacts", "Video/PPT approval artifact rows"),
       route("GET", "/api/video-ppt-output-artifacts", "Video/PPT output artifact rows"),
       route("GET", "/api/video-ppt-workflow-validations", "Video/PPT workflow validation rows"),
+      route("GET", "/api/creative-document-freezes", "Creative Document freeze artifact"),
+      route("GET", "/api/creative-document-freeze-sources", "Creative Document freeze source rows"),
+      route("GET", "/api/creative-document-freeze-paths", "Creative Document representative path rows"),
+      route("GET", "/api/creative-document-freeze-gates", "Creative Document freeze gate rows"),
+      route("GET", "/api/creative-document-freeze-boundary", "Creative Document freeze boundary"),
+      route("GET", "/api/creative-document-freeze-validations", "Creative Document freeze validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -12333,6 +12381,12 @@ function filterItems(items, searchParams) {
     "video_ppt_approval_artifact_status",
     "video_ppt_output_artifact_status",
     "video_ppt_output_format",
+    "creative_document_freeze_status",
+    "creative_document_freeze_source_status",
+    "creative_document_freeze_path_status",
+    "creative_document_freeze_gate_status",
+    "boundary_status",
+    "read_only",
     "matter_os_profile_status",
     "profile_card_status",
     "display_field_status",
@@ -14105,6 +14159,10 @@ function readFilterValue(item, key) {
   if (key === "video_ppt_approval_artifact_status") return item.approval_artifact_status;
   if (key === "video_ppt_output_artifact_status") return item.output_artifact_status;
   if (key === "video_ppt_output_format") return item.output_format;
+  if (key === "creative_document_freeze_status") return item.summary?.creative_document_freeze_status ?? item.creative_document_freeze_status;
+  if (key === "creative_document_freeze_source_status") return item.source_status;
+  if (key === "creative_document_freeze_path_status") return item.path_status;
+  if (key === "creative_document_freeze_gate_status") return item.gate_status;
   if (key === "matter_os_profile_status") return item.summary?.matter_os_profile_status ?? item.matter_os_profile_status;
   if (key === "profile_card_status") return item.profile_card_status;
   if (key === "display_field_status") return item.display_field_status;

@@ -147,6 +147,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "creative-document:design-system-profile",
   "creative-document:web-novel-workflow",
   "creative-document:video-ppt-workflow",
+  "creative-document:freeze",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

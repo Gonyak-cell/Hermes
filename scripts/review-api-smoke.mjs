@@ -2296,6 +2296,42 @@ try {
   assert.equal(lddRfiGeneratorValidations.collection, "ldd_rfi_generator_validations");
   assert.ok(lddRfiGeneratorValidations.count <= 5);
 
+  const lddReportDraftArtifacts = await fetchJson(`${url}/api/ldd-report-draft-artifacts?ldd_report_draft_status=complete&limit=1`);
+  assert.equal(lddReportDraftArtifacts.collection, "ldd_report_draft_artifacts");
+  assert.ok(lddReportDraftArtifacts.count <= 1);
+
+  const lddReportSectionRules = await fetchJson(`${url}/api/ldd-report-section-rules?section_type=executive_summary&limit=5`);
+  assert.equal(lddReportSectionRules.collection, "ldd_report_section_rules");
+  assert.ok(lddReportSectionRules.count <= 5);
+
+  const lddReportSections = await fetchJson(`${url}/api/ldd-report-sections?section_status=draft_pending_attorney_review&limit=5`);
+  assert.equal(lddReportSections.collection, "ldd_report_sections");
+  assert.ok(lddReportSections.count <= 5);
+
+  const lddReportParagraphs = await fetchJson(`${url}/api/ldd-report-paragraphs?paragraph_status=draft_pending_attorney_review&limit=5`);
+  assert.equal(lddReportParagraphs.collection, "ldd_report_paragraphs");
+  assert.ok(lddReportParagraphs.count <= 5);
+
+  const lddReportCitationPlaceholders = await fetchJson(`${url}/api/ldd-report-citation-placeholders?citation_placeholder_status=placeholder_pending_attorney_review&currentness_check_status=currentness_review_required&limit=5`);
+  assert.equal(lddReportCitationPlaceholders.collection, "ldd_report_citation_placeholders");
+  assert.ok(lddReportCitationPlaceholders.count <= 5);
+
+  const lddReportIssueLinks = await fetchJson(`${url}/api/ldd-report-issue-links?report_issue_link_status=linked_pending_attorney_review&limit=5`);
+  assert.equal(lddReportIssueLinks.collection, "ldd_report_issue_links");
+  assert.ok(lddReportIssueLinks.count <= 5);
+
+  const lddReportMatterSummaries = await fetchJson(`${url}/api/ldd-report-matter-summaries?ldd_report_matter_status=draft_report_pending_attorney_review&limit=5`);
+  assert.equal(lddReportMatterSummaries.collection, "ldd_report_matter_summaries");
+  assert.ok(lddReportMatterSummaries.count <= 5);
+
+  const lddReportDraftBoundary = await fetchJson(`${url}/api/ldd-report-draft-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(lddReportDraftBoundary.collection, "ldd_report_draft_boundary");
+  assert.ok(lddReportDraftBoundary.count <= 1);
+
+  const lddReportDraftValidations = await fetchJson(`${url}/api/ldd-report-draft-validations?status=passed&limit=5`);
+  assert.equal(lddReportDraftValidations.collection, "ldd_report_draft_validations");
+  assert.ok(lddReportDraftValidations.count <= 5);
+
   const repoProfileDetectors = await fetchJson(`${url}/api/repo-profile-detectors?repo_profile_detector_status=complete&limit=1`);
   assert.equal(repoProfileDetectors.collection, "repo_profile_detectors");
   assert.ok(repoProfileDetectors.count <= 1);

@@ -154,6 +154,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     ldd_fact_extraction: "artifacts/ldd-fact-extraction/latest/ldd-fact-extraction.json",
     ldd_issue_detection: "artifacts/ldd-issue-detection/latest/ldd-issue-detection.json",
     ldd_rfi_generator: "artifacts/ldd-rfi-generator/latest/ldd-rfi-generator.json",
+    ldd_report_draft: "artifacts/ldd-report-draft/latest/ldd-report-draft.json",
   },
 };
 
@@ -301,6 +302,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("ldd_fact_extraction", "LDD Fact Extraction", "law_firm", "ldd-fact-extraction.schema.json"),
   fixtureDefinition("ldd_issue_detection", "LDD Issue Detection", "law_firm", "ldd-issue-detection.schema.json"),
   fixtureDefinition("ldd_rfi_generator", "LDD RFI Generator", "law_firm", "ldd-rfi-generator.schema.json"),
+  fixtureDefinition("ldd_report_draft", "LDD Report Draft", "law_firm", "ldd-report-draft.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),

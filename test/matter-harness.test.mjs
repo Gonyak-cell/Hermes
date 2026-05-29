@@ -45,6 +45,7 @@ import { runLddExtractorSelection } from "../src/ldd-extractor-selection.mjs";
 import { runLddFactExtraction } from "../src/ldd-fact-extraction.mjs";
 import { runLddIssueDetection } from "../src/ldd-issue-detection.mjs";
 import { runLddRfiGenerator } from "../src/ldd-rfi-generator.mjs";
+import { runLddReportDraft } from "../src/ldd-report-draft.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1885,6 +1886,7 @@ describe("matter harness", () => {
         lddFactExtractionPath: path.join(outDir, "ldd-fact-extraction", "ldd-fact-extraction.json"),
         lddIssueDetectionPath: path.join(outDir, "ldd-issue-detection", "ldd-issue-detection.json"),
         lddRfiGeneratorPath: path.join(outDir, "ldd-rfi-generator", "ldd-rfi-generator.json"),
+        lddReportDraftPath: path.join(outDir, "ldd-report-draft", "ldd-report-draft.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -9344,6 +9346,64 @@ describe("matter harness", () => {
       assert.ok(lddRfiGenerator.ldd_rfi_missing_material_links.every((link) => link.ldd_issue_record_id && link.ldd_vdr_missing_data_record_id && link.client_facing_ready === false));
       assert.match(await readFile(path.join(outDir, "ldd-rfi-generator", "summary.md"), "utf8"), /LDD RFI Generator/);
 
+      const lddReportDraft = await runLddReportDraft({
+        lddRfiGeneratorPath: path.join(outDir, "ldd-rfi-generator", "ldd-rfi-generator.json"),
+        lddIssueDetectionPath: path.join(outDir, "ldd-issue-detection", "ldd-issue-detection.json"),
+        legalCitationVerifierPath: path.join(outDir, "legal-citation-verifier", "legal-citation-verifier.json"),
+        matterPath: "examples/project-alpha-matter.json",
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "ldd-report-draft"),
+        runAt: "2026-05-23T07:00:05.000Z",
+      });
+      const lddReportDraftSchema = JSON.parse(await readFile("schemas/ldd-report-draft.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(lddReportDraft, lddReportDraftSchema, {}, "ldd_report_draft"), []);
+      assert.equal(lddReportDraft.summary.ldd_report_draft_status, "complete");
+      assert.equal(lddReportDraft.summary.source_ldd_rfi_generator_status, "complete");
+      assert.equal(lddReportDraft.summary.source_ldd_rfi_generator_phase_status, "complete");
+      assert.equal(lddReportDraft.summary.source_ldd_issue_detection_status, "complete");
+      assert.equal(lddReportDraft.summary.source_ldd_issue_detection_phase_status, "complete");
+      assert.equal(lddReportDraft.summary.source_legal_citation_verifier_status, "complete");
+      assert.equal(lddReportDraft.summary.source_legal_citation_verifier_phase_status, "complete");
+      assert.equal(lddReportDraft.summary.source_matter_status, "complete");
+      assert.equal(lddReportDraft.summary.source_issue_record_count, lddIssueDetection.summary.issue_record_count);
+      assert.equal(lddReportDraft.summary.source_rfi_question_count, lddRfiGenerator.summary.rfi_question_count);
+      assert.equal(lddReportDraft.summary.source_legal_rule_placeholder_citation_count, legalCitationVerifier.summary.legal_rule_placeholder_citation_count);
+      assert.equal(lddReportDraft.summary.source_currentness_verified_count, 0);
+      assert.ok(lddReportDraft.summary.section_rule_count >= 5);
+      assert.equal(lddReportDraft.summary.section_count, 5);
+      assert.equal(lddReportDraft.summary.paragraph_count, lddReportDraft.summary.section_count);
+      assert.equal(lddReportDraft.summary.citation_placeholder_count, lddReportDraft.summary.paragraph_count);
+      assert.ok(lddReportDraft.summary.issue_link_count >= lddIssueDetection.summary.issue_record_count);
+      assert.equal(lddReportDraft.summary.paragraph_with_citation_placeholder_count, lddReportDraft.summary.paragraph_count);
+      assert.equal(lddReportDraft.summary.citation_placeholder_with_source_ref_count, lddReportDraft.summary.citation_placeholder_count);
+      assert.equal(lddReportDraft.summary.citation_placeholder_currentness_review_required_count, lddReportDraft.summary.citation_placeholder_count);
+      assert.equal(lddReportDraft.summary.citation_placeholder_legal_authority_review_required_count, lddReportDraft.summary.citation_placeholder_count);
+      assert.equal(lddReportDraft.summary.draft_only_count, lddReportDraft.summary.paragraph_count);
+      assert.equal(lddReportDraft.summary.human_review_note_count, lddReportDraft.summary.paragraph_count);
+      assert.equal(lddReportDraft.summary.deterministic_report_draft_generation_count, lddReportDraft.summary.paragraph_count);
+      assert.equal(lddReportDraft.summary.client_facing_ready_count, 0);
+      assert.equal(lddReportDraft.summary.legal_conclusion_asserted_count, 0);
+      assert.equal(lddReportDraft.summary.legal_advice_provided, false);
+      assert.equal(lddReportDraft.summary.client_facing_output_generated, false);
+      assert.equal(lddReportDraft.summary.external_legal_research_performed, false);
+      assert.equal(lddReportDraft.summary.legal_authority_finalized, false);
+      assert.equal(lddReportDraft.summary.desktop_boundary_status, "enforced");
+      assert.equal(lddReportDraft.summary.desktop_read_only, true);
+      assert.equal(lddReportDraft.summary.desktop_mutation_allowed, false);
+      assert.equal(lddReportDraft.summary.matter_data_write_allowed, false);
+      assert.equal(lddReportDraft.summary.task_state_write_allowed, false);
+      assert.equal(lddReportDraft.summary.workflow_transition_allowed, false);
+      assert.equal(lddReportDraft.summary.runtime_execution_allowed, false);
+      assert.equal(lddReportDraft.summary.delivery_execution_allowed, false);
+      assert.equal(lddReportDraft.summary.protected_action_allowed, false);
+      assert.equal(lddReportDraft.summary.client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(lddReportDraft.summary.validation_error_count, 0);
+      assert.ok(lddReportDraft.ldd_report_sections.every((section) => section.paragraph_count > 0 && section.citation_placeholder_count > 0 && section.client_facing_ready === false));
+      assert.ok(lddReportDraft.ldd_report_paragraphs.every((paragraph) => paragraph.citation_placeholder_count > 0 && paragraph.source_ref_count > 0 && paragraph.attorney_review_required && paragraph.client_facing_ready === false));
+      assert.ok(lddReportDraft.ldd_report_citation_placeholders.every((placeholder) => placeholder.currentness_check_status === "currentness_review_required" && placeholder.legal_authority_finalized === false && placeholder.client_facing_ready === false));
+      assert.match(await readFile(path.join(outDir, "ldd-report-draft", "summary.md"), "utf8"), /LDD Report Draft/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -9513,6 +9573,7 @@ describe("matter harness", () => {
           ldd_fact_extraction: path.join(outDir, "ldd-fact-extraction", "ldd-fact-extraction.json"),
           ldd_issue_detection: path.join(outDir, "ldd-issue-detection", "ldd-issue-detection.json"),
           ldd_rfi_generator: path.join(outDir, "ldd-rfi-generator", "ldd-rfi-generator.json"),
+          ldd_report_draft: path.join(outDir, "ldd-report-draft", "ldd-report-draft.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -9564,8 +9625,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 147);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 147);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 148);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 148);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -9700,6 +9761,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "ldd_fact_extraction"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "ldd_issue_detection"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "ldd_rfi_generator"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "ldd_report_draft"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -9834,6 +9896,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:fact-extraction"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:issue-detection"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:rfi-generator"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:report-draft"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:lineage-graph"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "evidence:viewer-data"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "evidence:export-bundle"));
@@ -10432,6 +10495,10 @@ describe("matter harness", () => {
       assert.equal(lddRfiGeneratorCheckpoint?.acceptance_profile, "ldd_rfi_generator_gate");
       assert.equal(lddRfiGeneratorCheckpoint?.status, "passed");
       assert.equal(lddRfiGeneratorCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const lddReportDraftCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-ldd-report-draft");
+      assert.equal(lddReportDraftCheckpoint?.acceptance_profile, "ldd_report_draft_gate");
+      assert.equal(lddReportDraftCheckpoint?.status, "passed");
+      assert.equal(lddReportDraftCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -13835,6 +13902,47 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.ldd_rfi_generator_protected_action_allowed, false);
       assert.equal(dashboard.summary.ldd_rfi_generator_failed_checkpoint_count, 0);
       assert.equal(dashboard.summary.ldd_rfi_generator_validation_error_count, 0);
+      assert.equal(dashboard.summary.ldd_report_draft_status, "complete");
+      assert.equal(dashboard.summary.ldd_report_draft_source_ldd_rfi_generator_status, "complete");
+      assert.equal(dashboard.summary.ldd_report_draft_source_ldd_rfi_generator_phase_status, "complete");
+      assert.equal(dashboard.summary.ldd_report_draft_source_ldd_issue_detection_status, "complete");
+      assert.equal(dashboard.summary.ldd_report_draft_source_ldd_issue_detection_phase_status, "complete");
+      assert.equal(dashboard.summary.ldd_report_draft_source_legal_citation_verifier_status, "complete");
+      assert.equal(dashboard.summary.ldd_report_draft_source_legal_citation_verifier_phase_status, "complete");
+      assert.equal(dashboard.summary.ldd_report_draft_source_matter_status, "complete");
+      assert.equal(dashboard.summary.ldd_report_draft_source_issue_record_count, lddReportDraft.summary.source_issue_record_count);
+      assert.equal(dashboard.summary.ldd_report_draft_source_rfi_question_count, lddReportDraft.summary.source_rfi_question_count);
+      assert.equal(dashboard.summary.ldd_report_draft_source_legal_rule_placeholder_citation_count, lddReportDraft.summary.source_legal_rule_placeholder_citation_count);
+      assert.equal(dashboard.summary.ldd_report_draft_source_currentness_verified_count, 0);
+      assert.equal(dashboard.summary.ldd_report_draft_section_rule_count, lddReportDraft.summary.section_rule_count);
+      assert.equal(dashboard.summary.ldd_report_draft_section_count, lddReportDraft.summary.section_count);
+      assert.equal(dashboard.summary.ldd_report_draft_paragraph_count, lddReportDraft.summary.paragraph_count);
+      assert.equal(dashboard.summary.ldd_report_draft_citation_placeholder_count, lddReportDraft.summary.citation_placeholder_count);
+      assert.equal(dashboard.summary.ldd_report_draft_issue_link_count, lddReportDraft.summary.issue_link_count);
+      assert.equal(dashboard.summary.ldd_report_draft_paragraph_with_citation_placeholder_count, lddReportDraft.summary.paragraph_with_citation_placeholder_count);
+      assert.equal(dashboard.summary.ldd_report_draft_citation_placeholder_with_source_ref_count, lddReportDraft.summary.citation_placeholder_with_source_ref_count);
+      assert.equal(dashboard.summary.ldd_report_draft_citation_placeholder_currentness_review_required_count, lddReportDraft.summary.citation_placeholder_currentness_review_required_count);
+      assert.equal(dashboard.summary.ldd_report_draft_citation_placeholder_legal_authority_review_required_count, lddReportDraft.summary.citation_placeholder_legal_authority_review_required_count);
+      assert.equal(dashboard.summary.ldd_report_draft_draft_only_count, lddReportDraft.summary.draft_only_count);
+      assert.equal(dashboard.summary.ldd_report_draft_human_review_note_count, lddReportDraft.summary.human_review_note_count);
+      assert.equal(dashboard.summary.ldd_report_draft_deterministic_report_draft_generation_count, lddReportDraft.summary.deterministic_report_draft_generation_count);
+      assert.equal(dashboard.summary.ldd_report_draft_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.ldd_report_draft_legal_advice_provided, false);
+      assert.equal(dashboard.summary.ldd_report_draft_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.ldd_report_draft_legal_conclusion_asserted_count, 0);
+      assert.equal(dashboard.summary.ldd_report_draft_external_legal_research_performed, false);
+      assert.equal(dashboard.summary.ldd_report_draft_legal_authority_finalized, false);
+      assert.equal(dashboard.summary.ldd_report_draft_desktop_boundary_status, "enforced");
+      assert.equal(dashboard.summary.ldd_report_draft_desktop_read_only, true);
+      assert.equal(dashboard.summary.ldd_report_draft_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.ldd_report_draft_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.ldd_report_draft_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.ldd_report_draft_workflow_transition_allowed, false);
+      assert.equal(dashboard.summary.ldd_report_draft_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.ldd_report_draft_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.ldd_report_draft_protected_action_allowed, false);
+      assert.equal(dashboard.summary.ldd_report_draft_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.ldd_report_draft_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -15672,6 +15780,46 @@ describe("matter harness", () => {
       assert.equal(lddRfiGeneratorStage?.metrics.delivery_execution_allowed, false);
       assert.equal(lddRfiGeneratorStage?.metrics.protected_action_allowed, false);
       assert.equal(lddRfiGeneratorStage?.metrics.validation_error_count, 0);
+      const lddReportDraftStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "ldd_report_draft");
+      assert.equal(lddReportDraftStage?.status, "passed");
+      assert.equal(lddReportDraftStage?.metrics.ldd_report_draft_status, "complete");
+      assert.equal(lddReportDraftStage?.metrics.source_ldd_rfi_generator_status, "complete");
+      assert.equal(lddReportDraftStage?.metrics.source_ldd_rfi_generator_phase_status, "complete");
+      assert.equal(lddReportDraftStage?.metrics.source_ldd_issue_detection_status, "complete");
+      assert.equal(lddReportDraftStage?.metrics.source_ldd_issue_detection_phase_status, "complete");
+      assert.equal(lddReportDraftStage?.metrics.source_legal_citation_verifier_status, "complete");
+      assert.equal(lddReportDraftStage?.metrics.source_legal_citation_verifier_phase_status, "complete");
+      assert.equal(lddReportDraftStage?.metrics.source_matter_status, "complete");
+      assert.equal(lddReportDraftStage?.metrics.source_issue_record_count, lddReportDraft.summary.source_issue_record_count);
+      assert.equal(lddReportDraftStage?.metrics.source_rfi_question_count, lddReportDraft.summary.source_rfi_question_count);
+      assert.equal(lddReportDraftStage?.metrics.source_legal_rule_placeholder_citation_count, lddReportDraft.summary.source_legal_rule_placeholder_citation_count);
+      assert.equal(lddReportDraftStage?.metrics.source_currentness_verified_count, 0);
+      assert.equal(lddReportDraftStage?.metrics.section_count, lddReportDraft.summary.section_count);
+      assert.equal(lddReportDraftStage?.metrics.paragraph_count, lddReportDraft.summary.paragraph_count);
+      assert.equal(lddReportDraftStage?.metrics.citation_placeholder_count, lddReportDraft.summary.citation_placeholder_count);
+      assert.equal(lddReportDraftStage?.metrics.issue_link_count, lddReportDraft.summary.issue_link_count);
+      assert.equal(lddReportDraftStage?.metrics.paragraph_with_citation_placeholder_count, lddReportDraft.summary.paragraph_with_citation_placeholder_count);
+      assert.equal(lddReportDraftStage?.metrics.citation_placeholder_currentness_review_required_count, lddReportDraft.summary.citation_placeholder_currentness_review_required_count);
+      assert.equal(lddReportDraftStage?.metrics.citation_placeholder_legal_authority_review_required_count, lddReportDraft.summary.citation_placeholder_legal_authority_review_required_count);
+      assert.equal(lddReportDraftStage?.metrics.draft_only_count, lddReportDraft.summary.draft_only_count);
+      assert.equal(lddReportDraftStage?.metrics.human_review_note_count, lddReportDraft.summary.human_review_note_count);
+      assert.equal(lddReportDraftStage?.metrics.deterministic_report_draft_generation_count, lddReportDraft.summary.deterministic_report_draft_generation_count);
+      assert.equal(lddReportDraftStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(lddReportDraftStage?.metrics.legal_advice_provided, false);
+      assert.equal(lddReportDraftStage?.metrics.client_facing_output_generated, false);
+      assert.equal(lddReportDraftStage?.metrics.legal_conclusion_asserted_count, 0);
+      assert.equal(lddReportDraftStage?.metrics.external_legal_research_performed, false);
+      assert.equal(lddReportDraftStage?.metrics.legal_authority_finalized, false);
+      assert.equal(lddReportDraftStage?.metrics.desktop_boundary_status, "enforced");
+      assert.equal(lddReportDraftStage?.metrics.desktop_read_only, true);
+      assert.equal(lddReportDraftStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(lddReportDraftStage?.metrics.matter_data_write_allowed, false);
+      assert.equal(lddReportDraftStage?.metrics.task_state_write_allowed, false);
+      assert.equal(lddReportDraftStage?.metrics.workflow_transition_allowed, false);
+      assert.equal(lddReportDraftStage?.metrics.runtime_execution_allowed, false);
+      assert.equal(lddReportDraftStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(lddReportDraftStage?.metrics.protected_action_allowed, false);
+      assert.equal(lddReportDraftStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -17864,6 +18012,42 @@ describe("matter harness", () => {
       const lddRfiGeneratorValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-rfi-generator-validations?status=passed", apiOptions)).body);
       assert.equal(lddRfiGeneratorValidationsResponse.collection, "ldd_rfi_generator_validations");
       assert.equal(lddRfiGeneratorValidationsResponse.count, lddRfiGenerator.summary.validation_item_count);
+
+      const lddReportDraftArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-report-draft-artifacts?ldd_report_draft_status=complete", apiOptions)).body);
+      assert.equal(lddReportDraftArtifactsResponse.collection, "ldd_report_draft_artifacts");
+      assert.equal(lddReportDraftArtifactsResponse.count, 1);
+
+      const lddReportSectionRulesResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-report-section-rules?section_type=executive_summary", apiOptions)).body);
+      assert.equal(lddReportSectionRulesResponse.collection, "ldd_report_section_rules");
+      assert.equal(lddReportSectionRulesResponse.count, 1);
+
+      const lddReportSectionsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-report-sections?section_status=draft_pending_attorney_review", apiOptions)).body);
+      assert.equal(lddReportSectionsResponse.collection, "ldd_report_sections");
+      assert.equal(lddReportSectionsResponse.count, lddReportDraft.summary.section_count);
+
+      const lddReportParagraphsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-report-paragraphs?paragraph_status=draft_pending_attorney_review", apiOptions)).body);
+      assert.equal(lddReportParagraphsResponse.collection, "ldd_report_paragraphs");
+      assert.equal(lddReportParagraphsResponse.count, lddReportDraft.summary.paragraph_count);
+
+      const lddReportCitationPlaceholdersResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-report-citation-placeholders?citation_placeholder_status=placeholder_pending_attorney_review&currentness_check_status=currentness_review_required", apiOptions)).body);
+      assert.equal(lddReportCitationPlaceholdersResponse.collection, "ldd_report_citation_placeholders");
+      assert.equal(lddReportCitationPlaceholdersResponse.count, lddReportDraft.summary.citation_placeholder_count);
+
+      const lddReportIssueLinksResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-report-issue-links?report_issue_link_status=linked_pending_attorney_review", apiOptions)).body);
+      assert.equal(lddReportIssueLinksResponse.collection, "ldd_report_issue_links");
+      assert.equal(lddReportIssueLinksResponse.count, lddReportDraft.summary.issue_link_count);
+
+      const lddReportMatterSummariesResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-report-matter-summaries?ldd_report_matter_status=draft_report_pending_attorney_review", apiOptions)).body);
+      assert.equal(lddReportMatterSummariesResponse.collection, "ldd_report_matter_summaries");
+      assert.equal(lddReportMatterSummariesResponse.count, lddReportDraft.summary.matter_count);
+
+      const lddReportDraftBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-report-draft-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(lddReportDraftBoundaryResponse.collection, "ldd_report_draft_boundary");
+      assert.equal(lddReportDraftBoundaryResponse.count, 1);
+
+      const lddReportDraftValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-report-draft-validations?status=passed", apiOptions)).body);
+      assert.equal(lddReportDraftValidationsResponse.collection, "ldd_report_draft_validations");
+      assert.equal(lddReportDraftValidationsResponse.count, lddReportDraft.summary.validation_item_count);
 
       const repoProfileDetectorsResponse = JSON.parse((await buildReviewApiResponse("/api/repo-profile-detectors?repo_profile_detector_status=complete", apiOptions)).body);
       assert.equal(repoProfileDetectorsResponse.collection, "repo_profile_detectors");

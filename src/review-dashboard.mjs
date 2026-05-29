@@ -103,6 +103,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   lddFactExtractionPath: "artifacts/ldd-fact-extraction/latest/ldd-fact-extraction.json",
   lddIssueDetectionPath: "artifacts/ldd-issue-detection/latest/ldd-issue-detection.json",
   lddRfiGeneratorPath: "artifacts/ldd-rfi-generator/latest/ldd-rfi-generator.json",
+  lddReportDraftPath: "artifacts/ldd-report-draft/latest/ldd-report-draft.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -739,6 +740,11 @@ const SOURCE_DEFINITIONS = [
     option: "lddRfiGeneratorPath",
     source_id: "ldd_rfi_generator",
     label: "LDD RFI Generator",
+  },
+  {
+    option: "lddReportDraftPath",
+    source_id: "ldd_report_draft",
+    label: "LDD Report Draft",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1579,6 +1585,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "ldd_fact_extraction") return data.summary ?? {};
   if (sourceId === "ldd_issue_detection") return data.summary ?? {};
   if (sourceId === "ldd_rfi_generator") return data.summary ?? {};
+  if (sourceId === "ldd_report_draft") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -1941,6 +1948,7 @@ function buildStageStatuses(artifacts, sources) {
     buildLddFactExtractionStage(artifacts.ldd_fact_extraction, sourceById.get("ldd_fact_extraction")),
     buildLddIssueDetectionStage(artifacts.ldd_issue_detection, sourceById.get("ldd_issue_detection")),
     buildLddRfiGeneratorStage(artifacts.ldd_rfi_generator, sourceById.get("ldd_rfi_generator")),
+    buildLddReportDraftStage(artifacts.ldd_report_draft, sourceById.get("ldd_report_draft")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -9546,6 +9554,123 @@ function buildLddRfiGeneratorStage(artifact, source) {
   };
 }
 
+function buildLddReportDraftStage(artifact, source) {
+  if (!artifact) return missingStage("ldd_report_draft", "LDD Report Draft", source);
+  const summary = artifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.ldd_report_draft_status !== "complete"
+    || summary.source_ldd_rfi_generator_status !== "complete"
+    || summary.source_ldd_rfi_generator_phase_status !== "complete"
+    || summary.source_ldd_issue_detection_status !== "complete"
+    || summary.source_ldd_issue_detection_phase_status !== "complete"
+    || summary.source_legal_citation_verifier_status !== "complete"
+    || summary.source_legal_citation_verifier_phase_status !== "complete"
+    || summary.source_matter_status !== "complete"
+    || (summary.source_issue_record_count ?? 0) <= 0
+    || (summary.source_rfi_question_count ?? 0) <= 0
+    || (summary.source_legal_citation_verification_record_count ?? 0) <= 0
+    || (summary.source_legal_rule_placeholder_citation_count ?? 0) <= 0
+    || summary.source_currentness_verified_count !== 0
+    || (summary.section_rule_count ?? 0) < 5
+    || (summary.section_count ?? 0) < 5
+    || summary.paragraph_count !== summary.section_count
+    || summary.citation_placeholder_count !== summary.paragraph_count
+    || (summary.issue_link_count ?? 0) < (summary.source_issue_record_count ?? 0)
+    || summary.paragraph_with_citation_placeholder_count !== summary.paragraph_count
+    || summary.citation_placeholder_with_source_ref_count !== summary.citation_placeholder_count
+    || summary.citation_placeholder_currentness_review_required_count !== summary.citation_placeholder_count
+    || summary.citation_placeholder_legal_authority_review_required_count !== summary.citation_placeholder_count
+    || summary.draft_only_count !== summary.paragraph_count
+    || summary.human_review_note_count !== summary.paragraph_count
+    || summary.deterministic_report_draft_generation_count !== summary.paragraph_count
+    || summary.client_facing_ready_count !== 0
+    || summary.legal_conclusion_asserted_count !== 0
+    || summary.legal_advice_provided === true
+    || summary.client_facing_output_generated === true
+    || summary.external_legal_research_performed === true
+    || summary.legal_authority_finalized === true
+    || summary.desktop_boundary_status !== "enforced"
+    || summary.desktop_read_only !== true
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_source_of_truth === true
+    || summary.matter_data_write_allowed === true
+    || summary.task_state_write_allowed === true
+    || summary.workflow_transition_allowed === true
+    || summary.runtime_execution_allowed === true
+    || summary.delivery_execution_allowed === true
+    || summary.protected_action_allowed === true
+    || summary.client_facing_output_allowed_without_attorney_review === true
+    || summary.failed_checkpoint_count !== 0
+    || artifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "ldd_report_draft",
+    label: "LDD Report Draft",
+    status,
+    message: `${summary.section_count ?? 0} section(s), ${summary.paragraph_count ?? 0} paragraph(s), ${summary.citation_placeholder_count ?? 0} citation placeholder(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      ldd_report_draft_status: summary.ldd_report_draft_status ?? "unknown",
+      ldd_report_draft_contract_id: summary.ldd_report_draft_contract_id ?? null,
+      source_of_truth: summary.source_of_truth ?? "unknown",
+      source_ldd_rfi_generator_status: summary.source_ldd_rfi_generator_status ?? "unknown",
+      source_ldd_rfi_generator_phase_status: summary.source_ldd_rfi_generator_phase_status ?? "unknown",
+      source_ldd_issue_detection_status: summary.source_ldd_issue_detection_status ?? "unknown",
+      source_ldd_issue_detection_phase_status: summary.source_ldd_issue_detection_phase_status ?? "unknown",
+      source_legal_citation_verifier_status: summary.source_legal_citation_verifier_status ?? "unknown",
+      source_legal_citation_verifier_phase_status: summary.source_legal_citation_verifier_phase_status ?? "unknown",
+      source_matter_status: summary.source_matter_status ?? "unknown",
+      source_matter_id: summary.source_matter_id ?? null,
+      source_issue_record_count: summary.source_issue_record_count ?? 0,
+      source_rfi_question_count: summary.source_rfi_question_count ?? 0,
+      source_rfi_draft_count: summary.source_rfi_draft_count ?? 0,
+      source_legal_citation_verification_record_count: summary.source_legal_citation_verification_record_count ?? 0,
+      source_legal_rule_placeholder_citation_count: summary.source_legal_rule_placeholder_citation_count ?? 0,
+      source_currentness_verified_count: summary.source_currentness_verified_count ?? 0,
+      section_rule_count: summary.section_rule_count ?? 0,
+      section_count: summary.section_count ?? 0,
+      paragraph_count: summary.paragraph_count ?? 0,
+      citation_placeholder_count: summary.citation_placeholder_count ?? 0,
+      issue_link_count: summary.issue_link_count ?? 0,
+      matter_count: summary.matter_count ?? 0,
+      red_flag_issue_count: summary.red_flag_issue_count ?? 0,
+      yellow_flag_issue_count: summary.yellow_flag_issue_count ?? 0,
+      high_priority_rfi_question_count: summary.high_priority_rfi_question_count ?? 0,
+      paragraph_with_citation_placeholder_count: summary.paragraph_with_citation_placeholder_count ?? 0,
+      paragraph_with_issue_link_count: summary.paragraph_with_issue_link_count ?? 0,
+      citation_placeholder_with_source_ref_count: summary.citation_placeholder_with_source_ref_count ?? 0,
+      citation_placeholder_currentness_review_required_count: summary.citation_placeholder_currentness_review_required_count ?? 0,
+      citation_placeholder_legal_authority_review_required_count: summary.citation_placeholder_legal_authority_review_required_count ?? 0,
+      draft_only_count: summary.draft_only_count ?? 0,
+      human_review_note_count: summary.human_review_note_count ?? 0,
+      deterministic_report_draft_generation_count: summary.deterministic_report_draft_generation_count ?? 0,
+      attorney_review_required_paragraph_count: summary.attorney_review_required_paragraph_count ?? 0,
+      human_review_required_paragraph_count: summary.human_review_required_paragraph_count ?? 0,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      legal_advice_provided: summary.legal_advice_provided ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      legal_conclusion_asserted_count: summary.legal_conclusion_asserted_count ?? 0,
+      external_legal_research_performed: summary.external_legal_research_performed ?? false,
+      legal_authority_finalized: summary.legal_authority_finalized ?? false,
+      desktop_boundary_status: summary.desktop_boundary_status ?? "unknown",
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_source_of_truth: summary.desktop_source_of_truth ?? false,
+      matter_data_write_allowed: summary.matter_data_write_allowed ?? false,
+      task_state_write_allowed: summary.task_state_write_allowed ?? false,
+      workflow_transition_allowed: summary.workflow_transition_allowed ?? false,
+      runtime_execution_allowed: summary.runtime_execution_allowed ?? false,
+      delivery_execution_allowed: summary.delivery_execution_allowed ?? false,
+      protected_action_allowed: summary.protected_action_allowed ?? false,
+      client_facing_output_allowed_without_attorney_review: summary.client_facing_output_allowed_without_attorney_review ?? false,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -15456,6 +15581,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.ldd_report_draft?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "ldd_report_draft";
+    items.push({
+      action_item_id: `dashboard.action.ldd_report_draft.${slugify(subjectId)}`,
+      source_stage: "ldd_report_draft",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix LDD report draft",
+      subject_ref: {
+        subject_type: "ldd_report_draft_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_ldd_report_draft", "rerun_ldd_report_draft", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -20562,6 +20705,53 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     ldd_rfi_generator_client_facing_output_allowed_without_attorney_review: artifacts.ldd_rfi_generator?.summary?.client_facing_output_allowed_without_attorney_review ?? false,
     ldd_rfi_generator_failed_checkpoint_count: artifacts.ldd_rfi_generator?.summary?.failed_checkpoint_count ?? 0,
     ldd_rfi_generator_validation_error_count: artifacts.ldd_rfi_generator?.summary?.validation_error_count ?? artifacts.ldd_rfi_generator?.validation?.errors?.length ?? 0,
+    ldd_report_draft_status: artifacts.ldd_report_draft?.summary?.ldd_report_draft_status ?? "unknown",
+    ldd_report_draft_contract_id: artifacts.ldd_report_draft?.summary?.ldd_report_draft_contract_id ?? null,
+    ldd_report_draft_source_ldd_rfi_generator_status: artifacts.ldd_report_draft?.summary?.source_ldd_rfi_generator_status ?? "unknown",
+    ldd_report_draft_source_ldd_rfi_generator_phase_status: artifacts.ldd_report_draft?.summary?.source_ldd_rfi_generator_phase_status ?? "unknown",
+    ldd_report_draft_source_ldd_issue_detection_status: artifacts.ldd_report_draft?.summary?.source_ldd_issue_detection_status ?? "unknown",
+    ldd_report_draft_source_ldd_issue_detection_phase_status: artifacts.ldd_report_draft?.summary?.source_ldd_issue_detection_phase_status ?? "unknown",
+    ldd_report_draft_source_legal_citation_verifier_status: artifacts.ldd_report_draft?.summary?.source_legal_citation_verifier_status ?? "unknown",
+    ldd_report_draft_source_legal_citation_verifier_phase_status: artifacts.ldd_report_draft?.summary?.source_legal_citation_verifier_phase_status ?? "unknown",
+    ldd_report_draft_source_matter_status: artifacts.ldd_report_draft?.summary?.source_matter_status ?? "unknown",
+    ldd_report_draft_source_matter_id: artifacts.ldd_report_draft?.summary?.source_matter_id ?? null,
+    ldd_report_draft_source_issue_record_count: artifacts.ldd_report_draft?.summary?.source_issue_record_count ?? 0,
+    ldd_report_draft_source_rfi_question_count: artifacts.ldd_report_draft?.summary?.source_rfi_question_count ?? 0,
+    ldd_report_draft_source_legal_citation_verification_record_count: artifacts.ldd_report_draft?.summary?.source_legal_citation_verification_record_count ?? 0,
+    ldd_report_draft_source_legal_rule_placeholder_citation_count: artifacts.ldd_report_draft?.summary?.source_legal_rule_placeholder_citation_count ?? 0,
+    ldd_report_draft_source_currentness_verified_count: artifacts.ldd_report_draft?.summary?.source_currentness_verified_count ?? 0,
+    ldd_report_draft_section_rule_count: artifacts.ldd_report_draft?.summary?.section_rule_count ?? 0,
+    ldd_report_draft_section_count: artifacts.ldd_report_draft?.summary?.section_count ?? 0,
+    ldd_report_draft_paragraph_count: artifacts.ldd_report_draft?.summary?.paragraph_count ?? 0,
+    ldd_report_draft_citation_placeholder_count: artifacts.ldd_report_draft?.summary?.citation_placeholder_count ?? 0,
+    ldd_report_draft_issue_link_count: artifacts.ldd_report_draft?.summary?.issue_link_count ?? 0,
+    ldd_report_draft_matter_count: artifacts.ldd_report_draft?.summary?.matter_count ?? 0,
+    ldd_report_draft_paragraph_with_citation_placeholder_count: artifacts.ldd_report_draft?.summary?.paragraph_with_citation_placeholder_count ?? 0,
+    ldd_report_draft_citation_placeholder_with_source_ref_count: artifacts.ldd_report_draft?.summary?.citation_placeholder_with_source_ref_count ?? 0,
+    ldd_report_draft_citation_placeholder_currentness_review_required_count: artifacts.ldd_report_draft?.summary?.citation_placeholder_currentness_review_required_count ?? 0,
+    ldd_report_draft_citation_placeholder_legal_authority_review_required_count: artifacts.ldd_report_draft?.summary?.citation_placeholder_legal_authority_review_required_count ?? 0,
+    ldd_report_draft_draft_only_count: artifacts.ldd_report_draft?.summary?.draft_only_count ?? 0,
+    ldd_report_draft_human_review_note_count: artifacts.ldd_report_draft?.summary?.human_review_note_count ?? 0,
+    ldd_report_draft_deterministic_report_draft_generation_count: artifacts.ldd_report_draft?.summary?.deterministic_report_draft_generation_count ?? 0,
+    ldd_report_draft_client_facing_ready_count: artifacts.ldd_report_draft?.summary?.client_facing_ready_count ?? 0,
+    ldd_report_draft_legal_advice_provided: artifacts.ldd_report_draft?.summary?.legal_advice_provided ?? false,
+    ldd_report_draft_client_facing_output_generated: artifacts.ldd_report_draft?.summary?.client_facing_output_generated ?? false,
+    ldd_report_draft_legal_conclusion_asserted_count: artifacts.ldd_report_draft?.summary?.legal_conclusion_asserted_count ?? 0,
+    ldd_report_draft_external_legal_research_performed: artifacts.ldd_report_draft?.summary?.external_legal_research_performed ?? false,
+    ldd_report_draft_legal_authority_finalized: artifacts.ldd_report_draft?.summary?.legal_authority_finalized ?? false,
+    ldd_report_draft_desktop_boundary_status: artifacts.ldd_report_draft?.summary?.desktop_boundary_status ?? "unknown",
+    ldd_report_draft_desktop_read_only: artifacts.ldd_report_draft?.summary?.desktop_read_only ?? false,
+    ldd_report_draft_desktop_mutation_allowed: artifacts.ldd_report_draft?.summary?.desktop_mutation_allowed ?? false,
+    ldd_report_draft_desktop_source_of_truth: artifacts.ldd_report_draft?.summary?.desktop_source_of_truth ?? false,
+    ldd_report_draft_matter_data_write_allowed: artifacts.ldd_report_draft?.summary?.matter_data_write_allowed ?? false,
+    ldd_report_draft_task_state_write_allowed: artifacts.ldd_report_draft?.summary?.task_state_write_allowed ?? false,
+    ldd_report_draft_workflow_transition_allowed: artifacts.ldd_report_draft?.summary?.workflow_transition_allowed ?? false,
+    ldd_report_draft_runtime_execution_allowed: artifacts.ldd_report_draft?.summary?.runtime_execution_allowed ?? false,
+    ldd_report_draft_delivery_execution_allowed: artifacts.ldd_report_draft?.summary?.delivery_execution_allowed ?? false,
+    ldd_report_draft_protected_action_allowed: artifacts.ldd_report_draft?.summary?.protected_action_allowed ?? false,
+    ldd_report_draft_client_facing_output_allowed_without_attorney_review: artifacts.ldd_report_draft?.summary?.client_facing_output_allowed_without_attorney_review ?? false,
+    ldd_report_draft_failed_checkpoint_count: artifacts.ldd_report_draft?.summary?.failed_checkpoint_count ?? 0,
+    ldd_report_draft_validation_error_count: artifacts.ldd_report_draft?.summary?.validation_error_count ?? artifacts.ldd_report_draft?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -22351,6 +22541,8 @@ function parseArgs(argv) {
     else if (arg === "--no-ldd-issue-detection") parsed.lddIssueDetectionPath = false;
     else if (arg === "--ldd-rfi-generator") parsed.lddRfiGeneratorPath = argv[++index];
     else if (arg === "--no-ldd-rfi-generator") parsed.lddRfiGeneratorPath = false;
+    else if (arg === "--ldd-report-draft") parsed.lddReportDraftPath = argv[++index];
+    else if (arg === "--no-ldd-report-draft") parsed.lddReportDraftPath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];

@@ -6834,6 +6834,26 @@ Completion criteria:
 - Golden fixture count increased to 147 and `ldd_rfi_generator` is included as a regression fixture.
 - `npm run law-firm:rfi-generator -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current baseline.
 
+## Phase 246 - LDD Report Draft
+
+Goal: P246 Law Firm Domain Pack adds a deterministic, draft-only LDD report draft generator that turns P245 RFI draft rows, P244 issue candidates, Legal Citation Verifier gates, and scoped demo matter metadata into attorney-reviewable report sections, draft paragraphs, citation placeholders, issue links, and matter summaries. The generated rows remain internal work product only and are not legal advice, legal conclusions, finalized legal authority, or client-facing-ready output.
+
+Implementation:
+- Added `src/ldd-report-draft.mjs`, `scripts/ldd-report-draft.mjs`, `schemas/ldd-report-draft.schema.json`, and `docs/ldd-report-draft.md`.
+- Added `law-firm:report-draft` npm script.
+- The artifact emits `ldd_report_section_rules`, `ldd_report_sections`, `ldd_report_paragraphs`, `ldd_report_citation_placeholders`, `ldd_report_issue_links`, and `ldd_report_matter_summaries`.
+- Review Dashboard stage/summary, Review API route/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests were wired to the new artifact.
+
+Completion criteria:
+- 5 section rules, 5 draft report sections, 5 draft paragraphs, 5 citation placeholders, 18 issue links, and 1 matter summary are generated from the P245/P244/citation-verifier baseline.
+- Every section has a paragraph; every paragraph has source refs and at least one citation placeholder.
+- Every P244 issue candidate is linked to at least one report paragraph.
+- Citation placeholders keep currentness review required and legal authority non-final.
+- Every section, paragraph, citation placeholder, and issue link remains `matter_id`-scoped, draft-only, attorney/human-review gated, and not client-facing-ready.
+- Legal advice, legal conclusions, finalized legal authority, external legal research, client-facing output, matter data write, task state write, workflow transition, runtime execution, delivery execution, protected action, Desktop mutation, and Desktop source-of-truth are all 0/false.
+- Golden fixture count increased to 148 and `ldd_report_draft` is included as a regression fixture.
+- `npm run law-firm:report-draft -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -6842,9 +6862,9 @@ Completion criteria:
 
 운영 원칙:
 
-- Current actual completion baseline is Phase 245.
+- Current actual completion baseline is Phase 246.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- Remaining planned slots are P246-P312, 67 total.
+- Remaining planned slots are P247-P312, 66 total.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - P217 이후 personal-dev 작업은 Mac Phase 216 결과를 Windows 작업공간에서 계속 이어가되, Phase 217 본작업보다 Windows 기준선 안정화 게이트를 선행 조건으로 둔 판단을 기준으로 운영한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.

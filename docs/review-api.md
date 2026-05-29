@@ -6,6 +6,12 @@ LDD RFI Generator routes expose read-only draft-only RFI packets, draft question
 
 Routes: `/api/ldd-rfi-generator-artifacts`, `/api/ldd-rfi-rules`, `/api/ldd-rfi-drafts`, `/api/ldd-rfi-questions`, `/api/ldd-rfi-missing-material-links`, `/api/ldd-rfi-issue-links`, `/api/ldd-rfi-matter-summaries`, `/api/ldd-rfi-generator-boundary`, `/api/ldd-rfi-generator-validations`.
 
+## P246 LDD Report Draft Routes
+
+LDD Report Draft routes expose read-only draft-only report sections, draft paragraphs, citation placeholders, issue links, matter summaries, and validation/boundary rows. Supported filters include `ldd_report_draft_status`, `ldd_report_matter_status`, `section_type`, `section_status`, `paragraph_status`, `paragraph_role`, `citation_placeholder_status`, `currentness_check_status`, `legal_authority_status`, `report_issue_link_status`, `ldd_report_section_id`, `ldd_report_paragraph_id`, `ldd_report_citation_placeholder_id`, `ldd_issue_record_id`, `deterministic_report_draft_generation_performed`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.
+
+Routes: `/api/ldd-report-draft-artifacts`, `/api/ldd-report-section-rules`, `/api/ldd-report-sections`, `/api/ldd-report-paragraphs`, `/api/ldd-report-citation-placeholders`, `/api/ldd-report-issue-links`, `/api/ldd-report-matter-summaries`, `/api/ldd-report-draft-boundary`, `/api/ldd-report-draft-validations`.
+
 ## P244 LDD Issue Detection Routes
 
 LDD Issue Detection routes expose read-only deterministic issue candidate rows, red/yellow operational flags, follow-up rows, severity summaries, matter summaries, and validation/boundary rows. Supported filters include `ldd_issue_detection_status`, `ldd_issue_matter_status`, `issue_type`, `issue_status`, `issue_severity`, `issue_flag`, `source_gap`, `follow_up_status`, `follow_up_owner`, `deterministic_issue_detection_performed`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.

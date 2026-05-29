@@ -164,6 +164,7 @@
     "law-firm:fact-extraction": "node scripts/ldd-fact-extraction.mjs",
     "law-firm:issue-detection": "node scripts/ldd-issue-detection.mjs",
     "law-firm:rfi-generator": "node scripts/ldd-rfi-generator.mjs",
+    "law-firm:report-draft": "node scripts/ldd-report-draft.mjs",
     "legal:citations": "node scripts/legal-citation-verifier.mjs",
     "litigation": "node scripts/litigation-matrix.mjs examples/project-beta-litigation-matter.json",
     "matter:cockpit": "node scripts/matter-cockpit.mjs",

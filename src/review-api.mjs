@@ -5058,6 +5058,69 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("ldd_rfi_generator_validations", rfiResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/ldd-report-draft-artifacts") {
+    const reportResult = await readDashboardSourceArtifact(dashboard, "ldd_report_draft");
+    if (!reportResult.available) {
+      return jsonResponse(503, buildError("ldd_report_draft_unavailable", reportResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_report_draft_artifacts", [reportResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-report-section-rules") {
+    const reportResult = await readDashboardSourceArtifact(dashboard, "ldd_report_draft");
+    if (!reportResult.available) {
+      return jsonResponse(503, buildError("ldd_report_draft_unavailable", reportResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_report_section_rules", reportResult.artifact.ldd_report_section_rules ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-report-sections") {
+    const reportResult = await readDashboardSourceArtifact(dashboard, "ldd_report_draft");
+    if (!reportResult.available) {
+      return jsonResponse(503, buildError("ldd_report_draft_unavailable", reportResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_report_sections", reportResult.artifact.ldd_report_sections ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-report-paragraphs") {
+    const reportResult = await readDashboardSourceArtifact(dashboard, "ldd_report_draft");
+    if (!reportResult.available) {
+      return jsonResponse(503, buildError("ldd_report_draft_unavailable", reportResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_report_paragraphs", reportResult.artifact.ldd_report_paragraphs ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-report-citation-placeholders") {
+    const reportResult = await readDashboardSourceArtifact(dashboard, "ldd_report_draft");
+    if (!reportResult.available) {
+      return jsonResponse(503, buildError("ldd_report_draft_unavailable", reportResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_report_citation_placeholders", reportResult.artifact.ldd_report_citation_placeholders ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-report-issue-links") {
+    const reportResult = await readDashboardSourceArtifact(dashboard, "ldd_report_draft");
+    if (!reportResult.available) {
+      return jsonResponse(503, buildError("ldd_report_draft_unavailable", reportResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_report_issue_links", reportResult.artifact.ldd_report_issue_links ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-report-matter-summaries") {
+    const reportResult = await readDashboardSourceArtifact(dashboard, "ldd_report_draft");
+    if (!reportResult.available) {
+      return jsonResponse(503, buildError("ldd_report_draft_unavailable", reportResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_report_matter_summaries", reportResult.artifact.ldd_report_matter_summaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-report-draft-boundary") {
+    const reportResult = await readDashboardSourceArtifact(dashboard, "ldd_report_draft");
+    if (!reportResult.available) {
+      return jsonResponse(503, buildError("ldd_report_draft_unavailable", reportResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_report_draft_boundary", [reportResult.artifact.ldd_report_draft_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-report-draft-validations") {
+    const reportResult = await readDashboardSourceArtifact(dashboard, "ldd_report_draft");
+    if (!reportResult.available) {
+      return jsonResponse(503, buildError("ldd_report_draft_unavailable", reportResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_report_draft_validations", reportResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/repo-profile-detectors") {
     const repoProfileDetectorResult = await readDashboardSourceArtifact(dashboard, "repo_profile_detector");
     if (!repoProfileDetectorResult.available) {
@@ -10258,6 +10321,15 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/ldd-rfi-matter-summaries", "LDD RFI matter summary rows"),
       route("GET", "/api/ldd-rfi-generator-boundary", "LDD RFI generator Desktop boundary"),
       route("GET", "/api/ldd-rfi-generator-validations", "LDD RFI generator validation rows"),
+      route("GET", "/api/ldd-report-draft-artifacts", "LDD report draft artifact"),
+      route("GET", "/api/ldd-report-section-rules", "LDD report section rule rows"),
+      route("GET", "/api/ldd-report-sections", "LDD report section rows"),
+      route("GET", "/api/ldd-report-paragraphs", "LDD report draft paragraph rows"),
+      route("GET", "/api/ldd-report-citation-placeholders", "LDD report citation placeholder rows"),
+      route("GET", "/api/ldd-report-issue-links", "LDD report issue link rows"),
+      route("GET", "/api/ldd-report-matter-summaries", "LDD report matter summary rows"),
+      route("GET", "/api/ldd-report-draft-boundary", "LDD report draft Desktop boundary"),
+      route("GET", "/api/ldd-report-draft-validations", "LDD report draft validation rows"),
       route("GET", "/api/repo-profile-detectors", "Repo profile detector artifact"),
       route("GET", "/api/repo-profiles", "Detected repository profile rows"),
       route("GET", "/api/repo-profile-languages", "Detected repository language profiles"),
@@ -11180,6 +11252,20 @@ function filterItems(items, searchParams) {
     "ldd_rfi_question_id",
     "ldd_issue_record_id",
     "ldd_vdr_missing_data_record_id",
+    "ldd_report_draft_status",
+    "ldd_report_matter_status",
+    "section_type",
+    "section_status",
+    "paragraph_status",
+    "paragraph_role",
+    "citation_placeholder_status",
+    "currentness_check_status",
+    "legal_authority_status",
+    "report_issue_link_status",
+    "ldd_report_section_id",
+    "ldd_report_paragraph_id",
+    "ldd_report_citation_placeholder_id",
+    "deterministic_report_draft_generation_performed",
     "repo_profile_detector_status",
     "repo_profile_status",
     "language_id",
@@ -12761,6 +12847,20 @@ function readFilterValue(item, key) {
   if (key === "ldd_rfi_question_id") return item.ldd_rfi_question_id;
   if (key === "ldd_issue_record_id") return item.ldd_issue_record_id;
   if (key === "ldd_vdr_missing_data_record_id") return item.ldd_vdr_missing_data_record_id;
+  if (key === "ldd_report_draft_status") return item.summary?.ldd_report_draft_status ?? item.ldd_report_draft_status;
+  if (key === "ldd_report_matter_status") return item.ldd_report_matter_status;
+  if (key === "section_type") return item.section_type;
+  if (key === "section_status") return item.section_status;
+  if (key === "paragraph_status") return item.paragraph_status;
+  if (key === "paragraph_role") return item.paragraph_role;
+  if (key === "citation_placeholder_status") return item.citation_placeholder_status;
+  if (key === "currentness_check_status") return item.currentness_check_status;
+  if (key === "legal_authority_status") return item.legal_authority_status;
+  if (key === "report_issue_link_status") return item.report_issue_link_status;
+  if (key === "ldd_report_section_id") return item.ldd_report_section_id;
+  if (key === "ldd_report_paragraph_id") return item.ldd_report_paragraph_id;
+  if (key === "ldd_report_citation_placeholder_id") return item.ldd_report_citation_placeholder_id;
+  if (key === "deterministic_report_draft_generation_performed") return String(Boolean(item.deterministic_report_draft_generation_performed));
   if (key === "repo_profile_detector_status") return item.summary?.repo_profile_detector_status ?? item.repo_profile_detector_status;
   if (key === "repo_profile_status") return item.summary?.repo_profile_status ?? item.profile_status ?? item.repo_profile_status;
   if (key === "language_id") return item.language_id ?? item.primary_language_id;

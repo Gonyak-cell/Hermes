@@ -118,6 +118,7 @@ const GOAL_ITEMS = [
   sourceItem("ldd_fact_extraction", "LDD fact extraction", "law_firm", "ldd_fact_extraction", "control-plane-ldd-fact-extraction", { acceptance_profile: "ldd_fact_extraction_gate" }),
   sourceItem("ldd_issue_detection", "LDD issue detection", "law_firm", "ldd_issue_detection", "control-plane-ldd-issue-detection", { acceptance_profile: "ldd_issue_detection_gate" }),
   sourceItem("ldd_rfi_generator", "LDD RFI generator", "law_firm", "ldd_rfi_generator", "control-plane-ldd-rfi-generator", { acceptance_profile: "ldd_rfi_generator_gate" }),
+  sourceItem("ldd_report_draft", "LDD report draft", "law_firm", "ldd_report_draft", "control-plane-ldd-report-draft", { acceptance_profile: "ldd_report_draft_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -595,6 +596,7 @@ function evaluateStageAcceptance(item, stage) {
     "ldd_fact_extraction_gate",
     "ldd_issue_detection_gate",
     "ldd_rfi_generator_gate",
+    "ldd_report_draft_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -3798,6 +3800,57 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.failed_checkpoint_count === 0
     ) {
       return passedWithOperationalGate(stage, "LDD RFI Generator records draft-only attorney-review RFI packets with issue/evidence links and no legal/client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "ldd_report_draft_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.ldd_report_draft_status === "complete"
+      && metrics.source_ldd_rfi_generator_status === "complete"
+      && metrics.source_ldd_rfi_generator_phase_status === "complete"
+      && metrics.source_ldd_issue_detection_status === "complete"
+      && metrics.source_ldd_issue_detection_phase_status === "complete"
+      && metrics.source_legal_citation_verifier_status === "complete"
+      && metrics.source_legal_citation_verifier_phase_status === "complete"
+      && metrics.source_matter_status === "complete"
+      && (metrics.source_issue_record_count ?? 0) > 0
+      && (metrics.source_rfi_question_count ?? 0) > 0
+      && (metrics.source_legal_citation_verification_record_count ?? 0) > 0
+      && (metrics.source_legal_rule_placeholder_citation_count ?? 0) > 0
+      && metrics.source_currentness_verified_count === 0
+      && (metrics.section_rule_count ?? 0) >= 5
+      && (metrics.section_count ?? 0) >= 5
+      && metrics.paragraph_count === metrics.section_count
+      && metrics.citation_placeholder_count === metrics.paragraph_count
+      && (metrics.issue_link_count ?? 0) >= metrics.source_issue_record_count
+      && metrics.paragraph_with_citation_placeholder_count === metrics.paragraph_count
+      && metrics.citation_placeholder_with_source_ref_count === metrics.citation_placeholder_count
+      && metrics.citation_placeholder_currentness_review_required_count === metrics.citation_placeholder_count
+      && metrics.citation_placeholder_legal_authority_review_required_count === metrics.citation_placeholder_count
+      && metrics.draft_only_count === metrics.paragraph_count
+      && metrics.human_review_note_count === metrics.paragraph_count
+      && metrics.deterministic_report_draft_generation_count === metrics.paragraph_count
+      && metrics.client_facing_ready_count === 0
+      && metrics.legal_conclusion_asserted_count === 0
+      && metrics.legal_advice_provided === false
+      && metrics.client_facing_output_generated === false
+      && metrics.external_legal_research_performed === false
+      && metrics.legal_authority_finalized === false
+      && metrics.desktop_boundary_status === "enforced"
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.matter_data_write_allowed === false
+      && metrics.task_state_write_allowed === false
+      && metrics.workflow_transition_allowed === false
+      && metrics.runtime_execution_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.protected_action_allowed === false
+      && metrics.client_facing_output_allowed_without_attorney_review === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "LDD Report Draft records draft-only section paragraphs and citation placeholders with attorney/currentness gates and no legal/client-facing output.");
     }
   }
 

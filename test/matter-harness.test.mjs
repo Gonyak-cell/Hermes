@@ -68,6 +68,7 @@ import { runVideoPptWorkflow } from "../src/creative-document-video-ppt-workflow
 import { runCreativeDocumentFreeze } from "../src/creative-document-freeze.mjs";
 import { runConnectorContractV2 } from "../src/connector-contract-v2.mjs";
 import { runLocalFolderConnector } from "../src/local-folder-connector.mjs";
+import { runOneDriveConnectorBoundary } from "../src/onedrive-connector-boundary.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1931,6 +1932,7 @@ describe("matter harness", () => {
         creativeDocumentFreezePath: path.join(outDir, "creative-document-freeze", "creative-document-freeze.json"),
         connectorContractV2Path: path.join(outDir, "connector-contract-v2", "connector-contract-v2.json"),
         localFolderConnectorPath: path.join(outDir, "local-folder-connector", "local-folder-connector.json"),
+        onedriveConnectorBoundaryPath: path.join(outDir, "onedrive-connector-boundary", "onedrive-connector-boundary.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10844,6 +10846,55 @@ describe("matter harness", () => {
       assert.equal(localFolderConnector.auth_boundary.auth_mode, "local_path_allowlist");
       assert.match(await readFile(path.join(outDir, "local-folder-connector", "summary.md"), "utf8"), /Local Folder Connector/);
 
+      const oneDriveConnectorBoundary = await runOneDriveConnectorBoundary({
+        connectorContractV2Path: path.join(outDir, "connector-contract-v2", "connector-contract-v2.json"),
+        localFolderConnectorPath: path.join(outDir, "local-folder-connector", "local-folder-connector.json"),
+        sampleItemsPath: "examples/onedrive-connector-boundary/drive-items.json",
+        outDir: path.join(outDir, "onedrive-connector-boundary"),
+        runAt: "2026-05-23T07:10:24.000Z",
+      });
+      const oneDriveConnectorBoundarySchema = JSON.parse(await readFile("schemas/onedrive-connector-boundary.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(oneDriveConnectorBoundary, oneDriveConnectorBoundarySchema, {}, "onedrive_connector_boundary"), [], JSON.stringify(oneDriveConnectorBoundary.validation.errors));
+      assert.equal(oneDriveConnectorBoundary.summary.onedrive_connector_boundary_status, "complete");
+      assert.equal(oneDriveConnectorBoundary.summary.connector_id, "connector.onedrive.v2");
+      assert.equal(oneDriveConnectorBoundary.summary.source_id, "source.onedrive.v2");
+      assert.equal(oneDriveConnectorBoundary.summary.source_local_folder_connector_status, "complete");
+      assert.equal(oneDriveConnectorBoundary.summary.timeout_policy_count, 4);
+      assert.equal(oneDriveConnectorBoundary.summary.placeholder_policy_count, 4);
+      assert.equal(oneDriveConnectorBoundary.summary.cloud_only_handling_count, 5);
+      assert.ok(oneDriveConnectorBoundary.summary.cloud_only_item_count > 0);
+      assert.ok(oneDriveConnectorBoundary.summary.placeholder_item_count > 0);
+      assert.equal(oneDriveConnectorBoundary.summary.timeout_handling_explicit, true);
+      assert.equal(oneDriveConnectorBoundary.summary.placeholder_handling_explicit, true);
+      assert.equal(oneDriveConnectorBoundary.summary.cloud_only_handling_explicit, true);
+      assert.equal(oneDriveConnectorBoundary.summary.cursor_boundary_status, "complete");
+      assert.equal(oneDriveConnectorBoundary.summary.cursor_resume_supported, true);
+      assert.equal(oneDriveConnectorBoundary.summary.raw_delta_token_material_allowed, false);
+      assert.equal(oneDriveConnectorBoundary.summary.auth_boundary_status, "enforced");
+      assert.equal(oneDriveConnectorBoundary.summary.credential_ref_required, true);
+      assert.equal(oneDriveConnectorBoundary.summary.credential_reference_only, true);
+      assert.equal(oneDriveConnectorBoundary.summary.raw_secret_material_allowed, false);
+      assert.equal(oneDriveConnectorBoundary.summary.external_network_access_required_for_runtime, true);
+      assert.equal(oneDriveConnectorBoundary.summary.external_network_access_performed, false);
+      assert.equal(oneDriveConnectorBoundary.summary.connector_execution_performed, false);
+      assert.equal(oneDriveConnectorBoundary.summary.source_read_performed, false);
+      assert.equal(oneDriveConnectorBoundary.summary.credential_material_read, false);
+      assert.equal(oneDriveConnectorBoundary.summary.source_mutation_performed, false);
+      assert.equal(oneDriveConnectorBoundary.summary.resource_mutation_performed, false);
+      assert.equal(oneDriveConnectorBoundary.summary.output_delivery_performed, false);
+      assert.equal(oneDriveConnectorBoundary.summary.protected_action_executed, false);
+      assert.equal(oneDriveConnectorBoundary.summary.legal_advice_generated, false);
+      assert.equal(oneDriveConnectorBoundary.summary.client_facing_output_generated, false);
+      assert.equal(oneDriveConnectorBoundary.summary.human_review_required_count, oneDriveConnectorBoundary.summary.cloud_only_handling_count);
+      assert.equal(oneDriveConnectorBoundary.summary.validation_error_count, 0);
+      assert.ok(oneDriveConnectorBoundary.timeout_policies.every((policy) => policy.timeout_policy_status === "explicit" && policy.timeout_ms > 0 && policy.cursor_resume_required));
+      assert.ok(oneDriveConnectorBoundary.placeholder_policies.every((policy) => policy.placeholder_policy_status === "explicit" && policy.materialization_allowed_without_human_review === false && policy.human_review_required));
+      assert.ok(oneDriveConnectorBoundary.cloud_only_handling_rows.every((row) => row.connector_id === "connector.onedrive.v2" && row.source_id === "source.onedrive.v2" && row.external_id && row.external_version_id && row.human_review_required));
+      assert.ok(oneDriveConnectorBoundary.cloud_only_handling_rows.some((row) => row.cloud_item_state === "cloud_only_placeholder" && row.handling_status === "deferred_pending_materialization_review"));
+      assert.equal(oneDriveConnectorBoundary.cursor_boundary.raw_delta_token_material_allowed, false);
+      assert.equal(oneDriveConnectorBoundary.auth_boundary.auth_mode, "oauth_delegated_readonly");
+      assert.match(await readFile(path.join(outDir, "onedrive-connector-boundary", "summary.md"), "utf8"), /OneDrive Connector Boundary/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -11036,6 +11087,7 @@ describe("matter harness", () => {
           creative_document_freeze: path.join(outDir, "creative-document-freeze", "creative-document-freeze.json"),
           connector_contract_v2: path.join(outDir, "connector-contract-v2", "connector-contract-v2.json"),
           local_folder_connector: path.join(outDir, "local-folder-connector", "local-folder-connector.json"),
+          onedrive_connector_boundary: path.join(outDir, "onedrive-connector-boundary", "onedrive-connector-boundary.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11087,8 +11139,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 170);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 170);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 171);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 171);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -11246,6 +11298,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "creative_document_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "connector_contract_v2"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "local_folder_connector"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "onedrive_connector_boundary"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -12090,6 +12143,10 @@ describe("matter harness", () => {
       assert.equal(localFolderConnectorCheckpoint?.acceptance_profile, "local_folder_connector_gate");
       assert.equal(localFolderConnectorCheckpoint?.status, "passed");
       assert.equal(localFolderConnectorCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const oneDriveConnectorBoundaryCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-onedrive-connector-boundary");
+      assert.equal(oneDriveConnectorBoundaryCheckpoint?.acceptance_profile, "onedrive_connector_boundary_gate");
+      assert.equal(oneDriveConnectorBoundaryCheckpoint?.status, "passed");
+      assert.equal(oneDriveConnectorBoundaryCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -16422,6 +16479,38 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.local_folder_connector_client_facing_output_generated, false);
       assert.equal(dashboard.summary.local_folder_connector_human_review_required_count, localFolderConnector.summary.human_review_required_count);
       assert.equal(dashboard.summary.local_folder_connector_validation_error_count, 0);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_status, "complete");
+      assert.equal(dashboard.summary.onedrive_connector_boundary_connector_id, oneDriveConnectorBoundary.summary.connector_id);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_source_id, oneDriveConnectorBoundary.summary.source_id);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_source_local_folder_connector_status, "complete");
+      assert.equal(dashboard.summary.onedrive_connector_boundary_sample_item_count, oneDriveConnectorBoundary.summary.sample_item_count);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_timeout_policy_count, oneDriveConnectorBoundary.summary.timeout_policy_count);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_placeholder_policy_count, oneDriveConnectorBoundary.summary.placeholder_policy_count);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_cloud_only_handling_count, oneDriveConnectorBoundary.summary.cloud_only_handling_count);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_cloud_only_item_count, oneDriveConnectorBoundary.summary.cloud_only_item_count);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_timeout_handling_explicit, true);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_placeholder_handling_explicit, true);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_cloud_only_handling_explicit, true);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_cursor_boundary_status, "complete");
+      assert.equal(dashboard.summary.onedrive_connector_boundary_cursor_resume_supported, true);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_raw_delta_token_material_allowed, false);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_auth_boundary_status, "enforced");
+      assert.equal(dashboard.summary.onedrive_connector_boundary_credential_ref_required, true);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_credential_reference_only, true);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_raw_secret_material_allowed, false);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_external_network_access_required_for_runtime, true);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_external_network_access_performed, false);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_connector_execution_performed, false);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_source_read_performed, false);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_credential_material_read, false);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_source_mutation_performed, false);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_resource_mutation_performed, false);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_output_delivery_performed, false);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_protected_action_executed, false);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_legal_advice_generated, false);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_human_review_required_count, oneDriveConnectorBoundary.summary.human_review_required_count);
+      assert.equal(dashboard.summary.onedrive_connector_boundary_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -19196,6 +19285,39 @@ describe("matter harness", () => {
       assert.equal(localFolderConnectorStage?.metrics.client_facing_output_generated, false);
       assert.equal(localFolderConnectorStage?.metrics.human_review_required_count, localFolderConnector.summary.human_review_required_count);
       assert.equal(localFolderConnectorStage?.metrics.validation_error_count, 0);
+      const oneDriveConnectorBoundaryStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "onedrive_connector_boundary");
+      assert.equal(oneDriveConnectorBoundaryStage?.status, "passed");
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.onedrive_connector_boundary_status, "complete");
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.connector_id, oneDriveConnectorBoundary.summary.connector_id);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.source_id, oneDriveConnectorBoundary.summary.source_id);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.source_local_folder_connector_status, "complete");
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.timeout_policy_count, oneDriveConnectorBoundary.summary.timeout_policy_count);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.placeholder_policy_count, oneDriveConnectorBoundary.summary.placeholder_policy_count);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.cloud_only_handling_count, oneDriveConnectorBoundary.summary.cloud_only_handling_count);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.cloud_only_item_count, oneDriveConnectorBoundary.summary.cloud_only_item_count);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.timeout_handling_explicit, true);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.placeholder_handling_explicit, true);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.cloud_only_handling_explicit, true);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.cursor_boundary_status, "complete");
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.cursor_resume_supported, true);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.raw_delta_token_material_allowed, false);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.auth_boundary_status, "enforced");
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.credential_ref_required, true);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.credential_reference_only, true);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.raw_secret_material_allowed, false);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.write_operations_allowed, false);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.external_network_access_performed, false);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.connector_execution_performed, false);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.source_read_performed, false);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.credential_material_read, false);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.source_mutation_performed, false);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.resource_mutation_performed, false);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.output_delivery_performed, false);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.protected_action_executed, false);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.legal_advice_generated, false);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.client_facing_output_generated, false);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.human_review_required_count, oneDriveConnectorBoundary.summary.human_review_required_count);
+      assert.equal(oneDriveConnectorBoundaryStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -21424,6 +21546,34 @@ describe("matter harness", () => {
       const localFolderConnectorValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/local-folder-connector-validations?status=passed", apiOptions)).body);
       assert.equal(localFolderConnectorValidationsResponse.collection, "local_folder_connector_validations");
       assert.equal(localFolderConnectorValidationsResponse.count, localFolderConnector.summary.validation_item_count);
+
+      const oneDriveConnectorBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/onedrive-connector-boundary?onedrive_connector_boundary_status=complete", apiOptions)).body);
+      assert.equal(oneDriveConnectorBoundaryResponse.collection, "onedrive_connector_boundary");
+      assert.equal(oneDriveConnectorBoundaryResponse.count, 1);
+
+      const oneDriveTimeoutPoliciesResponse = JSON.parse((await buildReviewApiResponse("/api/onedrive-timeout-policies?timeout_policy_status=explicit", apiOptions)).body);
+      assert.equal(oneDriveTimeoutPoliciesResponse.collection, "onedrive_timeout_policies");
+      assert.equal(oneDriveTimeoutPoliciesResponse.count, oneDriveConnectorBoundary.summary.timeout_policy_count);
+
+      const oneDrivePlaceholderPoliciesResponse = JSON.parse((await buildReviewApiResponse("/api/onedrive-placeholder-policies?placeholder_policy_status=explicit", apiOptions)).body);
+      assert.equal(oneDrivePlaceholderPoliciesResponse.collection, "onedrive_placeholder_policies");
+      assert.equal(oneDrivePlaceholderPoliciesResponse.count, oneDriveConnectorBoundary.summary.placeholder_policy_count);
+
+      const oneDriveCloudOnlyHandlingResponse = JSON.parse((await buildReviewApiResponse("/api/onedrive-cloud-only-handling?cloud_item_state=cloud_only_placeholder&review_status=needs_review", apiOptions)).body);
+      assert.equal(oneDriveCloudOnlyHandlingResponse.collection, "onedrive_cloud_only_handling");
+      assert.equal(oneDriveCloudOnlyHandlingResponse.count, oneDriveConnectorBoundary.summary.cloud_only_item_count);
+
+      const oneDriveCursorBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/onedrive-cursor-boundary?cursor_boundary_status=complete", apiOptions)).body);
+      assert.equal(oneDriveCursorBoundaryResponse.collection, "onedrive_cursor_boundary");
+      assert.equal(oneDriveCursorBoundaryResponse.count, 1);
+
+      const oneDriveAuthBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/onedrive-auth-boundary?auth_boundary_status=enforced&credential_reference_only=true", apiOptions)).body);
+      assert.equal(oneDriveAuthBoundaryResponse.collection, "onedrive_auth_boundary");
+      assert.equal(oneDriveAuthBoundaryResponse.count, 1);
+
+      const oneDriveConnectorBoundaryValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/onedrive-connector-boundary-validations?status=passed", apiOptions)).body);
+      assert.equal(oneDriveConnectorBoundaryValidationsResponse.collection, "onedrive_connector_boundary_validations");
+      assert.equal(oneDriveConnectorBoundaryValidationsResponse.count, oneDriveConnectorBoundary.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

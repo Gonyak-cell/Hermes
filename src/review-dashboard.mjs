@@ -104,6 +104,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   creativeDocumentFreezePath: "artifacts/creative-document-freeze/latest/creative-document-freeze.json",
   connectorContractV2Path: "artifacts/connector-contract-v2/latest/connector-contract-v2.json",
   localFolderConnectorPath: "artifacts/local-folder-connector/latest/local-folder-connector.json",
+  onedriveConnectorBoundaryPath: "artifacts/onedrive-connector-boundary/latest/onedrive-connector-boundary.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -767,6 +768,11 @@ const SOURCE_DEFINITIONS = [
     option: "localFolderConnectorPath",
     source_id: "local_folder_connector",
     label: "Local Folder Connector",
+  },
+  {
+    option: "onedriveConnectorBoundaryPath",
+    source_id: "onedrive_connector_boundary",
+    label: "OneDrive Connector Boundary",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1740,6 +1746,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "creative_document_freeze") return data.summary ?? {};
   if (sourceId === "connector_contract_v2") return data.summary ?? {};
   if (sourceId === "local_folder_connector") return data.summary ?? {};
+  if (sourceId === "onedrive_connector_boundary") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2125,6 +2132,7 @@ function buildStageStatuses(artifacts, sources) {
     buildCreativeDocumentFreezeStage(artifacts.creative_document_freeze, sourceById.get("creative_document_freeze")),
     buildConnectorContractV2Stage(artifacts.connector_contract_v2, sourceById.get("connector_contract_v2")),
     buildLocalFolderConnectorStage(artifacts.local_folder_connector, sourceById.get("local_folder_connector")),
+    buildOneDriveConnectorBoundaryStage(artifacts.onedrive_connector_boundary, sourceById.get("onedrive_connector_boundary")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -12114,6 +12122,91 @@ function buildLocalFolderConnectorStage(artifact, source) {
   };
 }
 
+function buildOneDriveConnectorBoundaryStage(artifact, source) {
+  if (!artifact) return missingStage("onedrive_connector_boundary", "OneDrive Connector Boundary", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.onedrive_connector_boundary_status !== "complete"
+    || summary.timeout_policy_count <= 0
+    || summary.placeholder_policy_count <= 0
+    || summary.cloud_only_handling_count <= 0
+    || summary.cloud_only_item_count <= 0
+    || summary.timeout_handling_explicit !== true
+    || summary.placeholder_handling_explicit !== true
+    || summary.cloud_only_handling_explicit !== true
+    || summary.cursor_boundary_status !== "complete"
+    || summary.cursor_resume_supported !== true
+    || summary.raw_delta_token_material_allowed === true
+    || summary.credential_ref_required !== true
+    || summary.credential_reference_only !== true
+    || summary.raw_secret_material_allowed === true
+    || summary.write_operations_allowed === true
+    || summary.external_network_access_performed === true
+    || summary.connector_execution_performed === true
+    || summary.source_read_performed === true
+    || summary.credential_material_read === true
+    || summary.source_mutation_performed === true
+    || summary.resource_mutation_performed === true
+    || summary.output_delivery_performed === true
+    || summary.protected_action_executed === true
+    || summary.legal_advice_generated === true
+    || summary.client_facing_output_generated === true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "onedrive_connector_boundary",
+    label: "OneDrive Connector Boundary",
+    status,
+    message: `${summary.timeout_policy_count ?? 0} timeout policy(s), ${summary.placeholder_policy_count ?? 0} placeholder policy(s), ${summary.cloud_only_handling_count ?? 0} cloud item handling row(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      onedrive_connector_boundary_status: summary.onedrive_connector_boundary_status ?? "unknown",
+      connector_id: summary.connector_id ?? artifact.connector_id ?? null,
+      source_id: summary.source_id ?? artifact.connector_contract_binding?.source_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      source_local_folder_connector_status: summary.source_local_folder_connector_status ?? "unknown",
+      sample_item_count: summary.sample_item_count ?? 0,
+      timeout_policy_count: summary.timeout_policy_count ?? artifact.timeout_policies?.length ?? 0,
+      placeholder_policy_count: summary.placeholder_policy_count ?? artifact.placeholder_policies?.length ?? 0,
+      cloud_only_handling_count: summary.cloud_only_handling_count ?? artifact.cloud_only_handling_rows?.length ?? 0,
+      cloud_only_item_count: summary.cloud_only_item_count ?? 0,
+      placeholder_item_count: summary.placeholder_item_count ?? 0,
+      available_offline_count: summary.available_offline_count ?? 0,
+      blocked_item_count: summary.blocked_item_count ?? 0,
+      materialization_deferred_count: summary.materialization_deferred_count ?? 0,
+      timeout_handling_explicit: summary.timeout_handling_explicit ?? artifact.onedrive_connector_boundary?.timeout_handling_explicit ?? false,
+      placeholder_handling_explicit: summary.placeholder_handling_explicit ?? artifact.onedrive_connector_boundary?.placeholder_handling_explicit ?? false,
+      cloud_only_handling_explicit: summary.cloud_only_handling_explicit ?? artifact.onedrive_connector_boundary?.cloud_only_handling_explicit ?? false,
+      cursor_boundary_status: summary.cursor_boundary_status ?? artifact.cursor_boundary?.cursor_boundary_status ?? "unknown",
+      cursor_kind: summary.cursor_kind ?? artifact.cursor_boundary?.cursor_kind ?? null,
+      cursor_resume_supported: summary.cursor_resume_supported ?? artifact.cursor_boundary?.resume_supported ?? false,
+      raw_delta_token_material_allowed: summary.raw_delta_token_material_allowed ?? artifact.cursor_boundary?.raw_delta_token_material_allowed ?? false,
+      auth_boundary_status: summary.auth_boundary_status ?? artifact.auth_boundary?.auth_boundary_status ?? "unknown",
+      credential_ref_required: summary.credential_ref_required ?? artifact.auth_boundary?.credential_ref_required ?? false,
+      credential_reference_only: summary.credential_reference_only ?? artifact.auth_boundary?.credential_reference_only ?? false,
+      raw_secret_material_allowed: summary.raw_secret_material_allowed ?? artifact.auth_boundary?.raw_secret_material_allowed ?? false,
+      least_privilege_scope_count: summary.least_privilege_scope_count ?? artifact.auth_boundary?.least_privilege_scopes?.length ?? 0,
+      read_operations_allowed: summary.read_operations_allowed ?? artifact.auth_boundary?.read_operations_allowed ?? false,
+      write_operations_allowed: summary.write_operations_allowed ?? artifact.auth_boundary?.write_operations_allowed ?? false,
+      external_network_access_required_for_runtime: summary.external_network_access_required_for_runtime ?? artifact.auth_boundary?.external_network_access_required_for_runtime ?? false,
+      external_network_access_performed: summary.external_network_access_performed ?? artifact.onedrive_connector_boundary?.external_network_access_performed ?? false,
+      connector_execution_performed: summary.connector_execution_performed ?? artifact.onedrive_connector_boundary?.connector_execution_performed ?? false,
+      source_read_performed: summary.source_read_performed ?? artifact.onedrive_connector_boundary?.source_read_performed ?? false,
+      credential_material_read: summary.credential_material_read ?? artifact.onedrive_connector_boundary?.credential_material_read ?? false,
+      source_mutation_performed: summary.source_mutation_performed ?? artifact.onedrive_connector_boundary?.source_mutation_performed ?? false,
+      resource_mutation_performed: summary.resource_mutation_performed ?? artifact.onedrive_connector_boundary?.resource_mutation_performed ?? false,
+      output_delivery_performed: summary.output_delivery_performed ?? artifact.onedrive_connector_boundary?.output_delivery_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? artifact.onedrive_connector_boundary?.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? artifact.onedrive_connector_boundary?.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? artifact.onedrive_connector_boundary?.client_facing_output_generated ?? false,
+      human_review_required_count: summary.human_review_required_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -18438,6 +18531,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.onedrive_connector_boundary?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "onedrive_connector_boundary";
+    items.push({
+      action_item_id: `dashboard.action.onedrive_connector_boundary.${slugify(subjectId)}`,
+      source_stage: "onedrive_connector_boundary",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix OneDrive Connector Boundary",
+      subject_ref: {
+        subject_type: "onedrive_connector_boundary_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_onedrive_connector_boundary", "rerun_onedrive_connector_boundary", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -24546,6 +24657,44 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     local_folder_connector_client_facing_output_generated: artifacts.local_folder_connector?.summary?.client_facing_output_generated ?? false,
     local_folder_connector_human_review_required_count: artifacts.local_folder_connector?.summary?.human_review_required_count ?? 0,
     local_folder_connector_validation_error_count: artifacts.local_folder_connector?.summary?.validation_error_count ?? artifacts.local_folder_connector?.validation?.errors?.length ?? 0,
+    onedrive_connector_boundary_status: artifacts.onedrive_connector_boundary?.summary?.onedrive_connector_boundary_status ?? "unknown",
+    onedrive_connector_boundary_connector_id: artifacts.onedrive_connector_boundary?.summary?.connector_id ?? null,
+    onedrive_connector_boundary_source_id: artifacts.onedrive_connector_boundary?.summary?.source_id ?? null,
+    onedrive_connector_boundary_source_local_folder_connector_status: artifacts.onedrive_connector_boundary?.summary?.source_local_folder_connector_status ?? "unknown",
+    onedrive_connector_boundary_sample_item_count: artifacts.onedrive_connector_boundary?.summary?.sample_item_count ?? 0,
+    onedrive_connector_boundary_timeout_policy_count: artifacts.onedrive_connector_boundary?.summary?.timeout_policy_count ?? 0,
+    onedrive_connector_boundary_placeholder_policy_count: artifacts.onedrive_connector_boundary?.summary?.placeholder_policy_count ?? 0,
+    onedrive_connector_boundary_cloud_only_handling_count: artifacts.onedrive_connector_boundary?.summary?.cloud_only_handling_count ?? 0,
+    onedrive_connector_boundary_cloud_only_item_count: artifacts.onedrive_connector_boundary?.summary?.cloud_only_item_count ?? 0,
+    onedrive_connector_boundary_placeholder_item_count: artifacts.onedrive_connector_boundary?.summary?.placeholder_item_count ?? 0,
+    onedrive_connector_boundary_available_offline_count: artifacts.onedrive_connector_boundary?.summary?.available_offline_count ?? 0,
+    onedrive_connector_boundary_blocked_item_count: artifacts.onedrive_connector_boundary?.summary?.blocked_item_count ?? 0,
+    onedrive_connector_boundary_materialization_deferred_count: artifacts.onedrive_connector_boundary?.summary?.materialization_deferred_count ?? 0,
+    onedrive_connector_boundary_timeout_handling_explicit: artifacts.onedrive_connector_boundary?.summary?.timeout_handling_explicit ?? false,
+    onedrive_connector_boundary_placeholder_handling_explicit: artifacts.onedrive_connector_boundary?.summary?.placeholder_handling_explicit ?? false,
+    onedrive_connector_boundary_cloud_only_handling_explicit: artifacts.onedrive_connector_boundary?.summary?.cloud_only_handling_explicit ?? false,
+    onedrive_connector_boundary_cursor_boundary_status: artifacts.onedrive_connector_boundary?.summary?.cursor_boundary_status ?? "unknown",
+    onedrive_connector_boundary_cursor_resume_supported: artifacts.onedrive_connector_boundary?.summary?.cursor_resume_supported ?? false,
+    onedrive_connector_boundary_raw_delta_token_material_allowed: artifacts.onedrive_connector_boundary?.summary?.raw_delta_token_material_allowed ?? false,
+    onedrive_connector_boundary_auth_boundary_status: artifacts.onedrive_connector_boundary?.summary?.auth_boundary_status ?? "unknown",
+    onedrive_connector_boundary_credential_ref_required: artifacts.onedrive_connector_boundary?.summary?.credential_ref_required ?? false,
+    onedrive_connector_boundary_credential_reference_only: artifacts.onedrive_connector_boundary?.summary?.credential_reference_only ?? false,
+    onedrive_connector_boundary_raw_secret_material_allowed: artifacts.onedrive_connector_boundary?.summary?.raw_secret_material_allowed ?? false,
+    onedrive_connector_boundary_read_operations_allowed: artifacts.onedrive_connector_boundary?.summary?.read_operations_allowed ?? false,
+    onedrive_connector_boundary_write_operations_allowed: artifacts.onedrive_connector_boundary?.summary?.write_operations_allowed ?? false,
+    onedrive_connector_boundary_external_network_access_required_for_runtime: artifacts.onedrive_connector_boundary?.summary?.external_network_access_required_for_runtime ?? false,
+    onedrive_connector_boundary_external_network_access_performed: artifacts.onedrive_connector_boundary?.summary?.external_network_access_performed ?? false,
+    onedrive_connector_boundary_connector_execution_performed: artifacts.onedrive_connector_boundary?.summary?.connector_execution_performed ?? false,
+    onedrive_connector_boundary_source_read_performed: artifacts.onedrive_connector_boundary?.summary?.source_read_performed ?? false,
+    onedrive_connector_boundary_credential_material_read: artifacts.onedrive_connector_boundary?.summary?.credential_material_read ?? false,
+    onedrive_connector_boundary_source_mutation_performed: artifacts.onedrive_connector_boundary?.summary?.source_mutation_performed ?? false,
+    onedrive_connector_boundary_resource_mutation_performed: artifacts.onedrive_connector_boundary?.summary?.resource_mutation_performed ?? false,
+    onedrive_connector_boundary_output_delivery_performed: artifacts.onedrive_connector_boundary?.summary?.output_delivery_performed ?? false,
+    onedrive_connector_boundary_protected_action_executed: artifacts.onedrive_connector_boundary?.summary?.protected_action_executed ?? false,
+    onedrive_connector_boundary_legal_advice_generated: artifacts.onedrive_connector_boundary?.summary?.legal_advice_generated ?? false,
+    onedrive_connector_boundary_client_facing_output_generated: artifacts.onedrive_connector_boundary?.summary?.client_facing_output_generated ?? false,
+    onedrive_connector_boundary_human_review_required_count: artifacts.onedrive_connector_boundary?.summary?.human_review_required_count ?? 0,
+    onedrive_connector_boundary_validation_error_count: artifacts.onedrive_connector_boundary?.summary?.validation_error_count ?? artifacts.onedrive_connector_boundary?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -26337,6 +26486,8 @@ function parseArgs(argv) {
     else if (arg === "--no-connector-contract-v2") parsed.connectorContractV2Path = false;
     else if (arg === "--local-folder-connector") parsed.localFolderConnectorPath = argv[++index];
     else if (arg === "--no-local-folder-connector") parsed.localFolderConnectorPath = false;
+    else if (arg === "--onedrive-connector-boundary") parsed.onedriveConnectorBoundaryPath = argv[++index];
+    else if (arg === "--no-onedrive-connector-boundary") parsed.onedriveConnectorBoundaryPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

@@ -2312,6 +2312,34 @@ try {
   assert.equal(localFolderConnectorValidations.collection, "local_folder_connector_validations");
   assert.ok(localFolderConnectorValidations.count <= 5);
 
+  const oneDriveConnectorBoundary = await fetchJson(`${url}/api/onedrive-connector-boundary?onedrive_connector_boundary_status=complete&limit=1`);
+  assert.equal(oneDriveConnectorBoundary.collection, "onedrive_connector_boundary");
+  assert.ok(oneDriveConnectorBoundary.count <= 1);
+
+  const oneDriveTimeoutPolicies = await fetchJson(`${url}/api/onedrive-timeout-policies?timeout_policy_status=explicit&limit=5`);
+  assert.equal(oneDriveTimeoutPolicies.collection, "onedrive_timeout_policies");
+  assert.ok(oneDriveTimeoutPolicies.count <= 5);
+
+  const oneDrivePlaceholderPolicies = await fetchJson(`${url}/api/onedrive-placeholder-policies?placeholder_policy_status=explicit&limit=5`);
+  assert.equal(oneDrivePlaceholderPolicies.collection, "onedrive_placeholder_policies");
+  assert.ok(oneDrivePlaceholderPolicies.count <= 5);
+
+  const oneDriveCloudOnlyHandling = await fetchJson(`${url}/api/onedrive-cloud-only-handling?cloud_only_handling_status=deferred_pending_materialization_review&cloud_item_state=cloud_only_placeholder&review_status=needs_review&limit=5`);
+  assert.equal(oneDriveCloudOnlyHandling.collection, "onedrive_cloud_only_handling");
+  assert.ok(oneDriveCloudOnlyHandling.count <= 5);
+
+  const oneDriveCursorBoundary = await fetchJson(`${url}/api/onedrive-cursor-boundary?cursor_boundary_status=complete&limit=1`);
+  assert.equal(oneDriveCursorBoundary.collection, "onedrive_cursor_boundary");
+  assert.ok(oneDriveCursorBoundary.count <= 1);
+
+  const oneDriveAuthBoundary = await fetchJson(`${url}/api/onedrive-auth-boundary?auth_boundary_status=enforced&credential_reference_only=true&limit=1`);
+  assert.equal(oneDriveAuthBoundary.collection, "onedrive_auth_boundary");
+  assert.ok(oneDriveAuthBoundary.count <= 1);
+
+  const oneDriveConnectorBoundaryValidations = await fetchJson(`${url}/api/onedrive-connector-boundary-validations?status=passed&limit=5`);
+  assert.equal(oneDriveConnectorBoundaryValidations.collection, "onedrive_connector_boundary_validations");
+  assert.ok(oneDriveConnectorBoundaryValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

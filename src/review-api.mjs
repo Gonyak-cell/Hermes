@@ -5100,6 +5100,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("local_folder_connector_validations", localFolderResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/onedrive-connector-boundary") {
+    const oneDriveResult = await readDashboardSourceArtifact(dashboard, "onedrive_connector_boundary");
+    if (!oneDriveResult.available) {
+      return jsonResponse(503, buildError("onedrive_connector_boundary_unavailable", oneDriveResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("onedrive_connector_boundary", [oneDriveResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/onedrive-timeout-policies") {
+    const oneDriveResult = await readDashboardSourceArtifact(dashboard, "onedrive_connector_boundary");
+    if (!oneDriveResult.available) {
+      return jsonResponse(503, buildError("onedrive_connector_boundary_unavailable", oneDriveResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("onedrive_timeout_policies", oneDriveResult.artifact.timeout_policies ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/onedrive-placeholder-policies") {
+    const oneDriveResult = await readDashboardSourceArtifact(dashboard, "onedrive_connector_boundary");
+    if (!oneDriveResult.available) {
+      return jsonResponse(503, buildError("onedrive_connector_boundary_unavailable", oneDriveResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("onedrive_placeholder_policies", oneDriveResult.artifact.placeholder_policies ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/onedrive-cloud-only-handling") {
+    const oneDriveResult = await readDashboardSourceArtifact(dashboard, "onedrive_connector_boundary");
+    if (!oneDriveResult.available) {
+      return jsonResponse(503, buildError("onedrive_connector_boundary_unavailable", oneDriveResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("onedrive_cloud_only_handling", oneDriveResult.artifact.cloud_only_handling_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/onedrive-cursor-boundary") {
+    const oneDriveResult = await readDashboardSourceArtifact(dashboard, "onedrive_connector_boundary");
+    if (!oneDriveResult.available) {
+      return jsonResponse(503, buildError("onedrive_connector_boundary_unavailable", oneDriveResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("onedrive_cursor_boundary", [oneDriveResult.artifact.cursor_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/onedrive-auth-boundary") {
+    const oneDriveResult = await readDashboardSourceArtifact(dashboard, "onedrive_connector_boundary");
+    if (!oneDriveResult.available) {
+      return jsonResponse(503, buildError("onedrive_connector_boundary_unavailable", oneDriveResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("onedrive_auth_boundary", [oneDriveResult.artifact.auth_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/onedrive-connector-boundary-validations") {
+    const oneDriveResult = await readDashboardSourceArtifact(dashboard, "onedrive_connector_boundary");
+    if (!oneDriveResult.available) {
+      return jsonResponse(503, buildError("onedrive_connector_boundary_unavailable", oneDriveResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("onedrive_connector_boundary_validations", oneDriveResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -11433,6 +11482,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/local-folder-ingest-records", "Local Folder Connector ingest records"),
       route("GET", "/api/local-folder-cursor", "Local Folder Connector cursor state"),
       route("GET", "/api/local-folder-connector-validations", "Local Folder Connector validation rows"),
+      route("GET", "/api/onedrive-connector-boundary", "OneDrive Connector Boundary artifact"),
+      route("GET", "/api/onedrive-timeout-policies", "OneDrive timeout policy rows"),
+      route("GET", "/api/onedrive-placeholder-policies", "OneDrive placeholder policy rows"),
+      route("GET", "/api/onedrive-cloud-only-handling", "OneDrive cloud-only handling rows"),
+      route("GET", "/api/onedrive-cursor-boundary", "OneDrive cursor boundary"),
+      route("GET", "/api/onedrive-auth-boundary", "OneDrive auth boundary"),
+      route("GET", "/api/onedrive-connector-boundary-validations", "OneDrive Connector Boundary validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -12496,6 +12552,12 @@ function filterItems(items, searchParams) {
     "cursor_status",
     "resource_projection_status",
     "review_status",
+    "onedrive_connector_boundary_status",
+    "timeout_policy_status",
+    "placeholder_policy_status",
+    "cloud_only_handling_status",
+    "cloud_item_state",
+    "cursor_boundary_status",
     "boundary_status",
     "read_only",
     "matter_os_profile_status",
@@ -14289,6 +14351,12 @@ function readFilterValue(item, key) {
   if (key === "cursor_status") return item.cursor_status;
   if (key === "resource_projection_status") return item.resource_projection_status;
   if (key === "review_status") return item.review_status;
+  if (key === "onedrive_connector_boundary_status") return item.summary?.onedrive_connector_boundary_status ?? item.connector_status ?? item.onedrive_connector_boundary_status;
+  if (key === "timeout_policy_status") return item.timeout_policy_status;
+  if (key === "placeholder_policy_status") return item.placeholder_policy_status;
+  if (key === "cloud_only_handling_status") return item.handling_status;
+  if (key === "cloud_item_state") return item.cloud_item_state;
+  if (key === "cursor_boundary_status") return item.cursor_boundary_status;
   if (key === "matter_os_profile_status") return item.summary?.matter_os_profile_status ?? item.matter_os_profile_status;
   if (key === "profile_card_status") return item.profile_card_status;
   if (key === "display_field_status") return item.display_field_status;

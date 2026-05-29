@@ -1,0 +1,302 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "onedrive-connector-boundary.schema.json",
+  "title": "OneDrive Connector Boundary",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "onedrive_connector_boundary_id",
+    "connector_id",
+    "connector_status",
+    "connector_contract_binding",
+    "source_binding",
+    "auth_boundary",
+    "timeout_policies",
+    "placeholder_policies",
+    "cloud_only_handling_rows",
+    "cursor_boundary",
+    "onedrive_connector_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "onedrive-connector-boundary.v1" },
+    "generated_at": { "type": "string" },
+    "onedrive_connector_boundary_id": { "type": "string" },
+    "connector_id": { "const": "connector.onedrive.v2" },
+    "connector_status": { "enum": ["complete", "attention"] },
+    "connector_contract_binding": {
+      "type": "object",
+      "required": ["binding_status", "connector_id", "source_id", "source_system", "connector_family", "phase_slot"],
+      "properties": {
+        "binding_status": { "const": "bound" },
+        "connector_id": { "const": "connector.onedrive.v2" },
+        "source_id": { "type": "string" },
+        "source_system": { "const": "onedrive" },
+        "connector_family": { "const": "onedrive" },
+        "phase_slot": { "const": "P269" }
+      }
+    },
+    "source_binding": {
+      "type": "object",
+      "required": [
+        "source_binding_status",
+        "source_id",
+        "source_system",
+        "source_kind",
+        "tenant_id_required",
+        "matter_id_required",
+        "classification_required",
+        "policy_snapshot_required"
+      ],
+      "properties": {
+        "source_binding_status": { "const": "bound" },
+        "source_id": { "type": "string" },
+        "source_system": { "const": "onedrive" },
+        "source_kind": { "const": "cloud_drive" },
+        "tenant_id_required": { "const": true },
+        "matter_id_required": { "const": true },
+        "classification_required": { "const": true },
+        "policy_snapshot_required": { "const": true }
+      }
+    },
+    "auth_boundary": {
+      "type": "object",
+      "required": [
+        "auth_boundary_status",
+        "auth_mode",
+        "credential_ref_required",
+        "credential_reference_only",
+        "credential_material_read",
+        "raw_secret_material_allowed",
+        "external_network_access_required_for_runtime",
+        "external_network_access_performed",
+        "connector_execution_performed",
+        "read_operations_allowed",
+        "write_operations_allowed",
+        "source_mutation_performed"
+      ],
+      "properties": {
+        "auth_boundary_status": { "const": "enforced" },
+        "auth_mode": { "const": "oauth_delegated_readonly" },
+        "credential_ref_required": { "const": true },
+        "credential_reference_only": { "const": true },
+        "credential_material_read": { "const": false },
+        "raw_secret_material_allowed": { "const": false },
+        "external_network_access_required_for_runtime": { "const": true },
+        "external_network_access_performed": { "const": false },
+        "connector_execution_performed": { "const": false },
+        "read_operations_allowed": { "const": true },
+        "write_operations_allowed": { "const": false },
+        "source_mutation_performed": { "const": false },
+        "least_privilege_scopes": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "timeout_policies": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["timeout_policy_id", "connector_id", "timeout_policy_status", "operation", "timeout_ms", "cursor_resume_required", "human_review_required"],
+        "properties": {
+          "timeout_policy_id": { "type": "string" },
+          "connector_id": { "const": "connector.onedrive.v2" },
+          "timeout_policy_status": { "const": "explicit" },
+          "operation": { "type": "string" },
+          "timeout_ms": { "type": "integer", "minimum": 1 },
+          "cursor_resume_required": { "const": true },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "placeholder_policies": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["placeholder_policy_id", "connector_id", "placeholder_policy_status", "cloud_item_state", "materialization_allowed_without_human_review", "human_review_required"],
+        "properties": {
+          "placeholder_policy_id": { "type": "string" },
+          "connector_id": { "const": "connector.onedrive.v2" },
+          "placeholder_policy_status": { "const": "explicit" },
+          "cloud_item_state": { "type": "string" },
+          "materialization_allowed_without_human_review": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "cloud_only_handling_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "handling_row_id",
+          "connector_id",
+          "source_id",
+          "matter_id",
+          "drive_id",
+          "item_id",
+          "external_id",
+          "external_version_id",
+          "cloud_item_state",
+          "handling_status",
+          "resource_projection_status",
+          "content_materialization_status",
+          "human_review_required",
+          "source_mutation_performed",
+          "resource_mutation_performed"
+        ],
+        "properties": {
+          "handling_row_id": { "type": "string" },
+          "connector_id": { "const": "connector.onedrive.v2" },
+          "source_id": { "type": "string" },
+          "matter_id": { "type": "string" },
+          "drive_id": { "type": "string" },
+          "item_id": { "type": "string" },
+          "external_id": { "type": "string" },
+          "external_version_id": { "type": "string" },
+          "cloud_item_state": {
+            "enum": ["available_offline_file", "cloud_only_placeholder", "blocked_large_file", "permission_denied", "remote_item_shortcut"]
+          },
+          "handling_status": {
+            "enum": ["metadata_ready", "deferred_pending_materialization_review", "quarantined_large_cloud_file", "blocked_permission_denied", "blocked_unsupported_placeholder"]
+          },
+          "resource_projection_status": {
+            "enum": ["ready", "pending_review", "blocked"]
+          },
+          "content_materialization_status": { "type": "string" },
+          "human_review_required": { "const": true },
+          "source_mutation_performed": { "const": false },
+          "resource_mutation_performed": { "const": false }
+        }
+      }
+    },
+    "cursor_boundary": {
+      "type": "object",
+      "required": [
+        "cursor_boundary_status",
+        "cursor_kind",
+        "resume_supported",
+        "cursor_storage_mode",
+        "delta_token_hash",
+        "raw_delta_token_material_allowed",
+        "cross_matter_cursor_reuse_allowed",
+        "reset_requires_human_review"
+      ],
+      "properties": {
+        "cursor_boundary_status": { "const": "complete" },
+        "cursor_kind": { "const": "delta_token_cursor" },
+        "resume_supported": { "const": true },
+        "cursor_storage_mode": { "const": "delta_token_hash_only" },
+        "delta_token_hash": { "type": "string" },
+        "raw_delta_token_material_allowed": { "const": false },
+        "cross_matter_cursor_reuse_allowed": { "const": false },
+        "reset_requires_human_review": { "const": true }
+      }
+    },
+    "onedrive_connector_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "plan_only",
+        "timeout_handling_explicit",
+        "placeholder_handling_explicit",
+        "cloud_only_handling_explicit",
+        "connector_execution_performed",
+        "source_read_performed",
+        "source_mutation_performed",
+        "external_network_access_performed",
+        "credential_material_read",
+        "resource_mutation_performed",
+        "output_delivery_performed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "human_review_required"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "plan_only": { "const": true },
+        "timeout_handling_explicit": { "const": true },
+        "placeholder_handling_explicit": { "const": true },
+        "cloud_only_handling_explicit": { "const": true },
+        "connector_execution_performed": { "const": false },
+        "source_read_performed": { "const": false },
+        "source_mutation_performed": { "const": false },
+        "external_network_access_performed": { "const": false },
+        "credential_material_read": { "const": false },
+        "resource_mutation_performed": { "const": false },
+        "output_delivery_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "validation": { "type": "object" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "onedrive_connector_boundary_status",
+        "connector_id",
+        "source_id",
+        "phase_slot",
+        "timeout_policy_count",
+        "placeholder_policy_count",
+        "cloud_only_handling_count",
+        "cloud_only_item_count",
+        "timeout_handling_explicit",
+        "placeholder_handling_explicit",
+        "cloud_only_handling_explicit",
+        "credential_ref_required",
+        "credential_reference_only",
+        "raw_secret_material_allowed",
+        "external_network_access_performed",
+        "connector_execution_performed",
+        "source_mutation_performed",
+        "resource_mutation_performed",
+        "output_delivery_performed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "validation_error_count"
+      ],
+      "properties": {
+        "onedrive_connector_boundary_status": { "const": "complete" },
+        "connector_id": { "const": "connector.onedrive.v2" },
+        "source_id": { "type": "string" },
+        "phase_slot": { "const": "P269" },
+        "timeout_policy_count": { "type": "integer", "minimum": 1 },
+        "placeholder_policy_count": { "type": "integer", "minimum": 1 },
+        "cloud_only_handling_count": { "type": "integer", "minimum": 1 },
+        "cloud_only_item_count": { "type": "integer", "minimum": 1 },
+        "timeout_handling_explicit": { "const": true },
+        "placeholder_handling_explicit": { "const": true },
+        "cloud_only_handling_explicit": { "const": true },
+        "credential_ref_required": { "const": true },
+        "credential_reference_only": { "const": true },
+        "raw_secret_material_allowed": { "const": false },
+        "external_network_access_performed": { "const": false },
+        "connector_execution_performed": { "const": false },
+        "source_mutation_performed": { "const": false },
+        "resource_mutation_performed": { "const": false },
+        "output_delivery_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

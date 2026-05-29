@@ -150,6 +150,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "creative-document:freeze",
   "connectors:contract-v2",
   "connectors:local-folder",
+  "connectors:onedrive-boundary",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

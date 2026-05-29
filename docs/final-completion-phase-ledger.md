@@ -4,8 +4,8 @@
 
 운영 규칙:
 
-- Current actual completion baseline is Phase 285.
-- Remaining planned slots are P286-P312, 27 total.
+- Current actual completion baseline is Phase 286.
+- Remaining planned slots are P287-P312, 26 total.
 - 각 slot은 `검증 -> 보강 -> 구현 -> 검증 -> commit -> roadmap 승격` 순서로 처리한다.
 - 모든 slot은 가능하면 `npm run validate`, `npm test`, 해당 slice command, `npm run control-plane:loop`, API/dashboard smoke 중 관련 검증을 통과해야 한다.
 - For P217 and later, continue on the Windows workspace only after preserving the Windows baseline stabilization posture.
@@ -42,7 +42,7 @@
 | P108 | Error/Cost/Observability contract 고정 | error, cost, trace projection schema | Promoted to Phase 108; ErrorRecord v2, CostObservation v2, TraceProjection v2가 실패, retry, token, cost, latency를 독립 projection으로 검증 |
 | P109 | schema versioning rule 확정 | schema versioning guideline | Promoted to Phase 109; optional addition, deprecation, migration manifest rule이 schema-versioning validator와 dashboard/API/checkpoint에 반영 |
 | P110 | migration manifest 구조 확정 | migration manifest schema | Promoted to Phase 110; core/pack/index migration manifest, migration record, validation, dashboard/API/checkpoint/loop가 분리 추적 |
-| P111 | contract golden fixtures | golden fixture set | Promoted to Phase 111; contract artifact, schema validation, and regression hash manifest are locked; Phase 113-P285 identity/policy/resource/evidence/event/workflow/runtime/personal-dev/law-firm/creative-document/connector/resource-expansion fixtures are included, including matter_os_profile through expansion_status_dashboard, for 187 total fixtures |
+| P111 | contract golden fixtures | golden fixture set | Promoted to Phase 111; contract artifact, schema validation, and regression hash manifest are locked; Phase 113-P286 identity/policy/resource/evidence/event/workflow/runtime/personal-dev/law-firm/creative-document/connector/resource-expansion fixtures are included, including matter_os_profile through resource_expansion_freeze, for 188 total fixtures |
 | P112 | contract validation CLI 통합 | contract validation command | Promoted to Phase 112; 전체 contract fixture가 `npm run contracts:validate -- --check` 한 명령으로 검증되고 dashboard/API/checkpoint/loop에 반영 |
 
 ## P113-P132 Identity, Policy, Matter Boundary
@@ -267,7 +267,7 @@
 | P283 | extractor registry 구현 | extractor registry | Promoted to Phase 283; Extractor Registry reads Extractor Adapter Contract, Resource Expansion Job, P281 Batch Classification Result, and P282 Batch Matter Tagging Result as read-only sources and catalogs document type, extension, extractor chain, fact schema, citation, confidence, fallback, and per-resource compatibility rows so extractor routing is available without extractor execution, OCR execution, file content reads, external services, network access, mutation, protected action, legal advice, or client-facing output; golden/checkpoint/dashboard/API/loop/test verification passed |
 | P284 | document-type coverage 구현 | extractor coverage report | Promoted to Phase 284; Extractor Coverage Report reads Resource Expansion Job, P280 Expansion Quarantine Ledger, P281 Batch Classification Result, and P283 Extractor Registry as read-only sources and aggregates document type, extension, status, failure/hold, quarantine, and unsupported-type coverage rows with processing, coverage, failure, quarantine, and unsupported rates before any extractor execution, OCR execution, file content reads, external services, network access, mutation, protected action, legal advice, or client-facing output; golden/checkpoint/dashboard/API/loop/test verification passed |
 | P285 | expansion status dashboard/API 구현 | expansion API/panel | Promoted to Phase 285; Expansion Status Dashboard reads Resource Expansion Job, P279 Expansion Dedup Ledger, P280 Expansion Quarantine Ledger, and P284 Extractor Coverage Report as read-only sources and exposes discovered, queued, ingested, failed, and quarantined status buckets through dashboard panels and Review API routes without expansion execution, source ingest, source file content reads, extraction retry, quarantine release, source/resource/state/matter mutation, delivery, protected action, legal advice, or client-facing output; golden/checkpoint/dashboard/API/loop/test verification passed |
-| P286 | Resource Expansion freeze | expansion freeze report | 2,713개급 backfill dry run이 resumable/idempotent로 검증 |
+| P286 | Resource Expansion Freeze | expansion freeze report | Promoted to Phase 286; Resource Expansion Freeze reads the P277-P285 Resource Expansion chain as read-only source artifacts and proves a deterministic 2,713-item backfill dry-run projection is resumable and idempotent without actual backfill dry-run execution, backfill execution, source ingest, source file content reads, extraction retry, quarantine release, source/resource/state/matter mutation, delivery, protected action, legal advice, or client-facing output; golden/checkpoint/dashboard/API/loop/test verification passed |
 
 ## P287-P296 API, Dashboard, Evidence Viewer, Matter Cockpit
 

@@ -2868,6 +2868,42 @@ try {
   assert.equal(expansionStatusValidations.collection, "expansion_status_validations");
   assert.ok(expansionStatusValidations.count <= 24);
 
+  const resourceExpansionFreezes = await fetchJson(`${url}/api/resource-expansion-freezes?resource_expansion_freeze_status=complete&limit=1`);
+  assert.equal(resourceExpansionFreezes.collection, "resource_expansion_freezes");
+  assert.ok(resourceExpansionFreezes.count <= 1);
+
+  const resourceExpansionFreezeSources = await fetchJson(`${url}/api/resource-expansion-freeze-sources?expansion_freeze_source_status=complete&limit=10`);
+  assert.equal(resourceExpansionFreezeSources.collection, "expansion_freeze_source_rows");
+  assert.ok(resourceExpansionFreezeSources.count <= 10);
+
+  const resourceExpansionFreezeDryRuns = await fetchJson(`${url}/api/resource-expansion-freeze-dry-runs?expansion_freeze_dry_run_status=passed&limit=20`);
+  assert.equal(resourceExpansionFreezeDryRuns.collection, "expansion_freeze_dry_run_rows");
+  assert.ok(resourceExpansionFreezeDryRuns.count <= 20);
+
+  const resourceExpansionFreezeResumeProbes = await fetchJson(`${url}/api/resource-expansion-freeze-resume-probes?expansion_freeze_resume_status=passed&limit=12`);
+  assert.equal(resourceExpansionFreezeResumeProbes.collection, "expansion_freeze_resume_probes");
+  assert.ok(resourceExpansionFreezeResumeProbes.count <= 12);
+
+  const resourceExpansionFreezeIdempotencyProbes = await fetchJson(`${url}/api/resource-expansion-freeze-idempotency-probes?expansion_freeze_idempotency_status=passed&limit=12`);
+  assert.equal(resourceExpansionFreezeIdempotencyProbes.collection, "expansion_freeze_idempotency_probes");
+  assert.ok(resourceExpansionFreezeIdempotencyProbes.count <= 12);
+
+  const resourceExpansionFreezeScaleChecks = await fetchJson(`${url}/api/resource-expansion-freeze-scale-checks?expansion_freeze_scale_check_status=passed&limit=12`);
+  assert.equal(resourceExpansionFreezeScaleChecks.collection, "expansion_freeze_scale_checks");
+  assert.ok(resourceExpansionFreezeScaleChecks.count <= 12);
+
+  const resourceExpansionFreezeBoundary = await fetchJson(`${url}/api/resource-expansion-freeze-boundary?expansion_freeze_boundary_status=enforced&limit=1`);
+  assert.equal(resourceExpansionFreezeBoundary.collection, "expansion_freeze_boundary");
+  assert.ok(resourceExpansionFreezeBoundary.count <= 1);
+
+  const resourceExpansionFreezeChecks = await fetchJson(`${url}/api/resource-expansion-freeze-checks?status=passed&limit=24`);
+  assert.equal(resourceExpansionFreezeChecks.collection, "expansion_freeze_checkpoints");
+  assert.ok(resourceExpansionFreezeChecks.count <= 24);
+
+  const resourceExpansionFreezeValidations = await fetchJson(`${url}/api/resource-expansion-freeze-validations?status=passed&limit=24`);
+  assert.equal(resourceExpansionFreezeValidations.collection, "expansion_freeze_validations");
+  assert.ok(resourceExpansionFreezeValidations.count <= 24);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

@@ -158,6 +158,7 @@ const GOAL_ITEMS = [
   sourceItem("extractor_registry", "Extractor Registry", "resource_evidence", "extractor_registry", "control-plane-extractor-registry", { acceptance_profile: "extractor_registry_gate" }),
   sourceItem("extractor_coverage_report", "Extractor Coverage Report", "resource_evidence", "extractor_coverage_report", "control-plane-extractor-coverage-report", { acceptance_profile: "extractor_coverage_report_gate" }),
   sourceItem("expansion_status_dashboard", "Expansion Status Dashboard", "resource_evidence", "expansion_status_dashboard", "control-plane-expansion-status-dashboard", { acceptance_profile: "expansion_status_dashboard_gate" }),
+  sourceItem("resource_expansion_freeze", "Resource Expansion Freeze", "resource_evidence", "resource_expansion_freeze", "control-plane-resource-expansion-freeze", { acceptance_profile: "resource_expansion_freeze_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -675,6 +676,7 @@ function evaluateStageAcceptance(item, stage) {
     "extractor_registry_gate",
     "extractor_coverage_report_gate",
     "expansion_status_dashboard_gate",
+    "resource_expansion_freeze_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -5791,6 +5793,79 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Expansion Status Dashboard locks P285 discovered, queued, ingested, failed, and quarantined status panels/API after P284 without expansion execution, source ingest, file content reads, retry, quarantine release, mutation, delivery, legal advice, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "resource_expansion_freeze_gate") {
+    const sourceCount = metrics.source_count ?? 0;
+    const targetCount = metrics.dry_run_scale_target_count ?? 0;
+    const dryRunRowCount = metrics.dry_run_row_count ?? 0;
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.resource_expansion_freeze_status === "complete"
+      && metrics.phase_slot === "P286"
+      && metrics.previous_phase_slot === "P285"
+      && metrics.next_phase_slot === "P287"
+      && metrics.source_backfill_job_contract_status === "complete"
+      && metrics.source_backfill_job_contract_phase_slot === "P277"
+      && metrics.source_expansion_cursor_ledger_status === "complete"
+      && metrics.source_expansion_cursor_phase_slot === "P278"
+      && metrics.source_expansion_dedup_ledger_status === "complete"
+      && metrics.source_expansion_dedup_phase_slot === "P279"
+      && metrics.source_expansion_quarantine_ledger_status === "complete"
+      && metrics.source_expansion_quarantine_phase_slot === "P280"
+      && metrics.source_batch_classification_result_status === "complete"
+      && metrics.source_batch_classification_phase_slot === "P281"
+      && metrics.source_batch_matter_tagging_result_status === "complete"
+      && metrics.source_batch_matter_tagging_phase_slot === "P282"
+      && metrics.source_extractor_registry_status === "complete"
+      && metrics.source_extractor_registry_phase_slot === "P283"
+      && metrics.source_extractor_coverage_report_status === "complete"
+      && metrics.source_extractor_coverage_phase_slot === "P284"
+      && metrics.source_expansion_status_dashboard_status === "complete"
+      && metrics.source_expansion_status_dashboard_phase_slot === "P285"
+      && metrics.source_expansion_status_dashboard_next_phase_slot === "P286"
+      && sourceCount > 0
+      && metrics.passed_source_count === sourceCount
+      && targetCount >= 2713
+      && metrics.projected_item_count === targetCount
+      && metrics.projected_terminal_item_count === targetCount
+      && metrics.projected_remaining_item_count === 0
+      && metrics.projected_batch_count === dryRunRowCount
+      && dryRunRowCount > 0
+      && metrics.passed_dry_run_row_count === dryRunRowCount
+      && metrics.resume_probe_count > 0
+      && metrics.passed_resume_probe_count === metrics.resume_probe_count
+      && metrics.idempotency_probe_count > 0
+      && metrics.passed_idempotency_probe_count === metrics.idempotency_probe_count
+      && metrics.scale_check_count > 0
+      && metrics.passed_scale_check_count === metrics.scale_check_count
+      && metrics.resumable_backfill_dry_run_verified === true
+      && metrics.idempotent_backfill_dry_run_verified === true
+      && metrics.client_facing_ready_count === 0
+      && metrics.read_only === true
+      && metrics.report_only === true
+      && metrics.scale_projection_only === true
+      && metrics.source_artifact_read_performed === true
+      && metrics.backfill_dry_run_execution_performed === false
+      && metrics.backfill_execution_performed === false
+      && metrics.source_ingest_performed === false
+      && metrics.file_content_read_performed === false
+      && metrics.extraction_retry_performed === false
+      && metrics.quarantine_release_performed === false
+      && metrics.source_mutation_performed === false
+      && metrics.resource_mutation_performed === false
+      && metrics.state_mutation_performed === false
+      && metrics.matter_data_write_performed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Resource Expansion Freeze locks P286 2,713-scale resumable/idempotent dry-run projection after P285 without backfill execution, source ingest, file content reads, retry, quarantine release, mutation, delivery, legal advice, or client-facing output.");
     }
   }
 

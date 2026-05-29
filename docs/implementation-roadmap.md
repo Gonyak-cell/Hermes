@@ -7565,6 +7565,19 @@ Implementation notes:
 - Golden fixture count increased to 187 and `expansion_status_dashboard` is included as a regression fixture.
 - `npm run resource:expansion-status -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
 
+## Phase 286 - Resource Expansion Freeze
+
+Phase 286 adds `resource_expansion_freeze`, a read-only freeze report over the Resource Expansion chain from P277 through P285. It declares a deterministic 2,713-item dry-run scale projection and proves the projected backfill is resumable/idempotent without executing backfill, ingesting sources, reading source file contents, retrying extraction, releasing quarantine, mutating source/resource/state/matter data, delivering output, producing legal advice, or generating client-facing output.
+
+Changes:
+
+- Added `src/resource-expansion-freeze.mjs`, `scripts/resource-expansion-freeze.mjs`, `schemas/resource-expansion-freeze.schema.json`, and `docs/resource-expansion-freeze.md`.
+- Added `resource:expansion-freeze` npm script.
+- The freeze emits `resource-expansion-freeze.json`, source rows, dry-run projection rows, resume probes, idempotency probes, scale checks, boundary, checkpoints, validation report, and summary markdown under `artifacts/resource-expansion-freeze/latest`.
+- Review Dashboard stage/summary, Review API routes/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests now include `resource_expansion_freeze`.
+- Golden fixture count increased to 188 and `resource_expansion_freeze` is included as a regression fixture.
+- `npm run resource:expansion-freeze -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -7573,9 +7586,9 @@ Implementation notes:
 
 운영 원칙:
 
-- Current actual completion baseline is Phase 285.
+- Current actual completion baseline is Phase 286.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- Remaining planned slots are P286-P312, 27 total.
+- Remaining planned slots are P287-P312, 26 total.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - P217 이후 personal-dev 작업은 Mac Phase 216 결과를 Windows 작업공간에서 계속 이어가되, Phase 217 본작업보다 Windows 기준선 안정화 게이트를 선행 조건으로 둔 판단을 기준으로 운영한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
@@ -7594,7 +7607,7 @@ Implementation notes:
 | P231-P252 | Law Firm Domain Pack | Matter OS, Evidence OS, LDD, litigation brief, meeting minutes, contract draft, VDR review, provided-material review, legal citation verifier, attorney approval workflow를 완성한다. |
 | P253-P266 | Creative and Document Domain Pack | template/style/asset registry, DOCX/PPTX/PDF/HTML renderer, layout validator, citation renderer, design system, web novel/video/PPTX production workflows, Creative Document freeze를 완성한다. |
 | P267-P276 | Connector and Ingestion Layer | Connector Contract v2, Local Folder Connector, OneDrive Connector Boundary, Outlook Email Connector, KakaoTalk Import Boundary, GitHub Connector, VDR Connector, Plaud Transcript Connector, ERP Draft Connector, and Connector Freeze를 기준으로 future Slack/Teams connector를 adapter 방식으로 확장한다. |
-| P277-P286 | Resource Expansion and Extractor Library | 2,713개 이상 파일 backfill, resumable batch cursor, quarantine, duplicate detection, extractor registry, document-type coverage dashboard를 완성한다. |
+| P277-P286 | Resource Expansion and Extractor Library | 2,713개 이상 파일 backfill, resumable batch cursor, quarantine, duplicate detection, extractor registry, document-type coverage dashboard, and Resource Expansion Freeze를 완성한다. |
 | P287-P296 | API, Dashboard, Evidence Viewer, Matter Cockpit | API server, review dashboard, Desktop-ready route group, approval queue, evidence viewer, source span inspector, run ledger viewer, matter cockpit, policy violation queue를 usable UI로 연결한다. |
 | P297-P304 | Security, Compliance, Performance Hardening | prompt injection boundary, secrets scanning, external model policy, Desktop companion risk, retention, access review, cost cap, performance budget, backup/restore 검증을 마친다. |
 | P305-P312 | End-to-End Acceptance, Deployment, v1.0 Freeze | law-firm, personal-dev, creative-document의 대표 workflow를 전체 계층으로 통과시키고 docs/runbooks/deployment/Desktop-readiness/release gate를 완료해 Hermes Harness v1.0을 freeze한다. |

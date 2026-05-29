@@ -194,6 +194,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     extractor_registry: "artifacts/extractor-registry/latest/extractor-registry.json",
     extractor_coverage_report: "artifacts/extractor-coverage-report/latest/extractor-coverage-report.json",
     expansion_status_dashboard: "artifacts/expansion-status-dashboard/latest/expansion-status-dashboard.json",
+    resource_expansion_freeze: "artifacts/resource-expansion-freeze/latest/resource-expansion-freeze.json",
   },
 };
 
@@ -381,6 +382,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("extractor_registry", "Extractor Registry", "resource_evidence", "extractor-registry.schema.json"),
   fixtureDefinition("extractor_coverage_report", "Extractor Coverage Report", "resource_evidence", "extractor-coverage-report.schema.json"),
   fixtureDefinition("expansion_status_dashboard", "Expansion Status Dashboard", "resource_evidence", "expansion-status-dashboard.schema.json"),
+  fixtureDefinition("resource_expansion_freeze", "Resource Expansion Freeze", "resource_evidence", "resource-expansion-freeze.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),

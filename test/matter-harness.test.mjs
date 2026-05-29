@@ -85,6 +85,7 @@ import { runBatchMatterTaggingResult } from "../src/batch-matter-tagging-result.
 import { runExtractorRegistry } from "../src/extractor-registry.mjs";
 import { runExtractorCoverageReport } from "../src/extractor-coverage-report.mjs";
 import { runExpansionStatusDashboard } from "../src/expansion-status-dashboard.mjs";
+import { runResourceExpansionFreeze } from "../src/resource-expansion-freeze.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1965,6 +1966,7 @@ describe("matter harness", () => {
         extractorRegistryPath: path.join(outDir, "extractor-registry", "extractor-registry.json"),
         extractorCoverageReportPath: path.join(outDir, "extractor-coverage-report", "extractor-coverage-report.json"),
         expansionStatusDashboardPath: path.join(outDir, "expansion-status-dashboard", "expansion-status-dashboard.json"),
+        resourceExpansionFreezePath: path.join(outDir, "resource-expansion-freeze", "resource-expansion-freeze.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11939,6 +11941,104 @@ describe("matter harness", () => {
       assert.ok(expansionStatusDashboard.expansion_status_api_route_rows.every((row) => row.route_status === "queryable" && row.read_only && row.mutation_allowed === false));
       assert.match(await readFile(path.join(outDir, "expansion-status-dashboard", "summary.md"), "utf8"), /Expansion Status Dashboard/);
 
+      const resourceExpansionFreeze = await runResourceExpansionFreeze({
+        resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
+        resourceExpansionStatePath: path.join(outDir, "resource-expansion-state.json"),
+        nextBatchPath: path.join(outDir, "next-batch.json"),
+        backfillJobContractPath: path.join(outDir, "backfill-job-contract", "backfill-job-contract.json"),
+        expansionCursorLedgerPath: path.join(outDir, "expansion-cursor-ledger", "expansion-cursor-ledger.json"),
+        expansionDedupLedgerPath: path.join(outDir, "expansion-dedup-ledger", "expansion-dedup-ledger.json"),
+        expansionQuarantineLedgerPath: path.join(outDir, "expansion-quarantine-ledger", "expansion-quarantine-ledger.json"),
+        batchClassificationResultPath: path.join(outDir, "batch-classification-result", "batch-classification-result.json"),
+        batchMatterTaggingResultPath: path.join(outDir, "batch-matter-tagging-result", "batch-matter-tagging-result.json"),
+        extractorRegistryPath: path.join(outDir, "extractor-registry", "extractor-registry.json"),
+        extractorCoverageReportPath: path.join(outDir, "extractor-coverage-report", "extractor-coverage-report.json"),
+        expansionStatusDashboardPath: path.join(outDir, "expansion-status-dashboard", "expansion-status-dashboard.json"),
+        outDir: path.join(outDir, "resource-expansion-freeze"),
+        runAt: "2026-05-23T07:24:27.000Z",
+      });
+      const resourceExpansionFreezeSchema = JSON.parse(await readFile("schemas/resource-expansion-freeze.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(resourceExpansionFreeze, resourceExpansionFreezeSchema, {}, "resource_expansion_freeze"), [], JSON.stringify(resourceExpansionFreeze.validation.errors));
+      assert.equal(resourceExpansionFreeze.summary.resource_expansion_freeze_status, "complete");
+      assert.equal(resourceExpansionFreeze.summary.phase_slot, "P286");
+      assert.equal(resourceExpansionFreeze.summary.previous_phase_slot, "P285");
+      assert.equal(resourceExpansionFreeze.summary.next_phase_slot, "P287");
+      assert.equal(resourceExpansionFreeze.summary.source_backfill_job_contract_status, "complete");
+      assert.equal(resourceExpansionFreeze.summary.source_backfill_job_contract_phase_slot, "P277");
+      assert.equal(resourceExpansionFreeze.summary.source_expansion_cursor_ledger_status, "complete");
+      assert.equal(resourceExpansionFreeze.summary.source_expansion_cursor_phase_slot, "P278");
+      assert.equal(resourceExpansionFreeze.summary.source_expansion_dedup_ledger_status, "complete");
+      assert.equal(resourceExpansionFreeze.summary.source_expansion_dedup_phase_slot, "P279");
+      assert.equal(resourceExpansionFreeze.summary.source_expansion_quarantine_ledger_status, "complete");
+      assert.equal(resourceExpansionFreeze.summary.source_expansion_quarantine_phase_slot, "P280");
+      assert.equal(resourceExpansionFreeze.summary.source_batch_classification_result_status, "complete");
+      assert.equal(resourceExpansionFreeze.summary.source_batch_classification_phase_slot, "P281");
+      assert.equal(resourceExpansionFreeze.summary.source_batch_matter_tagging_result_status, "complete");
+      assert.equal(resourceExpansionFreeze.summary.source_batch_matter_tagging_phase_slot, "P282");
+      assert.equal(resourceExpansionFreeze.summary.source_extractor_registry_status, "complete");
+      assert.equal(resourceExpansionFreeze.summary.source_extractor_registry_phase_slot, "P283");
+      assert.equal(resourceExpansionFreeze.summary.source_extractor_coverage_report_status, "complete");
+      assert.equal(resourceExpansionFreeze.summary.source_extractor_coverage_phase_slot, "P284");
+      assert.equal(resourceExpansionFreeze.summary.source_expansion_status_dashboard_status, "complete");
+      assert.equal(resourceExpansionFreeze.summary.source_expansion_status_dashboard_phase_slot, "P285");
+      assert.equal(resourceExpansionFreeze.summary.source_expansion_status_dashboard_next_phase_slot, "P286");
+      assert.equal(resourceExpansionFreeze.summary.source_count, 10);
+      assert.equal(resourceExpansionFreeze.summary.passed_source_count, resourceExpansionFreeze.summary.source_count);
+      assert.equal(resourceExpansionFreeze.summary.dry_run_scale_target_count, 2713);
+      assert.equal(resourceExpansionFreeze.summary.dry_run_source_sample_item_count, second.items.length);
+      assert.ok(resourceExpansionFreeze.summary.dry_run_batch_size > 0);
+      assert.ok(resourceExpansionFreeze.summary.projected_batch_count > 0);
+      assert.equal(resourceExpansionFreeze.summary.dry_run_row_count, resourceExpansionFreeze.summary.projected_batch_count);
+      assert.equal(resourceExpansionFreeze.summary.passed_dry_run_row_count, resourceExpansionFreeze.summary.dry_run_row_count);
+      assert.equal(resourceExpansionFreeze.summary.projected_item_count, 2713);
+      assert.equal(resourceExpansionFreeze.summary.projected_terminal_item_count, 2713);
+      assert.equal(resourceExpansionFreeze.summary.projected_remaining_item_count, 0);
+      assert.equal(resourceExpansionFreeze.summary.resource_expansion_discovered_count, second.summary.discovered_count);
+      assert.equal(resourceExpansionFreeze.summary.resource_expansion_terminal_count, second.summary.terminal_count);
+      assert.equal(resourceExpansionFreeze.summary.resource_expansion_remaining_count, second.summary.remaining_count);
+      assert.equal(resourceExpansionFreeze.summary.resource_expansion_failed_count, second.summary.failed_count);
+      assert.equal(resourceExpansionFreeze.summary.resource_expansion_quarantine_count, second.summary.quarantine_count);
+      assert.equal(resourceExpansionFreeze.summary.resource_expansion_skipped_duplicate_count, second.summary.skipped_duplicate_count);
+      assert.equal(resourceExpansionFreeze.summary.resource_expansion_extracted_count, second.summary.extracted_count);
+      assert.equal(resourceExpansionFreeze.summary.resume_probe_count, 6);
+      assert.equal(resourceExpansionFreeze.summary.passed_resume_probe_count, resourceExpansionFreeze.summary.resume_probe_count);
+      assert.equal(resourceExpansionFreeze.summary.idempotency_probe_count, 6);
+      assert.equal(resourceExpansionFreeze.summary.passed_idempotency_probe_count, resourceExpansionFreeze.summary.idempotency_probe_count);
+      assert.equal(resourceExpansionFreeze.summary.scale_check_count, 8);
+      assert.equal(resourceExpansionFreeze.summary.passed_scale_check_count, resourceExpansionFreeze.summary.scale_check_count);
+      assert.equal(resourceExpansionFreeze.summary.resumable_backfill_dry_run_verified, true);
+      assert.equal(resourceExpansionFreeze.summary.idempotent_backfill_dry_run_verified, true);
+      assert.equal(resourceExpansionFreeze.summary.client_facing_ready_count, 0);
+      assert.equal(resourceExpansionFreeze.summary.read_only, true);
+      assert.equal(resourceExpansionFreeze.summary.report_only, true);
+      assert.equal(resourceExpansionFreeze.summary.scale_projection_only, true);
+      assert.equal(resourceExpansionFreeze.summary.source_artifact_read_performed, true);
+      assert.equal(resourceExpansionFreeze.summary.backfill_dry_run_execution_performed, false);
+      assert.equal(resourceExpansionFreeze.summary.backfill_execution_performed, false);
+      assert.equal(resourceExpansionFreeze.summary.source_ingest_performed, false);
+      assert.equal(resourceExpansionFreeze.summary.file_content_read_performed, false);
+      assert.equal(resourceExpansionFreeze.summary.extraction_retry_performed, false);
+      assert.equal(resourceExpansionFreeze.summary.quarantine_release_performed, false);
+      assert.equal(resourceExpansionFreeze.summary.source_mutation_performed, false);
+      assert.equal(resourceExpansionFreeze.summary.resource_mutation_performed, false);
+      assert.equal(resourceExpansionFreeze.summary.state_mutation_performed, false);
+      assert.equal(resourceExpansionFreeze.summary.matter_data_write_performed, false);
+      assert.equal(resourceExpansionFreeze.summary.delivery_execution_performed, false);
+      assert.equal(resourceExpansionFreeze.summary.protected_action_executed, false);
+      assert.equal(resourceExpansionFreeze.summary.legal_advice_generated, false);
+      assert.equal(resourceExpansionFreeze.summary.client_facing_output_generated, false);
+      assert.equal(resourceExpansionFreeze.summary.windows_baseline_stability_preserved, true);
+      assert.equal(resourceExpansionFreeze.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(resourceExpansionFreeze.summary.validation_error_count, 0);
+      assert.ok(resourceExpansionFreeze.expansion_freeze_source_rows.every((row) => row.source_status === "complete" && row.human_review_required && row.client_facing_ready === false));
+      assert.ok(resourceExpansionFreeze.expansion_freeze_dry_run_rows.every((row) => row.dry_run_status === "passed" && row.resumable && row.idempotent && row.backfill_execution_performed === false && row.source_ingest_performed === false && row.file_content_read_performed === false));
+      assert.ok(resourceExpansionFreeze.expansion_freeze_resume_probes.every((row) => row.resume_probe_status === "passed"));
+      assert.ok(resourceExpansionFreeze.expansion_freeze_idempotency_probes.every((row) => row.idempotency_probe_status === "passed"));
+      assert.ok(resourceExpansionFreeze.expansion_freeze_scale_checks.every((row) => row.scale_check_status === "passed"));
+      assert.equal(resourceExpansionFreeze.expansion_freeze_boundary.boundary_status, "enforced");
+      assert.ok(resourceExpansionFreeze.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "resource-expansion-freeze", "summary.md"), "utf8"), /Resource Expansion Freeze/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -12148,6 +12248,7 @@ describe("matter harness", () => {
           extractor_registry: path.join(outDir, "extractor-registry", "extractor-registry.json"),
           extractor_coverage_report: path.join(outDir, "extractor-coverage-report", "extractor-coverage-report.json"),
           expansion_status_dashboard: path.join(outDir, "expansion-status-dashboard", "expansion-status-dashboard.json"),
+          resource_expansion_freeze: path.join(outDir, "resource-expansion-freeze", "resource-expansion-freeze.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -12199,8 +12300,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 187);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 187);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 188);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 188);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -12375,6 +12476,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "extractor_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "extractor_coverage_report"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "expansion_status_dashboard"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "resource_expansion_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -12425,6 +12527,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:extractor-registry"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:extractor-coverage"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:expansion-status"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:expansion-freeze"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:runtime-interface"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:approval-matrix"));
@@ -13296,6 +13399,10 @@ describe("matter harness", () => {
       assert.equal(expansionStatusDashboardCheckpoint?.acceptance_profile, "expansion_status_dashboard_gate");
       assert.equal(expansionStatusDashboardCheckpoint?.status, "passed");
       assert.equal(expansionStatusDashboardCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const resourceExpansionFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-expansion-freeze");
+      assert.equal(resourceExpansionFreezeCheckpoint?.acceptance_profile, "resource_expansion_freeze_gate");
+      assert.equal(resourceExpansionFreezeCheckpoint?.status, "passed");
+      assert.equal(resourceExpansionFreezeCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -18338,6 +18445,76 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.expansion_status_dashboard_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.expansion_status_dashboard_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.expansion_status_dashboard_validation_error_count, 0);
+      assert.equal(dashboard.summary.resource_expansion_freeze_status, "complete");
+      assert.equal(dashboard.summary.resource_expansion_freeze_phase_slot, "P286");
+      assert.equal(dashboard.summary.resource_expansion_freeze_previous_phase_slot, "P285");
+      assert.equal(dashboard.summary.resource_expansion_freeze_next_phase_slot, "P287");
+      assert.equal(dashboard.summary.resource_expansion_freeze_source_backfill_job_contract_status, "complete");
+      assert.equal(dashboard.summary.resource_expansion_freeze_source_backfill_job_contract_phase_slot, "P277");
+      assert.equal(dashboard.summary.resource_expansion_freeze_source_expansion_cursor_ledger_status, "complete");
+      assert.equal(dashboard.summary.resource_expansion_freeze_source_expansion_cursor_phase_slot, "P278");
+      assert.equal(dashboard.summary.resource_expansion_freeze_source_expansion_dedup_ledger_status, "complete");
+      assert.equal(dashboard.summary.resource_expansion_freeze_source_expansion_dedup_phase_slot, "P279");
+      assert.equal(dashboard.summary.resource_expansion_freeze_source_expansion_quarantine_ledger_status, "complete");
+      assert.equal(dashboard.summary.resource_expansion_freeze_source_expansion_quarantine_phase_slot, "P280");
+      assert.equal(dashboard.summary.resource_expansion_freeze_source_batch_classification_result_status, "complete");
+      assert.equal(dashboard.summary.resource_expansion_freeze_source_batch_classification_phase_slot, "P281");
+      assert.equal(dashboard.summary.resource_expansion_freeze_source_batch_matter_tagging_result_status, "complete");
+      assert.equal(dashboard.summary.resource_expansion_freeze_source_batch_matter_tagging_phase_slot, "P282");
+      assert.equal(dashboard.summary.resource_expansion_freeze_source_extractor_registry_status, "complete");
+      assert.equal(dashboard.summary.resource_expansion_freeze_source_extractor_registry_phase_slot, "P283");
+      assert.equal(dashboard.summary.resource_expansion_freeze_source_extractor_coverage_report_status, "complete");
+      assert.equal(dashboard.summary.resource_expansion_freeze_source_extractor_coverage_phase_slot, "P284");
+      assert.equal(dashboard.summary.resource_expansion_freeze_source_expansion_status_dashboard_status, "complete");
+      assert.equal(dashboard.summary.resource_expansion_freeze_source_expansion_status_dashboard_phase_slot, "P285");
+      assert.equal(dashboard.summary.resource_expansion_freeze_source_expansion_status_dashboard_next_phase_slot, "P286");
+      assert.equal(dashboard.summary.resource_expansion_freeze_source_count, resourceExpansionFreeze.summary.source_count);
+      assert.equal(dashboard.summary.resource_expansion_freeze_passed_source_count, resourceExpansionFreeze.summary.source_count);
+      assert.equal(dashboard.summary.resource_expansion_freeze_dry_run_scale_target_count, 2713);
+      assert.equal(dashboard.summary.resource_expansion_freeze_dry_run_source_sample_item_count, second.items.length);
+      assert.equal(dashboard.summary.resource_expansion_freeze_projected_batch_count, resourceExpansionFreeze.summary.projected_batch_count);
+      assert.equal(dashboard.summary.resource_expansion_freeze_dry_run_row_count, resourceExpansionFreeze.summary.dry_run_row_count);
+      assert.equal(dashboard.summary.resource_expansion_freeze_passed_dry_run_row_count, resourceExpansionFreeze.summary.dry_run_row_count);
+      assert.equal(dashboard.summary.resource_expansion_freeze_projected_item_count, 2713);
+      assert.equal(dashboard.summary.resource_expansion_freeze_projected_terminal_item_count, 2713);
+      assert.equal(dashboard.summary.resource_expansion_freeze_projected_remaining_item_count, 0);
+      assert.equal(dashboard.summary.resource_expansion_freeze_resource_expansion_discovered_count, second.summary.discovered_count);
+      assert.equal(dashboard.summary.resource_expansion_freeze_resource_expansion_terminal_count, second.summary.terminal_count);
+      assert.equal(dashboard.summary.resource_expansion_freeze_resource_expansion_remaining_count, second.summary.remaining_count);
+      assert.equal(dashboard.summary.resource_expansion_freeze_resource_expansion_failed_count, second.summary.failed_count);
+      assert.equal(dashboard.summary.resource_expansion_freeze_resource_expansion_quarantine_count, second.summary.quarantine_count);
+      assert.equal(dashboard.summary.resource_expansion_freeze_resource_expansion_skipped_duplicate_count, second.summary.skipped_duplicate_count);
+      assert.equal(dashboard.summary.resource_expansion_freeze_resource_expansion_extracted_count, second.summary.extracted_count);
+      assert.equal(dashboard.summary.resource_expansion_freeze_resume_probe_count, resourceExpansionFreeze.summary.resume_probe_count);
+      assert.equal(dashboard.summary.resource_expansion_freeze_passed_resume_probe_count, resourceExpansionFreeze.summary.resume_probe_count);
+      assert.equal(dashboard.summary.resource_expansion_freeze_idempotency_probe_count, resourceExpansionFreeze.summary.idempotency_probe_count);
+      assert.equal(dashboard.summary.resource_expansion_freeze_passed_idempotency_probe_count, resourceExpansionFreeze.summary.idempotency_probe_count);
+      assert.equal(dashboard.summary.resource_expansion_freeze_scale_check_count, resourceExpansionFreeze.summary.scale_check_count);
+      assert.equal(dashboard.summary.resource_expansion_freeze_passed_scale_check_count, resourceExpansionFreeze.summary.scale_check_count);
+      assert.equal(dashboard.summary.resource_expansion_freeze_resumable_backfill_dry_run_verified, true);
+      assert.equal(dashboard.summary.resource_expansion_freeze_idempotent_backfill_dry_run_verified, true);
+      assert.equal(dashboard.summary.resource_expansion_freeze_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.resource_expansion_freeze_read_only, true);
+      assert.equal(dashboard.summary.resource_expansion_freeze_report_only, true);
+      assert.equal(dashboard.summary.resource_expansion_freeze_scale_projection_only, true);
+      assert.equal(dashboard.summary.resource_expansion_freeze_source_artifact_read_performed, true);
+      assert.equal(dashboard.summary.resource_expansion_freeze_backfill_dry_run_execution_performed, false);
+      assert.equal(dashboard.summary.resource_expansion_freeze_backfill_execution_performed, false);
+      assert.equal(dashboard.summary.resource_expansion_freeze_source_ingest_performed, false);
+      assert.equal(dashboard.summary.resource_expansion_freeze_file_content_read_performed, false);
+      assert.equal(dashboard.summary.resource_expansion_freeze_extraction_retry_performed, false);
+      assert.equal(dashboard.summary.resource_expansion_freeze_quarantine_release_performed, false);
+      assert.equal(dashboard.summary.resource_expansion_freeze_source_mutation_performed, false);
+      assert.equal(dashboard.summary.resource_expansion_freeze_resource_mutation_performed, false);
+      assert.equal(dashboard.summary.resource_expansion_freeze_state_mutation_performed, false);
+      assert.equal(dashboard.summary.resource_expansion_freeze_matter_data_write_performed, false);
+      assert.equal(dashboard.summary.resource_expansion_freeze_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.resource_expansion_freeze_protected_action_executed, false);
+      assert.equal(dashboard.summary.resource_expansion_freeze_legal_advice_generated, false);
+      assert.equal(dashboard.summary.resource_expansion_freeze_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.resource_expansion_freeze_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.resource_expansion_freeze_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.resource_expansion_freeze_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -21793,6 +21970,68 @@ describe("matter harness", () => {
       assert.equal(expansionStatusDashboardStage?.metrics.client_facing_output_generated, false);
       assert.equal(expansionStatusDashboardStage?.metrics.windows_baseline_stability_preserved, true);
       assert.equal(expansionStatusDashboardStage?.metrics.validation_error_count, 0);
+      const resourceExpansionFreezeStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "resource_expansion_freeze");
+      assert.equal(resourceExpansionFreezeStage?.status, "passed");
+      assert.equal(resourceExpansionFreezeStage?.metrics.resource_expansion_freeze_status, "complete");
+      assert.equal(resourceExpansionFreezeStage?.metrics.phase_slot, "P286");
+      assert.equal(resourceExpansionFreezeStage?.metrics.previous_phase_slot, "P285");
+      assert.equal(resourceExpansionFreezeStage?.metrics.next_phase_slot, "P287");
+      assert.equal(resourceExpansionFreezeStage?.metrics.source_backfill_job_contract_status, "complete");
+      assert.equal(resourceExpansionFreezeStage?.metrics.source_backfill_job_contract_phase_slot, "P277");
+      assert.equal(resourceExpansionFreezeStage?.metrics.source_expansion_cursor_ledger_status, "complete");
+      assert.equal(resourceExpansionFreezeStage?.metrics.source_expansion_cursor_phase_slot, "P278");
+      assert.equal(resourceExpansionFreezeStage?.metrics.source_expansion_dedup_ledger_status, "complete");
+      assert.equal(resourceExpansionFreezeStage?.metrics.source_expansion_dedup_phase_slot, "P279");
+      assert.equal(resourceExpansionFreezeStage?.metrics.source_expansion_quarantine_ledger_status, "complete");
+      assert.equal(resourceExpansionFreezeStage?.metrics.source_expansion_quarantine_phase_slot, "P280");
+      assert.equal(resourceExpansionFreezeStage?.metrics.source_batch_classification_result_status, "complete");
+      assert.equal(resourceExpansionFreezeStage?.metrics.source_batch_classification_phase_slot, "P281");
+      assert.equal(resourceExpansionFreezeStage?.metrics.source_batch_matter_tagging_result_status, "complete");
+      assert.equal(resourceExpansionFreezeStage?.metrics.source_batch_matter_tagging_phase_slot, "P282");
+      assert.equal(resourceExpansionFreezeStage?.metrics.source_extractor_registry_status, "complete");
+      assert.equal(resourceExpansionFreezeStage?.metrics.source_extractor_registry_phase_slot, "P283");
+      assert.equal(resourceExpansionFreezeStage?.metrics.source_extractor_coverage_report_status, "complete");
+      assert.equal(resourceExpansionFreezeStage?.metrics.source_extractor_coverage_phase_slot, "P284");
+      assert.equal(resourceExpansionFreezeStage?.metrics.source_expansion_status_dashboard_status, "complete");
+      assert.equal(resourceExpansionFreezeStage?.metrics.source_expansion_status_dashboard_phase_slot, "P285");
+      assert.equal(resourceExpansionFreezeStage?.metrics.source_expansion_status_dashboard_next_phase_slot, "P286");
+      assert.equal(resourceExpansionFreezeStage?.metrics.source_count, resourceExpansionFreeze.summary.source_count);
+      assert.equal(resourceExpansionFreezeStage?.metrics.passed_source_count, resourceExpansionFreeze.summary.source_count);
+      assert.equal(resourceExpansionFreezeStage?.metrics.dry_run_scale_target_count, 2713);
+      assert.equal(resourceExpansionFreezeStage?.metrics.dry_run_row_count, resourceExpansionFreeze.summary.dry_run_row_count);
+      assert.equal(resourceExpansionFreezeStage?.metrics.passed_dry_run_row_count, resourceExpansionFreeze.summary.dry_run_row_count);
+      assert.equal(resourceExpansionFreezeStage?.metrics.projected_item_count, 2713);
+      assert.equal(resourceExpansionFreezeStage?.metrics.projected_remaining_item_count, 0);
+      assert.equal(resourceExpansionFreezeStage?.metrics.resume_probe_count, resourceExpansionFreeze.summary.resume_probe_count);
+      assert.equal(resourceExpansionFreezeStage?.metrics.passed_resume_probe_count, resourceExpansionFreeze.summary.resume_probe_count);
+      assert.equal(resourceExpansionFreezeStage?.metrics.idempotency_probe_count, resourceExpansionFreeze.summary.idempotency_probe_count);
+      assert.equal(resourceExpansionFreezeStage?.metrics.passed_idempotency_probe_count, resourceExpansionFreeze.summary.idempotency_probe_count);
+      assert.equal(resourceExpansionFreezeStage?.metrics.scale_check_count, resourceExpansionFreeze.summary.scale_check_count);
+      assert.equal(resourceExpansionFreezeStage?.metrics.passed_scale_check_count, resourceExpansionFreeze.summary.scale_check_count);
+      assert.equal(resourceExpansionFreezeStage?.metrics.resumable_backfill_dry_run_verified, true);
+      assert.equal(resourceExpansionFreezeStage?.metrics.idempotent_backfill_dry_run_verified, true);
+      assert.equal(resourceExpansionFreezeStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(resourceExpansionFreezeStage?.metrics.read_only, true);
+      assert.equal(resourceExpansionFreezeStage?.metrics.report_only, true);
+      assert.equal(resourceExpansionFreezeStage?.metrics.scale_projection_only, true);
+      assert.equal(resourceExpansionFreezeStage?.metrics.source_artifact_read_performed, true);
+      assert.equal(resourceExpansionFreezeStage?.metrics.backfill_dry_run_execution_performed, false);
+      assert.equal(resourceExpansionFreezeStage?.metrics.backfill_execution_performed, false);
+      assert.equal(resourceExpansionFreezeStage?.metrics.source_ingest_performed, false);
+      assert.equal(resourceExpansionFreezeStage?.metrics.file_content_read_performed, false);
+      assert.equal(resourceExpansionFreezeStage?.metrics.extraction_retry_performed, false);
+      assert.equal(resourceExpansionFreezeStage?.metrics.quarantine_release_performed, false);
+      assert.equal(resourceExpansionFreezeStage?.metrics.source_mutation_performed, false);
+      assert.equal(resourceExpansionFreezeStage?.metrics.resource_mutation_performed, false);
+      assert.equal(resourceExpansionFreezeStage?.metrics.state_mutation_performed, false);
+      assert.equal(resourceExpansionFreezeStage?.metrics.matter_data_write_performed, false);
+      assert.equal(resourceExpansionFreezeStage?.metrics.delivery_execution_performed, false);
+      assert.equal(resourceExpansionFreezeStage?.metrics.protected_action_executed, false);
+      assert.equal(resourceExpansionFreezeStage?.metrics.legal_advice_generated, false);
+      assert.equal(resourceExpansionFreezeStage?.metrics.client_facing_output_generated, false);
+      assert.equal(resourceExpansionFreezeStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(resourceExpansionFreezeStage?.metrics.mac_windows_completion_instability_guard, true);
+      assert.equal(resourceExpansionFreezeStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -21944,6 +22183,15 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-status-api-routes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-status-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/expansion-status-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-expansion-freezes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-expansion-freeze-sources"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-expansion-freeze-dry-runs"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-expansion-freeze-resume-probes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-expansion-freeze-idempotency-probes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-expansion-freeze-scale-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-expansion-freeze-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-expansion-freeze-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-expansion-freeze-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -24652,6 +24900,42 @@ describe("matter harness", () => {
       const expansionStatusValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/expansion-status-validations?status=passed", apiOptions)).body);
       assert.equal(expansionStatusValidationsResponse.collection, "expansion_status_validations");
       assert.equal(expansionStatusValidationsResponse.count, expansionStatusDashboard.summary.validation_item_count);
+
+      const resourceExpansionFreezesResponse = JSON.parse((await buildReviewApiResponse("/api/resource-expansion-freezes?resource_expansion_freeze_status=complete", apiOptions)).body);
+      assert.equal(resourceExpansionFreezesResponse.collection, "resource_expansion_freezes");
+      assert.equal(resourceExpansionFreezesResponse.count, 1);
+
+      const resourceExpansionFreezeSourcesResponse = JSON.parse((await buildReviewApiResponse("/api/resource-expansion-freeze-sources?expansion_freeze_source_status=complete", apiOptions)).body);
+      assert.equal(resourceExpansionFreezeSourcesResponse.collection, "expansion_freeze_source_rows");
+      assert.equal(resourceExpansionFreezeSourcesResponse.count, resourceExpansionFreeze.summary.source_count);
+
+      const resourceExpansionFreezeDryRunsResponse = JSON.parse((await buildReviewApiResponse("/api/resource-expansion-freeze-dry-runs?expansion_freeze_dry_run_status=passed", apiOptions)).body);
+      assert.equal(resourceExpansionFreezeDryRunsResponse.collection, "expansion_freeze_dry_run_rows");
+      assert.equal(resourceExpansionFreezeDryRunsResponse.count, resourceExpansionFreeze.summary.dry_run_row_count);
+
+      const resourceExpansionFreezeResumeProbesResponse = JSON.parse((await buildReviewApiResponse("/api/resource-expansion-freeze-resume-probes?expansion_freeze_resume_status=passed", apiOptions)).body);
+      assert.equal(resourceExpansionFreezeResumeProbesResponse.collection, "expansion_freeze_resume_probes");
+      assert.equal(resourceExpansionFreezeResumeProbesResponse.count, resourceExpansionFreeze.summary.resume_probe_count);
+
+      const resourceExpansionFreezeIdempotencyProbesResponse = JSON.parse((await buildReviewApiResponse("/api/resource-expansion-freeze-idempotency-probes?expansion_freeze_idempotency_status=passed", apiOptions)).body);
+      assert.equal(resourceExpansionFreezeIdempotencyProbesResponse.collection, "expansion_freeze_idempotency_probes");
+      assert.equal(resourceExpansionFreezeIdempotencyProbesResponse.count, resourceExpansionFreeze.summary.idempotency_probe_count);
+
+      const resourceExpansionFreezeScaleChecksResponse = JSON.parse((await buildReviewApiResponse("/api/resource-expansion-freeze-scale-checks?expansion_freeze_scale_check_status=passed", apiOptions)).body);
+      assert.equal(resourceExpansionFreezeScaleChecksResponse.collection, "expansion_freeze_scale_checks");
+      assert.equal(resourceExpansionFreezeScaleChecksResponse.count, resourceExpansionFreeze.summary.scale_check_count);
+
+      const resourceExpansionFreezeBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/resource-expansion-freeze-boundary?expansion_freeze_boundary_status=enforced", apiOptions)).body);
+      assert.equal(resourceExpansionFreezeBoundaryResponse.collection, "expansion_freeze_boundary");
+      assert.equal(resourceExpansionFreezeBoundaryResponse.count, 1);
+
+      const resourceExpansionFreezeChecksResponse = JSON.parse((await buildReviewApiResponse("/api/resource-expansion-freeze-checks?status=passed", apiOptions)).body);
+      assert.equal(resourceExpansionFreezeChecksResponse.collection, "expansion_freeze_checkpoints");
+      assert.equal(resourceExpansionFreezeChecksResponse.count, resourceExpansionFreeze.summary.validation_item_count);
+
+      const resourceExpansionFreezeValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/resource-expansion-freeze-validations?status=passed", apiOptions)).body);
+      assert.equal(resourceExpansionFreezeValidationsResponse.collection, "expansion_freeze_validations");
+      assert.equal(resourceExpansionFreezeValidationsResponse.count, resourceExpansionFreeze.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

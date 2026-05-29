@@ -260,6 +260,7 @@
     "resource:extractor-registry": "node scripts/extractor-registry.mjs",
     "resource:extractor-coverage": "node scripts/extractor-coverage-report.mjs",
     "resource:expansion-status": "node scripts/expansion-status-dashboard.mjs",
+    "resource:expansion-freeze": "node scripts/resource-expansion-freeze.mjs",
     "resource:extract": "node scripts/resource-extract.mjs",
     "resource:extractor-adapters": "node scripts/extractor-adapter-contract.mjs",
     "resource:evidence-items": "node scripts/evidence-item-store.mjs",

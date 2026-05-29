@@ -121,6 +121,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   extractorRegistryPath: "artifacts/extractor-registry/latest/extractor-registry.json",
   extractorCoverageReportPath: "artifacts/extractor-coverage-report/latest/extractor-coverage-report.json",
   expansionStatusDashboardPath: "artifacts/expansion-status-dashboard/latest/expansion-status-dashboard.json",
+  resourceExpansionFreezePath: "artifacts/resource-expansion-freeze/latest/resource-expansion-freeze.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -869,6 +870,11 @@ const SOURCE_DEFINITIONS = [
     option: "expansionStatusDashboardPath",
     source_id: "expansion_status_dashboard",
     label: "Expansion Status Dashboard",
+  },
+  {
+    option: "resourceExpansionFreezePath",
+    source_id: "resource_expansion_freeze",
+    label: "Resource Expansion Freeze",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1859,6 +1865,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "extractor_registry") return data.summary ?? {};
   if (sourceId === "extractor_coverage_report") return data.summary ?? {};
   if (sourceId === "expansion_status_dashboard") return data.summary ?? {};
+  if (sourceId === "resource_expansion_freeze") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2261,6 +2268,7 @@ function buildStageStatuses(artifacts, sources) {
     buildExtractorRegistryStage(artifacts.extractor_registry, sourceById.get("extractor_registry")),
     buildExtractorCoverageReportStage(artifacts.extractor_coverage_report, sourceById.get("extractor_coverage_report")),
     buildExpansionStatusDashboardStage(artifacts.expansion_status_dashboard, sourceById.get("expansion_status_dashboard")),
+    buildResourceExpansionFreezeStage(artifacts.resource_expansion_freeze, sourceById.get("resource_expansion_freeze")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -14215,6 +14223,175 @@ function buildExpansionStatusDashboardStage(artifact, source) {
   };
 }
 
+function buildResourceExpansionFreezeStage(artifact, source) {
+  if (!artifact) return missingStage("resource_expansion_freeze", "Resource Expansion Freeze", source);
+  const summary = artifact.summary ?? {};
+  const sourceCount = summary.source_count ?? 0;
+  const targetCount = summary.dry_run_scale_target_count ?? 0;
+  const dryRunRowCount = summary.dry_run_row_count ?? 0;
+  const status = artifact.validation?.valid === false
+    || summary.resource_expansion_freeze_status !== "complete"
+    || summary.phase_slot !== "P286"
+    || summary.previous_phase_slot !== "P285"
+    || summary.next_phase_slot !== "P287"
+    || summary.source_backfill_job_contract_status !== "complete"
+    || summary.source_backfill_job_contract_phase_slot !== "P277"
+    || summary.source_expansion_cursor_ledger_status !== "complete"
+    || summary.source_expansion_cursor_phase_slot !== "P278"
+    || summary.source_expansion_dedup_ledger_status !== "complete"
+    || summary.source_expansion_dedup_phase_slot !== "P279"
+    || summary.source_expansion_quarantine_ledger_status !== "complete"
+    || summary.source_expansion_quarantine_phase_slot !== "P280"
+    || summary.source_batch_classification_result_status !== "complete"
+    || summary.source_batch_classification_phase_slot !== "P281"
+    || summary.source_batch_matter_tagging_result_status !== "complete"
+    || summary.source_batch_matter_tagging_phase_slot !== "P282"
+    || summary.source_extractor_registry_status !== "complete"
+    || summary.source_extractor_registry_phase_slot !== "P283"
+    || summary.source_extractor_coverage_report_status !== "complete"
+    || summary.source_extractor_coverage_phase_slot !== "P284"
+    || summary.source_expansion_status_dashboard_status !== "complete"
+    || summary.source_expansion_status_dashboard_phase_slot !== "P285"
+    || summary.source_expansion_status_dashboard_next_phase_slot !== "P286"
+    || sourceCount <= 0
+    || summary.passed_source_count !== sourceCount
+    || targetCount < 2713
+    || summary.projected_item_count !== targetCount
+    || summary.projected_terminal_item_count !== targetCount
+    || summary.projected_remaining_item_count !== 0
+    || summary.projected_batch_count !== dryRunRowCount
+    || dryRunRowCount <= 0
+    || summary.passed_dry_run_row_count !== dryRunRowCount
+    || summary.resume_probe_count <= 0
+    || summary.passed_resume_probe_count !== summary.resume_probe_count
+    || summary.idempotency_probe_count <= 0
+    || summary.passed_idempotency_probe_count !== summary.idempotency_probe_count
+    || summary.scale_check_count <= 0
+    || summary.passed_scale_check_count !== summary.scale_check_count
+    || summary.resumable_backfill_dry_run_verified !== true
+    || summary.idempotent_backfill_dry_run_verified !== true
+    || summary.client_facing_ready_count !== 0
+    || summary.read_only !== true
+    || summary.report_only !== true
+    || summary.scale_projection_only !== true
+    || summary.source_artifact_read_performed !== true
+    || summary.backfill_dry_run_execution_performed !== false
+    || summary.backfill_execution_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.file_content_read_performed !== false
+    || summary.extraction_retry_performed !== false
+    || summary.quarantine_release_performed !== false
+    || summary.source_mutation_performed !== false
+    || summary.resource_mutation_performed !== false
+    || summary.state_mutation_performed !== false
+    || summary.matter_data_write_performed !== false
+    || summary.delivery_execution_performed !== false
+    || summary.protected_action_executed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || summary.failed_checkpoint_count !== 0
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "resource_expansion_freeze",
+    label: "Resource Expansion Freeze",
+    status,
+    message: `${targetCount} item dry-run projection across ${dryRunRowCount} resumable/idempotent batch row(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      resource_expansion_freeze_status: summary.resource_expansion_freeze_status ?? "unknown",
+      resource_expansion_freeze_id: summary.resource_expansion_freeze_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_resource_expansion_schema_version: summary.source_resource_expansion_schema_version ?? null,
+      source_resource_expansion_job_id: summary.source_resource_expansion_job_id ?? null,
+      source_resource_item_count: summary.source_resource_item_count ?? 0,
+      source_state_item_count: summary.source_state_item_count ?? 0,
+      source_next_batch_count: summary.source_next_batch_count ?? 0,
+      source_backfill_job_contract_status: summary.source_backfill_job_contract_status ?? "unknown",
+      source_backfill_job_contract_phase_slot: summary.source_backfill_job_contract_phase_slot ?? null,
+      source_expansion_cursor_ledger_status: summary.source_expansion_cursor_ledger_status ?? "unknown",
+      source_expansion_cursor_phase_slot: summary.source_expansion_cursor_phase_slot ?? null,
+      source_expansion_dedup_ledger_status: summary.source_expansion_dedup_ledger_status ?? "unknown",
+      source_expansion_dedup_phase_slot: summary.source_expansion_dedup_phase_slot ?? null,
+      source_expansion_quarantine_ledger_status: summary.source_expansion_quarantine_ledger_status ?? "unknown",
+      source_expansion_quarantine_phase_slot: summary.source_expansion_quarantine_phase_slot ?? null,
+      source_batch_classification_result_status: summary.source_batch_classification_result_status ?? "unknown",
+      source_batch_classification_phase_slot: summary.source_batch_classification_phase_slot ?? null,
+      source_batch_matter_tagging_result_status: summary.source_batch_matter_tagging_result_status ?? "unknown",
+      source_batch_matter_tagging_phase_slot: summary.source_batch_matter_tagging_phase_slot ?? null,
+      source_extractor_registry_status: summary.source_extractor_registry_status ?? "unknown",
+      source_extractor_registry_phase_slot: summary.source_extractor_registry_phase_slot ?? null,
+      source_extractor_coverage_report_status: summary.source_extractor_coverage_report_status ?? "unknown",
+      source_extractor_coverage_phase_slot: summary.source_extractor_coverage_phase_slot ?? null,
+      source_expansion_status_dashboard_status: summary.source_expansion_status_dashboard_status ?? "unknown",
+      source_expansion_status_dashboard_phase_slot: summary.source_expansion_status_dashboard_phase_slot ?? null,
+      source_expansion_status_dashboard_next_phase_slot: summary.source_expansion_status_dashboard_next_phase_slot ?? null,
+      source_count: sourceCount,
+      passed_source_count: summary.passed_source_count ?? 0,
+      dry_run_scale_target_count: targetCount,
+      dry_run_source_sample_item_count: summary.dry_run_source_sample_item_count ?? 0,
+      dry_run_batch_size: summary.dry_run_batch_size ?? 0,
+      projected_batch_count: summary.projected_batch_count ?? 0,
+      dry_run_row_count: dryRunRowCount,
+      passed_dry_run_row_count: summary.passed_dry_run_row_count ?? 0,
+      projected_item_count: summary.projected_item_count ?? 0,
+      projected_terminal_item_count: summary.projected_terminal_item_count ?? 0,
+      projected_remaining_item_count: summary.projected_remaining_item_count ?? 0,
+      resource_expansion_discovered_count: summary.resource_expansion_discovered_count ?? 0,
+      resource_expansion_terminal_count: summary.resource_expansion_terminal_count ?? 0,
+      resource_expansion_remaining_count: summary.resource_expansion_remaining_count ?? 0,
+      resource_expansion_failed_count: summary.resource_expansion_failed_count ?? 0,
+      resource_expansion_quarantine_count: summary.resource_expansion_quarantine_count ?? 0,
+      resource_expansion_skipped_duplicate_count: summary.resource_expansion_skipped_duplicate_count ?? 0,
+      resource_expansion_extracted_count: summary.resource_expansion_extracted_count ?? 0,
+      cursor_portable_resume_key_count: summary.cursor_portable_resume_key_count ?? 0,
+      cursor_resume_checkpoint_count: summary.cursor_resume_checkpoint_count ?? 0,
+      passed_cursor_resume_checkpoint_count: summary.passed_cursor_resume_checkpoint_count ?? 0,
+      dedup_idempotency_key_count: summary.dedup_idempotency_key_count ?? 0,
+      dedup_unique_idempotency_key_count: summary.dedup_unique_idempotency_key_count ?? 0,
+      dedup_idempotency_key_collision_count: summary.dedup_idempotency_key_collision_count ?? 0,
+      resume_probe_count: summary.resume_probe_count ?? 0,
+      passed_resume_probe_count: summary.passed_resume_probe_count ?? 0,
+      idempotency_probe_count: summary.idempotency_probe_count ?? 0,
+      passed_idempotency_probe_count: summary.passed_idempotency_probe_count ?? 0,
+      scale_check_count: summary.scale_check_count ?? 0,
+      passed_scale_check_count: summary.passed_scale_check_count ?? 0,
+      resumable_backfill_dry_run_verified: summary.resumable_backfill_dry_run_verified ?? false,
+      idempotent_backfill_dry_run_verified: summary.idempotent_backfill_dry_run_verified ?? false,
+      human_review_required_count: summary.human_review_required_count ?? 0,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      read_only: summary.read_only ?? false,
+      report_only: summary.report_only ?? false,
+      scale_projection_only: summary.scale_projection_only ?? false,
+      source_artifact_read_performed: summary.source_artifact_read_performed ?? false,
+      backfill_dry_run_execution_performed: summary.backfill_dry_run_execution_performed ?? false,
+      backfill_execution_performed: summary.backfill_execution_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      file_content_read_performed: summary.file_content_read_performed ?? false,
+      extraction_retry_performed: summary.extraction_retry_performed ?? false,
+      quarantine_release_performed: summary.quarantine_release_performed ?? false,
+      source_mutation_performed: summary.source_mutation_performed ?? false,
+      resource_mutation_performed: summary.resource_mutation_performed ?? false,
+      state_mutation_performed: summary.state_mutation_performed ?? false,
+      matter_data_write_performed: summary.matter_data_write_performed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -20841,6 +21018,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_expansion_status_dashboard", "rerun_expansion_status_dashboard", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.resource_expansion_freeze?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "resource_expansion_freeze";
+    items.push({
+      action_item_id: `dashboard.action.resource_expansion_freeze.${slugify(subjectId)}`,
+      source_stage: "resource_expansion_freeze",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Resource Expansion Freeze",
+      subject_ref: {
+        subject_type: "resource_expansion_freeze_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_resource_expansion_freeze", "rerun_resource_expansion_freeze", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -27816,6 +28011,92 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     expansion_status_dashboard_validation_item_count: artifacts.expansion_status_dashboard?.summary?.validation_item_count ?? 0,
     expansion_status_dashboard_failed_checkpoint_count: artifacts.expansion_status_dashboard?.summary?.failed_checkpoint_count ?? 0,
     expansion_status_dashboard_validation_error_count: artifacts.expansion_status_dashboard?.summary?.validation_error_count ?? artifacts.expansion_status_dashboard?.validation?.errors?.length ?? 0,
+    resource_expansion_freeze_status: artifacts.resource_expansion_freeze?.summary?.resource_expansion_freeze_status ?? "unknown",
+    resource_expansion_freeze_id: artifacts.resource_expansion_freeze?.summary?.resource_expansion_freeze_id ?? null,
+    resource_expansion_freeze_phase_slot: artifacts.resource_expansion_freeze?.summary?.phase_slot ?? null,
+    resource_expansion_freeze_previous_phase_slot: artifacts.resource_expansion_freeze?.summary?.previous_phase_slot ?? null,
+    resource_expansion_freeze_next_phase_slot: artifacts.resource_expansion_freeze?.summary?.next_phase_slot ?? null,
+    resource_expansion_freeze_source_resource_expansion_schema_version: artifacts.resource_expansion_freeze?.summary?.source_resource_expansion_schema_version ?? null,
+    resource_expansion_freeze_source_resource_expansion_job_id: artifacts.resource_expansion_freeze?.summary?.source_resource_expansion_job_id ?? null,
+    resource_expansion_freeze_source_resource_item_count: artifacts.resource_expansion_freeze?.summary?.source_resource_item_count ?? 0,
+    resource_expansion_freeze_source_state_item_count: artifacts.resource_expansion_freeze?.summary?.source_state_item_count ?? 0,
+    resource_expansion_freeze_source_next_batch_count: artifacts.resource_expansion_freeze?.summary?.source_next_batch_count ?? 0,
+    resource_expansion_freeze_source_backfill_job_contract_status: artifacts.resource_expansion_freeze?.summary?.source_backfill_job_contract_status ?? "unknown",
+    resource_expansion_freeze_source_backfill_job_contract_phase_slot: artifacts.resource_expansion_freeze?.summary?.source_backfill_job_contract_phase_slot ?? null,
+    resource_expansion_freeze_source_expansion_cursor_ledger_status: artifacts.resource_expansion_freeze?.summary?.source_expansion_cursor_ledger_status ?? "unknown",
+    resource_expansion_freeze_source_expansion_cursor_phase_slot: artifacts.resource_expansion_freeze?.summary?.source_expansion_cursor_phase_slot ?? null,
+    resource_expansion_freeze_source_expansion_dedup_ledger_status: artifacts.resource_expansion_freeze?.summary?.source_expansion_dedup_ledger_status ?? "unknown",
+    resource_expansion_freeze_source_expansion_dedup_phase_slot: artifacts.resource_expansion_freeze?.summary?.source_expansion_dedup_phase_slot ?? null,
+    resource_expansion_freeze_source_expansion_quarantine_ledger_status: artifacts.resource_expansion_freeze?.summary?.source_expansion_quarantine_ledger_status ?? "unknown",
+    resource_expansion_freeze_source_expansion_quarantine_phase_slot: artifacts.resource_expansion_freeze?.summary?.source_expansion_quarantine_phase_slot ?? null,
+    resource_expansion_freeze_source_batch_classification_result_status: artifacts.resource_expansion_freeze?.summary?.source_batch_classification_result_status ?? "unknown",
+    resource_expansion_freeze_source_batch_classification_phase_slot: artifacts.resource_expansion_freeze?.summary?.source_batch_classification_phase_slot ?? null,
+    resource_expansion_freeze_source_batch_matter_tagging_result_status: artifacts.resource_expansion_freeze?.summary?.source_batch_matter_tagging_result_status ?? "unknown",
+    resource_expansion_freeze_source_batch_matter_tagging_phase_slot: artifacts.resource_expansion_freeze?.summary?.source_batch_matter_tagging_phase_slot ?? null,
+    resource_expansion_freeze_source_extractor_registry_status: artifacts.resource_expansion_freeze?.summary?.source_extractor_registry_status ?? "unknown",
+    resource_expansion_freeze_source_extractor_registry_phase_slot: artifacts.resource_expansion_freeze?.summary?.source_extractor_registry_phase_slot ?? null,
+    resource_expansion_freeze_source_extractor_coverage_report_status: artifacts.resource_expansion_freeze?.summary?.source_extractor_coverage_report_status ?? "unknown",
+    resource_expansion_freeze_source_extractor_coverage_phase_slot: artifacts.resource_expansion_freeze?.summary?.source_extractor_coverage_phase_slot ?? null,
+    resource_expansion_freeze_source_expansion_status_dashboard_status: artifacts.resource_expansion_freeze?.summary?.source_expansion_status_dashboard_status ?? "unknown",
+    resource_expansion_freeze_source_expansion_status_dashboard_phase_slot: artifacts.resource_expansion_freeze?.summary?.source_expansion_status_dashboard_phase_slot ?? null,
+    resource_expansion_freeze_source_expansion_status_dashboard_next_phase_slot: artifacts.resource_expansion_freeze?.summary?.source_expansion_status_dashboard_next_phase_slot ?? null,
+    resource_expansion_freeze_source_count: artifacts.resource_expansion_freeze?.summary?.source_count ?? 0,
+    resource_expansion_freeze_passed_source_count: artifacts.resource_expansion_freeze?.summary?.passed_source_count ?? 0,
+    resource_expansion_freeze_dry_run_scale_target_count: artifacts.resource_expansion_freeze?.summary?.dry_run_scale_target_count ?? 0,
+    resource_expansion_freeze_dry_run_source_sample_item_count: artifacts.resource_expansion_freeze?.summary?.dry_run_source_sample_item_count ?? 0,
+    resource_expansion_freeze_dry_run_batch_size: artifacts.resource_expansion_freeze?.summary?.dry_run_batch_size ?? 0,
+    resource_expansion_freeze_projected_batch_count: artifacts.resource_expansion_freeze?.summary?.projected_batch_count ?? 0,
+    resource_expansion_freeze_dry_run_row_count: artifacts.resource_expansion_freeze?.summary?.dry_run_row_count ?? 0,
+    resource_expansion_freeze_passed_dry_run_row_count: artifacts.resource_expansion_freeze?.summary?.passed_dry_run_row_count ?? 0,
+    resource_expansion_freeze_projected_item_count: artifacts.resource_expansion_freeze?.summary?.projected_item_count ?? 0,
+    resource_expansion_freeze_projected_terminal_item_count: artifacts.resource_expansion_freeze?.summary?.projected_terminal_item_count ?? 0,
+    resource_expansion_freeze_projected_remaining_item_count: artifacts.resource_expansion_freeze?.summary?.projected_remaining_item_count ?? 0,
+    resource_expansion_freeze_resource_expansion_discovered_count: artifacts.resource_expansion_freeze?.summary?.resource_expansion_discovered_count ?? 0,
+    resource_expansion_freeze_resource_expansion_terminal_count: artifacts.resource_expansion_freeze?.summary?.resource_expansion_terminal_count ?? 0,
+    resource_expansion_freeze_resource_expansion_remaining_count: artifacts.resource_expansion_freeze?.summary?.resource_expansion_remaining_count ?? 0,
+    resource_expansion_freeze_resource_expansion_failed_count: artifacts.resource_expansion_freeze?.summary?.resource_expansion_failed_count ?? 0,
+    resource_expansion_freeze_resource_expansion_quarantine_count: artifacts.resource_expansion_freeze?.summary?.resource_expansion_quarantine_count ?? 0,
+    resource_expansion_freeze_resource_expansion_skipped_duplicate_count: artifacts.resource_expansion_freeze?.summary?.resource_expansion_skipped_duplicate_count ?? 0,
+    resource_expansion_freeze_resource_expansion_extracted_count: artifacts.resource_expansion_freeze?.summary?.resource_expansion_extracted_count ?? 0,
+    resource_expansion_freeze_cursor_portable_resume_key_count: artifacts.resource_expansion_freeze?.summary?.cursor_portable_resume_key_count ?? 0,
+    resource_expansion_freeze_cursor_resume_checkpoint_count: artifacts.resource_expansion_freeze?.summary?.cursor_resume_checkpoint_count ?? 0,
+    resource_expansion_freeze_passed_cursor_resume_checkpoint_count: artifacts.resource_expansion_freeze?.summary?.passed_cursor_resume_checkpoint_count ?? 0,
+    resource_expansion_freeze_dedup_idempotency_key_count: artifacts.resource_expansion_freeze?.summary?.dedup_idempotency_key_count ?? 0,
+    resource_expansion_freeze_dedup_unique_idempotency_key_count: artifacts.resource_expansion_freeze?.summary?.dedup_unique_idempotency_key_count ?? 0,
+    resource_expansion_freeze_dedup_idempotency_key_collision_count: artifacts.resource_expansion_freeze?.summary?.dedup_idempotency_key_collision_count ?? 0,
+    resource_expansion_freeze_resume_probe_count: artifacts.resource_expansion_freeze?.summary?.resume_probe_count ?? 0,
+    resource_expansion_freeze_passed_resume_probe_count: artifacts.resource_expansion_freeze?.summary?.passed_resume_probe_count ?? 0,
+    resource_expansion_freeze_idempotency_probe_count: artifacts.resource_expansion_freeze?.summary?.idempotency_probe_count ?? 0,
+    resource_expansion_freeze_passed_idempotency_probe_count: artifacts.resource_expansion_freeze?.summary?.passed_idempotency_probe_count ?? 0,
+    resource_expansion_freeze_scale_check_count: artifacts.resource_expansion_freeze?.summary?.scale_check_count ?? 0,
+    resource_expansion_freeze_passed_scale_check_count: artifacts.resource_expansion_freeze?.summary?.passed_scale_check_count ?? 0,
+    resource_expansion_freeze_resumable_backfill_dry_run_verified: artifacts.resource_expansion_freeze?.summary?.resumable_backfill_dry_run_verified ?? false,
+    resource_expansion_freeze_idempotent_backfill_dry_run_verified: artifacts.resource_expansion_freeze?.summary?.idempotent_backfill_dry_run_verified ?? false,
+    resource_expansion_freeze_human_review_required_count: artifacts.resource_expansion_freeze?.summary?.human_review_required_count ?? 0,
+    resource_expansion_freeze_client_facing_ready_count: artifacts.resource_expansion_freeze?.summary?.client_facing_ready_count ?? 0,
+    resource_expansion_freeze_read_only: artifacts.resource_expansion_freeze?.summary?.read_only ?? false,
+    resource_expansion_freeze_report_only: artifacts.resource_expansion_freeze?.summary?.report_only ?? false,
+    resource_expansion_freeze_scale_projection_only: artifacts.resource_expansion_freeze?.summary?.scale_projection_only ?? false,
+    resource_expansion_freeze_source_artifact_read_performed: artifacts.resource_expansion_freeze?.summary?.source_artifact_read_performed ?? false,
+    resource_expansion_freeze_backfill_dry_run_execution_performed: artifacts.resource_expansion_freeze?.summary?.backfill_dry_run_execution_performed ?? false,
+    resource_expansion_freeze_backfill_execution_performed: artifacts.resource_expansion_freeze?.summary?.backfill_execution_performed ?? false,
+    resource_expansion_freeze_source_ingest_performed: artifacts.resource_expansion_freeze?.summary?.source_ingest_performed ?? false,
+    resource_expansion_freeze_file_content_read_performed: artifacts.resource_expansion_freeze?.summary?.file_content_read_performed ?? false,
+    resource_expansion_freeze_extraction_retry_performed: artifacts.resource_expansion_freeze?.summary?.extraction_retry_performed ?? false,
+    resource_expansion_freeze_quarantine_release_performed: artifacts.resource_expansion_freeze?.summary?.quarantine_release_performed ?? false,
+    resource_expansion_freeze_source_mutation_performed: artifacts.resource_expansion_freeze?.summary?.source_mutation_performed ?? false,
+    resource_expansion_freeze_resource_mutation_performed: artifacts.resource_expansion_freeze?.summary?.resource_mutation_performed ?? false,
+    resource_expansion_freeze_state_mutation_performed: artifacts.resource_expansion_freeze?.summary?.state_mutation_performed ?? false,
+    resource_expansion_freeze_matter_data_write_performed: artifacts.resource_expansion_freeze?.summary?.matter_data_write_performed ?? false,
+    resource_expansion_freeze_delivery_execution_performed: artifacts.resource_expansion_freeze?.summary?.delivery_execution_performed ?? false,
+    resource_expansion_freeze_protected_action_executed: artifacts.resource_expansion_freeze?.summary?.protected_action_executed ?? false,
+    resource_expansion_freeze_legal_advice_generated: artifacts.resource_expansion_freeze?.summary?.legal_advice_generated ?? false,
+    resource_expansion_freeze_client_facing_output_generated: artifacts.resource_expansion_freeze?.summary?.client_facing_output_generated ?? false,
+    resource_expansion_freeze_windows_baseline_stability_preserved: artifacts.resource_expansion_freeze?.summary?.windows_baseline_stability_preserved ?? false,
+    resource_expansion_freeze_mac_windows_completion_instability_guard: artifacts.resource_expansion_freeze?.summary?.mac_windows_completion_instability_guard ?? false,
+    resource_expansion_freeze_validation_item_count: artifacts.resource_expansion_freeze?.summary?.validation_item_count ?? 0,
+    resource_expansion_freeze_failed_checkpoint_count: artifacts.resource_expansion_freeze?.summary?.failed_checkpoint_count ?? 0,
+    resource_expansion_freeze_validation_error_count: artifacts.resource_expansion_freeze?.summary?.validation_error_count ?? artifacts.resource_expansion_freeze?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -29641,6 +29922,8 @@ function parseArgs(argv) {
     else if (arg === "--no-extractor-coverage-report") parsed.extractorCoverageReportPath = false;
     else if (arg === "--expansion-status-dashboard") parsed.expansionStatusDashboardPath = argv[++index];
     else if (arg === "--no-expansion-status-dashboard") parsed.expansionStatusDashboardPath = false;
+    else if (arg === "--resource-expansion-freeze") parsed.resourceExpansionFreezePath = argv[++index];
+    else if (arg === "--no-resource-expansion-freeze") parsed.resourceExpansionFreezePath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

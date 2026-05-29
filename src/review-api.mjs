@@ -6071,6 +6071,69 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("expansion_status_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/resource-expansion-freezes") {
+    const result = await readDashboardSourceArtifact(dashboard, "resource_expansion_freeze");
+    if (!result.available) {
+      return jsonResponse(503, buildError("resource_expansion_freeze_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_expansion_freezes", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-expansion-freeze-sources") {
+    const result = await readDashboardSourceArtifact(dashboard, "resource_expansion_freeze");
+    if (!result.available) {
+      return jsonResponse(503, buildError("resource_expansion_freeze_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_freeze_source_rows", result.artifact.expansion_freeze_source_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-expansion-freeze-dry-runs") {
+    const result = await readDashboardSourceArtifact(dashboard, "resource_expansion_freeze");
+    if (!result.available) {
+      return jsonResponse(503, buildError("resource_expansion_freeze_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_freeze_dry_run_rows", result.artifact.expansion_freeze_dry_run_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-expansion-freeze-resume-probes") {
+    const result = await readDashboardSourceArtifact(dashboard, "resource_expansion_freeze");
+    if (!result.available) {
+      return jsonResponse(503, buildError("resource_expansion_freeze_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_freeze_resume_probes", result.artifact.expansion_freeze_resume_probes ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-expansion-freeze-idempotency-probes") {
+    const result = await readDashboardSourceArtifact(dashboard, "resource_expansion_freeze");
+    if (!result.available) {
+      return jsonResponse(503, buildError("resource_expansion_freeze_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_freeze_idempotency_probes", result.artifact.expansion_freeze_idempotency_probes ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-expansion-freeze-scale-checks") {
+    const result = await readDashboardSourceArtifact(dashboard, "resource_expansion_freeze");
+    if (!result.available) {
+      return jsonResponse(503, buildError("resource_expansion_freeze_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_freeze_scale_checks", result.artifact.expansion_freeze_scale_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-expansion-freeze-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "resource_expansion_freeze");
+    if (!result.available) {
+      return jsonResponse(503, buildError("resource_expansion_freeze_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_freeze_boundary", [result.artifact.expansion_freeze_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-expansion-freeze-checks") {
+    const result = await readDashboardSourceArtifact(dashboard, "resource_expansion_freeze");
+    if (!result.available) {
+      return jsonResponse(503, buildError("resource_expansion_freeze_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_freeze_checkpoints", result.artifact.expansion_freeze_checkpoints ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-expansion-freeze-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "resource_expansion_freeze");
+    if (!result.available) {
+      return jsonResponse(503, buildError("resource_expansion_freeze_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("expansion_freeze_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -12542,6 +12605,15 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/expansion-status-api-routes", "Expansion status API route rows"),
       route("GET", "/api/expansion-status-checks", "Expansion status check rows"),
       route("GET", "/api/expansion-status-validations", "Expansion status validation rows"),
+      route("GET", "/api/resource-expansion-freezes", "Resource Expansion Freeze artifact"),
+      route("GET", "/api/resource-expansion-freeze-sources", "Resource Expansion Freeze source rows"),
+      route("GET", "/api/resource-expansion-freeze-dry-runs", "Resource Expansion Freeze dry-run rows"),
+      route("GET", "/api/resource-expansion-freeze-resume-probes", "Resource Expansion Freeze resume probes"),
+      route("GET", "/api/resource-expansion-freeze-idempotency-probes", "Resource Expansion Freeze idempotency probes"),
+      route("GET", "/api/resource-expansion-freeze-scale-checks", "Resource Expansion Freeze scale checks"),
+      route("GET", "/api/resource-expansion-freeze-boundary", "Resource Expansion Freeze boundary"),
+      route("GET", "/api/resource-expansion-freeze-checks", "Resource Expansion Freeze checkpoint rows"),
+      route("GET", "/api/resource-expansion-freeze-validations", "Resource Expansion Freeze validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -13718,6 +13790,13 @@ function filterItems(items, searchParams) {
     "expansion_status_panel_status",
     "expansion_status_route_status",
     "expansion_status_check_status",
+    "resource_expansion_freeze_status",
+    "expansion_freeze_source_status",
+    "expansion_freeze_dry_run_status",
+    "expansion_freeze_resume_status",
+    "expansion_freeze_idempotency_status",
+    "expansion_freeze_scale_check_status",
+    "expansion_freeze_boundary_status",
     "path_kind",
     "gate_id",
     "thread_status",
@@ -15629,6 +15708,13 @@ function readFilterValue(item, key) {
   if (key === "expansion_status_panel_status") return item.panel_status;
   if (key === "expansion_status_route_status") return item.route_status;
   if (key === "expansion_status_check_status") return item.status;
+  if (key === "resource_expansion_freeze_status") return item.summary?.resource_expansion_freeze_status ?? item.resource_expansion_freeze_status;
+  if (key === "expansion_freeze_source_status") return item.source_status;
+  if (key === "expansion_freeze_dry_run_status") return item.dry_run_status;
+  if (key === "expansion_freeze_resume_status") return item.resume_probe_status;
+  if (key === "expansion_freeze_idempotency_status") return item.idempotency_probe_status;
+  if (key === "expansion_freeze_scale_check_status") return item.scale_check_status;
+  if (key === "expansion_freeze_boundary_status") return item.boundary_status;
   if (key === "path_kind") return item.path_kind;
   if (key === "gate_id") return item.gate_id;
   if (key === "thread_status") return item.thread_status;

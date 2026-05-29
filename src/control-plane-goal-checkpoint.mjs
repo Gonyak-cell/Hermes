@@ -119,6 +119,7 @@ const GOAL_ITEMS = [
   sourceItem("ldd_issue_detection", "LDD issue detection", "law_firm", "ldd_issue_detection", "control-plane-ldd-issue-detection", { acceptance_profile: "ldd_issue_detection_gate" }),
   sourceItem("ldd_rfi_generator", "LDD RFI generator", "law_firm", "ldd_rfi_generator", "control-plane-ldd-rfi-generator", { acceptance_profile: "ldd_rfi_generator_gate" }),
   sourceItem("ldd_report_draft", "LDD report draft", "law_firm", "ldd_report_draft", "control-plane-ldd-report-draft", { acceptance_profile: "ldd_report_draft_gate" }),
+  sourceItem("litigation_brief_draft", "Litigation brief draft", "law_firm", "litigation_brief_draft", "control-plane-litigation-brief-draft", { acceptance_profile: "litigation_brief_draft_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -597,6 +598,7 @@ function evaluateStageAcceptance(item, stage) {
     "ldd_issue_detection_gate",
     "ldd_rfi_generator_gate",
     "ldd_report_draft_gate",
+    "litigation_brief_draft_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -3851,6 +3853,54 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.failed_checkpoint_count === 0
     ) {
       return passedWithOperationalGate(stage, "LDD Report Draft records draft-only section paragraphs and citation placeholders with attorney/currentness gates and no legal/client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "litigation_brief_draft_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.litigation_brief_draft_status === "complete"
+      && metrics.source_matter_status === "complete"
+      && metrics.source_legal_citation_verifier_status === "complete"
+      && metrics.source_legal_citation_verifier_phase_status === "complete"
+      && metrics.source_exhibit_map_status === "complete"
+      && (metrics.source_claim_count ?? 0) > 0
+      && (metrics.source_chronology_count ?? 0) > 0
+      && (metrics.source_evidence_count ?? 0) > 0
+      && (metrics.brief_rule_count ?? 0) >= 5
+      && metrics.draft_packet_count === 1
+      && metrics.claim_count === metrics.source_claim_count
+      && metrics.fact_count === metrics.source_chronology_count
+      && (metrics.evidence_link_count ?? 0) >= (metrics.source_claim_evidence_mapping_count ?? 0)
+      && metrics.legal_basis_placeholder_count === metrics.claim_count
+      && metrics.citation_gate_count === metrics.claim_count
+      && metrics.citation_gate_passed_count === metrics.citation_gate_count
+      && metrics.citation_gate_currentness_review_required_count === metrics.citation_gate_count
+      && metrics.citation_gate_legal_authority_review_required_count === metrics.citation_gate_count
+      && metrics.claim_with_fact_link_count === metrics.claim_count
+      && metrics.claim_with_evidence_link_count === metrics.claim_count
+      && metrics.claim_with_legal_basis_placeholder_count === metrics.claim_count
+      && metrics.client_facing_ready_count === 0
+      && metrics.court_filing_ready_count === 0
+      && metrics.legal_conclusion_asserted_count === 0
+      && metrics.legal_advice_provided === false
+      && metrics.client_facing_output_generated === false
+      && metrics.external_legal_research_performed === false
+      && metrics.legal_authority_finalized === false
+      && metrics.desktop_boundary_status === "enforced"
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.matter_data_write_allowed === false
+      && metrics.task_state_write_allowed === false
+      && metrics.workflow_transition_allowed === false
+      && metrics.runtime_execution_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.protected_action_allowed === false
+      && metrics.client_facing_output_allowed_without_attorney_review === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Litigation Brief Draft records draft-only claim, fact, evidence, and legal-basis placeholders with citation gates and no legal/client-facing output.");
     }
   }
 

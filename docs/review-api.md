@@ -12,6 +12,12 @@ LDD Report Draft routes expose read-only draft-only report sections, draft parag
 
 Routes: `/api/ldd-report-draft-artifacts`, `/api/ldd-report-section-rules`, `/api/ldd-report-sections`, `/api/ldd-report-paragraphs`, `/api/ldd-report-citation-placeholders`, `/api/ldd-report-issue-links`, `/api/ldd-report-matter-summaries`, `/api/ldd-report-draft-boundary`, `/api/ldd-report-draft-validations`.
 
+## P247 Litigation Brief Draft Routes
+
+Litigation Brief Draft routes expose read-only, draft-only litigation brief scaffold rows for claims, sourced facts, evidence links, legal-basis placeholders, citation gate results, matter summaries, and validation/boundary rows. Supported filters include `litigation_brief_draft_status`, `litigation_brief_matter_status`, `brief_rule_type`, `brief_draft_status`, `brief_claim_status`, `brief_fact_status`, `fact_verification_status`, `evidence_link_type`, `brief_evidence_link_status`, `legal_basis_status`, `citation_gate_status`, `citation_gate_passed`, `currentness_check_status`, `legal_authority_status`, `court_filing_ready`, `deterministic_brief_draft_generation_performed`, `litigation_brief_claim_id`, `litigation_brief_fact_id`, `litigation_brief_evidence_link_id`, `litigation_brief_legal_basis_placeholder_id`, `litigation_brief_citation_gate_result_id`, `claim_id`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.
+
+Routes: `/api/litigation-brief-draft-artifacts`, `/api/litigation-brief-rules`, `/api/litigation-brief-drafts`, `/api/litigation-brief-claims`, `/api/litigation-brief-facts`, `/api/litigation-brief-evidence-links`, `/api/litigation-brief-legal-basis-placeholders`, `/api/litigation-brief-citation-gates`, `/api/litigation-brief-matter-summaries`, `/api/litigation-brief-draft-boundary`, `/api/litigation-brief-draft-validations`.
+
 ## P244 LDD Issue Detection Routes
 
 LDD Issue Detection routes expose read-only deterministic issue candidate rows, red/yellow operational flags, follow-up rows, severity summaries, matter summaries, and validation/boundary rows. Supported filters include `ldd_issue_detection_status`, `ldd_issue_matter_status`, `issue_type`, `issue_status`, `issue_severity`, `issue_flag`, `source_gap`, `follow_up_status`, `follow_up_owner`, `deterministic_issue_detection_performed`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.

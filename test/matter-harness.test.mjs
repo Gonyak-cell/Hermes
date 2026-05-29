@@ -46,6 +46,7 @@ import { runLddFactExtraction } from "../src/ldd-fact-extraction.mjs";
 import { runLddIssueDetection } from "../src/ldd-issue-detection.mjs";
 import { runLddRfiGenerator } from "../src/ldd-rfi-generator.mjs";
 import { runLddReportDraft } from "../src/ldd-report-draft.mjs";
+import { runLitigationBriefDraft } from "../src/litigation-brief-draft.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1887,6 +1888,7 @@ describe("matter harness", () => {
         lddIssueDetectionPath: path.join(outDir, "ldd-issue-detection", "ldd-issue-detection.json"),
         lddRfiGeneratorPath: path.join(outDir, "ldd-rfi-generator", "ldd-rfi-generator.json"),
         lddReportDraftPath: path.join(outDir, "ldd-report-draft", "ldd-report-draft.json"),
+        litigationBriefDraftPath: path.join(outDir, "litigation-brief-draft", "litigation-brief-draft.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -9404,6 +9406,76 @@ describe("matter harness", () => {
       assert.ok(lddReportDraft.ldd_report_citation_placeholders.every((placeholder) => placeholder.currentness_check_status === "currentness_review_required" && placeholder.legal_authority_finalized === false && placeholder.client_facing_ready === false));
       assert.match(await readFile(path.join(outDir, "ldd-report-draft", "summary.md"), "utf8"), /LDD Report Draft/);
 
+      const litigationBriefDraft = await runLitigationBriefDraft({
+        matterPath: "examples/project-beta-litigation-matter.json",
+        legalCitationVerifierPath: path.join(outDir, "legal-citation-verifier", "legal-citation-verifier.json"),
+        exhibitMapPath: path.join(outDir, "exhibit-map", "exhibit-map.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "litigation-brief-draft"),
+        runAt: "2026-05-23T07:00:06.000Z",
+      });
+      const litigationBriefDraftSchema = JSON.parse(await readFile("schemas/litigation-brief-draft.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(litigationBriefDraft, litigationBriefDraftSchema, {}, "litigation_brief_draft"), []);
+      assert.equal(litigationBriefDraft.summary.litigation_brief_draft_status, "complete");
+      assert.equal(litigationBriefDraft.summary.source_matter_status, "complete");
+      assert.equal(litigationBriefDraft.summary.source_matter_id, "LIT-2026-BETA");
+      assert.equal(litigationBriefDraft.summary.source_legal_citation_verifier_status, "complete");
+      assert.equal(litigationBriefDraft.summary.source_legal_citation_verifier_phase_status, "complete");
+      assert.equal(litigationBriefDraft.summary.source_legal_rule_placeholder_citation_count, legalCitationVerifier.summary.legal_rule_placeholder_citation_count);
+      assert.equal(litigationBriefDraft.summary.source_currentness_verified_count, 0);
+      assert.equal(litigationBriefDraft.summary.source_exhibit_map_status, "complete");
+      assert.equal(litigationBriefDraft.summary.source_litigation_brief_target_exhibit_count, exhibitMap.summary.exhibit_record_count);
+      assert.equal(litigationBriefDraft.summary.source_claim_count, 2);
+      assert.equal(litigationBriefDraft.summary.source_chronology_count, 3);
+      assert.equal(litigationBriefDraft.summary.source_evidence_count, 2);
+      assert.equal(litigationBriefDraft.summary.source_claim_evidence_mapping_count, 2);
+      assert.ok(litigationBriefDraft.summary.brief_rule_count >= 5);
+      assert.equal(litigationBriefDraft.summary.draft_packet_count, 1);
+      assert.equal(litigationBriefDraft.summary.claim_count, litigationBriefDraft.summary.source_claim_count);
+      assert.equal(litigationBriefDraft.summary.fact_count, litigationBriefDraft.summary.source_chronology_count);
+      assert.equal(litigationBriefDraft.summary.verified_fact_count, 2);
+      assert.equal(litigationBriefDraft.summary.unverified_fact_count, 1);
+      assert.equal(litigationBriefDraft.summary.evidence_link_count, 6);
+      assert.equal(litigationBriefDraft.summary.legal_basis_placeholder_count, litigationBriefDraft.summary.claim_count);
+      assert.equal(litigationBriefDraft.summary.citation_gate_count, litigationBriefDraft.summary.claim_count);
+      assert.equal(litigationBriefDraft.summary.citation_gate_passed_count, litigationBriefDraft.summary.citation_gate_count);
+      assert.equal(litigationBriefDraft.summary.citation_gate_currentness_review_required_count, litigationBriefDraft.summary.citation_gate_count);
+      assert.equal(litigationBriefDraft.summary.citation_gate_legal_authority_review_required_count, litigationBriefDraft.summary.citation_gate_count);
+      assert.equal(litigationBriefDraft.summary.claim_with_fact_link_count, litigationBriefDraft.summary.claim_count);
+      assert.equal(litigationBriefDraft.summary.claim_with_evidence_link_count, litigationBriefDraft.summary.claim_count);
+      assert.equal(litigationBriefDraft.summary.claim_with_legal_basis_placeholder_count, litigationBriefDraft.summary.claim_count);
+      assert.equal(litigationBriefDraft.summary.draft_only_count, litigationBriefDraft.summary.claim_count + litigationBriefDraft.summary.draft_packet_count);
+      assert.equal(litigationBriefDraft.summary.human_review_note_count, litigationBriefDraft.summary.claim_count + litigationBriefDraft.summary.draft_packet_count);
+      assert.equal(litigationBriefDraft.summary.deterministic_brief_draft_generation_count, litigationBriefDraft.summary.claim_count);
+      assert.equal(litigationBriefDraft.summary.attorney_review_required_claim_count, litigationBriefDraft.summary.claim_count);
+      assert.equal(litigationBriefDraft.summary.human_review_required_claim_count, litigationBriefDraft.summary.claim_count);
+      assert.equal(litigationBriefDraft.summary.client_facing_ready_count, 0);
+      assert.equal(litigationBriefDraft.summary.court_filing_ready_count, 0);
+      assert.equal(litigationBriefDraft.summary.legal_conclusion_asserted_count, 0);
+      assert.equal(litigationBriefDraft.summary.legal_advice_provided, false);
+      assert.equal(litigationBriefDraft.summary.client_facing_output_generated, false);
+      assert.equal(litigationBriefDraft.summary.external_legal_research_performed, false);
+      assert.equal(litigationBriefDraft.summary.legal_authority_finalized, false);
+      assert.equal(litigationBriefDraft.summary.desktop_boundary_status, "enforced");
+      assert.equal(litigationBriefDraft.summary.desktop_read_only, true);
+      assert.equal(litigationBriefDraft.summary.desktop_mutation_allowed, false);
+      assert.equal(litigationBriefDraft.summary.desktop_source_of_truth, false);
+      assert.equal(litigationBriefDraft.summary.matter_data_write_allowed, false);
+      assert.equal(litigationBriefDraft.summary.task_state_write_allowed, false);
+      assert.equal(litigationBriefDraft.summary.workflow_transition_allowed, false);
+      assert.equal(litigationBriefDraft.summary.runtime_execution_allowed, false);
+      assert.equal(litigationBriefDraft.summary.delivery_execution_allowed, false);
+      assert.equal(litigationBriefDraft.summary.protected_action_allowed, false);
+      assert.equal(litigationBriefDraft.summary.client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(litigationBriefDraft.summary.validation_error_count, 0);
+      assert.ok(litigationBriefDraft.litigation_brief_claims.every((claim) => claim.linked_fact_count > 0 && claim.evidence_link_count > 0 && claim.legal_basis_placeholder_id && claim.citation_gate_result_id && claim.attorney_review_required && claim.client_facing_ready === false && claim.legal_conclusion_asserted === false));
+      assert.ok(litigationBriefDraft.litigation_brief_facts.every((fact) => fact.source_ref_count > 0 && fact.citation_gate_required && fact.attorney_review_required && fact.client_facing_ready === false));
+      assert.ok(litigationBriefDraft.litigation_brief_evidence_links.every((link) => link.source_ref_count > 0 && link.citation_gate_required && link.attorney_review_required && link.client_facing_ready === false));
+      assert.ok(litigationBriefDraft.litigation_brief_legal_basis_placeholders.every((placeholder) => placeholder.source_bound && placeholder.citation_gate_passed && placeholder.currentness_check_status === "currentness_review_required" && placeholder.legal_authority_status === "review_required_not_authoritative" && placeholder.legal_authority_finalized === false && placeholder.client_facing_ready === false));
+      assert.ok(litigationBriefDraft.litigation_brief_citation_gate_results.every((gate) => gate.citation_gate_passed && gate.source_bound && gate.currentness_check_status === "currentness_review_required" && gate.legal_authority_status === "review_required_not_authoritative" && gate.legal_authority_finalized === false && gate.client_facing_ready === false));
+      assert.match(await readFile(path.join(outDir, "litigation-brief-draft", "summary.md"), "utf8"), /Litigation Brief Draft/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -9574,6 +9646,7 @@ describe("matter harness", () => {
           ldd_issue_detection: path.join(outDir, "ldd-issue-detection", "ldd-issue-detection.json"),
           ldd_rfi_generator: path.join(outDir, "ldd-rfi-generator", "ldd-rfi-generator.json"),
           ldd_report_draft: path.join(outDir, "ldd-report-draft", "ldd-report-draft.json"),
+          litigation_brief_draft: path.join(outDir, "litigation-brief-draft", "litigation-brief-draft.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -9625,8 +9698,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 148);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 148);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 149);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 149);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -9762,6 +9835,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "ldd_issue_detection"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "ldd_rfi_generator"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "ldd_report_draft"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "litigation_brief_draft"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -10499,6 +10573,10 @@ describe("matter harness", () => {
       assert.equal(lddReportDraftCheckpoint?.acceptance_profile, "ldd_report_draft_gate");
       assert.equal(lddReportDraftCheckpoint?.status, "passed");
       assert.equal(lddReportDraftCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const litigationBriefDraftCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-litigation-brief-draft");
+      assert.equal(litigationBriefDraftCheckpoint?.acceptance_profile, "litigation_brief_draft_gate");
+      assert.equal(litigationBriefDraftCheckpoint?.status, "passed");
+      assert.equal(litigationBriefDraftCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -13943,6 +14021,48 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.ldd_report_draft_protected_action_allowed, false);
       assert.equal(dashboard.summary.ldd_report_draft_failed_checkpoint_count, 0);
       assert.equal(dashboard.summary.ldd_report_draft_validation_error_count, 0);
+      assert.equal(dashboard.summary.litigation_brief_draft_status, "complete");
+      assert.equal(dashboard.summary.litigation_brief_draft_source_matter_status, "complete");
+      assert.equal(dashboard.summary.litigation_brief_draft_source_matter_id, "LIT-2026-BETA");
+      assert.equal(dashboard.summary.litigation_brief_draft_source_legal_citation_verifier_status, "complete");
+      assert.equal(dashboard.summary.litigation_brief_draft_source_legal_citation_verifier_phase_status, "complete");
+      assert.equal(dashboard.summary.litigation_brief_draft_source_exhibit_map_status, "complete");
+      assert.equal(dashboard.summary.litigation_brief_draft_source_claim_count, litigationBriefDraft.summary.source_claim_count);
+      assert.equal(dashboard.summary.litigation_brief_draft_source_chronology_count, litigationBriefDraft.summary.source_chronology_count);
+      assert.equal(dashboard.summary.litigation_brief_draft_source_evidence_count, litigationBriefDraft.summary.source_evidence_count);
+      assert.equal(dashboard.summary.litigation_brief_draft_source_claim_evidence_mapping_count, litigationBriefDraft.summary.source_claim_evidence_mapping_count);
+      assert.equal(dashboard.summary.litigation_brief_draft_brief_rule_count, litigationBriefDraft.summary.brief_rule_count);
+      assert.equal(dashboard.summary.litigation_brief_draft_packet_count, litigationBriefDraft.summary.draft_packet_count);
+      assert.equal(dashboard.summary.litigation_brief_draft_claim_count, litigationBriefDraft.summary.claim_count);
+      assert.equal(dashboard.summary.litigation_brief_draft_fact_count, litigationBriefDraft.summary.fact_count);
+      assert.equal(dashboard.summary.litigation_brief_draft_evidence_link_count, litigationBriefDraft.summary.evidence_link_count);
+      assert.equal(dashboard.summary.litigation_brief_draft_missing_evidence_link_count, litigationBriefDraft.summary.missing_evidence_link_count);
+      assert.equal(dashboard.summary.litigation_brief_draft_legal_basis_placeholder_count, litigationBriefDraft.summary.legal_basis_placeholder_count);
+      assert.equal(dashboard.summary.litigation_brief_draft_citation_gate_count, litigationBriefDraft.summary.citation_gate_count);
+      assert.equal(dashboard.summary.litigation_brief_draft_citation_gate_passed_count, litigationBriefDraft.summary.citation_gate_passed_count);
+      assert.equal(dashboard.summary.litigation_brief_draft_citation_gate_currentness_review_required_count, litigationBriefDraft.summary.citation_gate_currentness_review_required_count);
+      assert.equal(dashboard.summary.litigation_brief_draft_citation_gate_legal_authority_review_required_count, litigationBriefDraft.summary.citation_gate_legal_authority_review_required_count);
+      assert.equal(dashboard.summary.litigation_brief_draft_claim_with_fact_link_count, litigationBriefDraft.summary.claim_with_fact_link_count);
+      assert.equal(dashboard.summary.litigation_brief_draft_claim_with_evidence_link_count, litigationBriefDraft.summary.claim_with_evidence_link_count);
+      assert.equal(dashboard.summary.litigation_brief_draft_claim_with_legal_basis_placeholder_count, litigationBriefDraft.summary.claim_with_legal_basis_placeholder_count);
+      assert.equal(dashboard.summary.litigation_brief_draft_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.litigation_brief_draft_court_filing_ready_count, 0);
+      assert.equal(dashboard.summary.litigation_brief_draft_legal_advice_provided, false);
+      assert.equal(dashboard.summary.litigation_brief_draft_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.litigation_brief_draft_legal_conclusion_asserted_count, 0);
+      assert.equal(dashboard.summary.litigation_brief_draft_external_legal_research_performed, false);
+      assert.equal(dashboard.summary.litigation_brief_draft_legal_authority_finalized, false);
+      assert.equal(dashboard.summary.litigation_brief_draft_desktop_boundary_status, "enforced");
+      assert.equal(dashboard.summary.litigation_brief_draft_desktop_read_only, true);
+      assert.equal(dashboard.summary.litigation_brief_draft_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.litigation_brief_draft_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.litigation_brief_draft_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.litigation_brief_draft_workflow_transition_allowed, false);
+      assert.equal(dashboard.summary.litigation_brief_draft_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.litigation_brief_draft_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.litigation_brief_draft_protected_action_allowed, false);
+      assert.equal(dashboard.summary.litigation_brief_draft_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.litigation_brief_draft_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -15820,6 +15940,59 @@ describe("matter harness", () => {
       assert.equal(lddReportDraftStage?.metrics.delivery_execution_allowed, false);
       assert.equal(lddReportDraftStage?.metrics.protected_action_allowed, false);
       assert.equal(lddReportDraftStage?.metrics.validation_error_count, 0);
+      const litigationBriefDraftStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "litigation_brief_draft");
+      assert.equal(litigationBriefDraftStage?.status, "passed");
+      assert.equal(litigationBriefDraftStage?.metrics.litigation_brief_draft_status, "complete");
+      assert.equal(litigationBriefDraftStage?.metrics.source_matter_status, "complete");
+      assert.equal(litigationBriefDraftStage?.metrics.source_matter_id, "LIT-2026-BETA");
+      assert.equal(litigationBriefDraftStage?.metrics.source_legal_citation_verifier_status, "complete");
+      assert.equal(litigationBriefDraftStage?.metrics.source_legal_citation_verifier_phase_status, "complete");
+      assert.equal(litigationBriefDraftStage?.metrics.source_legal_rule_placeholder_citation_count, litigationBriefDraft.summary.source_legal_rule_placeholder_citation_count);
+      assert.equal(litigationBriefDraftStage?.metrics.source_currentness_verified_count, 0);
+      assert.equal(litigationBriefDraftStage?.metrics.source_exhibit_map_status, "complete");
+      assert.equal(litigationBriefDraftStage?.metrics.source_litigation_brief_target_exhibit_count, litigationBriefDraft.summary.source_litigation_brief_target_exhibit_count);
+      assert.equal(litigationBriefDraftStage?.metrics.source_claim_count, litigationBriefDraft.summary.source_claim_count);
+      assert.equal(litigationBriefDraftStage?.metrics.source_chronology_count, litigationBriefDraft.summary.source_chronology_count);
+      assert.equal(litigationBriefDraftStage?.metrics.source_evidence_count, litigationBriefDraft.summary.source_evidence_count);
+      assert.equal(litigationBriefDraftStage?.metrics.source_claim_evidence_mapping_count, litigationBriefDraft.summary.source_claim_evidence_mapping_count);
+      assert.equal(litigationBriefDraftStage?.metrics.brief_rule_count, litigationBriefDraft.summary.brief_rule_count);
+      assert.equal(litigationBriefDraftStage?.metrics.draft_packet_count, litigationBriefDraft.summary.draft_packet_count);
+      assert.equal(litigationBriefDraftStage?.metrics.claim_count, litigationBriefDraft.summary.claim_count);
+      assert.equal(litigationBriefDraftStage?.metrics.fact_count, litigationBriefDraft.summary.fact_count);
+      assert.equal(litigationBriefDraftStage?.metrics.verified_fact_count, litigationBriefDraft.summary.verified_fact_count);
+      assert.equal(litigationBriefDraftStage?.metrics.unverified_fact_count, litigationBriefDraft.summary.unverified_fact_count);
+      assert.equal(litigationBriefDraftStage?.metrics.evidence_link_count, litigationBriefDraft.summary.evidence_link_count);
+      assert.equal(litigationBriefDraftStage?.metrics.missing_evidence_link_count, litigationBriefDraft.summary.missing_evidence_link_count);
+      assert.equal(litigationBriefDraftStage?.metrics.legal_basis_placeholder_count, litigationBriefDraft.summary.legal_basis_placeholder_count);
+      assert.equal(litigationBriefDraftStage?.metrics.citation_gate_count, litigationBriefDraft.summary.citation_gate_count);
+      assert.equal(litigationBriefDraftStage?.metrics.citation_gate_passed_count, litigationBriefDraft.summary.citation_gate_passed_count);
+      assert.equal(litigationBriefDraftStage?.metrics.citation_gate_currentness_review_required_count, litigationBriefDraft.summary.citation_gate_currentness_review_required_count);
+      assert.equal(litigationBriefDraftStage?.metrics.citation_gate_legal_authority_review_required_count, litigationBriefDraft.summary.citation_gate_legal_authority_review_required_count);
+      assert.equal(litigationBriefDraftStage?.metrics.claim_with_fact_link_count, litigationBriefDraft.summary.claim_with_fact_link_count);
+      assert.equal(litigationBriefDraftStage?.metrics.claim_with_evidence_link_count, litigationBriefDraft.summary.claim_with_evidence_link_count);
+      assert.equal(litigationBriefDraftStage?.metrics.claim_with_legal_basis_placeholder_count, litigationBriefDraft.summary.claim_with_legal_basis_placeholder_count);
+      assert.equal(litigationBriefDraftStage?.metrics.draft_only_count, litigationBriefDraft.summary.draft_only_count);
+      assert.equal(litigationBriefDraftStage?.metrics.human_review_note_count, litigationBriefDraft.summary.human_review_note_count);
+      assert.equal(litigationBriefDraftStage?.metrics.deterministic_brief_draft_generation_count, litigationBriefDraft.summary.deterministic_brief_draft_generation_count);
+      assert.equal(litigationBriefDraftStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(litigationBriefDraftStage?.metrics.court_filing_ready_count, 0);
+      assert.equal(litigationBriefDraftStage?.metrics.legal_advice_provided, false);
+      assert.equal(litigationBriefDraftStage?.metrics.client_facing_output_generated, false);
+      assert.equal(litigationBriefDraftStage?.metrics.legal_conclusion_asserted_count, 0);
+      assert.equal(litigationBriefDraftStage?.metrics.external_legal_research_performed, false);
+      assert.equal(litigationBriefDraftStage?.metrics.legal_authority_finalized, false);
+      assert.equal(litigationBriefDraftStage?.metrics.desktop_boundary_status, "enforced");
+      assert.equal(litigationBriefDraftStage?.metrics.desktop_read_only, true);
+      assert.equal(litigationBriefDraftStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(litigationBriefDraftStage?.metrics.desktop_source_of_truth, false);
+      assert.equal(litigationBriefDraftStage?.metrics.matter_data_write_allowed, false);
+      assert.equal(litigationBriefDraftStage?.metrics.task_state_write_allowed, false);
+      assert.equal(litigationBriefDraftStage?.metrics.workflow_transition_allowed, false);
+      assert.equal(litigationBriefDraftStage?.metrics.runtime_execution_allowed, false);
+      assert.equal(litigationBriefDraftStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(litigationBriefDraftStage?.metrics.protected_action_allowed, false);
+      assert.equal(litigationBriefDraftStage?.metrics.client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(litigationBriefDraftStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -18048,6 +18221,50 @@ describe("matter harness", () => {
       const lddReportDraftValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-report-draft-validations?status=passed", apiOptions)).body);
       assert.equal(lddReportDraftValidationsResponse.collection, "ldd_report_draft_validations");
       assert.equal(lddReportDraftValidationsResponse.count, lddReportDraft.summary.validation_item_count);
+
+      const litigationBriefDraftArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/litigation-brief-draft-artifacts?litigation_brief_draft_status=complete", apiOptions)).body);
+      assert.equal(litigationBriefDraftArtifactsResponse.collection, "litigation_brief_draft_artifacts");
+      assert.equal(litigationBriefDraftArtifactsResponse.count, 1);
+
+      const litigationBriefRulesResponse = JSON.parse((await buildReviewApiResponse("/api/litigation-brief-rules?brief_rule_type=claim_scaffold", apiOptions)).body);
+      assert.equal(litigationBriefRulesResponse.collection, "litigation_brief_rules");
+      assert.equal(litigationBriefRulesResponse.count, 1);
+
+      const litigationBriefDraftsResponse = JSON.parse((await buildReviewApiResponse("/api/litigation-brief-drafts?brief_draft_status=draft_pending_attorney_review&court_filing_ready=false", apiOptions)).body);
+      assert.equal(litigationBriefDraftsResponse.collection, "litigation_brief_drafts");
+      assert.equal(litigationBriefDraftsResponse.count, litigationBriefDraft.summary.draft_packet_count);
+
+      const litigationBriefClaimsResponse = JSON.parse((await buildReviewApiResponse("/api/litigation-brief-claims?brief_claim_status=draft_pending_attorney_review", apiOptions)).body);
+      assert.equal(litigationBriefClaimsResponse.collection, "litigation_brief_claims");
+      assert.equal(litigationBriefClaimsResponse.count, litigationBriefDraft.summary.claim_count);
+
+      const litigationBriefFactsResponse = JSON.parse((await buildReviewApiResponse("/api/litigation-brief-facts?brief_fact_status=draft_pending_attorney_review", apiOptions)).body);
+      assert.equal(litigationBriefFactsResponse.collection, "litigation_brief_facts");
+      assert.equal(litigationBriefFactsResponse.count, litigationBriefDraft.summary.fact_count);
+
+      const litigationBriefEvidenceLinksResponse = JSON.parse((await buildReviewApiResponse("/api/litigation-brief-evidence-links?brief_evidence_link_status=linked_pending_attorney_review", apiOptions)).body);
+      assert.equal(litigationBriefEvidenceLinksResponse.collection, "litigation_brief_evidence_links");
+      assert.equal(litigationBriefEvidenceLinksResponse.count, litigationBriefDraft.summary.evidence_link_count);
+
+      const litigationBriefLegalBasisPlaceholdersResponse = JSON.parse((await buildReviewApiResponse("/api/litigation-brief-legal-basis-placeholders?legal_basis_status=placeholder_pending_attorney_review&currentness_check_status=currentness_review_required", apiOptions)).body);
+      assert.equal(litigationBriefLegalBasisPlaceholdersResponse.collection, "litigation_brief_legal_basis_placeholders");
+      assert.equal(litigationBriefLegalBasisPlaceholdersResponse.count, litigationBriefDraft.summary.legal_basis_placeholder_count);
+
+      const litigationBriefCitationGatesResponse = JSON.parse((await buildReviewApiResponse("/api/litigation-brief-citation-gates?citation_gate_status=passed_pending_currentness_review&citation_gate_passed=true", apiOptions)).body);
+      assert.equal(litigationBriefCitationGatesResponse.collection, "litigation_brief_citation_gate_results");
+      assert.equal(litigationBriefCitationGatesResponse.count, litigationBriefDraft.summary.citation_gate_count);
+
+      const litigationBriefMatterSummariesResponse = JSON.parse((await buildReviewApiResponse("/api/litigation-brief-matter-summaries?litigation_brief_matter_status=draft_pending_attorney_review", apiOptions)).body);
+      assert.equal(litigationBriefMatterSummariesResponse.collection, "litigation_brief_matter_summaries");
+      assert.equal(litigationBriefMatterSummariesResponse.count, litigationBriefDraft.summary.matter_count);
+
+      const litigationBriefDraftBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/litigation-brief-draft-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(litigationBriefDraftBoundaryResponse.collection, "litigation_brief_draft_boundary");
+      assert.equal(litigationBriefDraftBoundaryResponse.count, 1);
+
+      const litigationBriefDraftValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/litigation-brief-draft-validations?status=passed", apiOptions)).body);
+      assert.equal(litigationBriefDraftValidationsResponse.collection, "litigation_brief_draft_validations");
+      assert.equal(litigationBriefDraftValidationsResponse.count, litigationBriefDraft.summary.validation_item_count);
 
       const repoProfileDetectorsResponse = JSON.parse((await buildReviewApiResponse("/api/repo-profile-detectors?repo_profile_detector_status=complete", apiOptions)).body);
       assert.equal(repoProfileDetectorsResponse.collection, "repo_profile_detectors");

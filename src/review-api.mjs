@@ -5121,6 +5121,83 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("ldd_report_draft_validations", reportResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/litigation-brief-draft-artifacts") {
+    const briefResult = await readDashboardSourceArtifact(dashboard, "litigation_brief_draft");
+    if (!briefResult.available) {
+      return jsonResponse(503, buildError("litigation_brief_draft_unavailable", briefResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("litigation_brief_draft_artifacts", [briefResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/litigation-brief-rules") {
+    const briefResult = await readDashboardSourceArtifact(dashboard, "litigation_brief_draft");
+    if (!briefResult.available) {
+      return jsonResponse(503, buildError("litigation_brief_draft_unavailable", briefResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("litigation_brief_rules", briefResult.artifact.litigation_brief_rules ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/litigation-brief-drafts") {
+    const briefResult = await readDashboardSourceArtifact(dashboard, "litigation_brief_draft");
+    if (!briefResult.available) {
+      return jsonResponse(503, buildError("litigation_brief_draft_unavailable", briefResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("litigation_brief_drafts", briefResult.artifact.litigation_brief_drafts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/litigation-brief-claims") {
+    const briefResult = await readDashboardSourceArtifact(dashboard, "litigation_brief_draft");
+    if (!briefResult.available) {
+      return jsonResponse(503, buildError("litigation_brief_draft_unavailable", briefResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("litigation_brief_claims", briefResult.artifact.litigation_brief_claims ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/litigation-brief-facts") {
+    const briefResult = await readDashboardSourceArtifact(dashboard, "litigation_brief_draft");
+    if (!briefResult.available) {
+      return jsonResponse(503, buildError("litigation_brief_draft_unavailable", briefResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("litigation_brief_facts", briefResult.artifact.litigation_brief_facts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/litigation-brief-evidence-links") {
+    const briefResult = await readDashboardSourceArtifact(dashboard, "litigation_brief_draft");
+    if (!briefResult.available) {
+      return jsonResponse(503, buildError("litigation_brief_draft_unavailable", briefResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("litigation_brief_evidence_links", briefResult.artifact.litigation_brief_evidence_links ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/litigation-brief-legal-basis-placeholders") {
+    const briefResult = await readDashboardSourceArtifact(dashboard, "litigation_brief_draft");
+    if (!briefResult.available) {
+      return jsonResponse(503, buildError("litigation_brief_draft_unavailable", briefResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("litigation_brief_legal_basis_placeholders", briefResult.artifact.litigation_brief_legal_basis_placeholders ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/litigation-brief-citation-gates") {
+    const briefResult = await readDashboardSourceArtifact(dashboard, "litigation_brief_draft");
+    if (!briefResult.available) {
+      return jsonResponse(503, buildError("litigation_brief_draft_unavailable", briefResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("litigation_brief_citation_gate_results", briefResult.artifact.litigation_brief_citation_gate_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/litigation-brief-matter-summaries") {
+    const briefResult = await readDashboardSourceArtifact(dashboard, "litigation_brief_draft");
+    if (!briefResult.available) {
+      return jsonResponse(503, buildError("litigation_brief_draft_unavailable", briefResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("litigation_brief_matter_summaries", briefResult.artifact.litigation_brief_matter_summaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/litigation-brief-draft-boundary") {
+    const briefResult = await readDashboardSourceArtifact(dashboard, "litigation_brief_draft");
+    if (!briefResult.available) {
+      return jsonResponse(503, buildError("litigation_brief_draft_unavailable", briefResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("litigation_brief_draft_boundary", [briefResult.artifact.litigation_brief_draft_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/litigation-brief-draft-validations") {
+    const briefResult = await readDashboardSourceArtifact(dashboard, "litigation_brief_draft");
+    if (!briefResult.available) {
+      return jsonResponse(503, buildError("litigation_brief_draft_unavailable", briefResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("litigation_brief_draft_validations", briefResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/repo-profile-detectors") {
     const repoProfileDetectorResult = await readDashboardSourceArtifact(dashboard, "repo_profile_detector");
     if (!repoProfileDetectorResult.available) {
@@ -10330,6 +10407,17 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/ldd-report-matter-summaries", "LDD report matter summary rows"),
       route("GET", "/api/ldd-report-draft-boundary", "LDD report draft Desktop boundary"),
       route("GET", "/api/ldd-report-draft-validations", "LDD report draft validation rows"),
+      route("GET", "/api/litigation-brief-draft-artifacts", "Litigation brief draft artifact"),
+      route("GET", "/api/litigation-brief-rules", "Litigation brief draft rule rows"),
+      route("GET", "/api/litigation-brief-drafts", "Litigation brief draft packets"),
+      route("GET", "/api/litigation-brief-claims", "Litigation brief claim scaffold rows"),
+      route("GET", "/api/litigation-brief-facts", "Litigation brief sourced fact rows"),
+      route("GET", "/api/litigation-brief-evidence-links", "Litigation brief evidence link rows"),
+      route("GET", "/api/litigation-brief-legal-basis-placeholders", "Litigation brief legal basis placeholder rows"),
+      route("GET", "/api/litigation-brief-citation-gates", "Litigation brief citation gate rows"),
+      route("GET", "/api/litigation-brief-matter-summaries", "Litigation brief matter summary rows"),
+      route("GET", "/api/litigation-brief-draft-boundary", "Litigation brief draft Desktop boundary"),
+      route("GET", "/api/litigation-brief-draft-validations", "Litigation brief draft validation rows"),
       route("GET", "/api/repo-profile-detectors", "Repo profile detector artifact"),
       route("GET", "/api/repo-profiles", "Detected repository profile rows"),
       route("GET", "/api/repo-profile-languages", "Detected repository language profiles"),
@@ -11266,6 +11354,26 @@ function filterItems(items, searchParams) {
     "ldd_report_paragraph_id",
     "ldd_report_citation_placeholder_id",
     "deterministic_report_draft_generation_performed",
+    "litigation_brief_draft_status",
+    "litigation_brief_matter_status",
+    "brief_rule_type",
+    "brief_draft_status",
+    "brief_claim_status",
+    "brief_fact_status",
+    "fact_verification_status",
+    "evidence_link_type",
+    "brief_evidence_link_status",
+    "legal_basis_status",
+    "citation_gate_status",
+    "citation_gate_passed",
+    "court_filing_ready",
+    "deterministic_brief_draft_generation_performed",
+    "litigation_brief_claim_id",
+    "litigation_brief_fact_id",
+    "litigation_brief_evidence_link_id",
+    "litigation_brief_legal_basis_placeholder_id",
+    "litigation_brief_citation_gate_result_id",
+    "claim_id",
     "repo_profile_detector_status",
     "repo_profile_status",
     "language_id",
@@ -12861,6 +12969,26 @@ function readFilterValue(item, key) {
   if (key === "ldd_report_paragraph_id") return item.ldd_report_paragraph_id;
   if (key === "ldd_report_citation_placeholder_id") return item.ldd_report_citation_placeholder_id;
   if (key === "deterministic_report_draft_generation_performed") return String(Boolean(item.deterministic_report_draft_generation_performed));
+  if (key === "litigation_brief_draft_status") return item.summary?.litigation_brief_draft_status ?? item.litigation_brief_draft_status;
+  if (key === "litigation_brief_matter_status") return item.litigation_brief_matter_status;
+  if (key === "brief_rule_type") return item.brief_rule_type;
+  if (key === "brief_draft_status") return item.brief_draft_status;
+  if (key === "brief_claim_status") return item.brief_claim_status;
+  if (key === "brief_fact_status") return item.brief_fact_status;
+  if (key === "fact_verification_status") return item.fact_verification_status;
+  if (key === "evidence_link_type") return item.evidence_link_type;
+  if (key === "brief_evidence_link_status") return item.brief_evidence_link_status;
+  if (key === "legal_basis_status") return item.legal_basis_status;
+  if (key === "citation_gate_status") return item.citation_gate_status;
+  if (key === "citation_gate_passed") return String(Boolean(item.citation_gate_passed));
+  if (key === "court_filing_ready") return String(Boolean(item.court_filing_ready));
+  if (key === "deterministic_brief_draft_generation_performed") return String(Boolean(item.deterministic_brief_draft_generation_performed));
+  if (key === "litigation_brief_claim_id") return item.litigation_brief_claim_id;
+  if (key === "litigation_brief_fact_id") return item.litigation_brief_fact_id;
+  if (key === "litigation_brief_evidence_link_id") return item.litigation_brief_evidence_link_id;
+  if (key === "litigation_brief_legal_basis_placeholder_id") return item.litigation_brief_legal_basis_placeholder_id;
+  if (key === "litigation_brief_citation_gate_result_id") return item.litigation_brief_citation_gate_result_id;
+  if (key === "claim_id") return item.claim_id;
   if (key === "repo_profile_detector_status") return item.summary?.repo_profile_detector_status ?? item.repo_profile_detector_status;
   if (key === "repo_profile_status") return item.summary?.repo_profile_status ?? item.profile_status ?? item.repo_profile_status;
   if (key === "language_id") return item.language_id ?? item.primary_language_id;

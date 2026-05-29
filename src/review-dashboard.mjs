@@ -104,6 +104,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   lddIssueDetectionPath: "artifacts/ldd-issue-detection/latest/ldd-issue-detection.json",
   lddRfiGeneratorPath: "artifacts/ldd-rfi-generator/latest/ldd-rfi-generator.json",
   lddReportDraftPath: "artifacts/ldd-report-draft/latest/ldd-report-draft.json",
+  litigationBriefDraftPath: "artifacts/litigation-brief-draft/latest/litigation-brief-draft.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -745,6 +746,11 @@ const SOURCE_DEFINITIONS = [
     option: "lddReportDraftPath",
     source_id: "ldd_report_draft",
     label: "LDD Report Draft",
+  },
+  {
+    option: "litigationBriefDraftPath",
+    source_id: "litigation_brief_draft",
+    label: "Litigation Brief Draft",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1586,6 +1592,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "ldd_issue_detection") return data.summary ?? {};
   if (sourceId === "ldd_rfi_generator") return data.summary ?? {};
   if (sourceId === "ldd_report_draft") return data.summary ?? {};
+  if (sourceId === "litigation_brief_draft") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -1949,6 +1956,7 @@ function buildStageStatuses(artifacts, sources) {
     buildLddIssueDetectionStage(artifacts.ldd_issue_detection, sourceById.get("ldd_issue_detection")),
     buildLddRfiGeneratorStage(artifacts.ldd_rfi_generator, sourceById.get("ldd_rfi_generator")),
     buildLddReportDraftStage(artifacts.ldd_report_draft, sourceById.get("ldd_report_draft")),
+    buildLitigationBriefDraftStage(artifacts.litigation_brief_draft, sourceById.get("litigation_brief_draft")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -9671,6 +9679,125 @@ function buildLddReportDraftStage(artifact, source) {
   };
 }
 
+function buildLitigationBriefDraftStage(artifact, source) {
+  if (!artifact) return missingStage("litigation_brief_draft", "Litigation Brief Draft", source);
+  const summary = artifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.litigation_brief_draft_status !== "complete"
+    || summary.source_matter_status !== "complete"
+    || summary.source_legal_citation_verifier_status !== "complete"
+    || summary.source_legal_citation_verifier_phase_status !== "complete"
+    || summary.source_exhibit_map_status !== "complete"
+    || (summary.source_claim_count ?? 0) <= 0
+    || (summary.source_chronology_count ?? 0) <= 0
+    || (summary.source_evidence_count ?? 0) <= 0
+    || (summary.brief_rule_count ?? 0) < 5
+    || summary.draft_packet_count !== 1
+    || summary.claim_count !== summary.source_claim_count
+    || summary.fact_count !== summary.source_chronology_count
+    || (summary.evidence_link_count ?? 0) < (summary.source_claim_evidence_mapping_count ?? 0)
+    || summary.legal_basis_placeholder_count !== summary.claim_count
+    || summary.citation_gate_count !== summary.claim_count
+    || summary.citation_gate_passed_count !== summary.citation_gate_count
+    || summary.citation_gate_currentness_review_required_count !== summary.citation_gate_count
+    || summary.citation_gate_legal_authority_review_required_count !== summary.citation_gate_count
+    || summary.claim_with_fact_link_count !== summary.claim_count
+    || summary.claim_with_evidence_link_count !== summary.claim_count
+    || summary.claim_with_legal_basis_placeholder_count !== summary.claim_count
+    || summary.client_facing_ready_count !== 0
+    || summary.court_filing_ready_count !== 0
+    || summary.legal_conclusion_asserted_count !== 0
+    || summary.legal_advice_provided === true
+    || summary.client_facing_output_generated === true
+    || summary.external_legal_research_performed === true
+    || summary.legal_authority_finalized === true
+    || summary.desktop_boundary_status !== "enforced"
+    || summary.desktop_read_only !== true
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_source_of_truth === true
+    || summary.matter_data_write_allowed === true
+    || summary.task_state_write_allowed === true
+    || summary.workflow_transition_allowed === true
+    || summary.runtime_execution_allowed === true
+    || summary.delivery_execution_allowed === true
+    || summary.protected_action_allowed === true
+    || summary.client_facing_output_allowed_without_attorney_review === true
+    || summary.failed_checkpoint_count !== 0
+    || artifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "litigation_brief_draft",
+    label: "Litigation Brief Draft",
+    status,
+    message: `${summary.claim_count ?? 0} claim(s), ${summary.fact_count ?? 0} fact(s), ${summary.evidence_link_count ?? 0} evidence link(s), ${summary.legal_basis_placeholder_count ?? 0} legal basis placeholder(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      litigation_brief_draft_status: summary.litigation_brief_draft_status ?? "unknown",
+      litigation_brief_draft_contract_id: summary.litigation_brief_draft_contract_id ?? null,
+      source_of_truth: summary.source_of_truth ?? "unknown",
+      source_matter_status: summary.source_matter_status ?? "unknown",
+      source_matter_id: summary.source_matter_id ?? null,
+      source_legal_citation_verifier_status: summary.source_legal_citation_verifier_status ?? "unknown",
+      source_legal_citation_verifier_phase_status: summary.source_legal_citation_verifier_phase_status ?? "unknown",
+      source_legal_citation_verification_record_count: summary.source_legal_citation_verification_record_count ?? 0,
+      source_legal_rule_placeholder_citation_count: summary.source_legal_rule_placeholder_citation_count ?? 0,
+      source_currentness_verified_count: summary.source_currentness_verified_count ?? 0,
+      source_exhibit_map_status: summary.source_exhibit_map_status ?? "unknown",
+      source_litigation_brief_target_exhibit_count: summary.source_litigation_brief_target_exhibit_count ?? 0,
+      source_claim_count: summary.source_claim_count ?? 0,
+      source_chronology_count: summary.source_chronology_count ?? 0,
+      source_evidence_count: summary.source_evidence_count ?? 0,
+      source_claim_evidence_mapping_count: summary.source_claim_evidence_mapping_count ?? 0,
+      brief_rule_count: summary.brief_rule_count ?? 0,
+      draft_packet_count: summary.draft_packet_count ?? 0,
+      claim_count: summary.claim_count ?? 0,
+      fact_count: summary.fact_count ?? 0,
+      verified_fact_count: summary.verified_fact_count ?? 0,
+      unverified_fact_count: summary.unverified_fact_count ?? 0,
+      evidence_link_count: summary.evidence_link_count ?? 0,
+      supporting_evidence_link_count: summary.supporting_evidence_link_count ?? 0,
+      contrary_evidence_link_count: summary.contrary_evidence_link_count ?? 0,
+      missing_evidence_link_count: summary.missing_evidence_link_count ?? 0,
+      legal_basis_placeholder_count: summary.legal_basis_placeholder_count ?? 0,
+      citation_gate_count: summary.citation_gate_count ?? 0,
+      citation_gate_passed_count: summary.citation_gate_passed_count ?? 0,
+      citation_gate_currentness_review_required_count: summary.citation_gate_currentness_review_required_count ?? 0,
+      citation_gate_legal_authority_review_required_count: summary.citation_gate_legal_authority_review_required_count ?? 0,
+      claim_with_fact_link_count: summary.claim_with_fact_link_count ?? 0,
+      claim_with_evidence_link_count: summary.claim_with_evidence_link_count ?? 0,
+      claim_with_legal_basis_placeholder_count: summary.claim_with_legal_basis_placeholder_count ?? 0,
+      matter_count: summary.matter_count ?? 0,
+      draft_only_count: summary.draft_only_count ?? 0,
+      human_review_note_count: summary.human_review_note_count ?? 0,
+      deterministic_brief_draft_generation_count: summary.deterministic_brief_draft_generation_count ?? 0,
+      attorney_review_required_claim_count: summary.attorney_review_required_claim_count ?? 0,
+      human_review_required_claim_count: summary.human_review_required_claim_count ?? 0,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      court_filing_ready_count: summary.court_filing_ready_count ?? 0,
+      legal_advice_provided: summary.legal_advice_provided ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      legal_conclusion_asserted_count: summary.legal_conclusion_asserted_count ?? 0,
+      external_legal_research_performed: summary.external_legal_research_performed ?? false,
+      legal_authority_finalized: summary.legal_authority_finalized ?? false,
+      desktop_boundary_status: summary.desktop_boundary_status ?? "unknown",
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_source_of_truth: summary.desktop_source_of_truth ?? false,
+      matter_data_write_allowed: summary.matter_data_write_allowed ?? false,
+      task_state_write_allowed: summary.task_state_write_allowed ?? false,
+      workflow_transition_allowed: summary.workflow_transition_allowed ?? false,
+      runtime_execution_allowed: summary.runtime_execution_allowed ?? false,
+      delivery_execution_allowed: summary.delivery_execution_allowed ?? false,
+      protected_action_allowed: summary.protected_action_allowed ?? false,
+      client_facing_output_allowed_without_attorney_review: summary.client_facing_output_allowed_without_attorney_review ?? false,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -15599,6 +15726,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.litigation_brief_draft?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "litigation_brief_draft";
+    items.push({
+      action_item_id: `dashboard.action.litigation_brief_draft.${slugify(subjectId)}`,
+      source_stage: "litigation_brief_draft",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix litigation brief draft",
+      subject_ref: {
+        subject_type: "litigation_brief_draft_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_litigation_brief_draft", "rerun_litigation_brief_draft", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -20752,6 +20897,49 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     ldd_report_draft_client_facing_output_allowed_without_attorney_review: artifacts.ldd_report_draft?.summary?.client_facing_output_allowed_without_attorney_review ?? false,
     ldd_report_draft_failed_checkpoint_count: artifacts.ldd_report_draft?.summary?.failed_checkpoint_count ?? 0,
     ldd_report_draft_validation_error_count: artifacts.ldd_report_draft?.summary?.validation_error_count ?? artifacts.ldd_report_draft?.validation?.errors?.length ?? 0,
+    litigation_brief_draft_status: artifacts.litigation_brief_draft?.summary?.litigation_brief_draft_status ?? "unknown",
+    litigation_brief_draft_contract_id: artifacts.litigation_brief_draft?.summary?.litigation_brief_draft_contract_id ?? null,
+    litigation_brief_draft_source_matter_status: artifacts.litigation_brief_draft?.summary?.source_matter_status ?? "unknown",
+    litigation_brief_draft_source_matter_id: artifacts.litigation_brief_draft?.summary?.source_matter_id ?? null,
+    litigation_brief_draft_source_legal_citation_verifier_status: artifacts.litigation_brief_draft?.summary?.source_legal_citation_verifier_status ?? "unknown",
+    litigation_brief_draft_source_legal_citation_verifier_phase_status: artifacts.litigation_brief_draft?.summary?.source_legal_citation_verifier_phase_status ?? "unknown",
+    litigation_brief_draft_source_exhibit_map_status: artifacts.litigation_brief_draft?.summary?.source_exhibit_map_status ?? "unknown",
+    litigation_brief_draft_source_claim_count: artifacts.litigation_brief_draft?.summary?.source_claim_count ?? 0,
+    litigation_brief_draft_source_chronology_count: artifacts.litigation_brief_draft?.summary?.source_chronology_count ?? 0,
+    litigation_brief_draft_source_evidence_count: artifacts.litigation_brief_draft?.summary?.source_evidence_count ?? 0,
+    litigation_brief_draft_source_claim_evidence_mapping_count: artifacts.litigation_brief_draft?.summary?.source_claim_evidence_mapping_count ?? 0,
+    litigation_brief_draft_brief_rule_count: artifacts.litigation_brief_draft?.summary?.brief_rule_count ?? 0,
+    litigation_brief_draft_packet_count: artifacts.litigation_brief_draft?.summary?.draft_packet_count ?? 0,
+    litigation_brief_draft_claim_count: artifacts.litigation_brief_draft?.summary?.claim_count ?? 0,
+    litigation_brief_draft_fact_count: artifacts.litigation_brief_draft?.summary?.fact_count ?? 0,
+    litigation_brief_draft_evidence_link_count: artifacts.litigation_brief_draft?.summary?.evidence_link_count ?? 0,
+    litigation_brief_draft_missing_evidence_link_count: artifacts.litigation_brief_draft?.summary?.missing_evidence_link_count ?? 0,
+    litigation_brief_draft_legal_basis_placeholder_count: artifacts.litigation_brief_draft?.summary?.legal_basis_placeholder_count ?? 0,
+    litigation_brief_draft_citation_gate_count: artifacts.litigation_brief_draft?.summary?.citation_gate_count ?? 0,
+    litigation_brief_draft_citation_gate_passed_count: artifacts.litigation_brief_draft?.summary?.citation_gate_passed_count ?? 0,
+    litigation_brief_draft_citation_gate_currentness_review_required_count: artifacts.litigation_brief_draft?.summary?.citation_gate_currentness_review_required_count ?? 0,
+    litigation_brief_draft_citation_gate_legal_authority_review_required_count: artifacts.litigation_brief_draft?.summary?.citation_gate_legal_authority_review_required_count ?? 0,
+    litigation_brief_draft_claim_with_fact_link_count: artifacts.litigation_brief_draft?.summary?.claim_with_fact_link_count ?? 0,
+    litigation_brief_draft_claim_with_evidence_link_count: artifacts.litigation_brief_draft?.summary?.claim_with_evidence_link_count ?? 0,
+    litigation_brief_draft_claim_with_legal_basis_placeholder_count: artifacts.litigation_brief_draft?.summary?.claim_with_legal_basis_placeholder_count ?? 0,
+    litigation_brief_draft_client_facing_ready_count: artifacts.litigation_brief_draft?.summary?.client_facing_ready_count ?? 0,
+    litigation_brief_draft_court_filing_ready_count: artifacts.litigation_brief_draft?.summary?.court_filing_ready_count ?? 0,
+    litigation_brief_draft_legal_advice_provided: artifacts.litigation_brief_draft?.summary?.legal_advice_provided ?? false,
+    litigation_brief_draft_client_facing_output_generated: artifacts.litigation_brief_draft?.summary?.client_facing_output_generated ?? false,
+    litigation_brief_draft_legal_conclusion_asserted_count: artifacts.litigation_brief_draft?.summary?.legal_conclusion_asserted_count ?? 0,
+    litigation_brief_draft_external_legal_research_performed: artifacts.litigation_brief_draft?.summary?.external_legal_research_performed ?? false,
+    litigation_brief_draft_legal_authority_finalized: artifacts.litigation_brief_draft?.summary?.legal_authority_finalized ?? false,
+    litigation_brief_draft_desktop_boundary_status: artifacts.litigation_brief_draft?.summary?.desktop_boundary_status ?? "unknown",
+    litigation_brief_draft_desktop_read_only: artifacts.litigation_brief_draft?.summary?.desktop_read_only ?? false,
+    litigation_brief_draft_desktop_mutation_allowed: artifacts.litigation_brief_draft?.summary?.desktop_mutation_allowed ?? false,
+    litigation_brief_draft_matter_data_write_allowed: artifacts.litigation_brief_draft?.summary?.matter_data_write_allowed ?? false,
+    litigation_brief_draft_task_state_write_allowed: artifacts.litigation_brief_draft?.summary?.task_state_write_allowed ?? false,
+    litigation_brief_draft_workflow_transition_allowed: artifacts.litigation_brief_draft?.summary?.workflow_transition_allowed ?? false,
+    litigation_brief_draft_runtime_execution_allowed: artifacts.litigation_brief_draft?.summary?.runtime_execution_allowed ?? false,
+    litigation_brief_draft_delivery_execution_allowed: artifacts.litigation_brief_draft?.summary?.delivery_execution_allowed ?? false,
+    litigation_brief_draft_protected_action_allowed: artifacts.litigation_brief_draft?.summary?.protected_action_allowed ?? false,
+    litigation_brief_draft_failed_checkpoint_count: artifacts.litigation_brief_draft?.summary?.failed_checkpoint_count ?? 0,
+    litigation_brief_draft_validation_error_count: artifacts.litigation_brief_draft?.summary?.validation_error_count ?? artifacts.litigation_brief_draft?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -22543,6 +22731,8 @@ function parseArgs(argv) {
     else if (arg === "--no-ldd-rfi-generator") parsed.lddRfiGeneratorPath = false;
     else if (arg === "--ldd-report-draft") parsed.lddReportDraftPath = argv[++index];
     else if (arg === "--no-ldd-report-draft") parsed.lddReportDraftPath = false;
+    else if (arg === "--litigation-brief-draft") parsed.litigationBriefDraftPath = argv[++index];
+    else if (arg === "--no-litigation-brief-draft") parsed.litigationBriefDraftPath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];

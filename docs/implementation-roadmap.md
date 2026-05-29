@@ -6854,6 +6854,25 @@ Completion criteria:
 - Golden fixture count increased to 148 and `ldd_report_draft` is included as a regression fixture.
 - `npm run law-firm:report-draft -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
 
+## Phase 247 - Litigation Brief Draft
+
+Goal: P247 Law Firm Domain Pack adds a deterministic, draft-only litigation brief scaffold that turns Project Beta litigation-control claims, chronology, evidence mappings, Legal Citation Verifier rows, and Exhibit Map context into attorney-reviewable claim, fact, evidence-link, legal-basis placeholder, citation-gate, and matter summary rows. The generated rows remain internal work product only and are not legal advice, legal conclusions, finalized legal authority, court filing-ready output, or client-facing-ready output.
+
+Implementation:
+- Added `src/litigation-brief-draft.mjs`, `scripts/litigation-brief-draft.mjs`, `schemas/litigation-brief-draft.schema.json`, and `docs/litigation-brief-draft.md`.
+- Added `law-firm:litigation-brief-draft` npm script.
+- The artifact emits `litigation_brief_rules`, `litigation_brief_drafts`, `litigation_brief_claims`, `litigation_brief_facts`, `litigation_brief_evidence_links`, `litigation_brief_legal_basis_placeholders`, `litigation_brief_citation_gate_results`, and `litigation_brief_matter_summaries`.
+- Review Dashboard stage/summary, Review API route/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests were wired to the new artifact.
+
+Completion criteria:
+- 5 brief rules, 1 internal draft packet, 2 claim scaffolds, 3 sourced fact rows, 6 evidence links, 2 legal-basis placeholders, 2 citation gate results, and 1 matter summary are generated from the Project Beta litigation baseline.
+- Every claim has fact, evidence, legal-basis, and citation-gate links.
+- Legal-basis placeholders and citation gate results are source-bound and pass the deterministic citation gate while keeping currentness review and legal-authority review required.
+- Every claim, fact, evidence link, legal-basis placeholder, citation gate, and matter summary remains `matter_id`-scoped, draft-only or review-gated, attorney/human-review required, and not client-facing-ready.
+- Legal advice, legal conclusions, finalized legal authority, external legal research, court filing readiness, client-facing output, matter data write, task state write, workflow transition, runtime execution, delivery execution, protected action, Desktop mutation, and Desktop source-of-truth are all 0/false.
+- Golden fixture count increased to 149 and `litigation_brief_draft` is included as a regression fixture.
+- `npm run law-firm:litigation-brief-draft -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -6862,9 +6881,9 @@ Completion criteria:
 
 운영 원칙:
 
-- Current actual completion baseline is Phase 246.
+- Current actual completion baseline is Phase 247.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- Remaining planned slots are P247-P312, 66 total.
+- Remaining planned slots are P248-P312, 65 total.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - P217 이후 personal-dev 작업은 Mac Phase 216 결과를 Windows 작업공간에서 계속 이어가되, Phase 217 본작업보다 Windows 기준선 안정화 게이트를 선행 조건으로 둔 판단을 기준으로 운영한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.

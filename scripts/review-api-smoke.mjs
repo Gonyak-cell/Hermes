@@ -2332,6 +2332,50 @@ try {
   assert.equal(lddReportDraftValidations.collection, "ldd_report_draft_validations");
   assert.ok(lddReportDraftValidations.count <= 5);
 
+  const litigationBriefDraftArtifacts = await fetchJson(`${url}/api/litigation-brief-draft-artifacts?litigation_brief_draft_status=complete&limit=1`);
+  assert.equal(litigationBriefDraftArtifacts.collection, "litigation_brief_draft_artifacts");
+  assert.ok(litigationBriefDraftArtifacts.count <= 1);
+
+  const litigationBriefRules = await fetchJson(`${url}/api/litigation-brief-rules?brief_rule_type=claim_scaffold&limit=5`);
+  assert.equal(litigationBriefRules.collection, "litigation_brief_rules");
+  assert.ok(litigationBriefRules.count <= 5);
+
+  const litigationBriefDrafts = await fetchJson(`${url}/api/litigation-brief-drafts?brief_draft_status=draft_pending_attorney_review&court_filing_ready=false&limit=5`);
+  assert.equal(litigationBriefDrafts.collection, "litigation_brief_drafts");
+  assert.ok(litigationBriefDrafts.count <= 5);
+
+  const litigationBriefClaims = await fetchJson(`${url}/api/litigation-brief-claims?brief_claim_status=draft_pending_attorney_review&limit=5`);
+  assert.equal(litigationBriefClaims.collection, "litigation_brief_claims");
+  assert.ok(litigationBriefClaims.count <= 5);
+
+  const litigationBriefFacts = await fetchJson(`${url}/api/litigation-brief-facts?brief_fact_status=draft_pending_attorney_review&limit=5`);
+  assert.equal(litigationBriefFacts.collection, "litigation_brief_facts");
+  assert.ok(litigationBriefFacts.count <= 5);
+
+  const litigationBriefEvidenceLinks = await fetchJson(`${url}/api/litigation-brief-evidence-links?brief_evidence_link_status=linked_pending_attorney_review&limit=10`);
+  assert.equal(litigationBriefEvidenceLinks.collection, "litigation_brief_evidence_links");
+  assert.ok(litigationBriefEvidenceLinks.count <= 10);
+
+  const litigationBriefLegalBasisPlaceholders = await fetchJson(`${url}/api/litigation-brief-legal-basis-placeholders?legal_basis_status=placeholder_pending_attorney_review&currentness_check_status=currentness_review_required&limit=5`);
+  assert.equal(litigationBriefLegalBasisPlaceholders.collection, "litigation_brief_legal_basis_placeholders");
+  assert.ok(litigationBriefLegalBasisPlaceholders.count <= 5);
+
+  const litigationBriefCitationGates = await fetchJson(`${url}/api/litigation-brief-citation-gates?citation_gate_status=passed_pending_currentness_review&citation_gate_passed=true&limit=5`);
+  assert.equal(litigationBriefCitationGates.collection, "litigation_brief_citation_gate_results");
+  assert.ok(litigationBriefCitationGates.count <= 5);
+
+  const litigationBriefMatterSummaries = await fetchJson(`${url}/api/litigation-brief-matter-summaries?litigation_brief_matter_status=draft_pending_attorney_review&limit=5`);
+  assert.equal(litigationBriefMatterSummaries.collection, "litigation_brief_matter_summaries");
+  assert.ok(litigationBriefMatterSummaries.count <= 5);
+
+  const litigationBriefDraftBoundary = await fetchJson(`${url}/api/litigation-brief-draft-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(litigationBriefDraftBoundary.collection, "litigation_brief_draft_boundary");
+  assert.ok(litigationBriefDraftBoundary.count <= 1);
+
+  const litigationBriefDraftValidations = await fetchJson(`${url}/api/litigation-brief-draft-validations?status=passed&limit=5`);
+  assert.equal(litigationBriefDraftValidations.collection, "litigation_brief_draft_validations");
+  assert.ok(litigationBriefDraftValidations.count <= 5);
+
   const repoProfileDetectors = await fetchJson(`${url}/api/repo-profile-detectors?repo_profile_detector_status=complete&limit=1`);
   assert.equal(repoProfileDetectors.collection, "repo_profile_detectors");
   assert.ok(repoProfileDetectors.count <= 1);

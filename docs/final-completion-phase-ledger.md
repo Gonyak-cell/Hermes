@@ -4,8 +4,8 @@
 
 운영 규칙:
 
-- Current actual completion baseline is Phase 246.
-- Remaining planned slots are P247-P312, 66 total.
+- Current actual completion baseline is Phase 247.
+- Remaining planned slots are P248-P312, 65 total.
 - 각 slot은 `검증 -> 보강 -> 구현 -> 검증 -> commit -> roadmap 승격` 순서로 처리한다.
 - 모든 slot은 가능하면 `npm run validate`, `npm test`, 해당 slice command, `npm run control-plane:loop`, API/dashboard smoke 중 관련 검증을 통과해야 한다.
 - For P217 and later, continue on the Windows workspace only after preserving the Windows baseline stabilization posture.
@@ -42,7 +42,7 @@
 | P108 | Error/Cost/Observability contract 고정 | error, cost, trace projection schema | Promoted to Phase 108; ErrorRecord v2, CostObservation v2, TraceProjection v2가 실패, retry, token, cost, latency를 독립 projection으로 검증 |
 | P109 | schema versioning rule 확정 | schema versioning guideline | Promoted to Phase 109; optional addition, deprecation, migration manifest rule이 schema-versioning validator와 dashboard/API/checkpoint에 반영 |
 | P110 | migration manifest 구조 확정 | migration manifest schema | Promoted to Phase 110; core/pack/index migration manifest, migration record, validation, dashboard/API/checkpoint/loop가 분리 추적 |
-| P111 | contract golden fixtures | golden fixture set | Promoted to Phase 111; contract artifact, schema validation, and regression hash manifest are locked; Phase 113-P246 identity/policy/resource/evidence/event/workflow/runtime/personal-dev/law-firm fixtures are included, including matter_os_profile through ldd_report_draft, for 148 total fixtures |
+| P111 | contract golden fixtures | golden fixture set | Promoted to Phase 111; contract artifact, schema validation, and regression hash manifest are locked; Phase 113-P247 identity/policy/resource/evidence/event/workflow/runtime/personal-dev/law-firm fixtures are included, including matter_os_profile through litigation_brief_draft, for 149 total fixtures |
 | P112 | contract validation CLI 통합 | contract validation command | Promoted to Phase 112; 전체 contract fixture가 `npm run contracts:validate -- --check` 한 명령으로 검증되고 dashboard/API/checkpoint/loop에 반영 |
 
 ## P113-P132 Identity, Policy, Matter Boundary
@@ -213,7 +213,7 @@
 | P244 | LDD issue detection 구현 | LDD issue ledger | Promoted to Phase 244; LDD Issue Detection emits 5 deterministic attorney-review issue candidates from P243 facts and scoped matter metadata, with 2 red flags, 3 yellow flags, 5 follow-up rows, and severity/matter summaries; flags are operational review cues only, not legal conclusions; all rows are matter_id-scoped, attorney/human-review gated, and produce no legal advice, no client-facing output, no external execution, and no matter/task/workflow/runtime/delivery/protected mutation; golden/checkpoint/dashboard/API/loop/test verification passed |
 | P245 | LDD RFI generator 구현 | RFI draft artifact | Promoted to Phase 245; LDD RFI Generator emits 1 draft packet, 5 attorney-review draft questions, 4 missing-material links, 5 issue links, and 1 matter summary from P244 issue candidates and P240 VDR RFI candidates; every question remains matter_id-scoped, issue/evidence-linked, draft-only, attorney/human-review gated, and not client-facing-ready; legal advice, legal conclusions, client-facing output, matter/task/workflow/runtime/delivery/protected mutation, and Desktop mutation/source-of-truth remain 0/false; golden/checkpoint/dashboard/API/test verification passed |
 | P246 | LDD report draft 구현 | LDD report draft | Promoted to Phase 246; LDD Report Draft emits 5 draft report sections, 5 draft-only attorney-review paragraphs, 5 citation placeholders, 18 issue links, and 1 matter summary from P245 RFI drafts, P244 issue candidates, Legal Citation Verifier gates, and scoped matter metadata; every paragraph has source refs and citation placeholders; currentness/legal-authority review remains required; legal advice, legal conclusions, finalized authority, client-facing output, external legal research, matter/task/workflow/runtime/delivery/protected mutation, and Desktop mutation/source-of-truth remain 0/false; golden/checkpoint/dashboard/API/loop/test verification passed |
-| P247 | litigation brief draft 구현 | brief draft workflow | 주장, 사실, 증거, 법률근거가 citation gate를 통과 |
+| P247 | litigation brief draft 구현 | brief draft workflow | Promoted to Phase 247; Litigation Brief Draft emits 1 internal draft packet, 5 rules, 2 claim scaffolds, 3 sourced fact rows, 6 evidence links, 2 legal-basis placeholders, 2 citation gate results, and 1 matter summary from Project Beta litigation matter, Legal Citation Verifier, and Exhibit Map; claim/fact/evidence/legal-basis rows are matter_id-scoped, draft-only, attorney/human-review gated, and citation-gated; currentness/legal-authority review and partner approval remain required; legal advice, legal conclusions, finalized authority, court filing readiness, client-facing output, external legal research, matter/task/workflow/runtime/delivery/protected mutation, and Desktop mutation/source-of-truth remain 0/false; golden/checkpoint/dashboard/API/loop/test verification passed |
 | P248 | meeting minutes workflow 구현 | meeting minutes artifact | 녹취/메모에서 안건, 결정, action item, evidence가 생성 |
 | P249 | contract draft workflow 구현 | contract draft artifact | clause consistency, client position, attorney review gate 포함 |
 | P250 | provided materials full review 구현 | provided-material review ledger | 제공자료 전수검토와 파일 인덱싱 상태가 조회 |

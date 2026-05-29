@@ -1,0 +1,297 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/backfill-job-contract.schema.json",
+  "title": "Backfill Job Contract",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "backfill_job_contract_status",
+    "backfill_job_schema",
+    "backfill_job_field_requirements",
+    "backfill_job_source_bindings",
+    "backfill_job_cursor_contracts",
+    "backfill_job_batch_contracts",
+    "backfill_job_count_contracts",
+    "backfill_job_policy_bindings",
+    "backfill_job_boundary",
+    "backfill_job_checkpoints",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "backfill-job-contract.v1" },
+    "backfill_job_contract_status": { "const": "complete" },
+    "backfill_job_schema": {
+      "type": "object",
+      "required": [
+        "contract_id",
+        "phase_slot",
+        "required_field_count",
+        "field_group_count",
+        "raw_cursor_material_allowed",
+        "backfill_execution_required_for_contract_validation",
+        "human_review_required",
+        "client_facing_ready"
+      ],
+      "properties": {
+        "contract_id": { "const": "backfill-job-contract.v1" },
+        "phase_slot": { "const": "P277" },
+        "required_field_count": { "type": "integer", "minimum": 24 },
+        "field_group_count": { "const": 6 },
+        "raw_cursor_material_allowed": { "const": false },
+        "backfill_execution_required_for_contract_validation": { "const": false },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "backfill_job_field_requirements": {
+      "type": "array",
+      "minItems": 24,
+      "items": {
+        "type": "object",
+        "required": [
+          "field_group",
+          "field_path",
+          "contract_required",
+          "observed_present",
+          "field_status"
+        ],
+        "properties": {
+          "field_group": {
+            "enum": ["job_identity", "source_binding", "cursor", "batch", "counts", "policy_snapshot"]
+          },
+          "field_path": { "type": "string", "minLength": 1 },
+          "contract_required": { "const": true },
+          "observed_present": { "const": true },
+          "field_status": { "const": "validated" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "backfill_job_source_bindings": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["binding_id", "binding_status", "human_review_required", "client_facing_ready"],
+        "properties": {
+          "binding_id": { "type": "string" },
+          "binding_status": { "const": "bound" },
+          "human_review_required": { "const": true },
+          "client_facing_ready": { "const": false }
+        },
+        "additionalProperties": true
+      }
+    },
+    "backfill_job_cursor_contracts": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["contract_id", "contract_status", "human_review_required", "client_facing_ready"],
+        "properties": {
+          "contract_status": { "const": "passed" },
+          "human_review_required": { "const": true },
+          "client_facing_ready": { "const": false }
+        },
+        "additionalProperties": true
+      }
+    },
+    "backfill_job_batch_contracts": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["contract_status"],
+        "properties": {
+          "contract_status": { "const": "passed" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "backfill_job_count_contracts": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["contract_status"],
+        "properties": {
+          "contract_status": { "const": "passed" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "backfill_job_policy_bindings": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["policy_binding_status", "human_review_required", "client_facing_ready"],
+        "properties": {
+          "policy_binding_status": { "const": "bound" },
+          "human_review_required": { "const": true },
+          "client_facing_ready": { "const": false }
+        },
+        "additionalProperties": true
+      }
+    },
+    "backfill_job_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "read_only",
+        "contract_report_only",
+        "backfill_execution_performed",
+        "source_ingest_performed",
+        "file_content_read_performed",
+        "source_mutation_performed",
+        "resource_mutation_performed",
+        "policy_snapshot_mutation_performed",
+        "delivery_execution_performed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "client_facing_ready_count",
+        "human_review_required",
+        "windows_baseline_stability_preserved",
+        "mac_windows_completion_instability_guard"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "read_only": { "const": true },
+        "contract_report_only": { "const": true },
+        "backfill_execution_performed": { "const": false },
+        "source_ingest_performed": { "const": false },
+        "file_content_read_performed": { "const": false },
+        "source_mutation_performed": { "const": false },
+        "resource_mutation_performed": { "const": false },
+        "policy_snapshot_mutation_performed": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "client_facing_ready_count": { "const": 0 },
+        "human_review_required": { "const": true },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "backfill_job_checkpoints": {
+      "type": "array",
+      "minItems": 19,
+      "items": {
+        "type": "object",
+        "required": ["checkpoint_id", "status"],
+        "properties": {
+          "status": { "const": "passed" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "minItems": 19,
+      "items": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": { "const": "passed" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "failed_count"],
+      "properties": {
+        "valid": { "const": true },
+        "failed_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "backfill_job_contract_status",
+        "phase_slot",
+        "required_field_count",
+        "validated_required_field_count",
+        "missing_required_field_count",
+        "source_binding_count",
+        "bound_source_binding_count",
+        "cursor_contract_count",
+        "passed_cursor_contract_count",
+        "batch_contract_count",
+        "passed_batch_contract_count",
+        "count_contract_count",
+        "passed_count_contract_count",
+        "policy_binding_count",
+        "passed_policy_binding_count",
+        "job_id_required",
+        "source_id_required",
+        "cursor_required",
+        "batch_required",
+        "counts_required",
+        "policy_snapshot_required",
+        "raw_cursor_material_allowed",
+        "backfill_execution_performed",
+        "source_ingest_performed",
+        "file_content_read_performed",
+        "source_mutation_performed",
+        "resource_mutation_performed",
+        "delivery_execution_performed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "client_facing_ready_count",
+        "windows_baseline_stability_preserved",
+        "mac_windows_completion_instability_guard",
+        "failed_checkpoint_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "backfill_job_contract_status": { "const": "complete" },
+        "phase_slot": { "const": "P277" },
+        "required_field_count": { "type": "integer", "minimum": 24 },
+        "validated_required_field_count": { "type": "integer", "minimum": 24 },
+        "missing_required_field_count": { "const": 0 },
+        "source_binding_count": { "type": "integer", "minimum": 4 },
+        "bound_source_binding_count": { "type": "integer", "minimum": 4 },
+        "cursor_contract_count": { "type": "integer", "minimum": 5 },
+        "passed_cursor_contract_count": { "type": "integer", "minimum": 5 },
+        "batch_contract_count": { "type": "integer", "minimum": 4 },
+        "passed_batch_contract_count": { "type": "integer", "minimum": 4 },
+        "count_contract_count": { "type": "integer", "minimum": 5 },
+        "passed_count_contract_count": { "type": "integer", "minimum": 5 },
+        "policy_binding_count": { "type": "integer", "minimum": 4 },
+        "passed_policy_binding_count": { "type": "integer", "minimum": 4 },
+        "job_id_required": { "const": true },
+        "source_id_required": { "const": true },
+        "cursor_required": { "const": true },
+        "batch_required": { "const": true },
+        "counts_required": { "const": true },
+        "policy_snapshot_required": { "const": true },
+        "raw_cursor_material_allowed": { "const": false },
+        "backfill_execution_performed": { "const": false },
+        "source_ingest_performed": { "const": false },
+        "file_content_read_performed": { "const": false },
+        "source_mutation_performed": { "const": false },
+        "resource_mutation_performed": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "client_facing_ready_count": { "const": 0 },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true },
+        "failed_checkpoint_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

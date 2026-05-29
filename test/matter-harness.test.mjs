@@ -76,6 +76,7 @@ import { runVdrConnector } from "../src/vdr-connector.mjs";
 import { runPlaudTranscriptConnector } from "../src/plaud-transcript-connector.mjs";
 import { runErpDraftConnector } from "../src/erp-draft-connector.mjs";
 import { runConnectorFreeze } from "../src/connector-freeze.mjs";
+import { runBackfillJobContract } from "../src/backfill-job-contract.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1947,6 +1948,7 @@ describe("matter harness", () => {
         plaudTranscriptConnectorPath: path.join(outDir, "plaud-transcript-connector", "plaud-transcript-connector.json"),
         erpDraftConnectorPath: path.join(outDir, "erp-draft-connector", "erp-draft-connector.json"),
         connectorFreezePath: path.join(outDir, "connector-freeze", "connector-freeze.json"),
+        backfillJobContractPath: path.join(outDir, "backfill-job-contract", "backfill-job-contract.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11390,6 +11392,62 @@ describe("matter harness", () => {
       assert.equal(connectorFreeze.connector_freeze_boundary.source_ingest_performed, false);
       assert.match(await readFile(path.join(outDir, "connector-freeze", "summary.md"), "utf8"), /Connector Freeze/);
 
+      const backfillJobContract = await runBackfillJobContract({
+        resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
+        resourceExpansionSchemaPath: "schemas/resource-expansion.schema.json",
+        connectorFreezePath: path.join(outDir, "connector-freeze", "connector-freeze.json"),
+        outDir: path.join(outDir, "backfill-job-contract"),
+        runAt: "2026-05-23T07:18:24.000Z",
+      });
+      const backfillJobContractSchema = JSON.parse(await readFile("schemas/backfill-job-contract.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(backfillJobContract, backfillJobContractSchema, {}, "backfill_job_contract"), [], JSON.stringify(backfillJobContract.validation.errors));
+      assert.equal(backfillJobContract.summary.backfill_job_contract_status, "complete");
+      assert.equal(backfillJobContract.summary.phase_slot, "P277");
+      assert.equal(backfillJobContract.summary.previous_phase_slot, "P276");
+      assert.equal(backfillJobContract.summary.next_phase_slot, "P278");
+      assert.equal(backfillJobContract.summary.required_field_count, 24);
+      assert.equal(backfillJobContract.summary.validated_required_field_count, 24);
+      assert.equal(backfillJobContract.summary.missing_required_field_count, 0);
+      assert.equal(backfillJobContract.summary.source_binding_count, 4);
+      assert.equal(backfillJobContract.summary.bound_source_binding_count, 4);
+      assert.equal(backfillJobContract.summary.cursor_contract_count, 5);
+      assert.equal(backfillJobContract.summary.passed_cursor_contract_count, 5);
+      assert.equal(backfillJobContract.summary.batch_contract_count, 4);
+      assert.equal(backfillJobContract.summary.passed_batch_contract_count, 4);
+      assert.equal(backfillJobContract.summary.count_contract_count, 5);
+      assert.equal(backfillJobContract.summary.passed_count_contract_count, 5);
+      assert.equal(backfillJobContract.summary.policy_binding_count, 4);
+      assert.equal(backfillJobContract.summary.passed_policy_binding_count, 4);
+      assert.equal(backfillJobContract.summary.job_id_required, true);
+      assert.equal(backfillJobContract.summary.source_id_required, true);
+      assert.equal(backfillJobContract.summary.cursor_required, true);
+      assert.equal(backfillJobContract.summary.batch_required, true);
+      assert.equal(backfillJobContract.summary.counts_required, true);
+      assert.equal(backfillJobContract.summary.policy_snapshot_required, true);
+      assert.equal(backfillJobContract.summary.raw_cursor_material_allowed, false);
+      assert.equal(backfillJobContract.summary.backfill_execution_performed, false);
+      assert.equal(backfillJobContract.summary.source_ingest_performed, false);
+      assert.equal(backfillJobContract.summary.file_content_read_performed, false);
+      assert.equal(backfillJobContract.summary.source_mutation_performed, false);
+      assert.equal(backfillJobContract.summary.resource_mutation_performed, false);
+      assert.equal(backfillJobContract.summary.delivery_execution_performed, false);
+      assert.equal(backfillJobContract.summary.protected_action_executed, false);
+      assert.equal(backfillJobContract.summary.legal_advice_generated, false);
+      assert.equal(backfillJobContract.summary.client_facing_output_generated, false);
+      assert.equal(backfillJobContract.summary.windows_baseline_stability_preserved, true);
+      assert.equal(backfillJobContract.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(backfillJobContract.summary.failed_checkpoint_count, 0);
+      assert.equal(backfillJobContract.summary.validation_error_count, 0);
+      assert.ok(backfillJobContract.backfill_job_field_requirements.every((field) => field.field_status === "validated"));
+      assert.ok(backfillJobContract.backfill_job_source_bindings.every((binding) => binding.binding_status === "bound" && binding.human_review_required && binding.client_facing_ready === false));
+      assert.ok(backfillJobContract.backfill_job_cursor_contracts.every((row) => row.contract_status === "passed"));
+      assert.ok(backfillJobContract.backfill_job_batch_contracts.every((row) => row.contract_status === "passed"));
+      assert.ok(backfillJobContract.backfill_job_count_contracts.every((row) => row.contract_status === "passed"));
+      assert.ok(backfillJobContract.backfill_job_policy_bindings.every((row) => row.policy_binding_status === "bound" && row.human_review_required));
+      assert.equal(backfillJobContract.backfill_job_boundary.backfill_execution_performed, false);
+      assert.equal(backfillJobContract.backfill_job_boundary.file_content_read_performed, false);
+      assert.match(await readFile(path.join(outDir, "backfill-job-contract", "summary.md"), "utf8"), /Backfill Job Contract/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -11590,6 +11648,7 @@ describe("matter harness", () => {
           plaud_transcript_connector: path.join(outDir, "plaud-transcript-connector", "plaud-transcript-connector.json"),
           erp_draft_connector: path.join(outDir, "erp-draft-connector", "erp-draft-connector.json"),
           connector_freeze: path.join(outDir, "connector-freeze", "connector-freeze.json"),
+          backfill_job_contract: path.join(outDir, "backfill-job-contract", "backfill-job-contract.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11641,8 +11700,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 178);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 178);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 179);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 179);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -11808,6 +11867,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "plaud_transcript_connector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "erp_draft_connector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "connector_freeze"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "backfill_job_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -11849,6 +11909,7 @@ describe("matter harness", () => {
       assert.equal(contractValidationSuite.summary.validation_error_count, 0);
       assert.ok(contractValidationSuite.fixture_validation_results.every((result) => result.regression_status === "passed"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:validate"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:backfill-job-contract"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:runtime-interface"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:approval-matrix"));
@@ -12684,6 +12745,10 @@ describe("matter harness", () => {
       assert.equal(connectorFreezeCheckpoint?.acceptance_profile, "connector_freeze_gate");
       assert.equal(connectorFreezeCheckpoint?.status, "passed");
       assert.equal(connectorFreezeCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const backfillJobContractCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-backfill-job-contract");
+      assert.equal(backfillJobContractCheckpoint?.acceptance_profile, "backfill_job_contract_gate");
+      assert.equal(backfillJobContractCheckpoint?.status, "passed");
+      assert.equal(backfillJobContractCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -17383,6 +17448,27 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.connector_freeze_client_facing_ready_count, 0);
       assert.equal(dashboard.summary.connector_freeze_failed_checkpoint_count, 0);
       assert.equal(dashboard.summary.connector_freeze_validation_error_count, 0);
+      assert.equal(dashboard.summary.backfill_job_contract_status, "complete");
+      assert.equal(dashboard.summary.backfill_job_contract_phase_slot, "P277");
+      assert.equal(dashboard.summary.backfill_job_contract_required_field_count, backfillJobContract.summary.required_field_count);
+      assert.equal(dashboard.summary.backfill_job_contract_validated_required_field_count, backfillJobContract.summary.validated_required_field_count);
+      assert.equal(dashboard.summary.backfill_job_contract_missing_required_field_count, 0);
+      assert.equal(dashboard.summary.backfill_job_contract_source_binding_count, backfillJobContract.summary.source_binding_count);
+      assert.equal(dashboard.summary.backfill_job_contract_bound_source_binding_count, backfillJobContract.summary.bound_source_binding_count);
+      assert.equal(dashboard.summary.backfill_job_contract_cursor_contract_count, backfillJobContract.summary.cursor_contract_count);
+      assert.equal(dashboard.summary.backfill_job_contract_passed_cursor_contract_count, backfillJobContract.summary.passed_cursor_contract_count);
+      assert.equal(dashboard.summary.backfill_job_contract_batch_contract_count, backfillJobContract.summary.batch_contract_count);
+      assert.equal(dashboard.summary.backfill_job_contract_passed_batch_contract_count, backfillJobContract.summary.passed_batch_contract_count);
+      assert.equal(dashboard.summary.backfill_job_contract_count_contract_count, backfillJobContract.summary.count_contract_count);
+      assert.equal(dashboard.summary.backfill_job_contract_passed_count_contract_count, backfillJobContract.summary.passed_count_contract_count);
+      assert.equal(dashboard.summary.backfill_job_contract_policy_binding_count, backfillJobContract.summary.policy_binding_count);
+      assert.equal(dashboard.summary.backfill_job_contract_passed_policy_binding_count, backfillJobContract.summary.passed_policy_binding_count);
+      assert.equal(dashboard.summary.backfill_job_contract_backfill_execution_performed, false);
+      assert.equal(dashboard.summary.backfill_job_contract_file_content_read_performed, false);
+      assert.equal(dashboard.summary.backfill_job_contract_legal_advice_generated, false);
+      assert.equal(dashboard.summary.backfill_job_contract_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.backfill_job_contract_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.backfill_job_contract_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -20516,6 +20602,28 @@ describe("matter harness", () => {
       assert.equal(connectorFreezeStage?.metrics.client_facing_ready_count, 0);
       assert.equal(connectorFreezeStage?.metrics.failed_checkpoint_count, 0);
       assert.equal(connectorFreezeStage?.metrics.validation_error_count, 0);
+      const backfillJobContractStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "backfill_job_contract");
+      assert.equal(backfillJobContractStage?.status, "passed");
+      assert.equal(backfillJobContractStage?.metrics.backfill_job_contract_status, "complete");
+      assert.equal(backfillJobContractStage?.metrics.phase_slot, "P277");
+      assert.equal(backfillJobContractStage?.metrics.required_field_count, backfillJobContract.summary.required_field_count);
+      assert.equal(backfillJobContractStage?.metrics.validated_required_field_count, backfillJobContract.summary.validated_required_field_count);
+      assert.equal(backfillJobContractStage?.metrics.missing_required_field_count, 0);
+      assert.equal(backfillJobContractStage?.metrics.source_binding_count, backfillJobContract.summary.source_binding_count);
+      assert.equal(backfillJobContractStage?.metrics.bound_source_binding_count, backfillJobContract.summary.bound_source_binding_count);
+      assert.equal(backfillJobContractStage?.metrics.cursor_contract_count, backfillJobContract.summary.cursor_contract_count);
+      assert.equal(backfillJobContractStage?.metrics.passed_cursor_contract_count, backfillJobContract.summary.passed_cursor_contract_count);
+      assert.equal(backfillJobContractStage?.metrics.batch_contract_count, backfillJobContract.summary.batch_contract_count);
+      assert.equal(backfillJobContractStage?.metrics.passed_batch_contract_count, backfillJobContract.summary.passed_batch_contract_count);
+      assert.equal(backfillJobContractStage?.metrics.count_contract_count, backfillJobContract.summary.count_contract_count);
+      assert.equal(backfillJobContractStage?.metrics.passed_count_contract_count, backfillJobContract.summary.passed_count_contract_count);
+      assert.equal(backfillJobContractStage?.metrics.policy_binding_count, backfillJobContract.summary.policy_binding_count);
+      assert.equal(backfillJobContractStage?.metrics.passed_policy_binding_count, backfillJobContract.summary.passed_policy_binding_count);
+      assert.equal(backfillJobContractStage?.metrics.raw_cursor_material_allowed, false);
+      assert.equal(backfillJobContractStage?.metrics.backfill_execution_performed, false);
+      assert.equal(backfillJobContractStage?.metrics.file_content_read_performed, false);
+      assert.equal(backfillJobContractStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(backfillJobContractStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -20596,6 +20704,14 @@ describe("matter harness", () => {
       const routeIndexSchema = JSON.parse(await readFile("schemas/review-api-index.schema.json", "utf8"));
       assert.deepEqual(validateAgainstSchema(routeIndex, routeIndexSchema, {}, "review_api_index"), []);
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/actions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/backfill-job-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/backfill-job-field-requirements"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/backfill-job-source-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/backfill-job-cursor-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/backfill-job-batch-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/backfill-job-count-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/backfill-job-policy-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/backfill-job-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -23020,6 +23136,38 @@ describe("matter harness", () => {
       const connectorFreezeValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/connector-freeze-validations?status=passed", apiOptions)).body);
       assert.equal(connectorFreezeValidationsResponse.collection, "connector_freeze_validations");
       assert.equal(connectorFreezeValidationsResponse.count, connectorFreeze.summary.validation_item_count);
+
+      const backfillJobContractsResponse = JSON.parse((await buildReviewApiResponse("/api/backfill-job-contracts?backfill_job_contract_status=complete", apiOptions)).body);
+      assert.equal(backfillJobContractsResponse.collection, "backfill_job_contracts");
+      assert.equal(backfillJobContractsResponse.count, 1);
+
+      const backfillJobFieldsResponse = JSON.parse((await buildReviewApiResponse("/api/backfill-job-field-requirements?backfill_field_status=validated", apiOptions)).body);
+      assert.equal(backfillJobFieldsResponse.collection, "backfill_job_field_requirements");
+      assert.equal(backfillJobFieldsResponse.count, backfillJobContract.summary.required_field_count);
+
+      const backfillJobSourceBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/backfill-job-source-bindings?backfill_source_binding_status=bound", apiOptions)).body);
+      assert.equal(backfillJobSourceBindingsResponse.collection, "backfill_job_source_bindings");
+      assert.equal(backfillJobSourceBindingsResponse.count, backfillJobContract.summary.source_binding_count);
+
+      const backfillJobCursorContractsResponse = JSON.parse((await buildReviewApiResponse("/api/backfill-job-cursor-contracts?backfill_cursor_contract_status=passed", apiOptions)).body);
+      assert.equal(backfillJobCursorContractsResponse.collection, "backfill_job_cursor_contracts");
+      assert.equal(backfillJobCursorContractsResponse.count, backfillJobContract.summary.cursor_contract_count);
+
+      const backfillJobBatchContractsResponse = JSON.parse((await buildReviewApiResponse("/api/backfill-job-batch-contracts?backfill_batch_contract_status=passed", apiOptions)).body);
+      assert.equal(backfillJobBatchContractsResponse.collection, "backfill_job_batch_contracts");
+      assert.equal(backfillJobBatchContractsResponse.count, backfillJobContract.summary.batch_contract_count);
+
+      const backfillJobCountContractsResponse = JSON.parse((await buildReviewApiResponse("/api/backfill-job-count-contracts?backfill_count_contract_status=passed", apiOptions)).body);
+      assert.equal(backfillJobCountContractsResponse.collection, "backfill_job_count_contracts");
+      assert.equal(backfillJobCountContractsResponse.count, backfillJobContract.summary.count_contract_count);
+
+      const backfillJobPolicyBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/backfill-job-policy-bindings?backfill_policy_binding_status=bound", apiOptions)).body);
+      assert.equal(backfillJobPolicyBindingsResponse.collection, "backfill_job_policy_bindings");
+      assert.equal(backfillJobPolicyBindingsResponse.count, backfillJobContract.summary.policy_binding_count);
+
+      const backfillJobValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/backfill-job-validations?status=passed", apiOptions)).body);
+      assert.equal(backfillJobValidationsResponse.collection, "backfill_job_validations");
+      assert.equal(backfillJobValidationsResponse.count, backfillJobContract.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

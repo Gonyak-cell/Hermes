@@ -5569,6 +5569,62 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("connector_freeze_validations", freezeResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/backfill-job-contracts") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "backfill_job_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("backfill_job_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("backfill_job_contracts", [contractResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/backfill-job-field-requirements") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "backfill_job_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("backfill_job_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("backfill_job_field_requirements", contractResult.artifact.backfill_job_field_requirements ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/backfill-job-source-bindings") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "backfill_job_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("backfill_job_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("backfill_job_source_bindings", contractResult.artifact.backfill_job_source_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/backfill-job-cursor-contracts") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "backfill_job_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("backfill_job_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("backfill_job_cursor_contracts", contractResult.artifact.backfill_job_cursor_contracts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/backfill-job-batch-contracts") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "backfill_job_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("backfill_job_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("backfill_job_batch_contracts", contractResult.artifact.backfill_job_batch_contracts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/backfill-job-count-contracts") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "backfill_job_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("backfill_job_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("backfill_job_count_contracts", contractResult.artifact.backfill_job_count_contracts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/backfill-job-policy-bindings") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "backfill_job_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("backfill_job_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("backfill_job_policy_bindings", contractResult.artifact.backfill_job_policy_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/backfill-job-validations") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "backfill_job_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("backfill_job_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("backfill_job_validations", contractResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -11969,6 +12025,14 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/connector-freeze-boundary", "Connector Freeze boundary row"),
       route("GET", "/api/connector-freeze-checkpoints", "Connector Freeze checkpoint rows"),
       route("GET", "/api/connector-freeze-validations", "Connector Freeze validation rows"),
+      route("GET", "/api/backfill-job-contracts", "Backfill Job Contract artifact"),
+      route("GET", "/api/backfill-job-field-requirements", "Backfill job required field rows"),
+      route("GET", "/api/backfill-job-source-bindings", "Backfill job source binding rows"),
+      route("GET", "/api/backfill-job-cursor-contracts", "Backfill job cursor contract rows"),
+      route("GET", "/api/backfill-job-batch-contracts", "Backfill job batch contract rows"),
+      route("GET", "/api/backfill-job-count-contracts", "Backfill job count contract rows"),
+      route("GET", "/api/backfill-job-policy-bindings", "Backfill job policy binding rows"),
+      route("GET", "/api/backfill-job-validations", "Backfill job validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -13083,6 +13147,14 @@ function filterItems(items, searchParams) {
     "connector_freeze_source_status",
     "connector_freeze_path_status",
     "connector_freeze_gate_status",
+    "backfill_job_contract_status",
+    "backfill_field_status",
+    "backfill_field_group",
+    "backfill_source_binding_status",
+    "backfill_cursor_contract_status",
+    "backfill_batch_contract_status",
+    "backfill_count_contract_status",
+    "backfill_policy_binding_status",
     "path_kind",
     "gate_id",
     "thread_status",
@@ -14932,6 +15004,14 @@ function readFilterValue(item, key) {
   if (key === "connector_freeze_source_status") return item.source_status;
   if (key === "connector_freeze_path_status") return item.path_status;
   if (key === "connector_freeze_gate_status") return item.gate_status;
+  if (key === "backfill_job_contract_status") return item.summary?.backfill_job_contract_status ?? item.backfill_job_contract_status;
+  if (key === "backfill_field_status") return item.field_status;
+  if (key === "backfill_field_group") return item.field_group;
+  if (key === "backfill_source_binding_status") return item.binding_status;
+  if (key === "backfill_cursor_contract_status") return item.contract_status;
+  if (key === "backfill_batch_contract_status") return item.contract_status;
+  if (key === "backfill_count_contract_status") return item.contract_status;
+  if (key === "backfill_policy_binding_status") return item.policy_binding_status;
   if (key === "path_kind") return item.path_kind;
   if (key === "gate_id") return item.gate_id;
   if (key === "thread_status") return item.thread_status;

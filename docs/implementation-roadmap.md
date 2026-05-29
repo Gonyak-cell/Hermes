@@ -7411,6 +7411,24 @@ Verification:
 - Golden fixture count increased to 178 and `connector_freeze` is included as a regression fixture.
 - `npm run connectors:freeze -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
 
+## Phase 277 - Backfill Job Contract
+
+Goal: P277 locks the Resource Expansion backfill job contract as a deterministic, read-only schema and field validation report before any Phase 278+ cursor/batch execution work. It preserves the Windows baseline stabilization posture by proving Mac/Windows completion differences cannot destabilize completed phases.
+
+Implementation:
+- Added `src/backfill-job-contract.mjs`, `scripts/backfill-job-contract.mjs`, `schemas/backfill-job-contract.schema.json`, and `docs/backfill-job-contract.md`.
+- Added `resource:backfill-job-contract` npm script.
+- The artifact reads Resource Expansion Job, Resource Expansion schema, Connector Freeze, package, ledger, roadmap, loop, dashboard, and API sources as read-only inputs and emits backfill job schema, field requirements, source bindings, cursor contracts, batch contracts, count contracts, policy bindings, boundary, validation, and summary artifacts.
+- Review Dashboard stage/summary, Review API routes/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests were wired to the new artifact.
+
+Verification:
+- The contract validates 24/24 required job/source/cursor/batch/count/policy snapshot fields.
+- Source bindings, cursor contracts, batch contracts, count contracts, and policy bindings all pass while remaining human-review gated and not client-facing.
+- Raw cursor material is disallowed, policy snapshot binding is required, and Windows baseline stability plus the Mac/Windows completion instability guard are explicitly preserved.
+- The report performs no backfill execution, source ingest, file content read, source/resource mutation, delivery execution, protected action, legal advice, or client-facing output.
+- Golden fixture count increased to 179 and `backfill_job_contract` is included as a regression fixture.
+- `npm run resource:backfill-job-contract -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -7419,9 +7437,9 @@ Verification:
 
 운영 원칙:
 
-- Current actual completion baseline is Phase 276.
+- Current actual completion baseline is Phase 277.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- Remaining planned slots are P277-P312, 36 total.
+- Remaining planned slots are P278-P312, 35 total.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - P217 이후 personal-dev 작업은 Mac Phase 216 결과를 Windows 작업공간에서 계속 이어가되, Phase 217 본작업보다 Windows 기준선 안정화 게이트를 선행 조건으로 둔 판단을 기준으로 운영한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.

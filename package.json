@@ -251,6 +251,7 @@
     "policy:snapshots": "node scripts/policy-snapshot-ledger.mjs",
     "resource:audit": "node scripts/resource-audit.mjs",
     "resource:expand": "node scripts/resource-expansion.mjs",
+    "resource:backfill-job-contract": "node scripts/backfill-job-contract.mjs",
     "resource:extract": "node scripts/resource-extract.mjs",
     "resource:extractor-adapters": "node scripts/extractor-adapter-contract.mjs",
     "resource:evidence-items": "node scripts/evidence-item-store.mjs",

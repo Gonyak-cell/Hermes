@@ -4,8 +4,8 @@
 
 운영 규칙:
 
-- Current actual completion baseline is Phase 276.
-- Remaining planned slots are P277-P312, 36 total.
+- Current actual completion baseline is Phase 277.
+- Remaining planned slots are P278-P312, 35 total.
 - 각 slot은 `검증 -> 보강 -> 구현 -> 검증 -> commit -> roadmap 승격` 순서로 처리한다.
 - 모든 slot은 가능하면 `npm run validate`, `npm test`, 해당 slice command, `npm run control-plane:loop`, API/dashboard smoke 중 관련 검증을 통과해야 한다.
 - For P217 and later, continue on the Windows workspace only after preserving the Windows baseline stabilization posture.
@@ -42,7 +42,7 @@
 | P108 | Error/Cost/Observability contract 고정 | error, cost, trace projection schema | Promoted to Phase 108; ErrorRecord v2, CostObservation v2, TraceProjection v2가 실패, retry, token, cost, latency를 독립 projection으로 검증 |
 | P109 | schema versioning rule 확정 | schema versioning guideline | Promoted to Phase 109; optional addition, deprecation, migration manifest rule이 schema-versioning validator와 dashboard/API/checkpoint에 반영 |
 | P110 | migration manifest 구조 확정 | migration manifest schema | Promoted to Phase 110; core/pack/index migration manifest, migration record, validation, dashboard/API/checkpoint/loop가 분리 추적 |
-| P111 | contract golden fixtures | golden fixture set | Promoted to Phase 111; contract artifact, schema validation, and regression hash manifest are locked; Phase 113-P276 identity/policy/resource/evidence/event/workflow/runtime/personal-dev/law-firm/creative-document/connector fixtures are included, including matter_os_profile through connector_freeze, for 178 total fixtures |
+| P111 | contract golden fixtures | golden fixture set | Promoted to Phase 111; contract artifact, schema validation, and regression hash manifest are locked; Phase 113-P277 identity/policy/resource/evidence/event/workflow/runtime/personal-dev/law-firm/creative-document/connector/resource-expansion fixtures are included, including matter_os_profile through backfill_job_contract, for 179 total fixtures |
 | P112 | contract validation CLI 통합 | contract validation command | Promoted to Phase 112; 전체 contract fixture가 `npm run contracts:validate -- --check` 한 명령으로 검증되고 dashboard/API/checkpoint/loop에 반영 |
 
 ## P113-P132 Identity, Policy, Matter Boundary
@@ -258,7 +258,7 @@
 
 | Slot | 목표 | 주요 산출물 | 완료 기준 |
 | --- | --- | --- | --- |
-| P277 | backfill job contract 구현 | backfill job schema | job id, source, cursor, batch, counts, policy snapshot 필드 검증 |
+| P277 | backfill job contract 구현 | backfill job schema | Promoted to Phase 277; Backfill Job Contract reads Resource Expansion Job, Resource Expansion schema, and Connector Freeze as read-only sources and validates 24/24 required job/source/cursor/batch/count/policy snapshot fields, 4/4 source bindings, 5/5 cursor contracts, 4/4 batch contracts, 5/5 count contracts, 4/4 policy bindings, and Windows baseline stability without running backfill, source ingest, file content reads, mutation, delivery, protected action, legal advice, or client-facing output; golden/checkpoint/dashboard/API/loop/test verification passed |
 | P278 | cursor/batch state 구현 | expansion cursor ledger | 중단 후 재개가 동일 batch 상태에서 가능 |
 | P279 | idempotency/dedup backfill 구현 | expansion dedup ledger | 중복 파일이 skipped_duplicate로 안정 처리 |
 | P280 | failure quarantine 구현 | expansion quarantine ledger | 실패/민감/불명확/대용량 파일이 quarantine으로 분류 |

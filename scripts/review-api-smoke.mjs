@@ -2584,6 +2584,38 @@ try {
   assert.equal(connectorFreezeValidations.collection, "connector_freeze_validations");
   assert.ok(connectorFreezeValidations.count <= 13);
 
+  const backfillJobContracts = await fetchJson(`${url}/api/backfill-job-contracts?backfill_job_contract_status=complete&limit=1`);
+  assert.equal(backfillJobContracts.collection, "backfill_job_contracts");
+  assert.ok(backfillJobContracts.count <= 1);
+
+  const backfillJobFieldRequirements = await fetchJson(`${url}/api/backfill-job-field-requirements?backfill_field_status=validated&limit=24`);
+  assert.equal(backfillJobFieldRequirements.collection, "backfill_job_field_requirements");
+  assert.ok(backfillJobFieldRequirements.count <= 24);
+
+  const backfillJobSourceBindings = await fetchJson(`${url}/api/backfill-job-source-bindings?backfill_source_binding_status=bound&limit=4`);
+  assert.equal(backfillJobSourceBindings.collection, "backfill_job_source_bindings");
+  assert.ok(backfillJobSourceBindings.count <= 4);
+
+  const backfillJobCursorContracts = await fetchJson(`${url}/api/backfill-job-cursor-contracts?backfill_cursor_contract_status=passed&limit=5`);
+  assert.equal(backfillJobCursorContracts.collection, "backfill_job_cursor_contracts");
+  assert.ok(backfillJobCursorContracts.count <= 5);
+
+  const backfillJobBatchContracts = await fetchJson(`${url}/api/backfill-job-batch-contracts?backfill_batch_contract_status=passed&limit=4`);
+  assert.equal(backfillJobBatchContracts.collection, "backfill_job_batch_contracts");
+  assert.ok(backfillJobBatchContracts.count <= 4);
+
+  const backfillJobCountContracts = await fetchJson(`${url}/api/backfill-job-count-contracts?backfill_count_contract_status=passed&limit=5`);
+  assert.equal(backfillJobCountContracts.collection, "backfill_job_count_contracts");
+  assert.ok(backfillJobCountContracts.count <= 5);
+
+  const backfillJobPolicyBindings = await fetchJson(`${url}/api/backfill-job-policy-bindings?backfill_policy_binding_status=bound&limit=4`);
+  assert.equal(backfillJobPolicyBindings.collection, "backfill_job_policy_bindings");
+  assert.ok(backfillJobPolicyBindings.count <= 4);
+
+  const backfillJobValidations = await fetchJson(`${url}/api/backfill-job-validations?status=passed&limit=19`);
+  assert.equal(backfillJobValidations.collection, "backfill_job_validations");
+  assert.ok(backfillJobValidations.count <= 19);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

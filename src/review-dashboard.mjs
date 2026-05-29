@@ -112,6 +112,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   plaudTranscriptConnectorPath: "artifacts/plaud-transcript-connector/latest/plaud-transcript-connector.json",
   erpDraftConnectorPath: "artifacts/erp-draft-connector/latest/erp-draft-connector.json",
   connectorFreezePath: "artifacts/connector-freeze/latest/connector-freeze.json",
+  backfillJobContractPath: "artifacts/backfill-job-contract/latest/backfill-job-contract.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -815,6 +816,11 @@ const SOURCE_DEFINITIONS = [
     option: "connectorFreezePath",
     source_id: "connector_freeze",
     label: "Connector Freeze",
+  },
+  {
+    option: "backfillJobContractPath",
+    source_id: "backfill_job_contract",
+    label: "Backfill Job Contract",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1796,6 +1802,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "plaud_transcript_connector") return data.summary ?? {};
   if (sourceId === "erp_draft_connector") return data.summary ?? {};
   if (sourceId === "connector_freeze") return data.summary ?? {};
+  if (sourceId === "backfill_job_contract") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2189,6 +2196,7 @@ function buildStageStatuses(artifacts, sources) {
     buildPlaudTranscriptConnectorStage(artifacts.plaud_transcript_connector, sourceById.get("plaud_transcript_connector")),
     buildErpDraftConnectorStage(artifacts.erp_draft_connector, sourceById.get("erp_draft_connector")),
     buildConnectorFreezeStage(artifacts.connector_freeze, sourceById.get("connector_freeze")),
+    buildBackfillJobContractStage(artifacts.backfill_job_contract, sourceById.get("backfill_job_contract")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -13072,6 +13080,127 @@ function buildConnectorFreezeStage(artifact, source) {
   };
 }
 
+function buildBackfillJobContractStage(artifact, source) {
+  if (!artifact) return missingStage("backfill_job_contract", "Backfill Job Contract", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.backfill_job_contract_status !== "complete"
+    || summary.phase_slot !== "P277"
+    || summary.required_field_count < 24
+    || summary.validated_required_field_count !== summary.required_field_count
+    || summary.missing_required_field_count !== 0
+    || summary.source_binding_count < 4
+    || summary.bound_source_binding_count !== summary.source_binding_count
+    || summary.cursor_contract_count < 5
+    || summary.passed_cursor_contract_count !== summary.cursor_contract_count
+    || summary.batch_contract_count < 4
+    || summary.passed_batch_contract_count !== summary.batch_contract_count
+    || summary.count_contract_count < 5
+    || summary.passed_count_contract_count !== summary.count_contract_count
+    || summary.policy_binding_count < 4
+    || summary.passed_policy_binding_count !== summary.policy_binding_count
+    || summary.job_id_required !== true
+    || summary.source_id_required !== true
+    || summary.cursor_required !== true
+    || summary.batch_required !== true
+    || summary.counts_required !== true
+    || summary.policy_snapshot_required !== true
+    || summary.raw_cursor_material_allowed !== false
+    || summary.read_only !== true
+    || summary.contract_report_only !== true
+    || summary.backfill_execution_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.file_content_read_performed !== false
+    || summary.source_mutation_performed !== false
+    || summary.resource_mutation_performed !== false
+    || summary.delivery_execution_performed !== false
+    || summary.protected_action_executed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.client_facing_ready_count !== 0
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || summary.failed_checkpoint_count !== 0
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "backfill_job_contract",
+    label: "Backfill Job Contract",
+    status,
+    message: `${summary.validated_required_field_count ?? 0}/${summary.required_field_count ?? 0} required backfill field(s), ${summary.passed_cursor_contract_count ?? 0}/${summary.cursor_contract_count ?? 0} cursor contract(s), and ${summary.passed_policy_binding_count ?? 0}/${summary.policy_binding_count ?? 0} policy binding(s) passed.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      backfill_job_contract_status: summary.backfill_job_contract_status ?? "unknown",
+      backfill_job_contract_id: summary.backfill_job_contract_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_resource_expansion_schema_version: summary.source_resource_expansion_schema_version ?? null,
+      source_resource_expansion_job_id: summary.source_resource_expansion_job_id ?? null,
+      source_resource_expansion_source_id: summary.source_resource_expansion_source_id ?? null,
+      source_policy_snapshot_id: summary.source_policy_snapshot_id ?? null,
+      source_connector_freeze_status: summary.source_connector_freeze_status ?? null,
+      field_group_count: summary.field_group_count ?? 0,
+      required_field_count: summary.required_field_count ?? artifact.backfill_job_field_requirements?.length ?? 0,
+      validated_required_field_count: summary.validated_required_field_count ?? 0,
+      missing_required_field_count: summary.missing_required_field_count ?? 0,
+      job_identity_field_count: summary.job_identity_field_count ?? 0,
+      source_binding_field_count: summary.source_binding_field_count ?? 0,
+      cursor_field_count: summary.cursor_field_count ?? 0,
+      batch_field_count: summary.batch_field_count ?? 0,
+      counts_field_count: summary.counts_field_count ?? 0,
+      policy_snapshot_field_count: summary.policy_snapshot_field_count ?? 0,
+      validated_job_identity_field_count: summary.validated_job_identity_field_count ?? 0,
+      validated_source_binding_field_count: summary.validated_source_binding_field_count ?? 0,
+      validated_cursor_field_count: summary.validated_cursor_field_count ?? 0,
+      validated_batch_field_count: summary.validated_batch_field_count ?? 0,
+      validated_counts_field_count: summary.validated_counts_field_count ?? 0,
+      validated_policy_snapshot_field_count: summary.validated_policy_snapshot_field_count ?? 0,
+      source_binding_count: summary.source_binding_count ?? artifact.backfill_job_source_bindings?.length ?? 0,
+      bound_source_binding_count: summary.bound_source_binding_count ?? 0,
+      cursor_contract_count: summary.cursor_contract_count ?? artifact.backfill_job_cursor_contracts?.length ?? 0,
+      passed_cursor_contract_count: summary.passed_cursor_contract_count ?? 0,
+      batch_contract_count: summary.batch_contract_count ?? artifact.backfill_job_batch_contracts?.length ?? 0,
+      passed_batch_contract_count: summary.passed_batch_contract_count ?? 0,
+      count_contract_count: summary.count_contract_count ?? artifact.backfill_job_count_contracts?.length ?? 0,
+      passed_count_contract_count: summary.passed_count_contract_count ?? 0,
+      policy_binding_count: summary.policy_binding_count ?? artifact.backfill_job_policy_bindings?.length ?? 0,
+      passed_policy_binding_count: summary.passed_policy_binding_count ?? 0,
+      job_id_required: summary.job_id_required ?? false,
+      source_id_required: summary.source_id_required ?? false,
+      cursor_required: summary.cursor_required ?? false,
+      batch_required: summary.batch_required ?? false,
+      counts_required: summary.counts_required ?? false,
+      policy_snapshot_required: summary.policy_snapshot_required ?? false,
+      resumable_cursor_required: summary.resumable_cursor_required ?? false,
+      raw_cursor_material_allowed: summary.raw_cursor_material_allowed ?? true,
+      read_only: summary.read_only ?? artifact.backfill_job_boundary?.read_only ?? false,
+      contract_report_only: summary.contract_report_only ?? artifact.backfill_job_boundary?.contract_report_only ?? false,
+      backfill_execution_performed: summary.backfill_execution_performed ?? artifact.backfill_job_boundary?.backfill_execution_performed ?? false,
+      connector_runtime_execution_performed: summary.connector_runtime_execution_performed ?? artifact.backfill_job_boundary?.connector_runtime_execution_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? artifact.backfill_job_boundary?.source_ingest_performed ?? false,
+      file_content_read_performed: summary.file_content_read_performed ?? artifact.backfill_job_boundary?.file_content_read_performed ?? false,
+      source_mutation_performed: summary.source_mutation_performed ?? artifact.backfill_job_boundary?.source_mutation_performed ?? false,
+      resource_mutation_performed: summary.resource_mutation_performed ?? artifact.backfill_job_boundary?.resource_mutation_performed ?? false,
+      policy_snapshot_mutation_performed: summary.policy_snapshot_mutation_performed ?? artifact.backfill_job_boundary?.policy_snapshot_mutation_performed ?? false,
+      credential_material_read: summary.credential_material_read ?? artifact.backfill_job_boundary?.credential_material_read ?? false,
+      external_network_access_performed: summary.external_network_access_performed ?? artifact.backfill_job_boundary?.external_network_access_performed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? artifact.backfill_job_boundary?.delivery_execution_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? artifact.backfill_job_boundary?.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? artifact.backfill_job_boundary?.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? artifact.backfill_job_boundary?.client_facing_output_generated ?? false,
+      client_facing_ready_count: summary.client_facing_ready_count ?? artifact.backfill_job_boundary?.client_facing_ready_count ?? 0,
+      human_review_required: summary.human_review_required ?? artifact.backfill_job_boundary?.human_review_required ?? true,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? artifact.backfill_job_boundary?.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? artifact.backfill_job_boundary?.mac_windows_completion_instability_guard ?? false,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -19536,6 +19665,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_connector_freeze", "rerun_connector_freeze", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.backfill_job_contract?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "backfill_job_contract";
+    items.push({
+      action_item_id: `dashboard.action.backfill_job_contract.${slugify(subjectId)}`,
+      source_stage: "backfill_job_contract",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Backfill Job Contract",
+      subject_ref: {
+        subject_type: "backfill_job_contract_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_backfill_job_contract", "rerun_backfill_job_contract", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -26038,6 +26185,60 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     connector_freeze_client_facing_ready_count: artifacts.connector_freeze?.summary?.client_facing_ready_count ?? 0,
     connector_freeze_failed_checkpoint_count: artifacts.connector_freeze?.summary?.failed_checkpoint_count ?? 0,
     connector_freeze_validation_error_count: artifacts.connector_freeze?.summary?.validation_error_count ?? artifacts.connector_freeze?.validation?.errors?.length ?? 0,
+    backfill_job_contract_status: artifacts.backfill_job_contract?.summary?.backfill_job_contract_status ?? "unknown",
+    backfill_job_contract_id: artifacts.backfill_job_contract?.summary?.backfill_job_contract_id ?? null,
+    backfill_job_contract_phase_slot: artifacts.backfill_job_contract?.summary?.phase_slot ?? null,
+    backfill_job_contract_previous_phase_slot: artifacts.backfill_job_contract?.summary?.previous_phase_slot ?? null,
+    backfill_job_contract_next_phase_slot: artifacts.backfill_job_contract?.summary?.next_phase_slot ?? null,
+    backfill_job_contract_source_resource_expansion_schema_version: artifacts.backfill_job_contract?.summary?.source_resource_expansion_schema_version ?? null,
+    backfill_job_contract_source_resource_expansion_job_id: artifacts.backfill_job_contract?.summary?.source_resource_expansion_job_id ?? null,
+    backfill_job_contract_source_resource_expansion_source_id: artifacts.backfill_job_contract?.summary?.source_resource_expansion_source_id ?? null,
+    backfill_job_contract_source_policy_snapshot_id: artifacts.backfill_job_contract?.summary?.source_policy_snapshot_id ?? null,
+    backfill_job_contract_source_connector_freeze_status: artifacts.backfill_job_contract?.summary?.source_connector_freeze_status ?? null,
+    backfill_job_contract_field_group_count: artifacts.backfill_job_contract?.summary?.field_group_count ?? 0,
+    backfill_job_contract_required_field_count: artifacts.backfill_job_contract?.summary?.required_field_count ?? 0,
+    backfill_job_contract_validated_required_field_count: artifacts.backfill_job_contract?.summary?.validated_required_field_count ?? 0,
+    backfill_job_contract_missing_required_field_count: artifacts.backfill_job_contract?.summary?.missing_required_field_count ?? 0,
+    backfill_job_contract_job_identity_field_count: artifacts.backfill_job_contract?.summary?.job_identity_field_count ?? 0,
+    backfill_job_contract_source_binding_field_count: artifacts.backfill_job_contract?.summary?.source_binding_field_count ?? 0,
+    backfill_job_contract_cursor_field_count: artifacts.backfill_job_contract?.summary?.cursor_field_count ?? 0,
+    backfill_job_contract_batch_field_count: artifacts.backfill_job_contract?.summary?.batch_field_count ?? 0,
+    backfill_job_contract_counts_field_count: artifacts.backfill_job_contract?.summary?.counts_field_count ?? 0,
+    backfill_job_contract_policy_snapshot_field_count: artifacts.backfill_job_contract?.summary?.policy_snapshot_field_count ?? 0,
+    backfill_job_contract_source_binding_count: artifacts.backfill_job_contract?.summary?.source_binding_count ?? 0,
+    backfill_job_contract_bound_source_binding_count: artifacts.backfill_job_contract?.summary?.bound_source_binding_count ?? 0,
+    backfill_job_contract_cursor_contract_count: artifacts.backfill_job_contract?.summary?.cursor_contract_count ?? 0,
+    backfill_job_contract_passed_cursor_contract_count: artifacts.backfill_job_contract?.summary?.passed_cursor_contract_count ?? 0,
+    backfill_job_contract_batch_contract_count: artifacts.backfill_job_contract?.summary?.batch_contract_count ?? 0,
+    backfill_job_contract_passed_batch_contract_count: artifacts.backfill_job_contract?.summary?.passed_batch_contract_count ?? 0,
+    backfill_job_contract_count_contract_count: artifacts.backfill_job_contract?.summary?.count_contract_count ?? 0,
+    backfill_job_contract_passed_count_contract_count: artifacts.backfill_job_contract?.summary?.passed_count_contract_count ?? 0,
+    backfill_job_contract_policy_binding_count: artifacts.backfill_job_contract?.summary?.policy_binding_count ?? 0,
+    backfill_job_contract_passed_policy_binding_count: artifacts.backfill_job_contract?.summary?.passed_policy_binding_count ?? 0,
+    backfill_job_contract_job_id_required: artifacts.backfill_job_contract?.summary?.job_id_required ?? false,
+    backfill_job_contract_source_id_required: artifacts.backfill_job_contract?.summary?.source_id_required ?? false,
+    backfill_job_contract_cursor_required: artifacts.backfill_job_contract?.summary?.cursor_required ?? false,
+    backfill_job_contract_batch_required: artifacts.backfill_job_contract?.summary?.batch_required ?? false,
+    backfill_job_contract_counts_required: artifacts.backfill_job_contract?.summary?.counts_required ?? false,
+    backfill_job_contract_policy_snapshot_required: artifacts.backfill_job_contract?.summary?.policy_snapshot_required ?? false,
+    backfill_job_contract_raw_cursor_material_allowed: artifacts.backfill_job_contract?.summary?.raw_cursor_material_allowed ?? true,
+    backfill_job_contract_read_only: artifacts.backfill_job_contract?.summary?.read_only ?? false,
+    backfill_job_contract_contract_report_only: artifacts.backfill_job_contract?.summary?.contract_report_only ?? false,
+    backfill_job_contract_backfill_execution_performed: artifacts.backfill_job_contract?.summary?.backfill_execution_performed ?? false,
+    backfill_job_contract_source_ingest_performed: artifacts.backfill_job_contract?.summary?.source_ingest_performed ?? false,
+    backfill_job_contract_file_content_read_performed: artifacts.backfill_job_contract?.summary?.file_content_read_performed ?? false,
+    backfill_job_contract_source_mutation_performed: artifacts.backfill_job_contract?.summary?.source_mutation_performed ?? false,
+    backfill_job_contract_resource_mutation_performed: artifacts.backfill_job_contract?.summary?.resource_mutation_performed ?? false,
+    backfill_job_contract_policy_snapshot_mutation_performed: artifacts.backfill_job_contract?.summary?.policy_snapshot_mutation_performed ?? false,
+    backfill_job_contract_delivery_execution_performed: artifacts.backfill_job_contract?.summary?.delivery_execution_performed ?? false,
+    backfill_job_contract_protected_action_executed: artifacts.backfill_job_contract?.summary?.protected_action_executed ?? false,
+    backfill_job_contract_legal_advice_generated: artifacts.backfill_job_contract?.summary?.legal_advice_generated ?? false,
+    backfill_job_contract_client_facing_output_generated: artifacts.backfill_job_contract?.summary?.client_facing_output_generated ?? false,
+    backfill_job_contract_client_facing_ready_count: artifacts.backfill_job_contract?.summary?.client_facing_ready_count ?? 0,
+    backfill_job_contract_windows_baseline_stability_preserved: artifacts.backfill_job_contract?.summary?.windows_baseline_stability_preserved ?? false,
+    backfill_job_contract_mac_windows_completion_instability_guard: artifacts.backfill_job_contract?.summary?.mac_windows_completion_instability_guard ?? false,
+    backfill_job_contract_failed_checkpoint_count: artifacts.backfill_job_contract?.summary?.failed_checkpoint_count ?? 0,
+    backfill_job_contract_validation_error_count: artifacts.backfill_job_contract?.summary?.validation_error_count ?? artifacts.backfill_job_contract?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -27845,6 +28046,8 @@ function parseArgs(argv) {
     else if (arg === "--no-erp-draft-connector") parsed.erpDraftConnectorPath = false;
     else if (arg === "--connector-freeze") parsed.connectorFreezePath = argv[++index];
     else if (arg === "--no-connector-freeze") parsed.connectorFreezePath = false;
+    else if (arg === "--backfill-job-contract") parsed.backfillJobContractPath = argv[++index];
+    else if (arg === "--no-backfill-job-contract") parsed.backfillJobContractPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

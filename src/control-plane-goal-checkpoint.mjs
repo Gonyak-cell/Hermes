@@ -149,6 +149,7 @@ const GOAL_ITEMS = [
   sourceItem("plaud_transcript_connector", "Plaud Transcript Connector", "connectors", "plaud_transcript_connector", "control-plane-plaud-transcript-connector", { acceptance_profile: "plaud_transcript_connector_gate" }),
   sourceItem("erp_draft_connector", "ERP Draft Connector", "connectors", "erp_draft_connector", "control-plane-erp-draft-connector", { acceptance_profile: "erp_draft_connector_gate" }),
   sourceItem("connector_freeze", "Connector Freeze", "connectors", "connector_freeze", "control-plane-connector-freeze", { acceptance_profile: "connector_freeze_gate" }),
+  sourceItem("backfill_job_contract", "Backfill Job Contract", "resource_evidence", "backfill_job_contract", "control-plane-backfill-job-contract", { acceptance_profile: "backfill_job_contract_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -657,6 +658,7 @@ function evaluateStageAcceptance(item, stage) {
     "plaud_transcript_connector_gate",
     "erp_draft_connector_gate",
     "connector_freeze_gate",
+    "backfill_job_contract_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -5316,6 +5318,51 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.client_facing_ready_count === 0
     ) {
       return passedWithOperationalGate(stage, "Connector Freeze locks the P267-P275 connector layer with complete source artifacts, representative ingest paths, hash-only cursors, credential-reference-only auth, and no freeze-time execution, mutation, delivery, legal advice, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "backfill_job_contract_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.backfill_job_contract_status === "complete"
+      && metrics.phase_slot === "P277"
+      && metrics.required_field_count >= 24
+      && metrics.validated_required_field_count === metrics.required_field_count
+      && metrics.missing_required_field_count === 0
+      && metrics.source_binding_count >= 4
+      && metrics.bound_source_binding_count === metrics.source_binding_count
+      && metrics.cursor_contract_count >= 5
+      && metrics.passed_cursor_contract_count === metrics.cursor_contract_count
+      && metrics.batch_contract_count >= 4
+      && metrics.passed_batch_contract_count === metrics.batch_contract_count
+      && metrics.count_contract_count >= 5
+      && metrics.passed_count_contract_count === metrics.count_contract_count
+      && metrics.policy_binding_count >= 4
+      && metrics.passed_policy_binding_count === metrics.policy_binding_count
+      && metrics.job_id_required === true
+      && metrics.source_id_required === true
+      && metrics.cursor_required === true
+      && metrics.batch_required === true
+      && metrics.counts_required === true
+      && metrics.policy_snapshot_required === true
+      && metrics.raw_cursor_material_allowed === false
+      && metrics.read_only === true
+      && metrics.contract_report_only === true
+      && metrics.backfill_execution_performed === false
+      && metrics.source_ingest_performed === false
+      && metrics.file_content_read_performed === false
+      && metrics.source_mutation_performed === false
+      && metrics.resource_mutation_performed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.client_facing_ready_count === 0
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Backfill Job Contract locks P277 field, cursor, batch, count, source, and policy snapshot requirements without running backfill, reading source file contents, mutating resources, delivering output, legal advice, or client-facing output.");
     }
   }
 

@@ -158,6 +158,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "connectors:plaud-transcript",
   "connectors:erp-draft",
   "connectors:freeze",
+  "resource:backfill-job-contract",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

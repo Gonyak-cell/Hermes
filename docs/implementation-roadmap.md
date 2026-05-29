@@ -6964,6 +6964,24 @@ Completion criteria:
 - Golden fixture count increased to 154 and `law_firm_e2e_freeze` is included as a regression fixture.
 - `npm run law-firm:e2e-freeze -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
 
+## Phase 253 - Creative Document Pack Manifest
+
+Goal: P253 starts the Creative and Document Domain Pack with a deterministic pack manifest report. It verifies that the creative-document pack and PPTX design-system capability are registered through domain-pack contracts without mutating core registries, executing renderers, delivering outputs, or generating client-facing material.
+
+Implementation:
+- Added `src/creative-document-pack-manifest.mjs`, `scripts/creative-document-pack-manifest.mjs`, `schemas/creative-document-pack-manifest.schema.json`, and `docs/creative-document-pack-manifest.md`.
+- Added `creative-document:pack-manifest` npm script.
+- The artifact emits `creative_document_pack_registration`, `creative_document_capability_registrations`, `creative_document_pack_boundary`, checkpoint rows, and a validation report.
+- Review Dashboard stage/summary, Review API route/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests were wired to the new artifact.
+
+Completion criteria:
+- The creative-document pack is present in the domain pack registry, pack compatibility, Capability Manifest v2, Capability Registry API, runtime freeze, document renderer adapter, and output delivery freeze.
+- 1 `creative_document.pptx.design_system` capability is registered with format-validation and human-approval gates, draft-only output status, and document-renderer runtime declaration.
+- Template, renderer, extractor, and golden-case declarations are visible without core pack/capability/route mutation.
+- Renderer execution, delivery execution, protected action, client-facing output, Desktop mutation, Desktop runtime source-of-truth, raw secret exposure, provider key exposure, and installer/gateway control are all 0/false.
+- Golden fixture count increased to 155 and `creative_document_pack_manifest` is included as a regression fixture.
+- `npm run creative-document:pack-manifest -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -6972,9 +6990,9 @@ Completion criteria:
 
 운영 원칙:
 
-- Current actual completion baseline is Phase 252.
+- Current actual completion baseline is Phase 253.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- Remaining planned slots are P253-P312, 60 total.
+- Remaining planned slots are P254-P312, 59 total.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - P217 이후 personal-dev 작업은 Mac Phase 216 결과를 Windows 작업공간에서 계속 이어가되, Phase 217 본작업보다 Windows 기준선 안정화 게이트를 선행 조건으로 둔 판단을 기준으로 운영한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.

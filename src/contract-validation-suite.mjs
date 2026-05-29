@@ -134,6 +134,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "law-firm:provided-materials-review",
   "law-firm:approval-matrix",
   "law-firm:e2e-freeze",
+  "creative-document:pack-manifest",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

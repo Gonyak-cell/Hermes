@@ -1904,6 +1904,26 @@ try {
   assert.equal(lawFirmPackValidations.collection, "law_firm_pack_validations");
   assert.ok(lawFirmPackValidations.count <= 5);
 
+  const creativeDocumentPackManifests = await fetchJson(`${url}/api/creative-document-pack-manifests?creative_document_pack_manifest_status=complete&limit=1`);
+  assert.equal(creativeDocumentPackManifests.collection, "creative_document_pack_manifests");
+  assert.ok(creativeDocumentPackManifests.count <= 1);
+
+  const creativeDocumentPackRegistration = await fetchJson(`${url}/api/creative-document-pack-registration?registration_status=registered&limit=1`);
+  assert.equal(creativeDocumentPackRegistration.collection, "creative_document_pack_registration");
+  assert.ok(creativeDocumentPackRegistration.count <= 1);
+
+  const creativeDocumentCapabilityRegistrations = await fetchJson(`${url}/api/creative-document-capability-registrations?creative_document_capability_registration_status=registered&limit=5`);
+  assert.equal(creativeDocumentCapabilityRegistrations.collection, "creative_document_capability_registrations");
+  assert.ok(creativeDocumentCapabilityRegistrations.count <= 5);
+
+  const creativeDocumentPackBoundary = await fetchJson(`${url}/api/creative-document-pack-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(creativeDocumentPackBoundary.collection, "creative_document_pack_boundary");
+  assert.ok(creativeDocumentPackBoundary.count <= 1);
+
+  const creativeDocumentPackValidations = await fetchJson(`${url}/api/creative-document-pack-validations?status=passed&limit=5`);
+  assert.equal(creativeDocumentPackValidations.collection, "creative_document_pack_validations");
+  assert.ok(creativeDocumentPackValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

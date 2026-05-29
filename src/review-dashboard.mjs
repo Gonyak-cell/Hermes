@@ -88,6 +88,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   technicalDebtLedgerPath: "artifacts/technical-debt-ledger/latest/technical-debt-ledger.json",
   personalDevDashboardApiPath: "artifacts/personal-dev-dashboard-api/latest/personal-dev-dashboard-api.json",
   personalDevE2eFreezePath: "artifacts/personal-dev-e2e-freeze/latest/personal-dev-e2e-freeze.json",
+  creativeDocumentPackManifestPath: "artifacts/creative-document-pack-manifest/latest/creative-document-pack-manifest.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -671,6 +672,11 @@ const SOURCE_DEFINITIONS = [
     option: "personalDevE2eFreezePath",
     source_id: "personal_dev_e2e_freeze",
     label: "Personal Dev E2E Freeze",
+  },
+  {
+    option: "creativeDocumentPackManifestPath",
+    source_id: "creative_document_pack_manifest",
+    label: "Creative Document Pack Manifest",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1628,6 +1634,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "provided_material_review") return data.summary ?? {};
   if (sourceId === "legal_approval_matrix") return data.summary ?? {};
   if (sourceId === "law_firm_e2e_freeze") return data.summary ?? {};
+  if (sourceId === "creative_document_pack_manifest") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -1997,6 +2004,7 @@ function buildStageStatuses(artifacts, sources) {
     buildProvidedMaterialReviewStage(artifacts.provided_material_review, sourceById.get("provided_material_review")),
     buildLegalApprovalMatrixStage(artifacts.legal_approval_matrix, sourceById.get("legal_approval_matrix")),
     buildLawFirmE2eFreezeStage(artifacts.law_firm_e2e_freeze, sourceById.get("law_firm_e2e_freeze")),
+    buildCreativeDocumentPackManifestStage(artifacts.creative_document_pack_manifest, sourceById.get("creative_document_pack_manifest")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -10360,6 +10368,105 @@ function buildLawFirmE2eFreezeStage(artifact, source) {
   };
 }
 
+function buildCreativeDocumentPackManifestStage(artifact, source) {
+  if (!artifact) return missingStage("creative_document_pack_manifest", "Creative Document Pack Manifest", source);
+  const summary = artifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.creative_document_pack_manifest_status !== "complete"
+    || summary.registration_status !== "registered"
+    || summary.compatibility_status !== "compatible"
+    || summary.common_dependency_declared !== true
+    || summary.capability_count !== 1
+    || summary.registered_capability_count !== summary.capability_count
+    || summary.capability_manifest_v2_count !== summary.capability_count
+    || summary.capability_registry_api_pack_card_present !== true
+    || summary.capability_registry_api_capability_card_count !== summary.capability_count
+    || summary.capability_version_api_card_count !== summary.capability_count
+    || summary.template_declared_count < 1
+    || summary.renderer_declared_count < 1
+    || summary.format_validation_required !== true
+    || summary.human_review_required !== true
+    || summary.layout_validation_required !== true
+    || summary.document_renderer_runtime_declared !== true
+    || summary.runtime_freeze_status !== "complete"
+    || summary.document_renderer_adapter_status !== "complete"
+    || summary.output_delivery_contract_freeze_status !== "complete"
+    || summary.default_output_status !== "draft"
+    || summary.core_mutation_required_count !== 0
+    || summary.desktop_read_only !== true
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_runtime_source_of_truth === true
+    || summary.renderer_execution_allowed === true
+    || summary.delivery_execution_allowed === true
+    || summary.protected_action_allowed === true
+    || summary.client_facing_output_generated === true
+    || summary.client_facing_ready_count !== 0
+    || summary.failed_checkpoint_count !== 0
+    || artifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "creative_document_pack_manifest",
+    label: "Creative Document Pack Manifest",
+    status,
+    message: `${summary.registered_capability_count ?? 0}/${summary.capability_count ?? 0} creative-document capability registration(s); format validation ${summary.format_validation_required ? "required" : "missing"}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      creative_document_pack_manifest_status: summary.creative_document_pack_manifest_status ?? "unknown",
+      creative_document_pack_manifest_contract_id: summary.creative_document_pack_manifest_contract_id ?? null,
+      pack_id: summary.pack_id ?? null,
+      pack_version: summary.pack_version ?? null,
+      registration_status: summary.registration_status ?? "unknown",
+      compatibility_status: summary.compatibility_status ?? "unknown",
+      common_dependency_declared: summary.common_dependency_declared ?? false,
+      capability_count: summary.capability_count ?? 0,
+      registered_capability_count: summary.registered_capability_count ?? 0,
+      capability_manifest_v2_count: summary.capability_manifest_v2_count ?? 0,
+      capability_registry_api_pack_card_present: summary.capability_registry_api_pack_card_present ?? false,
+      capability_registry_api_capability_card_count: summary.capability_registry_api_capability_card_count ?? 0,
+      capability_version_api_card_count: summary.capability_version_api_card_count ?? 0,
+      workflow_declared_count: summary.workflow_declared_count ?? 0,
+      template_declared_count: summary.template_declared_count ?? 0,
+      renderer_declared_count: summary.renderer_declared_count ?? 0,
+      extractor_declared_count: summary.extractor_declared_count ?? 0,
+      golden_case_count: summary.golden_case_count ?? 0,
+      required_gate_count: summary.required_gate_count ?? 0,
+      format_validation_required: summary.format_validation_required ?? false,
+      human_review_required: summary.human_review_required ?? false,
+      layout_validation_required: summary.layout_validation_required ?? false,
+      document_renderer_runtime_declared: summary.document_renderer_runtime_declared ?? false,
+      runtime_freeze_status: summary.runtime_freeze_status ?? "unknown",
+      document_renderer_adapter_status: summary.document_renderer_adapter_status ?? "unknown",
+      output_delivery_contract_freeze_status: summary.output_delivery_contract_freeze_status ?? "unknown",
+      creative_document_output_artifact_count: summary.creative_document_output_artifact_count ?? 0,
+      default_output_status: summary.default_output_status ?? null,
+      external_model_policy: summary.external_model_policy ?? null,
+      max_classification: summary.max_classification ?? null,
+      core_pack_mutation_required: summary.core_pack_mutation_required ?? false,
+      core_capability_registration_required: summary.core_capability_registration_required ?? false,
+      core_route_registration_required: summary.core_route_registration_required ?? false,
+      core_mutation_required_count: summary.core_mutation_required_count ?? 0,
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_runtime_source_of_truth: summary.desktop_runtime_source_of_truth ?? false,
+      renderer_execution_allowed: summary.renderer_execution_allowed ?? false,
+      delivery_execution_allowed: summary.delivery_execution_allowed ?? false,
+      protected_action_allowed: summary.protected_action_allowed ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      raw_secret_material_exposed: summary.raw_secret_material_exposed ?? false,
+      provider_key_exposed: summary.provider_key_exposed ?? false,
+      installer_or_gateway_control: summary.installer_or_gateway_control ?? false,
+      draft_only_capability_count: summary.draft_only_capability_count ?? 0,
+      format_validation_capability_count: summary.format_validation_capability_count ?? 0,
+      human_approval_capability_count: summary.human_approval_capability_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -16396,6 +16503,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.creative_document_pack_manifest?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "creative_document_pack_manifest";
+    items.push({
+      action_item_id: `dashboard.action.creative_document_pack_manifest.${slugify(subjectId)}`,
+      source_stage: "creative_document_pack_manifest",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix creative document pack manifest",
+      subject_ref: {
+        subject_type: "creative_document_pack_manifest_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_creative_document_pack_manifest", "rerun_creative_document_pack_manifest", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -21812,6 +21937,56 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     law_firm_e2e_freeze_desktop_source_of_truth: artifacts.law_firm_e2e_freeze?.summary?.desktop_source_of_truth ?? false,
     law_firm_e2e_freeze_failed_checkpoint_count: artifacts.law_firm_e2e_freeze?.summary?.failed_checkpoint_count ?? 0,
     law_firm_e2e_freeze_validation_error_count: artifacts.law_firm_e2e_freeze?.summary?.validation_error_count ?? artifacts.law_firm_e2e_freeze?.validation?.errors?.length ?? 0,
+    creative_document_pack_manifest_status: artifacts.creative_document_pack_manifest?.summary?.creative_document_pack_manifest_status ?? "unknown",
+    creative_document_pack_manifest_contract_id: artifacts.creative_document_pack_manifest?.summary?.creative_document_pack_manifest_contract_id ?? null,
+    creative_document_pack_manifest_pack_id: artifacts.creative_document_pack_manifest?.summary?.pack_id ?? null,
+    creative_document_pack_manifest_pack_version: artifacts.creative_document_pack_manifest?.summary?.pack_version ?? null,
+    creative_document_pack_manifest_registration_status: artifacts.creative_document_pack_manifest?.summary?.registration_status ?? "unknown",
+    creative_document_pack_manifest_compatibility_status: artifacts.creative_document_pack_manifest?.summary?.compatibility_status ?? "unknown",
+    creative_document_pack_manifest_common_dependency_declared: artifacts.creative_document_pack_manifest?.summary?.common_dependency_declared ?? false,
+    creative_document_pack_manifest_capability_count: artifacts.creative_document_pack_manifest?.summary?.capability_count ?? 0,
+    creative_document_pack_manifest_registered_capability_count: artifacts.creative_document_pack_manifest?.summary?.registered_capability_count ?? 0,
+    creative_document_pack_manifest_capability_manifest_v2_count: artifacts.creative_document_pack_manifest?.summary?.capability_manifest_v2_count ?? 0,
+    creative_document_pack_manifest_capability_registry_api_pack_card_present: artifacts.creative_document_pack_manifest?.summary?.capability_registry_api_pack_card_present ?? false,
+    creative_document_pack_manifest_capability_registry_api_capability_card_count: artifacts.creative_document_pack_manifest?.summary?.capability_registry_api_capability_card_count ?? 0,
+    creative_document_pack_manifest_capability_version_api_card_count: artifacts.creative_document_pack_manifest?.summary?.capability_version_api_card_count ?? 0,
+    creative_document_pack_manifest_workflow_declared_count: artifacts.creative_document_pack_manifest?.summary?.workflow_declared_count ?? 0,
+    creative_document_pack_manifest_template_declared_count: artifacts.creative_document_pack_manifest?.summary?.template_declared_count ?? 0,
+    creative_document_pack_manifest_renderer_declared_count: artifacts.creative_document_pack_manifest?.summary?.renderer_declared_count ?? 0,
+    creative_document_pack_manifest_extractor_declared_count: artifacts.creative_document_pack_manifest?.summary?.extractor_declared_count ?? 0,
+    creative_document_pack_manifest_golden_case_count: artifacts.creative_document_pack_manifest?.summary?.golden_case_count ?? 0,
+    creative_document_pack_manifest_required_gate_count: artifacts.creative_document_pack_manifest?.summary?.required_gate_count ?? 0,
+    creative_document_pack_manifest_format_validation_required: artifacts.creative_document_pack_manifest?.summary?.format_validation_required ?? false,
+    creative_document_pack_manifest_human_review_required: artifacts.creative_document_pack_manifest?.summary?.human_review_required ?? false,
+    creative_document_pack_manifest_layout_validation_required: artifacts.creative_document_pack_manifest?.summary?.layout_validation_required ?? false,
+    creative_document_pack_manifest_document_renderer_runtime_declared: artifacts.creative_document_pack_manifest?.summary?.document_renderer_runtime_declared ?? false,
+    creative_document_pack_manifest_runtime_freeze_status: artifacts.creative_document_pack_manifest?.summary?.runtime_freeze_status ?? "unknown",
+    creative_document_pack_manifest_document_renderer_adapter_status: artifacts.creative_document_pack_manifest?.summary?.document_renderer_adapter_status ?? "unknown",
+    creative_document_pack_manifest_output_delivery_contract_freeze_status: artifacts.creative_document_pack_manifest?.summary?.output_delivery_contract_freeze_status ?? "unknown",
+    creative_document_pack_manifest_output_artifact_count: artifacts.creative_document_pack_manifest?.summary?.creative_document_output_artifact_count ?? 0,
+    creative_document_pack_manifest_default_output_status: artifacts.creative_document_pack_manifest?.summary?.default_output_status ?? null,
+    creative_document_pack_manifest_external_model_policy: artifacts.creative_document_pack_manifest?.summary?.external_model_policy ?? null,
+    creative_document_pack_manifest_max_classification: artifacts.creative_document_pack_manifest?.summary?.max_classification ?? null,
+    creative_document_pack_manifest_core_pack_mutation_required: artifacts.creative_document_pack_manifest?.summary?.core_pack_mutation_required ?? false,
+    creative_document_pack_manifest_core_capability_registration_required: artifacts.creative_document_pack_manifest?.summary?.core_capability_registration_required ?? false,
+    creative_document_pack_manifest_core_route_registration_required: artifacts.creative_document_pack_manifest?.summary?.core_route_registration_required ?? false,
+    creative_document_pack_manifest_core_mutation_required_count: artifacts.creative_document_pack_manifest?.summary?.core_mutation_required_count ?? 0,
+    creative_document_pack_manifest_desktop_read_only: artifacts.creative_document_pack_manifest?.summary?.desktop_read_only ?? false,
+    creative_document_pack_manifest_desktop_mutation_allowed: artifacts.creative_document_pack_manifest?.summary?.desktop_mutation_allowed ?? false,
+    creative_document_pack_manifest_desktop_runtime_source_of_truth: artifacts.creative_document_pack_manifest?.summary?.desktop_runtime_source_of_truth ?? false,
+    creative_document_pack_manifest_renderer_execution_allowed: artifacts.creative_document_pack_manifest?.summary?.renderer_execution_allowed ?? false,
+    creative_document_pack_manifest_delivery_execution_allowed: artifacts.creative_document_pack_manifest?.summary?.delivery_execution_allowed ?? false,
+    creative_document_pack_manifest_protected_action_allowed: artifacts.creative_document_pack_manifest?.summary?.protected_action_allowed ?? false,
+    creative_document_pack_manifest_client_facing_output_generated: artifacts.creative_document_pack_manifest?.summary?.client_facing_output_generated ?? false,
+    creative_document_pack_manifest_client_facing_ready_count: artifacts.creative_document_pack_manifest?.summary?.client_facing_ready_count ?? 0,
+    creative_document_pack_manifest_raw_secret_material_exposed: artifacts.creative_document_pack_manifest?.summary?.raw_secret_material_exposed ?? false,
+    creative_document_pack_manifest_provider_key_exposed: artifacts.creative_document_pack_manifest?.summary?.provider_key_exposed ?? false,
+    creative_document_pack_manifest_installer_or_gateway_control: artifacts.creative_document_pack_manifest?.summary?.installer_or_gateway_control ?? false,
+    creative_document_pack_manifest_draft_only_capability_count: artifacts.creative_document_pack_manifest?.summary?.draft_only_capability_count ?? 0,
+    creative_document_pack_manifest_format_validation_capability_count: artifacts.creative_document_pack_manifest?.summary?.format_validation_capability_count ?? 0,
+    creative_document_pack_manifest_human_approval_capability_count: artifacts.creative_document_pack_manifest?.summary?.human_approval_capability_count ?? 0,
+    creative_document_pack_manifest_failed_checkpoint_count: artifacts.creative_document_pack_manifest?.summary?.failed_checkpoint_count ?? 0,
+    creative_document_pack_manifest_validation_error_count: artifacts.creative_document_pack_manifest?.summary?.validation_error_count ?? artifacts.creative_document_pack_manifest?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -23571,6 +23746,8 @@ function parseArgs(argv) {
     else if (arg === "--no-personal-dev-dashboard-api") parsed.personalDevDashboardApiPath = false;
     else if (arg === "--personal-dev-e2e-freeze") parsed.personalDevE2eFreezePath = argv[++index];
     else if (arg === "--no-personal-dev-e2e-freeze") parsed.personalDevE2eFreezePath = false;
+    else if (arg === "--creative-document-pack-manifest") parsed.creativeDocumentPackManifestPath = argv[++index];
+    else if (arg === "--no-creative-document-pack-manifest") parsed.creativeDocumentPackManifestPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

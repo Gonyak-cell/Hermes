@@ -125,6 +125,7 @@ const GOAL_ITEMS = [
   sourceItem("provided_material_review", "Provided material review ledger", "law_firm", "provided_material_review", "control-plane-provided-material-review", { acceptance_profile: "provided_material_review_gate" }),
   sourceItem("legal_approval_matrix", "Legal approval matrix", "law_firm", "legal_approval_matrix", "control-plane-legal-approval-matrix", { acceptance_profile: "legal_approval_matrix_gate" }),
   sourceItem("law_firm_e2e_freeze", "Law firm E2E freeze", "law_firm", "law_firm_e2e_freeze", "control-plane-law-firm-e2e-freeze", { acceptance_profile: "law_firm_e2e_freeze_gate" }),
+  sourceItem("creative_document_pack_manifest", "Creative document pack manifest", "creative_document", "creative_document_pack_manifest", "control-plane-creative-document-pack-manifest", { acceptance_profile: "creative_document_pack_manifest_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -609,6 +610,7 @@ function evaluateStageAcceptance(item, stage) {
     "provided_material_review_gate",
     "legal_approval_matrix_gate",
     "law_firm_e2e_freeze_gate",
+    "creative_document_pack_manifest_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -4137,6 +4139,44 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.failed_checkpoint_count === 0
     ) {
       return passedWithOperationalGate(stage, "Law Firm E2E Freeze locks representative matter, evidence, citation, and approval paths without legal/client-facing output or state mutation.");
+    }
+  }
+
+  if (item.acceptance_profile === "creative_document_pack_manifest_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.creative_document_pack_manifest_status === "complete"
+      && metrics.registration_status === "registered"
+      && metrics.compatibility_status === "compatible"
+      && metrics.common_dependency_declared === true
+      && metrics.capability_count === 1
+      && metrics.registered_capability_count === metrics.capability_count
+      && metrics.capability_manifest_v2_count === metrics.capability_count
+      && metrics.capability_registry_api_pack_card_present === true
+      && metrics.capability_registry_api_capability_card_count === metrics.capability_count
+      && metrics.capability_version_api_card_count === metrics.capability_count
+      && metrics.template_declared_count >= 1
+      && metrics.renderer_declared_count >= 1
+      && metrics.format_validation_required === true
+      && metrics.human_review_required === true
+      && metrics.layout_validation_required === true
+      && metrics.document_renderer_runtime_declared === true
+      && metrics.runtime_freeze_status === "complete"
+      && metrics.document_renderer_adapter_status === "complete"
+      && metrics.output_delivery_contract_freeze_status === "complete"
+      && metrics.default_output_status === "draft"
+      && metrics.core_mutation_required_count === 0
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_runtime_source_of_truth === false
+      && metrics.renderer_execution_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.protected_action_allowed === false
+      && metrics.client_facing_output_generated === false
+      && metrics.client_facing_ready_count === 0
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Creative Document Pack Manifest registers document/content capability without core mutation, renderer execution, delivery, or client-facing output.");
     }
   }
 

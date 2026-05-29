@@ -4386,6 +4386,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("law_firm_pack_validations", lawFirmPackManifestResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/creative-document-pack-manifests") {
+    const creativeDocumentPackManifestResult = await readDashboardSourceArtifact(dashboard, "creative_document_pack_manifest");
+    if (!creativeDocumentPackManifestResult.available) {
+      return jsonResponse(503, buildError("creative_document_pack_manifest_unavailable", creativeDocumentPackManifestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("creative_document_pack_manifests", [creativeDocumentPackManifestResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/creative-document-pack-registration") {
+    const creativeDocumentPackManifestResult = await readDashboardSourceArtifact(dashboard, "creative_document_pack_manifest");
+    if (!creativeDocumentPackManifestResult.available) {
+      return jsonResponse(503, buildError("creative_document_pack_manifest_unavailable", creativeDocumentPackManifestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("creative_document_pack_registration", [creativeDocumentPackManifestResult.artifact.creative_document_pack_registration].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/creative-document-capability-registrations") {
+    const creativeDocumentPackManifestResult = await readDashboardSourceArtifact(dashboard, "creative_document_pack_manifest");
+    if (!creativeDocumentPackManifestResult.available) {
+      return jsonResponse(503, buildError("creative_document_pack_manifest_unavailable", creativeDocumentPackManifestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("creative_document_capability_registrations", creativeDocumentPackManifestResult.artifact.creative_document_capability_registrations ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/creative-document-pack-boundary") {
+    const creativeDocumentPackManifestResult = await readDashboardSourceArtifact(dashboard, "creative_document_pack_manifest");
+    if (!creativeDocumentPackManifestResult.available) {
+      return jsonResponse(503, buildError("creative_document_pack_manifest_unavailable", creativeDocumentPackManifestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("creative_document_pack_boundary", [creativeDocumentPackManifestResult.artifact.creative_document_pack_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/creative-document-pack-validations") {
+    const creativeDocumentPackManifestResult = await readDashboardSourceArtifact(dashboard, "creative_document_pack_manifest");
+    if (!creativeDocumentPackManifestResult.available) {
+      return jsonResponse(503, buildError("creative_document_pack_manifest_unavailable", creativeDocumentPackManifestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("creative_document_pack_validations", creativeDocumentPackManifestResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -10617,6 +10652,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/law-firm-capability-registrations", "Law-firm capability registration rows"),
       route("GET", "/api/law-firm-pack-boundary", "Law-firm attorney review and matter boundary"),
       route("GET", "/api/law-firm-pack-validations", "Law-firm pack manifest validation rows"),
+      route("GET", "/api/creative-document-pack-manifests", "Creative-document pack manifest artifact"),
+      route("GET", "/api/creative-document-pack-registration", "Creative-document pack registration row"),
+      route("GET", "/api/creative-document-capability-registrations", "Creative-document capability registration rows"),
+      route("GET", "/api/creative-document-pack-boundary", "Creative-document read-only pack boundary"),
+      route("GET", "/api/creative-document-pack-validations", "Creative-document pack manifest validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -11579,6 +11619,8 @@ function filterItems(items, searchParams) {
     "personal_dev_capability_registration_status",
     "law_firm_pack_manifest_status",
     "law_firm_capability_registration_status",
+    "creative_document_pack_manifest_status",
+    "creative_document_capability_registration_status",
     "matter_os_profile_status",
     "profile_card_status",
     "display_field_status",
@@ -13269,6 +13311,8 @@ function readFilterValue(item, key) {
   if (key === "personal_dev_capability_registration_status") return item.registration_status;
   if (key === "law_firm_pack_manifest_status") return item.summary?.law_firm_pack_manifest_status ?? item.law_firm_pack_manifest_status;
   if (key === "law_firm_capability_registration_status") return item.registration_status;
+  if (key === "creative_document_pack_manifest_status") return item.summary?.creative_document_pack_manifest_status ?? item.creative_document_pack_manifest_status;
+  if (key === "creative_document_capability_registration_status") return item.registration_status;
   if (key === "matter_os_profile_status") return item.summary?.matter_os_profile_status ?? item.matter_os_profile_status;
   if (key === "profile_card_status") return item.profile_card_status;
   if (key === "display_field_status") return item.display_field_status;

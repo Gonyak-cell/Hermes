@@ -52,6 +52,7 @@ import { runContractDraftWorkflow } from "../src/contract-draft-workflow.mjs";
 import { runProvidedMaterialReview } from "../src/provided-material-review-ledger.mjs";
 import { runLegalApprovalMatrix } from "../src/legal-approval-matrix.mjs";
 import { runLawFirmE2eFreeze } from "../src/law-firm-e2e-freeze.mjs";
+import { runCreativeDocumentPackManifest } from "../src/creative-document-pack-manifest.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1899,6 +1900,7 @@ describe("matter harness", () => {
         providedMaterialReviewPath: path.join(outDir, "provided-material-review", "provided-material-review-ledger.json"),
         legalApprovalMatrixPath: path.join(outDir, "legal-approval-matrix", "legal-approval-matrix.json"),
         lawFirmE2eFreezePath: path.join(outDir, "law-firm-e2e-freeze", "law-firm-e2e-freeze.json"),
+        creativeDocumentPackManifestPath: path.join(outDir, "creative-document-pack-manifest", "creative-document-pack-manifest.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -9801,6 +9803,63 @@ describe("matter harness", () => {
       assert.ok(lawFirmE2eFreeze.law_firm_e2e_coverage_gates.every((gate) => gate.gate_status === "passed" && gate.read_only && gate.mutation_allowed === false));
       assert.match(await readFile(path.join(outDir, "law-firm-e2e-freeze", "summary.md"), "utf8"), /Law Firm E2E Freeze/);
 
+      const creativeDocumentPackManifest = await runCreativeDocumentPackManifest({
+        creativeDocumentPackPath: "packs/creative-document/pack.json",
+        domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
+        packManifestCompatibilityPath: path.join(outDir, "pack-manifest-compatibility", "pack-manifest-compatibility.json"),
+        capabilityManifestV2Path: path.join(outDir, "capability-manifest-v2", "capability-manifest-v2.json"),
+        capabilityRegistryApiPath: path.join(outDir, "capability-registry-api", "capability-registry-api.json"),
+        runtimeFreezePath: path.join(outDir, "runtime-freeze", "runtime-freeze.json"),
+        documentRendererAdapterPath: path.join(outDir, "document-renderer-adapter", "document-renderer-adapter.json"),
+        outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "creative-document-pack-manifest"),
+        runAt: "2026-05-23T07:00:12.000Z",
+      });
+      const creativeDocumentPackManifestSchema = JSON.parse(await readFile("schemas/creative-document-pack-manifest.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(creativeDocumentPackManifest, creativeDocumentPackManifestSchema, {}, "creative_document_pack_manifest"),
+        [],
+        JSON.stringify(creativeDocumentPackManifest.validation.errors),
+      );
+      assert.equal(creativeDocumentPackManifest.summary.creative_document_pack_manifest_status, "complete");
+      assert.equal(creativeDocumentPackManifest.summary.creative_document_pack_manifest_contract_id, "creative-document-pack-manifest.v1");
+      assert.equal(creativeDocumentPackManifest.summary.pack_id, "creative-document");
+      assert.equal(creativeDocumentPackManifest.summary.registration_status, "registered");
+      assert.equal(creativeDocumentPackManifest.summary.compatibility_status, "compatible");
+      assert.equal(creativeDocumentPackManifest.summary.common_dependency_declared, true);
+      assert.equal(creativeDocumentPackManifest.summary.capability_count, 1);
+      assert.equal(creativeDocumentPackManifest.summary.registered_capability_count, 1);
+      assert.equal(creativeDocumentPackManifest.summary.capability_manifest_v2_count, 1);
+      assert.equal(creativeDocumentPackManifest.summary.capability_registry_api_pack_card_present, true);
+      assert.equal(creativeDocumentPackManifest.summary.capability_registry_api_capability_card_count, 1);
+      assert.equal(creativeDocumentPackManifest.summary.capability_version_api_card_count, 1);
+      assert.ok(creativeDocumentPackManifest.summary.template_declared_count >= 1);
+      assert.ok(creativeDocumentPackManifest.summary.renderer_declared_count >= 1);
+      assert.equal(creativeDocumentPackManifest.summary.format_validation_required, true);
+      assert.equal(creativeDocumentPackManifest.summary.human_review_required, true);
+      assert.equal(creativeDocumentPackManifest.summary.layout_validation_required, true);
+      assert.equal(creativeDocumentPackManifest.summary.document_renderer_runtime_declared, true);
+      assert.equal(creativeDocumentPackManifest.summary.runtime_freeze_status, "complete");
+      assert.equal(creativeDocumentPackManifest.summary.document_renderer_adapter_status, "complete");
+      assert.equal(creativeDocumentPackManifest.summary.output_delivery_contract_freeze_status, "complete");
+      assert.equal(creativeDocumentPackManifest.summary.default_output_status, "draft");
+      assert.equal(creativeDocumentPackManifest.summary.core_mutation_required_count, 0);
+      assert.equal(creativeDocumentPackManifest.summary.desktop_read_only, true);
+      assert.equal(creativeDocumentPackManifest.summary.desktop_mutation_allowed, false);
+      assert.equal(creativeDocumentPackManifest.summary.desktop_runtime_source_of_truth, false);
+      assert.equal(creativeDocumentPackManifest.summary.renderer_execution_allowed, false);
+      assert.equal(creativeDocumentPackManifest.summary.delivery_execution_allowed, false);
+      assert.equal(creativeDocumentPackManifest.summary.protected_action_allowed, false);
+      assert.equal(creativeDocumentPackManifest.summary.client_facing_output_generated, false);
+      assert.equal(creativeDocumentPackManifest.summary.client_facing_ready_count, 0);
+      assert.equal(creativeDocumentPackManifest.summary.failed_checkpoint_count, 0);
+      assert.equal(creativeDocumentPackManifest.summary.validation_error_count, 0);
+      assert.ok(creativeDocumentPackManifest.creative_document_capability_registrations.every((row) => row.registration_status === "registered" && row.format_validation_gate_required && row.human_approval_gate_required && row.draft_only_output_required && row.renderer_execution_performed === false && row.protected_action_executed === false));
+      assert.equal(creativeDocumentPackManifest.creative_document_pack_boundary.boundary_status, "enforced");
+      assert.match(await readFile(path.join(outDir, "creative-document-pack-manifest", "summary.md"), "utf8"), /Creative Document Pack Manifest/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -9977,6 +10036,7 @@ describe("matter harness", () => {
           provided_material_review: path.join(outDir, "provided-material-review", "provided-material-review-ledger.json"),
           legal_approval_matrix: path.join(outDir, "legal-approval-matrix", "legal-approval-matrix.json"),
           law_firm_e2e_freeze: path.join(outDir, "law-firm-e2e-freeze", "law-firm-e2e-freeze.json"),
+          creative_document_pack_manifest: path.join(outDir, "creative-document-pack-manifest", "creative-document-pack-manifest.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10028,8 +10088,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 154);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 154);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 155);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 155);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -10171,6 +10231,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "provided_material_review"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "legal_approval_matrix"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "law_firm_e2e_freeze"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "creative_document_pack_manifest"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -10246,6 +10307,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "packs:compatibility"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:pack-manifest"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:pack-manifest"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:pack-manifest"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter-os:profile"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:timeline"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:document-index"));
@@ -10936,6 +10998,10 @@ describe("matter harness", () => {
       assert.equal(lawFirmE2eFreezeCheckpoint?.acceptance_profile, "law_firm_e2e_freeze_gate");
       assert.equal(lawFirmE2eFreezeCheckpoint?.status, "passed");
       assert.equal(lawFirmE2eFreezeCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const creativeDocumentPackManifestCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-creative-document-pack-manifest");
+      assert.equal(creativeDocumentPackManifestCheckpoint?.acceptance_profile, "creative_document_pack_manifest_gate");
+      assert.equal(creativeDocumentPackManifestCheckpoint?.status, "passed");
+      assert.equal(creativeDocumentPackManifestCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -14626,6 +14692,39 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.law_firm_e2e_freeze_desktop_source_of_truth, false);
       assert.equal(dashboard.summary.law_firm_e2e_freeze_failed_checkpoint_count, 0);
       assert.equal(dashboard.summary.law_firm_e2e_freeze_validation_error_count, 0);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_status, "complete");
+      assert.equal(dashboard.summary.creative_document_pack_manifest_contract_id, creativeDocumentPackManifest.summary.creative_document_pack_manifest_contract_id);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_pack_id, creativeDocumentPackManifest.summary.pack_id);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_registration_status, "registered");
+      assert.equal(dashboard.summary.creative_document_pack_manifest_compatibility_status, "compatible");
+      assert.equal(dashboard.summary.creative_document_pack_manifest_common_dependency_declared, true);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_capability_count, creativeDocumentPackManifest.summary.capability_count);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_registered_capability_count, creativeDocumentPackManifest.summary.registered_capability_count);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_capability_manifest_v2_count, creativeDocumentPackManifest.summary.capability_manifest_v2_count);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_capability_registry_api_pack_card_present, true);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_capability_registry_api_capability_card_count, creativeDocumentPackManifest.summary.capability_registry_api_capability_card_count);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_capability_version_api_card_count, creativeDocumentPackManifest.summary.capability_version_api_card_count);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_template_declared_count, creativeDocumentPackManifest.summary.template_declared_count);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_renderer_declared_count, creativeDocumentPackManifest.summary.renderer_declared_count);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_format_validation_required, true);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_human_review_required, true);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_layout_validation_required, true);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_document_renderer_runtime_declared, true);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_runtime_freeze_status, "complete");
+      assert.equal(dashboard.summary.creative_document_pack_manifest_document_renderer_adapter_status, "complete");
+      assert.equal(dashboard.summary.creative_document_pack_manifest_output_delivery_contract_freeze_status, "complete");
+      assert.equal(dashboard.summary.creative_document_pack_manifest_default_output_status, "draft");
+      assert.equal(dashboard.summary.creative_document_pack_manifest_core_mutation_required_count, 0);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_desktop_read_only, true);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_desktop_runtime_source_of_truth, false);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_renderer_execution_allowed, false);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_protected_action_allowed, false);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.creative_document_pack_manifest_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -16765,6 +16864,39 @@ describe("matter harness", () => {
       assert.equal(lawFirmE2eFreezeStage?.metrics.desktop_source_of_truth, false);
       assert.equal(lawFirmE2eFreezeStage?.metrics.failed_checkpoint_count, 0);
       assert.equal(lawFirmE2eFreezeStage?.metrics.validation_error_count, 0);
+      const creativeDocumentPackManifestStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "creative_document_pack_manifest");
+      assert.equal(creativeDocumentPackManifestStage?.status, "passed");
+      assert.equal(creativeDocumentPackManifestStage?.metrics.creative_document_pack_manifest_status, "complete");
+      assert.equal(creativeDocumentPackManifestStage?.metrics.registration_status, "registered");
+      assert.equal(creativeDocumentPackManifestStage?.metrics.compatibility_status, "compatible");
+      assert.equal(creativeDocumentPackManifestStage?.metrics.common_dependency_declared, true);
+      assert.equal(creativeDocumentPackManifestStage?.metrics.capability_count, creativeDocumentPackManifest.summary.capability_count);
+      assert.equal(creativeDocumentPackManifestStage?.metrics.registered_capability_count, creativeDocumentPackManifest.summary.registered_capability_count);
+      assert.equal(creativeDocumentPackManifestStage?.metrics.capability_manifest_v2_count, creativeDocumentPackManifest.summary.capability_manifest_v2_count);
+      assert.equal(creativeDocumentPackManifestStage?.metrics.capability_registry_api_pack_card_present, true);
+      assert.equal(creativeDocumentPackManifestStage?.metrics.capability_registry_api_capability_card_count, creativeDocumentPackManifest.summary.capability_registry_api_capability_card_count);
+      assert.equal(creativeDocumentPackManifestStage?.metrics.capability_version_api_card_count, creativeDocumentPackManifest.summary.capability_version_api_card_count);
+      assert.equal(creativeDocumentPackManifestStage?.metrics.template_declared_count, creativeDocumentPackManifest.summary.template_declared_count);
+      assert.equal(creativeDocumentPackManifestStage?.metrics.renderer_declared_count, creativeDocumentPackManifest.summary.renderer_declared_count);
+      assert.equal(creativeDocumentPackManifestStage?.metrics.format_validation_required, true);
+      assert.equal(creativeDocumentPackManifestStage?.metrics.human_review_required, true);
+      assert.equal(creativeDocumentPackManifestStage?.metrics.layout_validation_required, true);
+      assert.equal(creativeDocumentPackManifestStage?.metrics.document_renderer_runtime_declared, true);
+      assert.equal(creativeDocumentPackManifestStage?.metrics.runtime_freeze_status, "complete");
+      assert.equal(creativeDocumentPackManifestStage?.metrics.document_renderer_adapter_status, "complete");
+      assert.equal(creativeDocumentPackManifestStage?.metrics.output_delivery_contract_freeze_status, "complete");
+      assert.equal(creativeDocumentPackManifestStage?.metrics.default_output_status, "draft");
+      assert.equal(creativeDocumentPackManifestStage?.metrics.core_mutation_required_count, 0);
+      assert.equal(creativeDocumentPackManifestStage?.metrics.desktop_read_only, true);
+      assert.equal(creativeDocumentPackManifestStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(creativeDocumentPackManifestStage?.metrics.desktop_runtime_source_of_truth, false);
+      assert.equal(creativeDocumentPackManifestStage?.metrics.renderer_execution_allowed, false);
+      assert.equal(creativeDocumentPackManifestStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(creativeDocumentPackManifestStage?.metrics.protected_action_allowed, false);
+      assert.equal(creativeDocumentPackManifestStage?.metrics.client_facing_output_generated, false);
+      assert.equal(creativeDocumentPackManifestStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(creativeDocumentPackManifestStage?.metrics.failed_checkpoint_count, 0);
+      assert.equal(creativeDocumentPackManifestStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -18561,6 +18693,26 @@ describe("matter harness", () => {
       const lawFirmPackValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/law-firm-pack-validations?status=passed", apiOptions)).body);
       assert.equal(lawFirmPackValidationsResponse.collection, "law_firm_pack_validations");
       assert.equal(lawFirmPackValidationsResponse.count, lawFirmPackManifest.summary.validation_item_count);
+
+      const creativeDocumentPackManifestsResponse = JSON.parse((await buildReviewApiResponse("/api/creative-document-pack-manifests?creative_document_pack_manifest_status=complete", apiOptions)).body);
+      assert.equal(creativeDocumentPackManifestsResponse.collection, "creative_document_pack_manifests");
+      assert.equal(creativeDocumentPackManifestsResponse.count, 1);
+
+      const creativeDocumentPackRegistrationResponse = JSON.parse((await buildReviewApiResponse("/api/creative-document-pack-registration?registration_status=registered", apiOptions)).body);
+      assert.equal(creativeDocumentPackRegistrationResponse.collection, "creative_document_pack_registration");
+      assert.equal(creativeDocumentPackRegistrationResponse.count, 1);
+
+      const creativeDocumentCapabilityRegistrationsResponse = JSON.parse((await buildReviewApiResponse("/api/creative-document-capability-registrations?creative_document_capability_registration_status=registered", apiOptions)).body);
+      assert.equal(creativeDocumentCapabilityRegistrationsResponse.collection, "creative_document_capability_registrations");
+      assert.equal(creativeDocumentCapabilityRegistrationsResponse.count, creativeDocumentPackManifest.summary.registered_capability_count);
+
+      const creativeDocumentPackBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/creative-document-pack-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(creativeDocumentPackBoundaryResponse.collection, "creative_document_pack_boundary");
+      assert.equal(creativeDocumentPackBoundaryResponse.count, 1);
+
+      const creativeDocumentPackValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/creative-document-pack-validations?status=passed", apiOptions)).body);
+      assert.equal(creativeDocumentPackValidationsResponse.collection, "creative_document_pack_validations");
+      assert.equal(creativeDocumentPackValidationsResponse.count, creativeDocumentPackManifest.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

@@ -178,6 +178,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     connector_contract_v2: "artifacts/connector-contract-v2/latest/connector-contract-v2.json",
     local_folder_connector: "artifacts/local-folder-connector/latest/local-folder-connector.json",
     onedrive_connector_boundary: "artifacts/onedrive-connector-boundary/latest/onedrive-connector-boundary.json",
+    outlook_email_connector: "artifacts/outlook-email-connector/latest/outlook-email-connector.json",
   },
 };
 
@@ -349,6 +350,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("connector_contract_v2", "Connector Contract v2", "connectors", "connector-contract-v2.schema.json"),
   fixtureDefinition("local_folder_connector", "Local Folder Connector", "connectors", "local-folder-connector.schema.json"),
   fixtureDefinition("onedrive_connector_boundary", "OneDrive Connector Boundary", "connectors", "onedrive-connector-boundary.schema.json"),
+  fixtureDefinition("outlook_email_connector", "Outlook Email Connector", "connectors", "outlook-email-connector.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),

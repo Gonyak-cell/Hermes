@@ -2340,6 +2340,34 @@ try {
   assert.equal(oneDriveConnectorBoundaryValidations.collection, "onedrive_connector_boundary_validations");
   assert.ok(oneDriveConnectorBoundaryValidations.count <= 5);
 
+  const outlookEmailConnector = await fetchJson(`${url}/api/outlook-email-connector?outlook_email_connector_status=complete&limit=1`);
+  assert.equal(outlookEmailConnector.collection, "outlook_email_connector");
+  assert.ok(outlookEmailConnector.count <= 1);
+
+  const outlookEmailMessages = await fetchJson(`${url}/api/outlook-email-messages?message_status=resource_candidate_ready&email_resource_status=ready&review_status=needs_review&limit=5`);
+  assert.equal(outlookEmailMessages.collection, "outlook_email_messages");
+  assert.ok(outlookEmailMessages.count <= 5);
+
+  const outlookEmailAttachments = await fetchJson(`${url}/api/outlook-email-attachments?attachment_status=resource_candidate_ready&email_resource_status=ready&review_status=needs_review&limit=5`);
+  assert.equal(outlookEmailAttachments.collection, "outlook_email_attachments");
+  assert.ok(outlookEmailAttachments.count <= 5);
+
+  const outlookEmailThreads = await fetchJson(`${url}/api/outlook-email-threads?thread_status=complete&review_status=needs_review&limit=5`);
+  assert.equal(outlookEmailThreads.collection, "outlook_email_threads");
+  assert.ok(outlookEmailThreads.count <= 5);
+
+  const outlookEmailCursor = await fetchJson(`${url}/api/outlook-email-cursor?cursor_status=complete&limit=1`);
+  assert.equal(outlookEmailCursor.collection, "outlook_email_cursor");
+  assert.ok(outlookEmailCursor.count <= 1);
+
+  const outlookEmailAuthBoundary = await fetchJson(`${url}/api/outlook-email-auth-boundary?auth_boundary_status=enforced&credential_reference_only=true&limit=1`);
+  assert.equal(outlookEmailAuthBoundary.collection, "outlook_email_auth_boundary");
+  assert.ok(outlookEmailAuthBoundary.count <= 1);
+
+  const outlookEmailValidations = await fetchJson(`${url}/api/outlook-email-validations?status=passed&limit=5`);
+  assert.equal(outlookEmailValidations.collection, "outlook_email_validations");
+  assert.ok(outlookEmailValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

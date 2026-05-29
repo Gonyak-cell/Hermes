@@ -69,6 +69,7 @@ import { runCreativeDocumentFreeze } from "../src/creative-document-freeze.mjs";
 import { runConnectorContractV2 } from "../src/connector-contract-v2.mjs";
 import { runLocalFolderConnector } from "../src/local-folder-connector.mjs";
 import { runOneDriveConnectorBoundary } from "../src/onedrive-connector-boundary.mjs";
+import { runOutlookEmailConnector } from "../src/outlook-email-connector.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1933,6 +1934,7 @@ describe("matter harness", () => {
         connectorContractV2Path: path.join(outDir, "connector-contract-v2", "connector-contract-v2.json"),
         localFolderConnectorPath: path.join(outDir, "local-folder-connector", "local-folder-connector.json"),
         onedriveConnectorBoundaryPath: path.join(outDir, "onedrive-connector-boundary", "onedrive-connector-boundary.json"),
+        outlookEmailConnectorPath: path.join(outDir, "outlook-email-connector", "outlook-email-connector.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10895,6 +10897,59 @@ describe("matter harness", () => {
       assert.equal(oneDriveConnectorBoundary.auth_boundary.auth_mode, "oauth_delegated_readonly");
       assert.match(await readFile(path.join(outDir, "onedrive-connector-boundary", "summary.md"), "utf8"), /OneDrive Connector Boundary/);
 
+      const outlookEmailConnector = await runOutlookEmailConnector({
+        connectorContractV2Path: path.join(outDir, "connector-contract-v2", "connector-contract-v2.json"),
+        onedriveConnectorBoundaryPath: path.join(outDir, "onedrive-connector-boundary", "onedrive-connector-boundary.json"),
+        emailInputs: ["examples/outlook-email-connector"],
+        outDir: path.join(outDir, "outlook-email-connector"),
+        runAt: "2026-05-23T07:11:24.000Z",
+      });
+      const outlookEmailConnectorSchema = JSON.parse(await readFile("schemas/outlook-email-connector.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(outlookEmailConnector, outlookEmailConnectorSchema, {}, "outlook_email_connector"), [], JSON.stringify(outlookEmailConnector.validation.errors));
+      assert.equal(outlookEmailConnector.summary.outlook_email_connector_status, "complete");
+      assert.equal(outlookEmailConnector.summary.connector_id, "connector.outlook_email.v2");
+      assert.equal(outlookEmailConnector.summary.source_id, "source.outlook_email.v2");
+      assert.equal(outlookEmailConnector.summary.source_onedrive_connector_boundary_status, "complete");
+      assert.equal(outlookEmailConnector.summary.message_count, 2);
+      assert.equal(outlookEmailConnector.summary.attachment_count, 2);
+      assert.equal(outlookEmailConnector.summary.thread_count, 1);
+      assert.equal(outlookEmailConnector.summary.threaded_message_count, outlookEmailConnector.summary.message_count);
+      assert.equal(outlookEmailConnector.summary.message_resource_count, outlookEmailConnector.summary.message_count);
+      assert.equal(outlookEmailConnector.summary.attachment_resource_count, outlookEmailConnector.summary.attachment_count);
+      assert.equal(outlookEmailConnector.summary.resource_candidate_count, outlookEmailConnector.summary.message_count + outlookEmailConnector.summary.attachment_count);
+      assert.equal(outlookEmailConnector.summary.metadata_complete_message_count, outlookEmailConnector.summary.message_count);
+      assert.equal(outlookEmailConnector.summary.message_id_count, outlookEmailConnector.summary.message_count);
+      assert.equal(outlookEmailConnector.summary.thread_id_count, 1);
+      assert.equal(outlookEmailConnector.summary.attachment_parent_link_count, outlookEmailConnector.summary.attachment_count);
+      assert.equal(outlookEmailConnector.summary.cursor_status, "complete");
+      assert.equal(outlookEmailConnector.summary.cursor_resume_supported, true);
+      assert.equal(outlookEmailConnector.summary.raw_delta_token_material_allowed, false);
+      assert.equal(outlookEmailConnector.summary.auth_boundary_status, "enforced");
+      assert.equal(outlookEmailConnector.summary.credential_ref_required, true);
+      assert.equal(outlookEmailConnector.summary.credential_reference_only, true);
+      assert.equal(outlookEmailConnector.summary.raw_secret_material_allowed, false);
+      assert.equal(outlookEmailConnector.summary.external_network_access_required_for_runtime, true);
+      assert.equal(outlookEmailConnector.summary.local_export_read_performed, true);
+      assert.equal(outlookEmailConnector.summary.outlook_api_execution_performed, false);
+      assert.equal(outlookEmailConnector.summary.external_network_access_performed, false);
+      assert.equal(outlookEmailConnector.summary.connector_execution_performed, true);
+      assert.equal(outlookEmailConnector.summary.source_read_performed, true);
+      assert.equal(outlookEmailConnector.summary.credential_material_read, false);
+      assert.equal(outlookEmailConnector.summary.source_mutation_performed, false);
+      assert.equal(outlookEmailConnector.summary.resource_mutation_performed, false);
+      assert.equal(outlookEmailConnector.summary.output_delivery_performed, false);
+      assert.equal(outlookEmailConnector.summary.protected_action_executed, false);
+      assert.equal(outlookEmailConnector.summary.legal_advice_generated, false);
+      assert.equal(outlookEmailConnector.summary.client_facing_output_generated, false);
+      assert.equal(outlookEmailConnector.summary.human_review_required_count, outlookEmailConnector.summary.resource_candidate_count);
+      assert.equal(outlookEmailConnector.summary.validation_error_count, 0);
+      assert.ok(outlookEmailConnector.outlook_email_message_records.every((message) => message.connector_id === "connector.outlook_email.v2" && message.source_id === "source.outlook_email.v2" && message.resource_type === "email" && message.thread_id && message.metadata_complete && message.human_review_required));
+      assert.ok(outlookEmailConnector.outlook_email_attachment_records.every((attachment) => attachment.resource_type === "email_attachment" && attachment.parent_message_resource_id && attachment.thread_id && attachment.attachment_content_read_performed === false && attachment.human_review_required));
+      assert.ok(outlookEmailConnector.outlook_email_thread_records.every((thread) => thread.thread_status === "complete" && thread.message_count > 0 && thread.human_review_required));
+      assert.equal(outlookEmailConnector.cursor_state.raw_delta_token_material_allowed, false);
+      assert.equal(outlookEmailConnector.auth_boundary.auth_mode, "oauth_delegated_readonly");
+      assert.match(await readFile(path.join(outDir, "outlook-email-connector", "summary.md"), "utf8"), /Outlook Email Connector/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -11088,6 +11143,7 @@ describe("matter harness", () => {
           connector_contract_v2: path.join(outDir, "connector-contract-v2", "connector-contract-v2.json"),
           local_folder_connector: path.join(outDir, "local-folder-connector", "local-folder-connector.json"),
           onedrive_connector_boundary: path.join(outDir, "onedrive-connector-boundary", "onedrive-connector-boundary.json"),
+          outlook_email_connector: path.join(outDir, "outlook-email-connector", "outlook-email-connector.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11139,8 +11195,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 171);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 171);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 172);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 172);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -11299,6 +11355,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "connector_contract_v2"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "local_folder_connector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "onedrive_connector_boundary"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "outlook_email_connector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -12147,6 +12204,10 @@ describe("matter harness", () => {
       assert.equal(oneDriveConnectorBoundaryCheckpoint?.acceptance_profile, "onedrive_connector_boundary_gate");
       assert.equal(oneDriveConnectorBoundaryCheckpoint?.status, "passed");
       assert.equal(oneDriveConnectorBoundaryCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const outlookEmailConnectorCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-outlook-email-connector");
+      assert.equal(outlookEmailConnectorCheckpoint?.acceptance_profile, "outlook_email_connector_gate");
+      assert.equal(outlookEmailConnectorCheckpoint?.status, "passed");
+      assert.equal(outlookEmailConnectorCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -16511,6 +16572,43 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.onedrive_connector_boundary_client_facing_output_generated, false);
       assert.equal(dashboard.summary.onedrive_connector_boundary_human_review_required_count, oneDriveConnectorBoundary.summary.human_review_required_count);
       assert.equal(dashboard.summary.onedrive_connector_boundary_validation_error_count, 0);
+      assert.equal(dashboard.summary.outlook_email_connector_status, "complete");
+      assert.equal(dashboard.summary.outlook_email_connector_connector_id, outlookEmailConnector.summary.connector_id);
+      assert.equal(dashboard.summary.outlook_email_connector_source_id, outlookEmailConnector.summary.source_id);
+      assert.equal(dashboard.summary.outlook_email_connector_source_onedrive_connector_boundary_status, "complete");
+      assert.equal(dashboard.summary.outlook_email_connector_message_count, outlookEmailConnector.summary.message_count);
+      assert.equal(dashboard.summary.outlook_email_connector_attachment_count, outlookEmailConnector.summary.attachment_count);
+      assert.equal(dashboard.summary.outlook_email_connector_thread_count, outlookEmailConnector.summary.thread_count);
+      assert.equal(dashboard.summary.outlook_email_connector_threaded_message_count, outlookEmailConnector.summary.threaded_message_count);
+      assert.equal(dashboard.summary.outlook_email_connector_message_resource_count, outlookEmailConnector.summary.message_resource_count);
+      assert.equal(dashboard.summary.outlook_email_connector_attachment_resource_count, outlookEmailConnector.summary.attachment_resource_count);
+      assert.equal(dashboard.summary.outlook_email_connector_resource_candidate_count, outlookEmailConnector.summary.resource_candidate_count);
+      assert.equal(dashboard.summary.outlook_email_connector_metadata_complete_message_count, outlookEmailConnector.summary.metadata_complete_message_count);
+      assert.equal(dashboard.summary.outlook_email_connector_message_id_count, outlookEmailConnector.summary.message_id_count);
+      assert.equal(dashboard.summary.outlook_email_connector_thread_id_count, outlookEmailConnector.summary.thread_id_count);
+      assert.equal(dashboard.summary.outlook_email_connector_attachment_parent_link_count, outlookEmailConnector.summary.attachment_parent_link_count);
+      assert.equal(dashboard.summary.outlook_email_connector_cursor_status, "complete");
+      assert.equal(dashboard.summary.outlook_email_connector_cursor_resume_supported, true);
+      assert.equal(dashboard.summary.outlook_email_connector_raw_delta_token_material_allowed, false);
+      assert.equal(dashboard.summary.outlook_email_connector_auth_boundary_status, "enforced");
+      assert.equal(dashboard.summary.outlook_email_connector_credential_ref_required, true);
+      assert.equal(dashboard.summary.outlook_email_connector_credential_reference_only, true);
+      assert.equal(dashboard.summary.outlook_email_connector_raw_secret_material_allowed, false);
+      assert.equal(dashboard.summary.outlook_email_connector_external_network_access_required_for_runtime, true);
+      assert.equal(dashboard.summary.outlook_email_connector_local_export_read_performed, true);
+      assert.equal(dashboard.summary.outlook_email_connector_outlook_api_execution_performed, false);
+      assert.equal(dashboard.summary.outlook_email_connector_external_network_access_performed, false);
+      assert.equal(dashboard.summary.outlook_email_connector_connector_execution_performed, true);
+      assert.equal(dashboard.summary.outlook_email_connector_source_read_performed, true);
+      assert.equal(dashboard.summary.outlook_email_connector_credential_material_read, false);
+      assert.equal(dashboard.summary.outlook_email_connector_source_mutation_performed, false);
+      assert.equal(dashboard.summary.outlook_email_connector_resource_mutation_performed, false);
+      assert.equal(dashboard.summary.outlook_email_connector_output_delivery_performed, false);
+      assert.equal(dashboard.summary.outlook_email_connector_protected_action_executed, false);
+      assert.equal(dashboard.summary.outlook_email_connector_legal_advice_generated, false);
+      assert.equal(dashboard.summary.outlook_email_connector_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.outlook_email_connector_human_review_required_count, outlookEmailConnector.summary.human_review_required_count);
+      assert.equal(dashboard.summary.outlook_email_connector_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -19318,6 +19416,44 @@ describe("matter harness", () => {
       assert.equal(oneDriveConnectorBoundaryStage?.metrics.client_facing_output_generated, false);
       assert.equal(oneDriveConnectorBoundaryStage?.metrics.human_review_required_count, oneDriveConnectorBoundary.summary.human_review_required_count);
       assert.equal(oneDriveConnectorBoundaryStage?.metrics.validation_error_count, 0);
+      const outlookEmailConnectorStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "outlook_email_connector");
+      assert.equal(outlookEmailConnectorStage?.status, "passed");
+      assert.equal(outlookEmailConnectorStage?.metrics.outlook_email_connector_status, "complete");
+      assert.equal(outlookEmailConnectorStage?.metrics.connector_id, outlookEmailConnector.summary.connector_id);
+      assert.equal(outlookEmailConnectorStage?.metrics.source_id, outlookEmailConnector.summary.source_id);
+      assert.equal(outlookEmailConnectorStage?.metrics.source_onedrive_connector_boundary_status, "complete");
+      assert.equal(outlookEmailConnectorStage?.metrics.message_count, outlookEmailConnector.summary.message_count);
+      assert.equal(outlookEmailConnectorStage?.metrics.attachment_count, outlookEmailConnector.summary.attachment_count);
+      assert.equal(outlookEmailConnectorStage?.metrics.thread_count, outlookEmailConnector.summary.thread_count);
+      assert.equal(outlookEmailConnectorStage?.metrics.threaded_message_count, outlookEmailConnector.summary.threaded_message_count);
+      assert.equal(outlookEmailConnectorStage?.metrics.message_resource_count, outlookEmailConnector.summary.message_resource_count);
+      assert.equal(outlookEmailConnectorStage?.metrics.attachment_resource_count, outlookEmailConnector.summary.attachment_resource_count);
+      assert.equal(outlookEmailConnectorStage?.metrics.resource_candidate_count, outlookEmailConnector.summary.resource_candidate_count);
+      assert.equal(outlookEmailConnectorStage?.metrics.metadata_complete_message_count, outlookEmailConnector.summary.metadata_complete_message_count);
+      assert.equal(outlookEmailConnectorStage?.metrics.message_id_count, outlookEmailConnector.summary.message_id_count);
+      assert.equal(outlookEmailConnectorStage?.metrics.thread_id_count, outlookEmailConnector.summary.thread_id_count);
+      assert.equal(outlookEmailConnectorStage?.metrics.attachment_parent_link_count, outlookEmailConnector.summary.attachment_parent_link_count);
+      assert.equal(outlookEmailConnectorStage?.metrics.cursor_status, "complete");
+      assert.equal(outlookEmailConnectorStage?.metrics.cursor_resume_supported, true);
+      assert.equal(outlookEmailConnectorStage?.metrics.raw_delta_token_material_allowed, false);
+      assert.equal(outlookEmailConnectorStage?.metrics.auth_boundary_status, "enforced");
+      assert.equal(outlookEmailConnectorStage?.metrics.credential_ref_required, true);
+      assert.equal(outlookEmailConnectorStage?.metrics.credential_reference_only, true);
+      assert.equal(outlookEmailConnectorStage?.metrics.raw_secret_material_allowed, false);
+      assert.equal(outlookEmailConnectorStage?.metrics.local_export_read_performed, true);
+      assert.equal(outlookEmailConnectorStage?.metrics.outlook_api_execution_performed, false);
+      assert.equal(outlookEmailConnectorStage?.metrics.external_network_access_performed, false);
+      assert.equal(outlookEmailConnectorStage?.metrics.connector_execution_performed, true);
+      assert.equal(outlookEmailConnectorStage?.metrics.source_read_performed, true);
+      assert.equal(outlookEmailConnectorStage?.metrics.credential_material_read, false);
+      assert.equal(outlookEmailConnectorStage?.metrics.source_mutation_performed, false);
+      assert.equal(outlookEmailConnectorStage?.metrics.resource_mutation_performed, false);
+      assert.equal(outlookEmailConnectorStage?.metrics.output_delivery_performed, false);
+      assert.equal(outlookEmailConnectorStage?.metrics.protected_action_executed, false);
+      assert.equal(outlookEmailConnectorStage?.metrics.legal_advice_generated, false);
+      assert.equal(outlookEmailConnectorStage?.metrics.client_facing_output_generated, false);
+      assert.equal(outlookEmailConnectorStage?.metrics.human_review_required_count, outlookEmailConnector.summary.human_review_required_count);
+      assert.equal(outlookEmailConnectorStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -21574,6 +21710,34 @@ describe("matter harness", () => {
       const oneDriveConnectorBoundaryValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/onedrive-connector-boundary-validations?status=passed", apiOptions)).body);
       assert.equal(oneDriveConnectorBoundaryValidationsResponse.collection, "onedrive_connector_boundary_validations");
       assert.equal(oneDriveConnectorBoundaryValidationsResponse.count, oneDriveConnectorBoundary.summary.validation_item_count);
+
+      const outlookEmailConnectorResponse = JSON.parse((await buildReviewApiResponse("/api/outlook-email-connector?outlook_email_connector_status=complete", apiOptions)).body);
+      assert.equal(outlookEmailConnectorResponse.collection, "outlook_email_connector");
+      assert.equal(outlookEmailConnectorResponse.count, 1);
+
+      const outlookEmailMessagesResponse = JSON.parse((await buildReviewApiResponse("/api/outlook-email-messages?message_status=resource_candidate_ready&email_resource_status=ready&review_status=needs_review", apiOptions)).body);
+      assert.equal(outlookEmailMessagesResponse.collection, "outlook_email_messages");
+      assert.equal(outlookEmailMessagesResponse.count, outlookEmailConnector.summary.message_count);
+
+      const outlookEmailAttachmentsResponse = JSON.parse((await buildReviewApiResponse("/api/outlook-email-attachments?attachment_status=resource_candidate_ready&email_resource_status=ready&review_status=needs_review", apiOptions)).body);
+      assert.equal(outlookEmailAttachmentsResponse.collection, "outlook_email_attachments");
+      assert.equal(outlookEmailAttachmentsResponse.count, outlookEmailConnector.summary.attachment_count);
+
+      const outlookEmailThreadsResponse = JSON.parse((await buildReviewApiResponse("/api/outlook-email-threads?thread_status=complete&review_status=needs_review", apiOptions)).body);
+      assert.equal(outlookEmailThreadsResponse.collection, "outlook_email_threads");
+      assert.equal(outlookEmailThreadsResponse.count, outlookEmailConnector.summary.thread_count);
+
+      const outlookEmailCursorResponse = JSON.parse((await buildReviewApiResponse("/api/outlook-email-cursor?cursor_status=complete", apiOptions)).body);
+      assert.equal(outlookEmailCursorResponse.collection, "outlook_email_cursor");
+      assert.equal(outlookEmailCursorResponse.count, 1);
+
+      const outlookEmailAuthBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/outlook-email-auth-boundary?auth_boundary_status=enforced&credential_reference_only=true", apiOptions)).body);
+      assert.equal(outlookEmailAuthBoundaryResponse.collection, "outlook_email_auth_boundary");
+      assert.equal(outlookEmailAuthBoundaryResponse.count, 1);
+
+      const outlookEmailValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/outlook-email-validations?status=passed", apiOptions)).body);
+      assert.equal(outlookEmailValidationsResponse.collection, "outlook_email_validations");
+      assert.equal(outlookEmailValidationsResponse.count, outlookEmailConnector.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

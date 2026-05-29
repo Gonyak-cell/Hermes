@@ -1,0 +1,47 @@
+{
+  "schema_version": "outlook-email-connector-graph-sample.v1",
+  "value": [
+    {
+      "id": "AAMkAGAlphaFollowup002",
+      "internetMessageId": "<alpha-followup-002@example.local>",
+      "conversationId": "alpha-conversation-001",
+      "conversationIndex": "alpha-conversation-001.002",
+      "receivedDateTime": "2026-05-22T13:15:00+09:00",
+      "sentDateTime": "2026-05-22T13:12:00+09:00",
+      "from": {
+        "emailAddress": {
+          "name": "Associate Park",
+          "address": "associate.park@example.local"
+        }
+      },
+      "toRecipients": [
+        {
+          "emailAddress": {
+            "name": "Senior Lee",
+            "address": "senior.lee@example.local"
+          }
+        }
+      ],
+      "ccRecipients": [
+        {
+          "emailAddress": {
+            "name": "Partner Kim",
+            "address": "partner.kim@example.local"
+          }
+        }
+      ],
+      "subject": "RE: Project Alpha - disclosure schedule and tax memo follow-up",
+      "bodyPreview": "The related-party transaction ledger is still missing. I will request client to send it by 2026-05-24.",
+      "hasAttachments": true,
+      "attachments": [
+        {
+          "id": "AAMkAGAlphaAttachment001",
+          "name": "missing-document-list.xlsx",
+          "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "size": 32768,
+          "isInline": false
+        }
+      ]
+    }
+  ]
+}

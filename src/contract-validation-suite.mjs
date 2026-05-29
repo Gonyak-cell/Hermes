@@ -151,6 +151,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "connectors:contract-v2",
   "connectors:local-folder",
   "connectors:onedrive-boundary",
+  "connectors:outlook-email",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

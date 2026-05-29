@@ -5149,6 +5149,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("onedrive_connector_boundary_validations", oneDriveResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/outlook-email-connector") {
+    const outlookResult = await readDashboardSourceArtifact(dashboard, "outlook_email_connector");
+    if (!outlookResult.available) {
+      return jsonResponse(503, buildError("outlook_email_connector_unavailable", outlookResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("outlook_email_connector", [outlookResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/outlook-email-messages") {
+    const outlookResult = await readDashboardSourceArtifact(dashboard, "outlook_email_connector");
+    if (!outlookResult.available) {
+      return jsonResponse(503, buildError("outlook_email_connector_unavailable", outlookResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("outlook_email_messages", outlookResult.artifact.outlook_email_message_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/outlook-email-attachments") {
+    const outlookResult = await readDashboardSourceArtifact(dashboard, "outlook_email_connector");
+    if (!outlookResult.available) {
+      return jsonResponse(503, buildError("outlook_email_connector_unavailable", outlookResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("outlook_email_attachments", outlookResult.artifact.outlook_email_attachment_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/outlook-email-threads") {
+    const outlookResult = await readDashboardSourceArtifact(dashboard, "outlook_email_connector");
+    if (!outlookResult.available) {
+      return jsonResponse(503, buildError("outlook_email_connector_unavailable", outlookResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("outlook_email_threads", outlookResult.artifact.outlook_email_thread_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/outlook-email-cursor") {
+    const outlookResult = await readDashboardSourceArtifact(dashboard, "outlook_email_connector");
+    if (!outlookResult.available) {
+      return jsonResponse(503, buildError("outlook_email_connector_unavailable", outlookResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("outlook_email_cursor", [outlookResult.artifact.cursor_state].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/outlook-email-auth-boundary") {
+    const outlookResult = await readDashboardSourceArtifact(dashboard, "outlook_email_connector");
+    if (!outlookResult.available) {
+      return jsonResponse(503, buildError("outlook_email_connector_unavailable", outlookResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("outlook_email_auth_boundary", [outlookResult.artifact.auth_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/outlook-email-validations") {
+    const outlookResult = await readDashboardSourceArtifact(dashboard, "outlook_email_connector");
+    if (!outlookResult.available) {
+      return jsonResponse(503, buildError("outlook_email_connector_unavailable", outlookResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("outlook_email_validations", outlookResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -11489,6 +11538,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/onedrive-cursor-boundary", "OneDrive cursor boundary"),
       route("GET", "/api/onedrive-auth-boundary", "OneDrive auth boundary"),
       route("GET", "/api/onedrive-connector-boundary-validations", "OneDrive Connector Boundary validation rows"),
+      route("GET", "/api/outlook-email-connector", "Outlook Email Connector artifact"),
+      route("GET", "/api/outlook-email-messages", "Outlook email message resource rows"),
+      route("GET", "/api/outlook-email-attachments", "Outlook email attachment resource rows"),
+      route("GET", "/api/outlook-email-threads", "Outlook email thread rows"),
+      route("GET", "/api/outlook-email-cursor", "Outlook email cursor state"),
+      route("GET", "/api/outlook-email-auth-boundary", "Outlook email auth boundary"),
+      route("GET", "/api/outlook-email-validations", "Outlook Email Connector validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -12558,6 +12614,11 @@ function filterItems(items, searchParams) {
     "cloud_only_handling_status",
     "cloud_item_state",
     "cursor_boundary_status",
+    "outlook_email_connector_status",
+    "message_status",
+    "attachment_status",
+    "thread_status",
+    "email_resource_status",
     "boundary_status",
     "read_only",
     "matter_os_profile_status",
@@ -14357,6 +14418,11 @@ function readFilterValue(item, key) {
   if (key === "cloud_only_handling_status") return item.handling_status;
   if (key === "cloud_item_state") return item.cloud_item_state;
   if (key === "cursor_boundary_status") return item.cursor_boundary_status;
+  if (key === "outlook_email_connector_status") return item.summary?.outlook_email_connector_status ?? item.connector_status ?? item.outlook_email_connector_status;
+  if (key === "message_status") return item.message_status;
+  if (key === "attachment_status") return item.attachment_status;
+  if (key === "thread_status") return item.thread_status;
+  if (key === "email_resource_status") return item.email_resource_status;
   if (key === "matter_os_profile_status") return item.summary?.matter_os_profile_status ?? item.matter_os_profile_status;
   if (key === "profile_card_status") return item.profile_card_status;
   if (key === "display_field_status") return item.display_field_status;

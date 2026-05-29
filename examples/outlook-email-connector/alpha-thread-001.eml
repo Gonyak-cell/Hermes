@@ -1,0 +1,29 @@
+From: Senior Lee <senior.lee@example.local>
+To: Partner Kim <partner.kim@example.local>
+Cc: Associate Park <associate.park@example.local>
+Subject: Project Alpha - disclosure schedule and tax memo follow-up
+Date: Fri, 22 May 2026 11:30:00 +0900
+Message-ID: <alpha-followup-001@example.local>
+Thread-Index: alpha-conversation-001
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="alpha-boundary-001"
+
+--alpha-boundary-001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+Partner Kim,
+
+Client has not yet sent the updated disclosure schedule.
+I will ask client today and request the tax team memo by 2026-05-24.
+
+We also need to confirm whether buyer counsel will accept the escrow proposal before Monday.
+
+--alpha-boundary-001
+Content-Type: application/pdf; name="tax-memo-draft.pdf"
+Content-Disposition: attachment; filename="tax-memo-draft.pdf"
+Content-Transfer-Encoding: base64
+
+JVBERi0xLjQKJURlbW8gdGF4IG1lbW8gZHJhZnQK
+
+--alpha-boundary-001--

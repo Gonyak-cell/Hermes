@@ -105,6 +105,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   connectorContractV2Path: "artifacts/connector-contract-v2/latest/connector-contract-v2.json",
   localFolderConnectorPath: "artifacts/local-folder-connector/latest/local-folder-connector.json",
   onedriveConnectorBoundaryPath: "artifacts/onedrive-connector-boundary/latest/onedrive-connector-boundary.json",
+  outlookEmailConnectorPath: "artifacts/outlook-email-connector/latest/outlook-email-connector.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -773,6 +774,11 @@ const SOURCE_DEFINITIONS = [
     option: "onedriveConnectorBoundaryPath",
     source_id: "onedrive_connector_boundary",
     label: "OneDrive Connector Boundary",
+  },
+  {
+    option: "outlookEmailConnectorPath",
+    source_id: "outlook_email_connector",
+    label: "Outlook Email Connector",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1747,6 +1753,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "connector_contract_v2") return data.summary ?? {};
   if (sourceId === "local_folder_connector") return data.summary ?? {};
   if (sourceId === "onedrive_connector_boundary") return data.summary ?? {};
+  if (sourceId === "outlook_email_connector") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2133,6 +2140,7 @@ function buildStageStatuses(artifacts, sources) {
     buildConnectorContractV2Stage(artifacts.connector_contract_v2, sourceById.get("connector_contract_v2")),
     buildLocalFolderConnectorStage(artifacts.local_folder_connector, sourceById.get("local_folder_connector")),
     buildOneDriveConnectorBoundaryStage(artifacts.onedrive_connector_boundary, sourceById.get("onedrive_connector_boundary")),
+    buildOutlookEmailConnectorStage(artifacts.outlook_email_connector, sourceById.get("outlook_email_connector")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -12207,6 +12215,100 @@ function buildOneDriveConnectorBoundaryStage(artifact, source) {
   };
 }
 
+function buildOutlookEmailConnectorStage(artifact, source) {
+  if (!artifact) return missingStage("outlook_email_connector", "Outlook Email Connector", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.outlook_email_connector_status !== "complete"
+    || summary.source_onedrive_connector_boundary_status !== "complete"
+    || summary.message_count <= 0
+    || summary.attachment_count <= 0
+    || summary.thread_count <= 0
+    || summary.threaded_message_count !== summary.message_count
+    || summary.message_resource_count !== summary.message_count
+    || summary.attachment_resource_count !== summary.attachment_count
+    || summary.resource_candidate_count !== summary.message_count + summary.attachment_count
+    || summary.metadata_complete_message_count !== summary.message_count
+    || summary.message_id_count !== summary.message_count
+    || summary.thread_id_count <= 0
+    || summary.attachment_parent_link_count !== summary.attachment_count
+    || summary.cursor_status !== "complete"
+    || summary.cursor_resume_supported !== true
+    || summary.raw_delta_token_material_allowed === true
+    || summary.credential_ref_required !== true
+    || summary.credential_reference_only !== true
+    || summary.raw_secret_material_allowed === true
+    || summary.write_operations_allowed === true
+    || summary.local_export_read_performed !== true
+    || summary.outlook_api_execution_performed === true
+    || summary.external_network_access_performed === true
+    || summary.connector_execution_performed !== true
+    || summary.source_read_performed !== true
+    || summary.credential_material_read === true
+    || summary.source_mutation_performed === true
+    || summary.resource_mutation_performed === true
+    || summary.output_delivery_performed === true
+    || summary.protected_action_executed === true
+    || summary.legal_advice_generated === true
+    || summary.client_facing_output_generated === true
+    || summary.human_review_required_count !== summary.resource_candidate_count
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "outlook_email_connector",
+    label: "Outlook Email Connector",
+    status,
+    message: `${summary.message_count ?? 0} email message(s), ${summary.attachment_count ?? 0} attachment(s), ${summary.thread_count ?? 0} thread(s) projected.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      outlook_email_connector_status: summary.outlook_email_connector_status ?? "unknown",
+      connector_id: summary.connector_id ?? artifact.connector_id ?? null,
+      source_id: summary.source_id ?? artifact.connector_contract_binding?.source_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      source_onedrive_connector_boundary_status: summary.source_onedrive_connector_boundary_status ?? "unknown",
+      message_count: summary.message_count ?? artifact.outlook_email_message_records?.length ?? 0,
+      attachment_count: summary.attachment_count ?? artifact.outlook_email_attachment_records?.length ?? 0,
+      thread_count: summary.thread_count ?? artifact.outlook_email_thread_records?.length ?? 0,
+      threaded_message_count: summary.threaded_message_count ?? 0,
+      message_resource_count: summary.message_resource_count ?? 0,
+      attachment_resource_count: summary.attachment_resource_count ?? 0,
+      resource_candidate_count: summary.resource_candidate_count ?? 0,
+      metadata_complete_message_count: summary.metadata_complete_message_count ?? 0,
+      message_id_count: summary.message_id_count ?? 0,
+      thread_id_count: summary.thread_id_count ?? 0,
+      attachment_parent_link_count: summary.attachment_parent_link_count ?? 0,
+      cursor_status: summary.cursor_status ?? artifact.cursor_state?.cursor_status ?? "unknown",
+      cursor_kind: summary.cursor_kind ?? artifact.cursor_state?.cursor_kind ?? null,
+      cursor_resume_supported: summary.cursor_resume_supported ?? artifact.cursor_state?.resume_supported ?? false,
+      raw_delta_token_material_allowed: summary.raw_delta_token_material_allowed ?? artifact.cursor_state?.raw_delta_token_material_allowed ?? false,
+      auth_boundary_status: summary.auth_boundary_status ?? artifact.auth_boundary?.auth_boundary_status ?? "unknown",
+      credential_ref_required: summary.credential_ref_required ?? artifact.auth_boundary?.credential_ref_required ?? false,
+      credential_reference_only: summary.credential_reference_only ?? artifact.auth_boundary?.credential_reference_only ?? false,
+      raw_secret_material_allowed: summary.raw_secret_material_allowed ?? artifact.auth_boundary?.raw_secret_material_allowed ?? false,
+      least_privilege_scope_count: summary.least_privilege_scope_count ?? artifact.auth_boundary?.least_privilege_scopes?.length ?? 0,
+      read_operations_allowed: summary.read_operations_allowed ?? artifact.auth_boundary?.read_operations_allowed ?? false,
+      write_operations_allowed: summary.write_operations_allowed ?? artifact.auth_boundary?.write_operations_allowed ?? false,
+      external_network_access_required_for_runtime: summary.external_network_access_required_for_runtime ?? artifact.auth_boundary?.external_network_access_required_for_runtime ?? false,
+      local_export_read_performed: summary.local_export_read_performed ?? artifact.outlook_email_connector_boundary?.local_export_read_performed ?? false,
+      outlook_api_execution_performed: summary.outlook_api_execution_performed ?? artifact.outlook_email_connector_boundary?.outlook_api_execution_performed ?? false,
+      external_network_access_performed: summary.external_network_access_performed ?? artifact.outlook_email_connector_boundary?.external_network_access_performed ?? false,
+      connector_execution_performed: summary.connector_execution_performed ?? artifact.outlook_email_connector_boundary?.connector_execution_performed ?? false,
+      source_read_performed: summary.source_read_performed ?? artifact.outlook_email_connector_boundary?.source_read_performed ?? false,
+      credential_material_read: summary.credential_material_read ?? artifact.outlook_email_connector_boundary?.credential_material_read ?? false,
+      source_mutation_performed: summary.source_mutation_performed ?? artifact.outlook_email_connector_boundary?.source_mutation_performed ?? false,
+      resource_mutation_performed: summary.resource_mutation_performed ?? artifact.outlook_email_connector_boundary?.resource_mutation_performed ?? false,
+      output_delivery_performed: summary.output_delivery_performed ?? artifact.outlook_email_connector_boundary?.output_delivery_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? artifact.outlook_email_connector_boundary?.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? artifact.outlook_email_connector_boundary?.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? artifact.outlook_email_connector_boundary?.client_facing_output_generated ?? false,
+      human_review_required_count: summary.human_review_required_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -18549,6 +18651,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.outlook_email_connector?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "outlook_email_connector";
+    items.push({
+      action_item_id: `dashboard.action.outlook_email_connector.${slugify(subjectId)}`,
+      source_stage: "outlook_email_connector",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Outlook Email Connector",
+      subject_ref: {
+        subject_type: "outlook_email_connector_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_outlook_email_connector", "rerun_outlook_email_connector", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -24695,6 +24815,45 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     onedrive_connector_boundary_client_facing_output_generated: artifacts.onedrive_connector_boundary?.summary?.client_facing_output_generated ?? false,
     onedrive_connector_boundary_human_review_required_count: artifacts.onedrive_connector_boundary?.summary?.human_review_required_count ?? 0,
     onedrive_connector_boundary_validation_error_count: artifacts.onedrive_connector_boundary?.summary?.validation_error_count ?? artifacts.onedrive_connector_boundary?.validation?.errors?.length ?? 0,
+    outlook_email_connector_status: artifacts.outlook_email_connector?.summary?.outlook_email_connector_status ?? "unknown",
+    outlook_email_connector_connector_id: artifacts.outlook_email_connector?.summary?.connector_id ?? null,
+    outlook_email_connector_source_id: artifacts.outlook_email_connector?.summary?.source_id ?? null,
+    outlook_email_connector_source_onedrive_connector_boundary_status: artifacts.outlook_email_connector?.summary?.source_onedrive_connector_boundary_status ?? "unknown",
+    outlook_email_connector_message_count: artifacts.outlook_email_connector?.summary?.message_count ?? 0,
+    outlook_email_connector_attachment_count: artifacts.outlook_email_connector?.summary?.attachment_count ?? 0,
+    outlook_email_connector_thread_count: artifacts.outlook_email_connector?.summary?.thread_count ?? 0,
+    outlook_email_connector_threaded_message_count: artifacts.outlook_email_connector?.summary?.threaded_message_count ?? 0,
+    outlook_email_connector_message_resource_count: artifacts.outlook_email_connector?.summary?.message_resource_count ?? 0,
+    outlook_email_connector_attachment_resource_count: artifacts.outlook_email_connector?.summary?.attachment_resource_count ?? 0,
+    outlook_email_connector_resource_candidate_count: artifacts.outlook_email_connector?.summary?.resource_candidate_count ?? 0,
+    outlook_email_connector_metadata_complete_message_count: artifacts.outlook_email_connector?.summary?.metadata_complete_message_count ?? 0,
+    outlook_email_connector_message_id_count: artifacts.outlook_email_connector?.summary?.message_id_count ?? 0,
+    outlook_email_connector_thread_id_count: artifacts.outlook_email_connector?.summary?.thread_id_count ?? 0,
+    outlook_email_connector_attachment_parent_link_count: artifacts.outlook_email_connector?.summary?.attachment_parent_link_count ?? 0,
+    outlook_email_connector_cursor_status: artifacts.outlook_email_connector?.summary?.cursor_status ?? "unknown",
+    outlook_email_connector_cursor_resume_supported: artifacts.outlook_email_connector?.summary?.cursor_resume_supported ?? false,
+    outlook_email_connector_raw_delta_token_material_allowed: artifacts.outlook_email_connector?.summary?.raw_delta_token_material_allowed ?? false,
+    outlook_email_connector_auth_boundary_status: artifacts.outlook_email_connector?.summary?.auth_boundary_status ?? "unknown",
+    outlook_email_connector_credential_ref_required: artifacts.outlook_email_connector?.summary?.credential_ref_required ?? false,
+    outlook_email_connector_credential_reference_only: artifacts.outlook_email_connector?.summary?.credential_reference_only ?? false,
+    outlook_email_connector_raw_secret_material_allowed: artifacts.outlook_email_connector?.summary?.raw_secret_material_allowed ?? false,
+    outlook_email_connector_read_operations_allowed: artifacts.outlook_email_connector?.summary?.read_operations_allowed ?? false,
+    outlook_email_connector_write_operations_allowed: artifacts.outlook_email_connector?.summary?.write_operations_allowed ?? false,
+    outlook_email_connector_external_network_access_required_for_runtime: artifacts.outlook_email_connector?.summary?.external_network_access_required_for_runtime ?? false,
+    outlook_email_connector_local_export_read_performed: artifacts.outlook_email_connector?.summary?.local_export_read_performed ?? false,
+    outlook_email_connector_outlook_api_execution_performed: artifacts.outlook_email_connector?.summary?.outlook_api_execution_performed ?? false,
+    outlook_email_connector_external_network_access_performed: artifacts.outlook_email_connector?.summary?.external_network_access_performed ?? false,
+    outlook_email_connector_connector_execution_performed: artifacts.outlook_email_connector?.summary?.connector_execution_performed ?? false,
+    outlook_email_connector_source_read_performed: artifacts.outlook_email_connector?.summary?.source_read_performed ?? false,
+    outlook_email_connector_credential_material_read: artifacts.outlook_email_connector?.summary?.credential_material_read ?? false,
+    outlook_email_connector_source_mutation_performed: artifacts.outlook_email_connector?.summary?.source_mutation_performed ?? false,
+    outlook_email_connector_resource_mutation_performed: artifacts.outlook_email_connector?.summary?.resource_mutation_performed ?? false,
+    outlook_email_connector_output_delivery_performed: artifacts.outlook_email_connector?.summary?.output_delivery_performed ?? false,
+    outlook_email_connector_protected_action_executed: artifacts.outlook_email_connector?.summary?.protected_action_executed ?? false,
+    outlook_email_connector_legal_advice_generated: artifacts.outlook_email_connector?.summary?.legal_advice_generated ?? false,
+    outlook_email_connector_client_facing_output_generated: artifacts.outlook_email_connector?.summary?.client_facing_output_generated ?? false,
+    outlook_email_connector_human_review_required_count: artifacts.outlook_email_connector?.summary?.human_review_required_count ?? 0,
+    outlook_email_connector_validation_error_count: artifacts.outlook_email_connector?.summary?.validation_error_count ?? artifacts.outlook_email_connector?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -26488,6 +26647,8 @@ function parseArgs(argv) {
     else if (arg === "--no-local-folder-connector") parsed.localFolderConnectorPath = false;
     else if (arg === "--onedrive-connector-boundary") parsed.onedriveConnectorBoundaryPath = argv[++index];
     else if (arg === "--no-onedrive-connector-boundary") parsed.onedriveConnectorBoundaryPath = false;
+    else if (arg === "--outlook-email-connector") parsed.outlookEmailConnectorPath = argv[++index];
+    else if (arg === "--no-outlook-email-connector") parsed.outlookEmailConnectorPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

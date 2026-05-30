@@ -90,6 +90,12 @@ Retention Deletion Policy routes expose the read-only policy artifact, source st
 
 Routes: `/api/retention-deletion-policies`, `/api/retention-deletion-sources`, `/api/retention-deletion-policy-rows`, `/api/deletion-hold-records`, `/api/retention-deletion-gate-results`, `/api/retention-deletion-boundary`, `/api/retention-deletion-validations`.
 
+## P302 Access Review Report Routes
+
+Access Review Report routes expose the read-only report artifact, source status rows, tenant/matter/user subject rows, matter access rows, resource access rows, findings, gate result rows, boundary, and validation rows. Supported filters include `access_review_report_status`, `source_status`, `access_review_status`, `access_decision`, `view_status`, `user_id`, `tenant_id`, `matter_id`, `runtime_id`, `gate_status`, `gate_fail_on_violation`, `access_mutation_allowed`, `permission_change_allowed`, `permission_mutation_performed`, `read_only`, `boundary_status`, `status`, and `limit`.
+
+Routes: `/api/access-review-reports`, `/api/access-review-sources`, `/api/access-review-subjects`, `/api/access-review-matter-rows`, `/api/access-review-resource-rows`, `/api/access-review-findings`, `/api/access-review-gate-results`, `/api/access-review-boundary`, `/api/access-review-validations`.
+
 ## P245 LDD RFI Generator Routes
 
 LDD RFI Generator routes expose read-only draft-only RFI packets, draft questions, missing-material links, issue links, matter summaries, and validation/boundary rows. Supported filters include `ldd_rfi_generator_status`, `ldd_rfi_matter_status`, `rfi_rule_type`, `rfi_draft_status`, `rfi_question_type`, `rfi_question_priority`, `rfi_question_status`, `rfi_missing_material_status`, `rfi_issue_link_status`, `deterministic_rfi_generation_performed`, `ldd_rfi_question_id`, `ldd_issue_record_id`, `ldd_vdr_missing_data_record_id`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.

@@ -25,6 +25,7 @@
     "security:external-model-policy-audit": "node scripts/external-model-policy-audit.mjs",
     "security:secrets-scan-gate": "node scripts/secrets-scan-gate.mjs",
     "compliance:retention-deletion-policy": "node scripts/retention-deletion-policy.mjs",
+    "compliance:access-review-report": "node scripts/access-review-report.mjs",
     "contracts:inventory": "node scripts/contract-inventory.mjs",
     "contracts:dependencies": "node scripts/contract-dependency-map.mjs",
     "contracts:versioning": "node scripts/schema-versioning-rules.mjs",

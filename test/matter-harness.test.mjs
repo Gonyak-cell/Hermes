@@ -100,6 +100,7 @@ import { runPromptInjectionTestSuite } from "../src/prompt-injection-test-suite.
 import { runExternalModelPolicyAudit } from "../src/external-model-policy-audit.mjs";
 import { runSecretsScanGate } from "../src/secrets-scan-gate.mjs";
 import { runRetentionDeletionPolicy } from "../src/retention-deletion-policy.mjs";
+import { runAccessReviewReport } from "../src/access-review-report.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -1997,6 +1998,7 @@ describe("matter harness", () => {
         externalModelPolicyAuditPath: path.join(outDir, "external-model-policy-audit", "external-model-policy-audit.json"),
         secretsScanGatePath: path.join(outDir, "secrets-scan-gate", "secrets-scan-gate.json"),
         retentionDeletionPolicyPath: path.join(outDir, "retention-deletion-policy", "retention-deletion-policy.json"),
+        accessReviewReportPath: path.join(outDir, "access-review-report", "access-review-report.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -2132,6 +2134,7 @@ describe("matter harness", () => {
         externalModelPolicyAuditPath: false,
         secretsScanGatePath: false,
         retentionDeletionPolicyPath: false,
+        accessReviewReportPath: false,
         observabilityFreezePath: false,
         capabilityManifestV2Path: false,
         packManifestCompatibilityPath: false,
@@ -13361,6 +13364,7 @@ describe("matter harness", () => {
         externalModelPolicyAuditPath: false,
         secretsScanGatePath: false,
         retentionDeletionPolicyPath: false,
+        accessReviewReportPath: false,
         outDir: path.join(outDir, "dashboard-pre-checkpoint"),
         runAt: "2026-05-23T06:35:08.000Z",
       });
@@ -14725,6 +14729,70 @@ describe("matter harness", () => {
       assert.match(await readFile(path.join(outDir, "retention-deletion-policy", "summary.md"), "utf8"), /Retention Deletion Policy/);
 
       contractGoldenFixtureArtifactPaths.retention_deletion_policy = path.join(outDir, "retention-deletion-policy", "retention-deletion-policy.json");
+      const accessReviewReport = await runAccessReviewReport({
+        retentionDeletionPolicyPath: path.join(outDir, "retention-deletion-policy", "retention-deletion-policy.json"),
+        matterAccessPolicyEvaluatorPath: path.join(outDir, "matter-access-policy", "matter-access-policy-evaluator.json"),
+        accessAuditProjectionPath: path.join(outDir, "access-audit", "access-audit-projection.json"),
+        matterProfileTeamLedgerPath: path.join(outDir, "matter-profile-team-ledger", "matter-profile-team-ledger.json"),
+        wallPolicyContractPath: path.join(outDir, "wall-policy-contract", "wall-policy-contract.json"),
+        identityPolicyMatterFreezePath: path.join(outDir, "identity-policy-matter-freeze", "identity-policy-matter-freeze.json"),
+        outDir: path.join(outDir, "access-review-report"),
+        runAt: "2026-05-23T07:26:35.490Z",
+      });
+      const accessReviewReportSchema = JSON.parse(await readFile("schemas/access-review-report.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(accessReviewReport, accessReviewReportSchema, {}, "access_review_report"), [], JSON.stringify(accessReviewReport.validation.errors));
+      assert.equal(accessReviewReport.summary.access_review_report_status, "complete");
+      assert.equal(accessReviewReport.summary.phase_slot, "P302");
+      assert.equal(accessReviewReport.summary.previous_phase_slot, "P301");
+      assert.equal(accessReviewReport.summary.next_phase_slot, "P303");
+      assert.equal(accessReviewReport.summary.source_retention_deletion_policy_status, "complete");
+      assert.equal(accessReviewReport.summary.source_retention_deletion_policy_phase_slot, "P301");
+      assert.equal(accessReviewReport.summary.source_retention_deletion_policy_next_phase_slot, "P302");
+      assert.equal(accessReviewReport.summary.failed_source_status_count, 0);
+      assert.ok(accessReviewReport.summary.subject_review_count >= 1);
+      assert.ok(accessReviewReport.summary.matter_access_row_count >= 1);
+      assert.ok(accessReviewReport.summary.resource_access_row_count >= 1);
+      assert.ok(accessReviewReport.summary.tenant_count >= 1);
+      assert.ok(accessReviewReport.summary.matter_count >= 1);
+      assert.ok(accessReviewReport.summary.user_count >= 1);
+      assert.equal(accessReviewReport.summary.failed_finding_count, 0);
+      assert.equal(accessReviewReport.summary.failed_gate_result_count, 0);
+      assert.equal(accessReviewReport.summary.gate_violation_count, 0);
+      assert.equal(accessReviewReport.summary.review_without_human_gate_count, 0);
+      assert.equal(accessReviewReport.summary.denied_retrievable_count, 0);
+      assert.equal(accessReviewReport.summary.external_runtime_retrievable_count, 0);
+      assert.equal(accessReviewReport.summary.missing_retrieval_filter_count, 0);
+      assert.equal(accessReviewReport.summary.read_only, true);
+      assert.equal(accessReviewReport.summary.access_review_report_only, true);
+      assert.equal(accessReviewReport.summary.source_content_read_performed, false);
+      assert.equal(accessReviewReport.summary.source_ingest_performed, false);
+      assert.equal(accessReviewReport.summary.permission_mutation_performed, false);
+      assert.equal(accessReviewReport.summary.access_grant_performed, false);
+      assert.equal(accessReviewReport.summary.access_revoke_performed, false);
+      assert.equal(accessReviewReport.summary.source_mutation_performed, false);
+      assert.equal(accessReviewReport.summary.external_transfer_performed, false);
+      assert.equal(accessReviewReport.summary.network_access_performed, false);
+      assert.equal(accessReviewReport.summary.route_execution_performed, false);
+      assert.equal(accessReviewReport.summary.server_started, false);
+      assert.equal(accessReviewReport.summary.protected_action_executed, false);
+      assert.equal(accessReviewReport.summary.legal_advice_generated, false);
+      assert.equal(accessReviewReport.summary.client_facing_output_generated, false);
+      assert.equal(accessReviewReport.summary.human_review_required, true);
+      assert.equal(accessReviewReport.summary.client_facing_ready, false);
+      assert.equal(accessReviewReport.summary.windows_baseline_stability_preserved, true);
+      assert.equal(accessReviewReport.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(accessReviewReport.summary.validation_error_count, 0);
+      assert.ok(accessReviewReport.source_statuses.every((row) => row.source_status === "passed"));
+      assert.ok(accessReviewReport.access_review_subjects.every((row) => row.access_review_status === "review_ready" && !row.client_facing_ready));
+      assert.ok(accessReviewReport.access_review_matter_rows.every((row) => ["allow", "review", "deny"].includes(row.access_decision) && !row.client_facing_ready));
+      assert.ok(accessReviewReport.access_review_resource_rows.every((row) => row.access_review_status === "review_ready" && !row.client_facing_ready));
+      assert.ok(accessReviewReport.access_review_findings.every((row) => row.finding_status === "passed" && row.violation_count === 0));
+      assert.ok(accessReviewReport.access_review_gate_results.every((row) => row.gate_status === "passed" && !row.access_mutation_allowed && !row.permission_change_allowed));
+      assert.equal(accessReviewReport.access_review_boundary.boundary_status, "enforced");
+      assert.ok(accessReviewReport.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "access-review-report", "summary.md"), "utf8"), /Access Review Report/);
+
+      contractGoldenFixtureArtifactPaths.access_review_report = path.join(outDir, "access-review-report", "access-review-report.json");
       contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: contractGoldenFixtureArtifactPaths,
         fixtureIds: Object.keys(contractGoldenFixtureArtifactPaths),
@@ -14736,8 +14804,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 203);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 203);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 204);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 204);
       assert.equal(contractGoldenFixtures.summary.missing_artifact_count, 0);
       assert.equal(contractGoldenFixtures.summary.validation_error_count, 0);
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "dashboard_api_freeze"));
@@ -14746,6 +14814,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "external_model_policy_audit"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "secrets_scan_gate"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "retention_deletion_policy"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "access_review_report"));
 
       contractValidationSuite = await runContractValidationSuite({
         contractGoldenFixturesPath: path.join(outDir, "contract-golden-fixtures", "contract-golden-fixtures.json"),
@@ -14759,8 +14828,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractValidationSuite.summary.validation_suite_status, "complete");
-      assert.equal(contractValidationSuite.summary.fixture_count, 203);
-      assert.equal(contractValidationSuite.summary.validated_fixture_count, 203);
+      assert.equal(contractValidationSuite.summary.fixture_count, 204);
+      assert.equal(contractValidationSuite.summary.validated_fixture_count, 204);
       assert.equal(contractValidationSuite.summary.schema_invalid_fixture_count, 0);
       assert.equal(contractValidationSuite.summary.regression_failed_count, 0);
       assert.equal(contractValidationSuite.summary.missing_package_script_count, 0);
@@ -14771,6 +14840,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "security:external-model-policy-audit"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "security:secrets-scan-gate"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "compliance:retention-deletion-policy"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "compliance:access-review-report"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
 
       const dashboard = await runReviewDashboard({
@@ -14827,6 +14897,10 @@ describe("matter harness", () => {
       assert.equal(retentionDeletionPolicyCheckpoint?.acceptance_profile, "retention_deletion_policy_gate");
       assert.equal(retentionDeletionPolicyCheckpoint?.status, "passed");
       assert.equal(retentionDeletionPolicyCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const accessReviewReportCheckpoint = dashboardApiFreezeGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-access-review-report");
+      assert.equal(accessReviewReportCheckpoint?.acceptance_profile, "access_review_report_gate");
+      assert.equal(accessReviewReportCheckpoint?.status, "passed");
+      assert.equal(accessReviewReportCheckpoint?.implementation_status, "passed_with_operational_gate");
       assert.equal(dashboard.summary.evidence_approved_count, 1);
       assert.equal(dashboard.summary.evidence_review_draft_item_count, evidenceReviewDraft.summary.review_item_count);
       assert.equal(dashboard.summary.evidence_review_draft_attorney_count, evidenceReviewDraft.summary.attorney_review_count);
@@ -20461,6 +20535,51 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.retention_deletion_policy_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.retention_deletion_policy_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.retention_deletion_policy_validation_error_count, 0);
+      assert.equal(dashboard.summary.access_review_report_status, "complete");
+      assert.equal(dashboard.summary.access_review_report_id, accessReviewReport.summary.access_review_report_id);
+      assert.equal(dashboard.summary.access_review_report_phase_slot, "P302");
+      assert.equal(dashboard.summary.access_review_report_previous_phase_slot, "P301");
+      assert.equal(dashboard.summary.access_review_report_next_phase_slot, "P303");
+      assert.equal(dashboard.summary.access_review_report_source_retention_deletion_policy_status, "complete");
+      assert.equal(dashboard.summary.access_review_report_source_retention_deletion_policy_phase_slot, "P301");
+      assert.equal(dashboard.summary.access_review_report_source_retention_deletion_policy_next_phase_slot, "P302");
+      assert.equal(dashboard.summary.access_review_report_failed_source_status_count, 0);
+      assert.equal(dashboard.summary.access_review_report_subject_review_count, accessReviewReport.summary.subject_review_count);
+      assert.equal(dashboard.summary.access_review_report_matter_access_row_count, accessReviewReport.summary.matter_access_row_count);
+      assert.equal(dashboard.summary.access_review_report_resource_access_row_count, accessReviewReport.summary.resource_access_row_count);
+      assert.equal(dashboard.summary.access_review_report_failed_finding_count, 0);
+      assert.equal(dashboard.summary.access_review_report_failed_gate_result_count, 0);
+      assert.equal(dashboard.summary.access_review_report_gate_violation_count, 0);
+      assert.equal(dashboard.summary.access_review_report_tenant_count, accessReviewReport.summary.tenant_count);
+      assert.equal(dashboard.summary.access_review_report_matter_count, accessReviewReport.summary.matter_count);
+      assert.equal(dashboard.summary.access_review_report_user_count, accessReviewReport.summary.user_count);
+      assert.equal(dashboard.summary.access_review_report_view_allowed_count, accessReviewReport.summary.view_allowed_count);
+      assert.equal(dashboard.summary.access_review_report_view_requires_human_confirmation_count, accessReviewReport.summary.view_requires_human_confirmation_count);
+      assert.equal(dashboard.summary.access_review_report_view_denied_count, accessReviewReport.summary.view_denied_count);
+      assert.equal(dashboard.summary.access_review_report_review_without_human_gate_count, 0);
+      assert.equal(dashboard.summary.access_review_report_denied_retrievable_count, 0);
+      assert.equal(dashboard.summary.access_review_report_external_runtime_retrievable_count, 0);
+      assert.equal(dashboard.summary.access_review_report_missing_retrieval_filter_count, 0);
+      assert.equal(dashboard.summary.access_review_report_read_only, true);
+      assert.equal(dashboard.summary.access_review_report_access_review_report_only, true);
+      assert.equal(dashboard.summary.access_review_report_source_content_read_performed, false);
+      assert.equal(dashboard.summary.access_review_report_source_ingest_performed, false);
+      assert.equal(dashboard.summary.access_review_report_permission_mutation_performed, false);
+      assert.equal(dashboard.summary.access_review_report_access_grant_performed, false);
+      assert.equal(dashboard.summary.access_review_report_access_revoke_performed, false);
+      assert.equal(dashboard.summary.access_review_report_source_mutation_performed, false);
+      assert.equal(dashboard.summary.access_review_report_external_transfer_performed, false);
+      assert.equal(dashboard.summary.access_review_report_network_access_performed, false);
+      assert.equal(dashboard.summary.access_review_report_route_execution_performed, false);
+      assert.equal(dashboard.summary.access_review_report_server_started, false);
+      assert.equal(dashboard.summary.access_review_report_protected_action_executed, false);
+      assert.equal(dashboard.summary.access_review_report_legal_advice_generated, false);
+      assert.equal(dashboard.summary.access_review_report_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.access_review_report_human_review_required, true);
+      assert.equal(dashboard.summary.access_review_report_client_facing_ready, false);
+      assert.equal(dashboard.summary.access_review_report_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.access_review_report_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.access_review_report_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -24683,6 +24802,50 @@ describe("matter harness", () => {
       assert.equal(retentionDeletionPolicyStage?.metrics.windows_baseline_stability_preserved, true);
       assert.equal(retentionDeletionPolicyStage?.metrics.mac_windows_completion_instability_guard, true);
       assert.equal(retentionDeletionPolicyStage?.metrics.validation_error_count, 0);
+      const accessReviewReportStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "access_review_report");
+      assert.equal(accessReviewReportStage?.status, "passed");
+      assert.equal(accessReviewReportStage?.metrics.access_review_report_status, "complete");
+      assert.equal(accessReviewReportStage?.metrics.access_review_report_id, accessReviewReport.summary.access_review_report_id);
+      assert.equal(accessReviewReportStage?.metrics.phase_slot, "P302");
+      assert.equal(accessReviewReportStage?.metrics.previous_phase_slot, "P301");
+      assert.equal(accessReviewReportStage?.metrics.next_phase_slot, "P303");
+      assert.equal(accessReviewReportStage?.metrics.source_retention_deletion_policy_status, "complete");
+      assert.equal(accessReviewReportStage?.metrics.source_retention_deletion_policy_phase_slot, "P301");
+      assert.equal(accessReviewReportStage?.metrics.source_retention_deletion_policy_next_phase_slot, "P302");
+      assert.equal(accessReviewReportStage?.metrics.failed_source_status_count, 0);
+      assert.equal(accessReviewReportStage?.metrics.subject_review_count, accessReviewReport.summary.subject_review_count);
+      assert.equal(accessReviewReportStage?.metrics.matter_access_row_count, accessReviewReport.summary.matter_access_row_count);
+      assert.equal(accessReviewReportStage?.metrics.resource_access_row_count, accessReviewReport.summary.resource_access_row_count);
+      assert.equal(accessReviewReportStage?.metrics.failed_finding_count, 0);
+      assert.equal(accessReviewReportStage?.metrics.failed_gate_result_count, 0);
+      assert.equal(accessReviewReportStage?.metrics.gate_violation_count, 0);
+      assert.equal(accessReviewReportStage?.metrics.tenant_count, accessReviewReport.summary.tenant_count);
+      assert.equal(accessReviewReportStage?.metrics.matter_count, accessReviewReport.summary.matter_count);
+      assert.equal(accessReviewReportStage?.metrics.user_count, accessReviewReport.summary.user_count);
+      assert.equal(accessReviewReportStage?.metrics.review_without_human_gate_count, 0);
+      assert.equal(accessReviewReportStage?.metrics.denied_retrievable_count, 0);
+      assert.equal(accessReviewReportStage?.metrics.external_runtime_retrievable_count, 0);
+      assert.equal(accessReviewReportStage?.metrics.missing_retrieval_filter_count, 0);
+      assert.equal(accessReviewReportStage?.metrics.read_only, true);
+      assert.equal(accessReviewReportStage?.metrics.access_review_report_only, true);
+      assert.equal(accessReviewReportStage?.metrics.source_content_read_performed, false);
+      assert.equal(accessReviewReportStage?.metrics.source_ingest_performed, false);
+      assert.equal(accessReviewReportStage?.metrics.permission_mutation_performed, false);
+      assert.equal(accessReviewReportStage?.metrics.access_grant_performed, false);
+      assert.equal(accessReviewReportStage?.metrics.access_revoke_performed, false);
+      assert.equal(accessReviewReportStage?.metrics.source_mutation_performed, false);
+      assert.equal(accessReviewReportStage?.metrics.external_transfer_performed, false);
+      assert.equal(accessReviewReportStage?.metrics.network_access_performed, false);
+      assert.equal(accessReviewReportStage?.metrics.route_execution_performed, false);
+      assert.equal(accessReviewReportStage?.metrics.server_started, false);
+      assert.equal(accessReviewReportStage?.metrics.protected_action_executed, false);
+      assert.equal(accessReviewReportStage?.metrics.legal_advice_generated, false);
+      assert.equal(accessReviewReportStage?.metrics.client_facing_output_generated, false);
+      assert.equal(accessReviewReportStage?.metrics.human_review_required, true);
+      assert.equal(accessReviewReportStage?.metrics.client_facing_ready, false);
+      assert.equal(accessReviewReportStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(accessReviewReportStage?.metrics.mac_windows_completion_instability_guard, true);
+      assert.equal(accessReviewReportStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -28228,6 +28391,42 @@ describe("matter harness", () => {
       const retentionDeletionValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/retention-deletion-validations?status=passed", apiOptions)).body);
       assert.equal(retentionDeletionValidationsResponse.collection, "retention_deletion_validations");
       assert.equal(retentionDeletionValidationsResponse.count, retentionDeletionPolicy.summary.validation_item_count);
+
+      const accessReviewReportsResponse = JSON.parse((await buildReviewApiResponse("/api/access-review-reports?access_review_report_status=complete", apiOptions)).body);
+      assert.equal(accessReviewReportsResponse.collection, "access_review_reports");
+      assert.equal(accessReviewReportsResponse.count, 1);
+
+      const accessReviewSourcesResponse = JSON.parse((await buildReviewApiResponse("/api/access-review-sources?source_status=passed", apiOptions)).body);
+      assert.equal(accessReviewSourcesResponse.collection, "access_review_sources");
+      assert.equal(accessReviewSourcesResponse.count, accessReviewReport.summary.source_status_count);
+
+      const accessReviewSubjectsResponse = JSON.parse((await buildReviewApiResponse("/api/access-review-subjects?access_review_status=review_ready&tenant_id=tenant.amic", apiOptions)).body);
+      assert.equal(accessReviewSubjectsResponse.collection, "access_review_subjects");
+      assert.equal(accessReviewSubjectsResponse.count, accessReviewReport.summary.subject_review_count);
+
+      const accessReviewMatterRowsResponse = JSON.parse((await buildReviewApiResponse("/api/access-review-matter-rows?access_decision=allow&view_status=view_allowed", apiOptions)).body);
+      assert.equal(accessReviewMatterRowsResponse.collection, "access_review_matter_rows");
+      assert.equal(accessReviewMatterRowsResponse.count, accessReviewReport.summary.matter_allow_decision_count);
+
+      const accessReviewResourceRowsResponse = JSON.parse((await buildReviewApiResponse("/api/access-review-resource-rows?access_review_status=review_ready", apiOptions)).body);
+      assert.equal(accessReviewResourceRowsResponse.collection, "access_review_resource_rows");
+      assert.equal(accessReviewResourceRowsResponse.count, accessReviewReport.summary.resource_access_row_count);
+
+      const accessReviewFindingsResponse = JSON.parse((await buildReviewApiResponse("/api/access-review-findings?finding_status=passed", apiOptions)).body);
+      assert.equal(accessReviewFindingsResponse.collection, "access_review_findings");
+      assert.equal(accessReviewFindingsResponse.count, accessReviewReport.summary.finding_count);
+
+      const accessReviewGateResultsResponse = JSON.parse((await buildReviewApiResponse("/api/access-review-gate-results?gate_status=passed&access_mutation_allowed=false", apiOptions)).body);
+      assert.equal(accessReviewGateResultsResponse.collection, "access_review_gate_results");
+      assert.equal(accessReviewGateResultsResponse.count, accessReviewReport.summary.gate_result_count);
+
+      const accessReviewBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/access-review-boundary?boundary_status=enforced&permission_mutation_performed=false", apiOptions)).body);
+      assert.equal(accessReviewBoundaryResponse.collection, "access_review_boundary");
+      assert.equal(accessReviewBoundaryResponse.count, 1);
+
+      const accessReviewValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/access-review-validations?status=passed", apiOptions)).body);
+      assert.equal(accessReviewValidationsResponse.collection, "access_review_validations");
+      assert.equal(accessReviewValidationsResponse.count, accessReviewReport.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

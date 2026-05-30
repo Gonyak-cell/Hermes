@@ -137,6 +137,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   externalModelPolicyAuditPath: "artifacts/external-model-policy-audit/latest/external-model-policy-audit.json",
   secretsScanGatePath: "artifacts/secrets-scan-gate/latest/secrets-scan-gate.json",
   retentionDeletionPolicyPath: "artifacts/retention-deletion-policy/latest/retention-deletion-policy.json",
+  accessReviewReportPath: "artifacts/access-review-report/latest/access-review-report.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -965,6 +966,11 @@ const SOURCE_DEFINITIONS = [
     option: "retentionDeletionPolicyPath",
     source_id: "retention_deletion_policy",
     label: "Retention Deletion Policy",
+  },
+  {
+    option: "accessReviewReportPath",
+    source_id: "access_review_report",
+    label: "Access Review Report",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -2377,6 +2383,7 @@ function buildStageStatuses(artifacts, sources) {
     buildExternalModelPolicyAuditStage(artifacts.external_model_policy_audit, sourceById.get("external_model_policy_audit")),
     buildSecretsScanGateStage(artifacts.secrets_scan_gate, sourceById.get("secrets_scan_gate")),
     buildRetentionDeletionPolicyStage(artifacts.retention_deletion_policy, sourceById.get("retention_deletion_policy")),
+    buildAccessReviewReportStage(artifacts.access_review_report, sourceById.get("access_review_report")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -16286,6 +16293,131 @@ function buildRetentionDeletionPolicyStage(artifact, source) {
   };
 }
 
+function buildAccessReviewReportStage(artifact, source) {
+  if (!artifact) return missingStage("access_review_report", "Access Review Report", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.access_review_report_status !== "complete"
+    || summary.phase_slot !== "P302"
+    || summary.previous_phase_slot !== "P301"
+    || summary.next_phase_slot !== "P303"
+    || summary.source_retention_deletion_policy_status !== "complete"
+    || summary.source_retention_deletion_policy_phase_slot !== "P301"
+    || summary.source_retention_deletion_policy_next_phase_slot !== "P302"
+    || summary.failed_source_status_count !== 0
+    || summary.subject_review_count < 1
+    || summary.matter_access_row_count < 1
+    || summary.resource_access_row_count < 1
+    || summary.tenant_count < 1
+    || summary.matter_count < 1
+    || summary.user_count < 1
+    || summary.failed_finding_count !== 0
+    || summary.failed_gate_result_count !== 0
+    || summary.gate_violation_count !== 0
+    || summary.review_without_human_gate_count !== 0
+    || summary.denied_retrievable_count !== 0
+    || summary.external_runtime_retrievable_count !== 0
+    || summary.missing_retrieval_filter_count !== 0
+    || summary.read_only !== true
+    || summary.access_review_report_only !== true
+    || summary.source_artifact_read_performed !== true
+    || summary.source_content_read_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.permission_mutation_performed !== false
+    || summary.access_grant_performed !== false
+    || summary.access_revoke_performed !== false
+    || summary.source_mutation_performed !== false
+    || summary.external_transfer_performed !== false
+    || summary.network_access_performed !== false
+    || summary.route_execution_performed !== false
+    || summary.server_started !== false
+    || summary.protected_action_executed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.human_review_required !== true
+    || summary.client_facing_ready !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "access_review_report",
+    label: "Access Review Report",
+    status,
+    message: `${summary.subject_review_count ?? 0} subject review row(s), ${summary.matter_access_row_count ?? 0}/${summary.resource_access_row_count ?? 0} matter/resource row(s), mutation allowed false.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      access_review_report_status: summary.access_review_report_status ?? "unknown",
+      access_review_report_id: summary.access_review_report_id ?? null,
+      capability_id: summary.capability_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_status_count: summary.source_status_count ?? 0,
+      passed_source_status_count: summary.passed_source_status_count ?? 0,
+      failed_source_status_count: summary.failed_source_status_count ?? 0,
+      source_retention_deletion_policy_status: summary.source_retention_deletion_policy_status ?? "unknown",
+      source_retention_deletion_policy_phase_slot: summary.source_retention_deletion_policy_phase_slot ?? null,
+      source_retention_deletion_policy_next_phase_slot: summary.source_retention_deletion_policy_next_phase_slot ?? null,
+      subject_review_count: summary.subject_review_count ?? 0,
+      matter_access_row_count: summary.matter_access_row_count ?? 0,
+      resource_access_row_count: summary.resource_access_row_count ?? 0,
+      finding_count: summary.finding_count ?? 0,
+      passed_finding_count: summary.passed_finding_count ?? 0,
+      failed_finding_count: summary.failed_finding_count ?? 0,
+      gate_result_count: summary.gate_result_count ?? 0,
+      passed_gate_result_count: summary.passed_gate_result_count ?? 0,
+      failed_gate_result_count: summary.failed_gate_result_count ?? 0,
+      gate_violation_count: summary.gate_violation_count ?? 0,
+      tenant_count: summary.tenant_count ?? 0,
+      matter_count: summary.matter_count ?? 0,
+      user_count: summary.user_count ?? 0,
+      runtime_count: summary.runtime_count ?? 0,
+      resource_count: summary.resource_count ?? 0,
+      view_allowed_count: summary.view_allowed_count ?? 0,
+      view_requires_human_confirmation_count: summary.view_requires_human_confirmation_count ?? 0,
+      view_denied_count: summary.view_denied_count ?? 0,
+      can_retrieve_count: summary.can_retrieve_count ?? 0,
+      human_review_required_count: summary.human_review_required_count ?? 0,
+      external_runtime_record_count: summary.external_runtime_record_count ?? 0,
+      matter_allow_decision_count: summary.matter_allow_decision_count ?? 0,
+      matter_review_decision_count: summary.matter_review_decision_count ?? 0,
+      matter_deny_decision_count: summary.matter_deny_decision_count ?? 0,
+      cross_tenant_resource_count: summary.cross_tenant_resource_count ?? 0,
+      cross_matter_resource_count: summary.cross_matter_resource_count ?? 0,
+      resource_can_retrieve_count: summary.resource_can_retrieve_count ?? 0,
+      review_without_human_gate_count: summary.review_without_human_gate_count ?? 0,
+      denied_retrievable_count: summary.denied_retrievable_count ?? 0,
+      external_runtime_retrievable_count: summary.external_runtime_retrievable_count ?? 0,
+      missing_retrieval_filter_count: summary.missing_retrieval_filter_count ?? 0,
+      read_only: summary.read_only ?? false,
+      access_review_report_only: summary.access_review_report_only ?? false,
+      source_artifact_read_performed: summary.source_artifact_read_performed ?? false,
+      source_content_read_performed: summary.source_content_read_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      permission_mutation_performed: summary.permission_mutation_performed ?? false,
+      access_grant_performed: summary.access_grant_performed ?? false,
+      access_revoke_performed: summary.access_revoke_performed ?? false,
+      source_mutation_performed: summary.source_mutation_performed ?? false,
+      external_transfer_performed: summary.external_transfer_performed ?? false,
+      network_access_performed: summary.network_access_performed ?? false,
+      route_execution_performed: summary.route_execution_performed ?? false,
+      server_started: summary.server_started ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      human_review_required: summary.human_review_required ?? false,
+      client_facing_ready: summary.client_facing_ready ?? true,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -23200,6 +23332,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_retention_deletion_policy", "rerun_retention_deletion_policy", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.access_review_report?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "access_review_report";
+    items.push({
+      action_item_id: `dashboard.action.access_review_report.${slugify(subjectId)}`,
+      source_stage: "access_review_report",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Access Review Report",
+      subject_ref: {
+        subject_type: "access_review_report_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_access_review_report", "rerun_access_review_report", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -31111,6 +31261,66 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     retention_deletion_policy_validation_item_count: artifacts.retention_deletion_policy?.summary?.validation_item_count ?? 0,
     retention_deletion_policy_failed_checkpoint_count: artifacts.retention_deletion_policy?.summary?.failed_checkpoint_count ?? 0,
     retention_deletion_policy_validation_error_count: artifacts.retention_deletion_policy?.summary?.validation_error_count ?? artifacts.retention_deletion_policy?.validation?.errors?.length ?? 0,
+    access_review_report_status: artifacts.access_review_report?.summary?.access_review_report_status ?? "unknown",
+    access_review_report_id: artifacts.access_review_report?.summary?.access_review_report_id ?? null,
+    access_review_report_capability_id: artifacts.access_review_report?.summary?.capability_id ?? null,
+    access_review_report_phase_slot: artifacts.access_review_report?.summary?.phase_slot ?? null,
+    access_review_report_previous_phase_slot: artifacts.access_review_report?.summary?.previous_phase_slot ?? null,
+    access_review_report_next_phase_slot: artifacts.access_review_report?.summary?.next_phase_slot ?? null,
+    access_review_report_source_status_count: artifacts.access_review_report?.summary?.source_status_count ?? 0,
+    access_review_report_passed_source_status_count: artifacts.access_review_report?.summary?.passed_source_status_count ?? 0,
+    access_review_report_failed_source_status_count: artifacts.access_review_report?.summary?.failed_source_status_count ?? 0,
+    access_review_report_source_retention_deletion_policy_status: artifacts.access_review_report?.summary?.source_retention_deletion_policy_status ?? "unknown",
+    access_review_report_source_retention_deletion_policy_phase_slot: artifacts.access_review_report?.summary?.source_retention_deletion_policy_phase_slot ?? null,
+    access_review_report_source_retention_deletion_policy_next_phase_slot: artifacts.access_review_report?.summary?.source_retention_deletion_policy_next_phase_slot ?? null,
+    access_review_report_subject_review_count: artifacts.access_review_report?.summary?.subject_review_count ?? 0,
+    access_review_report_matter_access_row_count: artifacts.access_review_report?.summary?.matter_access_row_count ?? 0,
+    access_review_report_resource_access_row_count: artifacts.access_review_report?.summary?.resource_access_row_count ?? 0,
+    access_review_report_finding_count: artifacts.access_review_report?.summary?.finding_count ?? 0,
+    access_review_report_passed_finding_count: artifacts.access_review_report?.summary?.passed_finding_count ?? 0,
+    access_review_report_failed_finding_count: artifacts.access_review_report?.summary?.failed_finding_count ?? 0,
+    access_review_report_gate_result_count: artifacts.access_review_report?.summary?.gate_result_count ?? 0,
+    access_review_report_passed_gate_result_count: artifacts.access_review_report?.summary?.passed_gate_result_count ?? 0,
+    access_review_report_failed_gate_result_count: artifacts.access_review_report?.summary?.failed_gate_result_count ?? 0,
+    access_review_report_gate_violation_count: artifacts.access_review_report?.summary?.gate_violation_count ?? 0,
+    access_review_report_tenant_count: artifacts.access_review_report?.summary?.tenant_count ?? 0,
+    access_review_report_matter_count: artifacts.access_review_report?.summary?.matter_count ?? 0,
+    access_review_report_user_count: artifacts.access_review_report?.summary?.user_count ?? 0,
+    access_review_report_runtime_count: artifacts.access_review_report?.summary?.runtime_count ?? 0,
+    access_review_report_resource_count: artifacts.access_review_report?.summary?.resource_count ?? 0,
+    access_review_report_view_allowed_count: artifacts.access_review_report?.summary?.view_allowed_count ?? 0,
+    access_review_report_view_requires_human_confirmation_count: artifacts.access_review_report?.summary?.view_requires_human_confirmation_count ?? 0,
+    access_review_report_view_denied_count: artifacts.access_review_report?.summary?.view_denied_count ?? 0,
+    access_review_report_can_retrieve_count: artifacts.access_review_report?.summary?.can_retrieve_count ?? 0,
+    access_review_report_human_review_required_count: artifacts.access_review_report?.summary?.human_review_required_count ?? 0,
+    access_review_report_external_runtime_record_count: artifacts.access_review_report?.summary?.external_runtime_record_count ?? 0,
+    access_review_report_review_without_human_gate_count: artifacts.access_review_report?.summary?.review_without_human_gate_count ?? 0,
+    access_review_report_denied_retrievable_count: artifacts.access_review_report?.summary?.denied_retrievable_count ?? 0,
+    access_review_report_external_runtime_retrievable_count: artifacts.access_review_report?.summary?.external_runtime_retrievable_count ?? 0,
+    access_review_report_missing_retrieval_filter_count: artifacts.access_review_report?.summary?.missing_retrieval_filter_count ?? 0,
+    access_review_report_read_only: artifacts.access_review_report?.summary?.read_only ?? false,
+    access_review_report_access_review_report_only: artifacts.access_review_report?.summary?.access_review_report_only ?? false,
+    access_review_report_source_artifact_read_performed: artifacts.access_review_report?.summary?.source_artifact_read_performed ?? false,
+    access_review_report_source_content_read_performed: artifacts.access_review_report?.summary?.source_content_read_performed ?? false,
+    access_review_report_source_ingest_performed: artifacts.access_review_report?.summary?.source_ingest_performed ?? false,
+    access_review_report_permission_mutation_performed: artifacts.access_review_report?.summary?.permission_mutation_performed ?? false,
+    access_review_report_access_grant_performed: artifacts.access_review_report?.summary?.access_grant_performed ?? false,
+    access_review_report_access_revoke_performed: artifacts.access_review_report?.summary?.access_revoke_performed ?? false,
+    access_review_report_source_mutation_performed: artifacts.access_review_report?.summary?.source_mutation_performed ?? false,
+    access_review_report_external_transfer_performed: artifacts.access_review_report?.summary?.external_transfer_performed ?? false,
+    access_review_report_network_access_performed: artifacts.access_review_report?.summary?.network_access_performed ?? false,
+    access_review_report_route_execution_performed: artifacts.access_review_report?.summary?.route_execution_performed ?? false,
+    access_review_report_server_started: artifacts.access_review_report?.summary?.server_started ?? false,
+    access_review_report_protected_action_executed: artifacts.access_review_report?.summary?.protected_action_executed ?? false,
+    access_review_report_legal_advice_generated: artifacts.access_review_report?.summary?.legal_advice_generated ?? false,
+    access_review_report_client_facing_output_generated: artifacts.access_review_report?.summary?.client_facing_output_generated ?? false,
+    access_review_report_human_review_required: artifacts.access_review_report?.summary?.human_review_required ?? false,
+    access_review_report_client_facing_ready: artifacts.access_review_report?.summary?.client_facing_ready ?? true,
+    access_review_report_windows_baseline_stability_preserved: artifacts.access_review_report?.summary?.windows_baseline_stability_preserved ?? false,
+    access_review_report_mac_windows_completion_instability_guard: artifacts.access_review_report?.summary?.mac_windows_completion_instability_guard ?? false,
+    access_review_report_validation_item_count: artifacts.access_review_report?.summary?.validation_item_count ?? 0,
+    access_review_report_failed_checkpoint_count: artifacts.access_review_report?.summary?.failed_checkpoint_count ?? 0,
+    access_review_report_validation_error_count: artifacts.access_review_report?.summary?.validation_error_count ?? artifacts.access_review_report?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -32523,6 +32733,8 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Retention/archive holds and deletion allowed: ${dashboard.summary.retention_archive_legal_hold_binding_count ?? 0}/${dashboard.summary.retention_archive_legal_hold_required_count ?? 0}, ${dashboard.summary.retention_archive_deletion_allowed_count ?? 0}`);
   lines.push(`- Retention/deletion resource/artifact/audit policies: ${dashboard.summary.retention_deletion_policy_resource_policy_row_count ?? 0}/${dashboard.summary.retention_deletion_policy_artifact_policy_row_count ?? 0}/${dashboard.summary.retention_deletion_policy_audit_policy_row_count ?? 0}`);
   lines.push(`- Retention/deletion active holds and deletion allowed: ${dashboard.summary.retention_deletion_policy_active_deletion_hold_count ?? 0}/${dashboard.summary.retention_deletion_policy_deletion_hold_record_count ?? 0}, ${dashboard.summary.retention_deletion_policy_deletion_allowed_policy_count ?? 0}`);
+  lines.push(`- Access review subjects and matter/resource rows: ${dashboard.summary.access_review_report_subject_review_count ?? 0}, ${dashboard.summary.access_review_report_matter_access_row_count ?? 0}/${dashboard.summary.access_review_report_resource_access_row_count ?? 0}`);
+  lines.push(`- Access review allowed/review/denied and mutations: ${dashboard.summary.access_review_report_view_allowed_count ?? 0}/${dashboard.summary.access_review_report_view_requires_human_confirmation_count ?? 0}/${dashboard.summary.access_review_report_view_denied_count ?? 0}, ${dashboard.summary.access_review_report_permission_mutation_performed ?? false}`);
   lines.push(`- Ledger API/dashboard panels and routes: ${dashboard.summary.ledger_api_dashboard_passed_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_panel_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_declared_route_count ?? 0}/${dashboard.summary.ledger_api_dashboard_route_count ?? 0}`);
   lines.push(`- Ledger API/dashboard domains run/audit/cost/error/event: ${dashboard.summary.ledger_api_dashboard_run_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_audit_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cost_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_error_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_event_panel_count ?? 0}`);
   lines.push(`- Ledger API/dashboard metrics/cross links/errors: ${dashboard.summary.ledger_api_dashboard_metric_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_linked_cross_link_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cross_link_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_validation_error_count ?? 0}`);
@@ -32970,6 +33182,8 @@ function parseArgs(argv) {
     else if (arg === "--no-secrets-scan-gate") parsed.secretsScanGatePath = false;
     else if (arg === "--retention-deletion-policy") parsed.retentionDeletionPolicyPath = argv[++index];
     else if (arg === "--no-retention-deletion-policy") parsed.retentionDeletionPolicyPath = false;
+    else if (arg === "--access-review-report") parsed.accessReviewReportPath = argv[++index];
+    else if (arg === "--no-access-review-report") parsed.accessReviewReportPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

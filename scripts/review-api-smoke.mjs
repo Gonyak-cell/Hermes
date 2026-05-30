@@ -3412,6 +3412,42 @@ try {
   assert.equal(retentionDeletionValidations.collection, "retention_deletion_validations");
   assert.ok(retentionDeletionValidations.count <= 5);
 
+  const accessReviewReports = await fetchJson(`${url}/api/access-review-reports?access_review_report_status=complete&limit=1`);
+  assert.equal(accessReviewReports.collection, "access_review_reports");
+  assert.ok(accessReviewReports.count <= 1);
+
+  const accessReviewSources = await fetchJson(`${url}/api/access-review-sources?source_status=passed&limit=10`);
+  assert.equal(accessReviewSources.collection, "access_review_sources");
+  assert.ok(accessReviewSources.count <= 10);
+
+  const accessReviewSubjects = await fetchJson(`${url}/api/access-review-subjects?access_review_status=review_ready&tenant_id=tenant.amic&limit=10`);
+  assert.equal(accessReviewSubjects.collection, "access_review_subjects");
+  assert.ok(accessReviewSubjects.count <= 10);
+
+  const accessReviewMatterRows = await fetchJson(`${url}/api/access-review-matter-rows?access_decision=allow&view_status=view_allowed&limit=10`);
+  assert.equal(accessReviewMatterRows.collection, "access_review_matter_rows");
+  assert.ok(accessReviewMatterRows.count <= 10);
+
+  const accessReviewResourceRows = await fetchJson(`${url}/api/access-review-resource-rows?access_review_status=review_ready&limit=20`);
+  assert.equal(accessReviewResourceRows.collection, "access_review_resource_rows");
+  assert.ok(accessReviewResourceRows.count <= 20);
+
+  const accessReviewFindings = await fetchJson(`${url}/api/access-review-findings?finding_status=passed&limit=10`);
+  assert.equal(accessReviewFindings.collection, "access_review_findings");
+  assert.ok(accessReviewFindings.count <= 10);
+
+  const accessReviewGateResults = await fetchJson(`${url}/api/access-review-gate-results?gate_status=passed&access_mutation_allowed=false&limit=10`);
+  assert.equal(accessReviewGateResults.collection, "access_review_gate_results");
+  assert.ok(accessReviewGateResults.count <= 10);
+
+  const accessReviewBoundary = await fetchJson(`${url}/api/access-review-boundary?boundary_status=enforced&permission_mutation_performed=false&limit=1`);
+  assert.equal(accessReviewBoundary.collection, "access_review_boundary");
+  assert.ok(accessReviewBoundary.count <= 1);
+
+  const accessReviewValidations = await fetchJson(`${url}/api/access-review-validations?status=passed&limit=5`);
+  assert.equal(accessReviewValidations.collection, "access_review_validations");
+  assert.ok(accessReviewValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

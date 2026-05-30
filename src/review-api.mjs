@@ -7002,6 +7002,69 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("retention_deletion_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/access-review-reports") {
+    const result = await readDashboardSourceArtifact(dashboard, "access_review_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("access_review_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("access_review_reports", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/access-review-sources") {
+    const result = await readDashboardSourceArtifact(dashboard, "access_review_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("access_review_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("access_review_sources", result.artifact.source_statuses ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/access-review-subjects") {
+    const result = await readDashboardSourceArtifact(dashboard, "access_review_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("access_review_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("access_review_subjects", result.artifact.access_review_subjects ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/access-review-matter-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "access_review_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("access_review_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("access_review_matter_rows", result.artifact.access_review_matter_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/access-review-resource-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "access_review_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("access_review_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("access_review_resource_rows", result.artifact.access_review_resource_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/access-review-findings") {
+    const result = await readDashboardSourceArtifact(dashboard, "access_review_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("access_review_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("access_review_findings", result.artifact.access_review_findings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/access-review-gate-results") {
+    const result = await readDashboardSourceArtifact(dashboard, "access_review_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("access_review_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("access_review_gate_results", result.artifact.access_review_gate_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/access-review-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "access_review_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("access_review_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("access_review_boundary", [result.artifact.access_review_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/access-review-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "access_review_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("access_review_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("access_review_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -13606,6 +13669,15 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/retention-deletion-gate-results", "Retention Deletion Policy gate result rows"),
       route("GET", "/api/retention-deletion-boundary", "Retention Deletion Policy read-only boundary"),
       route("GET", "/api/retention-deletion-validations", "Retention Deletion Policy validation rows"),
+      route("GET", "/api/access-review-reports", "Access Review Report artifact"),
+      route("GET", "/api/access-review-sources", "Access Review Report source status rows"),
+      route("GET", "/api/access-review-subjects", "Access Review Report tenant/matter/user subject rows"),
+      route("GET", "/api/access-review-matter-rows", "Access Review Report matter access rows"),
+      route("GET", "/api/access-review-resource-rows", "Access Review Report resource access rows"),
+      route("GET", "/api/access-review-findings", "Access Review Report finding rows"),
+      route("GET", "/api/access-review-gate-results", "Access Review Report gate result rows"),
+      route("GET", "/api/access-review-boundary", "Access Review Report read-only boundary"),
+      route("GET", "/api/access-review-validations", "Access Review Report validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -14879,6 +14951,17 @@ function filterItems(items, searchParams) {
     "external_model_policy_audit_status",
     "secrets_scan_gate_status",
     "retention_deletion_policy_status",
+    "access_review_report_status",
+    "access_review_status",
+    "finding_status",
+    "access_decision",
+    "view_status",
+    "user_id",
+    "tenant_id",
+    "matter_id",
+    "access_mutation_allowed",
+    "permission_change_allowed",
+    "permission_mutation_performed",
     "retention_plane",
     "subject_kind",
     "deletion_status",
@@ -16920,6 +17003,17 @@ function readFilterValue(item, key) {
   if (key === "external_model_policy_audit_status") return item.summary?.external_model_policy_audit_status ?? item.external_model_policy_audit_status;
   if (key === "secrets_scan_gate_status") return item.summary?.secrets_scan_gate_status ?? item.secrets_scan_gate_status;
   if (key === "retention_deletion_policy_status") return item.summary?.retention_deletion_policy_status ?? item.retention_deletion_policy_status;
+  if (key === "access_review_report_status") return item.summary?.access_review_report_status ?? item.access_review_report_status;
+  if (key === "access_review_status") return item.access_review_status ?? item.review_status;
+  if (key === "finding_status") return item.finding_status;
+  if (key === "access_decision") return item.access_decision;
+  if (key === "view_status") return item.view_status;
+  if (key === "user_id") return item.user_id;
+  if (key === "tenant_id") return item.tenant_id;
+  if (key === "matter_id") return item.matter_id ?? item.target_matter_id;
+  if (key === "access_mutation_allowed") return String(Boolean(item.access_mutation_allowed));
+  if (key === "permission_change_allowed") return String(Boolean(item.permission_change_allowed));
+  if (key === "permission_mutation_performed") return String(Boolean(item.permission_mutation_performed));
   if (key === "retention_plane") return item.retention_plane;
   if (key === "subject_kind") return item.subject_kind;
   if (key === "deletion_status") return item.deletion_status;

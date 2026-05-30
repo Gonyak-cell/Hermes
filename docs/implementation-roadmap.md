@@ -7788,6 +7788,20 @@ Changes:
 - Golden fixture count increased to 203 and `retention_deletion_policy` is included as a regression fixture.
 - `npm run compliance:retention-deletion-policy -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
 
+## Phase 302 - Access Review Report
+
+Phase 302 adds `access_review_report`, a read-only tenant/matter/user/runtime/resource access review report. It builds on the P301 Retention Deletion Policy, Matter Access Policy Evaluator, Access Audit Projection, Matter Profile Team Ledger, Wall Policy Contract, and Identity Policy Matter Freeze without reading source content, ingesting sources, granting access, revoking access, mutating permissions, transferring externally, executing routes, starting a server, executing protected actions, generating legal advice, or producing client-facing output.
+
+Changes:
+
+- Added `src/access-review-report.mjs`, `scripts/access-review-report.mjs`, `schemas/access-review-report.schema.json`, and `docs/access-review-report.md`.
+- Added `compliance:access-review-report` npm script.
+- The report emits `access-review-report.json`, source status rows, subject review rows, matter access rows, resource access rows, findings, gate result rows, boundary, validation report, and summary markdown under `artifacts/access-review-report/latest`.
+- Review Dashboard stage/summary, Review API routes/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests now include `access_review_report`.
+- The report verifies tenant/matter/user dimensions are queryable, review decisions are human-gated, denied decisions are not retrievable, external runtime rows are not directly retrievable, cross-boundary resources remain review-gated, retrieval filters are recorded, no permission mutation occurs, and Windows baseline stability is preserved.
+- Golden fixture count increased to 204 and `access_review_report` is included as a regression fixture.
+- `npm run compliance:access-review-report -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -7796,9 +7810,9 @@ Changes:
 
 운영 원칙:
 
-- Current actual completion baseline is Phase 301.
+- Current actual completion baseline is Phase 302.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- Remaining planned slots are P302-P312, 11 total.
+- Remaining planned slots are P303-P312, 10 total.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - P217 이후 personal-dev 작업은 Mac Phase 216 결과를 Windows 작업공간에서 계속 이어가되, Phase 217 본작업보다 Windows 기준선 안정화 게이트를 선행 조건으로 둔 판단을 기준으로 운영한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.

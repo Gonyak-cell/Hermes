@@ -123,6 +123,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "security:external-model-policy-audit",
   "security:secrets-scan-gate",
   "compliance:retention-deletion-policy",
+  "compliance:access-review-report",
   "capabilities:manifest-v2",
   "capabilities:registry-api",
   "packs:compatibility",

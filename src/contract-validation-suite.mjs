@@ -170,6 +170,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "creative-document:e2e-report",
   "ingestion:e2e-report",
   "deployment:runbook",
+  "operator:handbook",
   "connectors:contract-v2",
   "connectors:local-folder",
   "connectors:onedrive-boundary",

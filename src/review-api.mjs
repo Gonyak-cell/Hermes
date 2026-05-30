@@ -7422,6 +7422,69 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("deployment_runbook_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/operator-handbooks") {
+    const result = await readDashboardSourceArtifact(dashboard, "operator_handbook");
+    if (!result.available) {
+      return jsonResponse(503, buildError("operator_handbook_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("operator_handbooks", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/operator-handbook-sources") {
+    const result = await readDashboardSourceArtifact(dashboard, "operator_handbook");
+    if (!result.available) {
+      return jsonResponse(503, buildError("operator_handbook_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("operator_handbook_sources", result.artifact.source_statuses ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/operator-surfaces") {
+    const result = await readDashboardSourceArtifact(dashboard, "operator_handbook");
+    if (!result.available) {
+      return jsonResponse(503, buildError("operator_handbook_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("operator_surfaces", result.artifact.operator_surface_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/operator-workflows") {
+    const result = await readDashboardSourceArtifact(dashboard, "operator_handbook");
+    if (!result.available) {
+      return jsonResponse(503, buildError("operator_handbook_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("operator_workflows", result.artifact.operator_workflow_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/operator-screens") {
+    const result = await readDashboardSourceArtifact(dashboard, "operator_handbook");
+    if (!result.available) {
+      return jsonResponse(503, buildError("operator_handbook_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("operator_screens", result.artifact.operator_screen_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/operator-recovery-procedures") {
+    const result = await readDashboardSourceArtifact(dashboard, "operator_handbook");
+    if (!result.available) {
+      return jsonResponse(503, buildError("operator_handbook_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("operator_recovery_procedures", result.artifact.operator_recovery_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/operator-gates") {
+    const result = await readDashboardSourceArtifact(dashboard, "operator_handbook");
+    if (!result.available) {
+      return jsonResponse(503, buildError("operator_handbook_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("operator_gates", result.artifact.operator_gate_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/operator-handbook-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "operator_handbook");
+    if (!result.available) {
+      return jsonResponse(503, buildError("operator_handbook_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("operator_handbook_boundary", [result.artifact.operator_handbook_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/operator-handbook-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "operator_handbook");
+    if (!result.available) {
+      return jsonResponse(503, buildError("operator_handbook_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("operator_handbook_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -13766,6 +13829,15 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/deployment-gate-results", "Deployment gate result rows"),
       route("GET", "/api/deployment-runbook-boundary", "Deployment Runbook boundary"),
       route("GET", "/api/deployment-runbook-validations", "Deployment Runbook validation rows"),
+      route("GET", "/api/operator-handbooks", "Operator Handbook artifact"),
+      route("GET", "/api/operator-handbook-sources", "Operator Handbook source rows"),
+      route("GET", "/api/operator-surfaces", "Operator surface rows"),
+      route("GET", "/api/operator-workflows", "Operator workflow rows"),
+      route("GET", "/api/operator-screens", "Operator screen rows"),
+      route("GET", "/api/operator-recovery-procedures", "Operator recovery procedure rows"),
+      route("GET", "/api/operator-gates", "Operator gate rows"),
+      route("GET", "/api/operator-handbook-boundary", "Operator Handbook boundary"),
+      route("GET", "/api/operator-handbook-validations", "Operator Handbook validation rows"),
       route("GET", "/api/connector-contracts-v2", "Connector Contract v2 artifact"),
       route("GET", "/api/connector-definitions", "Connector v2 definition rows"),
       route("GET", "/api/connector-source-contracts", "Connector source id contract rows"),
@@ -15143,12 +15215,19 @@ function filterItems(items, searchParams) {
     "output_artifact_gate_passed",
     "ingestion_e2e_report_status",
     "deployment_runbook_status",
+    "operator_handbook_status",
     "environment_id",
     "environment_status",
     "command_status",
     "command_executed",
     "rollback_status",
     "deployment_gate_passed",
+    "surface_id",
+    "surface_status",
+    "workflow_status",
+    "screen_status",
+    "recovery_status",
+    "operator_gate_passed",
     "connector_to_dashboard_path_complete",
     "connector_gate_passed",
     "backfill_gate_passed",
@@ -17266,12 +17345,19 @@ function readFilterValue(item, key) {
   if (key === "output_artifact_gate_passed") return item.output_artifact_gate_passed;
   if (key === "ingestion_e2e_report_status") return item.summary?.ingestion_e2e_report_status ?? item.ingestion_e2e_report_status;
   if (key === "deployment_runbook_status") return item.summary?.deployment_runbook_status ?? item.deployment_runbook_status;
+  if (key === "operator_handbook_status") return item.summary?.operator_handbook_status ?? item.operator_handbook_status;
   if (key === "environment_id") return item.environment_id;
   if (key === "environment_status") return item.environment_status;
   if (key === "command_status") return item.command_status;
   if (key === "command_executed") return String(Boolean(item.command_executed));
   if (key === "rollback_status") return item.rollback_status;
   if (key === "deployment_gate_passed") return String(item.gate_status === "passed" && item.gate_violation === false);
+  if (key === "surface_id") return item.surface_id;
+  if (key === "surface_status") return item.surface_status;
+  if (key === "workflow_status") return item.workflow_status;
+  if (key === "screen_status") return item.screen_status;
+  if (key === "recovery_status") return item.recovery_status;
+  if (key === "operator_gate_passed") return String(item.operator_gate_passed === true || (item.gate_status === "passed" && item.gate_violation === false));
   if (key === "connector_to_dashboard_path_complete") return item.summary?.connector_to_dashboard_path_complete ?? item.connector_to_dashboard_path_complete;
   if (key === "connector_gate_passed") return item.connector_gate_passed;
   if (key === "backfill_gate_passed") return item.backfill_gate_passed;

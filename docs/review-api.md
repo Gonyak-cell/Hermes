@@ -138,6 +138,12 @@ Deployment Runbook routes expose the read-only P309 deployment runbook artifact,
 
 Routes: `/api/deployment-runbooks`, `/api/deployment-runbook-sources`, `/api/deployment-environments`, `/api/deployment-commands`, `/api/deployment-checklists`, `/api/deployment-rollback-procedures`, `/api/deployment-gate-results`, `/api/deployment-runbook-boundary`, `/api/deployment-runbook-validations`.
 
+## P310 Operator Handbook Routes
+
+Operator Handbook routes expose the read-only P310 operator handbook artifact, source status rows, approval/receipt/policy/recovery/Desktop operator surfaces, documented workflows, screen navigation rows, recovery procedure rows, gate rows, boundary, and validation rows. Supported filters include `operator_handbook_status`, `source_status`, `surface_id`, `surface_status`, `workflow_status`, `screen_status`, `recovery_status`, `operator_gate_passed`, `gate_status`, `boundary_status`, `read_only`, `legal_advice_generated`, `client_facing_output_generated`, `status`, and `limit`.
+
+Routes: `/api/operator-handbooks`, `/api/operator-handbook-sources`, `/api/operator-surfaces`, `/api/operator-workflows`, `/api/operator-screens`, `/api/operator-recovery-procedures`, `/api/operator-gates`, `/api/operator-handbook-boundary`, `/api/operator-handbook-validations`.
+
 ## P245 LDD RFI Generator Routes
 
 LDD RFI Generator routes expose read-only draft-only RFI packets, draft questions, missing-material links, issue links, matter summaries, and validation/boundary rows. Supported filters include `ldd_rfi_generator_status`, `ldd_rfi_matter_status`, `rfi_rule_type`, `rfi_draft_status`, `rfi_question_type`, `rfi_question_priority`, `rfi_question_status`, `rfi_missing_material_status`, `rfi_issue_link_status`, `deterministic_rfi_generation_performed`, `ldd_rfi_question_id`, `ldd_issue_record_id`, `ldd_vdr_missing_data_record_id`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.

@@ -106,6 +106,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   creativeDocumentE2eReportPath: "artifacts/creative-document-e2e-report/latest/creative-document-e2e-report.json",
   ingestionE2eReportPath: "artifacts/ingestion-e2e-report/latest/ingestion-e2e-report.json",
   deploymentRunbookPath: "artifacts/deployment-runbook/latest/deployment-runbook.json",
+  operatorHandbookPath: "artifacts/operator-handbook/latest/operator-handbook.json",
   connectorContractV2Path: "artifacts/connector-contract-v2/latest/connector-contract-v2.json",
   localFolderConnectorPath: "artifacts/local-folder-connector/latest/local-folder-connector.json",
   onedriveConnectorBoundaryPath: "artifacts/onedrive-connector-boundary/latest/onedrive-connector-boundary.json",
@@ -818,6 +819,11 @@ const SOURCE_DEFINITIONS = [
     option: "deploymentRunbookPath",
     source_id: "deployment_runbook",
     label: "Deployment Runbook",
+  },
+  {
+    option: "operatorHandbookPath",
+    source_id: "operator_handbook",
+    label: "Operator Handbook",
   },
   {
     option: "connectorContractV2Path",
@@ -1987,6 +1993,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "creative_document_e2e_report") return data.summary ?? {};
   if (sourceId === "ingestion_e2e_report") return data.summary ?? {};
   if (sourceId === "deployment_runbook") return data.summary ?? {};
+  if (sourceId === "operator_handbook") return data.summary ?? {};
   if (sourceId === "connector_contract_v2") return data.summary ?? {};
   if (sourceId === "local_folder_connector") return data.summary ?? {};
   if (sourceId === "onedrive_connector_boundary") return data.summary ?? {};
@@ -2397,6 +2404,7 @@ function buildStageStatuses(artifacts, sources) {
     buildCreativeDocumentE2eReportStage(artifacts.creative_document_e2e_report, sourceById.get("creative_document_e2e_report")),
     buildIngestionE2eReportStage(artifacts.ingestion_e2e_report, sourceById.get("ingestion_e2e_report")),
     buildDeploymentRunbookStage(artifacts.deployment_runbook, sourceById.get("deployment_runbook")),
+    buildOperatorHandbookStage(artifacts.operator_handbook, sourceById.get("operator_handbook")),
     buildConnectorContractV2Stage(artifacts.connector_contract_v2, sourceById.get("connector_contract_v2")),
     buildLocalFolderConnectorStage(artifacts.local_folder_connector, sourceById.get("local_folder_connector")),
     buildOneDriveConnectorBoundaryStage(artifacts.onedrive_connector_boundary, sourceById.get("onedrive_connector_boundary")),
@@ -12657,6 +12665,66 @@ function buildDeploymentRunbookStage(artifact, source) {
       mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
       failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildOperatorHandbookStage(artifact, source) {
+  if (!artifact) return missingStage("operator_handbook", "Operator Handbook", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.operator_handbook_status !== "complete"
+    || summary.phase_slot !== "P310"
+    || summary.previous_phase_slot !== "P309"
+    || summary.next_phase_slot !== "P311"
+    || summary.source_deployment_runbook_status !== "complete"
+    || summary.source_deployment_runbook_phase_slot !== "P309"
+    || summary.source_deployment_runbook_next_phase_slot !== "P310"
+    || summary.source_approval_queue_ui_status !== "complete"
+    || summary.source_matter_cockpit_ui_status !== "complete"
+    || summary.source_policy_violation_queue_status !== "complete"
+    || summary.source_backup_restore_drill_status !== "complete"
+    || summary.source_run_ledger_viewer_status !== "complete"
+    || summary.source_dashboard_api_freeze_status !== "complete"
+    || summary.source_review_dashboard_ia_status !== "complete"
+    || summary.source_control_plane_loop_status !== "passed"
+    || summary.source_human_gate_receipt_status !== "pending_receipts"
+    || summary.source_work_packet_receipt_status !== "pending_receipts"
+    || summary.source_human_review_completion_runbook_status !== "pending_human_input"
+    || summary.failed_source_status_count > 0
+    || summary.ready_surface_count !== summary.surface_count
+    || summary.documented_workflow_count !== summary.workflow_count
+    || summary.ready_screen_count !== summary.screen_count
+    || summary.documented_recovery_step_count !== summary.recovery_step_count
+    || summary.gate_violation_count > 0
+    || summary.approval_application_performed === true
+    || summary.receipt_application_performed === true
+    || summary.policy_mutation_performed === true
+    || summary.recovery_execution_performed === true
+    || summary.rollback_execution_performed === true
+    || summary.restore_execution_performed === true
+    || summary.command_execution_performed === true
+    || summary.route_execution_performed === true
+    || summary.server_started === true
+    || summary.protected_action_executed === true
+    || summary.delivery_execution_performed === true
+    || summary.legal_advice_generated === true
+    || summary.client_facing_output_generated === true
+    || summary.client_facing_ready === true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "operator_handbook",
+    label: "Operator Handbook",
+    status,
+    message: `${summary.ready_surface_count ?? 0}/${summary.surface_count ?? 0} surface(s), ${summary.documented_workflow_count ?? 0}/${summary.workflow_count ?? 0} workflow(s), ${summary.ready_screen_count ?? 0}/${summary.screen_count ?? 0} screen(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      ...summary,
+      operator_handbook_status: summary.operator_handbook_status ?? "unknown",
+      operator_handbook_id: summary.operator_handbook_id ?? null,
       validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
     },
   };
@@ -23809,6 +23877,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.operator_handbook?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "operator_handbook";
+    items.push({
+      action_item_id: `dashboard.action.operator_handbook.${slugify(subjectId)}`,
+      source_stage: "operator_handbook",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Operator Handbook",
+      subject_ref: {
+        subject_type: "operator_handbook_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_operator_handbook", "rerun_operator_handbook", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.connector_contract_v2?.validation?.errors ?? []) {
     const subjectId = error.path ?? "connector_contract_v2";
     items.push({
@@ -30734,6 +30820,70 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     deployment_runbook_windows_baseline_stability_preserved: artifacts.deployment_runbook?.summary?.windows_baseline_stability_preserved ?? false,
     deployment_runbook_mac_windows_completion_instability_guard: artifacts.deployment_runbook?.summary?.mac_windows_completion_instability_guard ?? false,
     deployment_runbook_validation_error_count: artifacts.deployment_runbook?.summary?.validation_error_count ?? artifacts.deployment_runbook?.validation?.errors?.length ?? 0,
+    operator_handbook_status: artifacts.operator_handbook?.summary?.operator_handbook_status ?? "unknown",
+    operator_handbook_id: artifacts.operator_handbook?.summary?.operator_handbook_id ?? null,
+    operator_handbook_phase_slot: artifacts.operator_handbook?.summary?.phase_slot ?? null,
+    operator_handbook_previous_phase_slot: artifacts.operator_handbook?.summary?.previous_phase_slot ?? null,
+    operator_handbook_next_phase_slot: artifacts.operator_handbook?.summary?.next_phase_slot ?? null,
+    operator_handbook_source_deployment_runbook_status: artifacts.operator_handbook?.summary?.source_deployment_runbook_status ?? "unknown",
+    operator_handbook_source_deployment_runbook_phase_slot: artifacts.operator_handbook?.summary?.source_deployment_runbook_phase_slot ?? null,
+    operator_handbook_source_deployment_runbook_next_phase_slot: artifacts.operator_handbook?.summary?.source_deployment_runbook_next_phase_slot ?? null,
+    operator_handbook_source_approval_queue_ui_status: artifacts.operator_handbook?.summary?.source_approval_queue_ui_status ?? "unknown",
+    operator_handbook_source_matter_cockpit_ui_status: artifacts.operator_handbook?.summary?.source_matter_cockpit_ui_status ?? "unknown",
+    operator_handbook_source_policy_violation_queue_status: artifacts.operator_handbook?.summary?.source_policy_violation_queue_status ?? "unknown",
+    operator_handbook_source_backup_restore_drill_status: artifacts.operator_handbook?.summary?.source_backup_restore_drill_status ?? "unknown",
+    operator_handbook_source_run_ledger_viewer_status: artifacts.operator_handbook?.summary?.source_run_ledger_viewer_status ?? "unknown",
+    operator_handbook_source_dashboard_api_freeze_status: artifacts.operator_handbook?.summary?.source_dashboard_api_freeze_status ?? "unknown",
+    operator_handbook_source_review_dashboard_ia_status: artifacts.operator_handbook?.summary?.source_review_dashboard_ia_status ?? "unknown",
+    operator_handbook_source_control_plane_loop_status: artifacts.operator_handbook?.summary?.source_control_plane_loop_status ?? "unknown",
+    operator_handbook_source_human_gate_receipt_status: artifacts.operator_handbook?.summary?.source_human_gate_receipt_status ?? "unknown",
+    operator_handbook_source_work_packet_receipt_status: artifacts.operator_handbook?.summary?.source_work_packet_receipt_status ?? "unknown",
+    operator_handbook_source_human_review_completion_runbook_status: artifacts.operator_handbook?.summary?.source_human_review_completion_runbook_status ?? "unknown",
+    operator_handbook_failed_source_status_count: artifacts.operator_handbook?.summary?.failed_source_status_count ?? 0,
+    operator_handbook_surface_count: artifacts.operator_handbook?.summary?.surface_count ?? 0,
+    operator_handbook_ready_surface_count: artifacts.operator_handbook?.summary?.ready_surface_count ?? 0,
+    operator_handbook_workflow_count: artifacts.operator_handbook?.summary?.workflow_count ?? 0,
+    operator_handbook_documented_workflow_count: artifacts.operator_handbook?.summary?.documented_workflow_count ?? 0,
+    operator_handbook_screen_count: artifacts.operator_handbook?.summary?.screen_count ?? 0,
+    operator_handbook_ready_screen_count: artifacts.operator_handbook?.summary?.ready_screen_count ?? 0,
+    operator_handbook_recovery_step_count: artifacts.operator_handbook?.summary?.recovery_step_count ?? 0,
+    operator_handbook_documented_recovery_step_count: artifacts.operator_handbook?.summary?.documented_recovery_step_count ?? 0,
+    operator_handbook_gate_result_count: artifacts.operator_handbook?.summary?.gate_result_count ?? 0,
+    operator_handbook_passed_gate_result_count: artifacts.operator_handbook?.summary?.passed_gate_result_count ?? 0,
+    operator_handbook_gate_violation_count: artifacts.operator_handbook?.summary?.gate_violation_count ?? 0,
+    operator_handbook_approval_queue_item_count: artifacts.operator_handbook?.summary?.approval_queue_item_count ?? 0,
+    operator_handbook_approval_receipt_preview_count: artifacts.operator_handbook?.summary?.approval_receipt_preview_count ?? 0,
+    operator_handbook_approval_receipt_preview_available_count: artifacts.operator_handbook?.summary?.approval_receipt_preview_available_count ?? 0,
+    operator_handbook_policy_queue_item_count: artifacts.operator_handbook?.summary?.policy_queue_item_count ?? 0,
+    operator_handbook_policy_human_review_required_action_count: artifacts.operator_handbook?.summary?.policy_human_review_required_action_count ?? 0,
+    operator_handbook_restore_drill_row_count: artifacts.operator_handbook?.summary?.restore_drill_row_count ?? 0,
+    operator_handbook_restore_execution_performed_count: artifacts.operator_handbook?.summary?.restore_execution_performed_count ?? 0,
+    operator_handbook_dashboard_api_route_count: artifacts.operator_handbook?.summary?.dashboard_api_route_count ?? 0,
+    operator_handbook_read_only: artifacts.operator_handbook?.summary?.read_only ?? false,
+    operator_handbook_handbook_only: artifacts.operator_handbook?.summary?.handbook_only ?? false,
+    operator_handbook_desktop_operator_surface: artifacts.operator_handbook?.summary?.desktop_operator_surface ?? false,
+    operator_handbook_desktop_read_only: artifacts.operator_handbook?.summary?.desktop_read_only ?? false,
+    operator_handbook_desktop_source_of_truth: artifacts.operator_handbook?.summary?.desktop_source_of_truth ?? true,
+    operator_handbook_approval_application_performed: artifacts.operator_handbook?.summary?.approval_application_performed ?? false,
+    operator_handbook_receipt_application_performed: artifacts.operator_handbook?.summary?.receipt_application_performed ?? false,
+    operator_handbook_policy_mutation_performed: artifacts.operator_handbook?.summary?.policy_mutation_performed ?? false,
+    operator_handbook_recovery_execution_performed: artifacts.operator_handbook?.summary?.recovery_execution_performed ?? false,
+    operator_handbook_rollback_execution_performed: artifacts.operator_handbook?.summary?.rollback_execution_performed ?? false,
+    operator_handbook_restore_execution_performed: artifacts.operator_handbook?.summary?.restore_execution_performed ?? false,
+    operator_handbook_command_execution_performed: artifacts.operator_handbook?.summary?.command_execution_performed ?? false,
+    operator_handbook_route_execution_performed: artifacts.operator_handbook?.summary?.route_execution_performed ?? false,
+    operator_handbook_server_started: artifacts.operator_handbook?.summary?.server_started ?? false,
+    operator_handbook_protected_action_executed: artifacts.operator_handbook?.summary?.protected_action_executed ?? false,
+    operator_handbook_delivery_execution_performed: artifacts.operator_handbook?.summary?.delivery_execution_performed ?? false,
+    operator_handbook_legal_advice_generated: artifacts.operator_handbook?.summary?.legal_advice_generated ?? false,
+    operator_handbook_client_facing_output_generated: artifacts.operator_handbook?.summary?.client_facing_output_generated ?? false,
+    operator_handbook_human_review_required: artifacts.operator_handbook?.summary?.human_review_required ?? false,
+    operator_handbook_attorney_review_required: artifacts.operator_handbook?.summary?.attorney_review_required ?? false,
+    operator_handbook_approval_required_for_protected_actions: artifacts.operator_handbook?.summary?.approval_required_for_protected_actions ?? false,
+    operator_handbook_approval_required_for_recovery: artifacts.operator_handbook?.summary?.approval_required_for_recovery ?? false,
+    operator_handbook_windows_baseline_stability_preserved: artifacts.operator_handbook?.summary?.windows_baseline_stability_preserved ?? false,
+    operator_handbook_mac_windows_completion_instability_guard: artifacts.operator_handbook?.summary?.mac_windows_completion_instability_guard ?? false,
+    operator_handbook_validation_error_count: artifacts.operator_handbook?.summary?.validation_error_count ?? artifacts.operator_handbook?.validation?.errors?.length ?? 0,
     connector_contract_v2_status: artifacts.connector_contract_v2?.summary?.connector_contract_status ?? "unknown",
     connector_contract_v2_contract_id: artifacts.connector_contract_v2?.summary?.connector_contract_id ?? null,
     connector_contract_v2_interface_schema_version: artifacts.connector_contract_v2?.summary?.interface_schema_version ?? null,
@@ -34300,6 +34450,8 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Ingestion E2E scenario rows and evidence: ${dashboard.summary.ingestion_e2e_report_passed_scenario_row_count ?? 0}/${dashboard.summary.ingestion_e2e_report_scenario_row_count ?? 0}, ${dashboard.summary.ingestion_e2e_report_evidence_item_count ?? 0}`);
   lines.push(`- Deployment runbook environments and commands: ${dashboard.summary.deployment_runbook_ready_environment_count ?? 0}/${dashboard.summary.deployment_runbook_environment_count ?? 0}, ${dashboard.summary.deployment_runbook_documented_command_count ?? 0}/${dashboard.summary.deployment_runbook_command_count ?? 0}`);
   lines.push(`- Deployment runbook rollback and execution: ${dashboard.summary.deployment_runbook_documented_rollback_procedure_step_count ?? 0}/${dashboard.summary.deployment_runbook_rollback_procedure_step_count ?? 0}, ${dashboard.summary.deployment_runbook_deployment_execution_performed ?? false}/${dashboard.summary.deployment_runbook_rollback_execution_performed ?? false}`);
+  lines.push(`- Operator handbook surfaces/workflows/screens: ${dashboard.summary.operator_handbook_ready_surface_count ?? 0}/${dashboard.summary.operator_handbook_surface_count ?? 0}, ${dashboard.summary.operator_handbook_documented_workflow_count ?? 0}/${dashboard.summary.operator_handbook_workflow_count ?? 0}, ${dashboard.summary.operator_handbook_ready_screen_count ?? 0}/${dashboard.summary.operator_handbook_screen_count ?? 0}`);
+  lines.push(`- Operator handbook recovery and execution: ${dashboard.summary.operator_handbook_documented_recovery_step_count ?? 0}/${dashboard.summary.operator_handbook_recovery_step_count ?? 0}, ${dashboard.summary.operator_handbook_recovery_execution_performed ?? false}/${dashboard.summary.operator_handbook_command_execution_performed ?? false}`);
   lines.push(`- Ledger API/dashboard panels and routes: ${dashboard.summary.ledger_api_dashboard_passed_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_panel_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_declared_route_count ?? 0}/${dashboard.summary.ledger_api_dashboard_route_count ?? 0}`);
   lines.push(`- Ledger API/dashboard domains run/audit/cost/error/event: ${dashboard.summary.ledger_api_dashboard_run_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_audit_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cost_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_error_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_event_panel_count ?? 0}`);
   lines.push(`- Ledger API/dashboard metrics/cross links/errors: ${dashboard.summary.ledger_api_dashboard_metric_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_linked_cross_link_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cross_link_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_validation_error_count ?? 0}`);
@@ -34685,6 +34837,8 @@ function parseArgs(argv) {
     else if (arg === "--no-ingestion-e2e-report") parsed.ingestionE2eReportPath = false;
     else if (arg === "--deployment-runbook") parsed.deploymentRunbookPath = argv[++index];
     else if (arg === "--no-deployment-runbook") parsed.deploymentRunbookPath = false;
+    else if (arg === "--operator-handbook") parsed.operatorHandbookPath = argv[++index];
+    else if (arg === "--no-operator-handbook") parsed.operatorHandbookPath = false;
     else if (arg === "--connector-contract-v2") parsed.connectorContractV2Path = argv[++index];
     else if (arg === "--no-connector-contract-v2") parsed.connectorContractV2Path = false;
     else if (arg === "--local-folder-connector") parsed.localFolderConnectorPath = argv[++index];

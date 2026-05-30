@@ -108,6 +108,7 @@ import { runPersonalDevE2eReport } from "../src/personal-dev-e2e-report.mjs";
 import { runCreativeDocumentE2eReport } from "../src/creative-document-e2e-report.mjs";
 import { runIngestionE2eReport } from "../src/ingestion-e2e-report.mjs";
 import { runDeploymentRunbook } from "../src/deployment-runbook.mjs";
+import { runOperatorHandbook } from "../src/operator-handbook.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -2013,6 +2014,7 @@ describe("matter harness", () => {
         creativeDocumentE2eReportPath: path.join(outDir, "creative-document-e2e-report", "creative-document-e2e-report.json"),
         ingestionE2eReportPath: path.join(outDir, "ingestion-e2e-report", "ingestion-e2e-report.json"),
         deploymentRunbookPath: path.join(outDir, "deployment-runbook", "deployment-runbook.json"),
+        operatorHandbookPath: path.join(outDir, "operator-handbook", "operator-handbook.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -2156,6 +2158,7 @@ describe("matter harness", () => {
         creativeDocumentE2eReportPath: false,
         ingestionE2eReportPath: false,
         deploymentRunbookPath: false,
+        operatorHandbookPath: false,
         observabilityFreezePath: false,
         capabilityManifestV2Path: false,
         packManifestCompatibilityPath: false,
@@ -13393,6 +13396,7 @@ describe("matter harness", () => {
         creativeDocumentE2eReportPath: false,
         ingestionE2eReportPath: false,
         deploymentRunbookPath: false,
+        operatorHandbookPath: false,
         outDir: path.join(outDir, "dashboard-pre-checkpoint"),
         runAt: "2026-05-23T06:35:08.000Z",
       });
@@ -15320,6 +15324,90 @@ describe("matter harness", () => {
       assert.match(await readFile(path.join(outDir, "deployment-runbook", "summary.md"), "utf8"), /Deployment Runbook/);
 
       contractGoldenFixtureArtifactPaths.deployment_runbook = path.join(outDir, "deployment-runbook", "deployment-runbook.json");
+      const operatorHandbook = await runOperatorHandbook({
+        deploymentRunbookPath: path.join(outDir, "deployment-runbook", "deployment-runbook.json"),
+        approvalQueueUiPath: path.join(outDir, "approval-queue-ui", "approval-queue-ui.json"),
+        matterCockpitUiPath: path.join(outDir, "matter-cockpit-ui", "matter-cockpit-ui.json"),
+        policyViolationQueuePath: path.join(outDir, "policy-violation-queue", "policy-violation-queue.json"),
+        backupRestoreDrillPath: path.join(outDir, "backup-restore-drill", "backup-restore-drill-report.json"),
+        runLedgerViewerPath: path.join(outDir, "run-ledger-viewer", "run-ledger-viewer.json"),
+        dashboardApiFreezePath: path.join(outDir, "dashboard-api-freeze", "dashboard-api-freeze.json"),
+        reviewDashboardIaPath: path.join(outDir, "review-dashboard-ia", "review-dashboard-ia.json"),
+        controlPlaneLoopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
+        humanGateReceiptDraftsPath: path.join(outDir, "control-plane-human-gate-receipts", "control-plane-human-gate-receipt-drafts.json"),
+        workPacketReceiptDraftsPath: path.join(outDir, "control-plane-work-packet-receipts", "control-plane-work-packet-receipt-drafts.json"),
+        humanReviewCompletionRunbookPath: path.join(outDir, "human-review-cycle-receipt-completion-runbook", "human-review-cycle-receipt-completion-runbook.json"),
+        outDir: path.join(outDir, "operator-handbook"),
+        runAt: "2026-05-23T07:31:56.250Z",
+      });
+      const operatorHandbookSchema = JSON.parse(await readFile("schemas/operator-handbook.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(operatorHandbook, operatorHandbookSchema, {}, "operator_handbook"), [], JSON.stringify(operatorHandbook.validation.errors));
+      assert.equal(operatorHandbook.summary.operator_handbook_status, "complete");
+      assert.equal(operatorHandbook.summary.phase_slot, "P310");
+      assert.equal(operatorHandbook.summary.previous_phase_slot, "P309");
+      assert.equal(operatorHandbook.summary.next_phase_slot, "P311");
+      assert.equal(operatorHandbook.summary.source_deployment_runbook_status, "complete");
+      assert.equal(operatorHandbook.summary.source_deployment_runbook_phase_slot, "P309");
+      assert.equal(operatorHandbook.summary.source_deployment_runbook_next_phase_slot, "P310");
+      assert.equal(operatorHandbook.summary.source_approval_queue_ui_status, "complete");
+      assert.equal(operatorHandbook.summary.source_matter_cockpit_ui_status, "complete");
+      assert.equal(operatorHandbook.summary.source_policy_violation_queue_status, "complete");
+      assert.equal(operatorHandbook.summary.source_backup_restore_drill_status, "complete");
+      assert.equal(operatorHandbook.summary.source_run_ledger_viewer_status, "complete");
+      assert.equal(operatorHandbook.summary.source_dashboard_api_freeze_status, "complete");
+      assert.equal(operatorHandbook.summary.source_review_dashboard_ia_status, "complete");
+      assert.equal(operatorHandbook.summary.source_control_plane_loop_status, "passed");
+      assert.equal(operatorHandbook.summary.source_human_gate_receipt_status, "pending_receipts");
+      assert.equal(operatorHandbook.summary.source_work_packet_receipt_status, "pending_receipts");
+      assert.equal(operatorHandbook.summary.source_human_review_completion_runbook_status, "pending_human_input");
+      assert.equal(operatorHandbook.summary.failed_source_status_count, 0);
+      assert.ok(operatorHandbook.summary.surface_count >= 6);
+      assert.equal(operatorHandbook.summary.ready_surface_count, operatorHandbook.summary.surface_count);
+      assert.ok(operatorHandbook.summary.workflow_count >= 7);
+      assert.equal(operatorHandbook.summary.documented_workflow_count, operatorHandbook.summary.workflow_count);
+      assert.ok(operatorHandbook.summary.screen_count >= 8);
+      assert.equal(operatorHandbook.summary.ready_screen_count, operatorHandbook.summary.screen_count);
+      assert.ok(operatorHandbook.summary.recovery_step_count >= 4);
+      assert.equal(operatorHandbook.summary.documented_recovery_step_count, operatorHandbook.summary.recovery_step_count);
+      assert.equal(operatorHandbook.summary.gate_violation_count, 0);
+      assert.equal(operatorHandbook.summary.approval_receipt_preview_available_count, operatorHandbook.summary.approval_receipt_preview_count);
+      assert.equal(operatorHandbook.summary.policy_human_review_required_action_count, operatorHandbook.summary.policy_queue_item_count);
+      assert.equal(operatorHandbook.summary.restore_execution_performed_count, 0);
+      assert.equal(operatorHandbook.summary.read_only, true);
+      assert.equal(operatorHandbook.summary.handbook_only, true);
+      assert.equal(operatorHandbook.summary.desktop_operator_surface, true);
+      assert.equal(operatorHandbook.summary.desktop_read_only, true);
+      assert.equal(operatorHandbook.summary.desktop_source_of_truth, false);
+      assert.equal(operatorHandbook.summary.approval_application_performed, false);
+      assert.equal(operatorHandbook.summary.receipt_application_performed, false);
+      assert.equal(operatorHandbook.summary.policy_mutation_performed, false);
+      assert.equal(operatorHandbook.summary.recovery_execution_performed, false);
+      assert.equal(operatorHandbook.summary.rollback_execution_performed, false);
+      assert.equal(operatorHandbook.summary.restore_execution_performed, false);
+      assert.equal(operatorHandbook.summary.command_execution_performed, false);
+      assert.equal(operatorHandbook.summary.route_execution_performed, false);
+      assert.equal(operatorHandbook.summary.server_started, false);
+      assert.equal(operatorHandbook.summary.protected_action_executed, false);
+      assert.equal(operatorHandbook.summary.legal_advice_generated, false);
+      assert.equal(operatorHandbook.summary.client_facing_output_generated, false);
+      assert.equal(operatorHandbook.summary.human_review_required, true);
+      assert.equal(operatorHandbook.summary.attorney_review_required, true);
+      assert.equal(operatorHandbook.summary.approval_required_for_protected_actions, true);
+      assert.equal(operatorHandbook.summary.approval_required_for_recovery, true);
+      assert.equal(operatorHandbook.summary.windows_baseline_stability_preserved, true);
+      assert.equal(operatorHandbook.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(operatorHandbook.summary.validation_error_count, 0);
+      assert.ok(operatorHandbook.source_statuses.every((row) => row.source_status === "passed"));
+      assert.ok(operatorHandbook.operator_surface_rows.every((row) => row.surface_status === "ready" && row.read_only));
+      assert.ok(operatorHandbook.operator_workflow_rows.every((row) => row.workflow_status === "documented" && !row.protected_action_executed));
+      assert.ok(operatorHandbook.operator_screen_rows.every((row) => row.screen_status === "ready" && row.read_only && !row.route_execution_performed));
+      assert.ok(operatorHandbook.operator_recovery_rows.every((row) => row.recovery_status === "documented" && row.requires_human_approval && !row.recovery_execution_performed));
+      assert.ok(operatorHandbook.operator_gate_results.every((row) => row.gate_status === "passed" && row.operator_gate_passed && !row.gate_violation));
+      assert.equal(operatorHandbook.operator_handbook_boundary.boundary_status, "enforced");
+      assert.ok(operatorHandbook.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "operator-handbook", "summary.md"), "utf8"), /Operator Handbook/);
+
+      contractGoldenFixtureArtifactPaths.operator_handbook = path.join(outDir, "operator-handbook", "operator-handbook.json");
       contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: contractGoldenFixtureArtifactPaths,
         fixtureIds: Object.keys(contractGoldenFixtureArtifactPaths),
@@ -15331,8 +15419,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 211);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 211);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 212);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 212);
       assert.equal(contractGoldenFixtures.summary.missing_artifact_count, 0);
       assert.equal(contractGoldenFixtures.summary.validation_error_count, 0);
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "dashboard_api_freeze"));
@@ -15349,6 +15437,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "creative_document_e2e_report"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "ingestion_e2e_report"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "deployment_runbook"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "operator_handbook"));
 
       contractValidationSuite = await runContractValidationSuite({
         contractGoldenFixturesPath: path.join(outDir, "contract-golden-fixtures", "contract-golden-fixtures.json"),
@@ -15362,8 +15451,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractValidationSuite.summary.validation_suite_status, "complete");
-      assert.equal(contractValidationSuite.summary.fixture_count, 211);
-      assert.equal(contractValidationSuite.summary.validated_fixture_count, 211);
+      assert.equal(contractValidationSuite.summary.fixture_count, 212);
+      assert.equal(contractValidationSuite.summary.validated_fixture_count, 212);
       assert.equal(contractValidationSuite.summary.schema_invalid_fixture_count, 0);
       assert.equal(contractValidationSuite.summary.regression_failed_count, 0);
       assert.equal(contractValidationSuite.summary.missing_package_script_count, 0);
@@ -15382,6 +15471,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:e2e-report"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "ingestion:e2e-report"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "deployment:runbook"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "operator:handbook"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
 
       const dashboard = await runReviewDashboard({
@@ -15470,6 +15560,10 @@ describe("matter harness", () => {
       assert.equal(deploymentRunbookCheckpoint?.acceptance_profile, "deployment_runbook_gate");
       assert.equal(deploymentRunbookCheckpoint?.status, "passed");
       assert.equal(deploymentRunbookCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const operatorHandbookCheckpoint = dashboardApiFreezeGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-operator-handbook");
+      assert.equal(operatorHandbookCheckpoint?.acceptance_profile, "operator_handbook_gate");
+      assert.equal(operatorHandbookCheckpoint?.status, "passed");
+      assert.equal(operatorHandbookCheckpoint?.implementation_status, "passed_with_operational_gate");
       assert.equal(dashboard.summary.evidence_approved_count, 1);
       assert.equal(dashboard.summary.evidence_review_draft_item_count, evidenceReviewDraft.summary.review_item_count);
       assert.equal(dashboard.summary.evidence_review_draft_attorney_count, evidenceReviewDraft.summary.attorney_review_count);
@@ -21457,6 +21551,58 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.deployment_runbook_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.deployment_runbook_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.deployment_runbook_validation_error_count, 0);
+      assert.equal(dashboard.summary.operator_handbook_status, "complete");
+      assert.equal(dashboard.summary.operator_handbook_id, operatorHandbook.summary.operator_handbook_id);
+      assert.equal(dashboard.summary.operator_handbook_phase_slot, "P310");
+      assert.equal(dashboard.summary.operator_handbook_previous_phase_slot, "P309");
+      assert.equal(dashboard.summary.operator_handbook_next_phase_slot, "P311");
+      assert.equal(dashboard.summary.operator_handbook_source_deployment_runbook_status, "complete");
+      assert.equal(dashboard.summary.operator_handbook_source_deployment_runbook_phase_slot, "P309");
+      assert.equal(dashboard.summary.operator_handbook_source_deployment_runbook_next_phase_slot, "P310");
+      assert.equal(dashboard.summary.operator_handbook_source_approval_queue_ui_status, "complete");
+      assert.equal(dashboard.summary.operator_handbook_source_matter_cockpit_ui_status, "complete");
+      assert.equal(dashboard.summary.operator_handbook_source_policy_violation_queue_status, "complete");
+      assert.equal(dashboard.summary.operator_handbook_source_backup_restore_drill_status, "complete");
+      assert.equal(dashboard.summary.operator_handbook_source_run_ledger_viewer_status, "complete");
+      assert.equal(dashboard.summary.operator_handbook_source_dashboard_api_freeze_status, "complete");
+      assert.equal(dashboard.summary.operator_handbook_source_review_dashboard_ia_status, "complete");
+      assert.equal(dashboard.summary.operator_handbook_source_control_plane_loop_status, "passed");
+      assert.equal(dashboard.summary.operator_handbook_source_human_gate_receipt_status, "pending_receipts");
+      assert.equal(dashboard.summary.operator_handbook_source_work_packet_receipt_status, "pending_receipts");
+      assert.equal(dashboard.summary.operator_handbook_source_human_review_completion_runbook_status, "pending_human_input");
+      assert.equal(dashboard.summary.operator_handbook_failed_source_status_count, 0);
+      assert.equal(dashboard.summary.operator_handbook_ready_surface_count, dashboard.summary.operator_handbook_surface_count);
+      assert.equal(dashboard.summary.operator_handbook_documented_workflow_count, dashboard.summary.operator_handbook_workflow_count);
+      assert.equal(dashboard.summary.operator_handbook_ready_screen_count, dashboard.summary.operator_handbook_screen_count);
+      assert.equal(dashboard.summary.operator_handbook_documented_recovery_step_count, dashboard.summary.operator_handbook_recovery_step_count);
+      assert.equal(dashboard.summary.operator_handbook_gate_violation_count, 0);
+      assert.equal(dashboard.summary.operator_handbook_approval_receipt_preview_available_count, dashboard.summary.operator_handbook_approval_receipt_preview_count);
+      assert.equal(dashboard.summary.operator_handbook_policy_human_review_required_action_count, dashboard.summary.operator_handbook_policy_queue_item_count);
+      assert.equal(dashboard.summary.operator_handbook_restore_execution_performed_count, 0);
+      assert.equal(dashboard.summary.operator_handbook_read_only, true);
+      assert.equal(dashboard.summary.operator_handbook_handbook_only, true);
+      assert.equal(dashboard.summary.operator_handbook_desktop_operator_surface, true);
+      assert.equal(dashboard.summary.operator_handbook_desktop_read_only, true);
+      assert.equal(dashboard.summary.operator_handbook_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.operator_handbook_approval_application_performed, false);
+      assert.equal(dashboard.summary.operator_handbook_receipt_application_performed, false);
+      assert.equal(dashboard.summary.operator_handbook_policy_mutation_performed, false);
+      assert.equal(dashboard.summary.operator_handbook_recovery_execution_performed, false);
+      assert.equal(dashboard.summary.operator_handbook_rollback_execution_performed, false);
+      assert.equal(dashboard.summary.operator_handbook_restore_execution_performed, false);
+      assert.equal(dashboard.summary.operator_handbook_command_execution_performed, false);
+      assert.equal(dashboard.summary.operator_handbook_route_execution_performed, false);
+      assert.equal(dashboard.summary.operator_handbook_server_started, false);
+      assert.equal(dashboard.summary.operator_handbook_protected_action_executed, false);
+      assert.equal(dashboard.summary.operator_handbook_legal_advice_generated, false);
+      assert.equal(dashboard.summary.operator_handbook_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.operator_handbook_human_review_required, true);
+      assert.equal(dashboard.summary.operator_handbook_attorney_review_required, true);
+      assert.equal(dashboard.summary.operator_handbook_approval_required_for_protected_actions, true);
+      assert.equal(dashboard.summary.operator_handbook_approval_required_for_recovery, true);
+      assert.equal(dashboard.summary.operator_handbook_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.operator_handbook_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.operator_handbook_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -26013,6 +26159,60 @@ describe("matter harness", () => {
       assert.equal(deploymentRunbookStage?.metrics.windows_baseline_stability_preserved, true);
       assert.equal(deploymentRunbookStage?.metrics.mac_windows_completion_instability_guard, true);
       assert.equal(deploymentRunbookStage?.metrics.validation_error_count, 0);
+      const operatorHandbookStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "operator_handbook");
+      assert.equal(operatorHandbookStage?.status, "passed");
+      assert.equal(operatorHandbookStage?.metrics.operator_handbook_status, "complete");
+      assert.equal(operatorHandbookStage?.metrics.operator_handbook_id, operatorHandbook.summary.operator_handbook_id);
+      assert.equal(operatorHandbookStage?.metrics.phase_slot, "P310");
+      assert.equal(operatorHandbookStage?.metrics.previous_phase_slot, "P309");
+      assert.equal(operatorHandbookStage?.metrics.next_phase_slot, "P311");
+      assert.equal(operatorHandbookStage?.metrics.source_deployment_runbook_status, "complete");
+      assert.equal(operatorHandbookStage?.metrics.source_deployment_runbook_phase_slot, "P309");
+      assert.equal(operatorHandbookStage?.metrics.source_deployment_runbook_next_phase_slot, "P310");
+      assert.equal(operatorHandbookStage?.metrics.source_approval_queue_ui_status, "complete");
+      assert.equal(operatorHandbookStage?.metrics.source_matter_cockpit_ui_status, "complete");
+      assert.equal(operatorHandbookStage?.metrics.source_policy_violation_queue_status, "complete");
+      assert.equal(operatorHandbookStage?.metrics.source_backup_restore_drill_status, "complete");
+      assert.equal(operatorHandbookStage?.metrics.source_run_ledger_viewer_status, "complete");
+      assert.equal(operatorHandbookStage?.metrics.source_dashboard_api_freeze_status, "complete");
+      assert.equal(operatorHandbookStage?.metrics.source_review_dashboard_ia_status, "complete");
+      assert.equal(operatorHandbookStage?.metrics.source_control_plane_loop_status, "passed");
+      assert.equal(operatorHandbookStage?.metrics.source_human_gate_receipt_status, "pending_receipts");
+      assert.equal(operatorHandbookStage?.metrics.source_work_packet_receipt_status, "pending_receipts");
+      assert.equal(operatorHandbookStage?.metrics.source_human_review_completion_runbook_status, "pending_human_input");
+      assert.equal(operatorHandbookStage?.metrics.failed_source_status_count, 0);
+      assert.equal(operatorHandbookStage?.metrics.ready_surface_count, operatorHandbookStage?.metrics.surface_count);
+      assert.equal(operatorHandbookStage?.metrics.documented_workflow_count, operatorHandbookStage?.metrics.workflow_count);
+      assert.equal(operatorHandbookStage?.metrics.ready_screen_count, operatorHandbookStage?.metrics.screen_count);
+      assert.equal(operatorHandbookStage?.metrics.documented_recovery_step_count, operatorHandbookStage?.metrics.recovery_step_count);
+      assert.equal(operatorHandbookStage?.metrics.gate_violation_count, 0);
+      assert.equal(operatorHandbookStage?.metrics.approval_receipt_preview_available_count, operatorHandbookStage?.metrics.approval_receipt_preview_count);
+      assert.equal(operatorHandbookStage?.metrics.policy_human_review_required_action_count, operatorHandbookStage?.metrics.policy_queue_item_count);
+      assert.equal(operatorHandbookStage?.metrics.restore_execution_performed_count, 0);
+      assert.equal(operatorHandbookStage?.metrics.read_only, true);
+      assert.equal(operatorHandbookStage?.metrics.handbook_only, true);
+      assert.equal(operatorHandbookStage?.metrics.desktop_operator_surface, true);
+      assert.equal(operatorHandbookStage?.metrics.desktop_read_only, true);
+      assert.equal(operatorHandbookStage?.metrics.desktop_source_of_truth, false);
+      assert.equal(operatorHandbookStage?.metrics.approval_application_performed, false);
+      assert.equal(operatorHandbookStage?.metrics.receipt_application_performed, false);
+      assert.equal(operatorHandbookStage?.metrics.policy_mutation_performed, false);
+      assert.equal(operatorHandbookStage?.metrics.recovery_execution_performed, false);
+      assert.equal(operatorHandbookStage?.metrics.rollback_execution_performed, false);
+      assert.equal(operatorHandbookStage?.metrics.restore_execution_performed, false);
+      assert.equal(operatorHandbookStage?.metrics.command_execution_performed, false);
+      assert.equal(operatorHandbookStage?.metrics.route_execution_performed, false);
+      assert.equal(operatorHandbookStage?.metrics.server_started, false);
+      assert.equal(operatorHandbookStage?.metrics.protected_action_executed, false);
+      assert.equal(operatorHandbookStage?.metrics.legal_advice_generated, false);
+      assert.equal(operatorHandbookStage?.metrics.client_facing_output_generated, false);
+      assert.equal(operatorHandbookStage?.metrics.human_review_required, true);
+      assert.equal(operatorHandbookStage?.metrics.attorney_review_required, true);
+      assert.equal(operatorHandbookStage?.metrics.approval_required_for_protected_actions, true);
+      assert.equal(operatorHandbookStage?.metrics.approval_required_for_recovery, true);
+      assert.equal(operatorHandbookStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(operatorHandbookStage?.metrics.mac_windows_completion_instability_guard, true);
+      assert.equal(operatorHandbookStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -29798,6 +29998,42 @@ describe("matter harness", () => {
       const deploymentRunbookValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/deployment-runbook-validations?status=passed", apiOptions)).body);
       assert.equal(deploymentRunbookValidationsResponse.collection, "deployment_runbook_validations");
       assert.equal(deploymentRunbookValidationsResponse.count, deploymentRunbook.summary.validation_item_count);
+
+      const operatorHandbooksResponse = JSON.parse((await buildReviewApiResponse("/api/operator-handbooks?operator_handbook_status=complete", apiOptions)).body);
+      assert.equal(operatorHandbooksResponse.collection, "operator_handbooks");
+      assert.equal(operatorHandbooksResponse.count, 1);
+
+      const operatorHandbookSourcesResponse = JSON.parse((await buildReviewApiResponse("/api/operator-handbook-sources?source_status=passed", apiOptions)).body);
+      assert.equal(operatorHandbookSourcesResponse.collection, "operator_handbook_sources");
+      assert.equal(operatorHandbookSourcesResponse.count, operatorHandbook.summary.source_status_count);
+
+      const operatorSurfacesResponse = JSON.parse((await buildReviewApiResponse("/api/operator-surfaces?surface_status=ready", apiOptions)).body);
+      assert.equal(operatorSurfacesResponse.collection, "operator_surfaces");
+      assert.equal(operatorSurfacesResponse.count, operatorHandbook.summary.surface_count);
+
+      const operatorWorkflowsResponse = JSON.parse((await buildReviewApiResponse("/api/operator-workflows?workflow_status=documented", apiOptions)).body);
+      assert.equal(operatorWorkflowsResponse.collection, "operator_workflows");
+      assert.equal(operatorWorkflowsResponse.count, operatorHandbook.summary.workflow_count);
+
+      const operatorScreensResponse = JSON.parse((await buildReviewApiResponse("/api/operator-screens?screen_status=ready", apiOptions)).body);
+      assert.equal(operatorScreensResponse.collection, "operator_screens");
+      assert.equal(operatorScreensResponse.count, operatorHandbook.summary.screen_count);
+
+      const operatorRecoveryProceduresResponse = JSON.parse((await buildReviewApiResponse("/api/operator-recovery-procedures?recovery_status=documented", apiOptions)).body);
+      assert.equal(operatorRecoveryProceduresResponse.collection, "operator_recovery_procedures");
+      assert.equal(operatorRecoveryProceduresResponse.count, operatorHandbook.summary.recovery_step_count);
+
+      const operatorGatesResponse = JSON.parse((await buildReviewApiResponse("/api/operator-gates?operator_gate_passed=true", apiOptions)).body);
+      assert.equal(operatorGatesResponse.collection, "operator_gates");
+      assert.equal(operatorGatesResponse.count, operatorHandbook.summary.gate_result_count);
+
+      const operatorHandbookBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/operator-handbook-boundary?boundary_status=enforced&read_only=true&client_facing_output_generated=false", apiOptions)).body);
+      assert.equal(operatorHandbookBoundaryResponse.collection, "operator_handbook_boundary");
+      assert.equal(operatorHandbookBoundaryResponse.count, 1);
+
+      const operatorHandbookValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/operator-handbook-validations?status=passed", apiOptions)).body);
+      assert.equal(operatorHandbookValidationsResponse.collection, "operator_handbook_validations");
+      assert.equal(operatorHandbookValidationsResponse.count, operatorHandbook.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

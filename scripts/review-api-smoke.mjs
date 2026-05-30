@@ -3652,6 +3652,42 @@ try {
   assert.equal(deploymentRunbookValidations.collection, "deployment_runbook_validations");
   assert.ok(deploymentRunbookValidations.count <= 5);
 
+  const operatorHandbooks = await fetchJson(`${url}/api/operator-handbooks?operator_handbook_status=complete&limit=1`);
+  assert.equal(operatorHandbooks.collection, "operator_handbooks");
+  assert.ok(operatorHandbooks.count <= 1);
+
+  const operatorHandbookSources = await fetchJson(`${url}/api/operator-handbook-sources?source_status=passed&limit=12`);
+  assert.equal(operatorHandbookSources.collection, "operator_handbook_sources");
+  assert.ok(operatorHandbookSources.count <= 12);
+
+  const operatorSurfaces = await fetchJson(`${url}/api/operator-surfaces?surface_status=ready&limit=10`);
+  assert.equal(operatorSurfaces.collection, "operator_surfaces");
+  assert.ok(operatorSurfaces.count <= 10);
+
+  const operatorWorkflows = await fetchJson(`${url}/api/operator-workflows?workflow_status=documented&limit=10`);
+  assert.equal(operatorWorkflows.collection, "operator_workflows");
+  assert.ok(operatorWorkflows.count <= 10);
+
+  const operatorScreens = await fetchJson(`${url}/api/operator-screens?screen_status=ready&limit=10`);
+  assert.equal(operatorScreens.collection, "operator_screens");
+  assert.ok(operatorScreens.count <= 10);
+
+  const operatorRecoveryProcedures = await fetchJson(`${url}/api/operator-recovery-procedures?recovery_status=documented&limit=10`);
+  assert.equal(operatorRecoveryProcedures.collection, "operator_recovery_procedures");
+  assert.ok(operatorRecoveryProcedures.count <= 10);
+
+  const operatorGates = await fetchJson(`${url}/api/operator-gates?operator_gate_passed=true&limit=10`);
+  assert.equal(operatorGates.collection, "operator_gates");
+  assert.ok(operatorGates.count <= 10);
+
+  const operatorHandbookBoundary = await fetchJson(`${url}/api/operator-handbook-boundary?boundary_status=enforced&read_only=true&client_facing_output_generated=false&limit=1`);
+  assert.equal(operatorHandbookBoundary.collection, "operator_handbook_boundary");
+  assert.ok(operatorHandbookBoundary.count <= 1);
+
+  const operatorHandbookValidations = await fetchJson(`${url}/api/operator-handbook-validations?status=passed&limit=5`);
+  assert.equal(operatorHandbookValidations.collection, "operator_handbook_validations");
+  assert.ok(operatorHandbookValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

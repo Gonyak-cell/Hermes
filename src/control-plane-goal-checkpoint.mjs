@@ -182,6 +182,7 @@ const GOAL_ITEMS = [
   sourceItem("creative_document_e2e_report", "Creative Document E2E Report", "creative_document", "creative_document_e2e_report", "control-plane-creative-document-e2e-report", { acceptance_profile: "creative_document_e2e_report_gate" }),
   sourceItem("ingestion_e2e_report", "Ingestion E2E Report", "resource_evidence", "ingestion_e2e_report", "control-plane-ingestion-e2e-report", { acceptance_profile: "ingestion_e2e_report_gate" }),
   sourceItem("deployment_runbook", "Deployment Runbook", "deployment", "deployment_runbook", "control-plane-deployment-runbook", { acceptance_profile: "deployment_runbook_gate" }),
+  sourceItem("operator_handbook", "Operator Handbook", "operator", "operator_handbook", "control-plane-operator-handbook", { acceptance_profile: "operator_handbook_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -723,6 +724,7 @@ function evaluateStageAcceptance(item, stage) {
     "creative_document_e2e_report_gate",
     "ingestion_e2e_report_gate",
     "deployment_runbook_gate",
+    "operator_handbook_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -7232,6 +7234,80 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Deployment Runbook locks P309 local/dev/prod-like/Desktop optional/rollback procedures as read-only documentation with no deployment, server, command, rollback, protected, legal, or client-facing execution.");
+    }
+  }
+
+  if (item.acceptance_profile === "operator_handbook_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.operator_handbook_status === "complete"
+      && metrics.phase_slot === "P310"
+      && metrics.previous_phase_slot === "P309"
+      && metrics.next_phase_slot === "P311"
+      && metrics.source_deployment_runbook_status === "complete"
+      && metrics.source_deployment_runbook_phase_slot === "P309"
+      && metrics.source_deployment_runbook_next_phase_slot === "P310"
+      && metrics.source_approval_queue_ui_status === "complete"
+      && metrics.source_matter_cockpit_ui_status === "complete"
+      && metrics.source_policy_violation_queue_status === "complete"
+      && metrics.source_backup_restore_drill_status === "complete"
+      && metrics.source_run_ledger_viewer_status === "complete"
+      && metrics.source_dashboard_api_freeze_status === "complete"
+      && metrics.source_review_dashboard_ia_status === "complete"
+      && metrics.source_control_plane_loop_status === "passed"
+      && metrics.source_human_gate_receipt_status === "pending_receipts"
+      && metrics.source_work_packet_receipt_status === "pending_receipts"
+      && metrics.source_human_review_completion_runbook_status === "pending_human_input"
+      && metrics.failed_source_status_count === 0
+      && metrics.surface_count >= 6
+      && metrics.ready_surface_count === metrics.surface_count
+      && metrics.workflow_count >= 7
+      && metrics.documented_workflow_count === metrics.workflow_count
+      && metrics.screen_count >= 8
+      && metrics.ready_screen_count === metrics.screen_count
+      && metrics.recovery_step_count >= 4
+      && metrics.documented_recovery_step_count === metrics.recovery_step_count
+      && metrics.gate_result_count >= 8
+      && metrics.passed_gate_result_count === metrics.gate_result_count
+      && metrics.gate_violation_count === 0
+      && metrics.approval_queue_item_count > 0
+      && metrics.approval_receipt_preview_available_count === metrics.approval_receipt_preview_count
+      && metrics.policy_queue_item_count > 0
+      && metrics.policy_human_review_required_action_count === metrics.policy_queue_item_count
+      && metrics.restore_drill_row_count >= 5
+      && metrics.restore_execution_performed_count === 0
+      && metrics.dashboard_api_route_count > 0
+      && metrics.read_only === true
+      && metrics.handbook_only === true
+      && metrics.report_only === true
+      && metrics.desktop_operator_surface === true
+      && metrics.desktop_read_only === true
+      && metrics.desktop_source_of_truth === false
+      && metrics.source_content_read_performed === false
+      && metrics.source_ingest_performed === false
+      && metrics.approval_application_performed === false
+      && metrics.receipt_application_performed === false
+      && metrics.policy_mutation_performed === false
+      && metrics.recovery_execution_performed === false
+      && metrics.rollback_execution_performed === false
+      && metrics.restore_execution_performed === false
+      && metrics.command_execution_performed === false
+      && metrics.route_execution_performed === false
+      && metrics.server_started === false
+      && metrics.protected_action_executed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.client_facing_ready === false
+      && metrics.human_review_required === true
+      && metrics.attorney_review_required === true
+      && metrics.approval_required_for_protected_actions === true
+      && metrics.approval_required_for_recovery === true
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Operator Handbook locks P310 approval, receipt, policy, recovery, and Desktop navigation guidance as read-only operator documentation with no protected, legal, client-facing, command, route, or recovery execution.");
     }
   }
 

@@ -98,6 +98,7 @@ import { runDashboardApiFreeze } from "../src/dashboard-api-freeze.mjs";
 import { runThreatModelRefresh } from "../src/threat-model-refresh.mjs";
 import { runPromptInjectionTestSuite } from "../src/prompt-injection-test-suite.mjs";
 import { runExternalModelPolicyAudit } from "../src/external-model-policy-audit.mjs";
+import { runSecretsScanGate } from "../src/secrets-scan-gate.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -1993,6 +1994,7 @@ describe("matter harness", () => {
         threatModelRefreshPath: path.join(outDir, "threat-model-refresh", "threat-model-refresh.json"),
         promptInjectionTestSuitePath: path.join(outDir, "prompt-injection-test-suite", "prompt-injection-test-suite.json"),
         externalModelPolicyAuditPath: path.join(outDir, "external-model-policy-audit", "external-model-policy-audit.json"),
+        secretsScanGatePath: path.join(outDir, "secrets-scan-gate", "secrets-scan-gate.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -2126,6 +2128,7 @@ describe("matter harness", () => {
         threatModelRefreshPath: false,
         promptInjectionTestSuitePath: false,
         externalModelPolicyAuditPath: false,
+        secretsScanGatePath: false,
         observabilityFreezePath: false,
         capabilityManifestV2Path: false,
         packManifestCompatibilityPath: false,
@@ -13353,6 +13356,7 @@ describe("matter harness", () => {
         threatModelRefreshPath: false,
         promptInjectionTestSuitePath: false,
         externalModelPolicyAuditPath: false,
+        secretsScanGatePath: false,
         outDir: path.join(outDir, "dashboard-pre-checkpoint"),
         runAt: "2026-05-23T06:35:08.000Z",
       });
@@ -14577,6 +14581,81 @@ describe("matter harness", () => {
       assert.match(await readFile(path.join(outDir, "external-model-policy-audit", "summary.md"), "utf8"), /External Model Policy Audit/);
 
       contractGoldenFixtureArtifactPaths.external_model_policy_audit = path.join(outDir, "external-model-policy-audit", "external-model-policy-audit.json");
+      const secretsScanGate = await runSecretsScanGate({
+        externalModelPolicyAuditPath: path.join(outDir, "external-model-policy-audit", "external-model-policy-audit.json"),
+        secretsBrokerContractPath: path.join(outDir, "secrets-broker", "secrets-broker-contract.json"),
+        protectedFileGatePath: path.join(outDir, "protected-file-gate", "protected-file-gate.json"),
+        devProtectedScanPath: path.join(outDir, "dev-protected-scan", "dev-protected-scan.json"),
+        connectorFreezePath: path.join(outDir, "connector-freeze", "connector-freeze.json"),
+        connectorContractV2Path: path.join(outDir, "connector-contract-v2", "connector-contract-v2.json"),
+        expansionQuarantineLedgerPath: path.join(outDir, "expansion-quarantine-ledger", "expansion-quarantine-ledger.json"),
+        runtimeApiDashboardPath: path.join(outDir, "runtime-api-dashboard", "runtime-api-dashboard.json"),
+        capabilityRegistryApiPath: path.join(outDir, "capability-registry-api", "capability-registry-api.json"),
+        outDir: path.join(outDir, "secrets-scan-gate"),
+        runAt: "2026-05-23T07:26:35.470Z",
+      });
+      const secretsScanGateSchema = JSON.parse(await readFile("schemas/secrets-scan-gate.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(secretsScanGate, secretsScanGateSchema, {}, "secrets_scan_gate"), [], JSON.stringify(secretsScanGate.validation.errors));
+      assert.equal(secretsScanGate.summary.secrets_scan_gate_status, "complete");
+      assert.equal(secretsScanGate.summary.phase_slot, "P300");
+      assert.equal(secretsScanGate.summary.previous_phase_slot, "P299");
+      assert.equal(secretsScanGate.summary.next_phase_slot, "P301");
+      assert.equal(secretsScanGate.summary.source_external_model_policy_audit_status, "complete");
+      assert.equal(secretsScanGate.summary.source_external_model_policy_audit_phase_slot, "P299");
+      assert.equal(secretsScanGate.summary.source_external_model_policy_audit_next_phase_slot, "P300");
+      assert.equal(secretsScanGate.summary.failed_source_status_count, 0);
+      assert.ok(secretsScanGate.summary.rule_result_count >= 10);
+      assert.equal(secretsScanGate.summary.passed_rule_result_count, secretsScanGate.summary.rule_result_count);
+      assert.equal(secretsScanGate.summary.failed_rule_result_count, 0);
+      assert.ok(secretsScanGate.summary.gate_result_count >= 8);
+      assert.equal(secretsScanGate.summary.passed_gate_result_count, secretsScanGate.summary.gate_result_count);
+      assert.equal(secretsScanGate.summary.failed_gate_result_count, 0);
+      assert.equal(secretsScanGate.summary.gate_fail_on_leakage_count, secretsScanGate.summary.gate_result_count);
+      assert.equal(secretsScanGate.summary.leakage_allowed_count, 0);
+      assert.equal(secretsScanGate.summary.credential_leakage_detected_count, 0);
+      assert.equal(secretsScanGate.summary.token_leakage_detected_count, 0);
+      assert.equal(secretsScanGate.summary.env_leakage_detected_count, 0);
+      assert.equal(secretsScanGate.summary.desktop_config_leakage_detected_count, 0);
+      assert.equal(secretsScanGate.summary.provider_key_leakage_detected_count, 0);
+      assert.equal(secretsScanGate.summary.raw_secret_material_allowed_count, 0);
+      assert.equal(secretsScanGate.summary.raw_secret_material_exposed_count, 0);
+      assert.equal(secretsScanGate.summary.raw_secret_material_logged_count, 0);
+      assert.equal(secretsScanGate.summary.provider_key_direct_access_allowed_count, 0);
+      assert.equal(secretsScanGate.summary.provider_key_logged_count, 0);
+      assert.equal(secretsScanGate.summary.desktop_secret_material_exposed_count, 0);
+      assert.equal(secretsScanGate.summary.desktop_provider_key_visible_count, 0);
+      assert.equal(secretsScanGate.summary.secret_material_read_count, 0);
+      assert.equal(secretsScanGate.summary.secret_material_materialized_count, 0);
+      assert.equal(secretsScanGate.summary.env_file_read_count, 0);
+      assert.equal(secretsScanGate.summary.desktop_config_read_count, 0);
+      assert.equal(secretsScanGate.summary.read_only, true);
+      assert.equal(secretsScanGate.summary.scan_report_only, true);
+      assert.equal(secretsScanGate.summary.source_content_read_performed, false);
+      assert.equal(secretsScanGate.summary.source_ingest_performed, false);
+      assert.equal(secretsScanGate.summary.filesystem_secret_scan_performed, false);
+      assert.equal(secretsScanGate.summary.secret_material_read, false);
+      assert.equal(secretsScanGate.summary.secret_material_materialized, false);
+      assert.equal(secretsScanGate.summary.env_file_read, false);
+      assert.equal(secretsScanGate.summary.desktop_config_read, false);
+      assert.equal(secretsScanGate.summary.provider_key_materialized, false);
+      assert.equal(secretsScanGate.summary.route_execution_performed, false);
+      assert.equal(secretsScanGate.summary.server_started, false);
+      assert.equal(secretsScanGate.summary.legal_advice_generated, false);
+      assert.equal(secretsScanGate.summary.client_facing_output_generated, false);
+      assert.equal(secretsScanGate.summary.human_review_required, true);
+      assert.equal(secretsScanGate.summary.client_facing_ready, false);
+      assert.equal(secretsScanGate.summary.windows_baseline_stability_preserved, true);
+      assert.equal(secretsScanGate.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(secretsScanGate.summary.validation_error_count, 0);
+      assert.ok(secretsScanGate.source_statuses.every((row) => row.source_status === "passed"));
+      assert.ok(secretsScanGate.secrets_scan_rule_results.every((row) => row.rule_status === "passed" && row.gate_fail_on_leakage && !row.leakage_allowed));
+      assert.ok(secretsScanGate.secrets_scan_gate_results.every((row) => row.gate_status === "passed" && row.gate_decision === "fail_on_leakage" && !row.leakage_detected));
+      assert.ok(secretsScanGate.desktop_config_leakage_checks.every((row) => row.check_status === "passed" && row.gate_fail_on_leakage));
+      assert.equal(secretsScanGate.secrets_scan_boundary.boundary_status, "enforced");
+      assert.ok(secretsScanGate.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "secrets-scan-gate", "summary.md"), "utf8"), /Secrets Scan Gate/);
+
+      contractGoldenFixtureArtifactPaths.secrets_scan_gate = path.join(outDir, "secrets-scan-gate", "secrets-scan-gate.json");
       contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: contractGoldenFixtureArtifactPaths,
         fixtureIds: Object.keys(contractGoldenFixtureArtifactPaths),
@@ -14588,14 +14667,15 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 201);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 201);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 202);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 202);
       assert.equal(contractGoldenFixtures.summary.missing_artifact_count, 0);
       assert.equal(contractGoldenFixtures.summary.validation_error_count, 0);
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "dashboard_api_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "threat_model_refresh"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "prompt_injection_test_suite"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "external_model_policy_audit"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "secrets_scan_gate"));
 
       contractValidationSuite = await runContractValidationSuite({
         contractGoldenFixturesPath: path.join(outDir, "contract-golden-fixtures", "contract-golden-fixtures.json"),
@@ -14609,8 +14689,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractValidationSuite.summary.validation_suite_status, "complete");
-      assert.equal(contractValidationSuite.summary.fixture_count, 201);
-      assert.equal(contractValidationSuite.summary.validated_fixture_count, 201);
+      assert.equal(contractValidationSuite.summary.fixture_count, 202);
+      assert.equal(contractValidationSuite.summary.validated_fixture_count, 202);
       assert.equal(contractValidationSuite.summary.schema_invalid_fixture_count, 0);
       assert.equal(contractValidationSuite.summary.regression_failed_count, 0);
       assert.equal(contractValidationSuite.summary.missing_package_script_count, 0);
@@ -14619,6 +14699,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "security:threat-model"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "security:prompt-injection-tests"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "security:external-model-policy-audit"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "security:secrets-scan-gate"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
 
       const dashboard = await runReviewDashboard({
@@ -14667,6 +14748,10 @@ describe("matter harness", () => {
       assert.equal(externalModelPolicyAuditCheckpoint?.acceptance_profile, "external_model_policy_audit_gate");
       assert.equal(externalModelPolicyAuditCheckpoint?.status, "passed");
       assert.equal(externalModelPolicyAuditCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const secretsScanGateCheckpoint = dashboardApiFreezeGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-secrets-scan-gate");
+      assert.equal(secretsScanGateCheckpoint?.acceptance_profile, "secrets_scan_gate_gate");
+      assert.equal(secretsScanGateCheckpoint?.status, "passed");
+      assert.equal(secretsScanGateCheckpoint?.implementation_status, "passed_with_operational_gate");
       assert.equal(dashboard.summary.evidence_approved_count, 1);
       assert.equal(dashboard.summary.evidence_review_draft_item_count, evidenceReviewDraft.summary.review_item_count);
       assert.equal(dashboard.summary.evidence_review_draft_attorney_count, evidenceReviewDraft.summary.attorney_review_count);
@@ -20206,6 +20291,58 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.external_model_policy_audit_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.external_model_policy_audit_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.external_model_policy_audit_validation_error_count, 0);
+      assert.equal(dashboard.summary.secrets_scan_gate_status, "complete");
+      assert.equal(dashboard.summary.secrets_scan_gate_id, secretsScanGate.summary.secrets_scan_gate_id);
+      assert.equal(dashboard.summary.secrets_scan_gate_phase_slot, "P300");
+      assert.equal(dashboard.summary.secrets_scan_gate_previous_phase_slot, "P299");
+      assert.equal(dashboard.summary.secrets_scan_gate_next_phase_slot, "P301");
+      assert.equal(dashboard.summary.secrets_scan_gate_source_external_model_policy_audit_status, "complete");
+      assert.equal(dashboard.summary.secrets_scan_gate_source_external_model_policy_audit_phase_slot, "P299");
+      assert.equal(dashboard.summary.secrets_scan_gate_source_external_model_policy_audit_next_phase_slot, "P300");
+      assert.equal(dashboard.summary.secrets_scan_gate_failed_source_status_count, 0);
+      assert.equal(dashboard.summary.secrets_scan_gate_rule_result_count, secretsScanGate.summary.rule_result_count);
+      assert.equal(dashboard.summary.secrets_scan_gate_passed_rule_result_count, secretsScanGate.summary.passed_rule_result_count);
+      assert.equal(dashboard.summary.secrets_scan_gate_failed_rule_result_count, 0);
+      assert.equal(dashboard.summary.secrets_scan_gate_gate_result_count, secretsScanGate.summary.gate_result_count);
+      assert.equal(dashboard.summary.secrets_scan_gate_passed_gate_result_count, secretsScanGate.summary.passed_gate_result_count);
+      assert.equal(dashboard.summary.secrets_scan_gate_failed_gate_result_count, 0);
+      assert.equal(dashboard.summary.secrets_scan_gate_desktop_config_leakage_check_count, secretsScanGate.summary.desktop_config_leakage_check_count);
+      assert.equal(dashboard.summary.secrets_scan_gate_passed_desktop_config_leakage_check_count, secretsScanGate.summary.passed_desktop_config_leakage_check_count);
+      assert.equal(dashboard.summary.secrets_scan_gate_failed_desktop_config_leakage_check_count, 0);
+      assert.equal(dashboard.summary.secrets_scan_gate_gate_fail_on_leakage_count, secretsScanGate.summary.gate_result_count);
+      assert.equal(dashboard.summary.secrets_scan_gate_leakage_allowed_count, 0);
+      assert.equal(dashboard.summary.secrets_scan_gate_credential_leakage_detected_count, 0);
+      assert.equal(dashboard.summary.secrets_scan_gate_token_leakage_detected_count, 0);
+      assert.equal(dashboard.summary.secrets_scan_gate_env_leakage_detected_count, 0);
+      assert.equal(dashboard.summary.secrets_scan_gate_desktop_config_leakage_detected_count, 0);
+      assert.equal(dashboard.summary.secrets_scan_gate_provider_key_leakage_detected_count, 0);
+      assert.equal(dashboard.summary.secrets_scan_gate_raw_secret_material_allowed_count, 0);
+      assert.equal(dashboard.summary.secrets_scan_gate_raw_secret_material_exposed_count, 0);
+      assert.equal(dashboard.summary.secrets_scan_gate_provider_key_direct_access_allowed_count, 0);
+      assert.equal(dashboard.summary.secrets_scan_gate_desktop_provider_key_visible_count, 0);
+      assert.equal(dashboard.summary.secrets_scan_gate_secret_material_read_count, 0);
+      assert.equal(dashboard.summary.secrets_scan_gate_secret_material_materialized_count, 0);
+      assert.equal(dashboard.summary.secrets_scan_gate_env_file_read_count, 0);
+      assert.equal(dashboard.summary.secrets_scan_gate_desktop_config_read_count, 0);
+      assert.equal(dashboard.summary.secrets_scan_gate_read_only, true);
+      assert.equal(dashboard.summary.secrets_scan_gate_scan_report_only, true);
+      assert.equal(dashboard.summary.secrets_scan_gate_source_content_read_performed, false);
+      assert.equal(dashboard.summary.secrets_scan_gate_source_ingest_performed, false);
+      assert.equal(dashboard.summary.secrets_scan_gate_filesystem_secret_scan_performed, false);
+      assert.equal(dashboard.summary.secrets_scan_gate_secret_material_read, false);
+      assert.equal(dashboard.summary.secrets_scan_gate_secret_material_materialized, false);
+      assert.equal(dashboard.summary.secrets_scan_gate_env_file_read, false);
+      assert.equal(dashboard.summary.secrets_scan_gate_desktop_config_read, false);
+      assert.equal(dashboard.summary.secrets_scan_gate_provider_key_materialized, false);
+      assert.equal(dashboard.summary.secrets_scan_gate_route_execution_performed, false);
+      assert.equal(dashboard.summary.secrets_scan_gate_server_started, false);
+      assert.equal(dashboard.summary.secrets_scan_gate_legal_advice_generated, false);
+      assert.equal(dashboard.summary.secrets_scan_gate_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.secrets_scan_gate_human_review_required, true);
+      assert.equal(dashboard.summary.secrets_scan_gate_client_facing_ready, false);
+      assert.equal(dashboard.summary.secrets_scan_gate_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.secrets_scan_gate_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.secrets_scan_gate_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -24329,6 +24466,60 @@ describe("matter harness", () => {
       assert.equal(externalModelPolicyAuditStage?.metrics.windows_baseline_stability_preserved, true);
       assert.equal(externalModelPolicyAuditStage?.metrics.mac_windows_completion_instability_guard, true);
       assert.equal(externalModelPolicyAuditStage?.metrics.validation_error_count, 0);
+      const secretsScanGateStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "secrets_scan_gate");
+      assert.equal(secretsScanGateStage?.status, "passed");
+      assert.equal(secretsScanGateStage?.metrics.secrets_scan_gate_status, "complete");
+      assert.equal(secretsScanGateStage?.metrics.secrets_scan_gate_id, secretsScanGate.summary.secrets_scan_gate_id);
+      assert.equal(secretsScanGateStage?.metrics.phase_slot, "P300");
+      assert.equal(secretsScanGateStage?.metrics.previous_phase_slot, "P299");
+      assert.equal(secretsScanGateStage?.metrics.next_phase_slot, "P301");
+      assert.equal(secretsScanGateStage?.metrics.source_external_model_policy_audit_status, "complete");
+      assert.equal(secretsScanGateStage?.metrics.source_external_model_policy_audit_phase_slot, "P299");
+      assert.equal(secretsScanGateStage?.metrics.source_external_model_policy_audit_next_phase_slot, "P300");
+      assert.equal(secretsScanGateStage?.metrics.failed_source_status_count, 0);
+      assert.equal(secretsScanGateStage?.metrics.rule_result_count, secretsScanGate.summary.rule_result_count);
+      assert.equal(secretsScanGateStage?.metrics.passed_rule_result_count, secretsScanGate.summary.passed_rule_result_count);
+      assert.equal(secretsScanGateStage?.metrics.failed_rule_result_count, 0);
+      assert.equal(secretsScanGateStage?.metrics.gate_result_count, secretsScanGate.summary.gate_result_count);
+      assert.equal(secretsScanGateStage?.metrics.passed_gate_result_count, secretsScanGate.summary.passed_gate_result_count);
+      assert.equal(secretsScanGateStage?.metrics.failed_gate_result_count, 0);
+      assert.equal(secretsScanGateStage?.metrics.desktop_config_leakage_check_count, secretsScanGate.summary.desktop_config_leakage_check_count);
+      assert.equal(secretsScanGateStage?.metrics.passed_desktop_config_leakage_check_count, secretsScanGate.summary.passed_desktop_config_leakage_check_count);
+      assert.equal(secretsScanGateStage?.metrics.failed_desktop_config_leakage_check_count, 0);
+      assert.equal(secretsScanGateStage?.metrics.gate_fail_on_leakage_count, secretsScanGate.summary.gate_result_count);
+      assert.equal(secretsScanGateStage?.metrics.leakage_allowed_count, 0);
+      assert.equal(secretsScanGateStage?.metrics.credential_leakage_detected_count, 0);
+      assert.equal(secretsScanGateStage?.metrics.token_leakage_detected_count, 0);
+      assert.equal(secretsScanGateStage?.metrics.env_leakage_detected_count, 0);
+      assert.equal(secretsScanGateStage?.metrics.desktop_config_leakage_detected_count, 0);
+      assert.equal(secretsScanGateStage?.metrics.provider_key_leakage_detected_count, 0);
+      assert.equal(secretsScanGateStage?.metrics.raw_secret_material_allowed_count, 0);
+      assert.equal(secretsScanGateStage?.metrics.raw_secret_material_exposed_count, 0);
+      assert.equal(secretsScanGateStage?.metrics.provider_key_direct_access_allowed_count, 0);
+      assert.equal(secretsScanGateStage?.metrics.desktop_provider_key_visible_count, 0);
+      assert.equal(secretsScanGateStage?.metrics.secret_material_read_count, 0);
+      assert.equal(secretsScanGateStage?.metrics.secret_material_materialized_count, 0);
+      assert.equal(secretsScanGateStage?.metrics.env_file_read_count, 0);
+      assert.equal(secretsScanGateStage?.metrics.desktop_config_read_count, 0);
+      assert.equal(secretsScanGateStage?.metrics.read_only, true);
+      assert.equal(secretsScanGateStage?.metrics.scan_report_only, true);
+      assert.equal(secretsScanGateStage?.metrics.source_content_read_performed, false);
+      assert.equal(secretsScanGateStage?.metrics.source_ingest_performed, false);
+      assert.equal(secretsScanGateStage?.metrics.filesystem_secret_scan_performed, false);
+      assert.equal(secretsScanGateStage?.metrics.secret_material_read, false);
+      assert.equal(secretsScanGateStage?.metrics.secret_material_materialized, false);
+      assert.equal(secretsScanGateStage?.metrics.env_file_read, false);
+      assert.equal(secretsScanGateStage?.metrics.desktop_config_read, false);
+      assert.equal(secretsScanGateStage?.metrics.provider_key_materialized, false);
+      assert.equal(secretsScanGateStage?.metrics.route_execution_performed, false);
+      assert.equal(secretsScanGateStage?.metrics.server_started, false);
+      assert.equal(secretsScanGateStage?.metrics.legal_advice_generated, false);
+      assert.equal(secretsScanGateStage?.metrics.client_facing_output_generated, false);
+      assert.equal(secretsScanGateStage?.metrics.human_review_required, true);
+      assert.equal(secretsScanGateStage?.metrics.client_facing_ready, false);
+      assert.equal(secretsScanGateStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(secretsScanGateStage?.metrics.mac_windows_completion_instability_guard, true);
+      assert.equal(secretsScanGateStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -24599,6 +24790,13 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/desktop-provider-model-audits"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/external-model-policy-audit-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/external-model-policy-audit-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/secrets-scan-gates"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/secrets-scan-sources"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/secrets-scan-rule-results"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/secrets-scan-gate-results"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/desktop-config-leakage-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/secrets-scan-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/secrets-scan-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -27804,6 +28002,34 @@ describe("matter harness", () => {
       const externalModelPolicyAuditValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/external-model-policy-audit-validations?status=passed", apiOptions)).body);
       assert.equal(externalModelPolicyAuditValidationsResponse.collection, "external_model_policy_audit_validations");
       assert.equal(externalModelPolicyAuditValidationsResponse.count, externalModelPolicyAudit.summary.validation_item_count);
+
+      const secretsScanGatesResponse = JSON.parse((await buildReviewApiResponse("/api/secrets-scan-gates?secrets_scan_gate_status=complete", apiOptions)).body);
+      assert.equal(secretsScanGatesResponse.collection, "secrets_scan_gates");
+      assert.equal(secretsScanGatesResponse.count, 1);
+
+      const secretsScanSourcesResponse = JSON.parse((await buildReviewApiResponse("/api/secrets-scan-sources?source_status=passed", apiOptions)).body);
+      assert.equal(secretsScanSourcesResponse.collection, "secrets_scan_sources");
+      assert.equal(secretsScanSourcesResponse.count, secretsScanGate.summary.source_status_count);
+
+      const secretsScanRuleResultsResponse = JSON.parse((await buildReviewApiResponse("/api/secrets-scan-rule-results?rule_status=passed", apiOptions)).body);
+      assert.equal(secretsScanRuleResultsResponse.collection, "secrets_scan_rule_results");
+      assert.equal(secretsScanRuleResultsResponse.count, secretsScanGate.summary.rule_result_count);
+
+      const secretsScanGateResultsResponse = JSON.parse((await buildReviewApiResponse("/api/secrets-scan-gate-results?gate_status=passed&leakage_detected=false", apiOptions)).body);
+      assert.equal(secretsScanGateResultsResponse.collection, "secrets_scan_gate_results");
+      assert.equal(secretsScanGateResultsResponse.count, secretsScanGate.summary.gate_result_count);
+
+      const desktopConfigLeakageChecksResponse = JSON.parse((await buildReviewApiResponse("/api/desktop-config-leakage-checks?check_status=passed&gate_fail_on_leakage=true", apiOptions)).body);
+      assert.equal(desktopConfigLeakageChecksResponse.collection, "desktop_config_leakage_checks");
+      assert.equal(desktopConfigLeakageChecksResponse.count, secretsScanGate.summary.desktop_config_leakage_check_count);
+
+      const secretsScanBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/secrets-scan-boundary?boundary_status=enforced&secret_material_read=false&desktop_config_read=false", apiOptions)).body);
+      assert.equal(secretsScanBoundaryResponse.collection, "secrets_scan_boundary");
+      assert.equal(secretsScanBoundaryResponse.count, 1);
+
+      const secretsScanValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/secrets-scan-validations?status=passed", apiOptions)).body);
+      assert.equal(secretsScanValidationsResponse.collection, "secrets_scan_validations");
+      assert.equal(secretsScanValidationsResponse.count, secretsScanGate.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

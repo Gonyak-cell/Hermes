@@ -121,6 +121,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "security:threat-model",
   "security:prompt-injection-tests",
   "security:external-model-policy-audit",
+  "security:secrets-scan-gate",
   "capabilities:manifest-v2",
   "capabilities:registry-api",
   "packs:compatibility",

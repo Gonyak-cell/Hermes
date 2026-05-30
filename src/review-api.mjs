@@ -6904,6 +6904,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("external_model_policy_audit_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/secrets-scan-gates") {
+    const result = await readDashboardSourceArtifact(dashboard, "secrets_scan_gate");
+    if (!result.available) {
+      return jsonResponse(503, buildError("secrets_scan_gate_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("secrets_scan_gates", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/secrets-scan-sources") {
+    const result = await readDashboardSourceArtifact(dashboard, "secrets_scan_gate");
+    if (!result.available) {
+      return jsonResponse(503, buildError("secrets_scan_gate_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("secrets_scan_sources", result.artifact.source_statuses ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/secrets-scan-rule-results") {
+    const result = await readDashboardSourceArtifact(dashboard, "secrets_scan_gate");
+    if (!result.available) {
+      return jsonResponse(503, buildError("secrets_scan_gate_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("secrets_scan_rule_results", result.artifact.secrets_scan_rule_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/secrets-scan-gate-results") {
+    const result = await readDashboardSourceArtifact(dashboard, "secrets_scan_gate");
+    if (!result.available) {
+      return jsonResponse(503, buildError("secrets_scan_gate_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("secrets_scan_gate_results", result.artifact.secrets_scan_gate_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/desktop-config-leakage-checks") {
+    const result = await readDashboardSourceArtifact(dashboard, "secrets_scan_gate");
+    if (!result.available) {
+      return jsonResponse(503, buildError("secrets_scan_gate_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("desktop_config_leakage_checks", result.artifact.desktop_config_leakage_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/secrets-scan-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "secrets_scan_gate");
+    if (!result.available) {
+      return jsonResponse(503, buildError("secrets_scan_gate_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("secrets_scan_boundary", [result.artifact.secrets_scan_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/secrets-scan-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "secrets_scan_gate");
+    if (!result.available) {
+      return jsonResponse(503, buildError("secrets_scan_gate_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("secrets_scan_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -13494,6 +13543,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/desktop-provider-model-audits", "Desktop provider/model audit rows"),
       route("GET", "/api/external-model-policy-audit-boundary", "External Model Policy Audit read-only boundary"),
       route("GET", "/api/external-model-policy-audit-validations", "External Model Policy Audit validation rows"),
+      route("GET", "/api/secrets-scan-gates", "Secrets Scan Gate artifact"),
+      route("GET", "/api/secrets-scan-sources", "Secrets Scan Gate source status rows"),
+      route("GET", "/api/secrets-scan-rule-results", "Secrets Scan Gate rule result rows"),
+      route("GET", "/api/secrets-scan-gate-results", "Secrets Scan Gate leakage gate result rows"),
+      route("GET", "/api/desktop-config-leakage-checks", "Desktop config leakage check rows"),
+      route("GET", "/api/secrets-scan-boundary", "Secrets Scan Gate read-only boundary"),
+      route("GET", "/api/secrets-scan-validations", "Secrets Scan Gate validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -14765,6 +14821,15 @@ function filterItems(items, searchParams) {
     "evidence_status",
     "prompt_injection_test_suite_status",
     "external_model_policy_audit_status",
+    "secrets_scan_gate_status",
+    "rule_status",
+    "gate_status",
+    "check_status",
+    "leakage_kind",
+    "leakage_detected",
+    "gate_fail_on_leakage",
+    "secret_material_read",
+    "desktop_config_read",
     "provider_transmission_policy",
     "snapshot_comparison_status",
     "route_policy_status",
@@ -16788,6 +16853,15 @@ function readFilterValue(item, key) {
   if (key === "evidence_status") return item.evidence_status;
   if (key === "prompt_injection_test_suite_status") return item.summary?.prompt_injection_test_suite_status ?? item.prompt_injection_test_suite_status;
   if (key === "external_model_policy_audit_status") return item.summary?.external_model_policy_audit_status ?? item.external_model_policy_audit_status;
+  if (key === "secrets_scan_gate_status") return item.summary?.secrets_scan_gate_status ?? item.secrets_scan_gate_status;
+  if (key === "rule_status") return item.rule_status;
+  if (key === "gate_status") return item.gate_status;
+  if (key === "check_status") return item.check_status;
+  if (key === "leakage_kind") return item.leakage_kind;
+  if (key === "leakage_detected") return String(Boolean(item.leakage_detected));
+  if (key === "gate_fail_on_leakage") return String(Boolean(item.gate_fail_on_leakage));
+  if (key === "secret_material_read") return String(Boolean(item.secret_material_read));
+  if (key === "desktop_config_read") return String(Boolean(item.desktop_config_read));
   if (key === "provider_transmission_policy") return item.provider_transmission_policy;
   if (key === "snapshot_comparison_status") return item.snapshot_comparison_status;
   if (key === "route_policy_status") return item.route_policy_status;

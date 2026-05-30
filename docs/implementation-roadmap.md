@@ -7760,6 +7760,20 @@ Changes:
 - Golden fixture count increased to 201 and `external_model_policy_audit` is included as a regression fixture.
 - `npm run security:external-model-policy-audit -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
 
+## Phase 300 - Secrets Scan Gate
+
+Phase 300 adds `secrets_scan_gate`, a read-only gate report that verifies credential, token, `.env`, provider-key, and Desktop/production config leakage is treated as a fail-on-leakage gate. It builds on the P299 External Model Policy Audit, Secrets Broker Contract, Protected File Gate, Dev Protected Scan, Connector Freeze, Connector Contract v2, Expansion Quarantine Ledger, Runtime API Dashboard, and Capability Registry API without reading secret values, reading `.env` files, reading Desktop config content, scanning arbitrary source content, ingesting sources, materializing provider keys, executing routes, starting a server, using network access, executing protected actions, delivering output, generating legal advice, or producing client-facing output.
+
+Changes:
+
+- Added `src/secrets-scan-gate.mjs`, `scripts/secrets-scan-gate.mjs`, `schemas/secrets-scan-gate.schema.json`, and `docs/secrets-scan-gate.md`.
+- Added `security:secrets-scan-gate` npm script.
+- The gate emits `secrets-scan-gate.json`, source status rows, rule result rows, leakage gate result rows, Desktop config leakage checks, boundary, validation report, and summary markdown under `artifacts/secrets-scan-gate/latest`.
+- Review Dashboard stage/summary, Review API routes/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests now include `secrets_scan_gate`.
+- The gate proves credential material, raw token material, env files, provider API keys, Desktop provider key visibility, protected config writes, and secret-bearing external transfer/delivery have zero observed leakage and are configured to fail if leakage appears.
+- Golden fixture count increased to 202 and `secrets_scan_gate` is included as a regression fixture.
+- `npm run security:secrets-scan-gate -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -7768,9 +7782,9 @@ Changes:
 
 운영 원칙:
 
-- Current actual completion baseline is Phase 299.
+- Current actual completion baseline is Phase 300.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- Remaining planned slots are P300-P312, 13 total.
+- Remaining planned slots are P301-P312, 12 total.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - P217 이후 personal-dev 작업은 Mac Phase 216 결과를 Windows 작업공간에서 계속 이어가되, Phase 217 본작업보다 Windows 기준선 안정화 게이트를 선행 조건으로 둔 판단을 기준으로 운영한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.

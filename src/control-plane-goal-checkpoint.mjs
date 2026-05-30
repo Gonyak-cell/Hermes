@@ -172,6 +172,7 @@ const GOAL_ITEMS = [
   sourceItem("threat_model_refresh", "Threat Model Refresh", "security", "threat_model_refresh", "control-plane-threat-model-refresh", { acceptance_profile: "threat_model_refresh_gate" }),
   sourceItem("prompt_injection_test_suite", "Prompt Injection Test Suite", "security", "prompt_injection_test_suite", "control-plane-prompt-injection-test-suite", { acceptance_profile: "prompt_injection_test_suite_gate" }),
   sourceItem("external_model_policy_audit", "External Model Policy Audit", "security", "external_model_policy_audit", "control-plane-external-model-policy-audit", { acceptance_profile: "external_model_policy_audit_gate" }),
+  sourceItem("secrets_scan_gate", "Secrets Scan Gate", "security", "secrets_scan_gate", "control-plane-secrets-scan-gate", { acceptance_profile: "secrets_scan_gate_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -703,6 +704,7 @@ function evaluateStageAcceptance(item, stage) {
     "threat_model_refresh_gate",
     "prompt_injection_test_suite_gate",
     "external_model_policy_audit_gate",
+    "secrets_scan_gate_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -6571,6 +6573,76 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "External Model Policy Audit locks P299 classification, policy snapshot, route, and Desktop provider/model audits with zero unauthorized or high-sensitivity external transfer and no model execution, provider request, key exposure, mutation, legal advice, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "secrets_scan_gate_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.secrets_scan_gate_status === "complete"
+      && metrics.phase_slot === "P300"
+      && metrics.previous_phase_slot === "P299"
+      && metrics.next_phase_slot === "P301"
+      && metrics.source_external_model_policy_audit_status === "complete"
+      && metrics.source_external_model_policy_audit_phase_slot === "P299"
+      && metrics.source_external_model_policy_audit_next_phase_slot === "P300"
+      && metrics.failed_source_status_count === 0
+      && metrics.rule_result_count >= 10
+      && metrics.passed_rule_result_count === metrics.rule_result_count
+      && metrics.failed_rule_result_count === 0
+      && metrics.gate_result_count >= 8
+      && metrics.passed_gate_result_count === metrics.gate_result_count
+      && metrics.failed_gate_result_count === 0
+      && metrics.desktop_config_leakage_check_count >= 4
+      && metrics.passed_desktop_config_leakage_check_count === metrics.desktop_config_leakage_check_count
+      && metrics.failed_desktop_config_leakage_check_count === 0
+      && metrics.gate_fail_on_leakage_count === metrics.gate_result_count
+      && metrics.leakage_allowed_count === 0
+      && metrics.credential_leakage_detected_count === 0
+      && metrics.token_leakage_detected_count === 0
+      && metrics.env_leakage_detected_count === 0
+      && metrics.desktop_config_leakage_detected_count === 0
+      && metrics.provider_key_leakage_detected_count === 0
+      && metrics.raw_secret_material_allowed_count === 0
+      && metrics.raw_secret_material_exposed_count === 0
+      && metrics.raw_secret_material_logged_count === 0
+      && metrics.provider_key_direct_access_allowed_count === 0
+      && metrics.provider_key_logged_count === 0
+      && metrics.desktop_secret_material_exposed_count === 0
+      && metrics.desktop_provider_key_visible_count === 0
+      && metrics.secret_material_read_count === 0
+      && metrics.secret_material_materialized_count === 0
+      && metrics.env_file_read_count === 0
+      && metrics.desktop_config_read_count === 0
+      && metrics.protected_write_allowed_count === 0
+      && metrics.write_allowed_before_approval_count === 0
+      && metrics.mutation_allowed_before_approval_count === 0
+      && metrics.read_only === true
+      && metrics.scan_report_only === true
+      && metrics.source_artifact_read_performed === true
+      && metrics.source_content_read_performed === false
+      && metrics.source_ingest_performed === false
+      && metrics.filesystem_secret_scan_performed === false
+      && metrics.secret_material_read === false
+      && metrics.secret_material_materialized === false
+      && metrics.env_file_read === false
+      && metrics.desktop_config_read === false
+      && metrics.desktop_setting_mutation_allowed === false
+      && metrics.provider_key_materialized === false
+      && metrics.network_access_performed === false
+      && metrics.route_execution_performed === false
+      && metrics.server_started === false
+      && metrics.protected_action_executed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.human_review_required === true
+      && metrics.client_facing_ready === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Secrets Scan Gate locks P300 credential, token, env, provider-key, and Desktop config leakage as fail-on-leakage gates while preserving read-only, report-only, no-secret-read, no-config-read, no-provider-key-materialization, human-review, and Windows baseline constraints.");
     }
   }
 

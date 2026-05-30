@@ -3356,6 +3356,34 @@ try {
   assert.equal(externalModelPolicyAuditValidations.collection, "external_model_policy_audit_validations");
   assert.ok(externalModelPolicyAuditValidations.count <= 5);
 
+  const secretsScanGates = await fetchJson(`${url}/api/secrets-scan-gates?secrets_scan_gate_status=complete&limit=1`);
+  assert.equal(secretsScanGates.collection, "secrets_scan_gates");
+  assert.ok(secretsScanGates.count <= 1);
+
+  const secretsScanSources = await fetchJson(`${url}/api/secrets-scan-sources?source_status=passed&limit=10`);
+  assert.equal(secretsScanSources.collection, "secrets_scan_sources");
+  assert.ok(secretsScanSources.count <= 10);
+
+  const secretsScanRuleResults = await fetchJson(`${url}/api/secrets-scan-rule-results?rule_status=passed&limit=20`);
+  assert.equal(secretsScanRuleResults.collection, "secrets_scan_rule_results");
+  assert.ok(secretsScanRuleResults.count <= 20);
+
+  const secretsScanGateResults = await fetchJson(`${url}/api/secrets-scan-gate-results?gate_status=passed&leakage_detected=false&limit=10`);
+  assert.equal(secretsScanGateResults.collection, "secrets_scan_gate_results");
+  assert.ok(secretsScanGateResults.count <= 10);
+
+  const desktopConfigLeakageChecks = await fetchJson(`${url}/api/desktop-config-leakage-checks?check_status=passed&gate_fail_on_leakage=true&limit=10`);
+  assert.equal(desktopConfigLeakageChecks.collection, "desktop_config_leakage_checks");
+  assert.ok(desktopConfigLeakageChecks.count <= 10);
+
+  const secretsScanBoundary = await fetchJson(`${url}/api/secrets-scan-boundary?boundary_status=enforced&secret_material_read=false&desktop_config_read=false&limit=1`);
+  assert.equal(secretsScanBoundary.collection, "secrets_scan_boundary");
+  assert.ok(secretsScanBoundary.count <= 1);
+
+  const secretsScanValidations = await fetchJson(`${url}/api/secrets-scan-validations?status=passed&limit=5`);
+  assert.equal(secretsScanValidations.collection, "secrets_scan_validations");
+  assert.ok(secretsScanValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

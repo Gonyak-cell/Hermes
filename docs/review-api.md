@@ -78,6 +78,12 @@ External Model Policy Audit routes expose the read-only audit artifact, classifi
 
 Routes: `/api/external-model-policy-audits`, `/api/external-model-classification-audits`, `/api/external-model-policy-snapshot-audits`, `/api/external-model-route-audits`, `/api/desktop-provider-model-audits`, `/api/external-model-policy-audit-boundary`, `/api/external-model-policy-audit-validations`.
 
+## P300 Secrets Scan Gate Routes
+
+Secrets Scan Gate routes expose the read-only gate artifact, source status rows, rule result rows, leakage gate result rows, Desktop config leakage checks, boundary, and validation rows. Supported filters include `secrets_scan_gate_status`, `source_status`, `rule_status`, `gate_status`, `check_status`, `leakage_kind`, `leakage_detected`, `gate_fail_on_leakage`, `secret_material_read`, `desktop_config_read`, `read_only`, `boundary_status`, `status`, and `limit`.
+
+Routes: `/api/secrets-scan-gates`, `/api/secrets-scan-sources`, `/api/secrets-scan-rule-results`, `/api/secrets-scan-gate-results`, `/api/desktop-config-leakage-checks`, `/api/secrets-scan-boundary`, `/api/secrets-scan-validations`.
+
 ## P245 LDD RFI Generator Routes
 
 LDD RFI Generator routes expose read-only draft-only RFI packets, draft questions, missing-material links, issue links, matter summaries, and validation/boundary rows. Supported filters include `ldd_rfi_generator_status`, `ldd_rfi_matter_status`, `rfi_rule_type`, `rfi_draft_status`, `rfi_question_type`, `rfi_question_priority`, `rfi_question_status`, `rfi_missing_material_status`, `rfi_issue_link_status`, `deterministic_rfi_generation_performed`, `ldd_rfi_question_id`, `ldd_issue_record_id`, `ldd_vdr_missing_data_record_id`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.

@@ -23,6 +23,7 @@
     "security:threat-model": "node scripts/threat-model-refresh.mjs",
     "security:prompt-injection-tests": "node scripts/prompt-injection-test-suite.mjs",
     "security:external-model-policy-audit": "node scripts/external-model-policy-audit.mjs",
+    "security:secrets-scan-gate": "node scripts/secrets-scan-gate.mjs",
     "contracts:inventory": "node scripts/contract-inventory.mjs",
     "contracts:dependencies": "node scripts/contract-dependency-map.mjs",
     "contracts:versioning": "node scripts/schema-versioning-rules.mjs",

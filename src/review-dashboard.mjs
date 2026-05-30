@@ -135,6 +135,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   threatModelRefreshPath: "artifacts/threat-model-refresh/latest/threat-model-refresh.json",
   promptInjectionTestSuitePath: "artifacts/prompt-injection-test-suite/latest/prompt-injection-test-suite.json",
   externalModelPolicyAuditPath: "artifacts/external-model-policy-audit/latest/external-model-policy-audit.json",
+  secretsScanGatePath: "artifacts/secrets-scan-gate/latest/secrets-scan-gate.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -953,6 +954,11 @@ const SOURCE_DEFINITIONS = [
     option: "externalModelPolicyAuditPath",
     source_id: "external_model_policy_audit",
     label: "External Model Policy Audit",
+  },
+  {
+    option: "secretsScanGatePath",
+    source_id: "secrets_scan_gate",
+    label: "Secrets Scan Gate",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -2363,6 +2369,7 @@ function buildStageStatuses(artifacts, sources) {
     buildThreatModelRefreshStage(artifacts.threat_model_refresh, sourceById.get("threat_model_refresh")),
     buildPromptInjectionTestSuiteStage(artifacts.prompt_injection_test_suite, sourceById.get("prompt_injection_test_suite")),
     buildExternalModelPolicyAuditStage(artifacts.external_model_policy_audit, sourceById.get("external_model_policy_audit")),
+    buildSecretsScanGateStage(artifacts.secrets_scan_gate, sourceById.get("secrets_scan_gate")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -16010,6 +16017,153 @@ function buildExternalModelPolicyAuditStage(artifact, source) {
   };
 }
 
+function buildSecretsScanGateStage(artifact, source) {
+  if (!artifact) return missingStage("secrets_scan_gate", "Secrets Scan Gate", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.secrets_scan_gate_status !== "complete"
+    || summary.phase_slot !== "P300"
+    || summary.previous_phase_slot !== "P299"
+    || summary.next_phase_slot !== "P301"
+    || summary.source_external_model_policy_audit_status !== "complete"
+    || summary.source_external_model_policy_audit_phase_slot !== "P299"
+    || summary.source_external_model_policy_audit_next_phase_slot !== "P300"
+    || summary.failed_source_status_count !== 0
+    || summary.rule_result_count < 10
+    || summary.passed_rule_result_count !== summary.rule_result_count
+    || summary.failed_rule_result_count !== 0
+    || summary.gate_result_count < 8
+    || summary.passed_gate_result_count !== summary.gate_result_count
+    || summary.failed_gate_result_count !== 0
+    || summary.desktop_config_leakage_check_count < 4
+    || summary.passed_desktop_config_leakage_check_count !== summary.desktop_config_leakage_check_count
+    || summary.failed_desktop_config_leakage_check_count !== 0
+    || summary.gate_fail_on_leakage_count !== summary.gate_result_count
+    || summary.leakage_allowed_count !== 0
+    || summary.credential_leakage_detected_count !== 0
+    || summary.token_leakage_detected_count !== 0
+    || summary.env_leakage_detected_count !== 0
+    || summary.desktop_config_leakage_detected_count !== 0
+    || summary.provider_key_leakage_detected_count !== 0
+    || summary.raw_secret_material_allowed_count !== 0
+    || summary.raw_secret_material_exposed_count !== 0
+    || summary.raw_secret_material_logged_count !== 0
+    || summary.provider_key_direct_access_allowed_count !== 0
+    || summary.provider_key_logged_count !== 0
+    || summary.desktop_secret_material_exposed_count !== 0
+    || summary.desktop_provider_key_visible_count !== 0
+    || summary.secret_material_read_count !== 0
+    || summary.secret_material_materialized_count !== 0
+    || summary.env_file_read_count !== 0
+    || summary.desktop_config_read_count !== 0
+    || summary.protected_write_allowed_count !== 0
+    || summary.write_allowed_before_approval_count !== 0
+    || summary.mutation_allowed_before_approval_count !== 0
+    || summary.read_only !== true
+    || summary.scan_report_only !== true
+    || summary.source_artifact_read_performed !== true
+    || summary.source_content_read_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.filesystem_secret_scan_performed !== false
+    || summary.secret_material_read !== false
+    || summary.secret_material_materialized !== false
+    || summary.env_file_read !== false
+    || summary.desktop_config_read !== false
+    || summary.desktop_setting_mutation_allowed !== false
+    || summary.provider_key_materialized !== false
+    || summary.network_access_performed !== false
+    || summary.route_execution_performed !== false
+    || summary.server_started !== false
+    || summary.protected_action_executed !== false
+    || summary.delivery_execution_performed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.human_review_required !== true
+    || summary.client_facing_ready !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "secrets_scan_gate",
+    label: "Secrets Scan Gate",
+    status,
+    message: `${summary.passed_gate_result_count ?? 0}/${summary.gate_result_count ?? 0} leakage gate(s), ${summary.passed_desktop_config_leakage_check_count ?? 0}/${summary.desktop_config_leakage_check_count ?? 0} Desktop config check(s) pass.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      secrets_scan_gate_status: summary.secrets_scan_gate_status ?? "unknown",
+      secrets_scan_gate_id: summary.secrets_scan_gate_id ?? null,
+      capability_id: summary.capability_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_status_count: summary.source_status_count ?? 0,
+      passed_source_status_count: summary.passed_source_status_count ?? 0,
+      failed_source_status_count: summary.failed_source_status_count ?? 0,
+      source_external_model_policy_audit_status: summary.source_external_model_policy_audit_status ?? "unknown",
+      source_external_model_policy_audit_phase_slot: summary.source_external_model_policy_audit_phase_slot ?? null,
+      source_external_model_policy_audit_next_phase_slot: summary.source_external_model_policy_audit_next_phase_slot ?? null,
+      rule_result_count: summary.rule_result_count ?? 0,
+      passed_rule_result_count: summary.passed_rule_result_count ?? 0,
+      failed_rule_result_count: summary.failed_rule_result_count ?? 0,
+      gate_result_count: summary.gate_result_count ?? 0,
+      passed_gate_result_count: summary.passed_gate_result_count ?? 0,
+      failed_gate_result_count: summary.failed_gate_result_count ?? 0,
+      desktop_config_leakage_check_count: summary.desktop_config_leakage_check_count ?? 0,
+      passed_desktop_config_leakage_check_count: summary.passed_desktop_config_leakage_check_count ?? 0,
+      failed_desktop_config_leakage_check_count: summary.failed_desktop_config_leakage_check_count ?? 0,
+      gate_fail_on_leakage_count: summary.gate_fail_on_leakage_count ?? 0,
+      leakage_allowed_count: summary.leakage_allowed_count ?? 0,
+      credential_leakage_detected_count: summary.credential_leakage_detected_count ?? 0,
+      token_leakage_detected_count: summary.token_leakage_detected_count ?? 0,
+      env_leakage_detected_count: summary.env_leakage_detected_count ?? 0,
+      desktop_config_leakage_detected_count: summary.desktop_config_leakage_detected_count ?? 0,
+      provider_key_leakage_detected_count: summary.provider_key_leakage_detected_count ?? 0,
+      raw_secret_material_allowed_count: summary.raw_secret_material_allowed_count ?? 0,
+      raw_secret_material_exposed_count: summary.raw_secret_material_exposed_count ?? 0,
+      raw_secret_material_logged_count: summary.raw_secret_material_logged_count ?? 0,
+      provider_key_direct_access_allowed_count: summary.provider_key_direct_access_allowed_count ?? 0,
+      provider_key_logged_count: summary.provider_key_logged_count ?? 0,
+      desktop_secret_material_exposed_count: summary.desktop_secret_material_exposed_count ?? 0,
+      desktop_provider_key_visible_count: summary.desktop_provider_key_visible_count ?? 0,
+      secret_material_read_count: summary.secret_material_read_count ?? 0,
+      secret_material_materialized_count: summary.secret_material_materialized_count ?? 0,
+      env_file_read_count: summary.env_file_read_count ?? 0,
+      desktop_config_read_count: summary.desktop_config_read_count ?? 0,
+      protected_write_allowed_count: summary.protected_write_allowed_count ?? 0,
+      write_allowed_before_approval_count: summary.write_allowed_before_approval_count ?? 0,
+      mutation_allowed_before_approval_count: summary.mutation_allowed_before_approval_count ?? 0,
+      read_only: summary.read_only ?? false,
+      scan_report_only: summary.scan_report_only ?? false,
+      source_artifact_read_performed: summary.source_artifact_read_performed ?? false,
+      source_content_read_performed: summary.source_content_read_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      filesystem_secret_scan_performed: summary.filesystem_secret_scan_performed ?? false,
+      secret_material_read: summary.secret_material_read ?? false,
+      secret_material_materialized: summary.secret_material_materialized ?? false,
+      env_file_read: summary.env_file_read ?? false,
+      desktop_config_read: summary.desktop_config_read ?? false,
+      desktop_setting_mutation_allowed: summary.desktop_setting_mutation_allowed ?? false,
+      provider_key_materialized: summary.provider_key_materialized ?? false,
+      network_access_performed: summary.network_access_performed ?? false,
+      route_execution_performed: summary.route_execution_performed ?? false,
+      server_started: summary.server_started ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      human_review_required: summary.human_review_required ?? false,
+      client_facing_ready: summary.client_facing_ready ?? true,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -22888,6 +23042,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_external_model_policy_audit", "rerun_external_model_policy_audit", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.secrets_scan_gate?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "secrets_scan_gate";
+    items.push({
+      action_item_id: `dashboard.action.secrets_scan_gate.${slugify(subjectId)}`,
+      source_stage: "secrets_scan_gate",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Secrets Scan Gate",
+      subject_ref: {
+        subject_type: "secrets_scan_gate_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_secrets_scan_gate", "rerun_secrets_scan_gate", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -30675,6 +30847,74 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     external_model_policy_audit_validation_item_count: artifacts.external_model_policy_audit?.summary?.validation_item_count ?? 0,
     external_model_policy_audit_failed_checkpoint_count: artifacts.external_model_policy_audit?.summary?.failed_checkpoint_count ?? 0,
     external_model_policy_audit_validation_error_count: artifacts.external_model_policy_audit?.summary?.validation_error_count ?? artifacts.external_model_policy_audit?.validation?.errors?.length ?? 0,
+    secrets_scan_gate_status: artifacts.secrets_scan_gate?.summary?.secrets_scan_gate_status ?? "unknown",
+    secrets_scan_gate_id: artifacts.secrets_scan_gate?.summary?.secrets_scan_gate_id ?? null,
+    secrets_scan_gate_capability_id: artifacts.secrets_scan_gate?.summary?.capability_id ?? null,
+    secrets_scan_gate_phase_slot: artifacts.secrets_scan_gate?.summary?.phase_slot ?? null,
+    secrets_scan_gate_previous_phase_slot: artifacts.secrets_scan_gate?.summary?.previous_phase_slot ?? null,
+    secrets_scan_gate_next_phase_slot: artifacts.secrets_scan_gate?.summary?.next_phase_slot ?? null,
+    secrets_scan_gate_source_status_count: artifacts.secrets_scan_gate?.summary?.source_status_count ?? 0,
+    secrets_scan_gate_passed_source_status_count: artifacts.secrets_scan_gate?.summary?.passed_source_status_count ?? 0,
+    secrets_scan_gate_failed_source_status_count: artifacts.secrets_scan_gate?.summary?.failed_source_status_count ?? 0,
+    secrets_scan_gate_source_external_model_policy_audit_status: artifacts.secrets_scan_gate?.summary?.source_external_model_policy_audit_status ?? "unknown",
+    secrets_scan_gate_source_external_model_policy_audit_phase_slot: artifacts.secrets_scan_gate?.summary?.source_external_model_policy_audit_phase_slot ?? null,
+    secrets_scan_gate_source_external_model_policy_audit_next_phase_slot: artifacts.secrets_scan_gate?.summary?.source_external_model_policy_audit_next_phase_slot ?? null,
+    secrets_scan_gate_rule_result_count: artifacts.secrets_scan_gate?.summary?.rule_result_count ?? 0,
+    secrets_scan_gate_passed_rule_result_count: artifacts.secrets_scan_gate?.summary?.passed_rule_result_count ?? 0,
+    secrets_scan_gate_failed_rule_result_count: artifacts.secrets_scan_gate?.summary?.failed_rule_result_count ?? 0,
+    secrets_scan_gate_gate_result_count: artifacts.secrets_scan_gate?.summary?.gate_result_count ?? 0,
+    secrets_scan_gate_passed_gate_result_count: artifacts.secrets_scan_gate?.summary?.passed_gate_result_count ?? 0,
+    secrets_scan_gate_failed_gate_result_count: artifacts.secrets_scan_gate?.summary?.failed_gate_result_count ?? 0,
+    secrets_scan_gate_desktop_config_leakage_check_count: artifacts.secrets_scan_gate?.summary?.desktop_config_leakage_check_count ?? 0,
+    secrets_scan_gate_passed_desktop_config_leakage_check_count: artifacts.secrets_scan_gate?.summary?.passed_desktop_config_leakage_check_count ?? 0,
+    secrets_scan_gate_failed_desktop_config_leakage_check_count: artifacts.secrets_scan_gate?.summary?.failed_desktop_config_leakage_check_count ?? 0,
+    secrets_scan_gate_gate_fail_on_leakage_count: artifacts.secrets_scan_gate?.summary?.gate_fail_on_leakage_count ?? 0,
+    secrets_scan_gate_leakage_allowed_count: artifacts.secrets_scan_gate?.summary?.leakage_allowed_count ?? 0,
+    secrets_scan_gate_credential_leakage_detected_count: artifacts.secrets_scan_gate?.summary?.credential_leakage_detected_count ?? 0,
+    secrets_scan_gate_token_leakage_detected_count: artifacts.secrets_scan_gate?.summary?.token_leakage_detected_count ?? 0,
+    secrets_scan_gate_env_leakage_detected_count: artifacts.secrets_scan_gate?.summary?.env_leakage_detected_count ?? 0,
+    secrets_scan_gate_desktop_config_leakage_detected_count: artifacts.secrets_scan_gate?.summary?.desktop_config_leakage_detected_count ?? 0,
+    secrets_scan_gate_provider_key_leakage_detected_count: artifacts.secrets_scan_gate?.summary?.provider_key_leakage_detected_count ?? 0,
+    secrets_scan_gate_raw_secret_material_allowed_count: artifacts.secrets_scan_gate?.summary?.raw_secret_material_allowed_count ?? 0,
+    secrets_scan_gate_raw_secret_material_exposed_count: artifacts.secrets_scan_gate?.summary?.raw_secret_material_exposed_count ?? 0,
+    secrets_scan_gate_raw_secret_material_logged_count: artifacts.secrets_scan_gate?.summary?.raw_secret_material_logged_count ?? 0,
+    secrets_scan_gate_provider_key_direct_access_allowed_count: artifacts.secrets_scan_gate?.summary?.provider_key_direct_access_allowed_count ?? 0,
+    secrets_scan_gate_provider_key_logged_count: artifacts.secrets_scan_gate?.summary?.provider_key_logged_count ?? 0,
+    secrets_scan_gate_desktop_secret_material_exposed_count: artifacts.secrets_scan_gate?.summary?.desktop_secret_material_exposed_count ?? 0,
+    secrets_scan_gate_desktop_provider_key_visible_count: artifacts.secrets_scan_gate?.summary?.desktop_provider_key_visible_count ?? 0,
+    secrets_scan_gate_secret_material_read_count: artifacts.secrets_scan_gate?.summary?.secret_material_read_count ?? 0,
+    secrets_scan_gate_secret_material_materialized_count: artifacts.secrets_scan_gate?.summary?.secret_material_materialized_count ?? 0,
+    secrets_scan_gate_env_file_read_count: artifacts.secrets_scan_gate?.summary?.env_file_read_count ?? 0,
+    secrets_scan_gate_desktop_config_read_count: artifacts.secrets_scan_gate?.summary?.desktop_config_read_count ?? 0,
+    secrets_scan_gate_protected_write_allowed_count: artifacts.secrets_scan_gate?.summary?.protected_write_allowed_count ?? 0,
+    secrets_scan_gate_write_allowed_before_approval_count: artifacts.secrets_scan_gate?.summary?.write_allowed_before_approval_count ?? 0,
+    secrets_scan_gate_mutation_allowed_before_approval_count: artifacts.secrets_scan_gate?.summary?.mutation_allowed_before_approval_count ?? 0,
+    secrets_scan_gate_read_only: artifacts.secrets_scan_gate?.summary?.read_only ?? false,
+    secrets_scan_gate_scan_report_only: artifacts.secrets_scan_gate?.summary?.scan_report_only ?? false,
+    secrets_scan_gate_source_artifact_read_performed: artifacts.secrets_scan_gate?.summary?.source_artifact_read_performed ?? false,
+    secrets_scan_gate_source_content_read_performed: artifacts.secrets_scan_gate?.summary?.source_content_read_performed ?? false,
+    secrets_scan_gate_source_ingest_performed: artifacts.secrets_scan_gate?.summary?.source_ingest_performed ?? false,
+    secrets_scan_gate_filesystem_secret_scan_performed: artifacts.secrets_scan_gate?.summary?.filesystem_secret_scan_performed ?? false,
+    secrets_scan_gate_secret_material_read: artifacts.secrets_scan_gate?.summary?.secret_material_read ?? false,
+    secrets_scan_gate_secret_material_materialized: artifacts.secrets_scan_gate?.summary?.secret_material_materialized ?? false,
+    secrets_scan_gate_env_file_read: artifacts.secrets_scan_gate?.summary?.env_file_read ?? false,
+    secrets_scan_gate_desktop_config_read: artifacts.secrets_scan_gate?.summary?.desktop_config_read ?? false,
+    secrets_scan_gate_desktop_setting_mutation_allowed: artifacts.secrets_scan_gate?.summary?.desktop_setting_mutation_allowed ?? false,
+    secrets_scan_gate_provider_key_materialized: artifacts.secrets_scan_gate?.summary?.provider_key_materialized ?? false,
+    secrets_scan_gate_network_access_performed: artifacts.secrets_scan_gate?.summary?.network_access_performed ?? false,
+    secrets_scan_gate_route_execution_performed: artifacts.secrets_scan_gate?.summary?.route_execution_performed ?? false,
+    secrets_scan_gate_server_started: artifacts.secrets_scan_gate?.summary?.server_started ?? false,
+    secrets_scan_gate_protected_action_executed: artifacts.secrets_scan_gate?.summary?.protected_action_executed ?? false,
+    secrets_scan_gate_delivery_execution_performed: artifacts.secrets_scan_gate?.summary?.delivery_execution_performed ?? false,
+    secrets_scan_gate_legal_advice_generated: artifacts.secrets_scan_gate?.summary?.legal_advice_generated ?? false,
+    secrets_scan_gate_client_facing_output_generated: artifacts.secrets_scan_gate?.summary?.client_facing_output_generated ?? false,
+    secrets_scan_gate_human_review_required: artifacts.secrets_scan_gate?.summary?.human_review_required ?? false,
+    secrets_scan_gate_client_facing_ready: artifacts.secrets_scan_gate?.summary?.client_facing_ready ?? true,
+    secrets_scan_gate_windows_baseline_stability_preserved: artifacts.secrets_scan_gate?.summary?.windows_baseline_stability_preserved ?? false,
+    secrets_scan_gate_mac_windows_completion_instability_guard: artifacts.secrets_scan_gate?.summary?.mac_windows_completion_instability_guard ?? false,
+    secrets_scan_gate_validation_item_count: artifacts.secrets_scan_gate?.summary?.validation_item_count ?? 0,
+    secrets_scan_gate_failed_checkpoint_count: artifacts.secrets_scan_gate?.summary?.failed_checkpoint_count ?? 0,
+    secrets_scan_gate_validation_error_count: artifacts.secrets_scan_gate?.summary?.validation_error_count ?? artifacts.secrets_scan_gate?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -32528,6 +32768,8 @@ function parseArgs(argv) {
     else if (arg === "--no-prompt-injection-test-suite") parsed.promptInjectionTestSuitePath = false;
     else if (arg === "--external-model-policy-audit") parsed.externalModelPolicyAuditPath = argv[++index];
     else if (arg === "--no-external-model-policy-audit") parsed.externalModelPolicyAuditPath = false;
+    else if (arg === "--secrets-scan-gate") parsed.secretsScanGatePath = argv[++index];
+    else if (arg === "--no-secrets-scan-gate") parsed.secretsScanGatePath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

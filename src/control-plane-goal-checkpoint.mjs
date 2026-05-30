@@ -165,6 +165,7 @@ const GOAL_ITEMS = [
   sourceItem("evidence_viewer_ui", "Evidence Viewer UI", "api", "evidence_viewer_ui", "control-plane-evidence-viewer-ui", { acceptance_profile: "evidence_viewer_ui_gate" }),
   sourceItem("source_span_inspector", "Source Span Inspector", "api", "source_span_inspector", "control-plane-source-span-inspector", { acceptance_profile: "source_span_inspector_gate" }),
   sourceItem("run_ledger_viewer", "Run Ledger Viewer", "api", "run_ledger_viewer", "control-plane-run-ledger-viewer", { acceptance_profile: "run_ledger_viewer_gate" }),
+  sourceItem("matter_cockpit_ui", "Matter Cockpit UI", "api", "matter_cockpit_ui", "control-plane-matter-cockpit-ui", { acceptance_profile: "matter_cockpit_ui_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -689,6 +690,7 @@ function evaluateStageAcceptance(item, stage) {
     "evidence_viewer_ui_gate",
     "source_span_inspector_gate",
     "run_ledger_viewer_gate",
+    "matter_cockpit_ui_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -6173,6 +6175,62 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Run Ledger Viewer locks P292 Desktop session, workflow progress, event history, agent activity, tool activity, and log/artifact reference views from existing run ledgers without log/artifact content reads, route execution, server start, mutation, protected action execution, approval application, output delivery, legal advice, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "matter_cockpit_ui_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.matter_cockpit_ui_status === "complete"
+      && metrics.phase_slot === "P293"
+      && metrics.previous_phase_slot === "P292"
+      && metrics.next_phase_slot === "P294"
+      && metrics.source_matter_cockpit_status === "complete"
+      && metrics.source_matter_os_profile_status === "complete"
+      && metrics.source_matter_timeline_status === "complete"
+      && metrics.source_matter_task_board_status === "complete"
+      && metrics.source_matter_document_index_status === "complete"
+      && metrics.source_evidence_viewer_ui_status === "complete"
+      && metrics.source_approval_queue_ui_status === "complete"
+      && metrics.source_run_ledger_viewer_status === "complete"
+      && metrics.source_run_ledger_viewer_phase_slot === "P292"
+      && metrics.source_run_ledger_viewer_next_phase_slot === "P293"
+      && metrics.matter_cockpit_ui_panel_count === 6
+      && metrics.required_panel_count === 6
+      && metrics.ready_panel_count === 6
+      && metrics.profile_card_count > 0
+      && metrics.profile_card_count === metrics.source_matter_count
+      && metrics.timeline_row_count === metrics.source_timeline_event_count
+      && metrics.task_row_count === metrics.source_task_record_count
+      && metrics.document_row_count === metrics.source_document_record_count
+      && metrics.evidence_row_count === metrics.source_evidence_viewer_ui_card_count
+      && metrics.approval_row_count === metrics.source_approval_queue_ui_item_count
+      && metrics.client_facing_ready_row_count === 0
+      && metrics.read_only === true
+      && metrics.preview_only === true
+      && metrics.ui_projection_only === true
+      && metrics.document_content_read_performed === false
+      && metrics.source_file_content_read_performed === false
+      && metrics.source_ingest_performed === false
+      && metrics.matter_data_write_allowed === false
+      && metrics.task_state_write_allowed === false
+      && metrics.document_mutation_allowed === false
+      && metrics.evidence_mutation_allowed === false
+      && metrics.approval_application_performed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.route_execution_performed === false
+      && metrics.server_started === false
+      && metrics.mutation_allowed === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.human_review_required === true
+      && metrics.client_facing_ready === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Matter Cockpit UI locks P293 profile, timeline, task, document, evidence, and approval panels from existing UI and matter artifacts without document/source reads, matter/task/document/evidence mutation, approval or receipt application, delivery execution, route execution, server start, protected action execution, legal advice, or client-facing output.");
     }
   }
 

@@ -128,6 +128,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   evidenceViewerUiPath: "artifacts/evidence-viewer-ui/latest/evidence-viewer-ui.json",
   sourceSpanInspectorPath: "artifacts/source-span-inspector/latest/source-span-inspector.json",
   runLedgerViewerPath: "artifacts/run-ledger-viewer/latest/run-ledger-viewer.json",
+  matterCockpitUiPath: "artifacts/matter-cockpit-ui/latest/matter-cockpit-ui.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -911,6 +912,11 @@ const SOURCE_DEFINITIONS = [
     option: "runLedgerViewerPath",
     source_id: "run_ledger_viewer",
     label: "Run Ledger Viewer",
+  },
+  {
+    option: "matterCockpitUiPath",
+    source_id: "matter_cockpit_ui",
+    label: "Matter Cockpit UI",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -2314,6 +2320,7 @@ function buildStageStatuses(artifacts, sources) {
     buildEvidenceViewerUiStage(artifacts.evidence_viewer_ui, sourceById.get("evidence_viewer_ui")),
     buildSourceSpanInspectorStage(artifacts.source_span_inspector, sourceById.get("source_span_inspector")),
     buildRunLedgerViewerStage(artifacts.run_ledger_viewer, sourceById.get("run_ledger_viewer")),
+    buildMatterCockpitUiStage(artifacts.matter_cockpit_ui, sourceById.get("matter_cockpit_ui")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -15098,6 +15105,147 @@ function buildRunLedgerViewerStage(artifact, source) {
   };
 }
 
+function buildMatterCockpitUiStage(artifact, source) {
+  if (!artifact) return missingStage("matter_cockpit_ui", "Matter Cockpit UI", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.matter_cockpit_ui_status !== "complete"
+    || summary.phase_slot !== "P293"
+    || summary.previous_phase_slot !== "P292"
+    || summary.next_phase_slot !== "P294"
+    || summary.source_matter_cockpit_status !== "complete"
+    || summary.source_matter_os_profile_status !== "complete"
+    || summary.source_matter_timeline_status !== "complete"
+    || summary.source_matter_task_board_status !== "complete"
+    || summary.source_matter_document_index_status !== "complete"
+    || summary.source_evidence_viewer_ui_status !== "complete"
+    || summary.source_approval_queue_ui_status !== "complete"
+    || summary.source_run_ledger_viewer_status !== "complete"
+    || summary.source_run_ledger_viewer_phase_slot !== "P292"
+    || summary.source_run_ledger_viewer_next_phase_slot !== "P293"
+    || summary.matter_cockpit_ui_panel_count !== 6
+    || summary.required_panel_count !== 6
+    || summary.ready_panel_count !== 6
+    || summary.profile_card_count <= 0
+    || summary.profile_card_count !== summary.source_matter_count
+    || summary.timeline_row_count !== summary.source_timeline_event_count
+    || summary.task_row_count !== summary.source_task_record_count
+    || summary.document_row_count !== summary.source_document_record_count
+    || summary.evidence_row_count !== summary.source_evidence_viewer_ui_card_count
+    || summary.approval_row_count !== summary.source_approval_queue_ui_item_count
+    || summary.client_facing_ready_row_count !== 0
+    || summary.read_only !== true
+    || summary.preview_only !== true
+    || summary.ui_projection_only !== true
+    || summary.document_content_read_performed !== false
+    || summary.source_file_content_read_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.matter_data_write_allowed !== false
+    || summary.task_state_write_allowed !== false
+    || summary.document_mutation_allowed !== false
+    || summary.evidence_mutation_allowed !== false
+    || summary.approval_application_performed !== false
+    || summary.delivery_execution_performed !== false
+    || summary.route_execution_performed !== false
+    || summary.server_started !== false
+    || summary.mutation_allowed !== false
+    || summary.protected_action_executed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.human_review_required !== true
+    || summary.client_facing_ready !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "matter_cockpit_ui",
+    label: "Matter Cockpit UI",
+    status,
+    message: `${summary.profile_card_count ?? 0} profile card(s), ${summary.task_row_count ?? 0} task row(s), ${summary.evidence_row_count ?? 0} evidence row(s), and ${summary.approval_row_count ?? 0} approval row(s) ready.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      matter_cockpit_ui_status: summary.matter_cockpit_ui_status ?? "unknown",
+      matter_cockpit_ui_id: summary.matter_cockpit_ui_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_matter_cockpit_status: summary.source_matter_cockpit_status ?? "unknown",
+      source_matter_count: summary.source_matter_count ?? 0,
+      source_blocked_matter_count: summary.source_blocked_matter_count ?? 0,
+      source_pending_approval_count: summary.source_pending_approval_count ?? 0,
+      source_matter_os_profile_status: summary.source_matter_os_profile_status ?? "unknown",
+      source_matter_os_profile_count: summary.source_matter_os_profile_count ?? 0,
+      source_matter_timeline_status: summary.source_matter_timeline_status ?? "unknown",
+      source_timeline_event_count: summary.source_timeline_event_count ?? 0,
+      source_matter_task_board_status: summary.source_matter_task_board_status ?? "unknown",
+      source_task_record_count: summary.source_task_record_count ?? 0,
+      source_matter_document_index_status: summary.source_matter_document_index_status ?? "unknown",
+      source_document_record_count: summary.source_document_record_count ?? 0,
+      source_evidence_viewer_ui_status: summary.source_evidence_viewer_ui_status ?? "unknown",
+      source_evidence_viewer_ui_phase_slot: summary.source_evidence_viewer_ui_phase_slot ?? null,
+      source_evidence_viewer_ui_card_count: summary.source_evidence_viewer_ui_card_count ?? 0,
+      source_approval_queue_ui_status: summary.source_approval_queue_ui_status ?? "unknown",
+      source_approval_queue_ui_phase_slot: summary.source_approval_queue_ui_phase_slot ?? null,
+      source_approval_queue_ui_item_count: summary.source_approval_queue_ui_item_count ?? 0,
+      source_run_ledger_viewer_status: summary.source_run_ledger_viewer_status ?? "unknown",
+      source_run_ledger_viewer_phase_slot: summary.source_run_ledger_viewer_phase_slot ?? null,
+      source_run_ledger_viewer_next_phase_slot: summary.source_run_ledger_viewer_next_phase_slot ?? null,
+      matter_cockpit_ui_panel_count: summary.matter_cockpit_ui_panel_count ?? 0,
+      required_panel_count: summary.required_panel_count ?? 0,
+      ready_panel_count: summary.ready_panel_count ?? 0,
+      profile_card_count: summary.profile_card_count ?? 0,
+      complete_profile_card_count: summary.complete_profile_card_count ?? 0,
+      summary_only_profile_card_count: summary.summary_only_profile_card_count ?? 0,
+      blocked_profile_card_count: summary.blocked_profile_card_count ?? 0,
+      timeline_row_count: summary.timeline_row_count ?? 0,
+      task_row_count: summary.task_row_count ?? 0,
+      overdue_task_row_count: summary.overdue_task_row_count ?? 0,
+      in_review_task_row_count: summary.in_review_task_row_count ?? 0,
+      document_row_count: summary.document_row_count ?? 0,
+      latest_document_row_count: summary.latest_document_row_count ?? 0,
+      pending_review_document_row_count: summary.pending_review_document_row_count ?? 0,
+      evidence_row_count: summary.evidence_row_count ?? 0,
+      human_review_required_evidence_row_count: summary.human_review_required_evidence_row_count ?? 0,
+      approval_row_count: summary.approval_row_count ?? 0,
+      pending_approval_row_count: summary.pending_approval_row_count ?? 0,
+      high_priority_approval_row_count: summary.high_priority_approval_row_count ?? 0,
+      read_only_row_count: summary.read_only_row_count ?? 0,
+      preview_only_row_count: summary.preview_only_row_count ?? 0,
+      human_review_required_row_count: summary.human_review_required_row_count ?? 0,
+      client_facing_ready_row_count: summary.client_facing_ready_row_count ?? 0,
+      read_only: summary.read_only ?? false,
+      preview_only: summary.preview_only ?? false,
+      ui_projection_only: summary.ui_projection_only ?? false,
+      document_content_read_performed: summary.document_content_read_performed ?? false,
+      source_file_content_read_performed: summary.source_file_content_read_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      matter_data_write_allowed: summary.matter_data_write_allowed ?? false,
+      task_state_write_allowed: summary.task_state_write_allowed ?? false,
+      document_mutation_allowed: summary.document_mutation_allowed ?? false,
+      evidence_mutation_allowed: summary.evidence_mutation_allowed ?? false,
+      citation_approval_performed: summary.citation_approval_performed ?? false,
+      approval_application_performed: summary.approval_application_performed ?? false,
+      receipt_application_performed: summary.receipt_application_performed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      route_execution_performed: summary.route_execution_performed ?? false,
+      server_started: summary.server_started ?? false,
+      mutation_allowed: summary.mutation_allowed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      human_review_required: summary.human_review_required ?? false,
+      client_facing_ready: summary.client_facing_ready ?? true,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -21850,6 +21998,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_run_ledger_viewer", "rerun_run_ledger_viewer", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.matter_cockpit_ui?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "matter_cockpit_ui";
+    items.push({
+      action_item_id: `dashboard.action.matter_cockpit_ui.${slugify(subjectId)}`,
+      source_stage: "matter_cockpit_ui",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Matter Cockpit UI",
+      subject_ref: {
+        subject_type: "matter_cockpit_ui_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_matter_cockpit_ui", "rerun_matter_cockpit_ui", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -29216,6 +29382,82 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     run_ledger_viewer_validation_item_count: artifacts.run_ledger_viewer?.summary?.validation_item_count ?? 0,
     run_ledger_viewer_failed_checkpoint_count: artifacts.run_ledger_viewer?.summary?.failed_checkpoint_count ?? 0,
     run_ledger_viewer_validation_error_count: artifacts.run_ledger_viewer?.summary?.validation_error_count ?? artifacts.run_ledger_viewer?.validation?.errors?.length ?? 0,
+    matter_cockpit_ui_status: artifacts.matter_cockpit_ui?.summary?.matter_cockpit_ui_status ?? "unknown",
+    matter_cockpit_ui_id: artifacts.matter_cockpit_ui?.summary?.matter_cockpit_ui_id ?? null,
+    matter_cockpit_ui_phase_slot: artifacts.matter_cockpit_ui?.summary?.phase_slot ?? null,
+    matter_cockpit_ui_previous_phase_slot: artifacts.matter_cockpit_ui?.summary?.previous_phase_slot ?? null,
+    matter_cockpit_ui_next_phase_slot: artifacts.matter_cockpit_ui?.summary?.next_phase_slot ?? null,
+    matter_cockpit_ui_source_matter_cockpit_status: artifacts.matter_cockpit_ui?.summary?.source_matter_cockpit_status ?? "unknown",
+    matter_cockpit_ui_source_matter_count: artifacts.matter_cockpit_ui?.summary?.source_matter_count ?? 0,
+    matter_cockpit_ui_source_blocked_matter_count: artifacts.matter_cockpit_ui?.summary?.source_blocked_matter_count ?? 0,
+    matter_cockpit_ui_source_pending_approval_count: artifacts.matter_cockpit_ui?.summary?.source_pending_approval_count ?? 0,
+    matter_cockpit_ui_source_matter_os_profile_status: artifacts.matter_cockpit_ui?.summary?.source_matter_os_profile_status ?? "unknown",
+    matter_cockpit_ui_source_matter_os_profile_count: artifacts.matter_cockpit_ui?.summary?.source_matter_os_profile_count ?? 0,
+    matter_cockpit_ui_source_matter_timeline_status: artifacts.matter_cockpit_ui?.summary?.source_matter_timeline_status ?? "unknown",
+    matter_cockpit_ui_source_timeline_event_count: artifacts.matter_cockpit_ui?.summary?.source_timeline_event_count ?? 0,
+    matter_cockpit_ui_source_matter_task_board_status: artifacts.matter_cockpit_ui?.summary?.source_matter_task_board_status ?? "unknown",
+    matter_cockpit_ui_source_task_record_count: artifacts.matter_cockpit_ui?.summary?.source_task_record_count ?? 0,
+    matter_cockpit_ui_source_matter_document_index_status: artifacts.matter_cockpit_ui?.summary?.source_matter_document_index_status ?? "unknown",
+    matter_cockpit_ui_source_document_record_count: artifacts.matter_cockpit_ui?.summary?.source_document_record_count ?? 0,
+    matter_cockpit_ui_source_evidence_viewer_ui_status: artifacts.matter_cockpit_ui?.summary?.source_evidence_viewer_ui_status ?? "unknown",
+    matter_cockpit_ui_source_evidence_viewer_ui_phase_slot: artifacts.matter_cockpit_ui?.summary?.source_evidence_viewer_ui_phase_slot ?? null,
+    matter_cockpit_ui_source_evidence_viewer_ui_card_count: artifacts.matter_cockpit_ui?.summary?.source_evidence_viewer_ui_card_count ?? 0,
+    matter_cockpit_ui_source_approval_queue_ui_status: artifacts.matter_cockpit_ui?.summary?.source_approval_queue_ui_status ?? "unknown",
+    matter_cockpit_ui_source_approval_queue_ui_phase_slot: artifacts.matter_cockpit_ui?.summary?.source_approval_queue_ui_phase_slot ?? null,
+    matter_cockpit_ui_source_approval_queue_ui_item_count: artifacts.matter_cockpit_ui?.summary?.source_approval_queue_ui_item_count ?? 0,
+    matter_cockpit_ui_source_run_ledger_viewer_status: artifacts.matter_cockpit_ui?.summary?.source_run_ledger_viewer_status ?? "unknown",
+    matter_cockpit_ui_source_run_ledger_viewer_phase_slot: artifacts.matter_cockpit_ui?.summary?.source_run_ledger_viewer_phase_slot ?? null,
+    matter_cockpit_ui_source_run_ledger_viewer_next_phase_slot: artifacts.matter_cockpit_ui?.summary?.source_run_ledger_viewer_next_phase_slot ?? null,
+    matter_cockpit_ui_panel_count: artifacts.matter_cockpit_ui?.summary?.matter_cockpit_ui_panel_count ?? 0,
+    matter_cockpit_ui_required_panel_count: artifacts.matter_cockpit_ui?.summary?.required_panel_count ?? 0,
+    matter_cockpit_ui_ready_panel_count: artifacts.matter_cockpit_ui?.summary?.ready_panel_count ?? 0,
+    matter_cockpit_ui_profile_card_count: artifacts.matter_cockpit_ui?.summary?.profile_card_count ?? 0,
+    matter_cockpit_ui_complete_profile_card_count: artifacts.matter_cockpit_ui?.summary?.complete_profile_card_count ?? 0,
+    matter_cockpit_ui_summary_only_profile_card_count: artifacts.matter_cockpit_ui?.summary?.summary_only_profile_card_count ?? 0,
+    matter_cockpit_ui_blocked_profile_card_count: artifacts.matter_cockpit_ui?.summary?.blocked_profile_card_count ?? 0,
+    matter_cockpit_ui_timeline_row_count: artifacts.matter_cockpit_ui?.summary?.timeline_row_count ?? 0,
+    matter_cockpit_ui_task_row_count: artifacts.matter_cockpit_ui?.summary?.task_row_count ?? 0,
+    matter_cockpit_ui_overdue_task_row_count: artifacts.matter_cockpit_ui?.summary?.overdue_task_row_count ?? 0,
+    matter_cockpit_ui_in_review_task_row_count: artifacts.matter_cockpit_ui?.summary?.in_review_task_row_count ?? 0,
+    matter_cockpit_ui_document_row_count: artifacts.matter_cockpit_ui?.summary?.document_row_count ?? 0,
+    matter_cockpit_ui_latest_document_row_count: artifacts.matter_cockpit_ui?.summary?.latest_document_row_count ?? 0,
+    matter_cockpit_ui_pending_review_document_row_count: artifacts.matter_cockpit_ui?.summary?.pending_review_document_row_count ?? 0,
+    matter_cockpit_ui_evidence_row_count: artifacts.matter_cockpit_ui?.summary?.evidence_row_count ?? 0,
+    matter_cockpit_ui_human_review_required_evidence_row_count: artifacts.matter_cockpit_ui?.summary?.human_review_required_evidence_row_count ?? 0,
+    matter_cockpit_ui_approval_row_count: artifacts.matter_cockpit_ui?.summary?.approval_row_count ?? 0,
+    matter_cockpit_ui_pending_approval_row_count: artifacts.matter_cockpit_ui?.summary?.pending_approval_row_count ?? 0,
+    matter_cockpit_ui_high_priority_approval_row_count: artifacts.matter_cockpit_ui?.summary?.high_priority_approval_row_count ?? 0,
+    matter_cockpit_ui_read_only_row_count: artifacts.matter_cockpit_ui?.summary?.read_only_row_count ?? 0,
+    matter_cockpit_ui_preview_only_row_count: artifacts.matter_cockpit_ui?.summary?.preview_only_row_count ?? 0,
+    matter_cockpit_ui_human_review_required_row_count: artifacts.matter_cockpit_ui?.summary?.human_review_required_row_count ?? 0,
+    matter_cockpit_ui_client_facing_ready_row_count: artifacts.matter_cockpit_ui?.summary?.client_facing_ready_row_count ?? 0,
+    matter_cockpit_ui_read_only: artifacts.matter_cockpit_ui?.summary?.read_only ?? false,
+    matter_cockpit_ui_preview_only: artifacts.matter_cockpit_ui?.summary?.preview_only ?? false,
+    matter_cockpit_ui_ui_projection_only: artifacts.matter_cockpit_ui?.summary?.ui_projection_only ?? false,
+    matter_cockpit_ui_document_content_read_performed: artifacts.matter_cockpit_ui?.summary?.document_content_read_performed ?? false,
+    matter_cockpit_ui_source_file_content_read_performed: artifacts.matter_cockpit_ui?.summary?.source_file_content_read_performed ?? false,
+    matter_cockpit_ui_source_ingest_performed: artifacts.matter_cockpit_ui?.summary?.source_ingest_performed ?? false,
+    matter_cockpit_ui_matter_data_write_allowed: artifacts.matter_cockpit_ui?.summary?.matter_data_write_allowed ?? false,
+    matter_cockpit_ui_task_state_write_allowed: artifacts.matter_cockpit_ui?.summary?.task_state_write_allowed ?? false,
+    matter_cockpit_ui_document_mutation_allowed: artifacts.matter_cockpit_ui?.summary?.document_mutation_allowed ?? false,
+    matter_cockpit_ui_evidence_mutation_allowed: artifacts.matter_cockpit_ui?.summary?.evidence_mutation_allowed ?? false,
+    matter_cockpit_ui_citation_approval_performed: artifacts.matter_cockpit_ui?.summary?.citation_approval_performed ?? false,
+    matter_cockpit_ui_approval_application_performed: artifacts.matter_cockpit_ui?.summary?.approval_application_performed ?? false,
+    matter_cockpit_ui_receipt_application_performed: artifacts.matter_cockpit_ui?.summary?.receipt_application_performed ?? false,
+    matter_cockpit_ui_delivery_execution_performed: artifacts.matter_cockpit_ui?.summary?.delivery_execution_performed ?? false,
+    matter_cockpit_ui_route_execution_performed: artifacts.matter_cockpit_ui?.summary?.route_execution_performed ?? false,
+    matter_cockpit_ui_server_started: artifacts.matter_cockpit_ui?.summary?.server_started ?? false,
+    matter_cockpit_ui_mutation_allowed: artifacts.matter_cockpit_ui?.summary?.mutation_allowed ?? false,
+    matter_cockpit_ui_protected_action_executed: artifacts.matter_cockpit_ui?.summary?.protected_action_executed ?? false,
+    matter_cockpit_ui_legal_advice_generated: artifacts.matter_cockpit_ui?.summary?.legal_advice_generated ?? false,
+    matter_cockpit_ui_client_facing_output_generated: artifacts.matter_cockpit_ui?.summary?.client_facing_output_generated ?? false,
+    matter_cockpit_ui_human_review_required: artifacts.matter_cockpit_ui?.summary?.human_review_required ?? false,
+    matter_cockpit_ui_client_facing_ready: artifacts.matter_cockpit_ui?.summary?.client_facing_ready ?? true,
+    matter_cockpit_ui_windows_baseline_stability_preserved: artifacts.matter_cockpit_ui?.summary?.windows_baseline_stability_preserved ?? false,
+    matter_cockpit_ui_mac_windows_completion_instability_guard: artifacts.matter_cockpit_ui?.summary?.mac_windows_completion_instability_guard ?? false,
+    matter_cockpit_ui_validation_item_count: artifacts.matter_cockpit_ui?.summary?.validation_item_count ?? 0,
+    matter_cockpit_ui_failed_checkpoint_count: artifacts.matter_cockpit_ui?.summary?.failed_checkpoint_count ?? 0,
+    matter_cockpit_ui_validation_error_count: artifacts.matter_cockpit_ui?.summary?.validation_error_count ?? artifacts.matter_cockpit_ui?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -31055,6 +31297,8 @@ function parseArgs(argv) {
     else if (arg === "--no-source-span-inspector") parsed.sourceSpanInspectorPath = false;
     else if (arg === "--run-ledger-viewer") parsed.runLedgerViewerPath = argv[++index];
     else if (arg === "--no-run-ledger-viewer") parsed.runLedgerViewerPath = false;
+    else if (arg === "--matter-cockpit-ui") parsed.matterCockpitUiPath = argv[++index];
+    else if (arg === "--no-matter-cockpit-ui") parsed.matterCockpitUiPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

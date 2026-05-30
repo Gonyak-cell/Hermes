@@ -23,6 +23,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "evidence:viewer-ui",
   "evidence:source-span-inspector",
   "ledgers:run-viewer",
+  "matter:cockpit-ui",
   "contracts:identity",
   "contracts:party-registry",
   "contracts:matter-teams",

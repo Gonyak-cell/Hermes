@@ -6498,6 +6498,83 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("run_ledger_viewer_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/matter-cockpit-ui-artifacts") {
+    const result = await readDashboardSourceArtifact(dashboard, "matter_cockpit_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("matter_cockpit_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_cockpit_ui_artifacts", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-cockpit-ui-panels") {
+    const result = await readDashboardSourceArtifact(dashboard, "matter_cockpit_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("matter_cockpit_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_cockpit_ui_panels", result.artifact.matter_cockpit_ui_panels ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-cockpit-profile-cards") {
+    const result = await readDashboardSourceArtifact(dashboard, "matter_cockpit_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("matter_cockpit_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_cockpit_profile_cards", result.artifact.matter_cockpit_profile_cards ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-cockpit-timeline-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "matter_cockpit_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("matter_cockpit_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_cockpit_timeline_rows", result.artifact.matter_cockpit_timeline_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-cockpit-task-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "matter_cockpit_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("matter_cockpit_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_cockpit_task_rows", result.artifact.matter_cockpit_task_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-cockpit-document-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "matter_cockpit_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("matter_cockpit_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_cockpit_document_rows", result.artifact.matter_cockpit_document_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-cockpit-evidence-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "matter_cockpit_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("matter_cockpit_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_cockpit_evidence_rows", result.artifact.matter_cockpit_evidence_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-cockpit-approval-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "matter_cockpit_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("matter_cockpit_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_cockpit_approval_rows", result.artifact.matter_cockpit_approval_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-cockpit-ui-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "matter_cockpit_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("matter_cockpit_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_cockpit_ui_boundary", [result.artifact.matter_cockpit_ui_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-cockpit-ui-checks") {
+    const result = await readDashboardSourceArtifact(dashboard, "matter_cockpit_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("matter_cockpit_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_cockpit_ui_checks", result.artifact.matter_cockpit_ui_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-cockpit-ui-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "matter_cockpit_ui");
+    if (!result.available) {
+      return jsonResponse(503, buildError("matter_cockpit_ui_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_cockpit_ui_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -13030,6 +13107,17 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/run-ledger-viewer-boundary", "Run Ledger Viewer read-only boundary"),
       route("GET", "/api/run-ledger-viewer-checks", "Run Ledger Viewer check rows"),
       route("GET", "/api/run-ledger-viewer-validations", "Run Ledger Viewer validation rows"),
+      route("GET", "/api/matter-cockpit-ui-artifacts", "Matter Cockpit UI artifact"),
+      route("GET", "/api/matter-cockpit-ui-panels", "Matter Cockpit UI panel rows"),
+      route("GET", "/api/matter-cockpit-profile-cards", "Matter Cockpit UI profile card rows"),
+      route("GET", "/api/matter-cockpit-timeline-rows", "Matter Cockpit UI timeline rows"),
+      route("GET", "/api/matter-cockpit-task-rows", "Matter Cockpit UI task rows"),
+      route("GET", "/api/matter-cockpit-document-rows", "Matter Cockpit UI document rows"),
+      route("GET", "/api/matter-cockpit-evidence-rows", "Matter Cockpit UI evidence rows"),
+      route("GET", "/api/matter-cockpit-approval-rows", "Matter Cockpit UI approval rows"),
+      route("GET", "/api/matter-cockpit-ui-boundary", "Matter Cockpit UI read-only boundary"),
+      route("GET", "/api/matter-cockpit-ui-checks", "Matter Cockpit UI check rows"),
+      route("GET", "/api/matter-cockpit-ui-validations", "Matter Cockpit UI validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -14257,6 +14345,14 @@ function filterItems(items, searchParams) {
     "tool_activity_status",
     "log_artifact_view_status",
     "reference_kind",
+    "matter_cockpit_ui_status",
+    "matter_cockpit_ui_panel_status",
+    "timeline_row_status",
+    "task_row_status",
+    "document_row_status",
+    "evidence_row_status",
+    "approval_row_status",
+    "item_status",
     "workflow_run_id",
     "agent_run_id",
     "runtime_id",
@@ -16224,6 +16320,14 @@ function readFilterValue(item, key) {
   if (key === "tool_activity_status") return item.tool_activity_status;
   if (key === "log_artifact_view_status") return item.log_artifact_view_status;
   if (key === "reference_kind") return item.reference_kind;
+  if (key === "matter_cockpit_ui_status") return item.summary?.matter_cockpit_ui_status ?? item.matter_cockpit_ui_status;
+  if (key === "matter_cockpit_ui_panel_status") return item.panel_status;
+  if (key === "timeline_row_status") return item.timeline_row_status;
+  if (key === "task_row_status") return item.task_row_status;
+  if (key === "document_row_status") return item.document_row_status;
+  if (key === "evidence_row_status") return item.evidence_row_status;
+  if (key === "approval_row_status") return item.approval_row_status;
+  if (key === "item_status") return item.item_status;
   if (key === "workflow_run_id") return item.workflow_run_id;
   if (key === "agent_run_id") return item.agent_run_id;
   if (key === "runtime_id") return item.runtime_id ?? item.runtime_ids ?? item.metadata?.runtime_id;

@@ -7662,6 +7662,20 @@ Changes:
 - Golden fixture count increased to 194 and `run_ledger_viewer` is included as a regression fixture.
 - `npm run ledgers:run-viewer -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
 
+## Phase 293 - Matter Cockpit UI
+
+Phase 293 adds `matter_cockpit_ui`, a read-only Desktop matter cockpit projection over Matter Cockpit, Matter OS Profile, Matter Timeline, Matter Task Board, Matter Document Index, Evidence Viewer UI, Approval Queue UI, and the P292 Run Ledger Viewer guard. It gives the Desktop a single matter-centered surface for profile, timeline, tasks, documents, evidence, and approvals without reading document content, reading source file content, ingesting sources, mutating matter/task/document/evidence state, applying approvals or receipts, executing delivery, executing routes, starting a server, generating legal advice, or producing client-facing output.
+
+Changes:
+
+- Added `src/matter-cockpit-ui.mjs`, `scripts/matter-cockpit-ui.mjs`, `schemas/matter-cockpit-ui.schema.json`, and `docs/matter-cockpit-ui.md`.
+- Added `matter:cockpit-ui` npm script.
+- The UI projection emits `matter-cockpit-ui.json`, panel rows, profile card rows, timeline rows, task rows, document rows, evidence rows, approval rows, boundary, checks, validation report, and summary markdown under `artifacts/matter-cockpit-ui/latest`.
+- Review Dashboard stage/summary, Review API routes/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests now include `matter_cockpit_ui`.
+- The artifact is read-only and preview-only and does not read document content, read source file content, ingest sources, write matter data, write task state, mutate documents or evidence, apply approvals or receipts, execute delivery, execute routes, start a server, execute protected actions, generate legal advice, or produce client-facing output.
+- Golden fixture count increased to 195 and `matter_cockpit_ui` is included as a regression fixture.
+- `npm run matter:cockpit-ui -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -7670,9 +7684,9 @@ Changes:
 
 운영 원칙:
 
-- Current actual completion baseline is Phase 292.
+- Current actual completion baseline is Phase 293.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- Remaining planned slots are P293-P312, 20 total.
+- Remaining planned slots are P294-P312, 19 total.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - P217 이후 personal-dev 작업은 Mac Phase 216 결과를 Windows 작업공간에서 계속 이어가되, Phase 217 본작업보다 Windows 기준선 안정화 게이트를 선행 조건으로 둔 판단을 기준으로 운영한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.

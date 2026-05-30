@@ -1,0 +1,361 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/matter-cockpit-ui.schema.json",
+  "title": "Hermes Matter Cockpit UI",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "matter_cockpit_ui_id",
+    "matter_cockpit_ui_status",
+    "capability_id",
+    "phase_slot",
+    "previous_phase_slot",
+    "next_phase_slot",
+    "source_contracts",
+    "matter_cockpit_ui_contract",
+    "matter_cockpit_ui_panels",
+    "matter_cockpit_profile_cards",
+    "matter_cockpit_timeline_rows",
+    "matter_cockpit_task_rows",
+    "matter_cockpit_document_rows",
+    "matter_cockpit_evidence_rows",
+    "matter_cockpit_approval_rows",
+    "matter_cockpit_ui_boundary",
+    "matter_cockpit_ui_checks",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "matter-cockpit-ui.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "matter_cockpit_ui_id": { "type": "string", "minLength": 1 },
+    "matter_cockpit_ui_status": { "enum": ["complete", "attention"] },
+    "capability_id": { "const": "desktop.matter_cockpit_ui" },
+    "phase_slot": { "const": "P293" },
+    "previous_phase_slot": { "const": "P292" },
+    "next_phase_slot": { "const": "P294" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/source_contract" }
+    },
+    "matter_cockpit_ui_contract": { "type": "object" },
+    "matter_cockpit_ui_panels": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/panel" }
+    },
+    "matter_cockpit_profile_cards": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/profile_card" }
+    },
+    "matter_cockpit_timeline_rows": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/timeline_row" }
+    },
+    "matter_cockpit_task_rows": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/task_row" }
+    },
+    "matter_cockpit_document_rows": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/document_row" }
+    },
+    "matter_cockpit_evidence_rows": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/evidence_row" }
+    },
+    "matter_cockpit_approval_rows": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/approval_row" }
+    },
+    "matter_cockpit_ui_boundary": { "$ref": "#/$defs/boundary" },
+    "matter_cockpit_ui_checks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/check" }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/check" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": { "$ref": "#/$defs/summary" },
+    "summary_markdown": { "type": "string" }
+  },
+  "$defs": {
+    "source_contract": {
+      "type": "object",
+      "required": ["source_id", "schema_version", "status", "generated_at"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "schema_version": { "type": ["string", "null"] },
+        "status": { "type": "string" },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "panel": {
+      "type": "object",
+      "required": ["schema_version", "panel_key", "panel_status", "row_count", "read_only", "preview_only", "ui_projection_only", "human_review_required", "client_facing_ready"],
+      "properties": {
+        "schema_version": { "const": "matter-cockpit-ui-panel.v1" },
+        "panel_key": { "enum": ["profile", "timeline", "tasks", "documents", "evidence", "approvals"] },
+        "panel_status": { "const": "ready" },
+        "row_count": { "type": "integer", "minimum": 0 },
+        "read_only": { "const": true },
+        "preview_only": { "const": true },
+        "ui_projection_only": { "const": true },
+        "document_content_read_allowed": { "const": false },
+        "source_file_content_read_allowed": { "const": false },
+        "matter_data_write_allowed": { "const": false },
+        "task_state_write_allowed": { "const": false },
+        "evidence_mutation_allowed": { "const": false },
+        "approval_application_allowed": { "const": false },
+        "delivery_execution_allowed": { "const": false },
+        "route_execution_allowed": { "const": false },
+        "server_start_allowed": { "const": false },
+        "mutation_allowed": { "const": false },
+        "protected_action_execution_allowed": { "const": false },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false }
+      }
+    },
+    "profile_card": {
+      "type": "object",
+      "required": ["schema_version", "matter_cockpit_profile_card_id", "profile_card_status", "matter_id", "tenant_id", "read_only", "preview_only", "human_review_required", "client_facing_ready"],
+      "properties": {
+        "schema_version": { "const": "matter-cockpit-profile-card.v1" },
+        "matter_cockpit_profile_card_id": { "type": "string", "minLength": 1 },
+        "profile_card_status": { "enum": ["complete", "summary_only"] },
+        "matter_id": { "type": "string", "minLength": 1 },
+        "tenant_id": { "type": "string", "minLength": 1 },
+        "read_only": { "const": true },
+        "preview_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false }
+      }
+    },
+    "timeline_row": {
+      "type": "object",
+      "required": ["schema_version", "matter_cockpit_timeline_row_id", "timeline_row_status", "matter_id", "event_id", "read_only", "preview_only"],
+      "properties": {
+        "schema_version": { "const": "matter-cockpit-timeline-row.v1" },
+        "timeline_row_status": { "const": "ready" },
+        "matter_id": { "type": "string", "minLength": 1 },
+        "event_id": { "type": "string", "minLength": 1 },
+        "read_only": { "const": true },
+        "preview_only": { "const": true },
+        "mutation_allowed": { "const": false }
+      }
+    },
+    "task_row": {
+      "type": "object",
+      "required": ["schema_version", "matter_cockpit_task_row_id", "task_row_status", "task_id", "matter_id", "read_only", "preview_only", "task_state_write_allowed", "workflow_transition_allowed"],
+      "properties": {
+        "schema_version": { "const": "matter-cockpit-task-row.v1" },
+        "task_row_status": { "const": "ready" },
+        "task_id": { "type": "string", "minLength": 1 },
+        "matter_id": { "type": "string", "minLength": 1 },
+        "read_only": { "const": true },
+        "preview_only": { "const": true },
+        "task_state_write_allowed": { "const": false },
+        "workflow_transition_allowed": { "const": false },
+        "mutation_allowed": { "const": false }
+      }
+    },
+    "document_row": {
+      "type": "object",
+      "required": ["schema_version", "matter_cockpit_document_row_id", "document_row_status", "document_id", "matter_id", "read_only", "preview_only", "document_content_read_performed", "document_mutation_allowed"],
+      "properties": {
+        "schema_version": { "const": "matter-cockpit-document-row.v1" },
+        "document_row_status": { "const": "ready" },
+        "document_id": { "type": "string", "minLength": 1 },
+        "matter_id": { "type": "string", "minLength": 1 },
+        "read_only": { "const": true },
+        "preview_only": { "const": true },
+        "document_content_read_performed": { "const": false },
+        "document_mutation_allowed": { "const": false },
+        "delivery_execution_allowed": { "const": false }
+      }
+    },
+    "evidence_row": {
+      "type": "object",
+      "required": ["schema_version", "matter_cockpit_evidence_row_id", "evidence_row_status", "evidence_id", "matter_id", "read_only", "preview_only", "source_file_content_read_performed", "evidence_mutation_allowed"],
+      "properties": {
+        "schema_version": { "const": "matter-cockpit-evidence-row.v1" },
+        "evidence_row_status": { "type": "string" },
+        "evidence_id": { "type": "string", "minLength": 1 },
+        "matter_id": { "type": "string", "minLength": 1 },
+        "read_only": { "const": true },
+        "preview_only": { "const": true },
+        "source_file_content_read_performed": { "const": false },
+        "source_ingest_performed": { "const": false },
+        "evidence_mutation_allowed": { "const": false },
+        "citation_approval_allowed": { "const": false }
+      }
+    },
+    "approval_row": {
+      "type": "object",
+      "required": ["schema_version", "matter_cockpit_approval_row_id", "approval_row_status", "approval_queue_ui_item_id", "item_status", "read_only", "preview_only", "approval_application_allowed", "protected_action_execution_allowed"],
+      "properties": {
+        "schema_version": { "const": "matter-cockpit-approval-row.v1" },
+        "approval_row_status": { "const": "ready" },
+        "approval_queue_ui_item_id": { "type": "string", "minLength": 1 },
+        "item_status": { "type": "string", "minLength": 1 },
+        "read_only": { "const": true },
+        "preview_only": { "const": true },
+        "approval_application_allowed": { "const": false },
+        "receipt_application_allowed": { "const": false },
+        "protected_action_execution_allowed": { "const": false },
+        "mutation_allowed": { "const": false }
+      }
+    },
+    "boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "boundary_status",
+        "read_only",
+        "preview_only",
+        "ui_projection_only",
+        "document_content_read_performed",
+        "source_file_content_read_performed",
+        "matter_data_write_allowed",
+        "task_state_write_allowed",
+        "document_mutation_allowed",
+        "evidence_mutation_allowed",
+        "approval_application_performed",
+        "delivery_execution_performed",
+        "route_execution_performed",
+        "server_started",
+        "mutation_allowed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "windows_baseline_stability_preserved",
+        "mac_windows_completion_instability_guard"
+      ],
+      "properties": {
+        "schema_version": { "const": "matter-cockpit-ui-boundary.v1" },
+        "boundary_status": { "const": "enforced" },
+        "read_only": { "const": true },
+        "preview_only": { "const": true },
+        "ui_projection_only": { "const": true },
+        "document_content_read_performed": { "const": false },
+        "source_file_content_read_performed": { "const": false },
+        "source_ingest_performed": { "const": false },
+        "matter_data_write_allowed": { "const": false },
+        "task_state_write_allowed": { "const": false },
+        "document_mutation_allowed": { "const": false },
+        "evidence_mutation_allowed": { "const": false },
+        "citation_approval_performed": { "const": false },
+        "approval_application_performed": { "const": false },
+        "receipt_application_performed": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "route_execution_performed": { "const": false },
+        "server_started": { "const": false },
+        "mutation_allowed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true }
+      }
+    },
+    "check": {
+      "type": "object",
+      "required": ["schema_version", "validation_id", "subject_id", "check_id", "status", "message"],
+      "properties": {
+        "schema_version": { "const": "matter-cockpit-ui-check.v1" },
+        "validation_id": { "type": "string", "minLength": 1 },
+        "subject_id": { "const": "matter_cockpit_ui" },
+        "check_id": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "matter_cockpit_ui_status",
+        "matter_cockpit_ui_id",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "source_matter_cockpit_status",
+        "source_matter_os_profile_status",
+        "source_matter_timeline_status",
+        "source_matter_task_board_status",
+        "source_matter_document_index_status",
+        "source_evidence_viewer_ui_status",
+        "source_approval_queue_ui_status",
+        "source_run_ledger_viewer_status",
+        "matter_cockpit_ui_panel_count",
+        "required_panel_count",
+        "ready_panel_count",
+        "profile_card_count",
+        "timeline_row_count",
+        "task_row_count",
+        "document_row_count",
+        "evidence_row_count",
+        "approval_row_count",
+        "read_only",
+        "preview_only",
+        "ui_projection_only",
+        "validation_item_count",
+        "failed_checkpoint_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "matter_cockpit_ui_status": { "enum": ["complete", "attention"] },
+        "phase_slot": { "const": "P293" },
+        "previous_phase_slot": { "const": "P292" },
+        "next_phase_slot": { "const": "P294" },
+        "matter_cockpit_ui_panel_count": { "type": "integer", "minimum": 0 },
+        "required_panel_count": { "const": 6 },
+        "ready_panel_count": { "type": "integer", "minimum": 0 },
+        "profile_card_count": { "type": "integer", "minimum": 0 },
+        "timeline_row_count": { "type": "integer", "minimum": 0 },
+        "task_row_count": { "type": "integer", "minimum": 0 },
+        "document_row_count": { "type": "integer", "minimum": 0 },
+        "evidence_row_count": { "type": "integer", "minimum": 0 },
+        "approval_row_count": { "type": "integer", "minimum": 0 },
+        "read_only": { "const": true },
+        "preview_only": { "const": true },
+        "ui_projection_only": { "const": true },
+        "document_content_read_performed": { "const": false },
+        "source_file_content_read_performed": { "const": false },
+        "source_ingest_performed": { "const": false },
+        "matter_data_write_allowed": { "const": false },
+        "task_state_write_allowed": { "const": false },
+        "document_mutation_allowed": { "const": false },
+        "evidence_mutation_allowed": { "const": false },
+        "approval_application_performed": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "route_execution_performed": { "const": false },
+        "server_started": { "const": false },
+        "mutation_allowed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_checkpoint_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

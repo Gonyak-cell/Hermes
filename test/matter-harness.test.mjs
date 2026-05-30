@@ -91,6 +91,7 @@ import { runApprovalQueueUi } from "../src/approval-queue-ui.mjs";
 import { runEvidenceViewerUi } from "../src/evidence-viewer-ui.mjs";
 import { runSourceSpanInspector } from "../src/source-span-inspector.mjs";
 import { runRunLedgerViewer } from "../src/run-ledger-viewer.mjs";
+import { runMatterCockpitUi } from "../src/matter-cockpit-ui.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -1979,6 +1980,7 @@ describe("matter harness", () => {
         evidenceViewerUiPath: path.join(outDir, "evidence-viewer-ui", "evidence-viewer-ui.json"),
         sourceSpanInspectorPath: path.join(outDir, "source-span-inspector", "source-span-inspector.json"),
         runLedgerViewerPath: path.join(outDir, "run-ledger-viewer", "run-ledger-viewer.json"),
+        matterCockpitUiPath: path.join(outDir, "matter-cockpit-ui", "matter-cockpit-ui.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -12472,6 +12474,77 @@ describe("matter harness", () => {
       assert.ok(runLedgerViewer.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "run-ledger-viewer", "summary.md"), "utf8"), /Run Ledger Viewer/);
 
+      const matterCockpitUi = await runMatterCockpitUi({
+        matterCockpitPath: path.join(outDir, "matter-cockpit", "matter-cockpit.json"),
+        matterOsProfilePath: path.join(outDir, "matter-os-profile", "matter-os-profile.json"),
+        matterTimelinePath: path.join(outDir, "matter-timeline", "matter-timeline.json"),
+        matterTaskBoardPath: path.join(outDir, "matter-task-board", "matter-task-board.json"),
+        matterDocumentIndexPath: path.join(outDir, "matter-document-index", "matter-document-index.json"),
+        evidenceViewerUiPath: path.join(outDir, "evidence-viewer-ui", "evidence-viewer-ui.json"),
+        approvalQueueUiPath: path.join(outDir, "approval-queue-ui", "approval-queue-ui.json"),
+        runLedgerViewerPath: path.join(outDir, "run-ledger-viewer", "run-ledger-viewer.json"),
+        outDir: path.join(outDir, "matter-cockpit-ui"),
+        runAt: "2026-05-23T07:26:32.000Z",
+      });
+      const matterCockpitUiSchema = JSON.parse(await readFile("schemas/matter-cockpit-ui.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(matterCockpitUi, matterCockpitUiSchema, {}, "matter_cockpit_ui"), [], JSON.stringify(matterCockpitUi.validation.errors));
+      assert.equal(matterCockpitUi.summary.matter_cockpit_ui_status, "complete");
+      assert.equal(matterCockpitUi.summary.phase_slot, "P293");
+      assert.equal(matterCockpitUi.summary.previous_phase_slot, "P292");
+      assert.equal(matterCockpitUi.summary.next_phase_slot, "P294");
+      assert.equal(matterCockpitUi.summary.source_matter_cockpit_status, "complete");
+      assert.equal(matterCockpitUi.summary.source_matter_count, matterCockpit.summary.matter_count);
+      assert.equal(matterCockpitUi.summary.source_matter_os_profile_status, "complete");
+      assert.equal(matterCockpitUi.summary.source_matter_timeline_status, "complete");
+      assert.equal(matterCockpitUi.summary.source_matter_task_board_status, "complete");
+      assert.equal(matterCockpitUi.summary.source_matter_document_index_status, "complete");
+      assert.equal(matterCockpitUi.summary.source_evidence_viewer_ui_status, "complete");
+      assert.equal(matterCockpitUi.summary.source_approval_queue_ui_status, "complete");
+      assert.equal(matterCockpitUi.summary.source_run_ledger_viewer_status, "complete");
+      assert.equal(matterCockpitUi.summary.source_run_ledger_viewer_phase_slot, "P292");
+      assert.equal(matterCockpitUi.summary.source_run_ledger_viewer_next_phase_slot, "P293");
+      assert.equal(matterCockpitUi.summary.matter_cockpit_ui_panel_count, 6);
+      assert.equal(matterCockpitUi.summary.required_panel_count, 6);
+      assert.equal(matterCockpitUi.summary.ready_panel_count, 6);
+      assert.equal(matterCockpitUi.summary.profile_card_count, matterCockpit.summary.matter_count);
+      assert.equal(matterCockpitUi.summary.timeline_row_count, matterTimeline.summary.timeline_event_count);
+      assert.equal(matterCockpitUi.summary.task_row_count, matterTaskBoard.summary.task_record_count);
+      assert.equal(matterCockpitUi.summary.document_row_count, matterDocumentIndex.summary.document_record_count);
+      assert.equal(matterCockpitUi.summary.evidence_row_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(matterCockpitUi.summary.approval_row_count, approvalQueueUi.summary.approval_queue_ui_item_count);
+      assert.equal(matterCockpitUi.summary.client_facing_ready_row_count, 0);
+      assert.equal(matterCockpitUi.summary.read_only, true);
+      assert.equal(matterCockpitUi.summary.preview_only, true);
+      assert.equal(matterCockpitUi.summary.ui_projection_only, true);
+      assert.equal(matterCockpitUi.summary.document_content_read_performed, false);
+      assert.equal(matterCockpitUi.summary.source_file_content_read_performed, false);
+      assert.equal(matterCockpitUi.summary.matter_data_write_allowed, false);
+      assert.equal(matterCockpitUi.summary.task_state_write_allowed, false);
+      assert.equal(matterCockpitUi.summary.document_mutation_allowed, false);
+      assert.equal(matterCockpitUi.summary.evidence_mutation_allowed, false);
+      assert.equal(matterCockpitUi.summary.approval_application_performed, false);
+      assert.equal(matterCockpitUi.summary.delivery_execution_performed, false);
+      assert.equal(matterCockpitUi.summary.route_execution_performed, false);
+      assert.equal(matterCockpitUi.summary.server_started, false);
+      assert.equal(matterCockpitUi.summary.mutation_allowed, false);
+      assert.equal(matterCockpitUi.summary.protected_action_executed, false);
+      assert.equal(matterCockpitUi.summary.legal_advice_generated, false);
+      assert.equal(matterCockpitUi.summary.client_facing_output_generated, false);
+      assert.equal(matterCockpitUi.summary.windows_baseline_stability_preserved, true);
+      assert.equal(matterCockpitUi.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(matterCockpitUi.summary.validation_error_count, 0);
+      assert.ok(matterCockpitUi.matter_cockpit_ui_panels.every((row) => row.panel_status === "ready" && row.read_only && row.preview_only && row.ui_projection_only && row.matter_data_write_allowed === false && row.task_state_write_allowed === false && row.approval_application_allowed === false && row.delivery_execution_allowed === false && row.protected_action_execution_allowed === false && row.human_review_required && row.client_facing_ready === false));
+      assert.ok(matterCockpitUi.matter_cockpit_profile_cards.every((row) => row.read_only && row.preview_only && row.mutation_allowed === false && row.human_review_required && row.client_facing_ready === false));
+      assert.ok(matterCockpitUi.matter_cockpit_timeline_rows.every((row) => row.timeline_row_status === "ready" && row.read_only && row.preview_only && row.mutation_allowed === false));
+      assert.ok(matterCockpitUi.matter_cockpit_task_rows.every((row) => row.task_row_status === "ready" && row.read_only && row.preview_only && row.task_state_write_allowed === false && row.workflow_transition_allowed === false));
+      assert.ok(matterCockpitUi.matter_cockpit_document_rows.every((row) => row.document_row_status === "ready" && row.read_only && row.preview_only && row.document_content_read_performed === false && row.document_mutation_allowed === false));
+      assert.ok(matterCockpitUi.matter_cockpit_evidence_rows.every((row) => row.evidence_row_status === "ready" && row.read_only && row.preview_only && row.source_file_content_read_performed === false && row.evidence_mutation_allowed === false));
+      assert.ok(matterCockpitUi.matter_cockpit_approval_rows.every((row) => row.approval_row_status === "ready" && row.read_only && row.preview_only && row.approval_application_allowed === false && row.protected_action_execution_allowed === false));
+      assert.equal(matterCockpitUi.matter_cockpit_ui_boundary.boundary_status, "enforced");
+      assert.ok(matterCockpitUi.matter_cockpit_ui_checks.every((item) => item.status === "passed"));
+      assert.ok(matterCockpitUi.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "matter-cockpit-ui", "summary.md"), "utf8"), /Matter Cockpit UI/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -12688,6 +12761,7 @@ describe("matter harness", () => {
           evidence_viewer_ui: path.join(outDir, "evidence-viewer-ui", "evidence-viewer-ui.json"),
           source_span_inspector: path.join(outDir, "source-span-inspector", "source-span-inspector.json"),
           run_ledger_viewer: path.join(outDir, "run-ledger-viewer", "run-ledger-viewer.json"),
+          matter_cockpit_ui: path.join(outDir, "matter-cockpit-ui", "matter-cockpit-ui.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -12739,8 +12813,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 194);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 194);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 195);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 195);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -12922,6 +12996,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_viewer_ui"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "source_span_inspector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "run_ledger_viewer"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_cockpit_ui"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -12979,6 +13054,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "evidence:viewer-ui"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "evidence:source-span-inspector"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "ledgers:run-viewer"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:cockpit-ui"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:runtime-interface"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:approval-matrix"));
@@ -13878,6 +13954,10 @@ describe("matter harness", () => {
       assert.equal(runLedgerViewerCheckpoint?.acceptance_profile, "run_ledger_viewer_gate");
       assert.equal(runLedgerViewerCheckpoint?.status, "passed");
       assert.equal(runLedgerViewerCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const matterCockpitUiCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-matter-cockpit-ui");
+      assert.equal(matterCockpitUiCheckpoint?.acceptance_profile, "matter_cockpit_ui_gate");
+      assert.equal(matterCockpitUiCheckpoint?.status, "passed");
+      assert.equal(matterCockpitUiCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -19278,6 +19358,40 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.run_ledger_viewer_validation_item_count, runLedgerViewer.summary.validation_item_count);
       assert.equal(dashboard.summary.run_ledger_viewer_failed_checkpoint_count, 0);
       assert.equal(dashboard.summary.run_ledger_viewer_validation_error_count, 0);
+      assert.equal(dashboard.summary.matter_cockpit_ui_status, "complete");
+      assert.equal(dashboard.summary.matter_cockpit_ui_id, matterCockpitUi.summary.matter_cockpit_ui_id);
+      assert.equal(dashboard.summary.matter_cockpit_ui_phase_slot, "P293");
+      assert.equal(dashboard.summary.matter_cockpit_ui_previous_phase_slot, "P292");
+      assert.equal(dashboard.summary.matter_cockpit_ui_next_phase_slot, "P294");
+      assert.equal(dashboard.summary.matter_cockpit_ui_source_matter_cockpit_status, "complete");
+      assert.equal(dashboard.summary.matter_cockpit_ui_source_matter_count, matterCockpit.summary.matter_count);
+      assert.equal(dashboard.summary.matter_cockpit_ui_source_run_ledger_viewer_status, "complete");
+      assert.equal(dashboard.summary.matter_cockpit_ui_source_run_ledger_viewer_phase_slot, "P292");
+      assert.equal(dashboard.summary.matter_cockpit_ui_source_run_ledger_viewer_next_phase_slot, "P293");
+      assert.equal(dashboard.summary.matter_cockpit_ui_panel_count, 6);
+      assert.equal(dashboard.summary.matter_cockpit_ui_ready_panel_count, 6);
+      assert.equal(dashboard.summary.matter_cockpit_ui_profile_card_count, matterCockpit.summary.matter_count);
+      assert.equal(dashboard.summary.matter_cockpit_ui_timeline_row_count, matterTimeline.summary.timeline_event_count);
+      assert.equal(dashboard.summary.matter_cockpit_ui_task_row_count, matterTaskBoard.summary.task_record_count);
+      assert.equal(dashboard.summary.matter_cockpit_ui_document_row_count, matterDocumentIndex.summary.document_record_count);
+      assert.equal(dashboard.summary.matter_cockpit_ui_evidence_row_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(dashboard.summary.matter_cockpit_ui_approval_row_count, approvalQueueUi.summary.approval_queue_ui_item_count);
+      assert.equal(dashboard.summary.matter_cockpit_ui_client_facing_ready_row_count, 0);
+      assert.equal(dashboard.summary.matter_cockpit_ui_read_only, true);
+      assert.equal(dashboard.summary.matter_cockpit_ui_preview_only, true);
+      assert.equal(dashboard.summary.matter_cockpit_ui_ui_projection_only, true);
+      assert.equal(dashboard.summary.matter_cockpit_ui_document_content_read_performed, false);
+      assert.equal(dashboard.summary.matter_cockpit_ui_source_file_content_read_performed, false);
+      assert.equal(dashboard.summary.matter_cockpit_ui_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.matter_cockpit_ui_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.matter_cockpit_ui_approval_application_performed, false);
+      assert.equal(dashboard.summary.matter_cockpit_ui_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.matter_cockpit_ui_protected_action_executed, false);
+      assert.equal(dashboard.summary.matter_cockpit_ui_legal_advice_generated, false);
+      assert.equal(dashboard.summary.matter_cockpit_ui_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.matter_cockpit_ui_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.matter_cockpit_ui_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.matter_cockpit_ui_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -23093,6 +23207,40 @@ describe("matter harness", () => {
       assert.equal(runLedgerViewerStage?.metrics.validation_item_count, runLedgerViewer.summary.validation_item_count);
       assert.equal(runLedgerViewerStage?.metrics.failed_checkpoint_count, 0);
       assert.equal(runLedgerViewerStage?.metrics.validation_error_count, 0);
+      const matterCockpitUiStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "matter_cockpit_ui");
+      assert.equal(matterCockpitUiStage?.status, "passed");
+      assert.equal(matterCockpitUiStage?.metrics.matter_cockpit_ui_status, "complete");
+      assert.equal(matterCockpitUiStage?.metrics.matter_cockpit_ui_id, matterCockpitUi.summary.matter_cockpit_ui_id);
+      assert.equal(matterCockpitUiStage?.metrics.phase_slot, "P293");
+      assert.equal(matterCockpitUiStage?.metrics.previous_phase_slot, "P292");
+      assert.equal(matterCockpitUiStage?.metrics.next_phase_slot, "P294");
+      assert.equal(matterCockpitUiStage?.metrics.source_matter_cockpit_status, "complete");
+      assert.equal(matterCockpitUiStage?.metrics.source_matter_count, matterCockpit.summary.matter_count);
+      assert.equal(matterCockpitUiStage?.metrics.source_run_ledger_viewer_status, "complete");
+      assert.equal(matterCockpitUiStage?.metrics.source_run_ledger_viewer_phase_slot, "P292");
+      assert.equal(matterCockpitUiStage?.metrics.source_run_ledger_viewer_next_phase_slot, "P293");
+      assert.equal(matterCockpitUiStage?.metrics.matter_cockpit_ui_panel_count, 6);
+      assert.equal(matterCockpitUiStage?.metrics.ready_panel_count, 6);
+      assert.equal(matterCockpitUiStage?.metrics.profile_card_count, matterCockpit.summary.matter_count);
+      assert.equal(matterCockpitUiStage?.metrics.timeline_row_count, matterTimeline.summary.timeline_event_count);
+      assert.equal(matterCockpitUiStage?.metrics.task_row_count, matterTaskBoard.summary.task_record_count);
+      assert.equal(matterCockpitUiStage?.metrics.document_row_count, matterDocumentIndex.summary.document_record_count);
+      assert.equal(matterCockpitUiStage?.metrics.evidence_row_count, evidenceViewerUi.summary.evidence_viewer_ui_card_count);
+      assert.equal(matterCockpitUiStage?.metrics.approval_row_count, approvalQueueUi.summary.approval_queue_ui_item_count);
+      assert.equal(matterCockpitUiStage?.metrics.client_facing_ready_row_count, 0);
+      assert.equal(matterCockpitUiStage?.metrics.read_only, true);
+      assert.equal(matterCockpitUiStage?.metrics.preview_only, true);
+      assert.equal(matterCockpitUiStage?.metrics.ui_projection_only, true);
+      assert.equal(matterCockpitUiStage?.metrics.document_content_read_performed, false);
+      assert.equal(matterCockpitUiStage?.metrics.source_file_content_read_performed, false);
+      assert.equal(matterCockpitUiStage?.metrics.matter_data_write_allowed, false);
+      assert.equal(matterCockpitUiStage?.metrics.task_state_write_allowed, false);
+      assert.equal(matterCockpitUiStage?.metrics.approval_application_performed, false);
+      assert.equal(matterCockpitUiStage?.metrics.delivery_execution_performed, false);
+      assert.equal(matterCockpitUiStage?.metrics.protected_action_executed, false);
+      assert.equal(matterCockpitUiStage?.metrics.legal_advice_generated, false);
+      assert.equal(matterCockpitUiStage?.metrics.client_facing_output_generated, false);
+      assert.equal(matterCockpitUiStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -23305,6 +23453,17 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/run-ledger-viewer-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/run-ledger-viewer-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/run-ledger-viewer-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-cockpit-ui-artifacts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-cockpit-ui-panels"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-cockpit-profile-cards"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-cockpit-timeline-rows"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-cockpit-task-rows"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-cockpit-document-rows"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-cockpit-evidence-rows"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-cockpit-approval-rows"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-cockpit-ui-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-cockpit-ui-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-cockpit-ui-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -26273,6 +26432,50 @@ describe("matter harness", () => {
       const runLedgerViewerValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/run-ledger-viewer-validations?status=passed", apiOptions)).body);
       assert.equal(runLedgerViewerValidationsResponse.collection, "run_ledger_viewer_validations");
       assert.equal(runLedgerViewerValidationsResponse.count, runLedgerViewer.summary.validation_item_count);
+
+      const matterCockpitUiArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-cockpit-ui-artifacts?matter_cockpit_ui_status=complete", apiOptions)).body);
+      assert.equal(matterCockpitUiArtifactsResponse.collection, "matter_cockpit_ui_artifacts");
+      assert.equal(matterCockpitUiArtifactsResponse.count, 1);
+
+      const matterCockpitUiPanelsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-cockpit-ui-panels?matter_cockpit_ui_panel_status=ready", apiOptions)).body);
+      assert.equal(matterCockpitUiPanelsResponse.collection, "matter_cockpit_ui_panels");
+      assert.equal(matterCockpitUiPanelsResponse.count, matterCockpitUi.summary.matter_cockpit_ui_panel_count);
+
+      const matterCockpitProfileCardsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-cockpit-profile-cards?profile_card_status=complete&read_only=true&preview_only=true", apiOptions)).body);
+      assert.equal(matterCockpitProfileCardsResponse.collection, "matter_cockpit_profile_cards");
+      assert.equal(matterCockpitProfileCardsResponse.count, matterCockpitUi.summary.complete_profile_card_count);
+
+      const matterCockpitTimelineRowsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-cockpit-timeline-rows?timeline_row_status=ready&read_only=true", apiOptions)).body);
+      assert.equal(matterCockpitTimelineRowsResponse.collection, "matter_cockpit_timeline_rows");
+      assert.equal(matterCockpitTimelineRowsResponse.count, matterCockpitUi.summary.timeline_row_count);
+
+      const matterCockpitTaskRowsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-cockpit-task-rows?task_row_status=ready&task_column=in_review&read_only=true", apiOptions)).body);
+      assert.equal(matterCockpitTaskRowsResponse.collection, "matter_cockpit_task_rows");
+      assert.equal(matterCockpitTaskRowsResponse.count, matterCockpitUi.summary.in_review_task_row_count);
+
+      const matterCockpitDocumentRowsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-cockpit-document-rows?document_row_status=ready&document_status=pending_review&read_only=true", apiOptions)).body);
+      assert.equal(matterCockpitDocumentRowsResponse.collection, "matter_cockpit_document_rows");
+      assert.equal(matterCockpitDocumentRowsResponse.count, matterCockpitUi.summary.pending_review_document_row_count);
+
+      const matterCockpitEvidenceRowsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-cockpit-evidence-rows?evidence_row_status=ready&read_only=true&preview_only=true", apiOptions)).body);
+      assert.equal(matterCockpitEvidenceRowsResponse.collection, "matter_cockpit_evidence_rows");
+      assert.equal(matterCockpitEvidenceRowsResponse.count, matterCockpitUi.summary.evidence_row_count);
+
+      const matterCockpitApprovalRowsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-cockpit-approval-rows?approval_row_status=ready&item_status=pending&read_only=true", apiOptions)).body);
+      assert.equal(matterCockpitApprovalRowsResponse.collection, "matter_cockpit_approval_rows");
+      assert.equal(matterCockpitApprovalRowsResponse.count, matterCockpitUi.summary.pending_approval_row_count);
+
+      const matterCockpitUiBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/matter-cockpit-ui-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(matterCockpitUiBoundaryResponse.collection, "matter_cockpit_ui_boundary");
+      assert.equal(matterCockpitUiBoundaryResponse.count, 1);
+
+      const matterCockpitUiChecksResponse = JSON.parse((await buildReviewApiResponse("/api/matter-cockpit-ui-checks?status=passed", apiOptions)).body);
+      assert.equal(matterCockpitUiChecksResponse.collection, "matter_cockpit_ui_checks");
+      assert.equal(matterCockpitUiChecksResponse.count, matterCockpitUi.summary.validation_item_count);
+
+      const matterCockpitUiValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-cockpit-ui-validations?status=passed", apiOptions)).body);
+      assert.equal(matterCockpitUiValidationsResponse.collection, "matter_cockpit_ui_validations");
+      assert.equal(matterCockpitUiValidationsResponse.count, matterCockpitUi.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

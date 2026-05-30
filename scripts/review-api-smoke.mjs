@@ -3124,6 +3124,50 @@ try {
   assert.equal(runLedgerViewerValidations.collection, "run_ledger_viewer_validations");
   assert.ok(runLedgerViewerValidations.count <= 20);
 
+  const matterCockpitUiArtifacts = await fetchJson(`${url}/api/matter-cockpit-ui-artifacts?matter_cockpit_ui_status=complete&limit=1`);
+  assert.equal(matterCockpitUiArtifacts.collection, "matter_cockpit_ui_artifacts");
+  assert.ok(matterCockpitUiArtifacts.count <= 1);
+
+  const matterCockpitUiPanels = await fetchJson(`${url}/api/matter-cockpit-ui-panels?matter_cockpit_ui_panel_status=ready&limit=6`);
+  assert.equal(matterCockpitUiPanels.collection, "matter_cockpit_ui_panels");
+  assert.ok(matterCockpitUiPanels.count <= 6);
+
+  const matterCockpitProfileCards = await fetchJson(`${url}/api/matter-cockpit-profile-cards?profile_card_status=complete&read_only=true&preview_only=true&limit=5`);
+  assert.equal(matterCockpitProfileCards.collection, "matter_cockpit_profile_cards");
+  assert.ok(matterCockpitProfileCards.count <= 5);
+
+  const matterCockpitTimelineRows = await fetchJson(`${url}/api/matter-cockpit-timeline-rows?timeline_row_status=ready&read_only=true&limit=20`);
+  assert.equal(matterCockpitTimelineRows.collection, "matter_cockpit_timeline_rows");
+  assert.ok(matterCockpitTimelineRows.count <= 20);
+
+  const matterCockpitTaskRows = await fetchJson(`${url}/api/matter-cockpit-task-rows?task_row_status=ready&task_column=in_review&read_only=true&limit=20`);
+  assert.equal(matterCockpitTaskRows.collection, "matter_cockpit_task_rows");
+  assert.ok(matterCockpitTaskRows.count <= 20);
+
+  const matterCockpitDocumentRows = await fetchJson(`${url}/api/matter-cockpit-document-rows?document_row_status=ready&document_status=pending_review&read_only=true&limit=20`);
+  assert.equal(matterCockpitDocumentRows.collection, "matter_cockpit_document_rows");
+  assert.ok(matterCockpitDocumentRows.count <= 20);
+
+  const matterCockpitEvidenceRows = await fetchJson(`${url}/api/matter-cockpit-evidence-rows?evidence_row_status=ready&read_only=true&preview_only=true&limit=20`);
+  assert.equal(matterCockpitEvidenceRows.collection, "matter_cockpit_evidence_rows");
+  assert.ok(matterCockpitEvidenceRows.count <= 20);
+
+  const matterCockpitApprovalRows = await fetchJson(`${url}/api/matter-cockpit-approval-rows?approval_row_status=ready&item_status=pending&read_only=true&limit=20`);
+  assert.equal(matterCockpitApprovalRows.collection, "matter_cockpit_approval_rows");
+  assert.ok(matterCockpitApprovalRows.count <= 20);
+
+  const matterCockpitUiBoundary = await fetchJson(`${url}/api/matter-cockpit-ui-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(matterCockpitUiBoundary.collection, "matter_cockpit_ui_boundary");
+  assert.ok(matterCockpitUiBoundary.count <= 1);
+
+  const matterCockpitUiChecks = await fetchJson(`${url}/api/matter-cockpit-ui-checks?status=passed&limit=20`);
+  assert.equal(matterCockpitUiChecks.collection, "matter_cockpit_ui_checks");
+  assert.ok(matterCockpitUiChecks.count <= 20);
+
+  const matterCockpitUiValidations = await fetchJson(`${url}/api/matter-cockpit-ui-validations?status=passed&limit=20`);
+  assert.equal(matterCockpitUiValidations.collection, "matter_cockpit_ui_validations");
+  assert.ok(matterCockpitUiValidations.count <= 20);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

@@ -522,7 +522,7 @@ export async function runContractGoldenFixturesCli(argv = process.argv.slice(2))
 
   try {
     const result = await runContractGoldenFixtures(args);
-    console.log(`Contract golden fixtures written to ${result.output_dir}`);
+    console.log(`Contract golden fixtures ${args.check ? "validated" : "written"} at ${result.output_dir}`);
     console.log(`Status: ${result.summary.golden_fixture_status}`);
     console.log(`Fixtures: ${result.summary.fixture_count}`);
     console.log(`Schema-valid fixtures: ${result.summary.schema_valid_fixture_count}`);
@@ -558,7 +558,7 @@ async function buildGoldenFixtureRecord(definition, inputs, generatedAt) {
     ...(schemaRead.error ? [{ path: schemaPath, message: schemaRead.error }] : []),
   ];
   const validationErrors = [...readErrors, ...schemaErrors];
-  const contentHash = artifactRead.raw ? sha256(artifactRead.raw) : null;
+  const contentHash = artifactRead.raw ? hashFixtureContent(artifactRead) : null;
   return {
     schema_version: "contract-golden-fixture-record.v1",
     golden_fixture_id: `golden-fixture.${definition.fixture_id}`,
@@ -573,6 +573,7 @@ async function buildGoldenFixtureRecord(definition, inputs, generatedAt) {
     fixture_status: validationErrors.length === 0 ? "locked" : "blocked",
     schema_validation_status: schemaErrors.length === 0 && readErrors.length === 0 ? "passed" : "failed",
     regression_status: contentHash ? "locked" : "missing_hash",
+    content_hash_strategy: "canonical-json-v1",
     content_hash: contentHash,
     schema_hash: schemaRead.raw ? sha256(schemaRead.raw) : null,
     captured_at: generatedAt,
@@ -587,6 +588,7 @@ function buildRegressionHashManifest(goldenFixtures, generatedAt) {
     golden_fixture_id: fixture.golden_fixture_id,
     fixture_id: fixture.fixture_id,
     fixture_scope: fixture.fixture_scope,
+    content_hash_strategy: fixture.content_hash_strategy,
     content_hash: fixture.content_hash,
     schema_hash: fixture.schema_hash,
     regression_status: fixture.regression_status,
@@ -743,7 +745,10 @@ function parseArgs(argv) {
       if (!artifactId || pathParts.length === 0) throw new Error("--artifact must use artifact_id=path");
       parsed.artifactPaths[artifactId] = pathParts.join("=");
     } else if (arg === "--run-at") parsed.runAt = argv[++index];
-    else if (arg === "--check") parsed.check = true;
+    else if (arg === "--check") {
+      parsed.check = true;
+      parsed.write = false;
+    }
     else throw new Error(`Unknown argument: ${arg}`);
   }
   return parsed;
@@ -757,7 +762,7 @@ Options:
   --artifact <artifact_id=path> Override a golden fixture artifact path.
   --out-dir <path>              Output directory.
   --run-at <iso>                Fixed generation timestamp.
-  --check                       Exit non-zero when validation fails.
+  --check                       Validate without writing artifacts; exit non-zero when validation fails.
   -h, --help                    Show this help.
 `);
 }
@@ -783,6 +788,32 @@ async function writeJson(filePath, value) {
   await writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
 }
 
+function hashFixtureContent(artifactRead) {
+  if (!artifactRead.value) return sha256(artifactRead.raw);
+  return sha256(stableStringify(canonicalizeFixtureValue(artifactRead.value)));
+}
+
+function canonicalizeFixtureValue(value) {
+  if (Array.isArray(value)) return value.map((item) => canonicalizeFixtureValue(item));
+  if (!value || typeof value !== "object") return value;
+  const canonical = {};
+  for (const key of Object.keys(value).sort()) {
+    if (isVolatileFixtureKey(key)) continue;
+    canonical[key] = canonicalizeFixtureValue(value[key]);
+  }
+  return canonical;
+}
+
+function isVolatileFixtureKey(key) {
+  if (VOLATILE_CANONICAL_KEYS.has(key)) return true;
+  if (key.endsWith("_hash") && !STABLE_HASH_KEYS.has(key)) return true;
+  return false;
+}
+
+function stableStringify(value) {
+  return JSON.stringify(value);
+}
+
 function serializableGoldenFixtures(result) {
   const { markdown, ...serializable } = result;
   return serializable;
@@ -801,6 +832,25 @@ function countBy(items, key) {
 function sha256(value) {
   return `sha256:${createHash("sha256").update(value).digest("hex")}`;
 }
+
+const VOLATILE_CANONICAL_KEYS = new Set([
+  "captured_at",
+  "created_at",
+  "generated_at",
+  "golden_fixture_set_id",
+  "operator_handbook_id",
+  "output_dir",
+  "release_candidate_report_id",
+  "source_content_hash",
+  "v1_freeze_id",
+]);
+
+const STABLE_HASH_KEYS = new Set([
+  "content_hash",
+  "raw_hash_sha256",
+  "schema_hash",
+  "text_hash_sha256",
+]);
 
 function slugify(value) {
   return String(value ?? "unknown")

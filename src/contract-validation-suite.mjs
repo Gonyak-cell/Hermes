@@ -310,7 +310,7 @@ export async function runContractValidationSuiteCli(argv = process.argv.slice(2)
 
   try {
     const result = await runContractValidationSuite(args);
-    console.log(`Contract validation suite written to ${result.output_dir}`);
+    console.log(`Contract validation suite ${args.check ? "validated" : "written"} at ${result.output_dir}`);
     console.log(`Status: ${result.summary.validation_suite_status}`);
     console.log(`Fixtures: ${result.summary.fixture_count}`);
     console.log(`Regression passed: ${result.summary.regression_passed_count}`);
@@ -334,7 +334,7 @@ async function buildFixtureValidationResult(fixture) {
     ...(artifactRead.error ? [{ path: fixture.artifact_path, message: artifactRead.error }] : []),
     ...(schemaRead.error ? [{ path: fixture.schema_path, message: schemaRead.error }] : []),
   ];
-  const actualContentHash = artifactRead.raw ? sha256(artifactRead.raw) : null;
+  const actualContentHash = artifactRead.raw ? hashFixtureContent(artifactRead) : null;
   const actualSchemaHash = schemaRead.raw ? sha256(schemaRead.raw) : null;
   const contentHashStatus = actualContentHash && actualContentHash === fixture.content_hash ? "matched" : "mismatched";
   const schemaHashStatus = actualSchemaHash && actualSchemaHash === fixture.schema_hash ? "matched" : "mismatched";
@@ -359,6 +359,7 @@ async function buildFixtureValidationResult(fixture) {
     artifact_path: fixture.artifact_path,
     schema_path: fixture.schema_path,
     artifact_schema_version: artifactRead.value?.schema_version ?? null,
+    content_hash_strategy: fixture.content_hash_strategy ?? "canonical-json-v1",
     expected_content_hash: fixture.content_hash,
     actual_content_hash: actualContentHash,
     content_hash_status: contentHashStatus,
@@ -556,7 +557,10 @@ function parseArgs(argv) {
     else if (arg === "--package") parsed.packagePath = argv[++index];
     else if (arg === "--roadmap") parsed.roadmapPath = argv[++index];
     else if (arg === "--run-at") parsed.runAt = argv[++index];
-    else if (arg === "--check") parsed.check = true;
+    else if (arg === "--check") {
+      parsed.check = true;
+      parsed.write = false;
+    }
     else throw new Error(`Unknown argument: ${arg}`);
   }
   return parsed;
@@ -571,7 +575,7 @@ Options:
   --roadmap <path>                  implementation roadmap path.
   --out-dir <path>                  Output directory.
   --run-at <iso>                    Fixed generation timestamp.
-  --check                           Exit non-zero when validation fails.
+  --check                           Validate without writing artifacts; exit non-zero when validation fails.
   -h, --help                        Show this help.
 `);
 }
@@ -605,6 +609,32 @@ async function writeJson(filePath, value) {
   await writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
 }
 
+function hashFixtureContent(artifactRead) {
+  if (!artifactRead.value) return sha256(artifactRead.raw);
+  return sha256(stableStringify(canonicalizeFixtureValue(artifactRead.value)));
+}
+
+function canonicalizeFixtureValue(value) {
+  if (Array.isArray(value)) return value.map((item) => canonicalizeFixtureValue(item));
+  if (!value || typeof value !== "object") return value;
+  const canonical = {};
+  for (const key of Object.keys(value).sort()) {
+    if (isVolatileFixtureKey(key)) continue;
+    canonical[key] = canonicalizeFixtureValue(value[key]);
+  }
+  return canonical;
+}
+
+function isVolatileFixtureKey(key) {
+  if (VOLATILE_CANONICAL_KEYS.has(key)) return true;
+  if (key.endsWith("_hash") && !STABLE_HASH_KEYS.has(key)) return true;
+  return false;
+}
+
+function stableStringify(value) {
+  return JSON.stringify(value);
+}
+
 function serializableSuite(result) {
   const { markdown, ...serializable } = result;
   return serializable;
@@ -627,6 +657,25 @@ function hashValue(value) {
 function sha256(value) {
   return `sha256:${createHash("sha256").update(value).digest("hex")}`;
 }
+
+const VOLATILE_CANONICAL_KEYS = new Set([
+  "captured_at",
+  "created_at",
+  "generated_at",
+  "golden_fixture_set_id",
+  "operator_handbook_id",
+  "output_dir",
+  "release_candidate_report_id",
+  "source_content_hash",
+  "v1_freeze_id",
+]);
+
+const STABLE_HASH_KEYS = new Set([
+  "content_hash",
+  "raw_hash_sha256",
+  "schema_hash",
+  "text_hash_sha256",
+]);
 
 function slugify(value) {
   return String(value ?? "unknown")

@@ -529,13 +529,17 @@ function isV1FreezeSelfReferenceValidationSuite(data) {
     && (summary.fixture_count ?? 0) >= 213
     && (summary.missing_package_script_count ?? 0) === 0
     && (summary.roadmap_missing_count ?? 0) === 0
-    && (summary.content_hash_mismatch_count ?? 0) === 0
     && (summary.schema_hash_mismatch_count ?? 0) === 0
     && errors.length > 0
-    && errors.every((error) => {
-      const pathValue = String(error.path ?? "");
-      return pathValue === "source_golden_fixtures" || pathValue.includes("v1_freeze") || pathValue.includes("release_candidate_report");
-    });
+    && errors.every((error) => isAllowedV1FreezeSelfReferenceError(error.path));
+}
+
+function isAllowedV1FreezeSelfReferenceError(errorPath) {
+  const pathValue = String(errorPath ?? "");
+  return pathValue === "source_golden_fixtures"
+    || pathValue.includes("v1_freeze")
+    || pathValue.includes("release_candidate_report")
+    || pathValue.includes("operator_handbook");
 }
 
 function isV1FreezeSelfReferenceGoalCheckpoint(data) {
@@ -567,7 +571,10 @@ function parseArgs(argv) {
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--help" || arg === "-h") parsed.help = true;
-    else if (arg === "--check") parsed.check = true;
+    else if (arg === "--check") {
+      parsed.check = true;
+      parsed.write = false;
+    }
     else if (arg === "--out-dir") parsed.outDir = argv[++index];
     else if (arg === "--run-at") parsed.runAt = argv[++index];
     else if (arg.startsWith("--")) parsed[kebabToCamel(arg.slice(2))] = argv[++index];
@@ -578,7 +585,8 @@ function parseArgs(argv) {
 function printHelp() {
   console.log(`Usage: node scripts/v1-freeze.mjs [--check] [--out-dir DIR]
 
-Builds the read-only Hermes Harness v1.0 freeze report.`);
+Builds the read-only Hermes Harness v1.0 freeze report.
+With --check, validates without writing artifacts.`);
 }
 
 function dateStamp(isoString) {

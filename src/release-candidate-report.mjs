@@ -698,7 +698,10 @@ function parseArgs(argv) {
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--help" || arg === "-h") parsed.help = true;
-    else if (arg === "--check") parsed.check = true;
+    else if (arg === "--check") {
+      parsed.check = true;
+      parsed.write = false;
+    }
     else if (arg === "--out-dir") parsed.outDir = argv[++index];
     else if (arg === "--run-at") parsed.runAt = argv[++index];
     else if (arg.startsWith("--")) parsed[kebabToCamel(arg.slice(2))] = argv[++index];
@@ -707,7 +710,7 @@ function parseArgs(argv) {
 }
 
 function printHelp() {
-  console.log("Usage: node scripts/release-candidate-report.mjs [--check] [--out-dir path]");
+  console.log("Usage: node scripts/release-candidate-report.mjs [--check] [--out-dir path]\n\nWith --check, validates without writing artifacts.");
 }
 
 function sha256(value) {

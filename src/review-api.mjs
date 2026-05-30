@@ -7310,6 +7310,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("creative_document_e2e_report_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/ingestion-e2e-reports") {
+    const result = await readDashboardSourceArtifact(dashboard, "ingestion_e2e_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("ingestion_e2e_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ingestion_e2e_reports", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/ingestion-e2e-report-sources") {
+    const result = await readDashboardSourceArtifact(dashboard, "ingestion_e2e_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("ingestion_e2e_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ingestion_e2e_report_sources", result.artifact.source_statuses ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ingestion-e2e-scenario-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "ingestion_e2e_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("ingestion_e2e_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ingestion_e2e_scenario_rows", result.artifact.ingestion_e2e_scenario_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ingestion-e2e-chain-stages") {
+    const result = await readDashboardSourceArtifact(dashboard, "ingestion_e2e_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("ingestion_e2e_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ingestion_e2e_chain_stages", result.artifact.ingestion_e2e_chain_stages ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ingestion-e2e-gate-results") {
+    const result = await readDashboardSourceArtifact(dashboard, "ingestion_e2e_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("ingestion_e2e_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ingestion_e2e_gate_results", result.artifact.ingestion_e2e_gate_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ingestion-e2e-report-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "ingestion_e2e_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("ingestion_e2e_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ingestion_e2e_report_boundary", [result.artifact.ingestion_e2e_report_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/ingestion-e2e-report-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "ingestion_e2e_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("ingestion_e2e_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ingestion_e2e_report_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -13638,6 +13687,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/creative-document-e2e-gate-results", "Creative Document E2E gate result rows"),
       route("GET", "/api/creative-document-e2e-report-boundary", "Creative Document E2E Report boundary"),
       route("GET", "/api/creative-document-e2e-report-validations", "Creative Document E2E Report validation rows"),
+      route("GET", "/api/ingestion-e2e-reports", "Ingestion E2E Report artifact"),
+      route("GET", "/api/ingestion-e2e-report-sources", "Ingestion E2E Report source rows"),
+      route("GET", "/api/ingestion-e2e-scenario-rows", "Ingestion E2E scenario rows"),
+      route("GET", "/api/ingestion-e2e-chain-stages", "Ingestion E2E chain stage rows"),
+      route("GET", "/api/ingestion-e2e-gate-results", "Ingestion E2E gate result rows"),
+      route("GET", "/api/ingestion-e2e-report-boundary", "Ingestion E2E Report boundary"),
+      route("GET", "/api/ingestion-e2e-report-validations", "Ingestion E2E Report validation rows"),
       route("GET", "/api/connector-contracts-v2", "Connector Contract v2 artifact"),
       route("GET", "/api/connector-definitions", "Connector v2 definition rows"),
       route("GET", "/api/connector-source-contracts", "Connector source id contract rows"),
@@ -15013,6 +15069,13 @@ function filterItems(items, searchParams) {
     "layout_gate_passed",
     "approval_gate_passed",
     "output_artifact_gate_passed",
+    "ingestion_e2e_report_status",
+    "connector_to_dashboard_path_complete",
+    "connector_gate_passed",
+    "backfill_gate_passed",
+    "quarantine_gate_passed",
+    "evidence_gate_passed",
+    "dashboard_gate_passed",
     "connector_contract_v2_status",
     "connector_status",
     "source_contract_status",
@@ -17122,6 +17185,13 @@ function readFilterValue(item, key) {
   if (key === "layout_gate_passed") return item.layout_gate_passed;
   if (key === "approval_gate_passed") return item.approval_gate_passed;
   if (key === "output_artifact_gate_passed") return item.output_artifact_gate_passed;
+  if (key === "ingestion_e2e_report_status") return item.summary?.ingestion_e2e_report_status ?? item.ingestion_e2e_report_status;
+  if (key === "connector_to_dashboard_path_complete") return item.summary?.connector_to_dashboard_path_complete ?? item.connector_to_dashboard_path_complete;
+  if (key === "connector_gate_passed") return item.connector_gate_passed;
+  if (key === "backfill_gate_passed") return item.backfill_gate_passed;
+  if (key === "quarantine_gate_passed") return item.quarantine_gate_passed;
+  if (key === "evidence_gate_passed") return item.evidence_gate_passed;
+  if (key === "dashboard_gate_passed") return item.dashboard_gate_passed;
   if (key === "connector_contract_v2_status") return item.summary?.connector_contract_status ?? item.connector_contract_status;
   if (key === "connector_status") return item.connector_status;
   if (key === "source_contract_status") return item.source_contract_status;

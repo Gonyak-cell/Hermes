@@ -126,6 +126,12 @@ Creative Document E2E Report routes expose the read-only P307 scenario report ar
 
 Routes: `/api/creative-document-e2e-reports`, `/api/creative-document-e2e-report-sources`, `/api/creative-document-e2e-scenario-rows`, `/api/creative-document-e2e-chain-stages`, `/api/creative-document-e2e-gate-results`, `/api/creative-document-e2e-report-boundary`, `/api/creative-document-e2e-report-validations`.
 
+## P308 Ingestion E2E Report Routes
+
+Ingestion E2E Report routes expose the read-only P308 scenario report artifact, source status rows, representative scenario rows, connector/backfill/quarantine/evidence/dashboard chain stage rows, gate result rows, boundary, and validation rows. Supported filters include `ingestion_e2e_report_status`, `source_status`, `scenario_status`, `scenario_kind`, `chain_stage`, `stage_status`, `connector_to_dashboard_path_complete`, `connector_gate_passed`, `backfill_gate_passed`, `quarantine_gate_passed`, `evidence_gate_passed`, `dashboard_gate_passed`, `gate_status`, `boundary_status`, `read_only`, `legal_advice_generated`, `client_facing_output_generated`, `status`, and `limit`.
+
+Routes: `/api/ingestion-e2e-reports`, `/api/ingestion-e2e-report-sources`, `/api/ingestion-e2e-scenario-rows`, `/api/ingestion-e2e-chain-stages`, `/api/ingestion-e2e-gate-results`, `/api/ingestion-e2e-report-boundary`, `/api/ingestion-e2e-report-validations`.
+
 ## P245 LDD RFI Generator Routes
 
 LDD RFI Generator routes expose read-only draft-only RFI packets, draft questions, missing-material links, issue links, matter summaries, and validation/boundary rows. Supported filters include `ldd_rfi_generator_status`, `ldd_rfi_matter_status`, `rfi_rule_type`, `rfi_draft_status`, `rfi_question_type`, `rfi_question_priority`, `rfi_question_status`, `rfi_missing_material_status`, `rfi_issue_link_status`, `deterministic_rfi_generation_performed`, `ldd_rfi_question_id`, `ldd_issue_record_id`, `ldd_vdr_missing_data_record_id`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.

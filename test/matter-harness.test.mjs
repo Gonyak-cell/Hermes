@@ -106,6 +106,7 @@ import { runBackupRestoreDrill } from "../src/backup-restore-drill.mjs";
 import { runLawFirmE2eReport } from "../src/law-firm-e2e-report.mjs";
 import { runPersonalDevE2eReport } from "../src/personal-dev-e2e-report.mjs";
 import { runCreativeDocumentE2eReport } from "../src/creative-document-e2e-report.mjs";
+import { runIngestionE2eReport } from "../src/ingestion-e2e-report.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -2009,6 +2010,7 @@ describe("matter harness", () => {
         lawFirmE2eReportPath: path.join(outDir, "law-firm-e2e-report", "law-firm-e2e-report.json"),
         personalDevE2eReportPath: path.join(outDir, "personal-dev-e2e-report", "personal-dev-e2e-report.json"),
         creativeDocumentE2eReportPath: path.join(outDir, "creative-document-e2e-report", "creative-document-e2e-report.json"),
+        ingestionE2eReportPath: path.join(outDir, "ingestion-e2e-report", "ingestion-e2e-report.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -2150,6 +2152,7 @@ describe("matter harness", () => {
         lawFirmE2eReportPath: false,
         personalDevE2eReportPath: false,
         creativeDocumentE2eReportPath: false,
+        ingestionE2eReportPath: false,
         observabilityFreezePath: false,
         capabilityManifestV2Path: false,
         packManifestCompatibilityPath: false,
@@ -13385,6 +13388,7 @@ describe("matter harness", () => {
         lawFirmE2eReportPath: false,
         personalDevE2eReportPath: false,
         creativeDocumentE2eReportPath: false,
+        ingestionE2eReportPath: false,
         outDir: path.join(outDir, "dashboard-pre-checkpoint"),
         runAt: "2026-05-23T06:35:08.000Z",
       });
@@ -15143,6 +15147,94 @@ describe("matter harness", () => {
       assert.match(await readFile(path.join(outDir, "creative-document-e2e-report", "summary.md"), "utf8"), /Creative Document E2E Report/);
 
       contractGoldenFixtureArtifactPaths.creative_document_e2e_report = path.join(outDir, "creative-document-e2e-report", "creative-document-e2e-report.json");
+      const ingestionE2eReport = await runIngestionE2eReport({
+        creativeDocumentE2eReportPath: path.join(outDir, "creative-document-e2e-report", "creative-document-e2e-report.json"),
+        connectorFreezePath: path.join(outDir, "connector-freeze", "connector-freeze.json"),
+        resourceExpansionFreezePath: path.join(outDir, "resource-expansion-freeze", "resource-expansion-freeze.json"),
+        backfillJobContractPath: path.join(outDir, "backfill-job-contract", "backfill-job-contract.json"),
+        expansionCursorLedgerPath: path.join(outDir, "expansion-cursor-ledger", "expansion-cursor-ledger.json"),
+        expansionDedupLedgerPath: path.join(outDir, "expansion-dedup-ledger", "expansion-dedup-ledger.json"),
+        expansionQuarantineLedgerPath: path.join(outDir, "expansion-quarantine-ledger", "expansion-quarantine-ledger.json"),
+        evidenceItemStorePath: path.join(outDir, "evidence-item-store", "evidence-item-store.json"),
+        resourceEvidenceDashboardPath: path.join(outDir, "resource-evidence-dashboard", "resource-evidence-dashboard-summary.json"),
+        expansionStatusDashboardPath: path.join(outDir, "expansion-status-dashboard", "expansion-status-dashboard.json"),
+        evidencePlaneFreezePath: path.join(outDir, "evidence-plane-freeze", "evidence-plane-freeze.json"),
+        outDir: path.join(outDir, "ingestion-e2e-report"),
+        runAt: "2026-05-23T07:28:56.250Z",
+      });
+      const ingestionE2eReportSchema = JSON.parse(await readFile("schemas/ingestion-e2e-report.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(ingestionE2eReport, ingestionE2eReportSchema, {}, "ingestion_e2e_report"), [], JSON.stringify(ingestionE2eReport.validation.errors));
+      assert.equal(ingestionE2eReport.summary.ingestion_e2e_report_status, "complete");
+      assert.equal(ingestionE2eReport.summary.phase_slot, "P308");
+      assert.equal(ingestionE2eReport.summary.previous_phase_slot, "P307");
+      assert.equal(ingestionE2eReport.summary.next_phase_slot, "P309");
+      assert.equal(ingestionE2eReport.summary.source_creative_document_e2e_report_status, "complete");
+      assert.equal(ingestionE2eReport.summary.source_creative_document_e2e_report_phase_slot, "P307");
+      assert.equal(ingestionE2eReport.summary.source_creative_document_e2e_report_next_phase_slot, "P308");
+      assert.equal(ingestionE2eReport.summary.source_connector_freeze_status, "complete");
+      assert.equal(ingestionE2eReport.summary.source_resource_expansion_freeze_status, "complete");
+      assert.equal(ingestionE2eReport.summary.source_backfill_job_contract_status, "complete");
+      assert.equal(ingestionE2eReport.summary.source_expansion_quarantine_ledger_status, "complete");
+      assert.equal(ingestionE2eReport.summary.source_evidence_item_store_status, "complete");
+      assert.equal(ingestionE2eReport.summary.source_resource_evidence_dashboard_status, "complete");
+      assert.equal(ingestionE2eReport.summary.source_expansion_status_dashboard_status, "complete");
+      assert.equal(ingestionE2eReport.summary.source_evidence_plane_freeze_status, "frozen_with_pending_human_actions");
+      assert.equal(ingestionE2eReport.summary.failed_source_status_count, 0);
+      assert.equal(ingestionE2eReport.summary.scenario_row_count, 1);
+      assert.equal(ingestionE2eReport.summary.passed_scenario_row_count, 1);
+      assert.equal(ingestionE2eReport.summary.chain_stage_count, 5);
+      assert.equal(ingestionE2eReport.summary.passed_chain_stage_count, 5);
+      assert.equal(ingestionE2eReport.summary.connector_to_dashboard_path_complete, true);
+      assert.equal(ingestionE2eReport.summary.connector_stage_passed_count, 1);
+      assert.equal(ingestionE2eReport.summary.backfill_stage_passed_count, 1);
+      assert.equal(ingestionE2eReport.summary.quarantine_stage_passed_count, 1);
+      assert.equal(ingestionE2eReport.summary.evidence_stage_passed_count, 1);
+      assert.equal(ingestionE2eReport.summary.dashboard_stage_passed_count, 1);
+      assert.ok(ingestionE2eReport.summary.connector_resource_candidate_count >= 1);
+      assert.ok(ingestionE2eReport.summary.projected_item_count >= 1);
+      assert.equal(ingestionE2eReport.summary.projected_terminal_item_count, ingestionE2eReport.summary.projected_item_count);
+      assert.equal(ingestionE2eReport.summary.resource_expansion_failed_count, 0);
+      assert.equal(ingestionE2eReport.summary.resumable_backfill_dry_run_verified, true);
+      assert.equal(ingestionE2eReport.summary.idempotent_backfill_dry_run_verified, true);
+      assert.equal(ingestionE2eReport.summary.dedup_idempotency_key_collision_count, 0);
+      assert.ok(ingestionE2eReport.summary.quarantine_decision_count >= 1);
+      assert.equal(ingestionE2eReport.summary.passed_quarantine_decision_count, ingestionE2eReport.summary.quarantine_decision_count);
+      assert.ok(ingestionE2eReport.summary.evidence_item_count >= 1);
+      assert.equal(ingestionE2eReport.summary.evidence_source_span_binding_count, ingestionE2eReport.summary.evidence_item_count);
+      assert.equal(ingestionE2eReport.summary.evidence_needs_review_count, ingestionE2eReport.summary.evidence_item_count);
+      assert.equal(ingestionE2eReport.summary.evidence_approved_count, 0);
+      assert.ok(ingestionE2eReport.summary.complete_representative_trace_count >= 1);
+      assert.ok(ingestionE2eReport.summary.panel_row_count >= 1);
+      assert.equal(ingestionE2eReport.summary.ready_panel_count, ingestionE2eReport.summary.panel_row_count);
+      assert.ok(ingestionE2eReport.summary.api_route_row_count >= 1);
+      assert.equal(ingestionE2eReport.summary.queryable_api_route_count, ingestionE2eReport.summary.api_route_row_count);
+      assert.equal(ingestionE2eReport.summary.regression_failed_case_count, 0);
+      assert.equal(ingestionE2eReport.summary.export_client_facing_ready_bundle_count, 0);
+      assert.equal(ingestionE2eReport.summary.gate_violation_count, 0);
+      assert.equal(ingestionE2eReport.summary.read_only, true);
+      assert.equal(ingestionE2eReport.summary.report_only, true);
+      assert.equal(ingestionE2eReport.summary.connector_runtime_execution_performed, false);
+      assert.equal(ingestionE2eReport.summary.backfill_execution_performed, false);
+      assert.equal(ingestionE2eReport.summary.source_ingest_performed, false);
+      assert.equal(ingestionE2eReport.summary.quarantine_release_performed, false);
+      assert.equal(ingestionE2eReport.summary.dashboard_route_execution_performed, false);
+      assert.equal(ingestionE2eReport.summary.delivery_execution_performed, false);
+      assert.equal(ingestionE2eReport.summary.protected_action_executed, false);
+      assert.equal(ingestionE2eReport.summary.legal_advice_generated, false);
+      assert.equal(ingestionE2eReport.summary.client_facing_output_generated, false);
+      assert.equal(ingestionE2eReport.summary.human_review_required, true);
+      assert.equal(ingestionE2eReport.summary.attorney_review_required, true);
+      assert.equal(ingestionE2eReport.summary.windows_baseline_stability_preserved, true);
+      assert.equal(ingestionE2eReport.summary.validation_error_count, 0);
+      assert.ok(ingestionE2eReport.source_statuses.every((row) => row.source_status === "passed"));
+      assert.ok(ingestionE2eReport.ingestion_e2e_scenario_rows.every((row) => row.scenario_status === "passed" && row.connector_gate_passed && row.backfill_gate_passed && row.quarantine_gate_passed && row.evidence_gate_passed && row.dashboard_gate_passed));
+      assert.ok(ingestionE2eReport.ingestion_e2e_chain_stages.every((row) => row.stage_status === "passed" && row.read_only && !row.mutation_performed));
+      assert.ok(ingestionE2eReport.ingestion_e2e_gate_results.every((row) => row.gate_status === "passed" && !row.gate_violation));
+      assert.equal(ingestionE2eReport.ingestion_e2e_report_boundary.boundary_status, "enforced");
+      assert.ok(ingestionE2eReport.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "ingestion-e2e-report", "summary.md"), "utf8"), /Ingestion E2E Report/);
+
+      contractGoldenFixtureArtifactPaths.ingestion_e2e_report = path.join(outDir, "ingestion-e2e-report", "ingestion-e2e-report.json");
       contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: contractGoldenFixtureArtifactPaths,
         fixtureIds: Object.keys(contractGoldenFixtureArtifactPaths),
@@ -15154,8 +15246,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 209);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 209);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 210);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 210);
       assert.equal(contractGoldenFixtures.summary.missing_artifact_count, 0);
       assert.equal(contractGoldenFixtures.summary.validation_error_count, 0);
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "dashboard_api_freeze"));
@@ -15170,6 +15262,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "law_firm_e2e_report"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "personal_dev_e2e_report"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "creative_document_e2e_report"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "ingestion_e2e_report"));
 
       contractValidationSuite = await runContractValidationSuite({
         contractGoldenFixturesPath: path.join(outDir, "contract-golden-fixtures", "contract-golden-fixtures.json"),
@@ -15183,8 +15276,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractValidationSuite.summary.validation_suite_status, "complete");
-      assert.equal(contractValidationSuite.summary.fixture_count, 209);
-      assert.equal(contractValidationSuite.summary.validated_fixture_count, 209);
+      assert.equal(contractValidationSuite.summary.fixture_count, 210);
+      assert.equal(contractValidationSuite.summary.validated_fixture_count, 210);
       assert.equal(contractValidationSuite.summary.schema_invalid_fixture_count, 0);
       assert.equal(contractValidationSuite.summary.regression_failed_count, 0);
       assert.equal(contractValidationSuite.summary.missing_package_script_count, 0);
@@ -15201,6 +15294,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:e2e-report"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:e2e-report"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:e2e-report"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "ingestion:e2e-report"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
 
       const dashboard = await runReviewDashboard({
@@ -15281,6 +15375,10 @@ describe("matter harness", () => {
       assert.equal(creativeDocumentE2eReportCheckpoint?.acceptance_profile, "creative_document_e2e_report_gate");
       assert.equal(creativeDocumentE2eReportCheckpoint?.status, "passed");
       assert.equal(creativeDocumentE2eReportCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const ingestionE2eReportCheckpoint = dashboardApiFreezeGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-ingestion-e2e-report");
+      assert.equal(ingestionE2eReportCheckpoint?.acceptance_profile, "ingestion_e2e_report_gate");
+      assert.equal(ingestionE2eReportCheckpoint?.status, "passed");
+      assert.equal(ingestionE2eReportCheckpoint?.implementation_status, "passed_with_operational_gate");
       assert.equal(dashboard.summary.evidence_approved_count, 1);
       assert.equal(dashboard.summary.evidence_review_draft_item_count, evidenceReviewDraft.summary.review_item_count);
       assert.equal(dashboard.summary.evidence_review_draft_attorney_count, evidenceReviewDraft.summary.attorney_review_count);
@@ -21170,6 +21268,56 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.creative_document_e2e_report_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.creative_document_e2e_report_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.creative_document_e2e_report_validation_error_count, 0);
+      assert.equal(dashboard.summary.ingestion_e2e_report_status, "complete");
+      assert.equal(dashboard.summary.ingestion_e2e_report_id, ingestionE2eReport.summary.ingestion_e2e_report_id);
+      assert.equal(dashboard.summary.ingestion_e2e_report_phase_slot, "P308");
+      assert.equal(dashboard.summary.ingestion_e2e_report_previous_phase_slot, "P307");
+      assert.equal(dashboard.summary.ingestion_e2e_report_next_phase_slot, "P309");
+      assert.equal(dashboard.summary.ingestion_e2e_report_source_creative_document_e2e_report_status, "complete");
+      assert.equal(dashboard.summary.ingestion_e2e_report_source_creative_document_e2e_report_phase_slot, "P307");
+      assert.equal(dashboard.summary.ingestion_e2e_report_source_creative_document_e2e_report_next_phase_slot, "P308");
+      assert.equal(dashboard.summary.ingestion_e2e_report_source_connector_freeze_status, "complete");
+      assert.equal(dashboard.summary.ingestion_e2e_report_source_resource_expansion_freeze_status, "complete");
+      assert.equal(dashboard.summary.ingestion_e2e_report_source_evidence_plane_freeze_status, "frozen_with_pending_human_actions");
+      assert.equal(dashboard.summary.ingestion_e2e_report_failed_source_status_count, 0);
+      assert.equal(dashboard.summary.ingestion_e2e_report_scenario_row_count, 1);
+      assert.equal(dashboard.summary.ingestion_e2e_report_passed_scenario_row_count, 1);
+      assert.equal(dashboard.summary.ingestion_e2e_report_failed_scenario_row_count, 0);
+      assert.equal(dashboard.summary.ingestion_e2e_report_chain_stage_count, 5);
+      assert.equal(dashboard.summary.ingestion_e2e_report_passed_chain_stage_count, 5);
+      assert.equal(dashboard.summary.ingestion_e2e_report_failed_chain_stage_count, 0);
+      assert.equal(dashboard.summary.ingestion_e2e_report_connector_stage_passed_count, 1);
+      assert.equal(dashboard.summary.ingestion_e2e_report_backfill_stage_passed_count, 1);
+      assert.equal(dashboard.summary.ingestion_e2e_report_quarantine_stage_passed_count, 1);
+      assert.equal(dashboard.summary.ingestion_e2e_report_evidence_stage_passed_count, 1);
+      assert.equal(dashboard.summary.ingestion_e2e_report_dashboard_stage_passed_count, 1);
+      assert.equal(dashboard.summary.ingestion_e2e_report_connector_to_dashboard_path_complete, true);
+      assert.ok(dashboard.summary.ingestion_e2e_report_connector_resource_candidate_count >= 1);
+      assert.ok(dashboard.summary.ingestion_e2e_report_projected_item_count >= 1);
+      assert.equal(dashboard.summary.ingestion_e2e_report_projected_terminal_item_count, dashboard.summary.ingestion_e2e_report_projected_item_count);
+      assert.ok(dashboard.summary.ingestion_e2e_report_quarantine_decision_count >= 1);
+      assert.equal(dashboard.summary.ingestion_e2e_report_passed_quarantine_decision_count, dashboard.summary.ingestion_e2e_report_quarantine_decision_count);
+      assert.ok(dashboard.summary.ingestion_e2e_report_evidence_item_count >= 1);
+      assert.equal(dashboard.summary.ingestion_e2e_report_evidence_needs_review_count, dashboard.summary.ingestion_e2e_report_evidence_item_count);
+      assert.ok(dashboard.summary.ingestion_e2e_report_panel_row_count >= 1);
+      assert.equal(dashboard.summary.ingestion_e2e_report_ready_panel_count, dashboard.summary.ingestion_e2e_report_panel_row_count);
+      assert.ok(dashboard.summary.ingestion_e2e_report_api_route_row_count >= 1);
+      assert.equal(dashboard.summary.ingestion_e2e_report_queryable_api_route_count, dashboard.summary.ingestion_e2e_report_api_route_row_count);
+      assert.equal(dashboard.summary.ingestion_e2e_report_gate_violation_count, 0);
+      assert.equal(dashboard.summary.ingestion_e2e_report_read_only, true);
+      assert.equal(dashboard.summary.ingestion_e2e_report_report_only, true);
+      assert.equal(dashboard.summary.ingestion_e2e_report_connector_runtime_execution_performed, false);
+      assert.equal(dashboard.summary.ingestion_e2e_report_backfill_execution_performed, false);
+      assert.equal(dashboard.summary.ingestion_e2e_report_source_ingest_performed, false);
+      assert.equal(dashboard.summary.ingestion_e2e_report_quarantine_release_performed, false);
+      assert.equal(dashboard.summary.ingestion_e2e_report_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.ingestion_e2e_report_protected_action_executed, false);
+      assert.equal(dashboard.summary.ingestion_e2e_report_legal_advice_generated, false);
+      assert.equal(dashboard.summary.ingestion_e2e_report_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.ingestion_e2e_report_human_review_required, true);
+      assert.equal(dashboard.summary.ingestion_e2e_report_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.ingestion_e2e_report_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.ingestion_e2e_report_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -25634,6 +25782,46 @@ describe("matter harness", () => {
       assert.equal(creativeDocumentE2eReportStage?.metrics.desktop_read_only, true);
       assert.equal(creativeDocumentE2eReportStage?.metrics.desktop_source_of_truth, false);
       assert.equal(creativeDocumentE2eReportStage?.metrics.validation_error_count, 0);
+      const ingestionE2eReportStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "ingestion_e2e_report");
+      assert.equal(ingestionE2eReportStage?.status, "passed");
+      assert.equal(ingestionE2eReportStage?.metrics.ingestion_e2e_report_status, "complete");
+      assert.equal(ingestionE2eReportStage?.metrics.ingestion_e2e_report_id, ingestionE2eReport.summary.ingestion_e2e_report_id);
+      assert.equal(ingestionE2eReportStage?.metrics.phase_slot, "P308");
+      assert.equal(ingestionE2eReportStage?.metrics.previous_phase_slot, "P307");
+      assert.equal(ingestionE2eReportStage?.metrics.next_phase_slot, "P309");
+      assert.equal(ingestionE2eReportStage?.metrics.source_creative_document_e2e_report_status, "complete");
+      assert.equal(ingestionE2eReportStage?.metrics.source_creative_document_e2e_report_phase_slot, "P307");
+      assert.equal(ingestionE2eReportStage?.metrics.source_creative_document_e2e_report_next_phase_slot, "P308");
+      assert.equal(ingestionE2eReportStage?.metrics.source_connector_freeze_status, "complete");
+      assert.equal(ingestionE2eReportStage?.metrics.source_resource_expansion_freeze_status, "complete");
+      assert.equal(ingestionE2eReportStage?.metrics.source_evidence_plane_freeze_status, "frozen_with_pending_human_actions");
+      assert.equal(ingestionE2eReportStage?.metrics.failed_source_status_count, 0);
+      assert.equal(ingestionE2eReportStage?.metrics.scenario_row_count, 1);
+      assert.equal(ingestionE2eReportStage?.metrics.passed_scenario_row_count, 1);
+      assert.equal(ingestionE2eReportStage?.metrics.chain_stage_count, 5);
+      assert.equal(ingestionE2eReportStage?.metrics.passed_chain_stage_count, 5);
+      assert.equal(ingestionE2eReportStage?.metrics.connector_stage_passed_count, 1);
+      assert.equal(ingestionE2eReportStage?.metrics.backfill_stage_passed_count, 1);
+      assert.equal(ingestionE2eReportStage?.metrics.quarantine_stage_passed_count, 1);
+      assert.equal(ingestionE2eReportStage?.metrics.evidence_stage_passed_count, 1);
+      assert.equal(ingestionE2eReportStage?.metrics.dashboard_stage_passed_count, 1);
+      assert.equal(ingestionE2eReportStage?.metrics.connector_to_dashboard_path_complete, true);
+      assert.equal(ingestionE2eReportStage?.metrics.gate_violation_count, 0);
+      assert.equal(ingestionE2eReportStage?.metrics.read_only, true);
+      assert.equal(ingestionE2eReportStage?.metrics.report_only, true);
+      assert.equal(ingestionE2eReportStage?.metrics.connector_runtime_execution_performed, false);
+      assert.equal(ingestionE2eReportStage?.metrics.backfill_execution_performed, false);
+      assert.equal(ingestionE2eReportStage?.metrics.source_ingest_performed, false);
+      assert.equal(ingestionE2eReportStage?.metrics.quarantine_release_performed, false);
+      assert.equal(ingestionE2eReportStage?.metrics.dashboard_route_execution_performed, false);
+      assert.equal(ingestionE2eReportStage?.metrics.delivery_execution_performed, false);
+      assert.equal(ingestionE2eReportStage?.metrics.protected_action_executed, false);
+      assert.equal(ingestionE2eReportStage?.metrics.legal_advice_generated, false);
+      assert.equal(ingestionE2eReportStage?.metrics.client_facing_output_generated, false);
+      assert.equal(ingestionE2eReportStage?.metrics.human_review_required, true);
+      assert.equal(ingestionE2eReportStage?.metrics.desktop_read_only, true);
+      assert.equal(ingestionE2eReportStage?.metrics.desktop_source_of_truth, false);
+      assert.equal(ingestionE2eReportStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -29355,6 +29543,34 @@ describe("matter harness", () => {
       const creativeDocumentE2eReportValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/creative-document-e2e-report-validations?status=passed", apiOptions)).body);
       assert.equal(creativeDocumentE2eReportValidationsResponse.collection, "creative_document_e2e_report_validations");
       assert.equal(creativeDocumentE2eReportValidationsResponse.count, creativeDocumentE2eReport.summary.validation_item_count);
+
+      const ingestionE2eReportArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/ingestion-e2e-reports?ingestion_e2e_report_status=complete", apiOptions)).body);
+      assert.equal(ingestionE2eReportArtifactsResponse.collection, "ingestion_e2e_reports");
+      assert.equal(ingestionE2eReportArtifactsResponse.count, 1);
+
+      const ingestionE2eReportSourcesResponse = JSON.parse((await buildReviewApiResponse("/api/ingestion-e2e-report-sources?source_status=passed", apiOptions)).body);
+      assert.equal(ingestionE2eReportSourcesResponse.collection, "ingestion_e2e_report_sources");
+      assert.equal(ingestionE2eReportSourcesResponse.count, ingestionE2eReport.summary.source_status_count);
+
+      const ingestionE2eReportScenarioRowsResponse = JSON.parse((await buildReviewApiResponse("/api/ingestion-e2e-scenario-rows?scenario_status=passed&connector_gate_passed=true&backfill_gate_passed=true&quarantine_gate_passed=true&evidence_gate_passed=true&dashboard_gate_passed=true", apiOptions)).body);
+      assert.equal(ingestionE2eReportScenarioRowsResponse.collection, "ingestion_e2e_scenario_rows");
+      assert.equal(ingestionE2eReportScenarioRowsResponse.count, ingestionE2eReport.summary.scenario_row_count);
+
+      const ingestionE2eReportChainStagesResponse = JSON.parse((await buildReviewApiResponse("/api/ingestion-e2e-chain-stages?stage_status=passed", apiOptions)).body);
+      assert.equal(ingestionE2eReportChainStagesResponse.collection, "ingestion_e2e_chain_stages");
+      assert.equal(ingestionE2eReportChainStagesResponse.count, ingestionE2eReport.summary.chain_stage_count);
+
+      const ingestionE2eReportGateResultsResponse = JSON.parse((await buildReviewApiResponse("/api/ingestion-e2e-gate-results?gate_status=passed", apiOptions)).body);
+      assert.equal(ingestionE2eReportGateResultsResponse.collection, "ingestion_e2e_gate_results");
+      assert.equal(ingestionE2eReportGateResultsResponse.count, ingestionE2eReport.summary.gate_result_count);
+
+      const ingestionE2eReportBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/ingestion-e2e-report-boundary?boundary_status=enforced&read_only=true&client_facing_output_generated=false", apiOptions)).body);
+      assert.equal(ingestionE2eReportBoundaryResponse.collection, "ingestion_e2e_report_boundary");
+      assert.equal(ingestionE2eReportBoundaryResponse.count, 1);
+
+      const ingestionE2eReportValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/ingestion-e2e-report-validations?status=passed", apiOptions)).body);
+      assert.equal(ingestionE2eReportValidationsResponse.collection, "ingestion_e2e_report_validations");
+      assert.equal(ingestionE2eReportValidationsResponse.count, ingestionE2eReport.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

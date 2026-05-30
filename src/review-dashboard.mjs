@@ -104,6 +104,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   videoPptWorkflowPath: "artifacts/video-ppt-workflow/latest/video-ppt-workflow.json",
   creativeDocumentFreezePath: "artifacts/creative-document-freeze/latest/creative-document-freeze.json",
   creativeDocumentE2eReportPath: "artifacts/creative-document-e2e-report/latest/creative-document-e2e-report.json",
+  ingestionE2eReportPath: "artifacts/ingestion-e2e-report/latest/ingestion-e2e-report.json",
   connectorContractV2Path: "artifacts/connector-contract-v2/latest/connector-contract-v2.json",
   localFolderConnectorPath: "artifacts/local-folder-connector/latest/local-folder-connector.json",
   onedriveConnectorBoundaryPath: "artifacts/onedrive-connector-boundary/latest/onedrive-connector-boundary.json",
@@ -806,6 +807,11 @@ const SOURCE_DEFINITIONS = [
     option: "creativeDocumentE2eReportPath",
     source_id: "creative_document_e2e_report",
     label: "Creative Document E2E Report",
+  },
+  {
+    option: "ingestionE2eReportPath",
+    source_id: "ingestion_e2e_report",
+    label: "Ingestion E2E Report",
   },
   {
     option: "connectorContractV2Path",
@@ -1973,6 +1979,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "video_ppt_workflow") return data.summary ?? {};
   if (sourceId === "creative_document_freeze") return data.summary ?? {};
   if (sourceId === "creative_document_e2e_report") return data.summary ?? {};
+  if (sourceId === "ingestion_e2e_report") return data.summary ?? {};
   if (sourceId === "connector_contract_v2") return data.summary ?? {};
   if (sourceId === "local_folder_connector") return data.summary ?? {};
   if (sourceId === "onedrive_connector_boundary") return data.summary ?? {};
@@ -2381,6 +2388,7 @@ function buildStageStatuses(artifacts, sources) {
     buildVideoPptWorkflowStage(artifacts.video_ppt_workflow, sourceById.get("video_ppt_workflow")),
     buildCreativeDocumentFreezeStage(artifacts.creative_document_freeze, sourceById.get("creative_document_freeze")),
     buildCreativeDocumentE2eReportStage(artifacts.creative_document_e2e_report, sourceById.get("creative_document_e2e_report")),
+    buildIngestionE2eReportStage(artifacts.ingestion_e2e_report, sourceById.get("ingestion_e2e_report")),
     buildConnectorContractV2Stage(artifacts.connector_contract_v2, sourceById.get("connector_contract_v2")),
     buildLocalFolderConnectorStage(artifacts.local_folder_connector, sourceById.get("local_folder_connector")),
     buildOneDriveConnectorBoundaryStage(artifacts.onedrive_connector_boundary, sourceById.get("onedrive_connector_boundary")),
@@ -12335,6 +12343,161 @@ function buildCreativeDocumentE2eReportStage(artifact, source) {
       client_facing_ready: summary.client_facing_ready ?? false,
       human_review_required: summary.human_review_required ?? false,
       approval_required_before_delivery: summary.approval_required_before_delivery ?? false,
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_source_of_truth: summary.desktop_source_of_truth ?? true,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildIngestionE2eReportStage(artifact, source) {
+  if (!artifact) return missingStage("ingestion_e2e_report", "Ingestion E2E Report", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.ingestion_e2e_report_status !== "complete"
+    || summary.phase_slot !== "P308"
+    || summary.previous_phase_slot !== "P307"
+    || summary.next_phase_slot !== "P309"
+    || summary.source_creative_document_e2e_report_status !== "complete"
+    || summary.source_creative_document_e2e_report_phase_slot !== "P307"
+    || summary.source_creative_document_e2e_report_next_phase_slot !== "P308"
+    || summary.source_connector_freeze_status !== "complete"
+    || summary.source_resource_expansion_freeze_status !== "complete"
+    || summary.source_backfill_job_contract_status !== "complete"
+    || summary.source_expansion_quarantine_ledger_status !== "complete"
+    || summary.source_evidence_item_store_status !== "complete"
+    || summary.source_resource_evidence_dashboard_status !== "complete"
+    || summary.source_expansion_status_dashboard_status !== "complete"
+    || summary.source_evidence_plane_freeze_status !== "frozen_with_pending_human_actions"
+    || summary.failed_source_status_count > 0
+    || summary.failed_scenario_row_count > 0
+    || summary.failed_chain_stage_count > 0
+    || summary.connector_to_dashboard_path_complete !== true
+    || summary.gate_violation_count > 0
+    || summary.connector_runtime_execution_performed === true
+    || summary.backfill_execution_performed === true
+    || summary.source_ingest_performed === true
+    || summary.quarantine_release_performed === true
+    || summary.dashboard_route_execution_performed === true
+    || summary.delivery_execution_performed === true
+    || summary.protected_action_executed === true
+    || summary.legal_advice_generated === true
+    || summary.client_facing_output_generated === true
+    || summary.client_facing_ready === true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "ingestion_e2e_report",
+    label: "Ingestion E2E Report",
+    status,
+    message: `${summary.passed_chain_stage_count ?? 0}/${summary.chain_stage_count ?? 0} chain stage(s), ${summary.passed_scenario_row_count ?? 0}/${summary.scenario_row_count ?? 0} scenario row(s), ${summary.evidence_item_count ?? 0} evidence item(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      ingestion_e2e_report_status: summary.ingestion_e2e_report_status ?? "unknown",
+      ingestion_e2e_report_id: summary.ingestion_e2e_report_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_creative_document_e2e_report_status: summary.source_creative_document_e2e_report_status ?? "unknown",
+      source_creative_document_e2e_report_phase_slot: summary.source_creative_document_e2e_report_phase_slot ?? null,
+      source_creative_document_e2e_report_next_phase_slot: summary.source_creative_document_e2e_report_next_phase_slot ?? null,
+      source_connector_freeze_status: summary.source_connector_freeze_status ?? "unknown",
+      source_connector_freeze_phase_range: summary.source_connector_freeze_phase_range ?? null,
+      source_resource_expansion_freeze_status: summary.source_resource_expansion_freeze_status ?? "unknown",
+      source_resource_expansion_freeze_phase_slot: summary.source_resource_expansion_freeze_phase_slot ?? null,
+      source_resource_expansion_freeze_next_phase_slot: summary.source_resource_expansion_freeze_next_phase_slot ?? null,
+      source_backfill_job_contract_status: summary.source_backfill_job_contract_status ?? "unknown",
+      source_expansion_quarantine_ledger_status: summary.source_expansion_quarantine_ledger_status ?? "unknown",
+      source_evidence_item_store_status: summary.source_evidence_item_store_status ?? "unknown",
+      source_resource_evidence_dashboard_status: summary.source_resource_evidence_dashboard_status ?? "unknown",
+      source_expansion_status_dashboard_status: summary.source_expansion_status_dashboard_status ?? "unknown",
+      source_evidence_plane_freeze_status: summary.source_evidence_plane_freeze_status ?? "unknown",
+      source_status_count: summary.source_status_count ?? 0,
+      passed_source_status_count: summary.passed_source_status_count ?? 0,
+      failed_source_status_count: summary.failed_source_status_count ?? 0,
+      scenario_row_count: summary.scenario_row_count ?? 0,
+      passed_scenario_row_count: summary.passed_scenario_row_count ?? 0,
+      failed_scenario_row_count: summary.failed_scenario_row_count ?? 0,
+      chain_stage_count: summary.chain_stage_count ?? 0,
+      passed_chain_stage_count: summary.passed_chain_stage_count ?? 0,
+      failed_chain_stage_count: summary.failed_chain_stage_count ?? 0,
+      connector_stage_passed_count: summary.connector_stage_passed_count ?? 0,
+      backfill_stage_passed_count: summary.backfill_stage_passed_count ?? 0,
+      quarantine_stage_passed_count: summary.quarantine_stage_passed_count ?? 0,
+      evidence_stage_passed_count: summary.evidence_stage_passed_count ?? 0,
+      dashboard_stage_passed_count: summary.dashboard_stage_passed_count ?? 0,
+      connector_to_dashboard_path_complete: summary.connector_to_dashboard_path_complete ?? false,
+      connector_resource_candidate_count: summary.connector_resource_candidate_count ?? 0,
+      representative_source_ingest_path_count: summary.representative_source_ingest_path_count ?? 0,
+      passed_representative_source_ingest_path_count: summary.passed_representative_source_ingest_path_count ?? 0,
+      credential_material_read_count: summary.credential_material_read_count ?? 0,
+      external_network_access_performed_count: summary.external_network_access_performed_count ?? 0,
+      projected_item_count: summary.projected_item_count ?? 0,
+      projected_terminal_item_count: summary.projected_terminal_item_count ?? 0,
+      resource_expansion_terminal_count: summary.resource_expansion_terminal_count ?? 0,
+      resource_expansion_failed_count: summary.resource_expansion_failed_count ?? 0,
+      cursor_resume_checkpoint_count: summary.cursor_resume_checkpoint_count ?? 0,
+      dedup_idempotency_key_count: summary.dedup_idempotency_key_count ?? 0,
+      dedup_idempotency_key_collision_count: summary.dedup_idempotency_key_collision_count ?? 0,
+      resumable_backfill_dry_run_verified: summary.resumable_backfill_dry_run_verified ?? false,
+      idempotent_backfill_dry_run_verified: summary.idempotent_backfill_dry_run_verified ?? false,
+      quarantine_decision_count: summary.quarantine_decision_count ?? 0,
+      passed_quarantine_decision_count: summary.passed_quarantine_decision_count ?? 0,
+      quarantine_hold_count: summary.quarantine_hold_count ?? 0,
+      quarantine_pending_human_review_count: summary.quarantine_pending_human_review_count ?? 0,
+      quarantine_external_transfer_blocked_count: summary.quarantine_external_transfer_blocked_count ?? 0,
+      quarantine_output_delivery_blocked_count: summary.quarantine_output_delivery_blocked_count ?? 0,
+      automatic_release_allowed_count: summary.automatic_release_allowed_count ?? 0,
+      evidence_item_count: summary.evidence_item_count ?? 0,
+      evidence_source_span_binding_count: summary.evidence_source_span_binding_count ?? 0,
+      evidence_needs_review_count: summary.evidence_needs_review_count ?? 0,
+      evidence_approved_count: summary.evidence_approved_count ?? 0,
+      complete_representative_trace_count: summary.complete_representative_trace_count ?? 0,
+      attorney_review_required_count: summary.attorney_review_required_count ?? 0,
+      output_delivery_blocked_count: summary.output_delivery_blocked_count ?? 0,
+      panel_row_count: summary.panel_row_count ?? 0,
+      ready_panel_count: summary.ready_panel_count ?? 0,
+      attention_panel_count: summary.attention_panel_count ?? 0,
+      expansion_status_panel_row_count: summary.expansion_status_panel_row_count ?? 0,
+      queryable_status_panel_count: summary.queryable_status_panel_count ?? 0,
+      api_route_row_count: summary.api_route_row_count ?? 0,
+      queryable_api_route_count: summary.queryable_api_route_count ?? 0,
+      regression_test_case_count: summary.regression_test_case_count ?? 0,
+      regression_failed_case_count: summary.regression_failed_case_count ?? 0,
+      export_bundle_count: summary.export_bundle_count ?? 0,
+      export_delivery_blocked_bundle_count: summary.export_delivery_blocked_bundle_count ?? 0,
+      export_external_transfer_blocked_bundle_count: summary.export_external_transfer_blocked_bundle_count ?? 0,
+      export_client_facing_ready_bundle_count: summary.export_client_facing_ready_bundle_count ?? 0,
+      gate_result_count: summary.gate_result_count ?? 0,
+      passed_gate_result_count: summary.passed_gate_result_count ?? 0,
+      failed_gate_result_count: summary.failed_gate_result_count ?? 0,
+      gate_violation_count: summary.gate_violation_count ?? 0,
+      read_only: summary.read_only ?? false,
+      report_only: summary.report_only ?? false,
+      source_artifact_read_performed: summary.source_artifact_read_performed ?? false,
+      source_artifact_mutation_performed: summary.source_artifact_mutation_performed ?? false,
+      connector_runtime_execution_performed: summary.connector_runtime_execution_performed ?? false,
+      backfill_execution_performed: summary.backfill_execution_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      file_content_read_performed: summary.file_content_read_performed ?? false,
+      extraction_retry_performed: summary.extraction_retry_performed ?? false,
+      quarantine_release_performed: summary.quarantine_release_performed ?? false,
+      evidence_mutation_performed: summary.evidence_mutation_performed ?? false,
+      dashboard_route_execution_performed: summary.dashboard_route_execution_performed ?? false,
+      resource_mutation_performed: summary.resource_mutation_performed ?? false,
+      state_mutation_performed: summary.state_mutation_performed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      client_facing_ready: summary.client_facing_ready ?? false,
+      human_review_required: summary.human_review_required ?? false,
+      attorney_review_required: summary.attorney_review_required ?? false,
       desktop_read_only: summary.desktop_read_only ?? false,
       desktop_source_of_truth: summary.desktop_source_of_truth ?? true,
       windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
@@ -23457,6 +23620,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.ingestion_e2e_report?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "ingestion_e2e_report";
+    items.push({
+      action_item_id: `dashboard.action.ingestion_e2e_report.${slugify(subjectId)}`,
+      source_stage: "ingestion_e2e_report",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Ingestion E2E Report",
+      subject_ref: {
+        subject_type: "ingestion_e2e_report_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_ingestion_e2e_report", "rerun_ingestion_e2e_report", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.connector_contract_v2?.validation?.errors ?? []) {
     const subjectId = error.path ?? "connector_contract_v2";
     items.push({
@@ -30267,6 +30448,61 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     creative_document_e2e_report_windows_baseline_stability_preserved: artifacts.creative_document_e2e_report?.summary?.windows_baseline_stability_preserved ?? false,
     creative_document_e2e_report_mac_windows_completion_instability_guard: artifacts.creative_document_e2e_report?.summary?.mac_windows_completion_instability_guard ?? false,
     creative_document_e2e_report_validation_error_count: artifacts.creative_document_e2e_report?.summary?.validation_error_count ?? artifacts.creative_document_e2e_report?.validation?.errors?.length ?? 0,
+    ingestion_e2e_report_status: artifacts.ingestion_e2e_report?.summary?.ingestion_e2e_report_status ?? "unknown",
+    ingestion_e2e_report_id: artifacts.ingestion_e2e_report?.summary?.ingestion_e2e_report_id ?? null,
+    ingestion_e2e_report_phase_slot: artifacts.ingestion_e2e_report?.summary?.phase_slot ?? null,
+    ingestion_e2e_report_previous_phase_slot: artifacts.ingestion_e2e_report?.summary?.previous_phase_slot ?? null,
+    ingestion_e2e_report_next_phase_slot: artifacts.ingestion_e2e_report?.summary?.next_phase_slot ?? null,
+    ingestion_e2e_report_source_creative_document_e2e_report_status: artifacts.ingestion_e2e_report?.summary?.source_creative_document_e2e_report_status ?? "unknown",
+    ingestion_e2e_report_source_creative_document_e2e_report_phase_slot: artifacts.ingestion_e2e_report?.summary?.source_creative_document_e2e_report_phase_slot ?? null,
+    ingestion_e2e_report_source_creative_document_e2e_report_next_phase_slot: artifacts.ingestion_e2e_report?.summary?.source_creative_document_e2e_report_next_phase_slot ?? null,
+    ingestion_e2e_report_source_connector_freeze_status: artifacts.ingestion_e2e_report?.summary?.source_connector_freeze_status ?? "unknown",
+    ingestion_e2e_report_source_resource_expansion_freeze_status: artifacts.ingestion_e2e_report?.summary?.source_resource_expansion_freeze_status ?? "unknown",
+    ingestion_e2e_report_source_backfill_job_contract_status: artifacts.ingestion_e2e_report?.summary?.source_backfill_job_contract_status ?? "unknown",
+    ingestion_e2e_report_source_expansion_quarantine_ledger_status: artifacts.ingestion_e2e_report?.summary?.source_expansion_quarantine_ledger_status ?? "unknown",
+    ingestion_e2e_report_source_evidence_item_store_status: artifacts.ingestion_e2e_report?.summary?.source_evidence_item_store_status ?? "unknown",
+    ingestion_e2e_report_source_resource_evidence_dashboard_status: artifacts.ingestion_e2e_report?.summary?.source_resource_evidence_dashboard_status ?? "unknown",
+    ingestion_e2e_report_source_expansion_status_dashboard_status: artifacts.ingestion_e2e_report?.summary?.source_expansion_status_dashboard_status ?? "unknown",
+    ingestion_e2e_report_source_evidence_plane_freeze_status: artifacts.ingestion_e2e_report?.summary?.source_evidence_plane_freeze_status ?? "unknown",
+    ingestion_e2e_report_failed_source_status_count: artifacts.ingestion_e2e_report?.summary?.failed_source_status_count ?? 0,
+    ingestion_e2e_report_scenario_row_count: artifacts.ingestion_e2e_report?.summary?.scenario_row_count ?? 0,
+    ingestion_e2e_report_passed_scenario_row_count: artifacts.ingestion_e2e_report?.summary?.passed_scenario_row_count ?? 0,
+    ingestion_e2e_report_failed_scenario_row_count: artifacts.ingestion_e2e_report?.summary?.failed_scenario_row_count ?? 0,
+    ingestion_e2e_report_chain_stage_count: artifacts.ingestion_e2e_report?.summary?.chain_stage_count ?? 0,
+    ingestion_e2e_report_passed_chain_stage_count: artifacts.ingestion_e2e_report?.summary?.passed_chain_stage_count ?? 0,
+    ingestion_e2e_report_failed_chain_stage_count: artifacts.ingestion_e2e_report?.summary?.failed_chain_stage_count ?? 0,
+    ingestion_e2e_report_connector_stage_passed_count: artifacts.ingestion_e2e_report?.summary?.connector_stage_passed_count ?? 0,
+    ingestion_e2e_report_backfill_stage_passed_count: artifacts.ingestion_e2e_report?.summary?.backfill_stage_passed_count ?? 0,
+    ingestion_e2e_report_quarantine_stage_passed_count: artifacts.ingestion_e2e_report?.summary?.quarantine_stage_passed_count ?? 0,
+    ingestion_e2e_report_evidence_stage_passed_count: artifacts.ingestion_e2e_report?.summary?.evidence_stage_passed_count ?? 0,
+    ingestion_e2e_report_dashboard_stage_passed_count: artifacts.ingestion_e2e_report?.summary?.dashboard_stage_passed_count ?? 0,
+    ingestion_e2e_report_connector_to_dashboard_path_complete: artifacts.ingestion_e2e_report?.summary?.connector_to_dashboard_path_complete ?? false,
+    ingestion_e2e_report_connector_resource_candidate_count: artifacts.ingestion_e2e_report?.summary?.connector_resource_candidate_count ?? 0,
+    ingestion_e2e_report_projected_item_count: artifacts.ingestion_e2e_report?.summary?.projected_item_count ?? 0,
+    ingestion_e2e_report_projected_terminal_item_count: artifacts.ingestion_e2e_report?.summary?.projected_terminal_item_count ?? 0,
+    ingestion_e2e_report_quarantine_decision_count: artifacts.ingestion_e2e_report?.summary?.quarantine_decision_count ?? 0,
+    ingestion_e2e_report_passed_quarantine_decision_count: artifacts.ingestion_e2e_report?.summary?.passed_quarantine_decision_count ?? 0,
+    ingestion_e2e_report_evidence_item_count: artifacts.ingestion_e2e_report?.summary?.evidence_item_count ?? 0,
+    ingestion_e2e_report_evidence_needs_review_count: artifacts.ingestion_e2e_report?.summary?.evidence_needs_review_count ?? 0,
+    ingestion_e2e_report_panel_row_count: artifacts.ingestion_e2e_report?.summary?.panel_row_count ?? 0,
+    ingestion_e2e_report_ready_panel_count: artifacts.ingestion_e2e_report?.summary?.ready_panel_count ?? 0,
+    ingestion_e2e_report_api_route_row_count: artifacts.ingestion_e2e_report?.summary?.api_route_row_count ?? 0,
+    ingestion_e2e_report_queryable_api_route_count: artifacts.ingestion_e2e_report?.summary?.queryable_api_route_count ?? 0,
+    ingestion_e2e_report_gate_violation_count: artifacts.ingestion_e2e_report?.summary?.gate_violation_count ?? 0,
+    ingestion_e2e_report_read_only: artifacts.ingestion_e2e_report?.summary?.read_only ?? false,
+    ingestion_e2e_report_report_only: artifacts.ingestion_e2e_report?.summary?.report_only ?? false,
+    ingestion_e2e_report_connector_runtime_execution_performed: artifacts.ingestion_e2e_report?.summary?.connector_runtime_execution_performed ?? false,
+    ingestion_e2e_report_backfill_execution_performed: artifacts.ingestion_e2e_report?.summary?.backfill_execution_performed ?? false,
+    ingestion_e2e_report_source_ingest_performed: artifacts.ingestion_e2e_report?.summary?.source_ingest_performed ?? false,
+    ingestion_e2e_report_quarantine_release_performed: artifacts.ingestion_e2e_report?.summary?.quarantine_release_performed ?? false,
+    ingestion_e2e_report_delivery_execution_performed: artifacts.ingestion_e2e_report?.summary?.delivery_execution_performed ?? false,
+    ingestion_e2e_report_protected_action_executed: artifacts.ingestion_e2e_report?.summary?.protected_action_executed ?? false,
+    ingestion_e2e_report_legal_advice_generated: artifacts.ingestion_e2e_report?.summary?.legal_advice_generated ?? false,
+    ingestion_e2e_report_client_facing_output_generated: artifacts.ingestion_e2e_report?.summary?.client_facing_output_generated ?? false,
+    ingestion_e2e_report_human_review_required: artifacts.ingestion_e2e_report?.summary?.human_review_required ?? false,
+    ingestion_e2e_report_windows_baseline_stability_preserved: artifacts.ingestion_e2e_report?.summary?.windows_baseline_stability_preserved ?? false,
+    ingestion_e2e_report_mac_windows_completion_instability_guard: artifacts.ingestion_e2e_report?.summary?.mac_windows_completion_instability_guard ?? false,
+    ingestion_e2e_report_validation_error_count: artifacts.ingestion_e2e_report?.summary?.validation_error_count ?? artifacts.ingestion_e2e_report?.validation?.errors?.length ?? 0,
     connector_contract_v2_status: artifacts.connector_contract_v2?.summary?.connector_contract_status ?? "unknown",
     connector_contract_v2_contract_id: artifacts.connector_contract_v2?.summary?.connector_contract_id ?? null,
     connector_contract_v2_interface_schema_version: artifacts.connector_contract_v2?.summary?.interface_schema_version ?? null,
@@ -33829,6 +34065,8 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Personal-dev E2E scenario rows and PR mutation: ${dashboard.summary.personal_dev_e2e_report_passed_scenario_row_count ?? 0}/${dashboard.summary.personal_dev_e2e_report_scenario_row_count ?? 0}, ${dashboard.summary.personal_dev_e2e_report_pull_request_creation_performed ?? false}`);
   lines.push(`- Creative-document E2E chain template/render/layout/approval/output: ${dashboard.summary.creative_document_e2e_report_template_stage_passed_count ?? 0}/${dashboard.summary.creative_document_e2e_report_render_stage_passed_count ?? 0}/${dashboard.summary.creative_document_e2e_report_layout_stage_passed_count ?? 0}/${dashboard.summary.creative_document_e2e_report_approval_stage_passed_count ?? 0}/${dashboard.summary.creative_document_e2e_report_output_artifact_stage_passed_count ?? 0}`);
   lines.push(`- Creative-document E2E scenario rows and delivery: ${dashboard.summary.creative_document_e2e_report_passed_scenario_row_count ?? 0}/${dashboard.summary.creative_document_e2e_report_scenario_row_count ?? 0}, ${dashboard.summary.creative_document_e2e_report_delivery_execution_performed ?? false}`);
+  lines.push(`- Ingestion E2E chain connector/backfill/quarantine/evidence/dashboard: ${dashboard.summary.ingestion_e2e_report_connector_stage_passed_count ?? 0}/${dashboard.summary.ingestion_e2e_report_backfill_stage_passed_count ?? 0}/${dashboard.summary.ingestion_e2e_report_quarantine_stage_passed_count ?? 0}/${dashboard.summary.ingestion_e2e_report_evidence_stage_passed_count ?? 0}/${dashboard.summary.ingestion_e2e_report_dashboard_stage_passed_count ?? 0}`);
+  lines.push(`- Ingestion E2E scenario rows and evidence: ${dashboard.summary.ingestion_e2e_report_passed_scenario_row_count ?? 0}/${dashboard.summary.ingestion_e2e_report_scenario_row_count ?? 0}, ${dashboard.summary.ingestion_e2e_report_evidence_item_count ?? 0}`);
   lines.push(`- Ledger API/dashboard panels and routes: ${dashboard.summary.ledger_api_dashboard_passed_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_panel_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_declared_route_count ?? 0}/${dashboard.summary.ledger_api_dashboard_route_count ?? 0}`);
   lines.push(`- Ledger API/dashboard domains run/audit/cost/error/event: ${dashboard.summary.ledger_api_dashboard_run_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_audit_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cost_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_error_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_event_panel_count ?? 0}`);
   lines.push(`- Ledger API/dashboard metrics/cross links/errors: ${dashboard.summary.ledger_api_dashboard_metric_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_linked_cross_link_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cross_link_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_validation_error_count ?? 0}`);
@@ -34210,6 +34448,8 @@ function parseArgs(argv) {
     else if (arg === "--no-creative-document-freeze") parsed.creativeDocumentFreezePath = false;
     else if (arg === "--creative-document-e2e-report") parsed.creativeDocumentE2eReportPath = argv[++index];
     else if (arg === "--no-creative-document-e2e-report") parsed.creativeDocumentE2eReportPath = false;
+    else if (arg === "--ingestion-e2e-report") parsed.ingestionE2eReportPath = argv[++index];
+    else if (arg === "--no-ingestion-e2e-report") parsed.ingestionE2eReportPath = false;
     else if (arg === "--connector-contract-v2") parsed.connectorContractV2Path = argv[++index];
     else if (arg === "--no-connector-contract-v2") parsed.connectorContractV2Path = false;
     else if (arg === "--local-folder-connector") parsed.localFolderConnectorPath = argv[++index];

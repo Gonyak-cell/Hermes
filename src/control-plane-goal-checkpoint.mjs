@@ -180,6 +180,7 @@ const GOAL_ITEMS = [
   sourceItem("law_firm_e2e_report", "Law Firm E2E Report", "law_firm", "law_firm_e2e_report", "control-plane-law-firm-e2e-report", { acceptance_profile: "law_firm_e2e_report_gate" }),
   sourceItem("personal_dev_e2e_report", "Personal Dev E2E Report", "personal_dev", "personal_dev_e2e_report", "control-plane-personal-dev-e2e-report", { acceptance_profile: "personal_dev_e2e_report_gate" }),
   sourceItem("creative_document_e2e_report", "Creative Document E2E Report", "creative_document", "creative_document_e2e_report", "control-plane-creative-document-e2e-report", { acceptance_profile: "creative_document_e2e_report_gate" }),
+  sourceItem("ingestion_e2e_report", "Ingestion E2E Report", "resource_evidence", "ingestion_e2e_report", "control-plane-ingestion-e2e-report", { acceptance_profile: "ingestion_e2e_report_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -719,6 +720,7 @@ function evaluateStageAcceptance(item, stage) {
     "law_firm_e2e_report_gate",
     "personal_dev_e2e_report_gate",
     "creative_document_e2e_report_gate",
+    "ingestion_e2e_report_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -7063,6 +7065,95 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Creative Document E2E Report locks P307 template->render->layout->approval->output artifact coverage with draft-only outputs, no delivery/client-facing output, human-review gates, and Windows baseline stability.");
+    }
+  }
+
+  if (item.acceptance_profile === "ingestion_e2e_report_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.ingestion_e2e_report_status === "complete"
+      && metrics.phase_slot === "P308"
+      && metrics.previous_phase_slot === "P307"
+      && metrics.next_phase_slot === "P309"
+      && metrics.source_creative_document_e2e_report_status === "complete"
+      && metrics.source_creative_document_e2e_report_phase_slot === "P307"
+      && metrics.source_creative_document_e2e_report_next_phase_slot === "P308"
+      && metrics.source_connector_freeze_status === "complete"
+      && metrics.source_resource_expansion_freeze_status === "complete"
+      && metrics.source_backfill_job_contract_status === "complete"
+      && metrics.source_expansion_quarantine_ledger_status === "complete"
+      && metrics.source_evidence_item_store_status === "complete"
+      && metrics.source_resource_evidence_dashboard_status === "complete"
+      && metrics.source_expansion_status_dashboard_status === "complete"
+      && metrics.source_evidence_plane_freeze_status === "frozen_with_pending_human_actions"
+      && metrics.failed_source_status_count === 0
+      && metrics.scenario_row_count >= 1
+      && metrics.passed_scenario_row_count === metrics.scenario_row_count
+      && metrics.failed_scenario_row_count === 0
+      && metrics.chain_stage_count >= 5
+      && metrics.passed_chain_stage_count >= 5
+      && metrics.failed_chain_stage_count === 0
+      && metrics.connector_to_dashboard_path_complete === true
+      && metrics.connector_stage_passed_count >= 1
+      && metrics.backfill_stage_passed_count >= 1
+      && metrics.quarantine_stage_passed_count >= 1
+      && metrics.evidence_stage_passed_count >= 1
+      && metrics.dashboard_stage_passed_count >= 1
+      && metrics.connector_resource_candidate_count >= 1
+      && metrics.representative_source_ingest_path_count >= 1
+      && metrics.passed_representative_source_ingest_path_count === metrics.representative_source_ingest_path_count
+      && metrics.credential_material_read_count === 0
+      && metrics.projected_item_count >= 1
+      && metrics.projected_terminal_item_count === metrics.projected_item_count
+      && metrics.resource_expansion_failed_count === 0
+      && metrics.resumable_backfill_dry_run_verified === true
+      && metrics.idempotent_backfill_dry_run_verified === true
+      && metrics.dedup_idempotency_key_collision_count === 0
+      && metrics.quarantine_decision_count >= 1
+      && metrics.passed_quarantine_decision_count === metrics.quarantine_decision_count
+      && metrics.automatic_release_allowed_count === 0
+      && metrics.evidence_item_count >= 1
+      && metrics.evidence_source_span_binding_count === metrics.evidence_item_count
+      && metrics.evidence_needs_review_count === metrics.evidence_item_count
+      && metrics.evidence_approved_count === 0
+      && metrics.complete_representative_trace_count >= 1
+      && metrics.attorney_review_required_count >= 1
+      && metrics.output_delivery_blocked_count >= 1
+      && metrics.panel_row_count >= 1
+      && metrics.ready_panel_count === metrics.panel_row_count
+      && metrics.attention_panel_count === 0
+      && metrics.api_route_row_count >= 1
+      && metrics.queryable_api_route_count === metrics.api_route_row_count
+      && metrics.regression_failed_case_count === 0
+      && metrics.export_client_facing_ready_bundle_count === 0
+      && metrics.gate_violation_count === 0
+      && metrics.read_only === true
+      && metrics.report_only === true
+      && metrics.source_artifact_mutation_performed === false
+      && metrics.connector_runtime_execution_performed === false
+      && metrics.backfill_execution_performed === false
+      && metrics.source_ingest_performed === false
+      && metrics.file_content_read_performed === false
+      && metrics.extraction_retry_performed === false
+      && metrics.quarantine_release_performed === false
+      && metrics.evidence_mutation_performed === false
+      && metrics.dashboard_route_execution_performed === false
+      && metrics.resource_mutation_performed === false
+      && metrics.state_mutation_performed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.client_facing_ready === false
+      && metrics.human_review_required === true
+      && metrics.attorney_review_required === true
+      && metrics.desktop_read_only === true
+      && metrics.desktop_source_of_truth === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Ingestion E2E Report locks P308 connector->backfill->quarantine->evidence->dashboard coverage with no connector/backfill/ingest/quarantine/dashboard execution, human-review gates, and Windows baseline stability.");
     }
   }
 

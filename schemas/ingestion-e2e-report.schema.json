@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/ingestion-e2e-report.schema.json",
+  "title": "Ingestion E2E Report",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "ingestion_e2e_report_id",
+    "capability_id",
+    "ingestion_e2e_report_contract",
+    "source_statuses",
+    "ingestion_e2e_scenario_rows",
+    "ingestion_e2e_chain_stages",
+    "ingestion_e2e_gate_results",
+    "ingestion_e2e_report_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "ingestion-e2e-report.v1" },
+    "ingestion_e2e_report_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "ingestion.e2e.report" },
+    "ingestion_e2e_report_contract": {
+      "type": "object",
+      "required": ["contract_id", "capability_id", "phase_slot", "previous_phase_slot", "next_phase_slot", "scenario", "execution_model"],
+      "properties": {
+        "contract_id": { "const": "ingestion-e2e-report.v1" },
+        "capability_id": { "const": "ingestion.e2e.report" },
+        "phase_slot": { "const": "P308" },
+        "previous_phase_slot": { "const": "P307" },
+        "next_phase_slot": { "const": "P309" },
+        "scenario": { "const": "connector_to_backfill_to_quarantine_to_evidence_to_dashboard" },
+        "execution_model": { "const": "deterministic_read_only_report" }
+      }
+    },
+    "source_statuses": {
+      "type": "array",
+      "minItems": 11,
+      "items": {
+        "type": "object",
+        "required": ["source_id", "source_status", "validation_error_count"],
+        "properties": {
+          "source_status": { "const": "passed" },
+          "validation_error_count": { "const": 0 }
+        }
+      }
+    },
+    "ingestion_e2e_scenario_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "ingestion_e2e_scenario_id",
+          "phase_slot",
+          "scenario_status",
+          "connector_gate_passed",
+          "backfill_gate_passed",
+          "quarantine_gate_passed",
+          "evidence_gate_passed",
+          "dashboard_gate_passed",
+          "human_review_required",
+          "attorney_review_required",
+          "connector_runtime_execution_performed",
+          "backfill_execution_performed",
+          "source_ingest_performed",
+          "quarantine_release_performed",
+          "delivery_execution_performed",
+          "protected_action_executed",
+          "legal_advice_generated",
+          "client_facing_output_generated",
+          "client_facing_ready",
+          "mutation_performed"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P308" },
+          "scenario_status": { "const": "passed" },
+          "connector_gate_passed": { "const": true },
+          "backfill_gate_passed": { "const": true },
+          "quarantine_gate_passed": { "const": true },
+          "evidence_gate_passed": { "const": true },
+          "dashboard_gate_passed": { "const": true },
+          "human_review_required": { "const": true },
+          "attorney_review_required": { "const": true },
+          "connector_runtime_execution_performed": { "const": false },
+          "backfill_execution_performed": { "const": false },
+          "source_ingest_performed": { "const": false },
+          "quarantine_release_performed": { "const": false },
+          "delivery_execution_performed": { "const": false },
+          "protected_action_executed": { "const": false },
+          "legal_advice_generated": { "const": false },
+          "client_facing_output_generated": { "const": false },
+          "client_facing_ready": { "const": false },
+          "mutation_performed": { "const": false }
+        }
+      }
+    },
+    "ingestion_e2e_chain_stages": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["chain_stage", "stage_status", "read_only", "mutation_performed", "human_review_required"],
+        "properties": {
+          "chain_stage": { "enum": ["connector", "backfill", "quarantine", "evidence", "dashboard"] },
+          "stage_status": { "const": "passed" },
+          "read_only": { "const": true },
+          "mutation_performed": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "ingestion_e2e_gate_results": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["gate_status", "gate_violation"],
+        "properties": {
+          "gate_status": { "const": "passed" },
+          "gate_violation": { "const": false }
+        }
+      }
+    },
+    "ingestion_e2e_report_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "phase_slot",
+        "read_only",
+        "report_only",
+        "connector_runtime_execution_performed",
+        "backfill_execution_performed",
+        "source_ingest_performed",
+        "quarantine_release_performed",
+        "delivery_execution_performed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "human_review_required",
+        "windows_baseline_stability_preserved"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "phase_slot": { "const": "P308" },
+        "read_only": { "const": true },
+        "report_only": { "const": true },
+        "connector_runtime_execution_performed": { "const": false },
+        "backfill_execution_performed": { "const": false },
+        "source_ingest_performed": { "const": false },
+        "quarantine_release_performed": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true },
+        "windows_baseline_stability_preserved": { "const": true }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "ingestion_e2e_report_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "failed_source_status_count",
+        "scenario_row_count",
+        "passed_scenario_row_count",
+        "failed_scenario_row_count",
+        "chain_stage_count",
+        "passed_chain_stage_count",
+        "failed_chain_stage_count",
+        "connector_to_dashboard_path_complete",
+        "gate_violation_count",
+        "delivery_execution_performed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "human_review_required",
+        "windows_baseline_stability_preserved",
+        "validation_error_count"
+      ],
+      "properties": {
+        "ingestion_e2e_report_status": { "const": "complete" },
+        "phase_slot": { "const": "P308" },
+        "previous_phase_slot": { "const": "P307" },
+        "next_phase_slot": { "const": "P309" },
+        "failed_source_status_count": { "const": 0 },
+        "failed_scenario_row_count": { "const": 0 },
+        "failed_chain_stage_count": { "const": 0 },
+        "connector_to_dashboard_path_complete": { "const": true },
+        "gate_violation_count": { "const": 0 },
+        "delivery_execution_performed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true },
+        "windows_baseline_stability_preserved": { "const": true },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

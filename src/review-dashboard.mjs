@@ -136,6 +136,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   promptInjectionTestSuitePath: "artifacts/prompt-injection-test-suite/latest/prompt-injection-test-suite.json",
   externalModelPolicyAuditPath: "artifacts/external-model-policy-audit/latest/external-model-policy-audit.json",
   secretsScanGatePath: "artifacts/secrets-scan-gate/latest/secrets-scan-gate.json",
+  retentionDeletionPolicyPath: "artifacts/retention-deletion-policy/latest/retention-deletion-policy.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -959,6 +960,11 @@ const SOURCE_DEFINITIONS = [
     option: "secretsScanGatePath",
     source_id: "secrets_scan_gate",
     label: "Secrets Scan Gate",
+  },
+  {
+    option: "retentionDeletionPolicyPath",
+    source_id: "retention_deletion_policy",
+    label: "Retention Deletion Policy",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -2370,6 +2376,7 @@ function buildStageStatuses(artifacts, sources) {
     buildPromptInjectionTestSuiteStage(artifacts.prompt_injection_test_suite, sourceById.get("prompt_injection_test_suite")),
     buildExternalModelPolicyAuditStage(artifacts.external_model_policy_audit, sourceById.get("external_model_policy_audit")),
     buildSecretsScanGateStage(artifacts.secrets_scan_gate, sourceById.get("secrets_scan_gate")),
+    buildRetentionDeletionPolicyStage(artifacts.retention_deletion_policy, sourceById.get("retention_deletion_policy")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -16164,6 +16171,121 @@ function buildSecretsScanGateStage(artifact, source) {
   };
 }
 
+function buildRetentionDeletionPolicyStage(artifact, source) {
+  if (!artifact) return missingStage("retention_deletion_policy", "Retention Deletion Policy", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.retention_deletion_policy_status !== "complete"
+    || summary.phase_slot !== "P301"
+    || summary.previous_phase_slot !== "P300"
+    || summary.next_phase_slot !== "P302"
+    || summary.source_secrets_scan_gate_status !== "complete"
+    || summary.source_secrets_scan_gate_phase_slot !== "P300"
+    || summary.source_secrets_scan_gate_next_phase_slot !== "P301"
+    || summary.failed_source_status_count !== 0
+    || summary.policy_row_count < 9
+    || summary.resource_policy_row_count < 1
+    || summary.artifact_policy_row_count < 1
+    || summary.audit_policy_row_count < 1
+    || summary.missing_retention_period_count !== 0
+    || summary.deletion_allowed_policy_count !== 0
+    || summary.delete_after_days_set_count !== 0
+    || summary.missing_deletion_hold_count !== 0
+    || summary.gate_result_count < 10
+    || summary.passed_gate_result_count !== summary.gate_result_count
+    || summary.failed_gate_result_count !== 0
+    || summary.gate_fail_on_violation_count !== summary.gate_result_count
+    || summary.gate_violation_count !== 0
+    || summary.deletion_execution_allowed_count !== 0
+    || summary.deletion_execution_performed_count !== 0
+    || summary.read_only !== true
+    || summary.policy_report_only !== true
+    || summary.source_artifact_read_performed !== true
+    || summary.source_content_read_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.deletion_execution_performed !== false
+    || summary.source_mutation_performed !== false
+    || summary.external_transfer_performed !== false
+    || summary.network_access_performed !== false
+    || summary.route_execution_performed !== false
+    || summary.server_started !== false
+    || summary.protected_action_executed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.human_review_required !== true
+    || summary.client_facing_ready !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "retention_deletion_policy",
+    label: "Retention Deletion Policy",
+    status,
+    message: `${summary.policy_row_count ?? 0} policy row(s), ${summary.active_deletion_hold_count ?? 0}/${summary.deletion_hold_record_count ?? 0} active deletion hold(s), deletion allowed 0.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      retention_deletion_policy_status: summary.retention_deletion_policy_status ?? "unknown",
+      retention_deletion_policy_id: summary.retention_deletion_policy_id ?? null,
+      capability_id: summary.capability_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_status_count: summary.source_status_count ?? 0,
+      passed_source_status_count: summary.passed_source_status_count ?? 0,
+      failed_source_status_count: summary.failed_source_status_count ?? 0,
+      source_secrets_scan_gate_status: summary.source_secrets_scan_gate_status ?? "unknown",
+      source_secrets_scan_gate_phase_slot: summary.source_secrets_scan_gate_phase_slot ?? null,
+      source_secrets_scan_gate_next_phase_slot: summary.source_secrets_scan_gate_next_phase_slot ?? null,
+      policy_row_count: summary.policy_row_count ?? 0,
+      resource_policy_row_count: summary.resource_policy_row_count ?? 0,
+      artifact_policy_row_count: summary.artifact_policy_row_count ?? 0,
+      audit_policy_row_count: summary.audit_policy_row_count ?? 0,
+      retention_period_recorded_count: summary.retention_period_recorded_count ?? 0,
+      missing_retention_period_count: summary.missing_retention_period_count ?? 0,
+      deletion_not_allowed_policy_count: summary.deletion_not_allowed_policy_count ?? 0,
+      deletion_allowed_policy_count: summary.deletion_allowed_policy_count ?? 0,
+      delete_after_days_set_count: summary.delete_after_days_set_count ?? 0,
+      deletion_hold_required_policy_count: summary.deletion_hold_required_policy_count ?? 0,
+      deletion_hold_record_count: summary.deletion_hold_record_count ?? 0,
+      active_deletion_hold_count: summary.active_deletion_hold_count ?? 0,
+      missing_deletion_hold_count: summary.missing_deletion_hold_count ?? 0,
+      legal_hold_required_policy_count: summary.legal_hold_required_policy_count ?? 0,
+      records_review_required_policy_count: summary.records_review_required_policy_count ?? 0,
+      human_review_required_policy_count: summary.human_review_required_policy_count ?? 0,
+      gate_result_count: summary.gate_result_count ?? 0,
+      passed_gate_result_count: summary.passed_gate_result_count ?? 0,
+      failed_gate_result_count: summary.failed_gate_result_count ?? 0,
+      gate_fail_on_violation_count: summary.gate_fail_on_violation_count ?? 0,
+      gate_violation_count: summary.gate_violation_count ?? 0,
+      deletion_execution_allowed_count: summary.deletion_execution_allowed_count ?? 0,
+      deletion_execution_performed_count: summary.deletion_execution_performed_count ?? 0,
+      read_only: summary.read_only ?? false,
+      policy_report_only: summary.policy_report_only ?? false,
+      source_artifact_read_performed: summary.source_artifact_read_performed ?? false,
+      source_content_read_performed: summary.source_content_read_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      deletion_execution_performed: summary.deletion_execution_performed ?? false,
+      source_mutation_performed: summary.source_mutation_performed ?? false,
+      external_transfer_performed: summary.external_transfer_performed ?? false,
+      network_access_performed: summary.network_access_performed ?? false,
+      route_execution_performed: summary.route_execution_performed ?? false,
+      server_started: summary.server_started ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      human_review_required: summary.human_review_required ?? false,
+      client_facing_ready: summary.client_facing_ready ?? true,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -23060,6 +23182,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_secrets_scan_gate", "rerun_secrets_scan_gate", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.retention_deletion_policy?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "retention_deletion_policy";
+    items.push({
+      action_item_id: `dashboard.action.retention_deletion_policy.${slugify(subjectId)}`,
+      source_stage: "retention_deletion_policy",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Retention Deletion Policy",
+      subject_ref: {
+        subject_type: "retention_deletion_policy_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_retention_deletion_policy", "rerun_retention_deletion_policy", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -30915,6 +31055,62 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     secrets_scan_gate_validation_item_count: artifacts.secrets_scan_gate?.summary?.validation_item_count ?? 0,
     secrets_scan_gate_failed_checkpoint_count: artifacts.secrets_scan_gate?.summary?.failed_checkpoint_count ?? 0,
     secrets_scan_gate_validation_error_count: artifacts.secrets_scan_gate?.summary?.validation_error_count ?? artifacts.secrets_scan_gate?.validation?.errors?.length ?? 0,
+    retention_deletion_policy_status: artifacts.retention_deletion_policy?.summary?.retention_deletion_policy_status ?? "unknown",
+    retention_deletion_policy_id: artifacts.retention_deletion_policy?.summary?.retention_deletion_policy_id ?? null,
+    retention_deletion_policy_capability_id: artifacts.retention_deletion_policy?.summary?.capability_id ?? null,
+    retention_deletion_policy_phase_slot: artifacts.retention_deletion_policy?.summary?.phase_slot ?? null,
+    retention_deletion_policy_previous_phase_slot: artifacts.retention_deletion_policy?.summary?.previous_phase_slot ?? null,
+    retention_deletion_policy_next_phase_slot: artifacts.retention_deletion_policy?.summary?.next_phase_slot ?? null,
+    retention_deletion_policy_source_status_count: artifacts.retention_deletion_policy?.summary?.source_status_count ?? 0,
+    retention_deletion_policy_passed_source_status_count: artifacts.retention_deletion_policy?.summary?.passed_source_status_count ?? 0,
+    retention_deletion_policy_failed_source_status_count: artifacts.retention_deletion_policy?.summary?.failed_source_status_count ?? 0,
+    retention_deletion_policy_source_secrets_scan_gate_status: artifacts.retention_deletion_policy?.summary?.source_secrets_scan_gate_status ?? "unknown",
+    retention_deletion_policy_source_secrets_scan_gate_phase_slot: artifacts.retention_deletion_policy?.summary?.source_secrets_scan_gate_phase_slot ?? null,
+    retention_deletion_policy_source_secrets_scan_gate_next_phase_slot: artifacts.retention_deletion_policy?.summary?.source_secrets_scan_gate_next_phase_slot ?? null,
+    retention_deletion_policy_policy_row_count: artifacts.retention_deletion_policy?.summary?.policy_row_count ?? 0,
+    retention_deletion_policy_resource_policy_row_count: artifacts.retention_deletion_policy?.summary?.resource_policy_row_count ?? 0,
+    retention_deletion_policy_artifact_policy_row_count: artifacts.retention_deletion_policy?.summary?.artifact_policy_row_count ?? 0,
+    retention_deletion_policy_audit_policy_row_count: artifacts.retention_deletion_policy?.summary?.audit_policy_row_count ?? 0,
+    retention_deletion_policy_retention_period_recorded_count: artifacts.retention_deletion_policy?.summary?.retention_period_recorded_count ?? 0,
+    retention_deletion_policy_missing_retention_period_count: artifacts.retention_deletion_policy?.summary?.missing_retention_period_count ?? 0,
+    retention_deletion_policy_deletion_not_allowed_policy_count: artifacts.retention_deletion_policy?.summary?.deletion_not_allowed_policy_count ?? 0,
+    retention_deletion_policy_deletion_allowed_policy_count: artifacts.retention_deletion_policy?.summary?.deletion_allowed_policy_count ?? 0,
+    retention_deletion_policy_delete_after_days_set_count: artifacts.retention_deletion_policy?.summary?.delete_after_days_set_count ?? 0,
+    retention_deletion_policy_deletion_hold_required_policy_count: artifacts.retention_deletion_policy?.summary?.deletion_hold_required_policy_count ?? 0,
+    retention_deletion_policy_deletion_hold_record_count: artifacts.retention_deletion_policy?.summary?.deletion_hold_record_count ?? 0,
+    retention_deletion_policy_active_deletion_hold_count: artifacts.retention_deletion_policy?.summary?.active_deletion_hold_count ?? 0,
+    retention_deletion_policy_missing_deletion_hold_count: artifacts.retention_deletion_policy?.summary?.missing_deletion_hold_count ?? 0,
+    retention_deletion_policy_legal_hold_required_policy_count: artifacts.retention_deletion_policy?.summary?.legal_hold_required_policy_count ?? 0,
+    retention_deletion_policy_records_review_required_policy_count: artifacts.retention_deletion_policy?.summary?.records_review_required_policy_count ?? 0,
+    retention_deletion_policy_human_review_required_policy_count: artifacts.retention_deletion_policy?.summary?.human_review_required_policy_count ?? 0,
+    retention_deletion_policy_gate_result_count: artifacts.retention_deletion_policy?.summary?.gate_result_count ?? 0,
+    retention_deletion_policy_passed_gate_result_count: artifacts.retention_deletion_policy?.summary?.passed_gate_result_count ?? 0,
+    retention_deletion_policy_failed_gate_result_count: artifacts.retention_deletion_policy?.summary?.failed_gate_result_count ?? 0,
+    retention_deletion_policy_gate_fail_on_violation_count: artifacts.retention_deletion_policy?.summary?.gate_fail_on_violation_count ?? 0,
+    retention_deletion_policy_gate_violation_count: artifacts.retention_deletion_policy?.summary?.gate_violation_count ?? 0,
+    retention_deletion_policy_deletion_execution_allowed_count: artifacts.retention_deletion_policy?.summary?.deletion_execution_allowed_count ?? 0,
+    retention_deletion_policy_deletion_execution_performed_count: artifacts.retention_deletion_policy?.summary?.deletion_execution_performed_count ?? 0,
+    retention_deletion_policy_read_only: artifacts.retention_deletion_policy?.summary?.read_only ?? false,
+    retention_deletion_policy_policy_report_only: artifacts.retention_deletion_policy?.summary?.policy_report_only ?? false,
+    retention_deletion_policy_source_artifact_read_performed: artifacts.retention_deletion_policy?.summary?.source_artifact_read_performed ?? false,
+    retention_deletion_policy_source_content_read_performed: artifacts.retention_deletion_policy?.summary?.source_content_read_performed ?? false,
+    retention_deletion_policy_source_ingest_performed: artifacts.retention_deletion_policy?.summary?.source_ingest_performed ?? false,
+    retention_deletion_policy_deletion_execution_performed: artifacts.retention_deletion_policy?.summary?.deletion_execution_performed ?? false,
+    retention_deletion_policy_source_mutation_performed: artifacts.retention_deletion_policy?.summary?.source_mutation_performed ?? false,
+    retention_deletion_policy_external_transfer_performed: artifacts.retention_deletion_policy?.summary?.external_transfer_performed ?? false,
+    retention_deletion_policy_network_access_performed: artifacts.retention_deletion_policy?.summary?.network_access_performed ?? false,
+    retention_deletion_policy_route_execution_performed: artifacts.retention_deletion_policy?.summary?.route_execution_performed ?? false,
+    retention_deletion_policy_server_started: artifacts.retention_deletion_policy?.summary?.server_started ?? false,
+    retention_deletion_policy_protected_action_executed: artifacts.retention_deletion_policy?.summary?.protected_action_executed ?? false,
+    retention_deletion_policy_legal_advice_generated: artifacts.retention_deletion_policy?.summary?.legal_advice_generated ?? false,
+    retention_deletion_policy_client_facing_output_generated: artifacts.retention_deletion_policy?.summary?.client_facing_output_generated ?? false,
+    retention_deletion_policy_human_review_required: artifacts.retention_deletion_policy?.summary?.human_review_required ?? false,
+    retention_deletion_policy_client_facing_ready: artifacts.retention_deletion_policy?.summary?.client_facing_ready ?? true,
+    retention_deletion_policy_windows_baseline_stability_preserved: artifacts.retention_deletion_policy?.summary?.windows_baseline_stability_preserved ?? false,
+    retention_deletion_policy_mac_windows_completion_instability_guard: artifacts.retention_deletion_policy?.summary?.mac_windows_completion_instability_guard ?? false,
+    retention_deletion_policy_validation_item_count: artifacts.retention_deletion_policy?.summary?.validation_item_count ?? 0,
+    retention_deletion_policy_failed_checkpoint_count: artifacts.retention_deletion_policy?.summary?.failed_checkpoint_count ?? 0,
+    retention_deletion_policy_validation_error_count: artifacts.retention_deletion_policy?.summary?.validation_error_count ?? artifacts.retention_deletion_policy?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -32325,6 +32521,8 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Retention/archive policies and candidates: ${dashboard.summary.retention_archive_policy_count ?? 0}/${dashboard.summary.retention_archive_candidate_count ?? 0}`);
   lines.push(`- Retention/archive event/audit/output candidates: ${dashboard.summary.retention_archive_event_candidate_count ?? 0}/${dashboard.summary.retention_archive_audit_candidate_count ?? 0}/${dashboard.summary.retention_archive_output_candidate_count ?? 0}`);
   lines.push(`- Retention/archive holds and deletion allowed: ${dashboard.summary.retention_archive_legal_hold_binding_count ?? 0}/${dashboard.summary.retention_archive_legal_hold_required_count ?? 0}, ${dashboard.summary.retention_archive_deletion_allowed_count ?? 0}`);
+  lines.push(`- Retention/deletion resource/artifact/audit policies: ${dashboard.summary.retention_deletion_policy_resource_policy_row_count ?? 0}/${dashboard.summary.retention_deletion_policy_artifact_policy_row_count ?? 0}/${dashboard.summary.retention_deletion_policy_audit_policy_row_count ?? 0}`);
+  lines.push(`- Retention/deletion active holds and deletion allowed: ${dashboard.summary.retention_deletion_policy_active_deletion_hold_count ?? 0}/${dashboard.summary.retention_deletion_policy_deletion_hold_record_count ?? 0}, ${dashboard.summary.retention_deletion_policy_deletion_allowed_policy_count ?? 0}`);
   lines.push(`- Ledger API/dashboard panels and routes: ${dashboard.summary.ledger_api_dashboard_passed_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_panel_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_declared_route_count ?? 0}/${dashboard.summary.ledger_api_dashboard_route_count ?? 0}`);
   lines.push(`- Ledger API/dashboard domains run/audit/cost/error/event: ${dashboard.summary.ledger_api_dashboard_run_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_audit_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cost_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_error_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_event_panel_count ?? 0}`);
   lines.push(`- Ledger API/dashboard metrics/cross links/errors: ${dashboard.summary.ledger_api_dashboard_metric_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_linked_cross_link_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cross_link_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_validation_error_count ?? 0}`);
@@ -32770,6 +32968,8 @@ function parseArgs(argv) {
     else if (arg === "--no-external-model-policy-audit") parsed.externalModelPolicyAuditPath = false;
     else if (arg === "--secrets-scan-gate") parsed.secretsScanGatePath = argv[++index];
     else if (arg === "--no-secrets-scan-gate") parsed.secretsScanGatePath = false;
+    else if (arg === "--retention-deletion-policy") parsed.retentionDeletionPolicyPath = argv[++index];
+    else if (arg === "--no-retention-deletion-policy") parsed.retentionDeletionPolicyPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

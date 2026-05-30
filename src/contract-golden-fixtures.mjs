@@ -209,6 +209,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     prompt_injection_test_suite: "artifacts/prompt-injection-test-suite/latest/prompt-injection-test-suite.json",
     external_model_policy_audit: "artifacts/external-model-policy-audit/latest/external-model-policy-audit.json",
     secrets_scan_gate: "artifacts/secrets-scan-gate/latest/secrets-scan-gate.json",
+    retention_deletion_policy: "artifacts/retention-deletion-policy/latest/retention-deletion-policy.json",
   },
 };
 
@@ -411,6 +412,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("prompt_injection_test_suite", "Prompt Injection Test Suite", "security", "prompt-injection-test-suite.schema.json"),
   fixtureDefinition("external_model_policy_audit", "External Model Policy Audit", "security", "external-model-policy-audit.schema.json"),
   fixtureDefinition("secrets_scan_gate", "Secrets Scan Gate", "security", "secrets-scan-gate.schema.json"),
+  fixtureDefinition("retention_deletion_policy", "Retention Deletion Policy", "compliance", "retention-deletion-policy.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),

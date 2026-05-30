@@ -99,6 +99,7 @@ import { runThreatModelRefresh } from "../src/threat-model-refresh.mjs";
 import { runPromptInjectionTestSuite } from "../src/prompt-injection-test-suite.mjs";
 import { runExternalModelPolicyAudit } from "../src/external-model-policy-audit.mjs";
 import { runSecretsScanGate } from "../src/secrets-scan-gate.mjs";
+import { runRetentionDeletionPolicy } from "../src/retention-deletion-policy.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -1995,6 +1996,7 @@ describe("matter harness", () => {
         promptInjectionTestSuitePath: path.join(outDir, "prompt-injection-test-suite", "prompt-injection-test-suite.json"),
         externalModelPolicyAuditPath: path.join(outDir, "external-model-policy-audit", "external-model-policy-audit.json"),
         secretsScanGatePath: path.join(outDir, "secrets-scan-gate", "secrets-scan-gate.json"),
+        retentionDeletionPolicyPath: path.join(outDir, "retention-deletion-policy", "retention-deletion-policy.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -2129,6 +2131,7 @@ describe("matter harness", () => {
         promptInjectionTestSuitePath: false,
         externalModelPolicyAuditPath: false,
         secretsScanGatePath: false,
+        retentionDeletionPolicyPath: false,
         observabilityFreezePath: false,
         capabilityManifestV2Path: false,
         packManifestCompatibilityPath: false,
@@ -13357,6 +13360,7 @@ describe("matter harness", () => {
         promptInjectionTestSuitePath: false,
         externalModelPolicyAuditPath: false,
         secretsScanGatePath: false,
+        retentionDeletionPolicyPath: false,
         outDir: path.join(outDir, "dashboard-pre-checkpoint"),
         runAt: "2026-05-23T06:35:08.000Z",
       });
@@ -14656,6 +14660,71 @@ describe("matter harness", () => {
       assert.match(await readFile(path.join(outDir, "secrets-scan-gate", "summary.md"), "utf8"), /Secrets Scan Gate/);
 
       contractGoldenFixtureArtifactPaths.secrets_scan_gate = path.join(outDir, "secrets-scan-gate", "secrets-scan-gate.json");
+      const retentionDeletionPolicy = await runRetentionDeletionPolicy({
+        secretsScanGatePath: path.join(outDir, "secrets-scan-gate", "secrets-scan-gate.json"),
+        retentionArchiveLedgerPath: path.join(outDir, "retention-archive", "retention-archive-ledger.json"),
+        resourceContractFreezePath: path.join(outDir, "resource-contract-freeze", "resource-contract-freeze.json"),
+        resourceVersionLedgerPath: path.join(outDir, "resource-version-ledger", "resource-version-ledger.json"),
+        immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
+        outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
+        auditEventLedgerPath: path.join(outDir, "audit-event-ledger", "audit-event-ledger.json"),
+        appendOnlyEventStorePath: path.join(outDir, "append-only-event-store", "append-only-event-store.json"),
+        evidencePlaneFreezePath: path.join(outDir, "evidence-plane-freeze", "evidence-plane-freeze.json"),
+        outDir: path.join(outDir, "retention-deletion-policy"),
+        runAt: "2026-05-23T07:26:35.485Z",
+      });
+      const retentionDeletionPolicySchema = JSON.parse(await readFile("schemas/retention-deletion-policy.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(retentionDeletionPolicy, retentionDeletionPolicySchema, {}, "retention_deletion_policy"), [], JSON.stringify(retentionDeletionPolicy.validation.errors));
+      assert.equal(retentionDeletionPolicy.summary.retention_deletion_policy_status, "complete");
+      assert.equal(retentionDeletionPolicy.summary.phase_slot, "P301");
+      assert.equal(retentionDeletionPolicy.summary.previous_phase_slot, "P300");
+      assert.equal(retentionDeletionPolicy.summary.next_phase_slot, "P302");
+      assert.equal(retentionDeletionPolicy.summary.source_secrets_scan_gate_status, "complete");
+      assert.equal(retentionDeletionPolicy.summary.source_secrets_scan_gate_phase_slot, "P300");
+      assert.equal(retentionDeletionPolicy.summary.source_secrets_scan_gate_next_phase_slot, "P301");
+      assert.equal(retentionDeletionPolicy.summary.failed_source_status_count, 0);
+      assert.ok(retentionDeletionPolicy.summary.policy_row_count >= 9);
+      assert.ok(retentionDeletionPolicy.summary.resource_policy_row_count >= 1);
+      assert.ok(retentionDeletionPolicy.summary.artifact_policy_row_count >= 1);
+      assert.ok(retentionDeletionPolicy.summary.audit_policy_row_count >= 1);
+      assert.equal(retentionDeletionPolicy.summary.missing_retention_period_count, 0);
+      assert.equal(retentionDeletionPolicy.summary.deletion_allowed_policy_count, 0);
+      assert.equal(retentionDeletionPolicy.summary.delete_after_days_set_count, 0);
+      assert.equal(retentionDeletionPolicy.summary.missing_deletion_hold_count, 0);
+      assert.equal(retentionDeletionPolicy.summary.deletion_hold_record_count, retentionDeletionPolicy.summary.policy_row_count);
+      assert.equal(retentionDeletionPolicy.summary.active_deletion_hold_count, retentionDeletionPolicy.summary.deletion_hold_record_count);
+      assert.equal(retentionDeletionPolicy.summary.gate_result_count, retentionDeletionPolicy.summary.passed_gate_result_count);
+      assert.equal(retentionDeletionPolicy.summary.failed_gate_result_count, 0);
+      assert.equal(retentionDeletionPolicy.summary.gate_violation_count, 0);
+      assert.equal(retentionDeletionPolicy.summary.deletion_execution_allowed_count, 0);
+      assert.equal(retentionDeletionPolicy.summary.deletion_execution_performed_count, 0);
+      assert.equal(retentionDeletionPolicy.summary.read_only, true);
+      assert.equal(retentionDeletionPolicy.summary.policy_report_only, true);
+      assert.equal(retentionDeletionPolicy.summary.source_content_read_performed, false);
+      assert.equal(retentionDeletionPolicy.summary.source_ingest_performed, false);
+      assert.equal(retentionDeletionPolicy.summary.deletion_execution_performed, false);
+      assert.equal(retentionDeletionPolicy.summary.source_mutation_performed, false);
+      assert.equal(retentionDeletionPolicy.summary.external_transfer_performed, false);
+      assert.equal(retentionDeletionPolicy.summary.network_access_performed, false);
+      assert.equal(retentionDeletionPolicy.summary.route_execution_performed, false);
+      assert.equal(retentionDeletionPolicy.summary.server_started, false);
+      assert.equal(retentionDeletionPolicy.summary.protected_action_executed, false);
+      assert.equal(retentionDeletionPolicy.summary.legal_advice_generated, false);
+      assert.equal(retentionDeletionPolicy.summary.client_facing_output_generated, false);
+      assert.equal(retentionDeletionPolicy.summary.human_review_required, true);
+      assert.equal(retentionDeletionPolicy.summary.client_facing_ready, false);
+      assert.equal(retentionDeletionPolicy.summary.windows_baseline_stability_preserved, true);
+      assert.equal(retentionDeletionPolicy.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(retentionDeletionPolicy.summary.validation_error_count, 0);
+      assert.ok(retentionDeletionPolicy.source_statuses.every((row) => row.source_status === "passed"));
+      assert.ok(retentionDeletionPolicy.retention_deletion_policy_rows.every((row) => row.retention_period_days > 0 && row.deletion_status === "not_allowed" && !row.deletion_allowed && row.delete_after_days === null && row.records_review_required && row.human_review_required));
+      assert.ok(retentionDeletionPolicy.deletion_hold_records.every((row) => row.hold_status === "active" && !row.deletion_execution_allowed && !row.deletion_execution_performed));
+      assert.ok(retentionDeletionPolicy.retention_deletion_gate_results.every((row) => row.gate_status === "passed" && row.gate_decision === "block_deletion_until_records_review" && !row.deletion_allowed));
+      assert.equal(retentionDeletionPolicy.retention_deletion_boundary.boundary_status, "enforced");
+      assert.ok(retentionDeletionPolicy.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "retention-deletion-policy", "summary.md"), "utf8"), /Retention Deletion Policy/);
+
+      contractGoldenFixtureArtifactPaths.retention_deletion_policy = path.join(outDir, "retention-deletion-policy", "retention-deletion-policy.json");
       contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: contractGoldenFixtureArtifactPaths,
         fixtureIds: Object.keys(contractGoldenFixtureArtifactPaths),
@@ -14667,8 +14736,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 202);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 202);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 203);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 203);
       assert.equal(contractGoldenFixtures.summary.missing_artifact_count, 0);
       assert.equal(contractGoldenFixtures.summary.validation_error_count, 0);
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "dashboard_api_freeze"));
@@ -14676,6 +14745,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "prompt_injection_test_suite"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "external_model_policy_audit"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "secrets_scan_gate"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "retention_deletion_policy"));
 
       contractValidationSuite = await runContractValidationSuite({
         contractGoldenFixturesPath: path.join(outDir, "contract-golden-fixtures", "contract-golden-fixtures.json"),
@@ -14689,8 +14759,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractValidationSuite.summary.validation_suite_status, "complete");
-      assert.equal(contractValidationSuite.summary.fixture_count, 202);
-      assert.equal(contractValidationSuite.summary.validated_fixture_count, 202);
+      assert.equal(contractValidationSuite.summary.fixture_count, 203);
+      assert.equal(contractValidationSuite.summary.validated_fixture_count, 203);
       assert.equal(contractValidationSuite.summary.schema_invalid_fixture_count, 0);
       assert.equal(contractValidationSuite.summary.regression_failed_count, 0);
       assert.equal(contractValidationSuite.summary.missing_package_script_count, 0);
@@ -14700,6 +14770,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "security:prompt-injection-tests"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "security:external-model-policy-audit"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "security:secrets-scan-gate"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "compliance:retention-deletion-policy"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
 
       const dashboard = await runReviewDashboard({
@@ -14752,6 +14823,10 @@ describe("matter harness", () => {
       assert.equal(secretsScanGateCheckpoint?.acceptance_profile, "secrets_scan_gate_gate");
       assert.equal(secretsScanGateCheckpoint?.status, "passed");
       assert.equal(secretsScanGateCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const retentionDeletionPolicyCheckpoint = dashboardApiFreezeGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-retention-deletion-policy");
+      assert.equal(retentionDeletionPolicyCheckpoint?.acceptance_profile, "retention_deletion_policy_gate");
+      assert.equal(retentionDeletionPolicyCheckpoint?.status, "passed");
+      assert.equal(retentionDeletionPolicyCheckpoint?.implementation_status, "passed_with_operational_gate");
       assert.equal(dashboard.summary.evidence_approved_count, 1);
       assert.equal(dashboard.summary.evidence_review_draft_item_count, evidenceReviewDraft.summary.review_item_count);
       assert.equal(dashboard.summary.evidence_review_draft_attorney_count, evidenceReviewDraft.summary.attorney_review_count);
@@ -20343,6 +20418,49 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.secrets_scan_gate_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.secrets_scan_gate_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.secrets_scan_gate_validation_error_count, 0);
+      assert.equal(dashboard.summary.retention_deletion_policy_status, "complete");
+      assert.equal(dashboard.summary.retention_deletion_policy_id, retentionDeletionPolicy.summary.retention_deletion_policy_id);
+      assert.equal(dashboard.summary.retention_deletion_policy_phase_slot, "P301");
+      assert.equal(dashboard.summary.retention_deletion_policy_previous_phase_slot, "P300");
+      assert.equal(dashboard.summary.retention_deletion_policy_next_phase_slot, "P302");
+      assert.equal(dashboard.summary.retention_deletion_policy_source_secrets_scan_gate_status, "complete");
+      assert.equal(dashboard.summary.retention_deletion_policy_source_secrets_scan_gate_phase_slot, "P300");
+      assert.equal(dashboard.summary.retention_deletion_policy_source_secrets_scan_gate_next_phase_slot, "P301");
+      assert.equal(dashboard.summary.retention_deletion_policy_failed_source_status_count, 0);
+      assert.equal(dashboard.summary.retention_deletion_policy_policy_row_count, retentionDeletionPolicy.summary.policy_row_count);
+      assert.equal(dashboard.summary.retention_deletion_policy_resource_policy_row_count, retentionDeletionPolicy.summary.resource_policy_row_count);
+      assert.equal(dashboard.summary.retention_deletion_policy_artifact_policy_row_count, retentionDeletionPolicy.summary.artifact_policy_row_count);
+      assert.equal(dashboard.summary.retention_deletion_policy_audit_policy_row_count, retentionDeletionPolicy.summary.audit_policy_row_count);
+      assert.equal(dashboard.summary.retention_deletion_policy_missing_retention_period_count, 0);
+      assert.equal(dashboard.summary.retention_deletion_policy_deletion_allowed_policy_count, 0);
+      assert.equal(dashboard.summary.retention_deletion_policy_delete_after_days_set_count, 0);
+      assert.equal(dashboard.summary.retention_deletion_policy_deletion_hold_record_count, retentionDeletionPolicy.summary.deletion_hold_record_count);
+      assert.equal(dashboard.summary.retention_deletion_policy_active_deletion_hold_count, retentionDeletionPolicy.summary.active_deletion_hold_count);
+      assert.equal(dashboard.summary.retention_deletion_policy_missing_deletion_hold_count, 0);
+      assert.equal(dashboard.summary.retention_deletion_policy_gate_result_count, retentionDeletionPolicy.summary.gate_result_count);
+      assert.equal(dashboard.summary.retention_deletion_policy_passed_gate_result_count, retentionDeletionPolicy.summary.passed_gate_result_count);
+      assert.equal(dashboard.summary.retention_deletion_policy_failed_gate_result_count, 0);
+      assert.equal(dashboard.summary.retention_deletion_policy_gate_violation_count, 0);
+      assert.equal(dashboard.summary.retention_deletion_policy_deletion_execution_allowed_count, 0);
+      assert.equal(dashboard.summary.retention_deletion_policy_deletion_execution_performed_count, 0);
+      assert.equal(dashboard.summary.retention_deletion_policy_read_only, true);
+      assert.equal(dashboard.summary.retention_deletion_policy_policy_report_only, true);
+      assert.equal(dashboard.summary.retention_deletion_policy_source_content_read_performed, false);
+      assert.equal(dashboard.summary.retention_deletion_policy_source_ingest_performed, false);
+      assert.equal(dashboard.summary.retention_deletion_policy_deletion_execution_performed, false);
+      assert.equal(dashboard.summary.retention_deletion_policy_source_mutation_performed, false);
+      assert.equal(dashboard.summary.retention_deletion_policy_external_transfer_performed, false);
+      assert.equal(dashboard.summary.retention_deletion_policy_network_access_performed, false);
+      assert.equal(dashboard.summary.retention_deletion_policy_route_execution_performed, false);
+      assert.equal(dashboard.summary.retention_deletion_policy_server_started, false);
+      assert.equal(dashboard.summary.retention_deletion_policy_protected_action_executed, false);
+      assert.equal(dashboard.summary.retention_deletion_policy_legal_advice_generated, false);
+      assert.equal(dashboard.summary.retention_deletion_policy_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.retention_deletion_policy_human_review_required, true);
+      assert.equal(dashboard.summary.retention_deletion_policy_client_facing_ready, false);
+      assert.equal(dashboard.summary.retention_deletion_policy_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.retention_deletion_policy_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.retention_deletion_policy_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -24520,6 +24638,51 @@ describe("matter harness", () => {
       assert.equal(secretsScanGateStage?.metrics.windows_baseline_stability_preserved, true);
       assert.equal(secretsScanGateStage?.metrics.mac_windows_completion_instability_guard, true);
       assert.equal(secretsScanGateStage?.metrics.validation_error_count, 0);
+      const retentionDeletionPolicyStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "retention_deletion_policy");
+      assert.equal(retentionDeletionPolicyStage?.status, "passed");
+      assert.equal(retentionDeletionPolicyStage?.metrics.retention_deletion_policy_status, "complete");
+      assert.equal(retentionDeletionPolicyStage?.metrics.retention_deletion_policy_id, retentionDeletionPolicy.summary.retention_deletion_policy_id);
+      assert.equal(retentionDeletionPolicyStage?.metrics.phase_slot, "P301");
+      assert.equal(retentionDeletionPolicyStage?.metrics.previous_phase_slot, "P300");
+      assert.equal(retentionDeletionPolicyStage?.metrics.next_phase_slot, "P302");
+      assert.equal(retentionDeletionPolicyStage?.metrics.source_secrets_scan_gate_status, "complete");
+      assert.equal(retentionDeletionPolicyStage?.metrics.source_secrets_scan_gate_phase_slot, "P300");
+      assert.equal(retentionDeletionPolicyStage?.metrics.source_secrets_scan_gate_next_phase_slot, "P301");
+      assert.equal(retentionDeletionPolicyStage?.metrics.failed_source_status_count, 0);
+      assert.equal(retentionDeletionPolicyStage?.metrics.policy_row_count, retentionDeletionPolicy.summary.policy_row_count);
+      assert.equal(retentionDeletionPolicyStage?.metrics.resource_policy_row_count, retentionDeletionPolicy.summary.resource_policy_row_count);
+      assert.equal(retentionDeletionPolicyStage?.metrics.artifact_policy_row_count, retentionDeletionPolicy.summary.artifact_policy_row_count);
+      assert.equal(retentionDeletionPolicyStage?.metrics.audit_policy_row_count, retentionDeletionPolicy.summary.audit_policy_row_count);
+      assert.equal(retentionDeletionPolicyStage?.metrics.missing_retention_period_count, 0);
+      assert.equal(retentionDeletionPolicyStage?.metrics.deletion_allowed_policy_count, 0);
+      assert.equal(retentionDeletionPolicyStage?.metrics.delete_after_days_set_count, 0);
+      assert.equal(retentionDeletionPolicyStage?.metrics.deletion_hold_record_count, retentionDeletionPolicy.summary.deletion_hold_record_count);
+      assert.equal(retentionDeletionPolicyStage?.metrics.active_deletion_hold_count, retentionDeletionPolicy.summary.active_deletion_hold_count);
+      assert.equal(retentionDeletionPolicyStage?.metrics.missing_deletion_hold_count, 0);
+      assert.equal(retentionDeletionPolicyStage?.metrics.gate_result_count, retentionDeletionPolicy.summary.gate_result_count);
+      assert.equal(retentionDeletionPolicyStage?.metrics.passed_gate_result_count, retentionDeletionPolicy.summary.passed_gate_result_count);
+      assert.equal(retentionDeletionPolicyStage?.metrics.failed_gate_result_count, 0);
+      assert.equal(retentionDeletionPolicyStage?.metrics.gate_violation_count, 0);
+      assert.equal(retentionDeletionPolicyStage?.metrics.deletion_execution_allowed_count, 0);
+      assert.equal(retentionDeletionPolicyStage?.metrics.deletion_execution_performed_count, 0);
+      assert.equal(retentionDeletionPolicyStage?.metrics.read_only, true);
+      assert.equal(retentionDeletionPolicyStage?.metrics.policy_report_only, true);
+      assert.equal(retentionDeletionPolicyStage?.metrics.source_content_read_performed, false);
+      assert.equal(retentionDeletionPolicyStage?.metrics.source_ingest_performed, false);
+      assert.equal(retentionDeletionPolicyStage?.metrics.deletion_execution_performed, false);
+      assert.equal(retentionDeletionPolicyStage?.metrics.source_mutation_performed, false);
+      assert.equal(retentionDeletionPolicyStage?.metrics.external_transfer_performed, false);
+      assert.equal(retentionDeletionPolicyStage?.metrics.network_access_performed, false);
+      assert.equal(retentionDeletionPolicyStage?.metrics.route_execution_performed, false);
+      assert.equal(retentionDeletionPolicyStage?.metrics.server_started, false);
+      assert.equal(retentionDeletionPolicyStage?.metrics.protected_action_executed, false);
+      assert.equal(retentionDeletionPolicyStage?.metrics.legal_advice_generated, false);
+      assert.equal(retentionDeletionPolicyStage?.metrics.client_facing_output_generated, false);
+      assert.equal(retentionDeletionPolicyStage?.metrics.human_review_required, true);
+      assert.equal(retentionDeletionPolicyStage?.metrics.client_facing_ready, false);
+      assert.equal(retentionDeletionPolicyStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(retentionDeletionPolicyStage?.metrics.mac_windows_completion_instability_guard, true);
+      assert.equal(retentionDeletionPolicyStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -24797,6 +24960,13 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/desktop-config-leakage-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/secrets-scan-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/secrets-scan-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/retention-deletion-policies"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/retention-deletion-sources"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/retention-deletion-policy-rows"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/deletion-hold-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/retention-deletion-gate-results"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/retention-deletion-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/retention-deletion-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -28030,6 +28200,34 @@ describe("matter harness", () => {
       const secretsScanValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/secrets-scan-validations?status=passed", apiOptions)).body);
       assert.equal(secretsScanValidationsResponse.collection, "secrets_scan_validations");
       assert.equal(secretsScanValidationsResponse.count, secretsScanGate.summary.validation_item_count);
+
+      const retentionDeletionPoliciesResponse = JSON.parse((await buildReviewApiResponse("/api/retention-deletion-policies?retention_deletion_policy_status=complete", apiOptions)).body);
+      assert.equal(retentionDeletionPoliciesResponse.collection, "retention_deletion_policies");
+      assert.equal(retentionDeletionPoliciesResponse.count, 1);
+
+      const retentionDeletionSourcesResponse = JSON.parse((await buildReviewApiResponse("/api/retention-deletion-sources?source_status=passed", apiOptions)).body);
+      assert.equal(retentionDeletionSourcesResponse.collection, "retention_deletion_sources");
+      assert.equal(retentionDeletionSourcesResponse.count, retentionDeletionPolicy.summary.source_status_count);
+
+      const retentionDeletionPolicyRowsResponse = JSON.parse((await buildReviewApiResponse("/api/retention-deletion-policy-rows?retention_plane=resource&deletion_status=not_allowed", apiOptions)).body);
+      assert.equal(retentionDeletionPolicyRowsResponse.collection, "retention_deletion_policy_rows");
+      assert.equal(retentionDeletionPolicyRowsResponse.count, retentionDeletionPolicy.summary.resource_policy_row_count);
+
+      const deletionHoldRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/deletion-hold-records?hold_status=active&deletion_execution_allowed=false", apiOptions)).body);
+      assert.equal(deletionHoldRecordsResponse.collection, "deletion_hold_records");
+      assert.equal(deletionHoldRecordsResponse.count, retentionDeletionPolicy.summary.deletion_hold_record_count);
+
+      const retentionDeletionGateResultsResponse = JSON.parse((await buildReviewApiResponse("/api/retention-deletion-gate-results?gate_status=passed&gate_fail_on_violation=true", apiOptions)).body);
+      assert.equal(retentionDeletionGateResultsResponse.collection, "retention_deletion_gate_results");
+      assert.equal(retentionDeletionGateResultsResponse.count, retentionDeletionPolicy.summary.gate_result_count);
+
+      const retentionDeletionBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/retention-deletion-boundary?boundary_status=enforced&policy_report_only=true", apiOptions)).body);
+      assert.equal(retentionDeletionBoundaryResponse.collection, "retention_deletion_boundary");
+      assert.equal(retentionDeletionBoundaryResponse.count, 1);
+
+      const retentionDeletionValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/retention-deletion-validations?status=passed", apiOptions)).body);
+      assert.equal(retentionDeletionValidationsResponse.collection, "retention_deletion_validations");
+      assert.equal(retentionDeletionValidationsResponse.count, retentionDeletionPolicy.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

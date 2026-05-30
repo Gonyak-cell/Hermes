@@ -1,0 +1,311 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.hermes.local/retention-deletion-policy.schema.json",
+  "title": "Retention Deletion Policy",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "retention_deletion_policy_id",
+    "capability_id",
+    "source_statuses",
+    "retention_deletion_policy_contract",
+    "retention_deletion_policy_rows",
+    "deletion_hold_records",
+    "retention_deletion_gate_results",
+    "retention_deletion_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "retention-deletion-policy.v1" },
+    "generated_at": { "type": "string" },
+    "retention_deletion_policy_id": { "type": "string" },
+    "capability_id": { "const": "compliance.retention_deletion_policy" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_statuses": {
+      "type": "array",
+      "minItems": 9,
+      "items": { "$ref": "#/$defs/source_status" }
+    },
+    "retention_deletion_policy_contract": { "type": "object" },
+    "retention_deletion_policy_rows": {
+      "type": "array",
+      "minItems": 9,
+      "items": { "$ref": "#/$defs/policy_row" }
+    },
+    "deletion_hold_records": {
+      "type": "array",
+      "minItems": 9,
+      "items": { "$ref": "#/$defs/hold_record" }
+    },
+    "retention_deletion_gate_results": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/gate_result" }
+    },
+    "retention_deletion_boundary": { "$ref": "#/$defs/boundary" },
+    "validation_items": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "source_status": {
+      "type": "object",
+      "required": ["source_id", "observed_status", "source_status", "validation_error_count"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "observed_status": { "type": "string" },
+        "source_status": { "const": "passed" },
+        "validation_error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    },
+    "policy_row": {
+      "type": "object",
+      "required": [
+        "retention_deletion_policy_row_id",
+        "retention_plane",
+        "subject_kind",
+        "subject_count",
+        "retention_period_days",
+        "deletion_allowed",
+        "delete_after_days",
+        "deletion_status",
+        "deletion_hold_required",
+        "deletion_hold_status",
+        "legal_hold_required",
+        "records_review_required",
+        "human_review_required",
+        "client_facing_ready",
+        "policy_status"
+      ],
+      "properties": {
+        "retention_deletion_policy_row_id": { "type": "string" },
+        "retention_plane": { "enum": ["resource", "artifact", "audit"] },
+        "subject_kind": { "type": "string" },
+        "subject_count": { "type": "integer", "minimum": 0 },
+        "retention_period_days": { "type": "integer", "minimum": 1 },
+        "deletion_allowed": { "const": false },
+        "delete_after_days": { "type": "null" },
+        "deletion_status": { "const": "not_allowed" },
+        "deletion_hold_required": { "const": true },
+        "deletion_hold_status": { "const": "hold_active" },
+        "legal_hold_required": { "const": true },
+        "records_review_required": { "const": true },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false },
+        "policy_status": { "const": "active" },
+        "policy_row_hash": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "hold_record": {
+      "type": "object",
+      "required": [
+        "deletion_hold_record_id",
+        "retention_deletion_policy_row_id",
+        "retention_plane",
+        "deletion_status",
+        "hold_status",
+        "legal_hold_required",
+        "records_review_required",
+        "human_review_required",
+        "deletion_execution_allowed",
+        "deletion_execution_performed"
+      ],
+      "properties": {
+        "deletion_hold_record_id": { "type": "string" },
+        "retention_deletion_policy_row_id": { "type": "string" },
+        "retention_plane": { "enum": ["resource", "artifact", "audit"] },
+        "deletion_status": { "const": "not_allowed" },
+        "hold_status": { "const": "active" },
+        "legal_hold_required": { "const": true },
+        "records_review_required": { "const": true },
+        "human_review_required": { "const": true },
+        "deletion_execution_allowed": { "const": false },
+        "deletion_execution_performed": { "const": false },
+        "deletion_hold_record_hash": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "gate_result": {
+      "type": "object",
+      "required": [
+        "gate_id",
+        "violation_count",
+        "gate_decision",
+        "gate_fail_on_violation",
+        "deletion_allowed",
+        "deletion_execution_allowed",
+        "records_review_required",
+        "human_review_required",
+        "client_facing_ready",
+        "gate_status"
+      ],
+      "properties": {
+        "gate_id": { "type": "string" },
+        "violation_count": { "const": 0 },
+        "gate_decision": { "const": "block_deletion_until_records_review" },
+        "gate_fail_on_violation": { "const": true },
+        "deletion_allowed": { "const": false },
+        "deletion_execution_allowed": { "const": false },
+        "records_review_required": { "const": true },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false },
+        "gate_status": { "const": "passed" }
+      },
+      "additionalProperties": true
+    },
+    "boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "read_only",
+        "policy_report_only",
+        "source_artifact_read_performed",
+        "source_content_read_performed",
+        "source_ingest_performed",
+        "deletion_execution_performed",
+        "source_mutation_performed",
+        "external_transfer_performed",
+        "network_access_performed",
+        "route_execution_performed",
+        "server_started",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "human_review_required",
+        "client_facing_ready",
+        "windows_baseline_stability_preserved",
+        "mac_windows_completion_instability_guard"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "read_only": { "const": true },
+        "policy_report_only": { "const": true },
+        "source_artifact_read_performed": { "const": true },
+        "source_content_read_performed": { "const": false },
+        "source_ingest_performed": { "const": false },
+        "deletion_execution_performed": { "const": false },
+        "source_mutation_performed": { "const": false },
+        "external_transfer_performed": { "const": false },
+        "network_access_performed": { "const": false },
+        "route_execution_performed": { "const": false },
+        "server_started": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check_id", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "retention_deletion_policy_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "policy_row_count",
+        "resource_policy_row_count",
+        "artifact_policy_row_count",
+        "audit_policy_row_count",
+        "missing_retention_period_count",
+        "deletion_allowed_policy_count",
+        "delete_after_days_set_count",
+        "missing_deletion_hold_count",
+        "gate_result_count",
+        "failed_gate_result_count",
+        "gate_violation_count",
+        "deletion_execution_allowed_count",
+        "deletion_execution_performed_count",
+        "read_only",
+        "policy_report_only",
+        "source_content_read_performed",
+        "source_ingest_performed",
+        "deletion_execution_performed",
+        "source_mutation_performed",
+        "external_transfer_performed",
+        "network_access_performed",
+        "route_execution_performed",
+        "server_started",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "human_review_required",
+        "client_facing_ready",
+        "windows_baseline_stability_preserved",
+        "mac_windows_completion_instability_guard",
+        "validation_error_count"
+      ],
+      "properties": {
+        "retention_deletion_policy_status": { "const": "complete" },
+        "phase_slot": { "const": "P301" },
+        "previous_phase_slot": { "const": "P300" },
+        "next_phase_slot": { "const": "P302" },
+        "policy_row_count": { "type": "integer", "minimum": 9 },
+        "resource_policy_row_count": { "type": "integer", "minimum": 1 },
+        "artifact_policy_row_count": { "type": "integer", "minimum": 1 },
+        "audit_policy_row_count": { "type": "integer", "minimum": 1 },
+        "missing_retention_period_count": { "const": 0 },
+        "deletion_allowed_policy_count": { "const": 0 },
+        "delete_after_days_set_count": { "const": 0 },
+        "missing_deletion_hold_count": { "const": 0 },
+        "gate_result_count": { "type": "integer", "minimum": 10 },
+        "failed_gate_result_count": { "const": 0 },
+        "gate_violation_count": { "const": 0 },
+        "deletion_execution_allowed_count": { "const": 0 },
+        "deletion_execution_performed_count": { "const": 0 },
+        "read_only": { "const": true },
+        "policy_report_only": { "const": true },
+        "source_content_read_performed": { "const": false },
+        "source_ingest_performed": { "const": false },
+        "deletion_execution_performed": { "const": false },
+        "source_mutation_performed": { "const": false },
+        "external_transfer_performed": { "const": false },
+        "network_access_performed": { "const": false },
+        "route_execution_performed": { "const": false },
+        "server_started": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true },
+        "validation_error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    }
+  }
+}

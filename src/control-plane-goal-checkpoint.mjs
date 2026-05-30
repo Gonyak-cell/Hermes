@@ -173,6 +173,7 @@ const GOAL_ITEMS = [
   sourceItem("prompt_injection_test_suite", "Prompt Injection Test Suite", "security", "prompt_injection_test_suite", "control-plane-prompt-injection-test-suite", { acceptance_profile: "prompt_injection_test_suite_gate" }),
   sourceItem("external_model_policy_audit", "External Model Policy Audit", "security", "external_model_policy_audit", "control-plane-external-model-policy-audit", { acceptance_profile: "external_model_policy_audit_gate" }),
   sourceItem("secrets_scan_gate", "Secrets Scan Gate", "security", "secrets_scan_gate", "control-plane-secrets-scan-gate", { acceptance_profile: "secrets_scan_gate_gate" }),
+  sourceItem("retention_deletion_policy", "Retention Deletion Policy", "compliance", "retention_deletion_policy", "control-plane-retention-deletion-policy", { acceptance_profile: "retention_deletion_policy_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -705,6 +706,7 @@ function evaluateStageAcceptance(item, stage) {
     "prompt_injection_test_suite_gate",
     "external_model_policy_audit_gate",
     "secrets_scan_gate_gate",
+    "retention_deletion_policy_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -6643,6 +6645,61 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Secrets Scan Gate locks P300 credential, token, env, provider-key, and Desktop config leakage as fail-on-leakage gates while preserving read-only, report-only, no-secret-read, no-config-read, no-provider-key-materialization, human-review, and Windows baseline constraints.");
+    }
+  }
+
+  if (item.acceptance_profile === "retention_deletion_policy_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.retention_deletion_policy_status === "complete"
+      && metrics.phase_slot === "P301"
+      && metrics.previous_phase_slot === "P300"
+      && metrics.next_phase_slot === "P302"
+      && metrics.source_secrets_scan_gate_status === "complete"
+      && metrics.source_secrets_scan_gate_phase_slot === "P300"
+      && metrics.source_secrets_scan_gate_next_phase_slot === "P301"
+      && metrics.failed_source_status_count === 0
+      && metrics.policy_row_count >= 9
+      && metrics.resource_policy_row_count >= 1
+      && metrics.artifact_policy_row_count >= 1
+      && metrics.audit_policy_row_count >= 1
+      && metrics.missing_retention_period_count === 0
+      && metrics.deletion_allowed_policy_count === 0
+      && metrics.delete_after_days_set_count === 0
+      && metrics.missing_deletion_hold_count === 0
+      && metrics.deletion_hold_record_count === metrics.policy_row_count
+      && metrics.active_deletion_hold_count === metrics.deletion_hold_record_count
+      && metrics.legal_hold_required_policy_count === metrics.policy_row_count
+      && metrics.records_review_required_policy_count === metrics.policy_row_count
+      && metrics.human_review_required_policy_count === metrics.policy_row_count
+      && metrics.gate_result_count >= 10
+      && metrics.passed_gate_result_count === metrics.gate_result_count
+      && metrics.failed_gate_result_count === 0
+      && metrics.gate_fail_on_violation_count === metrics.gate_result_count
+      && metrics.gate_violation_count === 0
+      && metrics.deletion_execution_allowed_count === 0
+      && metrics.deletion_execution_performed_count === 0
+      && metrics.read_only === true
+      && metrics.policy_report_only === true
+      && metrics.source_artifact_read_performed === true
+      && metrics.source_content_read_performed === false
+      && metrics.source_ingest_performed === false
+      && metrics.deletion_execution_performed === false
+      && metrics.source_mutation_performed === false
+      && metrics.external_transfer_performed === false
+      && metrics.network_access_performed === false
+      && metrics.route_execution_performed === false
+      && metrics.server_started === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.human_review_required === true
+      && metrics.client_facing_ready === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Retention Deletion Policy locks P301 resource, artifact, and audit retention periods with active deletion holds, no delete-after dates, no deletion execution, records-review and human-review gates, and Windows baseline stability.");
     }
   }
 

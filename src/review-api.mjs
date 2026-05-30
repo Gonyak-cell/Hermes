@@ -6953,6 +6953,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("secrets_scan_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/retention-deletion-policies") {
+    const result = await readDashboardSourceArtifact(dashboard, "retention_deletion_policy");
+    if (!result.available) {
+      return jsonResponse(503, buildError("retention_deletion_policy_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("retention_deletion_policies", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/retention-deletion-sources") {
+    const result = await readDashboardSourceArtifact(dashboard, "retention_deletion_policy");
+    if (!result.available) {
+      return jsonResponse(503, buildError("retention_deletion_policy_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("retention_deletion_sources", result.artifact.source_statuses ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/retention-deletion-policy-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "retention_deletion_policy");
+    if (!result.available) {
+      return jsonResponse(503, buildError("retention_deletion_policy_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("retention_deletion_policy_rows", result.artifact.retention_deletion_policy_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/deletion-hold-records") {
+    const result = await readDashboardSourceArtifact(dashboard, "retention_deletion_policy");
+    if (!result.available) {
+      return jsonResponse(503, buildError("retention_deletion_policy_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("deletion_hold_records", result.artifact.deletion_hold_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/retention-deletion-gate-results") {
+    const result = await readDashboardSourceArtifact(dashboard, "retention_deletion_policy");
+    if (!result.available) {
+      return jsonResponse(503, buildError("retention_deletion_policy_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("retention_deletion_gate_results", result.artifact.retention_deletion_gate_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/retention-deletion-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "retention_deletion_policy");
+    if (!result.available) {
+      return jsonResponse(503, buildError("retention_deletion_policy_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("retention_deletion_boundary", [result.artifact.retention_deletion_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/retention-deletion-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "retention_deletion_policy");
+    if (!result.available) {
+      return jsonResponse(503, buildError("retention_deletion_policy_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("retention_deletion_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -13550,6 +13599,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/desktop-config-leakage-checks", "Desktop config leakage check rows"),
       route("GET", "/api/secrets-scan-boundary", "Secrets Scan Gate read-only boundary"),
       route("GET", "/api/secrets-scan-validations", "Secrets Scan Gate validation rows"),
+      route("GET", "/api/retention-deletion-policies", "Retention Deletion Policy artifact"),
+      route("GET", "/api/retention-deletion-sources", "Retention Deletion Policy source status rows"),
+      route("GET", "/api/retention-deletion-policy-rows", "Retention Deletion Policy rows"),
+      route("GET", "/api/deletion-hold-records", "Deletion hold records"),
+      route("GET", "/api/retention-deletion-gate-results", "Retention Deletion Policy gate result rows"),
+      route("GET", "/api/retention-deletion-boundary", "Retention Deletion Policy read-only boundary"),
+      route("GET", "/api/retention-deletion-validations", "Retention Deletion Policy validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -14822,6 +14878,15 @@ function filterItems(items, searchParams) {
     "prompt_injection_test_suite_status",
     "external_model_policy_audit_status",
     "secrets_scan_gate_status",
+    "retention_deletion_policy_status",
+    "retention_plane",
+    "subject_kind",
+    "deletion_status",
+    "deletion_allowed",
+    "deletion_execution_allowed",
+    "gate_fail_on_violation",
+    "policy_report_only",
+    "records_review_required",
     "rule_status",
     "gate_status",
     "check_status",
@@ -16854,6 +16919,15 @@ function readFilterValue(item, key) {
   if (key === "prompt_injection_test_suite_status") return item.summary?.prompt_injection_test_suite_status ?? item.prompt_injection_test_suite_status;
   if (key === "external_model_policy_audit_status") return item.summary?.external_model_policy_audit_status ?? item.external_model_policy_audit_status;
   if (key === "secrets_scan_gate_status") return item.summary?.secrets_scan_gate_status ?? item.secrets_scan_gate_status;
+  if (key === "retention_deletion_policy_status") return item.summary?.retention_deletion_policy_status ?? item.retention_deletion_policy_status;
+  if (key === "retention_plane") return item.retention_plane;
+  if (key === "subject_kind") return item.subject_kind;
+  if (key === "deletion_status") return item.deletion_status;
+  if (key === "deletion_allowed") return String(Boolean(item.deletion_allowed));
+  if (key === "deletion_execution_allowed") return String(Boolean(item.deletion_execution_allowed));
+  if (key === "gate_fail_on_violation") return String(Boolean(item.gate_fail_on_violation));
+  if (key === "policy_report_only") return String(Boolean(item.policy_report_only));
+  if (key === "records_review_required") return String(Boolean(item.records_review_required));
   if (key === "rule_status") return item.rule_status;
   if (key === "gate_status") return item.gate_status;
   if (key === "check_status") return item.check_status;

@@ -3384,6 +3384,34 @@ try {
   assert.equal(secretsScanValidations.collection, "secrets_scan_validations");
   assert.ok(secretsScanValidations.count <= 5);
 
+  const retentionDeletionPolicies = await fetchJson(`${url}/api/retention-deletion-policies?retention_deletion_policy_status=complete&limit=1`);
+  assert.equal(retentionDeletionPolicies.collection, "retention_deletion_policies");
+  assert.ok(retentionDeletionPolicies.count <= 1);
+
+  const retentionDeletionSources = await fetchJson(`${url}/api/retention-deletion-sources?source_status=passed&limit=10`);
+  assert.equal(retentionDeletionSources.collection, "retention_deletion_sources");
+  assert.ok(retentionDeletionSources.count <= 10);
+
+  const retentionDeletionPolicyRows = await fetchJson(`${url}/api/retention-deletion-policy-rows?retention_plane=resource&deletion_status=not_allowed&limit=10`);
+  assert.equal(retentionDeletionPolicyRows.collection, "retention_deletion_policy_rows");
+  assert.ok(retentionDeletionPolicyRows.count <= 10);
+
+  const deletionHoldRecords = await fetchJson(`${url}/api/deletion-hold-records?hold_status=active&deletion_execution_allowed=false&limit=20`);
+  assert.equal(deletionHoldRecords.collection, "deletion_hold_records");
+  assert.ok(deletionHoldRecords.count <= 20);
+
+  const retentionDeletionGateResults = await fetchJson(`${url}/api/retention-deletion-gate-results?gate_status=passed&gate_fail_on_violation=true&limit=10`);
+  assert.equal(retentionDeletionGateResults.collection, "retention_deletion_gate_results");
+  assert.ok(retentionDeletionGateResults.count <= 10);
+
+  const retentionDeletionBoundary = await fetchJson(`${url}/api/retention-deletion-boundary?boundary_status=enforced&policy_report_only=true&limit=1`);
+  assert.equal(retentionDeletionBoundary.collection, "retention_deletion_boundary");
+  assert.ok(retentionDeletionBoundary.count <= 1);
+
+  const retentionDeletionValidations = await fetchJson(`${url}/api/retention-deletion-validations?status=passed&limit=5`);
+  assert.equal(retentionDeletionValidations.collection, "retention_deletion_validations");
+  assert.ok(retentionDeletionValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

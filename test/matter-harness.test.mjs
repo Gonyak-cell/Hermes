@@ -102,6 +102,7 @@ import { runSecretsScanGate } from "../src/secrets-scan-gate.mjs";
 import { runRetentionDeletionPolicy } from "../src/retention-deletion-policy.mjs";
 import { runAccessReviewReport } from "../src/access-review-report.mjs";
 import { runPerformanceCostBudgetReport } from "../src/performance-cost-budget-report.mjs";
+import { runBackupRestoreDrill } from "../src/backup-restore-drill.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -2001,6 +2002,7 @@ describe("matter harness", () => {
         retentionDeletionPolicyPath: path.join(outDir, "retention-deletion-policy", "retention-deletion-policy.json"),
         accessReviewReportPath: path.join(outDir, "access-review-report", "access-review-report.json"),
         performanceCostBudgetReportPath: path.join(outDir, "performance-cost-budget", "performance-cost-budget-report.json"),
+        backupRestoreDrillPath: path.join(outDir, "backup-restore-drill", "backup-restore-drill-report.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -2138,6 +2140,7 @@ describe("matter harness", () => {
         retentionDeletionPolicyPath: false,
         accessReviewReportPath: false,
         performanceCostBudgetReportPath: false,
+        backupRestoreDrillPath: false,
         observabilityFreezePath: false,
         capabilityManifestV2Path: false,
         packManifestCompatibilityPath: false,
@@ -13369,6 +13372,7 @@ describe("matter harness", () => {
         retentionDeletionPolicyPath: false,
         accessReviewReportPath: false,
         performanceCostBudgetReportPath: false,
+        backupRestoreDrillPath: false,
         outDir: path.join(outDir, "dashboard-pre-checkpoint"),
         runAt: "2026-05-23T06:35:08.000Z",
       });
@@ -14861,6 +14865,71 @@ describe("matter harness", () => {
       assert.match(await readFile(path.join(outDir, "performance-cost-budget", "summary.md"), "utf8"), /Performance\/Cost Budget Report/);
 
       contractGoldenFixtureArtifactPaths.performance_cost_budget_report = path.join(outDir, "performance-cost-budget", "performance-cost-budget-report.json");
+      const backupRestoreDrill = await runBackupRestoreDrill({
+        performanceCostBudgetReportPath: path.join(outDir, "performance-cost-budget", "performance-cost-budget-report.json"),
+        retentionDeletionPolicyPath: path.join(outDir, "retention-deletion-policy", "retention-deletion-policy.json"),
+        immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
+        resourceVersionLedgerPath: path.join(outDir, "resource-version-ledger", "resource-version-ledger.json"),
+        outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
+        appendOnlyEventStorePath: path.join(outDir, "append-only-event-store", "append-only-event-store.json"),
+        auditEventLedgerPath: path.join(outDir, "audit-event-ledger", "audit-event-ledger.json"),
+        desktopReadyApiContractPath: path.join(outDir, "dashboard-api-freeze", "desktop-ready-api-contract.json"),
+        outDir: path.join(outDir, "backup-restore-drill"),
+        runAt: "2026-05-23T07:26:35.750Z",
+      });
+      const backupRestoreDrillSchema = JSON.parse(await readFile("schemas/backup-restore-drill.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(backupRestoreDrill, backupRestoreDrillSchema, {}, "backup_restore_drill"), [], JSON.stringify(backupRestoreDrill.validation.errors));
+      assert.equal(backupRestoreDrill.summary.backup_restore_drill_status, "complete");
+      assert.equal(backupRestoreDrill.summary.phase_slot, "P304");
+      assert.equal(backupRestoreDrill.summary.previous_phase_slot, "P303");
+      assert.equal(backupRestoreDrill.summary.next_phase_slot, "P305");
+      assert.equal(backupRestoreDrill.summary.source_performance_cost_budget_report_status, "complete");
+      assert.equal(backupRestoreDrill.summary.source_performance_cost_budget_report_phase_slot, "P303");
+      assert.equal(backupRestoreDrill.summary.source_performance_cost_budget_report_next_phase_slot, "P304");
+      assert.equal(backupRestoreDrill.summary.failed_source_status_count, 0);
+      assert.equal(backupRestoreDrill.summary.restore_drill_row_count, 5);
+      assert.equal(backupRestoreDrill.summary.passed_restore_drill_row_count, 5);
+      assert.equal(backupRestoreDrill.summary.failed_restore_drill_row_count, 0);
+      assert.equal(backupRestoreDrill.summary.db_restore_drill_count, 1);
+      assert.equal(backupRestoreDrill.summary.object_restore_drill_count, 1);
+      assert.equal(backupRestoreDrill.summary.artifact_restore_drill_count, 1);
+      assert.equal(backupRestoreDrill.summary.event_restore_drill_count, 1);
+      assert.equal(backupRestoreDrill.summary.audit_restore_drill_count, 1);
+      assert.equal(backupRestoreDrill.summary.dry_run_restore_plane_count, 5);
+      assert.equal(backupRestoreDrill.summary.restore_execution_performed_count, 0);
+      assert.equal(backupRestoreDrill.summary.production_restore_performed_count, 0);
+      assert.ok(backupRestoreDrill.summary.canonical_source_of_truth_count >= 5);
+      assert.equal(backupRestoreDrill.summary.desktop_source_of_truth_count, 0);
+      assert.equal(backupRestoreDrill.summary.desktop_restore_input_allowed_count, 0);
+      assert.equal(backupRestoreDrill.summary.source_of_truth_violation_count, 0);
+      assert.equal(backupRestoreDrill.summary.gate_violation_count, 0);
+      assert.equal(backupRestoreDrill.summary.read_only, true);
+      assert.equal(backupRestoreDrill.summary.backup_report_only, true);
+      assert.equal(backupRestoreDrill.summary.dry_run_only, true);
+      assert.equal(backupRestoreDrill.summary.restore_execution_allowed, false);
+      assert.equal(backupRestoreDrill.summary.restore_execution_performed, false);
+      assert.equal(backupRestoreDrill.summary.desktop_export_import_source_of_truth, false);
+      assert.equal(backupRestoreDrill.summary.desktop_export_performed, false);
+      assert.equal(backupRestoreDrill.summary.desktop_import_performed, false);
+      assert.equal(backupRestoreDrill.summary.protected_action_executed, false);
+      assert.equal(backupRestoreDrill.summary.external_transfer_performed, false);
+      assert.equal(backupRestoreDrill.summary.network_access_performed, false);
+      assert.equal(backupRestoreDrill.summary.legal_advice_generated, false);
+      assert.equal(backupRestoreDrill.summary.client_facing_output_generated, false);
+      assert.equal(backupRestoreDrill.summary.human_review_required, true);
+      assert.equal(backupRestoreDrill.summary.client_facing_ready, false);
+      assert.equal(backupRestoreDrill.summary.windows_baseline_stability_preserved, true);
+      assert.equal(backupRestoreDrill.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(backupRestoreDrill.summary.validation_error_count, 0);
+      assert.ok(backupRestoreDrill.source_statuses.every((row) => row.source_status === "passed"));
+      assert.ok(backupRestoreDrill.restore_drill_rows.every((row) => row.drill_status === "passed" && row.dry_run_status === "passed" && !row.restore_execution_performed));
+      assert.ok(backupRestoreDrill.backup_restore_source_of_truth_rows.filter((row) => row.desktop_export_import_surface).every((row) => !row.canonical_source_of_truth && !row.restore_input_allowed && !row.desktop_export_import_source_of_truth));
+      assert.ok(backupRestoreDrill.backup_restore_gate_results.every((row) => row.gate_status === "passed" && !row.restore_execution_allowed && !row.desktop_export_import_source_of_truth));
+      assert.equal(backupRestoreDrill.backup_restore_boundary.boundary_status, "enforced");
+      assert.ok(backupRestoreDrill.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "backup-restore-drill", "summary.md"), "utf8"), /Backup\/Restore Drill/);
+
+      contractGoldenFixtureArtifactPaths.backup_restore_drill = path.join(outDir, "backup-restore-drill", "backup-restore-drill-report.json");
       contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: contractGoldenFixtureArtifactPaths,
         fixtureIds: Object.keys(contractGoldenFixtureArtifactPaths),
@@ -14872,8 +14941,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 205);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 205);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 206);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 206);
       assert.equal(contractGoldenFixtures.summary.missing_artifact_count, 0);
       assert.equal(contractGoldenFixtures.summary.validation_error_count, 0);
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "dashboard_api_freeze"));
@@ -14884,6 +14953,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "retention_deletion_policy"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "access_review_report"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "performance_cost_budget_report"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "backup_restore_drill"));
 
       contractValidationSuite = await runContractValidationSuite({
         contractGoldenFixturesPath: path.join(outDir, "contract-golden-fixtures", "contract-golden-fixtures.json"),
@@ -14897,8 +14967,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractValidationSuite.summary.validation_suite_status, "complete");
-      assert.equal(contractValidationSuite.summary.fixture_count, 205);
-      assert.equal(contractValidationSuite.summary.validated_fixture_count, 205);
+      assert.equal(contractValidationSuite.summary.fixture_count, 206);
+      assert.equal(contractValidationSuite.summary.validated_fixture_count, 206);
       assert.equal(contractValidationSuite.summary.schema_invalid_fixture_count, 0);
       assert.equal(contractValidationSuite.summary.regression_failed_count, 0);
       assert.equal(contractValidationSuite.summary.missing_package_script_count, 0);
@@ -14911,6 +14981,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "compliance:retention-deletion-policy"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "compliance:access-review-report"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "compliance:performance-cost-budget-report"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "compliance:backup-restore-drill"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
 
       const dashboard = await runReviewDashboard({
@@ -14975,6 +15046,10 @@ describe("matter harness", () => {
       assert.equal(performanceCostBudgetReportCheckpoint?.acceptance_profile, "performance_cost_budget_report_gate");
       assert.equal(performanceCostBudgetReportCheckpoint?.status, "passed");
       assert.equal(performanceCostBudgetReportCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const backupRestoreDrillCheckpoint = dashboardApiFreezeGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-backup-restore-drill");
+      assert.equal(backupRestoreDrillCheckpoint?.acceptance_profile, "backup_restore_drill_gate");
+      assert.equal(backupRestoreDrillCheckpoint?.status, "passed");
+      assert.equal(backupRestoreDrillCheckpoint?.implementation_status, "passed_with_operational_gate");
       assert.equal(dashboard.summary.evidence_approved_count, 1);
       assert.equal(dashboard.summary.evidence_review_draft_item_count, evidenceReviewDraft.summary.review_item_count);
       assert.equal(dashboard.summary.evidence_review_draft_attorney_count, evidenceReviewDraft.summary.attorney_review_count);
@@ -20694,6 +20769,49 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.performance_cost_budget_report_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.performance_cost_budget_report_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.performance_cost_budget_report_validation_error_count, 0);
+      assert.equal(dashboard.summary.backup_restore_drill_status, "complete");
+      assert.equal(dashboard.summary.backup_restore_drill_id, backupRestoreDrill.summary.backup_restore_drill_id);
+      assert.equal(dashboard.summary.backup_restore_drill_phase_slot, "P304");
+      assert.equal(dashboard.summary.backup_restore_drill_previous_phase_slot, "P303");
+      assert.equal(dashboard.summary.backup_restore_drill_next_phase_slot, "P305");
+      assert.equal(dashboard.summary.backup_restore_drill_source_performance_cost_budget_report_status, "complete");
+      assert.equal(dashboard.summary.backup_restore_drill_source_performance_cost_budget_report_phase_slot, "P303");
+      assert.equal(dashboard.summary.backup_restore_drill_source_performance_cost_budget_report_next_phase_slot, "P304");
+      assert.equal(dashboard.summary.backup_restore_drill_failed_source_status_count, 0);
+      assert.equal(dashboard.summary.backup_restore_drill_restore_drill_row_count, backupRestoreDrill.summary.restore_drill_row_count);
+      assert.equal(dashboard.summary.backup_restore_drill_passed_restore_drill_row_count, backupRestoreDrill.summary.passed_restore_drill_row_count);
+      assert.equal(dashboard.summary.backup_restore_drill_failed_restore_drill_row_count, 0);
+      assert.equal(dashboard.summary.backup_restore_drill_db_restore_drill_count, 1);
+      assert.equal(dashboard.summary.backup_restore_drill_object_restore_drill_count, 1);
+      assert.equal(dashboard.summary.backup_restore_drill_artifact_restore_drill_count, 1);
+      assert.equal(dashboard.summary.backup_restore_drill_event_restore_drill_count, 1);
+      assert.equal(dashboard.summary.backup_restore_drill_audit_restore_drill_count, 1);
+      assert.equal(dashboard.summary.backup_restore_drill_dry_run_restore_plane_count, 5);
+      assert.equal(dashboard.summary.backup_restore_drill_restore_execution_performed_count, 0);
+      assert.equal(dashboard.summary.backup_restore_drill_production_restore_performed_count, 0);
+      assert.equal(dashboard.summary.backup_restore_drill_canonical_source_of_truth_count, backupRestoreDrill.summary.canonical_source_of_truth_count);
+      assert.equal(dashboard.summary.backup_restore_drill_desktop_source_of_truth_count, 0);
+      assert.equal(dashboard.summary.backup_restore_drill_desktop_restore_input_allowed_count, 0);
+      assert.equal(dashboard.summary.backup_restore_drill_source_of_truth_violation_count, 0);
+      assert.equal(dashboard.summary.backup_restore_drill_gate_violation_count, 0);
+      assert.equal(dashboard.summary.backup_restore_drill_read_only, true);
+      assert.equal(dashboard.summary.backup_restore_drill_backup_report_only, true);
+      assert.equal(dashboard.summary.backup_restore_drill_dry_run_only, true);
+      assert.equal(dashboard.summary.backup_restore_drill_restore_execution_allowed, false);
+      assert.equal(dashboard.summary.backup_restore_drill_restore_execution_performed, false);
+      assert.equal(dashboard.summary.backup_restore_drill_desktop_export_import_source_of_truth, false);
+      assert.equal(dashboard.summary.backup_restore_drill_desktop_export_performed, false);
+      assert.equal(dashboard.summary.backup_restore_drill_desktop_import_performed, false);
+      assert.equal(dashboard.summary.backup_restore_drill_protected_action_executed, false);
+      assert.equal(dashboard.summary.backup_restore_drill_external_transfer_performed, false);
+      assert.equal(dashboard.summary.backup_restore_drill_network_access_performed, false);
+      assert.equal(dashboard.summary.backup_restore_drill_legal_advice_generated, false);
+      assert.equal(dashboard.summary.backup_restore_drill_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.backup_restore_drill_human_review_required, true);
+      assert.equal(dashboard.summary.backup_restore_drill_client_facing_ready, false);
+      assert.equal(dashboard.summary.backup_restore_drill_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.backup_restore_drill_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.backup_restore_drill_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -24999,6 +25117,51 @@ describe("matter harness", () => {
       assert.equal(performanceCostBudgetReportStage?.metrics.windows_baseline_stability_preserved, true);
       assert.equal(performanceCostBudgetReportStage?.metrics.mac_windows_completion_instability_guard, true);
       assert.equal(performanceCostBudgetReportStage?.metrics.validation_error_count, 0);
+      const backupRestoreDrillStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "backup_restore_drill");
+      assert.equal(backupRestoreDrillStage?.status, "passed");
+      assert.equal(backupRestoreDrillStage?.metrics.backup_restore_drill_status, "complete");
+      assert.equal(backupRestoreDrillStage?.metrics.backup_restore_drill_id, backupRestoreDrill.summary.backup_restore_drill_id);
+      assert.equal(backupRestoreDrillStage?.metrics.phase_slot, "P304");
+      assert.equal(backupRestoreDrillStage?.metrics.previous_phase_slot, "P303");
+      assert.equal(backupRestoreDrillStage?.metrics.next_phase_slot, "P305");
+      assert.equal(backupRestoreDrillStage?.metrics.source_performance_cost_budget_report_status, "complete");
+      assert.equal(backupRestoreDrillStage?.metrics.source_performance_cost_budget_report_phase_slot, "P303");
+      assert.equal(backupRestoreDrillStage?.metrics.source_performance_cost_budget_report_next_phase_slot, "P304");
+      assert.equal(backupRestoreDrillStage?.metrics.failed_source_status_count, 0);
+      assert.equal(backupRestoreDrillStage?.metrics.restore_drill_row_count, backupRestoreDrill.summary.restore_drill_row_count);
+      assert.equal(backupRestoreDrillStage?.metrics.passed_restore_drill_row_count, backupRestoreDrill.summary.passed_restore_drill_row_count);
+      assert.equal(backupRestoreDrillStage?.metrics.failed_restore_drill_row_count, 0);
+      assert.equal(backupRestoreDrillStage?.metrics.db_restore_drill_count, 1);
+      assert.equal(backupRestoreDrillStage?.metrics.object_restore_drill_count, 1);
+      assert.equal(backupRestoreDrillStage?.metrics.artifact_restore_drill_count, 1);
+      assert.equal(backupRestoreDrillStage?.metrics.event_restore_drill_count, 1);
+      assert.equal(backupRestoreDrillStage?.metrics.audit_restore_drill_count, 1);
+      assert.equal(backupRestoreDrillStage?.metrics.dry_run_restore_plane_count, 5);
+      assert.equal(backupRestoreDrillStage?.metrics.restore_execution_performed_count, 0);
+      assert.equal(backupRestoreDrillStage?.metrics.production_restore_performed_count, 0);
+      assert.equal(backupRestoreDrillStage?.metrics.canonical_source_of_truth_count, backupRestoreDrill.summary.canonical_source_of_truth_count);
+      assert.equal(backupRestoreDrillStage?.metrics.desktop_source_of_truth_count, 0);
+      assert.equal(backupRestoreDrillStage?.metrics.desktop_restore_input_allowed_count, 0);
+      assert.equal(backupRestoreDrillStage?.metrics.source_of_truth_violation_count, 0);
+      assert.equal(backupRestoreDrillStage?.metrics.gate_violation_count, 0);
+      assert.equal(backupRestoreDrillStage?.metrics.read_only, true);
+      assert.equal(backupRestoreDrillStage?.metrics.backup_report_only, true);
+      assert.equal(backupRestoreDrillStage?.metrics.dry_run_only, true);
+      assert.equal(backupRestoreDrillStage?.metrics.restore_execution_allowed, false);
+      assert.equal(backupRestoreDrillStage?.metrics.restore_execution_performed, false);
+      assert.equal(backupRestoreDrillStage?.metrics.desktop_export_import_source_of_truth, false);
+      assert.equal(backupRestoreDrillStage?.metrics.desktop_export_performed, false);
+      assert.equal(backupRestoreDrillStage?.metrics.desktop_import_performed, false);
+      assert.equal(backupRestoreDrillStage?.metrics.protected_action_executed, false);
+      assert.equal(backupRestoreDrillStage?.metrics.external_transfer_performed, false);
+      assert.equal(backupRestoreDrillStage?.metrics.network_access_performed, false);
+      assert.equal(backupRestoreDrillStage?.metrics.legal_advice_generated, false);
+      assert.equal(backupRestoreDrillStage?.metrics.client_facing_output_generated, false);
+      assert.equal(backupRestoreDrillStage?.metrics.human_review_required, true);
+      assert.equal(backupRestoreDrillStage?.metrics.client_facing_ready, false);
+      assert.equal(backupRestoreDrillStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(backupRestoreDrillStage?.metrics.mac_windows_completion_instability_guard, true);
+      assert.equal(backupRestoreDrillStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -28608,6 +28771,34 @@ describe("matter harness", () => {
       const performanceCostBudgetValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/performance-cost-budget-validations?status=passed", apiOptions)).body);
       assert.equal(performanceCostBudgetValidationsResponse.collection, "performance_cost_budget_validations");
       assert.equal(performanceCostBudgetValidationsResponse.count, performanceCostBudgetReport.summary.validation_item_count);
+
+      const backupRestoreDrillsResponse = JSON.parse((await buildReviewApiResponse("/api/backup-restore-drills?backup_restore_drill_status=complete", apiOptions)).body);
+      assert.equal(backupRestoreDrillsResponse.collection, "backup_restore_drills");
+      assert.equal(backupRestoreDrillsResponse.count, 1);
+
+      const backupRestoreSourcesResponse = JSON.parse((await buildReviewApiResponse("/api/backup-restore-sources?source_status=passed", apiOptions)).body);
+      assert.equal(backupRestoreSourcesResponse.collection, "backup_restore_sources");
+      assert.equal(backupRestoreSourcesResponse.count, backupRestoreDrill.summary.source_status_count);
+
+      const restoreDrillRowsResponse = JSON.parse((await buildReviewApiResponse("/api/restore-drill-rows?restore_plane=event&dry_run_status=passed", apiOptions)).body);
+      assert.equal(restoreDrillRowsResponse.collection, "restore_drill_rows");
+      assert.equal(restoreDrillRowsResponse.count, 1);
+
+      const backupRestoreSourceOfTruthResponse = JSON.parse((await buildReviewApiResponse("/api/backup-restore-source-of-truth-rows?desktop_export_import_source_of_truth=false", apiOptions)).body);
+      assert.equal(backupRestoreSourceOfTruthResponse.collection, "backup_restore_source_of_truth_rows");
+      assert.equal(backupRestoreSourceOfTruthResponse.count, backupRestoreDrill.summary.source_of_truth_row_count);
+
+      const backupRestoreGateResultsResponse = JSON.parse((await buildReviewApiResponse("/api/backup-restore-gate-results?gate_status=passed", apiOptions)).body);
+      assert.equal(backupRestoreGateResultsResponse.collection, "backup_restore_gate_results");
+      assert.equal(backupRestoreGateResultsResponse.count, backupRestoreDrill.summary.gate_result_count);
+
+      const backupRestoreBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/backup-restore-boundary?desktop_export_import_source_of_truth=false", apiOptions)).body);
+      assert.equal(backupRestoreBoundaryResponse.collection, "backup_restore_boundary");
+      assert.equal(backupRestoreBoundaryResponse.count, 1);
+
+      const backupRestoreValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/backup-restore-validations?status=passed", apiOptions)).body);
+      assert.equal(backupRestoreValidationsResponse.collection, "backup_restore_validations");
+      assert.equal(backupRestoreValidationsResponse.count, backupRestoreDrill.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

@@ -7114,6 +7114,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("performance_cost_budget_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/backup-restore-drills") {
+    const result = await readDashboardSourceArtifact(dashboard, "backup_restore_drill");
+    if (!result.available) {
+      return jsonResponse(503, buildError("backup_restore_drill_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("backup_restore_drills", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/backup-restore-sources") {
+    const result = await readDashboardSourceArtifact(dashboard, "backup_restore_drill");
+    if (!result.available) {
+      return jsonResponse(503, buildError("backup_restore_drill_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("backup_restore_sources", result.artifact.source_statuses ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/restore-drill-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "backup_restore_drill");
+    if (!result.available) {
+      return jsonResponse(503, buildError("backup_restore_drill_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("restore_drill_rows", result.artifact.restore_drill_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/backup-restore-source-of-truth-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "backup_restore_drill");
+    if (!result.available) {
+      return jsonResponse(503, buildError("backup_restore_drill_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("backup_restore_source_of_truth_rows", result.artifact.backup_restore_source_of_truth_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/backup-restore-gate-results") {
+    const result = await readDashboardSourceArtifact(dashboard, "backup_restore_drill");
+    if (!result.available) {
+      return jsonResponse(503, buildError("backup_restore_drill_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("backup_restore_gate_results", result.artifact.backup_restore_gate_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/backup-restore-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "backup_restore_drill");
+    if (!result.available) {
+      return jsonResponse(503, buildError("backup_restore_drill_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("backup_restore_boundary", [result.artifact.backup_restore_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/backup-restore-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "backup_restore_drill");
+    if (!result.available) {
+      return jsonResponse(503, buildError("backup_restore_drill_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("backup_restore_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -13734,6 +13783,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/performance-cost-budget-gate-results", "Performance/Cost Budget Report gate result rows"),
       route("GET", "/api/performance-cost-budget-boundary", "Performance/Cost Budget Report read-only boundary"),
       route("GET", "/api/performance-cost-budget-validations", "Performance/Cost Budget Report validation rows"),
+      route("GET", "/api/backup-restore-drills", "Backup/Restore Drill artifact"),
+      route("GET", "/api/backup-restore-sources", "Backup/Restore Drill source status rows"),
+      route("GET", "/api/restore-drill-rows", "Backup/Restore Drill restore plane rows"),
+      route("GET", "/api/backup-restore-source-of-truth-rows", "Backup/Restore source-of-truth rows"),
+      route("GET", "/api/backup-restore-gate-results", "Backup/Restore Drill gate result rows"),
+      route("GET", "/api/backup-restore-boundary", "Backup/Restore Drill read-only boundary"),
+      route("GET", "/api/backup-restore-validations", "Backup/Restore Drill validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -15009,6 +15065,20 @@ function filterItems(items, searchParams) {
     "retention_deletion_policy_status",
     "access_review_report_status",
     "performance_cost_budget_report_status",
+    "backup_restore_drill_status",
+    "restore_plane",
+    "dry_run_status",
+    "drill_status",
+    "restore_execution_allowed",
+    "restore_execution_performed",
+    "production_restore_performed",
+    "canonical_source_of_truth",
+    "restore_input_allowed",
+    "desktop_export_import_surface",
+    "desktop_export_import_source_of_truth",
+    "source_of_truth_status",
+    "desktop_export_performed",
+    "desktop_import_performed",
     "budget_scope",
     "budget_kind",
     "budget_status",
@@ -17074,6 +17144,20 @@ function readFilterValue(item, key) {
   if (key === "retention_deletion_policy_status") return item.summary?.retention_deletion_policy_status ?? item.retention_deletion_policy_status;
   if (key === "access_review_report_status") return item.summary?.access_review_report_status ?? item.access_review_report_status;
   if (key === "performance_cost_budget_report_status") return item.summary?.performance_cost_budget_report_status ?? item.performance_cost_budget_report_status;
+  if (key === "backup_restore_drill_status") return item.summary?.backup_restore_drill_status ?? item.backup_restore_drill_status;
+  if (key === "restore_plane") return item.restore_plane;
+  if (key === "dry_run_status") return item.dry_run_status;
+  if (key === "drill_status") return item.drill_status;
+  if (key === "restore_execution_allowed") return String(Boolean(item.restore_execution_allowed));
+  if (key === "restore_execution_performed") return String(Boolean(item.restore_execution_performed));
+  if (key === "production_restore_performed") return String(Boolean(item.production_restore_performed));
+  if (key === "canonical_source_of_truth") return String(Boolean(item.canonical_source_of_truth));
+  if (key === "restore_input_allowed") return String(Boolean(item.restore_input_allowed));
+  if (key === "desktop_export_import_surface") return String(Boolean(item.desktop_export_import_surface));
+  if (key === "desktop_export_import_source_of_truth") return String(Boolean(item.desktop_export_import_source_of_truth));
+  if (key === "source_of_truth_status") return item.source_of_truth_status;
+  if (key === "desktop_export_performed") return String(Boolean(item.desktop_export_performed));
+  if (key === "desktop_import_performed") return String(Boolean(item.desktop_import_performed));
   if (key === "budget_scope") return item.budget_scope;
   if (key === "budget_kind") return item.budget_kind;
   if (key === "budget_status") return item.budget_status;

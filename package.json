@@ -27,6 +27,7 @@
     "compliance:retention-deletion-policy": "node scripts/retention-deletion-policy.mjs",
     "compliance:access-review-report": "node scripts/access-review-report.mjs",
     "compliance:performance-cost-budget-report": "node scripts/performance-cost-budget-report.mjs",
+    "compliance:backup-restore-drill": "node scripts/backup-restore-drill.mjs",
     "contracts:inventory": "node scripts/contract-inventory.mjs",
     "contracts:dependencies": "node scripts/contract-dependency-map.mjs",
     "contracts:versioning": "node scripts/schema-versioning-rules.mjs",

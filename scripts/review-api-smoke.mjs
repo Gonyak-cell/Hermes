@@ -3476,6 +3476,34 @@ try {
   assert.equal(performanceCostBudgetValidations.collection, "performance_cost_budget_validations");
   assert.ok(performanceCostBudgetValidations.count <= 5);
 
+  const backupRestoreDrills = await fetchJson(`${url}/api/backup-restore-drills?backup_restore_drill_status=complete&limit=1`);
+  assert.equal(backupRestoreDrills.collection, "backup_restore_drills");
+  assert.ok(backupRestoreDrills.count <= 1);
+
+  const backupRestoreSources = await fetchJson(`${url}/api/backup-restore-sources?source_status=passed&limit=10`);
+  assert.equal(backupRestoreSources.collection, "backup_restore_sources");
+  assert.ok(backupRestoreSources.count <= 10);
+
+  const restoreDrillRows = await fetchJson(`${url}/api/restore-drill-rows?restore_plane=event&dry_run_status=passed&limit=5`);
+  assert.equal(restoreDrillRows.collection, "restore_drill_rows");
+  assert.ok(restoreDrillRows.count <= 5);
+
+  const backupRestoreSourceOfTruthRows = await fetchJson(`${url}/api/backup-restore-source-of-truth-rows?desktop_export_import_source_of_truth=false&limit=10`);
+  assert.equal(backupRestoreSourceOfTruthRows.collection, "backup_restore_source_of_truth_rows");
+  assert.ok(backupRestoreSourceOfTruthRows.count <= 10);
+
+  const backupRestoreGateResults = await fetchJson(`${url}/api/backup-restore-gate-results?gate_status=passed&restore_execution_allowed=false&limit=10`);
+  assert.equal(backupRestoreGateResults.collection, "backup_restore_gate_results");
+  assert.ok(backupRestoreGateResults.count <= 10);
+
+  const backupRestoreBoundary = await fetchJson(`${url}/api/backup-restore-boundary?boundary_status=enforced&desktop_export_import_source_of_truth=false&limit=1`);
+  assert.equal(backupRestoreBoundary.collection, "backup_restore_boundary");
+  assert.ok(backupRestoreBoundary.count <= 1);
+
+  const backupRestoreValidations = await fetchJson(`${url}/api/backup-restore-validations?status=passed&limit=5`);
+  assert.equal(backupRestoreValidations.collection, "backup_restore_validations");
+  assert.ok(backupRestoreValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

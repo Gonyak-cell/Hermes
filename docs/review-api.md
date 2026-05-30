@@ -102,6 +102,12 @@ Performance/Cost Budget Report routes expose the read-only report artifact, sour
 
 Routes: `/api/performance-cost-budget-reports`, `/api/performance-cost-budget-sources`, `/api/performance-budget-rows`, `/api/cost-budget-rows`, `/api/performance-cost-budget-gate-results`, `/api/performance-cost-budget-boundary`, `/api/performance-cost-budget-validations`.
 
+## P304 Backup/Restore Drill Routes
+
+Backup/Restore Drill routes expose the read-only dry-run report artifact, source status rows, DB/object/artifact/event/audit restore drill rows, source-of-truth rows, gate result rows, boundary, and validation rows. Supported filters include `backup_restore_drill_status`, `source_status`, `restore_plane`, `dry_run_status`, `drill_status`, `restore_execution_allowed`, `restore_execution_performed`, `production_restore_performed`, `canonical_source_of_truth`, `restore_input_allowed`, `desktop_export_import_surface`, `desktop_export_import_source_of_truth`, `source_of_truth_status`, `gate_status`, `boundary_status`, `read_only`, `status`, and `limit`.
+
+Routes: `/api/backup-restore-drills`, `/api/backup-restore-sources`, `/api/restore-drill-rows`, `/api/backup-restore-source-of-truth-rows`, `/api/backup-restore-gate-results`, `/api/backup-restore-boundary`, `/api/backup-restore-validations`.
+
 ## P245 LDD RFI Generator Routes
 
 LDD RFI Generator routes expose read-only draft-only RFI packets, draft questions, missing-material links, issue links, matter summaries, and validation/boundary rows. Supported filters include `ldd_rfi_generator_status`, `ldd_rfi_matter_status`, `rfi_rule_type`, `rfi_draft_status`, `rfi_question_type`, `rfi_question_priority`, `rfi_question_status`, `rfi_missing_material_status`, `rfi_issue_link_status`, `deterministic_rfi_generation_performed`, `ldd_rfi_question_id`, `ldd_issue_record_id`, `ldd_vdr_missing_data_record_id`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.

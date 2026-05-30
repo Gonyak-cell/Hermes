@@ -125,6 +125,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "compliance:retention-deletion-policy",
   "compliance:access-review-report",
   "compliance:performance-cost-budget-report",
+  "compliance:backup-restore-drill",
   "capabilities:manifest-v2",
   "capabilities:registry-api",
   "packs:compatibility",

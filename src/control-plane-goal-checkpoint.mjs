@@ -176,6 +176,7 @@ const GOAL_ITEMS = [
   sourceItem("retention_deletion_policy", "Retention Deletion Policy", "compliance", "retention_deletion_policy", "control-plane-retention-deletion-policy", { acceptance_profile: "retention_deletion_policy_gate" }),
   sourceItem("access_review_report", "Access Review Report", "compliance", "access_review_report", "control-plane-access-review-report", { acceptance_profile: "access_review_report_gate" }),
   sourceItem("performance_cost_budget_report", "Performance/Cost Budget Report", "compliance", "performance_cost_budget_report", "control-plane-performance-cost-budget-report", { acceptance_profile: "performance_cost_budget_report_gate" }),
+  sourceItem("backup_restore_drill", "Backup/Restore Drill", "compliance", "backup_restore_drill", "control-plane-backup-restore-drill", { acceptance_profile: "backup_restore_drill_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -711,6 +712,7 @@ function evaluateStageAcceptance(item, stage) {
     "retention_deletion_policy_gate",
     "access_review_report_gate",
     "performance_cost_budget_report_gate",
+    "backup_restore_drill_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -6815,6 +6817,57 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Performance/Cost Budget Report locks P303 batch, workflow, and runtime time/cost/token budget visibility with no budget mutation, no runtime execution, human-review gates, and Windows baseline stability.");
+    }
+  }
+
+  if (item.acceptance_profile === "backup_restore_drill_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.backup_restore_drill_status === "complete"
+      && metrics.phase_slot === "P304"
+      && metrics.previous_phase_slot === "P303"
+      && metrics.next_phase_slot === "P305"
+      && metrics.source_performance_cost_budget_report_status === "complete"
+      && metrics.source_performance_cost_budget_report_phase_slot === "P303"
+      && metrics.source_performance_cost_budget_report_next_phase_slot === "P304"
+      && metrics.failed_source_status_count === 0
+      && metrics.restore_drill_row_count >= 5
+      && metrics.passed_restore_drill_row_count >= 5
+      && metrics.failed_restore_drill_row_count === 0
+      && metrics.db_restore_drill_count >= 1
+      && metrics.object_restore_drill_count >= 1
+      && metrics.artifact_restore_drill_count >= 1
+      && metrics.event_restore_drill_count >= 1
+      && metrics.audit_restore_drill_count >= 1
+      && metrics.dry_run_restore_plane_count >= 5
+      && metrics.restore_execution_performed_count === 0
+      && metrics.production_restore_performed_count === 0
+      && metrics.canonical_source_of_truth_count >= 5
+      && metrics.desktop_source_of_truth_count === 0
+      && metrics.desktop_export_import_surface_count >= 2
+      && metrics.desktop_restore_input_allowed_count === 0
+      && metrics.source_of_truth_violation_count === 0
+      && metrics.gate_violation_count === 0
+      && metrics.read_only === true
+      && metrics.backup_report_only === true
+      && metrics.dry_run_only === true
+      && metrics.restore_execution_allowed === false
+      && metrics.restore_execution_performed === false
+      && metrics.desktop_export_import_source_of_truth === false
+      && metrics.desktop_export_performed === false
+      && metrics.desktop_import_performed === false
+      && metrics.protected_action_executed === false
+      && metrics.external_transfer_performed === false
+      && metrics.network_access_performed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.human_review_required === true
+      && metrics.client_facing_ready === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Backup/Restore Drill locks P304 DB, object, artifact, event, and audit dry-run recovery with Desktop export/import excluded as source of truth, no restore execution, human-review gates, and Windows baseline stability.");
     }
   }
 

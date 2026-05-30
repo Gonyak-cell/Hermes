@@ -4,8 +4,8 @@
 
 운영 규칙:
 
-- Current actual completion baseline is Phase 303.
-- Remaining planned slots are P304-P312, 9 total.
+- Current actual completion baseline is Phase 304.
+- Remaining planned slots are P305-P312, 8 total.
 - 각 slot은 `검증 -> 보강 -> 구현 -> 검증 -> commit -> roadmap 승격` 순서로 처리한다.
 - 모든 slot은 가능하면 `npm run validate`, `npm test`, 해당 slice command, `npm run control-plane:loop`, API/dashboard smoke 중 관련 검증을 통과해야 한다.
 - For P217 and later, continue on the Windows workspace only after preserving the Windows baseline stabilization posture.
@@ -295,7 +295,7 @@
 | P301 | Retention Deletion Policy | retention policy ledger | Promoted to Phase 301; `retention_deletion_policy` records resource/artifact/audit retention periods, active deletion holds, records review and human review requirements, zero delete-after dates, zero deletion allowed/executed, dashboard/API/checkpoint/loop/golden fixture coverage, and Windows baseline stability |
 | P302 | Access Review Report | access review report | Promoted to Phase 302; `access_review_report` joins the P301 Retention Deletion Policy, Matter Access Policy Evaluator, Access Audit Projection, Matter Profile Team Ledger, Wall Policy Contract, and Identity Policy Matter Freeze into a read-only tenant/matter/user/runtime/resource access review report, exposes artifact/source/subject/matter-row/resource-row/finding/gate/boundary/validation rows via Review API and dashboard/checkpoint/loop/golden fixtures, verifies review decisions are human-gated, denied decisions are not retrievable, external runtime rows are not directly retrievable, cross-boundary resources remain review-gated, retrieval filters are recorded, no permission grant/revoke/mutation occurs, no source content read or ingest occurs, and Windows baseline stability is preserved |
 | P303 | Performance/Cost Budget Report | performance/cost budget report | Promoted to Phase 303; `performance_cost_budget_report` joins the P302 Access Review Report, Cost/Observability Dashboard, Cost Budget Ledger, Workflow Run Ledger, Runtime Freeze, and Control Plane Loop into a read-only batch/workflow/runtime performance, cost, and token budget report; exposes artifact/source/performance-row/cost-row/gate/boundary/validation rows via Review API and dashboard/checkpoint/loop/golden fixtures; verifies batch, workflow, and runtime budget rows are present, all observed duration/cost/token values remain within report limits, zero budget/cost mutation, zero runtime/batch/workflow/route/server/protected-action execution, no source content read/ingest, human-review/no-client-facing gates, and Windows baseline stability |
-| P304 | backup/restore drill 구현 | backup restore report | DB/object/artifact/event/audit 복구 절차가 dry run으로 검증되고 Desktop export/import는 source of truth가 아님을 고정 |
+| P304 | Backup/Restore Drill | backup restore report | Promoted to Phase 304; `backup_restore_drill` verifies DB, object store, output artifact, append-only event, and separated audit recovery procedures as dry-run-only rows; locks canonical DB/object/artifact/event/audit stores as restore sources of truth; fixes Desktop export/import as not source of truth and not restore input; preserves no production restore, no event replay append, no mutation, no route/server/protected-action execution, no external transfer, retention holds, human-review/no-client-facing gates, and Windows baseline stability |
 
 ## P305-P312 End-to-End Acceptance, Deployment, v1.0 Freeze
 

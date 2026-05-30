@@ -139,6 +139,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   retentionDeletionPolicyPath: "artifacts/retention-deletion-policy/latest/retention-deletion-policy.json",
   accessReviewReportPath: "artifacts/access-review-report/latest/access-review-report.json",
   performanceCostBudgetReportPath: "artifacts/performance-cost-budget/latest/performance-cost-budget-report.json",
+  backupRestoreDrillPath: "artifacts/backup-restore-drill/latest/backup-restore-drill-report.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -977,6 +978,11 @@ const SOURCE_DEFINITIONS = [
     option: "performanceCostBudgetReportPath",
     source_id: "performance_cost_budget_report",
     label: "Performance/Cost Budget Report",
+  },
+  {
+    option: "backupRestoreDrillPath",
+    source_id: "backup_restore_drill",
+    label: "Backup/Restore Drill",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -2391,6 +2397,7 @@ function buildStageStatuses(artifacts, sources) {
     buildRetentionDeletionPolicyStage(artifacts.retention_deletion_policy, sourceById.get("retention_deletion_policy")),
     buildAccessReviewReportStage(artifacts.access_review_report, sourceById.get("access_review_report")),
     buildPerformanceCostBudgetReportStage(artifacts.performance_cost_budget_report, sourceById.get("performance_cost_budget_report")),
+    buildBackupRestoreDrillStage(artifacts.backup_restore_drill, sourceById.get("backup_restore_drill")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -16547,6 +16554,142 @@ function buildPerformanceCostBudgetReportStage(artifact, source) {
   };
 }
 
+function buildBackupRestoreDrillStage(artifact, source) {
+  if (!artifact) return missingStage("backup_restore_drill", "Backup/Restore Drill", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.backup_restore_drill_status !== "complete"
+    || summary.phase_slot !== "P304"
+    || summary.previous_phase_slot !== "P303"
+    || summary.next_phase_slot !== "P305"
+    || summary.source_performance_cost_budget_report_status !== "complete"
+    || summary.source_performance_cost_budget_report_phase_slot !== "P303"
+    || summary.source_performance_cost_budget_report_next_phase_slot !== "P304"
+    || summary.failed_source_status_count !== 0
+    || summary.restore_drill_row_count < 5
+    || summary.passed_restore_drill_row_count < 5
+    || summary.failed_restore_drill_row_count !== 0
+    || summary.db_restore_drill_count < 1
+    || summary.object_restore_drill_count < 1
+    || summary.artifact_restore_drill_count < 1
+    || summary.event_restore_drill_count < 1
+    || summary.audit_restore_drill_count < 1
+    || summary.dry_run_restore_plane_count < 5
+    || summary.restore_execution_performed_count !== 0
+    || summary.production_restore_performed_count !== 0
+    || summary.canonical_source_of_truth_count < 5
+    || summary.desktop_source_of_truth_count !== 0
+    || summary.desktop_export_import_surface_count < 2
+    || summary.desktop_restore_input_allowed_count !== 0
+    || summary.source_of_truth_violation_count !== 0
+    || summary.gate_violation_count !== 0
+    || summary.read_only !== true
+    || summary.backup_report_only !== true
+    || summary.dry_run_only !== true
+    || summary.source_content_read_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.db_restore_performed !== false
+    || summary.object_restore_performed !== false
+    || summary.artifact_restore_performed !== false
+    || summary.event_replay_performed !== false
+    || summary.audit_restore_performed !== false
+    || summary.restore_execution_allowed !== false
+    || summary.restore_execution_performed !== false
+    || summary.production_restore_performed !== false
+    || summary.mutation_performed !== false
+    || summary.desktop_export_performed !== false
+    || summary.desktop_import_performed !== false
+    || summary.desktop_export_import_source_of_truth !== false
+    || summary.route_execution_performed !== false
+    || summary.server_started !== false
+    || summary.protected_action_executed !== false
+    || summary.external_transfer_performed !== false
+    || summary.network_access_performed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.human_review_required !== true
+    || summary.client_facing_ready !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "backup_restore_drill",
+    label: "Backup/Restore Drill",
+    status,
+    message: `${summary.dry_run_restore_plane_count ?? 0}/${summary.restore_drill_row_count ?? 0} restore plane dry run(s), ${summary.desktop_source_of_truth_count ?? 0} Desktop source-of-truth row(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      backup_restore_drill_status: summary.backup_restore_drill_status ?? "unknown",
+      backup_restore_drill_id: summary.backup_restore_drill_id ?? null,
+      capability_id: summary.capability_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_performance_cost_budget_report_status: summary.source_performance_cost_budget_report_status ?? "unknown",
+      source_performance_cost_budget_report_phase_slot: summary.source_performance_cost_budget_report_phase_slot ?? null,
+      source_performance_cost_budget_report_next_phase_slot: summary.source_performance_cost_budget_report_next_phase_slot ?? null,
+      source_status_count: summary.source_status_count ?? 0,
+      passed_source_status_count: summary.passed_source_status_count ?? 0,
+      failed_source_status_count: summary.failed_source_status_count ?? 0,
+      restore_drill_row_count: summary.restore_drill_row_count ?? 0,
+      passed_restore_drill_row_count: summary.passed_restore_drill_row_count ?? 0,
+      failed_restore_drill_row_count: summary.failed_restore_drill_row_count ?? 0,
+      db_restore_drill_count: summary.db_restore_drill_count ?? 0,
+      object_restore_drill_count: summary.object_restore_drill_count ?? 0,
+      artifact_restore_drill_count: summary.artifact_restore_drill_count ?? 0,
+      event_restore_drill_count: summary.event_restore_drill_count ?? 0,
+      audit_restore_drill_count: summary.audit_restore_drill_count ?? 0,
+      dry_run_restore_plane_count: summary.dry_run_restore_plane_count ?? 0,
+      restore_execution_performed_count: summary.restore_execution_performed_count ?? 0,
+      production_restore_performed_count: summary.production_restore_performed_count ?? 0,
+      source_of_truth_row_count: summary.source_of_truth_row_count ?? 0,
+      canonical_source_of_truth_count: summary.canonical_source_of_truth_count ?? 0,
+      desktop_source_of_truth_count: summary.desktop_source_of_truth_count ?? 0,
+      desktop_export_import_surface_count: summary.desktop_export_import_surface_count ?? 0,
+      desktop_restore_input_allowed_count: summary.desktop_restore_input_allowed_count ?? 0,
+      source_of_truth_violation_count: summary.source_of_truth_violation_count ?? 0,
+      gate_result_count: summary.gate_result_count ?? 0,
+      passed_gate_result_count: summary.passed_gate_result_count ?? 0,
+      failed_gate_result_count: summary.failed_gate_result_count ?? 0,
+      gate_violation_count: summary.gate_violation_count ?? 0,
+      read_only: summary.read_only ?? false,
+      backup_report_only: summary.backup_report_only ?? false,
+      dry_run_only: summary.dry_run_only ?? false,
+      source_artifact_read_performed: summary.source_artifact_read_performed ?? false,
+      source_content_read_performed: summary.source_content_read_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      db_restore_performed: summary.db_restore_performed ?? true,
+      object_restore_performed: summary.object_restore_performed ?? true,
+      artifact_restore_performed: summary.artifact_restore_performed ?? true,
+      event_replay_performed: summary.event_replay_performed ?? true,
+      audit_restore_performed: summary.audit_restore_performed ?? true,
+      restore_execution_allowed: summary.restore_execution_allowed ?? true,
+      restore_execution_performed: summary.restore_execution_performed ?? true,
+      production_restore_performed: summary.production_restore_performed ?? true,
+      mutation_performed: summary.mutation_performed ?? true,
+      desktop_export_performed: summary.desktop_export_performed ?? true,
+      desktop_import_performed: summary.desktop_import_performed ?? true,
+      desktop_export_import_source_of_truth: summary.desktop_export_import_source_of_truth ?? true,
+      route_execution_performed: summary.route_execution_performed ?? true,
+      server_started: summary.server_started ?? true,
+      protected_action_executed: summary.protected_action_executed ?? true,
+      external_transfer_performed: summary.external_transfer_performed ?? true,
+      network_access_performed: summary.network_access_performed ?? true,
+      legal_advice_generated: summary.legal_advice_generated ?? true,
+      client_facing_output_generated: summary.client_facing_output_generated ?? true,
+      human_review_required: summary.human_review_required ?? false,
+      client_facing_ready: summary.client_facing_ready ?? true,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -23497,6 +23640,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_performance_cost_budget_report", "rerun_performance_cost_budget_report", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.backup_restore_drill?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "backup_restore_drill";
+    items.push({
+      action_item_id: `dashboard.action.backup_restore_drill.${slugify(subjectId)}`,
+      source_stage: "backup_restore_drill",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Backup/Restore Drill",
+      subject_ref: {
+        subject_type: "backup_restore_drill_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_backup_restore_drill", "rerun_backup_restore_drill", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -31531,6 +31692,52 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     performance_cost_budget_report_validation_item_count: artifacts.performance_cost_budget_report?.summary?.validation_item_count ?? 0,
     performance_cost_budget_report_failed_checkpoint_count: artifacts.performance_cost_budget_report?.summary?.failed_checkpoint_count ?? 0,
     performance_cost_budget_report_validation_error_count: artifacts.performance_cost_budget_report?.summary?.validation_error_count ?? artifacts.performance_cost_budget_report?.validation?.errors?.length ?? 0,
+    backup_restore_drill_status: artifacts.backup_restore_drill?.summary?.backup_restore_drill_status ?? "unknown",
+    backup_restore_drill_id: artifacts.backup_restore_drill?.summary?.backup_restore_drill_id ?? null,
+    backup_restore_drill_capability_id: artifacts.backup_restore_drill?.summary?.capability_id ?? null,
+    backup_restore_drill_phase_slot: artifacts.backup_restore_drill?.summary?.phase_slot ?? null,
+    backup_restore_drill_previous_phase_slot: artifacts.backup_restore_drill?.summary?.previous_phase_slot ?? null,
+    backup_restore_drill_next_phase_slot: artifacts.backup_restore_drill?.summary?.next_phase_slot ?? null,
+    backup_restore_drill_source_performance_cost_budget_report_status: artifacts.backup_restore_drill?.summary?.source_performance_cost_budget_report_status ?? "unknown",
+    backup_restore_drill_source_performance_cost_budget_report_phase_slot: artifacts.backup_restore_drill?.summary?.source_performance_cost_budget_report_phase_slot ?? null,
+    backup_restore_drill_source_performance_cost_budget_report_next_phase_slot: artifacts.backup_restore_drill?.summary?.source_performance_cost_budget_report_next_phase_slot ?? null,
+    backup_restore_drill_failed_source_status_count: artifacts.backup_restore_drill?.summary?.failed_source_status_count ?? 0,
+    backup_restore_drill_restore_drill_row_count: artifacts.backup_restore_drill?.summary?.restore_drill_row_count ?? 0,
+    backup_restore_drill_passed_restore_drill_row_count: artifacts.backup_restore_drill?.summary?.passed_restore_drill_row_count ?? 0,
+    backup_restore_drill_failed_restore_drill_row_count: artifacts.backup_restore_drill?.summary?.failed_restore_drill_row_count ?? 0,
+    backup_restore_drill_db_restore_drill_count: artifacts.backup_restore_drill?.summary?.db_restore_drill_count ?? 0,
+    backup_restore_drill_object_restore_drill_count: artifacts.backup_restore_drill?.summary?.object_restore_drill_count ?? 0,
+    backup_restore_drill_artifact_restore_drill_count: artifacts.backup_restore_drill?.summary?.artifact_restore_drill_count ?? 0,
+    backup_restore_drill_event_restore_drill_count: artifacts.backup_restore_drill?.summary?.event_restore_drill_count ?? 0,
+    backup_restore_drill_audit_restore_drill_count: artifacts.backup_restore_drill?.summary?.audit_restore_drill_count ?? 0,
+    backup_restore_drill_dry_run_restore_plane_count: artifacts.backup_restore_drill?.summary?.dry_run_restore_plane_count ?? 0,
+    backup_restore_drill_restore_execution_performed_count: artifacts.backup_restore_drill?.summary?.restore_execution_performed_count ?? 0,
+    backup_restore_drill_production_restore_performed_count: artifacts.backup_restore_drill?.summary?.production_restore_performed_count ?? 0,
+    backup_restore_drill_source_of_truth_row_count: artifacts.backup_restore_drill?.summary?.source_of_truth_row_count ?? 0,
+    backup_restore_drill_canonical_source_of_truth_count: artifacts.backup_restore_drill?.summary?.canonical_source_of_truth_count ?? 0,
+    backup_restore_drill_desktop_source_of_truth_count: artifacts.backup_restore_drill?.summary?.desktop_source_of_truth_count ?? 0,
+    backup_restore_drill_desktop_export_import_surface_count: artifacts.backup_restore_drill?.summary?.desktop_export_import_surface_count ?? 0,
+    backup_restore_drill_desktop_restore_input_allowed_count: artifacts.backup_restore_drill?.summary?.desktop_restore_input_allowed_count ?? 0,
+    backup_restore_drill_source_of_truth_violation_count: artifacts.backup_restore_drill?.summary?.source_of_truth_violation_count ?? 0,
+    backup_restore_drill_gate_violation_count: artifacts.backup_restore_drill?.summary?.gate_violation_count ?? 0,
+    backup_restore_drill_read_only: artifacts.backup_restore_drill?.summary?.read_only ?? false,
+    backup_restore_drill_backup_report_only: artifacts.backup_restore_drill?.summary?.backup_report_only ?? false,
+    backup_restore_drill_dry_run_only: artifacts.backup_restore_drill?.summary?.dry_run_only ?? false,
+    backup_restore_drill_restore_execution_allowed: artifacts.backup_restore_drill?.summary?.restore_execution_allowed ?? true,
+    backup_restore_drill_restore_execution_performed: artifacts.backup_restore_drill?.summary?.restore_execution_performed ?? true,
+    backup_restore_drill_desktop_export_import_source_of_truth: artifacts.backup_restore_drill?.summary?.desktop_export_import_source_of_truth ?? true,
+    backup_restore_drill_desktop_export_performed: artifacts.backup_restore_drill?.summary?.desktop_export_performed ?? true,
+    backup_restore_drill_desktop_import_performed: artifacts.backup_restore_drill?.summary?.desktop_import_performed ?? true,
+    backup_restore_drill_protected_action_executed: artifacts.backup_restore_drill?.summary?.protected_action_executed ?? true,
+    backup_restore_drill_external_transfer_performed: artifacts.backup_restore_drill?.summary?.external_transfer_performed ?? true,
+    backup_restore_drill_network_access_performed: artifacts.backup_restore_drill?.summary?.network_access_performed ?? true,
+    backup_restore_drill_legal_advice_generated: artifacts.backup_restore_drill?.summary?.legal_advice_generated ?? true,
+    backup_restore_drill_client_facing_output_generated: artifacts.backup_restore_drill?.summary?.client_facing_output_generated ?? true,
+    backup_restore_drill_human_review_required: artifacts.backup_restore_drill?.summary?.human_review_required ?? false,
+    backup_restore_drill_client_facing_ready: artifacts.backup_restore_drill?.summary?.client_facing_ready ?? true,
+    backup_restore_drill_windows_baseline_stability_preserved: artifacts.backup_restore_drill?.summary?.windows_baseline_stability_preserved ?? false,
+    backup_restore_drill_mac_windows_completion_instability_guard: artifacts.backup_restore_drill?.summary?.mac_windows_completion_instability_guard ?? false,
+    backup_restore_drill_validation_error_count: artifacts.backup_restore_drill?.summary?.validation_error_count ?? artifacts.backup_restore_drill?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -32947,6 +33154,8 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Access review allowed/review/denied and mutations: ${dashboard.summary.access_review_report_view_allowed_count ?? 0}/${dashboard.summary.access_review_report_view_requires_human_confirmation_count ?? 0}/${dashboard.summary.access_review_report_view_denied_count ?? 0}, ${dashboard.summary.access_review_report_permission_mutation_performed ?? false}`);
   lines.push(`- Performance/cost budget rows batch/workflow/runtime: ${dashboard.summary.performance_cost_budget_report_batch_budget_row_count ?? 0}/${dashboard.summary.performance_cost_budget_report_workflow_budget_row_count ?? 0}/${dashboard.summary.performance_cost_budget_report_runtime_budget_row_count ?? 0}`);
   lines.push(`- Performance/cost budget violations and mutations: ${dashboard.summary.performance_cost_budget_report_budget_violation_count ?? 0}, ${dashboard.summary.performance_cost_budget_report_budget_mutation_performed ?? false}/${dashboard.summary.performance_cost_budget_report_cost_mutation_performed ?? false}`);
+  lines.push(`- Backup/restore dry-run planes DB/object/artifact/event/audit: ${dashboard.summary.backup_restore_drill_db_restore_drill_count ?? 0}/${dashboard.summary.backup_restore_drill_object_restore_drill_count ?? 0}/${dashboard.summary.backup_restore_drill_artifact_restore_drill_count ?? 0}/${dashboard.summary.backup_restore_drill_event_restore_drill_count ?? 0}/${dashboard.summary.backup_restore_drill_audit_restore_drill_count ?? 0}`);
+  lines.push(`- Backup/restore Desktop source-of-truth rows: ${dashboard.summary.backup_restore_drill_desktop_source_of_truth_count ?? 0}`);
   lines.push(`- Ledger API/dashboard panels and routes: ${dashboard.summary.ledger_api_dashboard_passed_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_panel_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_declared_route_count ?? 0}/${dashboard.summary.ledger_api_dashboard_route_count ?? 0}`);
   lines.push(`- Ledger API/dashboard domains run/audit/cost/error/event: ${dashboard.summary.ledger_api_dashboard_run_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_audit_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cost_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_error_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_event_panel_count ?? 0}`);
   lines.push(`- Ledger API/dashboard metrics/cross links/errors: ${dashboard.summary.ledger_api_dashboard_metric_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_linked_cross_link_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cross_link_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_validation_error_count ?? 0}`);
@@ -33398,6 +33607,8 @@ function parseArgs(argv) {
     else if (arg === "--no-access-review-report") parsed.accessReviewReportPath = false;
     else if (arg === "--performance-cost-budget-report") parsed.performanceCostBudgetReportPath = argv[++index];
     else if (arg === "--no-performance-cost-budget-report") parsed.performanceCostBudgetReportPath = false;
+    else if (arg === "--backup-restore-drill") parsed.backupRestoreDrillPath = argv[++index];
+    else if (arg === "--no-backup-restore-drill") parsed.backupRestoreDrillPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

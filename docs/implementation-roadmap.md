@@ -7817,6 +7817,20 @@ Changes:
 - Golden fixture count increased to 205 and `performance_cost_budget_report` is included as a regression fixture.
 - `npm run compliance:performance-cost-budget-report -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run dashboard:api-freeze -- --check`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
 
+## Phase 304 - Backup/Restore Drill
+
+Phase 304 adds `backup_restore_drill`, a read-only dry-run backup/restore report. It builds on the P303 Performance/Cost Budget Report, Retention Deletion Policy, Immutable Object Store Layout, Resource Version Ledger, Output Delivery Contract Freeze, Append-only Event Store, Audit Event Ledger, and Desktop-ready API Contract without executing restore, replaying/appending events, mutating sources, starting servers, executing routes, using Desktop export/import as source of truth, transferring externally, generating legal advice, or producing client-facing output.
+
+Changes:
+
+- Added `src/backup-restore-drill.mjs`, `scripts/backup-restore-drill.mjs`, `schemas/backup-restore-drill.schema.json`, and `docs/backup-restore-drill.md`.
+- Added `compliance:backup-restore-drill` npm script.
+- The drill emits `backup-restore-drill-report.json`, source rows, restore drill rows, source-of-truth rows, gate result rows, boundary, validation report, and summary markdown under `artifacts/backup-restore-drill/latest`.
+- Review Dashboard stage/summary, Review API routes/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests now include `backup_restore_drill`.
+- The drill verifies DB, object, artifact, event, and audit restore planes by dry-run rows, keeps canonical DB/object/artifact/event/audit stores as source of truth, fixes Desktop export/import as not source of truth and not restore input, and preserves retention holds, records review, human review, no-client-facing, no-legal-advice, Windows baseline, and no-restore-execution boundaries.
+- Golden fixture count increased to 206 and `backup_restore_drill` is included as a regression fixture.
+- `npm run compliance:backup-restore-drill -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:api-freeze -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -7825,9 +7839,9 @@ Changes:
 
 운영 원칙:
 
-- Current actual completion baseline is Phase 303.
+- Current actual completion baseline is Phase 304.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- Remaining planned slots are P304-P312, 9 total.
+- Remaining planned slots are P305-P312, 8 total.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - P217 이후 personal-dev 작업은 Mac Phase 216 결과를 Windows 작업공간에서 계속 이어가되, Phase 217 본작업보다 Windows 기준선 안정화 게이트를 선행 조건으로 둔 판단을 기준으로 운영한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.

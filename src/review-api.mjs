@@ -7261,6 +7261,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("personal_dev_e2e_report_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/creative-document-e2e-reports") {
+    const result = await readDashboardSourceArtifact(dashboard, "creative_document_e2e_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("creative_document_e2e_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("creative_document_e2e_reports", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/creative-document-e2e-report-sources") {
+    const result = await readDashboardSourceArtifact(dashboard, "creative_document_e2e_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("creative_document_e2e_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("creative_document_e2e_report_sources", result.artifact.source_statuses ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/creative-document-e2e-scenario-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "creative_document_e2e_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("creative_document_e2e_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("creative_document_e2e_scenario_rows", result.artifact.creative_document_e2e_scenario_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/creative-document-e2e-chain-stages") {
+    const result = await readDashboardSourceArtifact(dashboard, "creative_document_e2e_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("creative_document_e2e_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("creative_document_e2e_chain_stages", result.artifact.creative_document_e2e_chain_stages ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/creative-document-e2e-gate-results") {
+    const result = await readDashboardSourceArtifact(dashboard, "creative_document_e2e_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("creative_document_e2e_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("creative_document_e2e_gate_results", result.artifact.creative_document_e2e_gate_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/creative-document-e2e-report-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "creative_document_e2e_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("creative_document_e2e_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("creative_document_e2e_report_boundary", [result.artifact.creative_document_e2e_report_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/creative-document-e2e-report-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "creative_document_e2e_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("creative_document_e2e_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("creative_document_e2e_report_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -13582,6 +13631,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/creative-document-freeze-gates", "Creative Document freeze gate rows"),
       route("GET", "/api/creative-document-freeze-boundary", "Creative Document freeze boundary"),
       route("GET", "/api/creative-document-freeze-validations", "Creative Document freeze validation rows"),
+      route("GET", "/api/creative-document-e2e-reports", "Creative Document E2E Report artifact"),
+      route("GET", "/api/creative-document-e2e-report-sources", "Creative Document E2E Report source rows"),
+      route("GET", "/api/creative-document-e2e-scenario-rows", "Creative Document E2E scenario rows"),
+      route("GET", "/api/creative-document-e2e-chain-stages", "Creative Document E2E chain stage rows"),
+      route("GET", "/api/creative-document-e2e-gate-results", "Creative Document E2E gate result rows"),
+      route("GET", "/api/creative-document-e2e-report-boundary", "Creative Document E2E Report boundary"),
+      route("GET", "/api/creative-document-e2e-report-validations", "Creative Document E2E Report validation rows"),
       route("GET", "/api/connector-contracts-v2", "Connector Contract v2 artifact"),
       route("GET", "/api/connector-definitions", "Connector v2 definition rows"),
       route("GET", "/api/connector-source-contracts", "Connector source id contract rows"),
@@ -14950,6 +15006,13 @@ function filterItems(items, searchParams) {
     "creative_document_freeze_source_status",
     "creative_document_freeze_path_status",
     "creative_document_freeze_gate_status",
+    "creative_document_e2e_report_status",
+    "template_to_output_artifact_path_complete",
+    "template_gate_passed",
+    "render_gate_passed",
+    "layout_gate_passed",
+    "approval_gate_passed",
+    "output_artifact_gate_passed",
     "connector_contract_v2_status",
     "connector_status",
     "source_contract_status",
@@ -17052,6 +17115,13 @@ function readFilterValue(item, key) {
   if (key === "creative_document_freeze_source_status") return item.source_status;
   if (key === "creative_document_freeze_path_status") return item.path_status;
   if (key === "creative_document_freeze_gate_status") return item.gate_status;
+  if (key === "creative_document_e2e_report_status") return item.summary?.creative_document_e2e_report_status ?? item.creative_document_e2e_report_status;
+  if (key === "template_to_output_artifact_path_complete") return item.summary?.template_to_output_artifact_path_complete ?? item.template_to_output_artifact_path_complete;
+  if (key === "template_gate_passed") return item.template_gate_passed;
+  if (key === "render_gate_passed") return item.render_gate_passed;
+  if (key === "layout_gate_passed") return item.layout_gate_passed;
+  if (key === "approval_gate_passed") return item.approval_gate_passed;
+  if (key === "output_artifact_gate_passed") return item.output_artifact_gate_passed;
   if (key === "connector_contract_v2_status") return item.summary?.connector_contract_status ?? item.connector_contract_status;
   if (key === "connector_status") return item.connector_status;
   if (key === "source_contract_status") return item.source_contract_status;

@@ -103,6 +103,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   webNovelWorkflowPath: "artifacts/web-novel-workflow/latest/web-novel-workflow.json",
   videoPptWorkflowPath: "artifacts/video-ppt-workflow/latest/video-ppt-workflow.json",
   creativeDocumentFreezePath: "artifacts/creative-document-freeze/latest/creative-document-freeze.json",
+  creativeDocumentE2eReportPath: "artifacts/creative-document-e2e-report/latest/creative-document-e2e-report.json",
   connectorContractV2Path: "artifacts/connector-contract-v2/latest/connector-contract-v2.json",
   localFolderConnectorPath: "artifacts/local-folder-connector/latest/local-folder-connector.json",
   onedriveConnectorBoundaryPath: "artifacts/onedrive-connector-boundary/latest/onedrive-connector-boundary.json",
@@ -800,6 +801,11 @@ const SOURCE_DEFINITIONS = [
     option: "creativeDocumentFreezePath",
     source_id: "creative_document_freeze",
     label: "Creative Document Freeze",
+  },
+  {
+    option: "creativeDocumentE2eReportPath",
+    source_id: "creative_document_e2e_report",
+    label: "Creative Document E2E Report",
   },
   {
     option: "connectorContractV2Path",
@@ -1966,6 +1972,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "web_novel_workflow") return data.summary ?? {};
   if (sourceId === "video_ppt_workflow") return data.summary ?? {};
   if (sourceId === "creative_document_freeze") return data.summary ?? {};
+  if (sourceId === "creative_document_e2e_report") return data.summary ?? {};
   if (sourceId === "connector_contract_v2") return data.summary ?? {};
   if (sourceId === "local_folder_connector") return data.summary ?? {};
   if (sourceId === "onedrive_connector_boundary") return data.summary ?? {};
@@ -2373,6 +2380,7 @@ function buildStageStatuses(artifacts, sources) {
     buildWebNovelWorkflowStage(artifacts.web_novel_workflow, sourceById.get("web_novel_workflow")),
     buildVideoPptWorkflowStage(artifacts.video_ppt_workflow, sourceById.get("video_ppt_workflow")),
     buildCreativeDocumentFreezeStage(artifacts.creative_document_freeze, sourceById.get("creative_document_freeze")),
+    buildCreativeDocumentE2eReportStage(artifacts.creative_document_e2e_report, sourceById.get("creative_document_e2e_report")),
     buildConnectorContractV2Stage(artifacts.connector_contract_v2, sourceById.get("connector_contract_v2")),
     buildLocalFolderConnectorStage(artifacts.local_folder_connector, sourceById.get("local_folder_connector")),
     buildOneDriveConnectorBoundaryStage(artifacts.onedrive_connector_boundary, sourceById.get("onedrive_connector_boundary")),
@@ -12224,6 +12232,113 @@ function buildCreativeDocumentFreezeStage(artifact, source) {
       client_facing_output_generated: summary.client_facing_output_generated ?? false,
       client_facing_ready_count: summary.client_facing_ready_count ?? 0,
       human_review_required: summary.human_review_required ?? false,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildCreativeDocumentE2eReportStage(artifact, source) {
+  if (!artifact) return missingStage("creative_document_e2e_report", "Creative Document E2E Report", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.creative_document_e2e_report_status !== "complete"
+    || summary.phase_slot !== "P307"
+    || summary.previous_phase_slot !== "P306"
+    || summary.next_phase_slot !== "P308"
+    || summary.source_personal_dev_e2e_report_status !== "complete"
+    || summary.source_personal_dev_e2e_report_phase_slot !== "P306"
+    || summary.source_personal_dev_e2e_report_next_phase_slot !== "P307"
+    || summary.source_creative_document_freeze_status !== "complete"
+    || summary.failed_source_status_count > 0
+    || summary.failed_scenario_row_count > 0
+    || summary.failed_chain_stage_count > 0
+    || summary.template_to_output_artifact_path_complete !== true
+    || summary.gate_violation_count > 0
+    || summary.executed_delivery_action_count > 0
+    || summary.ready_delivery_action_count > 0
+    || summary.delivery_execution_performed === true
+    || summary.protected_action_executed === true
+    || summary.legal_advice_generated === true
+    || summary.client_facing_output_generated === true
+    || summary.client_facing_ready === true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "creative_document_e2e_report",
+    label: "Creative Document E2E Report",
+    status,
+    message: `${summary.passed_chain_stage_count ?? 0}/${summary.chain_stage_count ?? 0} chain stage(s), ${summary.passed_scenario_row_count ?? 0}/${summary.scenario_row_count ?? 0} scenario row(s), ${summary.rendered_output_artifact_count ?? 0} rendered output artifact(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      creative_document_e2e_report_status: summary.creative_document_e2e_report_status ?? "unknown",
+      creative_document_e2e_report_id: summary.creative_document_e2e_report_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_personal_dev_e2e_report_status: summary.source_personal_dev_e2e_report_status ?? "unknown",
+      source_personal_dev_e2e_report_phase_slot: summary.source_personal_dev_e2e_report_phase_slot ?? null,
+      source_personal_dev_e2e_report_next_phase_slot: summary.source_personal_dev_e2e_report_next_phase_slot ?? null,
+      source_creative_document_freeze_status: summary.source_creative_document_freeze_status ?? "unknown",
+      source_creative_document_freeze_phase_range: summary.source_creative_document_freeze_phase_range ?? null,
+      source_status_count: summary.source_status_count ?? 0,
+      passed_source_status_count: summary.passed_source_status_count ?? 0,
+      failed_source_status_count: summary.failed_source_status_count ?? 0,
+      scenario_row_count: summary.scenario_row_count ?? 0,
+      passed_scenario_row_count: summary.passed_scenario_row_count ?? 0,
+      failed_scenario_row_count: summary.failed_scenario_row_count ?? 0,
+      chain_stage_count: summary.chain_stage_count ?? 0,
+      passed_chain_stage_count: summary.passed_chain_stage_count ?? 0,
+      failed_chain_stage_count: summary.failed_chain_stage_count ?? 0,
+      template_stage_passed_count: summary.template_stage_passed_count ?? 0,
+      render_stage_passed_count: summary.render_stage_passed_count ?? 0,
+      layout_stage_passed_count: summary.layout_stage_passed_count ?? 0,
+      approval_stage_passed_count: summary.approval_stage_passed_count ?? 0,
+      output_artifact_stage_passed_count: summary.output_artifact_stage_passed_count ?? 0,
+      template_to_output_artifact_path_complete: summary.template_to_output_artifact_path_complete ?? false,
+      template_count: summary.template_count ?? 0,
+      covered_format_count: summary.covered_format_count ?? 0,
+      render_job_count: summary.render_job_count ?? 0,
+      rendered_output_artifact_count: summary.rendered_output_artifact_count ?? 0,
+      format_validation_result_count: summary.format_validation_result_count ?? 0,
+      passed_format_validation_result_count: summary.passed_format_validation_result_count ?? 0,
+      layout_validation_result_count: summary.layout_validation_result_count ?? 0,
+      passed_layout_validation_result_count: summary.passed_layout_validation_result_count ?? 0,
+      failed_layout_validation_result_count: summary.failed_layout_validation_result_count ?? 0,
+      approval_request_count: summary.approval_request_count ?? 0,
+      output_approval_request_count: summary.output_approval_request_count ?? 0,
+      pending_approval_request_count: summary.pending_approval_request_count ?? 0,
+      output_delivery_artifact_count: summary.output_delivery_artifact_count ?? 0,
+      draft_output_artifact_count: summary.draft_output_artifact_count ?? 0,
+      executed_delivery_action_count: summary.executed_delivery_action_count ?? 0,
+      ready_delivery_action_count: summary.ready_delivery_action_count ?? 0,
+      gate_result_count: summary.gate_result_count ?? 0,
+      passed_gate_result_count: summary.passed_gate_result_count ?? 0,
+      failed_gate_result_count: summary.failed_gate_result_count ?? 0,
+      gate_violation_count: summary.gate_violation_count ?? 0,
+      read_only: summary.read_only ?? false,
+      report_only: summary.report_only ?? false,
+      source_artifact_read_performed: summary.source_artifact_read_performed ?? false,
+      source_artifact_mutation_performed: summary.source_artifact_mutation_performed ?? false,
+      template_mutation_performed: summary.template_mutation_performed ?? false,
+      style_mutation_performed: summary.style_mutation_performed ?? false,
+      asset_mutation_performed: summary.asset_mutation_performed ?? false,
+      renderer_execution_performed: summary.renderer_execution_performed ?? false,
+      external_renderer_execution_performed: summary.external_renderer_execution_performed ?? false,
+      document_runtime_mutation_performed: summary.document_runtime_mutation_performed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      client_facing_ready: summary.client_facing_ready ?? false,
+      human_review_required: summary.human_review_required ?? false,
+      approval_required_before_delivery: summary.approval_required_before_delivery ?? false,
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_source_of_truth: summary.desktop_source_of_truth ?? true,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
       failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
@@ -23324,6 +23439,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.creative_document_e2e_report?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "creative_document_e2e_report";
+    items.push({
+      action_item_id: `dashboard.action.creative_document_e2e_report.${slugify(subjectId)}`,
+      source_stage: "creative_document_e2e_report",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Creative Document E2E Report",
+      subject_ref: {
+        subject_type: "creative_document_e2e_report_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_creative_document_e2e_report", "rerun_creative_document_e2e_report", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.connector_contract_v2?.validation?.errors ?? []) {
     const subjectId = error.path ?? "connector_contract_v2";
     items.push({
@@ -30085,6 +30218,55 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     creative_document_freeze_client_facing_ready_count: artifacts.creative_document_freeze?.summary?.client_facing_ready_count ?? 0,
     creative_document_freeze_failed_checkpoint_count: artifacts.creative_document_freeze?.summary?.failed_checkpoint_count ?? 0,
     creative_document_freeze_validation_error_count: artifacts.creative_document_freeze?.summary?.validation_error_count ?? artifacts.creative_document_freeze?.validation?.errors?.length ?? 0,
+    creative_document_e2e_report_status: artifacts.creative_document_e2e_report?.summary?.creative_document_e2e_report_status ?? "unknown",
+    creative_document_e2e_report_id: artifacts.creative_document_e2e_report?.summary?.creative_document_e2e_report_id ?? null,
+    creative_document_e2e_report_phase_slot: artifacts.creative_document_e2e_report?.summary?.phase_slot ?? null,
+    creative_document_e2e_report_previous_phase_slot: artifacts.creative_document_e2e_report?.summary?.previous_phase_slot ?? null,
+    creative_document_e2e_report_next_phase_slot: artifacts.creative_document_e2e_report?.summary?.next_phase_slot ?? null,
+    creative_document_e2e_report_source_personal_dev_e2e_report_status: artifacts.creative_document_e2e_report?.summary?.source_personal_dev_e2e_report_status ?? "unknown",
+    creative_document_e2e_report_source_personal_dev_e2e_report_phase_slot: artifacts.creative_document_e2e_report?.summary?.source_personal_dev_e2e_report_phase_slot ?? null,
+    creative_document_e2e_report_source_personal_dev_e2e_report_next_phase_slot: artifacts.creative_document_e2e_report?.summary?.source_personal_dev_e2e_report_next_phase_slot ?? null,
+    creative_document_e2e_report_source_creative_document_freeze_status: artifacts.creative_document_e2e_report?.summary?.source_creative_document_freeze_status ?? "unknown",
+    creative_document_e2e_report_failed_source_status_count: artifacts.creative_document_e2e_report?.summary?.failed_source_status_count ?? 0,
+    creative_document_e2e_report_scenario_row_count: artifacts.creative_document_e2e_report?.summary?.scenario_row_count ?? 0,
+    creative_document_e2e_report_passed_scenario_row_count: artifacts.creative_document_e2e_report?.summary?.passed_scenario_row_count ?? 0,
+    creative_document_e2e_report_failed_scenario_row_count: artifacts.creative_document_e2e_report?.summary?.failed_scenario_row_count ?? 0,
+    creative_document_e2e_report_chain_stage_count: artifacts.creative_document_e2e_report?.summary?.chain_stage_count ?? 0,
+    creative_document_e2e_report_passed_chain_stage_count: artifacts.creative_document_e2e_report?.summary?.passed_chain_stage_count ?? 0,
+    creative_document_e2e_report_failed_chain_stage_count: artifacts.creative_document_e2e_report?.summary?.failed_chain_stage_count ?? 0,
+    creative_document_e2e_report_template_stage_passed_count: artifacts.creative_document_e2e_report?.summary?.template_stage_passed_count ?? 0,
+    creative_document_e2e_report_render_stage_passed_count: artifacts.creative_document_e2e_report?.summary?.render_stage_passed_count ?? 0,
+    creative_document_e2e_report_layout_stage_passed_count: artifacts.creative_document_e2e_report?.summary?.layout_stage_passed_count ?? 0,
+    creative_document_e2e_report_approval_stage_passed_count: artifacts.creative_document_e2e_report?.summary?.approval_stage_passed_count ?? 0,
+    creative_document_e2e_report_output_artifact_stage_passed_count: artifacts.creative_document_e2e_report?.summary?.output_artifact_stage_passed_count ?? 0,
+    creative_document_e2e_report_template_to_output_artifact_path_complete: artifacts.creative_document_e2e_report?.summary?.template_to_output_artifact_path_complete ?? false,
+    creative_document_e2e_report_template_count: artifacts.creative_document_e2e_report?.summary?.template_count ?? 0,
+    creative_document_e2e_report_covered_format_count: artifacts.creative_document_e2e_report?.summary?.covered_format_count ?? 0,
+    creative_document_e2e_report_render_job_count: artifacts.creative_document_e2e_report?.summary?.render_job_count ?? 0,
+    creative_document_e2e_report_rendered_output_artifact_count: artifacts.creative_document_e2e_report?.summary?.rendered_output_artifact_count ?? 0,
+    creative_document_e2e_report_passed_format_validation_result_count: artifacts.creative_document_e2e_report?.summary?.passed_format_validation_result_count ?? 0,
+    creative_document_e2e_report_layout_validation_result_count: artifacts.creative_document_e2e_report?.summary?.layout_validation_result_count ?? 0,
+    creative_document_e2e_report_passed_layout_validation_result_count: artifacts.creative_document_e2e_report?.summary?.passed_layout_validation_result_count ?? 0,
+    creative_document_e2e_report_failed_layout_validation_result_count: artifacts.creative_document_e2e_report?.summary?.failed_layout_validation_result_count ?? 0,
+    creative_document_e2e_report_approval_request_count: artifacts.creative_document_e2e_report?.summary?.approval_request_count ?? 0,
+    creative_document_e2e_report_output_approval_request_count: artifacts.creative_document_e2e_report?.summary?.output_approval_request_count ?? 0,
+    creative_document_e2e_report_pending_approval_request_count: artifacts.creative_document_e2e_report?.summary?.pending_approval_request_count ?? 0,
+    creative_document_e2e_report_output_delivery_artifact_count: artifacts.creative_document_e2e_report?.summary?.output_delivery_artifact_count ?? 0,
+    creative_document_e2e_report_draft_output_artifact_count: artifacts.creative_document_e2e_report?.summary?.draft_output_artifact_count ?? 0,
+    creative_document_e2e_report_executed_delivery_action_count: artifacts.creative_document_e2e_report?.summary?.executed_delivery_action_count ?? 0,
+    creative_document_e2e_report_gate_violation_count: artifacts.creative_document_e2e_report?.summary?.gate_violation_count ?? 0,
+    creative_document_e2e_report_read_only: artifacts.creative_document_e2e_report?.summary?.read_only ?? false,
+    creative_document_e2e_report_report_only: artifacts.creative_document_e2e_report?.summary?.report_only ?? false,
+    creative_document_e2e_report_template_mutation_performed: artifacts.creative_document_e2e_report?.summary?.template_mutation_performed ?? false,
+    creative_document_e2e_report_renderer_execution_performed: artifacts.creative_document_e2e_report?.summary?.renderer_execution_performed ?? false,
+    creative_document_e2e_report_delivery_execution_performed: artifacts.creative_document_e2e_report?.summary?.delivery_execution_performed ?? false,
+    creative_document_e2e_report_protected_action_executed: artifacts.creative_document_e2e_report?.summary?.protected_action_executed ?? false,
+    creative_document_e2e_report_legal_advice_generated: artifacts.creative_document_e2e_report?.summary?.legal_advice_generated ?? false,
+    creative_document_e2e_report_client_facing_output_generated: artifacts.creative_document_e2e_report?.summary?.client_facing_output_generated ?? false,
+    creative_document_e2e_report_human_review_required: artifacts.creative_document_e2e_report?.summary?.human_review_required ?? false,
+    creative_document_e2e_report_windows_baseline_stability_preserved: artifacts.creative_document_e2e_report?.summary?.windows_baseline_stability_preserved ?? false,
+    creative_document_e2e_report_mac_windows_completion_instability_guard: artifacts.creative_document_e2e_report?.summary?.mac_windows_completion_instability_guard ?? false,
+    creative_document_e2e_report_validation_error_count: artifacts.creative_document_e2e_report?.summary?.validation_error_count ?? artifacts.creative_document_e2e_report?.validation?.errors?.length ?? 0,
     connector_contract_v2_status: artifacts.connector_contract_v2?.summary?.connector_contract_status ?? "unknown",
     connector_contract_v2_contract_id: artifacts.connector_contract_v2?.summary?.connector_contract_id ?? null,
     connector_contract_v2_interface_schema_version: artifacts.connector_contract_v2?.summary?.interface_schema_version ?? null,
@@ -33645,6 +33827,8 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Law-firm E2E scenario rows and client-facing output: ${dashboard.summary.law_firm_e2e_report_passed_scenario_row_count ?? 0}/${dashboard.summary.law_firm_e2e_report_scenario_row_count ?? 0}, ${dashboard.summary.law_firm_e2e_report_client_facing_output_generated ?? false}`);
   lines.push(`- Personal-dev E2E chain issue/plan/worktree/diff/test/PR/audit: ${dashboard.summary.personal_dev_e2e_report_issue_stage_passed_count ?? 0}/${dashboard.summary.personal_dev_e2e_report_plan_stage_passed_count ?? 0}/${dashboard.summary.personal_dev_e2e_report_worktree_stage_passed_count ?? 0}/${dashboard.summary.personal_dev_e2e_report_diff_stage_passed_count ?? 0}/${dashboard.summary.personal_dev_e2e_report_test_stage_passed_count ?? 0}/${dashboard.summary.personal_dev_e2e_report_pr_draft_stage_passed_count ?? 0}/${dashboard.summary.personal_dev_e2e_report_audit_stage_passed_count ?? 0}`);
   lines.push(`- Personal-dev E2E scenario rows and PR mutation: ${dashboard.summary.personal_dev_e2e_report_passed_scenario_row_count ?? 0}/${dashboard.summary.personal_dev_e2e_report_scenario_row_count ?? 0}, ${dashboard.summary.personal_dev_e2e_report_pull_request_creation_performed ?? false}`);
+  lines.push(`- Creative-document E2E chain template/render/layout/approval/output: ${dashboard.summary.creative_document_e2e_report_template_stage_passed_count ?? 0}/${dashboard.summary.creative_document_e2e_report_render_stage_passed_count ?? 0}/${dashboard.summary.creative_document_e2e_report_layout_stage_passed_count ?? 0}/${dashboard.summary.creative_document_e2e_report_approval_stage_passed_count ?? 0}/${dashboard.summary.creative_document_e2e_report_output_artifact_stage_passed_count ?? 0}`);
+  lines.push(`- Creative-document E2E scenario rows and delivery: ${dashboard.summary.creative_document_e2e_report_passed_scenario_row_count ?? 0}/${dashboard.summary.creative_document_e2e_report_scenario_row_count ?? 0}, ${dashboard.summary.creative_document_e2e_report_delivery_execution_performed ?? false}`);
   lines.push(`- Ledger API/dashboard panels and routes: ${dashboard.summary.ledger_api_dashboard_passed_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_panel_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_declared_route_count ?? 0}/${dashboard.summary.ledger_api_dashboard_route_count ?? 0}`);
   lines.push(`- Ledger API/dashboard domains run/audit/cost/error/event: ${dashboard.summary.ledger_api_dashboard_run_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_audit_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cost_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_error_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_event_panel_count ?? 0}`);
   lines.push(`- Ledger API/dashboard metrics/cross links/errors: ${dashboard.summary.ledger_api_dashboard_metric_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_linked_cross_link_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cross_link_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_validation_error_count ?? 0}`);
@@ -34024,6 +34208,8 @@ function parseArgs(argv) {
     else if (arg === "--no-video-ppt-workflow") parsed.videoPptWorkflowPath = false;
     else if (arg === "--creative-document-freeze") parsed.creativeDocumentFreezePath = argv[++index];
     else if (arg === "--no-creative-document-freeze") parsed.creativeDocumentFreezePath = false;
+    else if (arg === "--creative-document-e2e-report") parsed.creativeDocumentE2eReportPath = argv[++index];
+    else if (arg === "--no-creative-document-e2e-report") parsed.creativeDocumentE2eReportPath = false;
     else if (arg === "--connector-contract-v2") parsed.connectorContractV2Path = argv[++index];
     else if (arg === "--no-connector-contract-v2") parsed.connectorContractV2Path = false;
     else if (arg === "--local-folder-connector") parsed.localFolderConnectorPath = argv[++index];

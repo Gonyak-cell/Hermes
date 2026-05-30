@@ -3560,6 +3560,34 @@ try {
   assert.equal(personalDevE2eReportValidations.collection, "personal_dev_e2e_report_validations");
   assert.ok(personalDevE2eReportValidations.count <= 5);
 
+  const creativeDocumentE2eReportArtifacts = await fetchJson(`${url}/api/creative-document-e2e-reports?creative_document_e2e_report_status=complete&limit=1`);
+  assert.equal(creativeDocumentE2eReportArtifacts.collection, "creative_document_e2e_reports");
+  assert.ok(creativeDocumentE2eReportArtifacts.count <= 1);
+
+  const creativeDocumentE2eReportSources = await fetchJson(`${url}/api/creative-document-e2e-report-sources?source_status=passed&limit=10`);
+  assert.equal(creativeDocumentE2eReportSources.collection, "creative_document_e2e_report_sources");
+  assert.ok(creativeDocumentE2eReportSources.count <= 10);
+
+  const creativeDocumentE2eReportScenarioRows = await fetchJson(`${url}/api/creative-document-e2e-scenario-rows?scenario_status=passed&template_gate_passed=true&render_gate_passed=true&layout_gate_passed=true&approval_gate_passed=true&output_artifact_gate_passed=true&limit=5`);
+  assert.equal(creativeDocumentE2eReportScenarioRows.collection, "creative_document_e2e_scenario_rows");
+  assert.ok(creativeDocumentE2eReportScenarioRows.count <= 5);
+
+  const creativeDocumentE2eReportChainStages = await fetchJson(`${url}/api/creative-document-e2e-chain-stages?stage_status=passed&limit=10`);
+  assert.equal(creativeDocumentE2eReportChainStages.collection, "creative_document_e2e_chain_stages");
+  assert.ok(creativeDocumentE2eReportChainStages.count <= 10);
+
+  const creativeDocumentE2eReportGateResults = await fetchJson(`${url}/api/creative-document-e2e-gate-results?gate_status=passed&limit=10`);
+  assert.equal(creativeDocumentE2eReportGateResults.collection, "creative_document_e2e_gate_results");
+  assert.ok(creativeDocumentE2eReportGateResults.count <= 10);
+
+  const creativeDocumentE2eReportBoundary = await fetchJson(`${url}/api/creative-document-e2e-report-boundary?boundary_status=enforced&read_only=true&client_facing_output_generated=false&limit=1`);
+  assert.equal(creativeDocumentE2eReportBoundary.collection, "creative_document_e2e_report_boundary");
+  assert.ok(creativeDocumentE2eReportBoundary.count <= 1);
+
+  const creativeDocumentE2eReportValidations = await fetchJson(`${url}/api/creative-document-e2e-report-validations?status=passed&limit=5`);
+  assert.equal(creativeDocumentE2eReportValidations.collection, "creative_document_e2e_report_validations");
+  assert.ok(creativeDocumentE2eReportValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

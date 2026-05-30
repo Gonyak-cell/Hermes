@@ -7859,6 +7859,20 @@ Changes:
 - Golden fixture count increased to 208 and `personal_dev_e2e_report` is included as a regression fixture.
 - `npm run personal-dev:e2e-report -- --check`, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:api-freeze -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
 
+## Phase 307 - Creative Document E2E Report
+
+Phase 307 adds `creative_document_e2e_report`, a read-only representative creative-document scenario report for the final acceptance envelope. It verifies the template->render->layout->approval->output artifact chain after the P306 Personal Dev E2E Report Windows baseline without mutating templates, styles, assets, source artifacts, renderer state, document runtime state, approval state, delivery state, protected actions, legal advice, or client-facing output.
+
+Changes:
+
+- Added `src/creative-document-e2e-report.mjs`, `scripts/creative-document-e2e-report.mjs`, `schemas/creative-document-e2e-report.schema.json`, and `docs/creative-document-e2e-report.md`.
+- Added `creative-document:e2e-report` npm script.
+- The report emits `creative-document-e2e-report.json`, source rows, scenario rows, template/render/layout/approval/output artifact chain stage rows, gate result rows, boundary, validation report, and summary markdown under `artifacts/creative-document-e2e-report/latest`.
+- Review Dashboard stage/summary, Review API routes/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests now include `creative_document_e2e_report`.
+- The report verifies the P306 Personal Dev E2E Report baseline, P266 Creative Document Freeze, Template Registry, DOCX/PPTX/PDF-HTML renderers, Layout Validator, Gate Approval Contract Freeze, and Output Delivery Contract Freeze as read-only sources.
+- Golden fixture count increased to 209 and `creative_document_e2e_report` is included as a regression fixture.
+- `npm run creative-document:e2e-report -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:api-freeze -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -7867,9 +7881,9 @@ Changes:
 
 운영 원칙:
 
-- Current actual completion baseline is Phase 306.
+- Current actual completion baseline is Phase 307.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- Remaining planned slots are P307-P312, 6 total.
+- Remaining planned slots are P308-P312, 5 total.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - P217 이후 personal-dev 작업은 Mac Phase 216 결과를 Windows 작업공간에서 계속 이어가되, Phase 217 본작업보다 Windows 기준선 안정화 게이트를 선행 조건으로 둔 판단을 기준으로 운영한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.

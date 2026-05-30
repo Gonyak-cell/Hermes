@@ -105,6 +105,7 @@ import { runPerformanceCostBudgetReport } from "../src/performance-cost-budget-r
 import { runBackupRestoreDrill } from "../src/backup-restore-drill.mjs";
 import { runLawFirmE2eReport } from "../src/law-firm-e2e-report.mjs";
 import { runPersonalDevE2eReport } from "../src/personal-dev-e2e-report.mjs";
+import { runCreativeDocumentE2eReport } from "../src/creative-document-e2e-report.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -2007,6 +2008,7 @@ describe("matter harness", () => {
         backupRestoreDrillPath: path.join(outDir, "backup-restore-drill", "backup-restore-drill-report.json"),
         lawFirmE2eReportPath: path.join(outDir, "law-firm-e2e-report", "law-firm-e2e-report.json"),
         personalDevE2eReportPath: path.join(outDir, "personal-dev-e2e-report", "personal-dev-e2e-report.json"),
+        creativeDocumentE2eReportPath: path.join(outDir, "creative-document-e2e-report", "creative-document-e2e-report.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -2147,6 +2149,7 @@ describe("matter harness", () => {
         backupRestoreDrillPath: false,
         lawFirmE2eReportPath: false,
         personalDevE2eReportPath: false,
+        creativeDocumentE2eReportPath: false,
         observabilityFreezePath: false,
         capabilityManifestV2Path: false,
         packManifestCompatibilityPath: false,
@@ -13381,6 +13384,7 @@ describe("matter harness", () => {
         backupRestoreDrillPath: false,
         lawFirmE2eReportPath: false,
         personalDevE2eReportPath: false,
+        creativeDocumentE2eReportPath: false,
         outDir: path.join(outDir, "dashboard-pre-checkpoint"),
         runAt: "2026-05-23T06:35:08.000Z",
       });
@@ -15074,6 +15078,71 @@ describe("matter harness", () => {
       assert.match(await readFile(path.join(outDir, "personal-dev-e2e-report", "summary.md"), "utf8"), /Personal Dev E2E Report/);
 
       contractGoldenFixtureArtifactPaths.personal_dev_e2e_report = path.join(outDir, "personal-dev-e2e-report", "personal-dev-e2e-report.json");
+      const creativeDocumentE2eReport = await runCreativeDocumentE2eReport({
+        personalDevE2eReportPath: path.join(outDir, "personal-dev-e2e-report", "personal-dev-e2e-report.json"),
+        creativeDocumentFreezePath: path.join(outDir, "creative-document-freeze", "creative-document-freeze.json"),
+        templateRegistryPath: path.join(outDir, "template-registry", "template-registry.json"),
+        docxRendererPath: path.join(outDir, "docx-renderer", "docx-renderer.json"),
+        pptxRendererPath: path.join(outDir, "pptx-renderer", "pptx-renderer.json"),
+        pdfHtmlRendererPath: path.join(outDir, "pdf-html-renderer", "pdf-html-renderer.json"),
+        layoutValidatorPath: path.join(outDir, "layout-validator", "layout-validator.json"),
+        gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
+        outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
+        outDir: path.join(outDir, "creative-document-e2e-report"),
+        runAt: "2026-05-23T07:28:36.250Z",
+      });
+      const creativeDocumentE2eReportSchema = JSON.parse(await readFile("schemas/creative-document-e2e-report.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(creativeDocumentE2eReport, creativeDocumentE2eReportSchema, {}, "creative_document_e2e_report"), [], JSON.stringify(creativeDocumentE2eReport.validation.errors));
+      assert.equal(creativeDocumentE2eReport.summary.creative_document_e2e_report_status, "complete");
+      assert.equal(creativeDocumentE2eReport.summary.phase_slot, "P307");
+      assert.equal(creativeDocumentE2eReport.summary.previous_phase_slot, "P306");
+      assert.equal(creativeDocumentE2eReport.summary.next_phase_slot, "P308");
+      assert.equal(creativeDocumentE2eReport.summary.source_personal_dev_e2e_report_status, "complete");
+      assert.equal(creativeDocumentE2eReport.summary.source_personal_dev_e2e_report_phase_slot, "P306");
+      assert.equal(creativeDocumentE2eReport.summary.source_personal_dev_e2e_report_next_phase_slot, "P307");
+      assert.equal(creativeDocumentE2eReport.summary.source_creative_document_freeze_status, "complete");
+      assert.equal(creativeDocumentE2eReport.summary.failed_source_status_count, 0);
+      assert.equal(creativeDocumentE2eReport.summary.scenario_row_count, 1);
+      assert.equal(creativeDocumentE2eReport.summary.passed_scenario_row_count, 1);
+      assert.equal(creativeDocumentE2eReport.summary.chain_stage_count, 5);
+      assert.equal(creativeDocumentE2eReport.summary.passed_chain_stage_count, 5);
+      assert.equal(creativeDocumentE2eReport.summary.template_to_output_artifact_path_complete, true);
+      assert.equal(creativeDocumentE2eReport.summary.template_stage_passed_count, 1);
+      assert.equal(creativeDocumentE2eReport.summary.render_stage_passed_count, 1);
+      assert.equal(creativeDocumentE2eReport.summary.layout_stage_passed_count, 1);
+      assert.equal(creativeDocumentE2eReport.summary.approval_stage_passed_count, 1);
+      assert.equal(creativeDocumentE2eReport.summary.output_artifact_stage_passed_count, 1);
+      assert.ok(creativeDocumentE2eReport.summary.template_count >= 1);
+      assert.ok(creativeDocumentE2eReport.summary.rendered_output_artifact_count >= 1);
+      assert.equal(creativeDocumentE2eReport.summary.failed_layout_validation_result_count, 0);
+      assert.ok(creativeDocumentE2eReport.summary.approval_request_count >= 1);
+      assert.ok(
+        creativeDocumentE2eReport.summary.output_delivery_artifact_count >= 1
+          || creativeDocumentE2eReport.summary.draft_output_artifact_count >= 1
+          || creativeDocumentE2eReport.summary.rendered_output_artifact_count >= 1,
+      );
+      assert.equal(creativeDocumentE2eReport.summary.executed_delivery_action_count, 0);
+      assert.equal(creativeDocumentE2eReport.summary.gate_violation_count, 0);
+      assert.equal(creativeDocumentE2eReport.summary.read_only, true);
+      assert.equal(creativeDocumentE2eReport.summary.report_only, true);
+      assert.equal(creativeDocumentE2eReport.summary.template_mutation_performed, false);
+      assert.equal(creativeDocumentE2eReport.summary.renderer_execution_performed, false);
+      assert.equal(creativeDocumentE2eReport.summary.delivery_execution_performed, false);
+      assert.equal(creativeDocumentE2eReport.summary.protected_action_executed, false);
+      assert.equal(creativeDocumentE2eReport.summary.legal_advice_generated, false);
+      assert.equal(creativeDocumentE2eReport.summary.client_facing_output_generated, false);
+      assert.equal(creativeDocumentE2eReport.summary.human_review_required, true);
+      assert.equal(creativeDocumentE2eReport.summary.windows_baseline_stability_preserved, true);
+      assert.equal(creativeDocumentE2eReport.summary.validation_error_count, 0);
+      assert.ok(creativeDocumentE2eReport.source_statuses.every((row) => row.source_status === "passed"));
+      assert.ok(creativeDocumentE2eReport.creative_document_e2e_scenario_rows.every((row) => row.scenario_status === "passed" && row.template_gate_passed && row.render_gate_passed && row.layout_gate_passed && row.approval_gate_passed && row.output_artifact_gate_passed));
+      assert.ok(creativeDocumentE2eReport.creative_document_e2e_chain_stages.every((row) => row.stage_status === "passed" && row.read_only && !row.mutation_performed));
+      assert.ok(creativeDocumentE2eReport.creative_document_e2e_gate_results.every((row) => row.gate_status === "passed" && !row.gate_violation));
+      assert.equal(creativeDocumentE2eReport.creative_document_e2e_report_boundary.boundary_status, "enforced");
+      assert.ok(creativeDocumentE2eReport.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "creative-document-e2e-report", "summary.md"), "utf8"), /Creative Document E2E Report/);
+
+      contractGoldenFixtureArtifactPaths.creative_document_e2e_report = path.join(outDir, "creative-document-e2e-report", "creative-document-e2e-report.json");
       contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: contractGoldenFixtureArtifactPaths,
         fixtureIds: Object.keys(contractGoldenFixtureArtifactPaths),
@@ -15085,8 +15154,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 208);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 208);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 209);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 209);
       assert.equal(contractGoldenFixtures.summary.missing_artifact_count, 0);
       assert.equal(contractGoldenFixtures.summary.validation_error_count, 0);
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "dashboard_api_freeze"));
@@ -15100,6 +15169,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "backup_restore_drill"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "law_firm_e2e_report"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "personal_dev_e2e_report"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "creative_document_e2e_report"));
 
       contractValidationSuite = await runContractValidationSuite({
         contractGoldenFixturesPath: path.join(outDir, "contract-golden-fixtures", "contract-golden-fixtures.json"),
@@ -15113,8 +15183,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractValidationSuite.summary.validation_suite_status, "complete");
-      assert.equal(contractValidationSuite.summary.fixture_count, 208);
-      assert.equal(contractValidationSuite.summary.validated_fixture_count, 208);
+      assert.equal(contractValidationSuite.summary.fixture_count, 209);
+      assert.equal(contractValidationSuite.summary.validated_fixture_count, 209);
       assert.equal(contractValidationSuite.summary.schema_invalid_fixture_count, 0);
       assert.equal(contractValidationSuite.summary.regression_failed_count, 0);
       assert.equal(contractValidationSuite.summary.missing_package_script_count, 0);
@@ -15130,6 +15200,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "compliance:backup-restore-drill"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:e2e-report"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:e2e-report"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:e2e-report"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
 
       const dashboard = await runReviewDashboard({
@@ -15206,6 +15277,10 @@ describe("matter harness", () => {
       assert.equal(personalDevE2eReportCheckpoint?.acceptance_profile, "personal_dev_e2e_report_gate");
       assert.equal(personalDevE2eReportCheckpoint?.status, "passed");
       assert.equal(personalDevE2eReportCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const creativeDocumentE2eReportCheckpoint = dashboardApiFreezeGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-creative-document-e2e-report");
+      assert.equal(creativeDocumentE2eReportCheckpoint?.acceptance_profile, "creative_document_e2e_report_gate");
+      assert.equal(creativeDocumentE2eReportCheckpoint?.status, "passed");
+      assert.equal(creativeDocumentE2eReportCheckpoint?.implementation_status, "passed_with_operational_gate");
       assert.equal(dashboard.summary.evidence_approved_count, 1);
       assert.equal(dashboard.summary.evidence_review_draft_item_count, evidenceReviewDraft.summary.review_item_count);
       assert.equal(dashboard.summary.evidence_review_draft_attorney_count, evidenceReviewDraft.summary.attorney_review_count);
@@ -21050,6 +21125,51 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.personal_dev_e2e_report_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.personal_dev_e2e_report_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.personal_dev_e2e_report_validation_error_count, 0);
+      assert.equal(dashboard.summary.creative_document_e2e_report_status, "complete");
+      assert.equal(dashboard.summary.creative_document_e2e_report_id, creativeDocumentE2eReport.summary.creative_document_e2e_report_id);
+      assert.equal(dashboard.summary.creative_document_e2e_report_phase_slot, "P307");
+      assert.equal(dashboard.summary.creative_document_e2e_report_previous_phase_slot, "P306");
+      assert.equal(dashboard.summary.creative_document_e2e_report_next_phase_slot, "P308");
+      assert.equal(dashboard.summary.creative_document_e2e_report_source_personal_dev_e2e_report_status, "complete");
+      assert.equal(dashboard.summary.creative_document_e2e_report_source_personal_dev_e2e_report_phase_slot, "P306");
+      assert.equal(dashboard.summary.creative_document_e2e_report_source_personal_dev_e2e_report_next_phase_slot, "P307");
+      assert.equal(dashboard.summary.creative_document_e2e_report_source_creative_document_freeze_status, "complete");
+      assert.equal(dashboard.summary.creative_document_e2e_report_failed_source_status_count, 0);
+      assert.equal(dashboard.summary.creative_document_e2e_report_scenario_row_count, creativeDocumentE2eReport.summary.scenario_row_count);
+      assert.equal(dashboard.summary.creative_document_e2e_report_passed_scenario_row_count, creativeDocumentE2eReport.summary.passed_scenario_row_count);
+      assert.equal(dashboard.summary.creative_document_e2e_report_failed_scenario_row_count, 0);
+      assert.equal(dashboard.summary.creative_document_e2e_report_chain_stage_count, 5);
+      assert.equal(dashboard.summary.creative_document_e2e_report_passed_chain_stage_count, 5);
+      assert.equal(dashboard.summary.creative_document_e2e_report_failed_chain_stage_count, 0);
+      assert.equal(dashboard.summary.creative_document_e2e_report_template_stage_passed_count, 1);
+      assert.equal(dashboard.summary.creative_document_e2e_report_render_stage_passed_count, 1);
+      assert.equal(dashboard.summary.creative_document_e2e_report_layout_stage_passed_count, 1);
+      assert.equal(dashboard.summary.creative_document_e2e_report_approval_stage_passed_count, 1);
+      assert.equal(dashboard.summary.creative_document_e2e_report_output_artifact_stage_passed_count, 1);
+      assert.equal(dashboard.summary.creative_document_e2e_report_template_to_output_artifact_path_complete, true);
+      assert.ok(dashboard.summary.creative_document_e2e_report_template_count >= 1);
+      assert.ok(dashboard.summary.creative_document_e2e_report_rendered_output_artifact_count >= 1);
+      assert.equal(dashboard.summary.creative_document_e2e_report_failed_layout_validation_result_count, 0);
+      assert.ok(dashboard.summary.creative_document_e2e_report_approval_request_count >= 1);
+      assert.ok(
+        dashboard.summary.creative_document_e2e_report_output_delivery_artifact_count >= 1
+          || dashboard.summary.creative_document_e2e_report_draft_output_artifact_count >= 1
+          || dashboard.summary.creative_document_e2e_report_rendered_output_artifact_count >= 1,
+      );
+      assert.equal(dashboard.summary.creative_document_e2e_report_executed_delivery_action_count, 0);
+      assert.equal(dashboard.summary.creative_document_e2e_report_gate_violation_count, 0);
+      assert.equal(dashboard.summary.creative_document_e2e_report_read_only, true);
+      assert.equal(dashboard.summary.creative_document_e2e_report_report_only, true);
+      assert.equal(dashboard.summary.creative_document_e2e_report_template_mutation_performed, false);
+      assert.equal(dashboard.summary.creative_document_e2e_report_renderer_execution_performed, false);
+      assert.equal(dashboard.summary.creative_document_e2e_report_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.creative_document_e2e_report_protected_action_executed, false);
+      assert.equal(dashboard.summary.creative_document_e2e_report_legal_advice_generated, false);
+      assert.equal(dashboard.summary.creative_document_e2e_report_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.creative_document_e2e_report_human_review_required, true);
+      assert.equal(dashboard.summary.creative_document_e2e_report_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.creative_document_e2e_report_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.creative_document_e2e_report_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -25479,6 +25599,41 @@ describe("matter harness", () => {
       assert.equal(personalDevE2eReportStage?.metrics.desktop_read_only, true);
       assert.equal(personalDevE2eReportStage?.metrics.desktop_source_of_truth, false);
       assert.equal(personalDevE2eReportStage?.metrics.validation_error_count, 0);
+      const creativeDocumentE2eReportStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "creative_document_e2e_report");
+      assert.equal(creativeDocumentE2eReportStage?.status, "passed");
+      assert.equal(creativeDocumentE2eReportStage?.metrics.creative_document_e2e_report_status, "complete");
+      assert.equal(creativeDocumentE2eReportStage?.metrics.creative_document_e2e_report_id, creativeDocumentE2eReport.summary.creative_document_e2e_report_id);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.phase_slot, "P307");
+      assert.equal(creativeDocumentE2eReportStage?.metrics.previous_phase_slot, "P306");
+      assert.equal(creativeDocumentE2eReportStage?.metrics.next_phase_slot, "P308");
+      assert.equal(creativeDocumentE2eReportStage?.metrics.source_personal_dev_e2e_report_status, "complete");
+      assert.equal(creativeDocumentE2eReportStage?.metrics.source_personal_dev_e2e_report_phase_slot, "P306");
+      assert.equal(creativeDocumentE2eReportStage?.metrics.source_personal_dev_e2e_report_next_phase_slot, "P307");
+      assert.equal(creativeDocumentE2eReportStage?.metrics.source_creative_document_freeze_status, "complete");
+      assert.equal(creativeDocumentE2eReportStage?.metrics.failed_source_status_count, 0);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.scenario_row_count, creativeDocumentE2eReport.summary.scenario_row_count);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.passed_scenario_row_count, creativeDocumentE2eReport.summary.passed_scenario_row_count);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.chain_stage_count, 5);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.passed_chain_stage_count, 5);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.template_stage_passed_count, 1);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.render_stage_passed_count, 1);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.layout_stage_passed_count, 1);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.approval_stage_passed_count, 1);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.output_artifact_stage_passed_count, 1);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.template_to_output_artifact_path_complete, true);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.gate_violation_count, 0);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.read_only, true);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.report_only, true);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.template_mutation_performed, false);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.renderer_execution_performed, false);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.delivery_execution_performed, false);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.protected_action_executed, false);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.legal_advice_generated, false);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.client_facing_output_generated, false);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.human_review_required, true);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.desktop_read_only, true);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.desktop_source_of_truth, false);
+      assert.equal(creativeDocumentE2eReportStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -29172,6 +29327,34 @@ describe("matter harness", () => {
       const personalDevE2eReportValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-e2e-report-validations?status=passed", apiOptions)).body);
       assert.equal(personalDevE2eReportValidationsResponse.collection, "personal_dev_e2e_report_validations");
       assert.equal(personalDevE2eReportValidationsResponse.count, personalDevE2eReport.summary.validation_item_count);
+
+      const creativeDocumentE2eReportArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/creative-document-e2e-reports?creative_document_e2e_report_status=complete", apiOptions)).body);
+      assert.equal(creativeDocumentE2eReportArtifactsResponse.collection, "creative_document_e2e_reports");
+      assert.equal(creativeDocumentE2eReportArtifactsResponse.count, 1);
+
+      const creativeDocumentE2eReportSourcesResponse = JSON.parse((await buildReviewApiResponse("/api/creative-document-e2e-report-sources?source_status=passed", apiOptions)).body);
+      assert.equal(creativeDocumentE2eReportSourcesResponse.collection, "creative_document_e2e_report_sources");
+      assert.equal(creativeDocumentE2eReportSourcesResponse.count, creativeDocumentE2eReport.summary.source_status_count);
+
+      const creativeDocumentE2eReportScenarioRowsResponse = JSON.parse((await buildReviewApiResponse("/api/creative-document-e2e-scenario-rows?scenario_status=passed&template_gate_passed=true&render_gate_passed=true&layout_gate_passed=true&approval_gate_passed=true&output_artifact_gate_passed=true", apiOptions)).body);
+      assert.equal(creativeDocumentE2eReportScenarioRowsResponse.collection, "creative_document_e2e_scenario_rows");
+      assert.equal(creativeDocumentE2eReportScenarioRowsResponse.count, creativeDocumentE2eReport.summary.scenario_row_count);
+
+      const creativeDocumentE2eReportChainStagesResponse = JSON.parse((await buildReviewApiResponse("/api/creative-document-e2e-chain-stages?stage_status=passed", apiOptions)).body);
+      assert.equal(creativeDocumentE2eReportChainStagesResponse.collection, "creative_document_e2e_chain_stages");
+      assert.equal(creativeDocumentE2eReportChainStagesResponse.count, creativeDocumentE2eReport.summary.chain_stage_count);
+
+      const creativeDocumentE2eReportGateResultsResponse = JSON.parse((await buildReviewApiResponse("/api/creative-document-e2e-gate-results?gate_status=passed", apiOptions)).body);
+      assert.equal(creativeDocumentE2eReportGateResultsResponse.collection, "creative_document_e2e_gate_results");
+      assert.equal(creativeDocumentE2eReportGateResultsResponse.count, creativeDocumentE2eReport.summary.gate_result_count);
+
+      const creativeDocumentE2eReportBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/creative-document-e2e-report-boundary?boundary_status=enforced&read_only=true&client_facing_output_generated=false", apiOptions)).body);
+      assert.equal(creativeDocumentE2eReportBoundaryResponse.collection, "creative_document_e2e_report_boundary");
+      assert.equal(creativeDocumentE2eReportBoundaryResponse.count, 1);
+
+      const creativeDocumentE2eReportValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/creative-document-e2e-report-validations?status=passed", apiOptions)).body);
+      assert.equal(creativeDocumentE2eReportValidationsResponse.collection, "creative_document_e2e_report_validations");
+      assert.equal(creativeDocumentE2eReportValidationsResponse.count, creativeDocumentE2eReport.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

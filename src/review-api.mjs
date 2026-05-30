@@ -6855,6 +6855,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("prompt_injection_test_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/external-model-policy-audits") {
+    const result = await readDashboardSourceArtifact(dashboard, "external_model_policy_audit");
+    if (!result.available) {
+      return jsonResponse(503, buildError("external_model_policy_audit_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("external_model_policy_audits", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/external-model-classification-audits") {
+    const result = await readDashboardSourceArtifact(dashboard, "external_model_policy_audit");
+    if (!result.available) {
+      return jsonResponse(503, buildError("external_model_policy_audit_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("external_model_classification_audits", result.artifact.external_model_classification_audits ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/external-model-policy-snapshot-audits") {
+    const result = await readDashboardSourceArtifact(dashboard, "external_model_policy_audit");
+    if (!result.available) {
+      return jsonResponse(503, buildError("external_model_policy_audit_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("external_model_policy_snapshot_audits", result.artifact.external_model_policy_snapshot_audits ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/external-model-route-audits") {
+    const result = await readDashboardSourceArtifact(dashboard, "external_model_policy_audit");
+    if (!result.available) {
+      return jsonResponse(503, buildError("external_model_policy_audit_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("external_model_route_audits", result.artifact.external_model_route_audits ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/desktop-provider-model-audits") {
+    const result = await readDashboardSourceArtifact(dashboard, "external_model_policy_audit");
+    if (!result.available) {
+      return jsonResponse(503, buildError("external_model_policy_audit_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("desktop_provider_model_audits", result.artifact.desktop_provider_model_audits ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/external-model-policy-audit-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "external_model_policy_audit");
+    if (!result.available) {
+      return jsonResponse(503, buildError("external_model_policy_audit_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("external_model_policy_audit_boundary", [result.artifact.external_model_policy_audit_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/external-model-policy-audit-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "external_model_policy_audit");
+    if (!result.available) {
+      return jsonResponse(503, buildError("external_model_policy_audit_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("external_model_policy_audit_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -13438,6 +13487,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/prompt-injection-promotion-checks", "Prompt Injection promotion check rows"),
       route("GET", "/api/prompt-injection-test-boundary", "Prompt Injection Test Suite read-only boundary"),
       route("GET", "/api/prompt-injection-test-validations", "Prompt Injection Test Suite validation rows"),
+      route("GET", "/api/external-model-policy-audits", "External Model Policy Audit artifact"),
+      route("GET", "/api/external-model-classification-audits", "External model classification policy audit rows"),
+      route("GET", "/api/external-model-policy-snapshot-audits", "External model policy snapshot audit rows"),
+      route("GET", "/api/external-model-route-audits", "External model route audit rows"),
+      route("GET", "/api/desktop-provider-model-audits", "Desktop provider/model audit rows"),
+      route("GET", "/api/external-model-policy-audit-boundary", "External Model Policy Audit read-only boundary"),
+      route("GET", "/api/external-model-policy-audit-validations", "External Model Policy Audit validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -14708,6 +14764,12 @@ function filterItems(items, searchParams) {
     "control_status",
     "evidence_status",
     "prompt_injection_test_suite_status",
+    "external_model_policy_audit_status",
+    "provider_transmission_policy",
+    "snapshot_comparison_status",
+    "route_policy_status",
+    "desktop_provider_key_visible",
+    "desktop_external_model_execution_allowed",
     "fixture_group",
     "external_surface",
     "test_case_status",
@@ -16725,6 +16787,12 @@ function readFilterValue(item, key) {
   if (key === "control_status") return item.control_status;
   if (key === "evidence_status") return item.evidence_status;
   if (key === "prompt_injection_test_suite_status") return item.summary?.prompt_injection_test_suite_status ?? item.prompt_injection_test_suite_status;
+  if (key === "external_model_policy_audit_status") return item.summary?.external_model_policy_audit_status ?? item.external_model_policy_audit_status;
+  if (key === "provider_transmission_policy") return item.provider_transmission_policy;
+  if (key === "snapshot_comparison_status") return item.snapshot_comparison_status;
+  if (key === "route_policy_status") return item.route_policy_status;
+  if (key === "desktop_provider_key_visible") return String(Boolean(item.desktop_provider_key_visible));
+  if (key === "desktop_external_model_execution_allowed") return String(Boolean(item.desktop_external_model_execution_allowed));
   if (key === "fixture_group") return item.fixture_group;
   if (key === "external_surface") return item.external_surface;
   if (key === "test_case_status") return item.test_case_status;

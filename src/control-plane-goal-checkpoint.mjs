@@ -171,6 +171,7 @@ const GOAL_ITEMS = [
   sourceItem("dashboard_api_freeze", "Dashboard/API Freeze", "api", "dashboard_api_freeze", "control-plane-dashboard-api-freeze", { acceptance_profile: "dashboard_api_freeze_gate" }),
   sourceItem("threat_model_refresh", "Threat Model Refresh", "security", "threat_model_refresh", "control-plane-threat-model-refresh", { acceptance_profile: "threat_model_refresh_gate" }),
   sourceItem("prompt_injection_test_suite", "Prompt Injection Test Suite", "security", "prompt_injection_test_suite", "control-plane-prompt-injection-test-suite", { acceptance_profile: "prompt_injection_test_suite_gate" }),
+  sourceItem("external_model_policy_audit", "External Model Policy Audit", "security", "external_model_policy_audit", "control-plane-external-model-policy-audit", { acceptance_profile: "external_model_policy_audit_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -701,6 +702,7 @@ function evaluateStageAcceptance(item, stage) {
     "dashboard_api_freeze_gate",
     "threat_model_refresh_gate",
     "prompt_injection_test_suite_gate",
+    "external_model_policy_audit_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -6512,6 +6514,63 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Prompt Injection Test Suite locks P298 synthetic external-document instruction fixtures and proves they are neutralized as evidence content without prompt/tool/policy promotion, transfer, protected action, legal advice, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "external_model_policy_audit_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.external_model_policy_audit_status === "complete"
+      && metrics.phase_slot === "P299"
+      && metrics.previous_phase_slot === "P298"
+      && metrics.next_phase_slot === "P300"
+      && metrics.source_prompt_injection_test_suite_status === "complete"
+      && metrics.source_prompt_injection_test_suite_phase_slot === "P298"
+      && metrics.source_prompt_injection_test_suite_next_phase_slot === "P299"
+      && metrics.failed_source_status_count === 0
+      && metrics.classification_audit_count >= 6
+      && metrics.passed_classification_audit_count === metrics.classification_audit_count
+      && metrics.failed_classification_audit_count === 0
+      && metrics.snapshot_audit_count >= 3
+      && metrics.passed_snapshot_audit_count === metrics.snapshot_audit_count
+      && metrics.failed_snapshot_audit_count === 0
+      && metrics.route_audit_count > 0
+      && metrics.passed_route_audit_count === metrics.route_audit_count
+      && metrics.failed_route_audit_count === 0
+      && metrics.desktop_provider_model_audit_count >= 5
+      && metrics.passed_desktop_provider_model_audit_count === metrics.desktop_provider_model_audit_count
+      && metrics.failed_desktop_provider_model_audit_count === 0
+      && metrics.unauthorized_external_transfer_count === 0
+      && metrics.high_sensitivity_external_transfer_count === 0
+      && metrics.external_transfer_without_audit_count === 0
+      && metrics.classification_policy_mismatch_count === 0
+      && metrics.snapshot_policy_mismatch_count === 0
+      && metrics.p3_p5_external_allow_count === 0
+      && metrics.desktop_provider_key_visible_count === 0
+      && metrics.desktop_external_model_execution_allowed_count === 0
+      && metrics.desktop_setting_mutation_allowed_count === 0
+      && metrics.read_only === true
+      && metrics.audit_only === true
+      && metrics.source_content_read_performed === false
+      && metrics.source_ingest_performed === false
+      && metrics.external_model_execution_performed === false
+      && metrics.provider_request_performed === false
+      && metrics.network_access_performed === false
+      && metrics.desktop_setting_mutation_allowed === false
+      && metrics.provider_key_materialized === false
+      && metrics.route_execution_performed === false
+      && metrics.server_started === false
+      && metrics.protected_action_executed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.human_review_required === true
+      && metrics.client_facing_ready === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "External Model Policy Audit locks P299 classification, policy snapshot, route, and Desktop provider/model audits with zero unauthorized or high-sensitivity external transfer and no model execution, provider request, key exposure, mutation, legal advice, or client-facing output.");
     }
   }
 

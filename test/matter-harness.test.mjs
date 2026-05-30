@@ -97,6 +97,7 @@ import { runCostObservabilityDashboard } from "../src/cost-observability-dashboa
 import { runDashboardApiFreeze } from "../src/dashboard-api-freeze.mjs";
 import { runThreatModelRefresh } from "../src/threat-model-refresh.mjs";
 import { runPromptInjectionTestSuite } from "../src/prompt-injection-test-suite.mjs";
+import { runExternalModelPolicyAudit } from "../src/external-model-policy-audit.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -1991,6 +1992,7 @@ describe("matter harness", () => {
         dashboardApiFreezePath: path.join(outDir, "dashboard-api-freeze", "dashboard-api-freeze.json"),
         threatModelRefreshPath: path.join(outDir, "threat-model-refresh", "threat-model-refresh.json"),
         promptInjectionTestSuitePath: path.join(outDir, "prompt-injection-test-suite", "prompt-injection-test-suite.json"),
+        externalModelPolicyAuditPath: path.join(outDir, "external-model-policy-audit", "external-model-policy-audit.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -2123,6 +2125,7 @@ describe("matter harness", () => {
         controlPlaneAuditTrailPath: false,
         threatModelRefreshPath: false,
         promptInjectionTestSuitePath: false,
+        externalModelPolicyAuditPath: false,
         observabilityFreezePath: false,
         capabilityManifestV2Path: false,
         packManifestCompatibilityPath: false,
@@ -13349,6 +13352,7 @@ describe("matter harness", () => {
         dashboardApiFreezePath: false,
         threatModelRefreshPath: false,
         promptInjectionTestSuitePath: false,
+        externalModelPolicyAuditPath: false,
         outDir: path.join(outDir, "dashboard-pre-checkpoint"),
         runAt: "2026-05-23T06:35:08.000Z",
       });
@@ -14499,6 +14503,80 @@ describe("matter harness", () => {
       assert.match(await readFile(path.join(outDir, "prompt-injection-test-suite", "summary.md"), "utf8"), /Prompt Injection Test Suite/);
 
       contractGoldenFixtureArtifactPaths.prompt_injection_test_suite = path.join(outDir, "prompt-injection-test-suite", "prompt-injection-test-suite.json");
+      const externalModelPolicyAudit = await runExternalModelPolicyAudit({
+        promptInjectionTestSuitePath: path.join(outDir, "prompt-injection-test-suite", "prompt-injection-test-suite.json"),
+        policyMatrixCatalogPath: path.join(outDir, "policy-matrix", "policy-matrix-catalog.json"),
+        policySnapshotLedgerPath: path.join(outDir, "policy-snapshots", "policy-snapshot-ledger.json"),
+        modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
+        modelPolicyEnforcementPath: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
+        runtimeApiDashboardPath: path.join(outDir, "runtime-api-dashboard", "runtime-api-dashboard.json"),
+        capabilityRegistryApiPath: path.join(outDir, "capability-registry-api", "capability-registry-api.json"),
+        outDir: path.join(outDir, "external-model-policy-audit"),
+        runAt: "2026-05-23T07:26:35.437Z",
+      });
+      const externalModelPolicyAuditSchema = JSON.parse(await readFile("schemas/external-model-policy-audit.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(externalModelPolicyAudit, externalModelPolicyAuditSchema, {}, "external_model_policy_audit"), [], JSON.stringify(externalModelPolicyAudit.validation.errors));
+      assert.equal(externalModelPolicyAudit.summary.external_model_policy_audit_status, "complete");
+      assert.equal(externalModelPolicyAudit.summary.phase_slot, "P299");
+      assert.equal(externalModelPolicyAudit.summary.previous_phase_slot, "P298");
+      assert.equal(externalModelPolicyAudit.summary.next_phase_slot, "P300");
+      assert.equal(externalModelPolicyAudit.summary.source_prompt_injection_test_suite_status, "complete");
+      assert.equal(externalModelPolicyAudit.summary.source_prompt_injection_test_suite_phase_slot, "P298");
+      assert.equal(externalModelPolicyAudit.summary.source_prompt_injection_test_suite_next_phase_slot, "P299");
+      assert.equal(externalModelPolicyAudit.summary.failed_source_status_count, 0);
+      assert.equal(externalModelPolicyAudit.summary.classification_audit_count, 6);
+      assert.equal(externalModelPolicyAudit.summary.passed_classification_audit_count, 6);
+      assert.equal(externalModelPolicyAudit.summary.failed_classification_audit_count, 0);
+      assert.ok(externalModelPolicyAudit.summary.snapshot_audit_count >= 3);
+      assert.equal(externalModelPolicyAudit.summary.passed_snapshot_audit_count, externalModelPolicyAudit.summary.snapshot_audit_count);
+      assert.equal(externalModelPolicyAudit.summary.failed_snapshot_audit_count, 0);
+      assert.ok(externalModelPolicyAudit.summary.route_audit_count > 0);
+      assert.equal(externalModelPolicyAudit.summary.passed_route_audit_count, externalModelPolicyAudit.summary.route_audit_count);
+      assert.equal(externalModelPolicyAudit.summary.failed_route_audit_count, 0);
+      assert.ok(externalModelPolicyAudit.summary.desktop_provider_model_audit_count >= 5);
+      assert.equal(externalModelPolicyAudit.summary.passed_desktop_provider_model_audit_count, externalModelPolicyAudit.summary.desktop_provider_model_audit_count);
+      assert.equal(externalModelPolicyAudit.summary.failed_desktop_provider_model_audit_count, 0);
+      assert.equal(externalModelPolicyAudit.summary.external_transfer_route_count, 2);
+      assert.equal(externalModelPolicyAudit.summary.unauthorized_external_transfer_count, 0);
+      assert.equal(externalModelPolicyAudit.summary.high_sensitivity_external_transfer_count, 0);
+      assert.equal(externalModelPolicyAudit.summary.external_transfer_without_audit_count, 0);
+      assert.equal(externalModelPolicyAudit.summary.classification_policy_mismatch_count, 0);
+      assert.equal(externalModelPolicyAudit.summary.snapshot_policy_mismatch_count, 0);
+      assert.equal(externalModelPolicyAudit.summary.p3_p5_external_forbidden_count, 3);
+      assert.equal(externalModelPolicyAudit.summary.p3_p5_external_allow_count, 0);
+      assert.equal(externalModelPolicyAudit.summary.desktop_provider_key_visible_count, 0);
+      assert.equal(externalModelPolicyAudit.summary.desktop_external_model_execution_allowed_count, 0);
+      assert.equal(externalModelPolicyAudit.summary.desktop_setting_mutation_allowed_count, 0);
+      assert.equal(externalModelPolicyAudit.summary.read_only, true);
+      assert.equal(externalModelPolicyAudit.summary.audit_only, true);
+      assert.equal(externalModelPolicyAudit.summary.source_content_read_performed, false);
+      assert.equal(externalModelPolicyAudit.summary.source_ingest_performed, false);
+      assert.equal(externalModelPolicyAudit.summary.external_model_execution_performed, false);
+      assert.equal(externalModelPolicyAudit.summary.provider_request_performed, false);
+      assert.equal(externalModelPolicyAudit.summary.network_access_performed, false);
+      assert.equal(externalModelPolicyAudit.summary.desktop_setting_mutation_allowed, false);
+      assert.equal(externalModelPolicyAudit.summary.provider_key_materialized, false);
+      assert.equal(externalModelPolicyAudit.summary.route_execution_performed, false);
+      assert.equal(externalModelPolicyAudit.summary.server_started, false);
+      assert.equal(externalModelPolicyAudit.summary.protected_action_executed, false);
+      assert.equal(externalModelPolicyAudit.summary.delivery_execution_performed, false);
+      assert.equal(externalModelPolicyAudit.summary.legal_advice_generated, false);
+      assert.equal(externalModelPolicyAudit.summary.client_facing_output_generated, false);
+      assert.equal(externalModelPolicyAudit.summary.human_review_required, true);
+      assert.equal(externalModelPolicyAudit.summary.client_facing_ready, false);
+      assert.equal(externalModelPolicyAudit.summary.windows_baseline_stability_preserved, true);
+      assert.equal(externalModelPolicyAudit.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(externalModelPolicyAudit.summary.validation_error_count, 0);
+      assert.ok(externalModelPolicyAudit.external_model_classification_audits.every((row) => row.audit_status === "passed"));
+      assert.ok(externalModelPolicyAudit.external_model_classification_audits.filter((row) => row.classification_ordinal >= 3).every((row) => row.external_provider_transmission_forbidden));
+      assert.ok(externalModelPolicyAudit.external_model_policy_snapshot_audits.every((row) => row.audit_status === "passed" && row.snapshot_comparison_status === "matched"));
+      assert.ok(externalModelPolicyAudit.external_model_route_audits.every((row) => row.audit_status === "passed" && !row.unauthorized_external_transfer && !row.high_sensitivity_external_transfer && !row.external_transfer_without_audit));
+      assert.ok(externalModelPolicyAudit.desktop_provider_model_audits.every((row) => row.audit_status === "passed" && row.desktop_provider_key_visible === false && row.desktop_external_model_execution_allowed === false));
+      assert.equal(externalModelPolicyAudit.external_model_policy_audit_boundary.boundary_status, "enforced");
+      assert.ok(externalModelPolicyAudit.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "external-model-policy-audit", "summary.md"), "utf8"), /External Model Policy Audit/);
+
+      contractGoldenFixtureArtifactPaths.external_model_policy_audit = path.join(outDir, "external-model-policy-audit", "external-model-policy-audit.json");
       contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: contractGoldenFixtureArtifactPaths,
         fixtureIds: Object.keys(contractGoldenFixtureArtifactPaths),
@@ -14510,13 +14588,14 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 200);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 200);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 201);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 201);
       assert.equal(contractGoldenFixtures.summary.missing_artifact_count, 0);
       assert.equal(contractGoldenFixtures.summary.validation_error_count, 0);
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "dashboard_api_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "threat_model_refresh"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "prompt_injection_test_suite"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "external_model_policy_audit"));
 
       contractValidationSuite = await runContractValidationSuite({
         contractGoldenFixturesPath: path.join(outDir, "contract-golden-fixtures", "contract-golden-fixtures.json"),
@@ -14530,8 +14609,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractValidationSuite.summary.validation_suite_status, "complete");
-      assert.equal(contractValidationSuite.summary.fixture_count, 200);
-      assert.equal(contractValidationSuite.summary.validated_fixture_count, 200);
+      assert.equal(contractValidationSuite.summary.fixture_count, 201);
+      assert.equal(contractValidationSuite.summary.validated_fixture_count, 201);
       assert.equal(contractValidationSuite.summary.schema_invalid_fixture_count, 0);
       assert.equal(contractValidationSuite.summary.regression_failed_count, 0);
       assert.equal(contractValidationSuite.summary.missing_package_script_count, 0);
@@ -14539,6 +14618,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "dashboard:api-freeze"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "security:threat-model"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "security:prompt-injection-tests"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "security:external-model-policy-audit"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
 
       const dashboard = await runReviewDashboard({
@@ -14583,6 +14663,10 @@ describe("matter harness", () => {
       assert.equal(promptInjectionTestSuiteCheckpoint?.acceptance_profile, "prompt_injection_test_suite_gate");
       assert.equal(promptInjectionTestSuiteCheckpoint?.status, "passed");
       assert.equal(promptInjectionTestSuiteCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const externalModelPolicyAuditCheckpoint = dashboardApiFreezeGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-external-model-policy-audit");
+      assert.equal(externalModelPolicyAuditCheckpoint?.acceptance_profile, "external_model_policy_audit_gate");
+      assert.equal(externalModelPolicyAuditCheckpoint?.status, "passed");
+      assert.equal(externalModelPolicyAuditCheckpoint?.implementation_status, "passed_with_operational_gate");
       assert.equal(dashboard.summary.evidence_approved_count, 1);
       assert.equal(dashboard.summary.evidence_review_draft_item_count, evidenceReviewDraft.summary.review_item_count);
       assert.equal(dashboard.summary.evidence_review_draft_attorney_count, evidenceReviewDraft.summary.attorney_review_count);
@@ -20070,6 +20154,58 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.prompt_injection_test_suite_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.prompt_injection_test_suite_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.prompt_injection_test_suite_validation_error_count, 0);
+      assert.equal(dashboard.summary.external_model_policy_audit_status, "complete");
+      assert.equal(dashboard.summary.external_model_policy_audit_id, externalModelPolicyAudit.summary.external_model_policy_audit_id);
+      assert.equal(dashboard.summary.external_model_policy_audit_phase_slot, "P299");
+      assert.equal(dashboard.summary.external_model_policy_audit_previous_phase_slot, "P298");
+      assert.equal(dashboard.summary.external_model_policy_audit_next_phase_slot, "P300");
+      assert.equal(dashboard.summary.external_model_policy_audit_source_prompt_injection_test_suite_status, "complete");
+      assert.equal(dashboard.summary.external_model_policy_audit_source_prompt_injection_test_suite_phase_slot, "P298");
+      assert.equal(dashboard.summary.external_model_policy_audit_source_prompt_injection_test_suite_next_phase_slot, "P299");
+      assert.equal(dashboard.summary.external_model_policy_audit_failed_source_status_count, 0);
+      assert.equal(dashboard.summary.external_model_policy_audit_classification_audit_count, externalModelPolicyAudit.summary.classification_audit_count);
+      assert.equal(dashboard.summary.external_model_policy_audit_passed_classification_audit_count, externalModelPolicyAudit.summary.passed_classification_audit_count);
+      assert.equal(dashboard.summary.external_model_policy_audit_failed_classification_audit_count, 0);
+      assert.equal(dashboard.summary.external_model_policy_audit_snapshot_audit_count, externalModelPolicyAudit.summary.snapshot_audit_count);
+      assert.equal(dashboard.summary.external_model_policy_audit_passed_snapshot_audit_count, externalModelPolicyAudit.summary.passed_snapshot_audit_count);
+      assert.equal(dashboard.summary.external_model_policy_audit_failed_snapshot_audit_count, 0);
+      assert.equal(dashboard.summary.external_model_policy_audit_route_audit_count, externalModelPolicyAudit.summary.route_audit_count);
+      assert.equal(dashboard.summary.external_model_policy_audit_passed_route_audit_count, externalModelPolicyAudit.summary.passed_route_audit_count);
+      assert.equal(dashboard.summary.external_model_policy_audit_failed_route_audit_count, 0);
+      assert.equal(dashboard.summary.external_model_policy_audit_desktop_provider_model_audit_count, externalModelPolicyAudit.summary.desktop_provider_model_audit_count);
+      assert.equal(dashboard.summary.external_model_policy_audit_passed_desktop_provider_model_audit_count, externalModelPolicyAudit.summary.passed_desktop_provider_model_audit_count);
+      assert.equal(dashboard.summary.external_model_policy_audit_failed_desktop_provider_model_audit_count, 0);
+      assert.equal(dashboard.summary.external_model_policy_audit_external_transfer_route_count, externalModelPolicyAudit.summary.external_transfer_route_count);
+      assert.equal(dashboard.summary.external_model_policy_audit_unauthorized_external_transfer_count, 0);
+      assert.equal(dashboard.summary.external_model_policy_audit_high_sensitivity_external_transfer_count, 0);
+      assert.equal(dashboard.summary.external_model_policy_audit_external_transfer_without_audit_count, 0);
+      assert.equal(dashboard.summary.external_model_policy_audit_classification_policy_mismatch_count, 0);
+      assert.equal(dashboard.summary.external_model_policy_audit_snapshot_policy_mismatch_count, 0);
+      assert.equal(dashboard.summary.external_model_policy_audit_p3_p5_external_forbidden_count, externalModelPolicyAudit.summary.p3_p5_external_forbidden_count);
+      assert.equal(dashboard.summary.external_model_policy_audit_p3_p5_external_allow_count, 0);
+      assert.equal(dashboard.summary.external_model_policy_audit_desktop_provider_key_visible_count, 0);
+      assert.equal(dashboard.summary.external_model_policy_audit_desktop_external_model_execution_allowed_count, 0);
+      assert.equal(dashboard.summary.external_model_policy_audit_desktop_setting_mutation_allowed_count, 0);
+      assert.equal(dashboard.summary.external_model_policy_audit_read_only, true);
+      assert.equal(dashboard.summary.external_model_policy_audit_audit_only, true);
+      assert.equal(dashboard.summary.external_model_policy_audit_source_content_read_performed, false);
+      assert.equal(dashboard.summary.external_model_policy_audit_source_ingest_performed, false);
+      assert.equal(dashboard.summary.external_model_policy_audit_external_model_execution_performed, false);
+      assert.equal(dashboard.summary.external_model_policy_audit_provider_request_performed, false);
+      assert.equal(dashboard.summary.external_model_policy_audit_network_access_performed, false);
+      assert.equal(dashboard.summary.external_model_policy_audit_desktop_setting_mutation_allowed, false);
+      assert.equal(dashboard.summary.external_model_policy_audit_provider_key_materialized, false);
+      assert.equal(dashboard.summary.external_model_policy_audit_route_execution_performed, false);
+      assert.equal(dashboard.summary.external_model_policy_audit_server_started, false);
+      assert.equal(dashboard.summary.external_model_policy_audit_protected_action_executed, false);
+      assert.equal(dashboard.summary.external_model_policy_audit_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.external_model_policy_audit_legal_advice_generated, false);
+      assert.equal(dashboard.summary.external_model_policy_audit_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.external_model_policy_audit_human_review_required, true);
+      assert.equal(dashboard.summary.external_model_policy_audit_client_facing_ready, false);
+      assert.equal(dashboard.summary.external_model_policy_audit_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.external_model_policy_audit_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.external_model_policy_audit_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -24139,6 +24275,60 @@ describe("matter harness", () => {
       assert.equal(promptInjectionTestSuiteStage?.metrics.windows_baseline_stability_preserved, true);
       assert.equal(promptInjectionTestSuiteStage?.metrics.mac_windows_completion_instability_guard, true);
       assert.equal(promptInjectionTestSuiteStage?.metrics.validation_error_count, 0);
+      const externalModelPolicyAuditStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "external_model_policy_audit");
+      assert.equal(externalModelPolicyAuditStage?.status, "passed");
+      assert.equal(externalModelPolicyAuditStage?.metrics.external_model_policy_audit_status, "complete");
+      assert.equal(externalModelPolicyAuditStage?.metrics.external_model_policy_audit_id, externalModelPolicyAudit.summary.external_model_policy_audit_id);
+      assert.equal(externalModelPolicyAuditStage?.metrics.phase_slot, "P299");
+      assert.equal(externalModelPolicyAuditStage?.metrics.previous_phase_slot, "P298");
+      assert.equal(externalModelPolicyAuditStage?.metrics.next_phase_slot, "P300");
+      assert.equal(externalModelPolicyAuditStage?.metrics.source_prompt_injection_test_suite_status, "complete");
+      assert.equal(externalModelPolicyAuditStage?.metrics.source_prompt_injection_test_suite_phase_slot, "P298");
+      assert.equal(externalModelPolicyAuditStage?.metrics.source_prompt_injection_test_suite_next_phase_slot, "P299");
+      assert.equal(externalModelPolicyAuditStage?.metrics.failed_source_status_count, 0);
+      assert.equal(externalModelPolicyAuditStage?.metrics.classification_audit_count, externalModelPolicyAudit.summary.classification_audit_count);
+      assert.equal(externalModelPolicyAuditStage?.metrics.passed_classification_audit_count, externalModelPolicyAudit.summary.passed_classification_audit_count);
+      assert.equal(externalModelPolicyAuditStage?.metrics.failed_classification_audit_count, 0);
+      assert.equal(externalModelPolicyAuditStage?.metrics.snapshot_audit_count, externalModelPolicyAudit.summary.snapshot_audit_count);
+      assert.equal(externalModelPolicyAuditStage?.metrics.passed_snapshot_audit_count, externalModelPolicyAudit.summary.passed_snapshot_audit_count);
+      assert.equal(externalModelPolicyAuditStage?.metrics.failed_snapshot_audit_count, 0);
+      assert.equal(externalModelPolicyAuditStage?.metrics.route_audit_count, externalModelPolicyAudit.summary.route_audit_count);
+      assert.equal(externalModelPolicyAuditStage?.metrics.passed_route_audit_count, externalModelPolicyAudit.summary.passed_route_audit_count);
+      assert.equal(externalModelPolicyAuditStage?.metrics.failed_route_audit_count, 0);
+      assert.equal(externalModelPolicyAuditStage?.metrics.desktop_provider_model_audit_count, externalModelPolicyAudit.summary.desktop_provider_model_audit_count);
+      assert.equal(externalModelPolicyAuditStage?.metrics.passed_desktop_provider_model_audit_count, externalModelPolicyAudit.summary.passed_desktop_provider_model_audit_count);
+      assert.equal(externalModelPolicyAuditStage?.metrics.failed_desktop_provider_model_audit_count, 0);
+      assert.equal(externalModelPolicyAuditStage?.metrics.external_transfer_route_count, externalModelPolicyAudit.summary.external_transfer_route_count);
+      assert.equal(externalModelPolicyAuditStage?.metrics.unauthorized_external_transfer_count, 0);
+      assert.equal(externalModelPolicyAuditStage?.metrics.high_sensitivity_external_transfer_count, 0);
+      assert.equal(externalModelPolicyAuditStage?.metrics.external_transfer_without_audit_count, 0);
+      assert.equal(externalModelPolicyAuditStage?.metrics.classification_policy_mismatch_count, 0);
+      assert.equal(externalModelPolicyAuditStage?.metrics.snapshot_policy_mismatch_count, 0);
+      assert.equal(externalModelPolicyAuditStage?.metrics.p3_p5_external_forbidden_count, externalModelPolicyAudit.summary.p3_p5_external_forbidden_count);
+      assert.equal(externalModelPolicyAuditStage?.metrics.p3_p5_external_allow_count, 0);
+      assert.equal(externalModelPolicyAuditStage?.metrics.desktop_provider_key_visible_count, 0);
+      assert.equal(externalModelPolicyAuditStage?.metrics.desktop_external_model_execution_allowed_count, 0);
+      assert.equal(externalModelPolicyAuditStage?.metrics.desktop_setting_mutation_allowed_count, 0);
+      assert.equal(externalModelPolicyAuditStage?.metrics.read_only, true);
+      assert.equal(externalModelPolicyAuditStage?.metrics.audit_only, true);
+      assert.equal(externalModelPolicyAuditStage?.metrics.source_content_read_performed, false);
+      assert.equal(externalModelPolicyAuditStage?.metrics.source_ingest_performed, false);
+      assert.equal(externalModelPolicyAuditStage?.metrics.external_model_execution_performed, false);
+      assert.equal(externalModelPolicyAuditStage?.metrics.provider_request_performed, false);
+      assert.equal(externalModelPolicyAuditStage?.metrics.network_access_performed, false);
+      assert.equal(externalModelPolicyAuditStage?.metrics.desktop_setting_mutation_allowed, false);
+      assert.equal(externalModelPolicyAuditStage?.metrics.provider_key_materialized, false);
+      assert.equal(externalModelPolicyAuditStage?.metrics.route_execution_performed, false);
+      assert.equal(externalModelPolicyAuditStage?.metrics.server_started, false);
+      assert.equal(externalModelPolicyAuditStage?.metrics.protected_action_executed, false);
+      assert.equal(externalModelPolicyAuditStage?.metrics.delivery_execution_performed, false);
+      assert.equal(externalModelPolicyAuditStage?.metrics.legal_advice_generated, false);
+      assert.equal(externalModelPolicyAuditStage?.metrics.client_facing_output_generated, false);
+      assert.equal(externalModelPolicyAuditStage?.metrics.human_review_required, true);
+      assert.equal(externalModelPolicyAuditStage?.metrics.client_facing_ready, false);
+      assert.equal(externalModelPolicyAuditStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(externalModelPolicyAuditStage?.metrics.mac_windows_completion_instability_guard, true);
+      assert.equal(externalModelPolicyAuditStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -24402,6 +24592,13 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/prompt-injection-promotion-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/prompt-injection-test-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/prompt-injection-test-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/external-model-policy-audits"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/external-model-classification-audits"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/external-model-policy-snapshot-audits"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/external-model-route-audits"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/desktop-provider-model-audits"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/external-model-policy-audit-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/external-model-policy-audit-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -27579,6 +27776,34 @@ describe("matter harness", () => {
       const promptInjectionTestValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/prompt-injection-test-validations?status=passed", apiOptions)).body);
       assert.equal(promptInjectionTestValidationsResponse.collection, "prompt_injection_test_validations");
       assert.equal(promptInjectionTestValidationsResponse.count, promptInjectionTestSuite.summary.validation_item_count);
+
+      const externalModelPolicyAuditsResponse = JSON.parse((await buildReviewApiResponse("/api/external-model-policy-audits?external_model_policy_audit_status=complete", apiOptions)).body);
+      assert.equal(externalModelPolicyAuditsResponse.collection, "external_model_policy_audits");
+      assert.equal(externalModelPolicyAuditsResponse.count, 1);
+
+      const externalModelClassificationAuditsResponse = JSON.parse((await buildReviewApiResponse("/api/external-model-classification-audits?provider_transmission_policy=forbidden", apiOptions)).body);
+      assert.equal(externalModelClassificationAuditsResponse.collection, "external_model_classification_audits");
+      assert.equal(externalModelClassificationAuditsResponse.count, externalModelPolicyAudit.summary.p3_p5_external_forbidden_count);
+
+      const externalModelPolicySnapshotAuditsResponse = JSON.parse((await buildReviewApiResponse("/api/external-model-policy-snapshot-audits?snapshot_comparison_status=matched", apiOptions)).body);
+      assert.equal(externalModelPolicySnapshotAuditsResponse.collection, "external_model_policy_snapshot_audits");
+      assert.equal(externalModelPolicySnapshotAuditsResponse.count, externalModelPolicyAudit.summary.snapshot_audit_count);
+
+      const externalModelRouteAuditsResponse = JSON.parse((await buildReviewApiResponse("/api/external-model-route-audits?audit_status=passed&external_transfer=true", apiOptions)).body);
+      assert.equal(externalModelRouteAuditsResponse.collection, "external_model_route_audits");
+      assert.equal(externalModelRouteAuditsResponse.count, externalModelPolicyAudit.summary.external_transfer_route_count);
+
+      const desktopProviderModelAuditsResponse = JSON.parse((await buildReviewApiResponse("/api/desktop-provider-model-audits?desktop_provider_key_visible=false", apiOptions)).body);
+      assert.equal(desktopProviderModelAuditsResponse.collection, "desktop_provider_model_audits");
+      assert.equal(desktopProviderModelAuditsResponse.count, externalModelPolicyAudit.summary.desktop_provider_model_audit_count);
+
+      const externalModelPolicyAuditBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/external-model-policy-audit-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(externalModelPolicyAuditBoundaryResponse.collection, "external_model_policy_audit_boundary");
+      assert.equal(externalModelPolicyAuditBoundaryResponse.count, 1);
+
+      const externalModelPolicyAuditValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/external-model-policy-audit-validations?status=passed", apiOptions)).body);
+      assert.equal(externalModelPolicyAuditValidationsResponse.collection, "external_model_policy_audit_validations");
+      assert.equal(externalModelPolicyAuditValidationsResponse.count, externalModelPolicyAudit.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

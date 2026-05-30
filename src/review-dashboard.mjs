@@ -134,6 +134,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   dashboardApiFreezePath: "artifacts/dashboard-api-freeze/latest/dashboard-api-freeze.json",
   threatModelRefreshPath: "artifacts/threat-model-refresh/latest/threat-model-refresh.json",
   promptInjectionTestSuitePath: "artifacts/prompt-injection-test-suite/latest/prompt-injection-test-suite.json",
+  externalModelPolicyAuditPath: "artifacts/external-model-policy-audit/latest/external-model-policy-audit.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -947,6 +948,11 @@ const SOURCE_DEFINITIONS = [
     option: "promptInjectionTestSuitePath",
     source_id: "prompt_injection_test_suite",
     label: "Prompt Injection Test Suite",
+  },
+  {
+    option: "externalModelPolicyAuditPath",
+    source_id: "external_model_policy_audit",
+    label: "External Model Policy Audit",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -2356,6 +2362,7 @@ function buildStageStatuses(artifacts, sources) {
     buildDashboardApiFreezeStage(artifacts.dashboard_api_freeze, sourceById.get("dashboard_api_freeze")),
     buildThreatModelRefreshStage(artifacts.threat_model_refresh, sourceById.get("threat_model_refresh")),
     buildPromptInjectionTestSuiteStage(artifacts.prompt_injection_test_suite, sourceById.get("prompt_injection_test_suite")),
+    buildExternalModelPolicyAuditStage(artifacts.external_model_policy_audit, sourceById.get("external_model_policy_audit")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -15880,6 +15887,129 @@ function buildPromptInjectionTestSuiteStage(artifact, source) {
   };
 }
 
+function buildExternalModelPolicyAuditStage(artifact, source) {
+  if (!artifact) return missingStage("external_model_policy_audit", "External Model Policy Audit", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.external_model_policy_audit_status !== "complete"
+    || summary.phase_slot !== "P299"
+    || summary.previous_phase_slot !== "P298"
+    || summary.next_phase_slot !== "P300"
+    || summary.source_prompt_injection_test_suite_status !== "complete"
+    || summary.source_prompt_injection_test_suite_phase_slot !== "P298"
+    || summary.source_prompt_injection_test_suite_next_phase_slot !== "P299"
+    || summary.failed_source_status_count !== 0
+    || summary.classification_audit_count < 6
+    || summary.passed_classification_audit_count !== summary.classification_audit_count
+    || summary.failed_classification_audit_count !== 0
+    || summary.snapshot_audit_count < 3
+    || summary.passed_snapshot_audit_count !== summary.snapshot_audit_count
+    || summary.failed_snapshot_audit_count !== 0
+    || summary.route_audit_count <= 0
+    || summary.passed_route_audit_count !== summary.route_audit_count
+    || summary.failed_route_audit_count !== 0
+    || summary.desktop_provider_model_audit_count < 5
+    || summary.passed_desktop_provider_model_audit_count !== summary.desktop_provider_model_audit_count
+    || summary.failed_desktop_provider_model_audit_count !== 0
+    || summary.unauthorized_external_transfer_count !== 0
+    || summary.high_sensitivity_external_transfer_count !== 0
+    || summary.external_transfer_without_audit_count !== 0
+    || summary.classification_policy_mismatch_count !== 0
+    || summary.snapshot_policy_mismatch_count !== 0
+    || summary.p3_p5_external_allow_count !== 0
+    || summary.desktop_provider_key_visible_count !== 0
+    || summary.desktop_external_model_execution_allowed_count !== 0
+    || summary.desktop_setting_mutation_allowed_count !== 0
+    || summary.read_only !== true
+    || summary.audit_only !== true
+    || summary.source_content_read_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.external_model_execution_performed !== false
+    || summary.provider_request_performed !== false
+    || summary.network_access_performed !== false
+    || summary.desktop_setting_mutation_allowed !== false
+    || summary.provider_key_materialized !== false
+    || summary.route_execution_performed !== false
+    || summary.server_started !== false
+    || summary.protected_action_executed !== false
+    || summary.delivery_execution_performed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.human_review_required !== true
+    || summary.client_facing_ready !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "external_model_policy_audit",
+    label: "External Model Policy Audit",
+    status,
+    message: `${summary.passed_route_audit_count ?? 0}/${summary.route_audit_count ?? 0} model route audit(s), ${summary.passed_desktop_provider_model_audit_count ?? 0}/${summary.desktop_provider_model_audit_count ?? 0} Desktop provider/model audit(s) pass.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      external_model_policy_audit_status: summary.external_model_policy_audit_status ?? "unknown",
+      external_model_policy_audit_id: summary.external_model_policy_audit_id ?? null,
+      capability_id: summary.capability_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_status_count: summary.source_status_count ?? 0,
+      passed_source_status_count: summary.passed_source_status_count ?? 0,
+      failed_source_status_count: summary.failed_source_status_count ?? 0,
+      source_prompt_injection_test_suite_status: summary.source_prompt_injection_test_suite_status ?? "unknown",
+      source_prompt_injection_test_suite_phase_slot: summary.source_prompt_injection_test_suite_phase_slot ?? null,
+      source_prompt_injection_test_suite_next_phase_slot: summary.source_prompt_injection_test_suite_next_phase_slot ?? null,
+      classification_audit_count: summary.classification_audit_count ?? 0,
+      passed_classification_audit_count: summary.passed_classification_audit_count ?? 0,
+      failed_classification_audit_count: summary.failed_classification_audit_count ?? 0,
+      snapshot_audit_count: summary.snapshot_audit_count ?? 0,
+      passed_snapshot_audit_count: summary.passed_snapshot_audit_count ?? 0,
+      failed_snapshot_audit_count: summary.failed_snapshot_audit_count ?? 0,
+      route_audit_count: summary.route_audit_count ?? 0,
+      passed_route_audit_count: summary.passed_route_audit_count ?? 0,
+      failed_route_audit_count: summary.failed_route_audit_count ?? 0,
+      desktop_provider_model_audit_count: summary.desktop_provider_model_audit_count ?? 0,
+      passed_desktop_provider_model_audit_count: summary.passed_desktop_provider_model_audit_count ?? 0,
+      failed_desktop_provider_model_audit_count: summary.failed_desktop_provider_model_audit_count ?? 0,
+      external_transfer_route_count: summary.external_transfer_route_count ?? 0,
+      unauthorized_external_transfer_count: summary.unauthorized_external_transfer_count ?? 0,
+      high_sensitivity_external_transfer_count: summary.high_sensitivity_external_transfer_count ?? 0,
+      external_transfer_without_audit_count: summary.external_transfer_without_audit_count ?? 0,
+      classification_policy_mismatch_count: summary.classification_policy_mismatch_count ?? 0,
+      snapshot_policy_mismatch_count: summary.snapshot_policy_mismatch_count ?? 0,
+      p3_p5_external_forbidden_count: summary.p3_p5_external_forbidden_count ?? 0,
+      p3_p5_external_allow_count: summary.p3_p5_external_allow_count ?? 0,
+      desktop_provider_key_visible_count: summary.desktop_provider_key_visible_count ?? 0,
+      desktop_external_model_execution_allowed_count: summary.desktop_external_model_execution_allowed_count ?? 0,
+      desktop_setting_mutation_allowed_count: summary.desktop_setting_mutation_allowed_count ?? 0,
+      read_only: summary.read_only ?? false,
+      audit_only: summary.audit_only ?? false,
+      source_content_read_performed: summary.source_content_read_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      external_model_execution_performed: summary.external_model_execution_performed ?? false,
+      provider_request_performed: summary.provider_request_performed ?? false,
+      network_access_performed: summary.network_access_performed ?? false,
+      desktop_setting_mutation_allowed: summary.desktop_setting_mutation_allowed ?? false,
+      provider_key_materialized: summary.provider_key_materialized ?? false,
+      route_execution_performed: summary.route_execution_performed ?? false,
+      server_started: summary.server_started ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      human_review_required: summary.human_review_required ?? false,
+      client_facing_ready: summary.client_facing_ready ?? true,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -22740,6 +22870,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_prompt_injection_test_suite", "rerun_prompt_injection_tests", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.external_model_policy_audit?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "external_model_policy_audit";
+    items.push({
+      action_item_id: `dashboard.action.external_model_policy_audit.${slugify(subjectId)}`,
+      source_stage: "external_model_policy_audit",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix External Model Policy Audit",
+      subject_ref: {
+        subject_type: "external_model_policy_audit_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_external_model_policy_audit", "rerun_external_model_policy_audit", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -30470,6 +30618,63 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     prompt_injection_test_suite_validation_item_count: artifacts.prompt_injection_test_suite?.summary?.validation_item_count ?? 0,
     prompt_injection_test_suite_failed_checkpoint_count: artifacts.prompt_injection_test_suite?.summary?.failed_checkpoint_count ?? 0,
     prompt_injection_test_suite_validation_error_count: artifacts.prompt_injection_test_suite?.summary?.validation_error_count ?? artifacts.prompt_injection_test_suite?.validation?.errors?.length ?? 0,
+    external_model_policy_audit_status: artifacts.external_model_policy_audit?.summary?.external_model_policy_audit_status ?? "unknown",
+    external_model_policy_audit_id: artifacts.external_model_policy_audit?.summary?.external_model_policy_audit_id ?? null,
+    external_model_policy_audit_capability_id: artifacts.external_model_policy_audit?.summary?.capability_id ?? null,
+    external_model_policy_audit_phase_slot: artifacts.external_model_policy_audit?.summary?.phase_slot ?? null,
+    external_model_policy_audit_previous_phase_slot: artifacts.external_model_policy_audit?.summary?.previous_phase_slot ?? null,
+    external_model_policy_audit_next_phase_slot: artifacts.external_model_policy_audit?.summary?.next_phase_slot ?? null,
+    external_model_policy_audit_source_status_count: artifacts.external_model_policy_audit?.summary?.source_status_count ?? 0,
+    external_model_policy_audit_passed_source_status_count: artifacts.external_model_policy_audit?.summary?.passed_source_status_count ?? 0,
+    external_model_policy_audit_failed_source_status_count: artifacts.external_model_policy_audit?.summary?.failed_source_status_count ?? 0,
+    external_model_policy_audit_source_prompt_injection_test_suite_status: artifacts.external_model_policy_audit?.summary?.source_prompt_injection_test_suite_status ?? "unknown",
+    external_model_policy_audit_source_prompt_injection_test_suite_phase_slot: artifacts.external_model_policy_audit?.summary?.source_prompt_injection_test_suite_phase_slot ?? null,
+    external_model_policy_audit_source_prompt_injection_test_suite_next_phase_slot: artifacts.external_model_policy_audit?.summary?.source_prompt_injection_test_suite_next_phase_slot ?? null,
+    external_model_policy_audit_classification_audit_count: artifacts.external_model_policy_audit?.summary?.classification_audit_count ?? 0,
+    external_model_policy_audit_passed_classification_audit_count: artifacts.external_model_policy_audit?.summary?.passed_classification_audit_count ?? 0,
+    external_model_policy_audit_failed_classification_audit_count: artifacts.external_model_policy_audit?.summary?.failed_classification_audit_count ?? 0,
+    external_model_policy_audit_snapshot_audit_count: artifacts.external_model_policy_audit?.summary?.snapshot_audit_count ?? 0,
+    external_model_policy_audit_passed_snapshot_audit_count: artifacts.external_model_policy_audit?.summary?.passed_snapshot_audit_count ?? 0,
+    external_model_policy_audit_failed_snapshot_audit_count: artifacts.external_model_policy_audit?.summary?.failed_snapshot_audit_count ?? 0,
+    external_model_policy_audit_route_audit_count: artifacts.external_model_policy_audit?.summary?.route_audit_count ?? 0,
+    external_model_policy_audit_passed_route_audit_count: artifacts.external_model_policy_audit?.summary?.passed_route_audit_count ?? 0,
+    external_model_policy_audit_failed_route_audit_count: artifacts.external_model_policy_audit?.summary?.failed_route_audit_count ?? 0,
+    external_model_policy_audit_desktop_provider_model_audit_count: artifacts.external_model_policy_audit?.summary?.desktop_provider_model_audit_count ?? 0,
+    external_model_policy_audit_passed_desktop_provider_model_audit_count: artifacts.external_model_policy_audit?.summary?.passed_desktop_provider_model_audit_count ?? 0,
+    external_model_policy_audit_failed_desktop_provider_model_audit_count: artifacts.external_model_policy_audit?.summary?.failed_desktop_provider_model_audit_count ?? 0,
+    external_model_policy_audit_external_transfer_route_count: artifacts.external_model_policy_audit?.summary?.external_transfer_route_count ?? 0,
+    external_model_policy_audit_unauthorized_external_transfer_count: artifacts.external_model_policy_audit?.summary?.unauthorized_external_transfer_count ?? 0,
+    external_model_policy_audit_high_sensitivity_external_transfer_count: artifacts.external_model_policy_audit?.summary?.high_sensitivity_external_transfer_count ?? 0,
+    external_model_policy_audit_external_transfer_without_audit_count: artifacts.external_model_policy_audit?.summary?.external_transfer_without_audit_count ?? 0,
+    external_model_policy_audit_classification_policy_mismatch_count: artifacts.external_model_policy_audit?.summary?.classification_policy_mismatch_count ?? 0,
+    external_model_policy_audit_snapshot_policy_mismatch_count: artifacts.external_model_policy_audit?.summary?.snapshot_policy_mismatch_count ?? 0,
+    external_model_policy_audit_p3_p5_external_forbidden_count: artifacts.external_model_policy_audit?.summary?.p3_p5_external_forbidden_count ?? 0,
+    external_model_policy_audit_p3_p5_external_allow_count: artifacts.external_model_policy_audit?.summary?.p3_p5_external_allow_count ?? 0,
+    external_model_policy_audit_desktop_provider_key_visible_count: artifacts.external_model_policy_audit?.summary?.desktop_provider_key_visible_count ?? 0,
+    external_model_policy_audit_desktop_external_model_execution_allowed_count: artifacts.external_model_policy_audit?.summary?.desktop_external_model_execution_allowed_count ?? 0,
+    external_model_policy_audit_desktop_setting_mutation_allowed_count: artifacts.external_model_policy_audit?.summary?.desktop_setting_mutation_allowed_count ?? 0,
+    external_model_policy_audit_read_only: artifacts.external_model_policy_audit?.summary?.read_only ?? false,
+    external_model_policy_audit_audit_only: artifacts.external_model_policy_audit?.summary?.audit_only ?? false,
+    external_model_policy_audit_source_content_read_performed: artifacts.external_model_policy_audit?.summary?.source_content_read_performed ?? false,
+    external_model_policy_audit_source_ingest_performed: artifacts.external_model_policy_audit?.summary?.source_ingest_performed ?? false,
+    external_model_policy_audit_external_model_execution_performed: artifacts.external_model_policy_audit?.summary?.external_model_execution_performed ?? false,
+    external_model_policy_audit_provider_request_performed: artifacts.external_model_policy_audit?.summary?.provider_request_performed ?? false,
+    external_model_policy_audit_network_access_performed: artifacts.external_model_policy_audit?.summary?.network_access_performed ?? false,
+    external_model_policy_audit_desktop_setting_mutation_allowed: artifacts.external_model_policy_audit?.summary?.desktop_setting_mutation_allowed ?? false,
+    external_model_policy_audit_provider_key_materialized: artifacts.external_model_policy_audit?.summary?.provider_key_materialized ?? false,
+    external_model_policy_audit_route_execution_performed: artifacts.external_model_policy_audit?.summary?.route_execution_performed ?? false,
+    external_model_policy_audit_server_started: artifacts.external_model_policy_audit?.summary?.server_started ?? false,
+    external_model_policy_audit_protected_action_executed: artifacts.external_model_policy_audit?.summary?.protected_action_executed ?? false,
+    external_model_policy_audit_delivery_execution_performed: artifacts.external_model_policy_audit?.summary?.delivery_execution_performed ?? false,
+    external_model_policy_audit_legal_advice_generated: artifacts.external_model_policy_audit?.summary?.legal_advice_generated ?? false,
+    external_model_policy_audit_client_facing_output_generated: artifacts.external_model_policy_audit?.summary?.client_facing_output_generated ?? false,
+    external_model_policy_audit_human_review_required: artifacts.external_model_policy_audit?.summary?.human_review_required ?? false,
+    external_model_policy_audit_client_facing_ready: artifacts.external_model_policy_audit?.summary?.client_facing_ready ?? true,
+    external_model_policy_audit_windows_baseline_stability_preserved: artifacts.external_model_policy_audit?.summary?.windows_baseline_stability_preserved ?? false,
+    external_model_policy_audit_mac_windows_completion_instability_guard: artifacts.external_model_policy_audit?.summary?.mac_windows_completion_instability_guard ?? false,
+    external_model_policy_audit_validation_item_count: artifacts.external_model_policy_audit?.summary?.validation_item_count ?? 0,
+    external_model_policy_audit_failed_checkpoint_count: artifacts.external_model_policy_audit?.summary?.failed_checkpoint_count ?? 0,
+    external_model_policy_audit_validation_error_count: artifacts.external_model_policy_audit?.summary?.validation_error_count ?? artifacts.external_model_policy_audit?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -32321,6 +32526,8 @@ function parseArgs(argv) {
     else if (arg === "--no-threat-model-refresh") parsed.threatModelRefreshPath = false;
     else if (arg === "--prompt-injection-test-suite") parsed.promptInjectionTestSuitePath = argv[++index];
     else if (arg === "--no-prompt-injection-test-suite") parsed.promptInjectionTestSuitePath = false;
+    else if (arg === "--external-model-policy-audit") parsed.externalModelPolicyAuditPath = argv[++index];
+    else if (arg === "--no-external-model-policy-audit") parsed.externalModelPolicyAuditPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

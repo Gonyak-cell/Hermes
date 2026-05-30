@@ -120,6 +120,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "dashboard:api-freeze",
   "security:threat-model",
   "security:prompt-injection-tests",
+  "security:external-model-policy-audit",
   "capabilities:manifest-v2",
   "capabilities:registry-api",
   "packs:compatibility",

@@ -3328,6 +3328,34 @@ try {
   assert.equal(promptInjectionTestValidations.collection, "prompt_injection_test_validations");
   assert.ok(promptInjectionTestValidations.count <= 30);
 
+  const externalModelPolicyAudits = await fetchJson(`${url}/api/external-model-policy-audits?external_model_policy_audit_status=complete&limit=1`);
+  assert.equal(externalModelPolicyAudits.collection, "external_model_policy_audits");
+  assert.ok(externalModelPolicyAudits.count <= 1);
+
+  const externalModelClassificationAudits = await fetchJson(`${url}/api/external-model-classification-audits?provider_transmission_policy=forbidden&limit=5`);
+  assert.equal(externalModelClassificationAudits.collection, "external_model_classification_audits");
+  assert.ok(externalModelClassificationAudits.count <= 5);
+
+  const externalModelPolicySnapshotAudits = await fetchJson(`${url}/api/external-model-policy-snapshot-audits?snapshot_comparison_status=matched&limit=5`);
+  assert.equal(externalModelPolicySnapshotAudits.collection, "external_model_policy_snapshot_audits");
+  assert.ok(externalModelPolicySnapshotAudits.count <= 5);
+
+  const externalModelRouteAudits = await fetchJson(`${url}/api/external-model-route-audits?audit_status=passed&external_transfer=true&limit=5`);
+  assert.equal(externalModelRouteAudits.collection, "external_model_route_audits");
+  assert.ok(externalModelRouteAudits.count <= 5);
+
+  const desktopProviderModelAudits = await fetchJson(`${url}/api/desktop-provider-model-audits?desktop_provider_key_visible=false&limit=5`);
+  assert.equal(desktopProviderModelAudits.collection, "desktop_provider_model_audits");
+  assert.ok(desktopProviderModelAudits.count <= 5);
+
+  const externalModelPolicyAuditBoundary = await fetchJson(`${url}/api/external-model-policy-audit-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(externalModelPolicyAuditBoundary.collection, "external_model_policy_audit_boundary");
+  assert.ok(externalModelPolicyAuditBoundary.count <= 1);
+
+  const externalModelPolicyAuditValidations = await fetchJson(`${url}/api/external-model-policy-audit-validations?status=passed&limit=5`);
+  assert.equal(externalModelPolicyAuditValidations.collection, "external_model_policy_audit_validations");
+  assert.ok(externalModelPolicyAuditValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

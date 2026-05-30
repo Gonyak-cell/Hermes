@@ -1,0 +1,309 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.hermes.local/external-model-policy-audit.schema.json",
+  "title": "External Model Policy Audit",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "external_model_policy_audit_id",
+    "capability_id",
+    "source_statuses",
+    "external_model_classification_audits",
+    "external_model_policy_snapshot_audits",
+    "external_model_route_audits",
+    "desktop_provider_model_audits",
+    "external_model_policy_audit_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "external-model-policy-audit.v1" },
+    "generated_at": { "type": "string" },
+    "external_model_policy_audit_id": { "type": "string" },
+    "capability_id": { "const": "security.external_model_policy_audit" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_statuses": {
+      "type": "array",
+      "minItems": 7,
+      "items": { "$ref": "#/$defs/source_status" }
+    },
+    "external_model_classification_audits": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/classification_audit" }
+    },
+    "external_model_policy_snapshot_audits": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/$defs/snapshot_audit" }
+    },
+    "external_model_route_audits": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/route_audit" }
+    },
+    "desktop_provider_model_audits": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/$defs/desktop_audit" }
+    },
+    "external_model_policy_audit_boundary": { "$ref": "#/$defs/boundary" },
+    "validation_items": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "source_status": {
+      "type": "object",
+      "required": ["source_id", "observed_status", "source_status", "validation_error_count"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "observed_status": { "type": "string" },
+        "source_status": { "enum": ["passed", "failed"] },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    },
+    "classification_audit": {
+      "type": "object",
+      "required": [
+        "classification",
+        "classification_ordinal",
+        "expected_external_model_policy",
+        "observed_external_model_policy",
+        "provider_transmission_policy",
+        "external_provider_transmission_allowed",
+        "external_provider_transmission_requires_approval",
+        "external_provider_transmission_forbidden",
+        "policy_snapshot_mismatch_count",
+        "snapshot_comparison_status",
+        "audit_status"
+      ],
+      "properties": {
+        "classification": { "type": "string" },
+        "classification_ordinal": { "type": "integer", "minimum": 0 },
+        "expected_external_model_policy": { "type": "string" },
+        "observed_external_model_policy": { "type": "string" },
+        "provider_transmission_policy": { "enum": ["allowed_with_audit", "approval_required", "forbidden", "unknown"] },
+        "external_provider_transmission_allowed": { "type": "boolean" },
+        "external_provider_transmission_requires_approval": { "type": "boolean" },
+        "external_provider_transmission_forbidden": { "type": "boolean" },
+        "policy_snapshot_mismatch_count": { "type": "integer", "minimum": 0 },
+        "snapshot_comparison_status": { "enum": ["matched", "mismatched", "matrix_only_no_active_snapshot"] },
+        "audit_status": { "enum": ["passed", "failed"] }
+      },
+      "additionalProperties": true
+    },
+    "snapshot_audit": {
+      "type": "object",
+      "required": [
+        "policy_snapshot_id",
+        "classification",
+        "snapshot_external_model_policy",
+        "expected_external_model_policy",
+        "external_model_policy_match",
+        "snapshot_comparison_status",
+        "audit_status"
+      ],
+      "properties": {
+        "policy_snapshot_id": { "type": "string" },
+        "classification": { "type": "string" },
+        "snapshot_external_model_policy": { "type": "string" },
+        "expected_external_model_policy": { "type": "string" },
+        "external_model_policy_match": { "type": "boolean" },
+        "snapshot_comparison_status": { "enum": ["matched", "mismatched"] },
+        "audit_status": { "enum": ["passed", "failed"] }
+      },
+      "additionalProperties": true
+    },
+    "route_audit": {
+      "type": "object",
+      "required": [
+        "classification",
+        "runtime_id",
+        "provider_boundary",
+        "external_transfer",
+        "external_model_policy",
+        "audit_required",
+        "route_policy_status",
+        "unauthorized_external_transfer",
+        "high_sensitivity_external_transfer",
+        "external_transfer_without_audit",
+        "audit_status"
+      ],
+      "properties": {
+        "classification": { "type": ["string", "null"] },
+        "runtime_id": { "type": ["string", "null"] },
+        "provider_boundary": { "type": ["string", "null"] },
+        "external_transfer": { "type": "boolean" },
+        "external_model_policy": { "type": ["string", "null"] },
+        "audit_required": { "type": "boolean" },
+        "route_policy_status": { "type": "string" },
+        "unauthorized_external_transfer": { "const": false },
+        "high_sensitivity_external_transfer": { "const": false },
+        "external_transfer_without_audit": { "const": false },
+        "audit_status": { "const": "passed" }
+      },
+      "additionalProperties": true
+    },
+    "desktop_audit": {
+      "type": "object",
+      "required": [
+        "desktop_provider_model_audit_id",
+        "label",
+        "desktop_provider_key_visible",
+        "desktop_external_model_execution_allowed",
+        "desktop_setting_mutation_allowed",
+        "audit_status"
+      ],
+      "properties": {
+        "desktop_provider_model_audit_id": { "type": "string" },
+        "label": { "type": "string" },
+        "desktop_provider_key_visible": { "const": false },
+        "desktop_external_model_execution_allowed": { "const": false },
+        "desktop_setting_mutation_allowed": { "const": false },
+        "audit_status": { "const": "passed" }
+      },
+      "additionalProperties": true
+    },
+    "boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "read_only",
+        "audit_only",
+        "external_model_execution_performed",
+        "provider_request_performed",
+        "network_access_performed",
+        "desktop_setting_mutation_allowed",
+        "provider_key_materialized",
+        "route_execution_performed",
+        "server_started",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "human_review_required",
+        "client_facing_ready",
+        "windows_baseline_stability_preserved",
+        "mac_windows_completion_instability_guard"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "read_only": { "const": true },
+        "audit_only": { "const": true },
+        "external_model_execution_performed": { "const": false },
+        "provider_request_performed": { "const": false },
+        "network_access_performed": { "const": false },
+        "desktop_setting_mutation_allowed": { "const": false },
+        "provider_key_materialized": { "const": false },
+        "route_execution_performed": { "const": false },
+        "server_started": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check_id", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "external_model_policy_audit_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "classification_audit_count",
+        "snapshot_audit_count",
+        "route_audit_count",
+        "desktop_provider_model_audit_count",
+        "unauthorized_external_transfer_count",
+        "high_sensitivity_external_transfer_count",
+        "external_transfer_without_audit_count",
+        "classification_policy_mismatch_count",
+        "snapshot_policy_mismatch_count",
+        "p3_p5_external_allow_count",
+        "desktop_provider_key_visible_count",
+        "desktop_external_model_execution_allowed_count",
+        "desktop_setting_mutation_allowed_count",
+        "read_only",
+        "audit_only",
+        "external_model_execution_performed",
+        "provider_request_performed",
+        "network_access_performed",
+        "provider_key_materialized",
+        "route_execution_performed",
+        "server_started",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "human_review_required",
+        "client_facing_ready",
+        "windows_baseline_stability_preserved",
+        "mac_windows_completion_instability_guard",
+        "validation_error_count"
+      ],
+      "properties": {
+        "external_model_policy_audit_status": { "const": "complete" },
+        "phase_slot": { "const": "P299" },
+        "previous_phase_slot": { "const": "P298" },
+        "next_phase_slot": { "const": "P300" },
+        "classification_audit_count": { "type": "integer", "minimum": 6 },
+        "snapshot_audit_count": { "type": "integer", "minimum": 3 },
+        "route_audit_count": { "type": "integer", "minimum": 1 },
+        "desktop_provider_model_audit_count": { "type": "integer", "minimum": 5 },
+        "unauthorized_external_transfer_count": { "const": 0 },
+        "high_sensitivity_external_transfer_count": { "const": 0 },
+        "external_transfer_without_audit_count": { "const": 0 },
+        "classification_policy_mismatch_count": { "const": 0 },
+        "snapshot_policy_mismatch_count": { "const": 0 },
+        "p3_p5_external_allow_count": { "const": 0 },
+        "desktop_provider_key_visible_count": { "const": 0 },
+        "desktop_external_model_execution_allowed_count": { "const": 0 },
+        "desktop_setting_mutation_allowed_count": { "const": 0 },
+        "read_only": { "const": true },
+        "audit_only": { "const": true },
+        "external_model_execution_performed": { "const": false },
+        "provider_request_performed": { "const": false },
+        "network_access_performed": { "const": false },
+        "provider_key_materialized": { "const": false },
+        "route_execution_performed": { "const": false },
+        "server_started": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true },
+        "validation_error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    }
+  }
+}

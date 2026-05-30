@@ -394,7 +394,10 @@ function parseArgs(argv) {
     else if (arg === "--command-receipt-application") parsed.commandReceiptApplicationPath = argv[++index];
     else if (arg === "--out-dir" || arg === "--out") parsed.outDir = argv[++index];
     else if (arg === "--run-at") parsed.runAt = argv[++index];
-    else if (arg === "--check") parsed.check = true;
+    else if (arg === "--check") {
+      parsed.check = true;
+      parsed.write = false;
+    }
     else throw new Error(`Unknown argument: ${arg}`);
   }
   return parsed;

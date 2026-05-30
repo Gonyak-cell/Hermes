@@ -421,7 +421,10 @@ function parseArgs(argv) {
     else if (arg === "--observability-catalog") parsed.observabilityCatalogPath = argv[++index];
     else if (arg === "--estimated-token-usd-per-1k") parsed.estimatedTokenUsdPer1k = Number(argv[++index]);
     else if (arg === "--run-at") parsed.runAt = argv[++index];
-    else if (arg === "--check") parsed.check = true;
+    else if (arg === "--check") {
+      parsed.check = true;
+      parsed.write = false;
+    }
     else throw new Error(`Unknown argument: ${arg}`);
   }
 

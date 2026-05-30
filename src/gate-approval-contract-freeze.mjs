@@ -997,7 +997,10 @@ function parseArgs(argv) {
     else if (arg === "--control-plane-human-gates") parsed.controlPlaneHumanGatesPath = argv[++index];
     else if (arg === "--protected-approval-request-pack") parsed.protectedApprovalRequestPackPath = argv[++index];
     else if (arg === "--no-protected-approval-request-pack") parsed.protectedApprovalRequestPackPath = false;
-    else if (arg === "--check") parsed.check = true;
+    else if (arg === "--check") {
+      parsed.check = true;
+      parsed.write = false;
+    }
     else if (arg === "--no-write") parsed.write = false;
     else throw new Error(`Unknown argument: ${arg}`);
   }

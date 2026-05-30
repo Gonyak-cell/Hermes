@@ -499,7 +499,10 @@ function parseArgs(argv) {
     else if (arg === "--out-dir" || arg === "--out") parsed.outDir = argv[++index];
     else if (arg === "--matter-contract-freeze") parsed.matterContractFreezePath = argv[++index];
     else if (arg === "--run-at") parsed.runAt = argv[++index];
-    else if (arg === "--check") parsed.check = true;
+    else if (arg === "--check") {
+      parsed.check = true;
+      parsed.write = false;
+    }
     else if (arg === "--no-write") parsed.write = false;
   }
   return parsed;

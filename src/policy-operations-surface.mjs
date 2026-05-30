@@ -888,7 +888,10 @@ function parseArgs(argv) {
     else if (arg === "--personal-workspace-boundary") parsed.personalWorkspaceBoundaryPath = argv[++index];
     else if (arg === "--policy-golden-fixtures") parsed.policyGoldenFixturesPath = argv[++index];
     else if (arg === "--run-at") parsed.runAt = argv[++index];
-    else if (arg === "--check") parsed.check = true;
+    else if (arg === "--check") {
+      parsed.check = true;
+      parsed.write = false;
+    }
     else throw new Error(`Unknown argument: ${arg}`);
   }
   return parsed;

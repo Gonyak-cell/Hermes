@@ -348,7 +348,10 @@ function parseArgs(argv) {
     else if (arg === "--warning-threshold") parsed.warningThreshold = Number(argv[++index]);
     else if (arg === "--critical-threshold") parsed.criticalThreshold = Number(argv[++index]);
     else if (arg === "--run-at") parsed.runAt = argv[++index];
-    else if (arg === "--check") parsed.check = true;
+    else if (arg === "--check") {
+      parsed.check = true;
+      parsed.write = false;
+    }
     else throw new Error(`Unknown argument: ${arg}`);
   }
 

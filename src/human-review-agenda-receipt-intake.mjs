@@ -383,7 +383,10 @@ function parseArgs(argv) {
     else if (arg === "--run-at") parsed.runAt = argv[++index];
     else if (arg === "--agenda") parsed.agendaPath = argv[++index];
     else if (arg === "--receipt-drafts") parsed.receiptDraftsPath = argv[++index];
-    else if (arg === "--check") parsed.check = true;
+    else if (arg === "--check") {
+      parsed.check = true;
+      parsed.write = false;
+    }
     else throw new Error(`Unknown argument: ${arg}`);
   }
   return parsed;

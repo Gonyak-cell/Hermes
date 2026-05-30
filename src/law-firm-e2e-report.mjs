@@ -667,7 +667,10 @@ export async function runLawFirmE2eReportCli(argv = process.argv.slice(2)) {
   const options = {};
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
-    if (arg === "--check") options.check = true;
+    if (arg === "--check") {
+      options.check = true;
+      options.write = false;
+    }
     else if (arg === "--out-dir") options.outDir = argv[++index];
     else if (arg === "--run-at") options.runAt = argv[++index];
   }

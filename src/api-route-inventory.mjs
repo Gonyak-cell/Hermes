@@ -530,7 +530,10 @@ function parseArgs(argv) {
     else if (arg === "--contract-inventory") parsed.contractInventoryPath = argv[++index];
     else if (arg === "--resource-expansion-freeze") parsed.resourceExpansionFreezePath = argv[++index];
     else if (arg === "--run-at") parsed.runAt = argv[++index];
-    else if (arg === "--check") parsed.check = true;
+    else if (arg === "--check") {
+      parsed.check = true;
+      parsed.write = false;
+    }
     else if (arg === "--no-write") parsed.write = false;
     else throw new Error(`Unknown argument: ${arg}`);
   }

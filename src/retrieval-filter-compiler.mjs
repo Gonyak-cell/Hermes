@@ -598,7 +598,10 @@ function parseArgs(argv) {
     else if (arg === "--roadmap") parsed.roadmapPath = argv[++index];
     else if (arg === "--out-dir") parsed.outDir = argv[++index];
     else if (arg === "--run-at") parsed.runAt = argv[++index];
-    else if (arg === "--check") parsed.check = true;
+    else if (arg === "--check") {
+      parsed.check = true;
+      parsed.write = false;
+    }
     else if (arg === "--no-write") parsed.write = false;
     else if (arg === "--help" || arg === "-h") parsed.help = true;
   }

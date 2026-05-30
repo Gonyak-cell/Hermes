@@ -729,7 +729,10 @@ function parseArgs(argv) {
   const args = { check: false };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
-    if (arg === "--check") args.check = true;
+    if (arg === "--check") {
+      args.check = true;
+      args.write = false;
+    }
     else if (arg === "--out-dir") args.outDir = argv[++index];
     else if (arg === "--source-span-store") args.sourceSpanStorePath = argv[++index];
     else if (arg === "--normalized-text-contract") args.normalizedTextContractPath = argv[++index];

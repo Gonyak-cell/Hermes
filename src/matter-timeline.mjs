@@ -864,7 +864,10 @@ function parseArgs(argv) {
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--help" || arg === "-h") parsed.help = true;
-    else if (arg === "--check") parsed.check = true;
+    else if (arg === "--check") {
+      parsed.check = true;
+      parsed.write = false;
+    }
     else if (arg === "--out-dir") parsed.outDir = argv[++index];
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];
     else if (arg === "--matter-file") matterFiles.push(argv[++index]);

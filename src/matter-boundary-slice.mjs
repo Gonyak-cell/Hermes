@@ -485,7 +485,10 @@ function parseArgs(argv) {
     else if (arg === "--store-policy") parsed.storePolicyAdapterPath = argv[++index];
     else if (arg === "--policy-operations-surface") parsed.policyOperationsSurfacePath = argv[++index];
     else if (arg === "--run-at") parsed.runAt = argv[++index];
-    else if (arg === "--check") parsed.check = true;
+    else if (arg === "--check") {
+      parsed.check = true;
+      parsed.write = false;
+    }
     else throw new Error(`Unknown argument: ${arg}`);
   }
   return parsed;

@@ -546,7 +546,10 @@ function parseArgs(argv) {
     else if (arg === "--command-queue-patch-projection") parsed.commandQueuePatchProjectionPath = argv[++index];
     else if (arg === "--held-command-resolution") parsed.heldCommandResolutionPath = argv[++index];
     else if (arg === "--run-at") parsed.runAt = argv[++index];
-    else if (arg === "--check") parsed.check = true;
+    else if (arg === "--check") {
+      parsed.check = true;
+      parsed.write = false;
+    }
     else throw new Error(`Unknown argument: ${arg}`);
   }
   return parsed;

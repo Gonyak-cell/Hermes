@@ -809,7 +809,10 @@ function parseArgs(argv) {
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--help" || arg === "-h") options.help = true;
-    else if (arg === "--check") options.check = true;
+    else if (arg === "--check") {
+      options.check = true;
+      options.write = false;
+    }
     else if (arg === "--out-dir") options.outDir = argv[++index];
     else if (arg === "--run-at") options.runAt = argv[++index];
     else if (arg === "--performance-cost-budget-report") options.performanceCostBudgetReportPath = argv[++index];

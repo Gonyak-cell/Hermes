@@ -551,7 +551,10 @@ function parseArgs(argv) {
     else if (arg === "--matter-access-policy") parsed.matterAccessPolicyEvaluatorPath = argv[++index];
     else if (arg === "--data-classification-rules") parsed.dataClassificationRuleEnginePath = argv[++index];
     else if (arg === "--run-at") parsed.runAt = argv[++index];
-    else if (arg === "--check") parsed.check = true;
+    else if (arg === "--check") {
+      parsed.check = true;
+      parsed.write = false;
+    }
     else if (arg === "--no-write") parsed.write = false;
   }
   return parsed;

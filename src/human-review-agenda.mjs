@@ -466,7 +466,10 @@ function parseArgs(argv) {
     else if (arg === "--packet-ledger") parsed.packetLedgerPath = argv[++index];
     else if (arg === "--action-plan") parsed.actionPlanPath = argv[++index];
     else if (arg === "--no-action-plan") parsed.actionPlanPath = false;
-    else if (arg === "--check") parsed.check = true;
+    else if (arg === "--check") {
+      parsed.check = true;
+      parsed.write = false;
+    }
     else throw new Error(`Unknown argument: ${arg}`);
   }
   return parsed;

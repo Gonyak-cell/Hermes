@@ -602,7 +602,10 @@ function parseArgs(argv) {
     else if (arg === "--agent-run-ledger") parsed.agentRunLedgerPath = argv[++index];
     else if (arg === "--workflow-gate-freeze") parsed.workflowGateFreezePath = argv[++index];
     else if (arg === "--desktop-companion-integration") parsed.desktopCompanionIntegrationPath = argv[++index];
-    else if (arg === "--check") parsed.check = true;
+    else if (arg === "--check") {
+      parsed.check = true;
+      parsed.write = false;
+    }
     else throw new Error(`Unknown argument: ${arg}`);
   }
   return parsed;

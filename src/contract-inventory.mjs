@@ -615,7 +615,10 @@ function parseArgs(argv) {
     else if (arg === "--review-api-source") parsed.reviewApiSourcePath = argv[++index];
     else if (arg === "--control-plane-loop-source") parsed.controlPlaneLoopSourcePath = argv[++index];
     else if (arg === "--run-at") parsed.runAt = argv[++index];
-    else if (arg === "--check") parsed.check = true;
+    else if (arg === "--check") {
+      parsed.check = true;
+      parsed.write = false;
+    }
     else throw new Error(`Unknown argument: ${arg}`);
   }
   return parsed;

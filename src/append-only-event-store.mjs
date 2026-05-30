@@ -594,7 +594,10 @@ function parseArgs(argv) {
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--help" || arg === "-h") parsed.help = true;
-    else if (arg === "--check") parsed.check = true;
+    else if (arg === "--check") {
+      parsed.check = true;
+      parsed.write = false;
+    }
     else if (arg === "--out-dir" || arg === "--out") parsed.outDir = argv[++index];
     else if (arg === "--run-at") parsed.runAt = argv[++index];
     else if (arg === "--event-envelope-ledger") parsed.eventEnvelopeLedgerPath = argv[++index];

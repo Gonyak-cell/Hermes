@@ -364,7 +364,10 @@ function parseArgs(argv) {
     if (arg === "--help" || arg === "-h") parsed.help = true;
     else if (arg === "--out-dir") parsed.outDir = argv[++index];
     else if (arg === "--run-at") parsed.runAt = argv[++index];
-    else if (arg === "--check") parsed.check = true;
+    else if (arg === "--check") {
+      parsed.check = true;
+      parsed.write = false;
+    }
     else if (optionByFlag.has(arg)) parsed[optionByFlag.get(arg)] = argv[++index];
     else throw new Error(`Unknown argument: ${arg}`);
   }

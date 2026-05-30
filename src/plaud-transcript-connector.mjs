@@ -789,7 +789,10 @@ function parseArgs(argv) {
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--help" || arg === "-h") args.help = true;
-    else if (arg === "--check") args.check = true;
+    else if (arg === "--check") {
+      args.check = true;
+      args.write = false;
+    }
     else if (arg === "--out-dir") args.outDir = argv[++index];
     else if (arg === "--connector-contract-v2") args.connectorContractV2Path = argv[++index];
     else if (arg === "--vdr-connector") args.vdrConnectorPath = argv[++index];

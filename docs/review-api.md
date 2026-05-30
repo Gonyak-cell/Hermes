@@ -42,6 +42,12 @@ Matter Cockpit UI routes expose the read-only matter cockpit UI artifact, panel 
 
 Routes: `/api/matter-cockpit-ui-artifacts`, `/api/matter-cockpit-ui-panels`, `/api/matter-cockpit-profile-cards`, `/api/matter-cockpit-timeline-rows`, `/api/matter-cockpit-task-rows`, `/api/matter-cockpit-document-rows`, `/api/matter-cockpit-evidence-rows`, `/api/matter-cockpit-approval-rows`, `/api/matter-cockpit-ui-boundary`, `/api/matter-cockpit-ui-checks`, `/api/matter-cockpit-ui-validations`.
 
+## P294 Policy Violation Queue Routes
+
+Policy Violation Queue routes expose the read-only policy violation queue artifact, panel rows, queue item rows, actor action rows, checks, boundary, and validation rows. Supported filters include `policy_violation_queue_status`, `policy_violation_queue_panel_status`, `queue_item_status`, `queue_item_type`, `policy_family`, `policy_layer`, `actor_action_status`, `actor_action_type`, `required_actor`, `severity`, `decision`, `gate_status`, `matter_id`, `tenant_id`, `runtime_id`, `classification`, `read_only`, `preview_only`, `boundary_status`, `status`, and `limit`.
+
+Routes: `/api/policy-violation-queue-artifacts`, `/api/policy-violation-queue-panels`, `/api/policy-violation-queue-items`, `/api/policy-violation-actor-actions`, `/api/policy-violation-queue-boundary`, `/api/policy-violation-queue-checks`, `/api/policy-violation-queue-validations`.
+
 ## P245 LDD RFI Generator Routes
 
 LDD RFI Generator routes expose read-only draft-only RFI packets, draft questions, missing-material links, issue links, matter summaries, and validation/boundary rows. Supported filters include `ldd_rfi_generator_status`, `ldd_rfi_matter_status`, `rfi_rule_type`, `rfi_draft_status`, `rfi_question_type`, `rfi_question_priority`, `rfi_question_status`, `rfi_missing_material_status`, `rfi_issue_link_status`, `deterministic_rfi_generation_performed`, `ldd_rfi_question_id`, `ldd_issue_record_id`, `ldd_vdr_missing_data_record_id`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.

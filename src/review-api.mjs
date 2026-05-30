@@ -6575,6 +6575,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("matter_cockpit_ui_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/policy-violation-queue-artifacts") {
+    const result = await readDashboardSourceArtifact(dashboard, "policy_violation_queue");
+    if (!result.available) {
+      return jsonResponse(503, buildError("policy_violation_queue_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_violation_queue_artifacts", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/policy-violation-queue-panels") {
+    const result = await readDashboardSourceArtifact(dashboard, "policy_violation_queue");
+    if (!result.available) {
+      return jsonResponse(503, buildError("policy_violation_queue_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_violation_queue_panels", result.artifact.policy_violation_queue_panels ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/policy-violation-queue-items") {
+    const result = await readDashboardSourceArtifact(dashboard, "policy_violation_queue");
+    if (!result.available) {
+      return jsonResponse(503, buildError("policy_violation_queue_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_violation_queue_items", result.artifact.policy_violation_queue_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/policy-violation-actor-actions") {
+    const result = await readDashboardSourceArtifact(dashboard, "policy_violation_queue");
+    if (!result.available) {
+      return jsonResponse(503, buildError("policy_violation_queue_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_violation_actor_actions", result.artifact.policy_violation_actor_actions ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/policy-violation-queue-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "policy_violation_queue");
+    if (!result.available) {
+      return jsonResponse(503, buildError("policy_violation_queue_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_violation_queue_boundary", [result.artifact.policy_violation_queue_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/policy-violation-queue-checks") {
+    const result = await readDashboardSourceArtifact(dashboard, "policy_violation_queue");
+    if (!result.available) {
+      return jsonResponse(503, buildError("policy_violation_queue_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_violation_queue_checks", result.artifact.policy_violation_queue_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/policy-violation-queue-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "policy_violation_queue");
+    if (!result.available) {
+      return jsonResponse(503, buildError("policy_violation_queue_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_violation_queue_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -13118,6 +13167,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/matter-cockpit-ui-boundary", "Matter Cockpit UI read-only boundary"),
       route("GET", "/api/matter-cockpit-ui-checks", "Matter Cockpit UI check rows"),
       route("GET", "/api/matter-cockpit-ui-validations", "Matter Cockpit UI validation rows"),
+      route("GET", "/api/policy-violation-queue-artifacts", "Policy Violation Queue artifact"),
+      route("GET", "/api/policy-violation-queue-panels", "Policy Violation Queue panel rows"),
+      route("GET", "/api/policy-violation-queue-items", "Policy Violation Queue item rows"),
+      route("GET", "/api/policy-violation-actor-actions", "Policy Violation Queue actor action rows"),
+      route("GET", "/api/policy-violation-queue-boundary", "Policy Violation Queue read-only boundary"),
+      route("GET", "/api/policy-violation-queue-checks", "Policy Violation Queue check rows"),
+      route("GET", "/api/policy-violation-queue-validations", "Policy Violation Queue validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -14353,6 +14409,14 @@ function filterItems(items, searchParams) {
     "evidence_row_status",
     "approval_row_status",
     "item_status",
+    "policy_violation_queue_status",
+    "policy_violation_queue_panel_status",
+    "queue_item_status",
+    "queue_item_type",
+    "policy_family",
+    "policy_layer",
+    "actor_action_status",
+    "actor_action_type",
     "workflow_run_id",
     "agent_run_id",
     "runtime_id",
@@ -16328,6 +16392,14 @@ function readFilterValue(item, key) {
   if (key === "evidence_row_status") return item.evidence_row_status;
   if (key === "approval_row_status") return item.approval_row_status;
   if (key === "item_status") return item.item_status;
+  if (key === "policy_violation_queue_status") return item.summary?.policy_violation_queue_status ?? item.policy_violation_queue_status;
+  if (key === "policy_violation_queue_panel_status") return item.panel_status;
+  if (key === "queue_item_status") return item.queue_item_status;
+  if (key === "queue_item_type") return item.queue_item_type;
+  if (key === "policy_family") return item.policy_family;
+  if (key === "policy_layer") return item.policy_layer;
+  if (key === "actor_action_status") return item.action_status ?? item.actor_action_status;
+  if (key === "actor_action_type") return item.actor_action_type;
   if (key === "workflow_run_id") return item.workflow_run_id;
   if (key === "agent_run_id") return item.agent_run_id;
   if (key === "runtime_id") return item.runtime_id ?? item.runtime_ids ?? item.metadata?.runtime_id;

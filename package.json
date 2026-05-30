@@ -205,6 +205,7 @@
     "litigation": "node scripts/litigation-matrix.mjs examples/project-beta-litigation-matter.json",
     "matter:cockpit": "node scripts/matter-cockpit.mjs",
     "matter:cockpit-ui": "node scripts/matter-cockpit-ui.mjs",
+    "policy:violation-queue": "node scripts/policy-violation-queue.mjs",
     "matter:document-index": "node scripts/matter-document-index.mjs",
     "matter:knowledge-graph": "node scripts/matter-knowledge-graph.mjs",
     "matter:personal-data-detector": "node scripts/matter-personal-data-detector.mjs",

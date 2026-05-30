@@ -3168,6 +3168,34 @@ try {
   assert.equal(matterCockpitUiValidations.collection, "matter_cockpit_ui_validations");
   assert.ok(matterCockpitUiValidations.count <= 20);
 
+  const policyViolationQueueArtifacts = await fetchJson(`${url}/api/policy-violation-queue-artifacts?policy_violation_queue_status=complete&limit=1`);
+  assert.equal(policyViolationQueueArtifacts.collection, "policy_violation_queue_artifacts");
+  assert.ok(policyViolationQueueArtifacts.count <= 1);
+
+  const policyViolationQueuePanels = await fetchJson(`${url}/api/policy-violation-queue-panels?policy_violation_queue_panel_status=ready&limit=4`);
+  assert.equal(policyViolationQueuePanels.collection, "policy_violation_queue_panels");
+  assert.ok(policyViolationQueuePanels.count <= 4);
+
+  const policyViolationQueueItems = await fetchJson(`${url}/api/policy-violation-queue-items?queue_item_status=open&policy_family=tool&severity=warning&read_only=true&limit=20`);
+  assert.equal(policyViolationQueueItems.collection, "policy_violation_queue_items");
+  assert.ok(policyViolationQueueItems.count <= 20);
+
+  const policyViolationActorActions = await fetchJson(`${url}/api/policy-violation-actor-actions?actor_action_status=open&actor_action_type=review_output_destination_hold&read_only=true&limit=20`);
+  assert.equal(policyViolationActorActions.collection, "policy_violation_actor_actions");
+  assert.ok(policyViolationActorActions.count <= 20);
+
+  const policyViolationQueueBoundary = await fetchJson(`${url}/api/policy-violation-queue-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(policyViolationQueueBoundary.collection, "policy_violation_queue_boundary");
+  assert.ok(policyViolationQueueBoundary.count <= 1);
+
+  const policyViolationQueueChecks = await fetchJson(`${url}/api/policy-violation-queue-checks?status=passed&limit=20`);
+  assert.equal(policyViolationQueueChecks.collection, "policy_violation_queue_checks");
+  assert.ok(policyViolationQueueChecks.count <= 20);
+
+  const policyViolationQueueValidations = await fetchJson(`${url}/api/policy-violation-queue-validations?status=passed&limit=20`);
+  assert.equal(policyViolationQueueValidations.collection, "policy_violation_queue_validations");
+  assert.ok(policyViolationQueueValidations.count <= 20);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

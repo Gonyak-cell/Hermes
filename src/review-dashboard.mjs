@@ -129,6 +129,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   sourceSpanInspectorPath: "artifacts/source-span-inspector/latest/source-span-inspector.json",
   runLedgerViewerPath: "artifacts/run-ledger-viewer/latest/run-ledger-viewer.json",
   matterCockpitUiPath: "artifacts/matter-cockpit-ui/latest/matter-cockpit-ui.json",
+  policyViolationQueuePath: "artifacts/policy-violation-queue/latest/policy-violation-queue.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -917,6 +918,11 @@ const SOURCE_DEFINITIONS = [
     option: "matterCockpitUiPath",
     source_id: "matter_cockpit_ui",
     label: "Matter Cockpit UI",
+  },
+  {
+    option: "policyViolationQueuePath",
+    source_id: "policy_violation_queue",
+    label: "Policy Violation Queue",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -2321,6 +2327,7 @@ function buildStageStatuses(artifacts, sources) {
     buildSourceSpanInspectorStage(artifacts.source_span_inspector, sourceById.get("source_span_inspector")),
     buildRunLedgerViewerStage(artifacts.run_ledger_viewer, sourceById.get("run_ledger_viewer")),
     buildMatterCockpitUiStage(artifacts.matter_cockpit_ui, sourceById.get("matter_cockpit_ui")),
+    buildPolicyViolationQueueStage(artifacts.policy_violation_queue, sourceById.get("policy_violation_queue")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -15246,6 +15253,113 @@ function buildMatterCockpitUiStage(artifact, source) {
   };
 }
 
+function buildPolicyViolationQueueStage(artifact, source) {
+  if (!artifact) return missingStage("policy_violation_queue", "Policy Violation Queue", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.policy_violation_queue_status !== "complete"
+    || summary.phase_slot !== "P294"
+    || summary.previous_phase_slot !== "P293"
+    || summary.next_phase_slot !== "P295"
+    || summary.source_policy_operations_surface_status !== "complete"
+    || summary.source_model_policy_enforcement_status !== "complete"
+    || summary.source_tool_runtime_policy_enforcement_status !== "complete"
+    || summary.source_matter_access_policy_status !== "complete"
+    || summary.source_output_destination_policy_status !== "complete"
+    || summary.source_matter_cockpit_ui_status !== "complete"
+    || summary.source_matter_cockpit_ui_phase_slot !== "P293"
+    || summary.source_matter_cockpit_ui_next_phase_slot !== "P294"
+    || summary.policy_violation_queue_panel_count !== 4
+    || summary.ready_panel_count !== 4
+    || summary.queue_item_count <= 0
+    || summary.model_queue_item_count <= 0
+    || summary.tool_queue_item_count <= 0
+    || summary.access_queue_item_count <= 0
+    || summary.output_queue_item_count <= 0
+    || summary.open_actor_action_count !== summary.queue_item_count
+    || summary.read_only !== true
+    || summary.preview_only !== true
+    || summary.queue_projection_only !== true
+    || summary.source_content_read_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.policy_mutation_allowed !== false
+    || summary.approval_application_performed !== false
+    || summary.receipt_application_performed !== false
+    || summary.protected_action_executed !== false
+    || summary.delivery_execution_performed !== false
+    || summary.route_execution_performed !== false
+    || summary.server_started !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.human_review_required !== true
+    || summary.client_facing_ready !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "policy_violation_queue",
+    label: "Policy Violation Queue",
+    status,
+    message: `${summary.queue_item_count ?? 0} queue item(s) and ${summary.open_actor_action_count ?? 0} actor action(s) ready.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      policy_violation_queue_status: summary.policy_violation_queue_status ?? "unknown",
+      policy_violation_queue_id: summary.policy_violation_queue_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_policy_operations_surface_status: summary.source_policy_operations_surface_status ?? "unknown",
+      source_policy_decision_row_count: summary.source_policy_decision_row_count ?? 0,
+      source_policy_violation_row_count: summary.source_policy_violation_row_count ?? 0,
+      source_policy_pending_approval_row_count: summary.source_policy_pending_approval_row_count ?? 0,
+      source_model_policy_enforcement_status: summary.source_model_policy_enforcement_status ?? "unknown",
+      source_tool_runtime_policy_enforcement_status: summary.source_tool_runtime_policy_enforcement_status ?? "unknown",
+      source_matter_access_policy_status: summary.source_matter_access_policy_status ?? "unknown",
+      source_output_destination_policy_status: summary.source_output_destination_policy_status ?? "unknown",
+      source_matter_cockpit_ui_status: summary.source_matter_cockpit_ui_status ?? "unknown",
+      source_matter_cockpit_ui_phase_slot: summary.source_matter_cockpit_ui_phase_slot ?? null,
+      source_matter_cockpit_ui_next_phase_slot: summary.source_matter_cockpit_ui_next_phase_slot ?? null,
+      policy_violation_queue_panel_count: summary.policy_violation_queue_panel_count ?? 0,
+      required_panel_count: summary.required_panel_count ?? 0,
+      ready_panel_count: summary.ready_panel_count ?? 0,
+      queue_item_count: summary.queue_item_count ?? 0,
+      policy_violation_item_count: summary.policy_violation_item_count ?? 0,
+      policy_hold_item_count: summary.policy_hold_item_count ?? 0,
+      model_queue_item_count: summary.model_queue_item_count ?? 0,
+      tool_queue_item_count: summary.tool_queue_item_count ?? 0,
+      access_queue_item_count: summary.access_queue_item_count ?? 0,
+      output_queue_item_count: summary.output_queue_item_count ?? 0,
+      critical_queue_item_count: summary.critical_queue_item_count ?? 0,
+      warning_queue_item_count: summary.warning_queue_item_count ?? 0,
+      open_actor_action_count: summary.open_actor_action_count ?? 0,
+      human_review_required_action_count: summary.human_review_required_action_count ?? 0,
+      read_only: summary.read_only ?? false,
+      preview_only: summary.preview_only ?? false,
+      queue_projection_only: summary.queue_projection_only ?? false,
+      source_content_read_performed: summary.source_content_read_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      policy_mutation_allowed: summary.policy_mutation_allowed ?? false,
+      approval_application_performed: summary.approval_application_performed ?? false,
+      receipt_application_performed: summary.receipt_application_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      route_execution_performed: summary.route_execution_performed ?? false,
+      server_started: summary.server_started ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      human_review_required: summary.human_review_required ?? false,
+      client_facing_ready: summary.client_facing_ready ?? true,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -22016,6 +22130,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_matter_cockpit_ui", "rerun_matter_cockpit_ui", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.policy_violation_queue?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "policy_violation_queue";
+    items.push({
+      action_item_id: `dashboard.action.policy_violation_queue.${slugify(subjectId)}`,
+      source_stage: "policy_violation_queue",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Policy Violation Queue",
+      subject_ref: {
+        subject_type: "policy_violation_queue_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_policy_violation_queue", "rerun_policy_violation_queue", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -29458,6 +29590,57 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     matter_cockpit_ui_validation_item_count: artifacts.matter_cockpit_ui?.summary?.validation_item_count ?? 0,
     matter_cockpit_ui_failed_checkpoint_count: artifacts.matter_cockpit_ui?.summary?.failed_checkpoint_count ?? 0,
     matter_cockpit_ui_validation_error_count: artifacts.matter_cockpit_ui?.summary?.validation_error_count ?? artifacts.matter_cockpit_ui?.validation?.errors?.length ?? 0,
+    policy_violation_queue_status: artifacts.policy_violation_queue?.summary?.policy_violation_queue_status ?? "unknown",
+    policy_violation_queue_id: artifacts.policy_violation_queue?.summary?.policy_violation_queue_id ?? null,
+    policy_violation_queue_phase_slot: artifacts.policy_violation_queue?.summary?.phase_slot ?? null,
+    policy_violation_queue_previous_phase_slot: artifacts.policy_violation_queue?.summary?.previous_phase_slot ?? null,
+    policy_violation_queue_next_phase_slot: artifacts.policy_violation_queue?.summary?.next_phase_slot ?? null,
+    policy_violation_queue_source_policy_operations_surface_status: artifacts.policy_violation_queue?.summary?.source_policy_operations_surface_status ?? "unknown",
+    policy_violation_queue_source_policy_decision_row_count: artifacts.policy_violation_queue?.summary?.source_policy_decision_row_count ?? 0,
+    policy_violation_queue_source_policy_violation_row_count: artifacts.policy_violation_queue?.summary?.source_policy_violation_row_count ?? 0,
+    policy_violation_queue_source_policy_pending_approval_row_count: artifacts.policy_violation_queue?.summary?.source_policy_pending_approval_row_count ?? 0,
+    policy_violation_queue_source_model_policy_enforcement_status: artifacts.policy_violation_queue?.summary?.source_model_policy_enforcement_status ?? "unknown",
+    policy_violation_queue_source_tool_runtime_policy_enforcement_status: artifacts.policy_violation_queue?.summary?.source_tool_runtime_policy_enforcement_status ?? "unknown",
+    policy_violation_queue_source_matter_access_policy_status: artifacts.policy_violation_queue?.summary?.source_matter_access_policy_status ?? "unknown",
+    policy_violation_queue_source_output_destination_policy_status: artifacts.policy_violation_queue?.summary?.source_output_destination_policy_status ?? "unknown",
+    policy_violation_queue_source_matter_cockpit_ui_status: artifacts.policy_violation_queue?.summary?.source_matter_cockpit_ui_status ?? "unknown",
+    policy_violation_queue_source_matter_cockpit_ui_phase_slot: artifacts.policy_violation_queue?.summary?.source_matter_cockpit_ui_phase_slot ?? null,
+    policy_violation_queue_source_matter_cockpit_ui_next_phase_slot: artifacts.policy_violation_queue?.summary?.source_matter_cockpit_ui_next_phase_slot ?? null,
+    policy_violation_queue_panel_count: artifacts.policy_violation_queue?.summary?.policy_violation_queue_panel_count ?? 0,
+    policy_violation_queue_required_panel_count: artifacts.policy_violation_queue?.summary?.required_panel_count ?? 0,
+    policy_violation_queue_ready_panel_count: artifacts.policy_violation_queue?.summary?.ready_panel_count ?? 0,
+    policy_violation_queue_item_count: artifacts.policy_violation_queue?.summary?.queue_item_count ?? 0,
+    policy_violation_queue_policy_violation_item_count: artifacts.policy_violation_queue?.summary?.policy_violation_item_count ?? 0,
+    policy_violation_queue_policy_hold_item_count: artifacts.policy_violation_queue?.summary?.policy_hold_item_count ?? 0,
+    policy_violation_queue_model_item_count: artifacts.policy_violation_queue?.summary?.model_queue_item_count ?? 0,
+    policy_violation_queue_tool_item_count: artifacts.policy_violation_queue?.summary?.tool_queue_item_count ?? 0,
+    policy_violation_queue_access_item_count: artifacts.policy_violation_queue?.summary?.access_queue_item_count ?? 0,
+    policy_violation_queue_output_item_count: artifacts.policy_violation_queue?.summary?.output_queue_item_count ?? 0,
+    policy_violation_queue_critical_item_count: artifacts.policy_violation_queue?.summary?.critical_queue_item_count ?? 0,
+    policy_violation_queue_warning_item_count: artifacts.policy_violation_queue?.summary?.warning_queue_item_count ?? 0,
+    policy_violation_queue_open_actor_action_count: artifacts.policy_violation_queue?.summary?.open_actor_action_count ?? 0,
+    policy_violation_queue_human_review_required_action_count: artifacts.policy_violation_queue?.summary?.human_review_required_action_count ?? 0,
+    policy_violation_queue_read_only: artifacts.policy_violation_queue?.summary?.read_only ?? false,
+    policy_violation_queue_preview_only: artifacts.policy_violation_queue?.summary?.preview_only ?? false,
+    policy_violation_queue_queue_projection_only: artifacts.policy_violation_queue?.summary?.queue_projection_only ?? false,
+    policy_violation_queue_source_content_read_performed: artifacts.policy_violation_queue?.summary?.source_content_read_performed ?? false,
+    policy_violation_queue_source_ingest_performed: artifacts.policy_violation_queue?.summary?.source_ingest_performed ?? false,
+    policy_violation_queue_policy_mutation_allowed: artifacts.policy_violation_queue?.summary?.policy_mutation_allowed ?? false,
+    policy_violation_queue_approval_application_performed: artifacts.policy_violation_queue?.summary?.approval_application_performed ?? false,
+    policy_violation_queue_receipt_application_performed: artifacts.policy_violation_queue?.summary?.receipt_application_performed ?? false,
+    policy_violation_queue_protected_action_executed: artifacts.policy_violation_queue?.summary?.protected_action_executed ?? false,
+    policy_violation_queue_delivery_execution_performed: artifacts.policy_violation_queue?.summary?.delivery_execution_performed ?? false,
+    policy_violation_queue_route_execution_performed: artifacts.policy_violation_queue?.summary?.route_execution_performed ?? false,
+    policy_violation_queue_server_started: artifacts.policy_violation_queue?.summary?.server_started ?? false,
+    policy_violation_queue_legal_advice_generated: artifacts.policy_violation_queue?.summary?.legal_advice_generated ?? false,
+    policy_violation_queue_client_facing_output_generated: artifacts.policy_violation_queue?.summary?.client_facing_output_generated ?? false,
+    policy_violation_queue_human_review_required: artifacts.policy_violation_queue?.summary?.human_review_required ?? false,
+    policy_violation_queue_client_facing_ready: artifacts.policy_violation_queue?.summary?.client_facing_ready ?? true,
+    policy_violation_queue_windows_baseline_stability_preserved: artifacts.policy_violation_queue?.summary?.windows_baseline_stability_preserved ?? false,
+    policy_violation_queue_mac_windows_completion_instability_guard: artifacts.policy_violation_queue?.summary?.mac_windows_completion_instability_guard ?? false,
+    policy_violation_queue_validation_item_count: artifacts.policy_violation_queue?.summary?.validation_item_count ?? 0,
+    policy_violation_queue_failed_checkpoint_count: artifacts.policy_violation_queue?.summary?.failed_checkpoint_count ?? 0,
+    policy_violation_queue_validation_error_count: artifacts.policy_violation_queue?.summary?.validation_error_count ?? artifacts.policy_violation_queue?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -31299,6 +31482,8 @@ function parseArgs(argv) {
     else if (arg === "--no-run-ledger-viewer") parsed.runLedgerViewerPath = false;
     else if (arg === "--matter-cockpit-ui") parsed.matterCockpitUiPath = argv[++index];
     else if (arg === "--no-matter-cockpit-ui") parsed.matterCockpitUiPath = false;
+    else if (arg === "--policy-violation-queue") parsed.policyViolationQueuePath = argv[++index];
+    else if (arg === "--no-policy-violation-queue") parsed.policyViolationQueuePath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

@@ -202,6 +202,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     source_span_inspector: "artifacts/source-span-inspector/latest/source-span-inspector.json",
     run_ledger_viewer: "artifacts/run-ledger-viewer/latest/run-ledger-viewer.json",
     matter_cockpit_ui: "artifacts/matter-cockpit-ui/latest/matter-cockpit-ui.json",
+    policy_violation_queue: "artifacts/policy-violation-queue/latest/policy-violation-queue.json",
   },
 };
 
@@ -397,6 +398,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("source_span_inspector", "Source Span Inspector", "api", "source-span-inspector.schema.json"),
   fixtureDefinition("run_ledger_viewer", "Run Ledger Viewer", "api", "run-ledger-viewer.schema.json"),
   fixtureDefinition("matter_cockpit_ui", "Matter Cockpit UI", "api", "matter-cockpit-ui.schema.json"),
+  fixtureDefinition("policy_violation_queue", "Policy Violation Queue", "api", "policy-violation-queue.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),

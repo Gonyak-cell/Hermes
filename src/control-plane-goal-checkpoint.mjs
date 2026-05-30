@@ -166,6 +166,7 @@ const GOAL_ITEMS = [
   sourceItem("source_span_inspector", "Source Span Inspector", "api", "source_span_inspector", "control-plane-source-span-inspector", { acceptance_profile: "source_span_inspector_gate" }),
   sourceItem("run_ledger_viewer", "Run Ledger Viewer", "api", "run_ledger_viewer", "control-plane-run-ledger-viewer", { acceptance_profile: "run_ledger_viewer_gate" }),
   sourceItem("matter_cockpit_ui", "Matter Cockpit UI", "api", "matter_cockpit_ui", "control-plane-matter-cockpit-ui", { acceptance_profile: "matter_cockpit_ui_gate" }),
+  sourceItem("policy_violation_queue", "Policy Violation Queue", "api", "policy_violation_queue", "control-plane-policy-violation-queue", { acceptance_profile: "policy_violation_queue_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -691,6 +692,7 @@ function evaluateStageAcceptance(item, stage) {
     "source_span_inspector_gate",
     "run_ledger_viewer_gate",
     "matter_cockpit_ui_gate",
+    "policy_violation_queue_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -6231,6 +6233,57 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Matter Cockpit UI locks P293 profile, timeline, task, document, evidence, and approval panels from existing UI and matter artifacts without document/source reads, matter/task/document/evidence mutation, approval or receipt application, delivery execution, route execution, server start, protected action execution, legal advice, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "policy_violation_queue_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.policy_violation_queue_status === "complete"
+      && metrics.phase_slot === "P294"
+      && metrics.previous_phase_slot === "P293"
+      && metrics.next_phase_slot === "P295"
+      && metrics.source_policy_operations_surface_status === "complete"
+      && metrics.source_model_policy_enforcement_status === "complete"
+      && metrics.source_tool_runtime_policy_enforcement_status === "complete"
+      && metrics.source_matter_access_policy_status === "complete"
+      && metrics.source_output_destination_policy_status === "complete"
+      && metrics.source_matter_cockpit_ui_status === "complete"
+      && metrics.source_matter_cockpit_ui_phase_slot === "P293"
+      && metrics.source_matter_cockpit_ui_next_phase_slot === "P294"
+      && metrics.policy_violation_queue_panel_count === 4
+      && metrics.required_panel_count === 4
+      && metrics.ready_panel_count === 4
+      && metrics.queue_item_count > 0
+      && metrics.policy_violation_item_count > 0
+      && metrics.policy_hold_item_count > 0
+      && metrics.model_queue_item_count > 0
+      && metrics.tool_queue_item_count > 0
+      && metrics.access_queue_item_count > 0
+      && metrics.output_queue_item_count > 0
+      && metrics.open_actor_action_count === metrics.queue_item_count
+      && metrics.human_review_required_action_count === metrics.queue_item_count
+      && metrics.read_only === true
+      && metrics.preview_only === true
+      && metrics.queue_projection_only === true
+      && metrics.source_content_read_performed === false
+      && metrics.source_ingest_performed === false
+      && metrics.policy_mutation_allowed === false
+      && metrics.approval_application_performed === false
+      && metrics.receipt_application_performed === false
+      && metrics.protected_action_executed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.route_execution_performed === false
+      && metrics.server_started === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.human_review_required === true
+      && metrics.client_facing_ready === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Policy Violation Queue locks P294 model, tool/runtime, access, and output policy queue items into read-only actor actions without source reads, policy mutation, approval or receipt application, protected action execution, delivery, route execution, server start, legal advice, or client-facing output.");
     }
   }
 

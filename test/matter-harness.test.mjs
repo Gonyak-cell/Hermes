@@ -92,6 +92,7 @@ import { runEvidenceViewerUi } from "../src/evidence-viewer-ui.mjs";
 import { runSourceSpanInspector } from "../src/source-span-inspector.mjs";
 import { runRunLedgerViewer } from "../src/run-ledger-viewer.mjs";
 import { runMatterCockpitUi } from "../src/matter-cockpit-ui.mjs";
+import { runPolicyViolationQueue } from "../src/policy-violation-queue.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -1981,6 +1982,7 @@ describe("matter harness", () => {
         sourceSpanInspectorPath: path.join(outDir, "source-span-inspector", "source-span-inspector.json"),
         runLedgerViewerPath: path.join(outDir, "run-ledger-viewer", "run-ledger-viewer.json"),
         matterCockpitUiPath: path.join(outDir, "matter-cockpit-ui", "matter-cockpit-ui.json"),
+        policyViolationQueuePath: path.join(outDir, "policy-violation-queue", "policy-violation-queue.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -12545,6 +12547,59 @@ describe("matter harness", () => {
       assert.ok(matterCockpitUi.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "matter-cockpit-ui", "summary.md"), "utf8"), /Matter Cockpit UI/);
 
+      const policyViolationQueue = await runPolicyViolationQueue({
+        policyOperationsSurfacePath: path.join(outDir, "policy-operations-surface", "policy-operations-surface.json"),
+        matterAccessPolicyEvaluatorPath: path.join(outDir, "matter-access-policy", "matter-access-policy-evaluator.json"),
+        modelPolicyEnforcementPath: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
+        toolRuntimePolicyEnforcementPath: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
+        outputDestinationPolicyEnforcementPath: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
+        matterCockpitUiPath: path.join(outDir, "matter-cockpit-ui", "matter-cockpit-ui.json"),
+        outDir: path.join(outDir, "policy-violation-queue"),
+        runAt: "2026-05-23T07:26:33.000Z",
+      });
+      const policyViolationQueueSchema = JSON.parse(await readFile("schemas/policy-violation-queue.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(policyViolationQueue, policyViolationQueueSchema, {}, "policy_violation_queue"), [], JSON.stringify(policyViolationQueue.validation.errors));
+      assert.equal(policyViolationQueue.summary.policy_violation_queue_status, "complete");
+      assert.equal(policyViolationQueue.summary.phase_slot, "P294");
+      assert.equal(policyViolationQueue.summary.previous_phase_slot, "P293");
+      assert.equal(policyViolationQueue.summary.next_phase_slot, "P295");
+      assert.equal(policyViolationQueue.summary.source_policy_operations_surface_status, "complete");
+      assert.equal(policyViolationQueue.summary.source_policy_violation_row_count, policyOperationsSurface.summary.policy_violation_row_count);
+      assert.equal(policyViolationQueue.summary.source_model_policy_enforcement_status, "complete");
+      assert.equal(policyViolationQueue.summary.source_tool_runtime_policy_enforcement_status, "complete");
+      assert.equal(policyViolationQueue.summary.source_matter_access_policy_status, "complete");
+      assert.equal(policyViolationQueue.summary.source_output_destination_policy_status, "complete");
+      assert.equal(policyViolationQueue.summary.source_matter_cockpit_ui_status, "complete");
+      assert.equal(policyViolationQueue.summary.source_matter_cockpit_ui_phase_slot, "P293");
+      assert.equal(policyViolationQueue.summary.source_matter_cockpit_ui_next_phase_slot, "P294");
+      assert.equal(policyViolationQueue.summary.policy_violation_queue_panel_count, 4);
+      assert.equal(policyViolationQueue.summary.ready_panel_count, 4);
+      assert.ok(policyViolationQueue.summary.queue_item_count > 0);
+      assert.equal(policyViolationQueue.summary.open_actor_action_count, policyViolationQueue.summary.queue_item_count);
+      assert.ok(policyViolationQueue.summary.policy_violation_item_count > 0);
+      assert.ok(policyViolationQueue.summary.policy_hold_item_count > 0);
+      assert.ok(policyViolationQueue.summary.model_queue_item_count > 0);
+      assert.ok(policyViolationQueue.summary.tool_queue_item_count > 0);
+      assert.ok(policyViolationQueue.summary.access_queue_item_count > 0);
+      assert.ok(policyViolationQueue.summary.output_queue_item_count > 0);
+      assert.equal(policyViolationQueue.summary.client_facing_output_generated, false);
+      assert.equal(policyViolationQueue.summary.policy_mutation_allowed, false);
+      assert.equal(policyViolationQueue.summary.approval_application_performed, false);
+      assert.equal(policyViolationQueue.summary.protected_action_executed, false);
+      assert.equal(policyViolationQueue.summary.delivery_execution_performed, false);
+      assert.equal(policyViolationQueue.summary.route_execution_performed, false);
+      assert.equal(policyViolationQueue.summary.server_started, false);
+      assert.equal(policyViolationQueue.summary.windows_baseline_stability_preserved, true);
+      assert.equal(policyViolationQueue.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(policyViolationQueue.summary.validation_error_count, 0);
+      assert.ok(policyViolationQueue.policy_violation_queue_panels.every((panel) => panel.panel_status === "ready" && panel.read_only && panel.preview_only && panel.queue_projection_only && panel.policy_mutation_allowed === false && panel.approval_application_allowed === false && panel.protected_action_execution_allowed === false && panel.delivery_execution_allowed === false));
+      assert.ok(policyViolationQueue.policy_violation_queue_items.every((item) => item.queue_item_status === "open" && item.read_only && item.preview_only && item.queue_projection_only && item.source_content_read_performed === false && item.policy_mutation_allowed === false && item.approval_application_allowed === false && item.protected_action_execution_allowed === false && item.delivery_execution_allowed === false && item.client_facing_ready === false));
+      assert.ok(policyViolationQueue.policy_violation_actor_actions.every((action) => action.action_status === "open" && action.read_only && action.preview_only && action.queue_projection_only && action.policy_mutation_allowed === false && action.approval_application_allowed === false && action.protected_action_execution_allowed === false && action.delivery_execution_allowed === false));
+      assert.equal(policyViolationQueue.policy_violation_queue_boundary.boundary_status, "enforced");
+      assert.ok(policyViolationQueue.policy_violation_queue_checks.every((item) => item.status === "passed"));
+      assert.ok(policyViolationQueue.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "policy-violation-queue", "summary.md"), "utf8"), /Policy Violation Queue/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -12762,6 +12817,7 @@ describe("matter harness", () => {
           source_span_inspector: path.join(outDir, "source-span-inspector", "source-span-inspector.json"),
           run_ledger_viewer: path.join(outDir, "run-ledger-viewer", "run-ledger-viewer.json"),
           matter_cockpit_ui: path.join(outDir, "matter-cockpit-ui", "matter-cockpit-ui.json"),
+          policy_violation_queue: path.join(outDir, "policy-violation-queue", "policy-violation-queue.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -12813,8 +12869,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 195);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 195);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 196);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 196);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -12997,6 +13053,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "source_span_inspector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "run_ledger_viewer"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_cockpit_ui"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "policy_violation_queue"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -13055,6 +13112,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "evidence:source-span-inspector"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "ledgers:run-viewer"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:cockpit-ui"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "policy:violation-queue"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:runtime-interface"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:approval-matrix"));
@@ -13958,6 +14016,10 @@ describe("matter harness", () => {
       assert.equal(matterCockpitUiCheckpoint?.acceptance_profile, "matter_cockpit_ui_gate");
       assert.equal(matterCockpitUiCheckpoint?.status, "passed");
       assert.equal(matterCockpitUiCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const policyViolationQueueCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-policy-violation-queue");
+      assert.equal(policyViolationQueueCheckpoint?.acceptance_profile, "policy_violation_queue_gate");
+      assert.equal(policyViolationQueueCheckpoint?.status, "passed");
+      assert.equal(policyViolationQueueCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -19392,6 +19454,40 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.matter_cockpit_ui_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.matter_cockpit_ui_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.matter_cockpit_ui_validation_error_count, 0);
+      assert.equal(dashboard.summary.policy_violation_queue_status, "complete");
+      assert.equal(dashboard.summary.policy_violation_queue_id, policyViolationQueue.summary.policy_violation_queue_id);
+      assert.equal(dashboard.summary.policy_violation_queue_phase_slot, "P294");
+      assert.equal(dashboard.summary.policy_violation_queue_previous_phase_slot, "P293");
+      assert.equal(dashboard.summary.policy_violation_queue_next_phase_slot, "P295");
+      assert.equal(dashboard.summary.policy_violation_queue_source_policy_operations_surface_status, "complete");
+      assert.equal(dashboard.summary.policy_violation_queue_source_policy_violation_row_count, policyOperationsSurface.summary.policy_violation_row_count);
+      assert.equal(dashboard.summary.policy_violation_queue_source_matter_cockpit_ui_status, "complete");
+      assert.equal(dashboard.summary.policy_violation_queue_source_matter_cockpit_ui_phase_slot, "P293");
+      assert.equal(dashboard.summary.policy_violation_queue_source_matter_cockpit_ui_next_phase_slot, "P294");
+      assert.equal(dashboard.summary.policy_violation_queue_panel_count, 4);
+      assert.equal(dashboard.summary.policy_violation_queue_ready_panel_count, 4);
+      assert.equal(dashboard.summary.policy_violation_queue_item_count, policyViolationQueue.summary.queue_item_count);
+      assert.equal(dashboard.summary.policy_violation_queue_policy_violation_item_count, policyViolationQueue.summary.policy_violation_item_count);
+      assert.equal(dashboard.summary.policy_violation_queue_policy_hold_item_count, policyViolationQueue.summary.policy_hold_item_count);
+      assert.equal(dashboard.summary.policy_violation_queue_model_item_count, policyViolationQueue.summary.model_queue_item_count);
+      assert.equal(dashboard.summary.policy_violation_queue_tool_item_count, policyViolationQueue.summary.tool_queue_item_count);
+      assert.equal(dashboard.summary.policy_violation_queue_access_item_count, policyViolationQueue.summary.access_queue_item_count);
+      assert.equal(dashboard.summary.policy_violation_queue_output_item_count, policyViolationQueue.summary.output_queue_item_count);
+      assert.equal(dashboard.summary.policy_violation_queue_open_actor_action_count, policyViolationQueue.summary.open_actor_action_count);
+      assert.equal(dashboard.summary.policy_violation_queue_read_only, true);
+      assert.equal(dashboard.summary.policy_violation_queue_preview_only, true);
+      assert.equal(dashboard.summary.policy_violation_queue_queue_projection_only, true);
+      assert.equal(dashboard.summary.policy_violation_queue_policy_mutation_allowed, false);
+      assert.equal(dashboard.summary.policy_violation_queue_approval_application_performed, false);
+      assert.equal(dashboard.summary.policy_violation_queue_protected_action_executed, false);
+      assert.equal(dashboard.summary.policy_violation_queue_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.policy_violation_queue_route_execution_performed, false);
+      assert.equal(dashboard.summary.policy_violation_queue_server_started, false);
+      assert.equal(dashboard.summary.policy_violation_queue_legal_advice_generated, false);
+      assert.equal(dashboard.summary.policy_violation_queue_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.policy_violation_queue_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.policy_violation_queue_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.policy_violation_queue_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -23241,6 +23337,37 @@ describe("matter harness", () => {
       assert.equal(matterCockpitUiStage?.metrics.legal_advice_generated, false);
       assert.equal(matterCockpitUiStage?.metrics.client_facing_output_generated, false);
       assert.equal(matterCockpitUiStage?.metrics.validation_error_count, 0);
+      const policyViolationQueueStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "policy_violation_queue");
+      assert.equal(policyViolationQueueStage?.status, "passed");
+      assert.equal(policyViolationQueueStage?.metrics.policy_violation_queue_status, "complete");
+      assert.equal(policyViolationQueueStage?.metrics.policy_violation_queue_id, policyViolationQueue.summary.policy_violation_queue_id);
+      assert.equal(policyViolationQueueStage?.metrics.phase_slot, "P294");
+      assert.equal(policyViolationQueueStage?.metrics.previous_phase_slot, "P293");
+      assert.equal(policyViolationQueueStage?.metrics.next_phase_slot, "P295");
+      assert.equal(policyViolationQueueStage?.metrics.source_policy_operations_surface_status, "complete");
+      assert.equal(policyViolationQueueStage?.metrics.source_model_policy_enforcement_status, "complete");
+      assert.equal(policyViolationQueueStage?.metrics.source_tool_runtime_policy_enforcement_status, "complete");
+      assert.equal(policyViolationQueueStage?.metrics.source_matter_access_policy_status, "complete");
+      assert.equal(policyViolationQueueStage?.metrics.source_output_destination_policy_status, "complete");
+      assert.equal(policyViolationQueueStage?.metrics.source_matter_cockpit_ui_status, "complete");
+      assert.equal(policyViolationQueueStage?.metrics.source_matter_cockpit_ui_phase_slot, "P293");
+      assert.equal(policyViolationQueueStage?.metrics.source_matter_cockpit_ui_next_phase_slot, "P294");
+      assert.equal(policyViolationQueueStage?.metrics.policy_violation_queue_panel_count, 4);
+      assert.equal(policyViolationQueueStage?.metrics.ready_panel_count, 4);
+      assert.equal(policyViolationQueueStage?.metrics.queue_item_count, policyViolationQueue.summary.queue_item_count);
+      assert.equal(policyViolationQueueStage?.metrics.open_actor_action_count, policyViolationQueue.summary.open_actor_action_count);
+      assert.equal(policyViolationQueueStage?.metrics.read_only, true);
+      assert.equal(policyViolationQueueStage?.metrics.preview_only, true);
+      assert.equal(policyViolationQueueStage?.metrics.queue_projection_only, true);
+      assert.equal(policyViolationQueueStage?.metrics.policy_mutation_allowed, false);
+      assert.equal(policyViolationQueueStage?.metrics.approval_application_performed, false);
+      assert.equal(policyViolationQueueStage?.metrics.protected_action_executed, false);
+      assert.equal(policyViolationQueueStage?.metrics.delivery_execution_performed, false);
+      assert.equal(policyViolationQueueStage?.metrics.route_execution_performed, false);
+      assert.equal(policyViolationQueueStage?.metrics.server_started, false);
+      assert.equal(policyViolationQueueStage?.metrics.legal_advice_generated, false);
+      assert.equal(policyViolationQueueStage?.metrics.client_facing_output_generated, false);
+      assert.equal(policyViolationQueueStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -23464,6 +23591,13 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-cockpit-ui-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-cockpit-ui-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-cockpit-ui-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-violation-queue-artifacts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-violation-queue-panels"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-violation-queue-items"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-violation-actor-actions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-violation-queue-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-violation-queue-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-violation-queue-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -26476,6 +26610,34 @@ describe("matter harness", () => {
       const matterCockpitUiValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-cockpit-ui-validations?status=passed", apiOptions)).body);
       assert.equal(matterCockpitUiValidationsResponse.collection, "matter_cockpit_ui_validations");
       assert.equal(matterCockpitUiValidationsResponse.count, matterCockpitUi.summary.validation_item_count);
+
+      const policyViolationQueueArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/policy-violation-queue-artifacts?policy_violation_queue_status=complete", apiOptions)).body);
+      assert.equal(policyViolationQueueArtifactsResponse.collection, "policy_violation_queue_artifacts");
+      assert.equal(policyViolationQueueArtifactsResponse.count, 1);
+
+      const policyViolationQueuePanelsResponse = JSON.parse((await buildReviewApiResponse("/api/policy-violation-queue-panels?policy_violation_queue_panel_status=ready", apiOptions)).body);
+      assert.equal(policyViolationQueuePanelsResponse.collection, "policy_violation_queue_panels");
+      assert.equal(policyViolationQueuePanelsResponse.count, policyViolationQueue.summary.policy_violation_queue_panel_count);
+
+      const policyViolationQueueItemsResponse = JSON.parse((await buildReviewApiResponse("/api/policy-violation-queue-items?queue_item_status=open&policy_family=tool&severity=warning&read_only=true", apiOptions)).body);
+      assert.equal(policyViolationQueueItemsResponse.collection, "policy_violation_queue_items");
+      assert.equal(policyViolationQueueItemsResponse.count, policyViolationQueue.policy_violation_queue_items.filter((item) => item.policy_family === "tool" && item.severity === "warning").length);
+
+      const policyViolationActorActionsResponse = JSON.parse((await buildReviewApiResponse("/api/policy-violation-actor-actions?actor_action_status=open&actor_action_type=review_output_destination_hold&read_only=true", apiOptions)).body);
+      assert.equal(policyViolationActorActionsResponse.collection, "policy_violation_actor_actions");
+      assert.equal(policyViolationActorActionsResponse.count, policyViolationQueue.policy_violation_actor_actions.filter((action) => action.actor_action_type === "review_output_destination_hold").length);
+
+      const policyViolationQueueBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/policy-violation-queue-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(policyViolationQueueBoundaryResponse.collection, "policy_violation_queue_boundary");
+      assert.equal(policyViolationQueueBoundaryResponse.count, 1);
+
+      const policyViolationQueueChecksResponse = JSON.parse((await buildReviewApiResponse("/api/policy-violation-queue-checks?status=passed", apiOptions)).body);
+      assert.equal(policyViolationQueueChecksResponse.collection, "policy_violation_queue_checks");
+      assert.equal(policyViolationQueueChecksResponse.count, policyViolationQueue.summary.validation_item_count);
+
+      const policyViolationQueueValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/policy-violation-queue-validations?status=passed", apiOptions)).body);
+      assert.equal(policyViolationQueueValidationsResponse.collection, "policy_violation_queue_validations");
+      assert.equal(policyViolationQueueValidationsResponse.count, policyViolationQueue.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

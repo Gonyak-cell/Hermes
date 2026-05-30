@@ -4,8 +4,8 @@
 
 운영 규칙:
 
-- Current actual completion baseline is Phase 305.
-- Remaining planned slots are P306-P312, 7 total.
+- Current actual completion baseline is Phase 306.
+- Remaining planned slots are P307-P312, 6 total.
 - 각 slot은 `검증 -> 보강 -> 구현 -> 검증 -> commit -> roadmap 승격` 순서로 처리한다.
 - 모든 slot은 가능하면 `npm run validate`, `npm test`, 해당 slice command, `npm run control-plane:loop`, API/dashboard smoke 중 관련 검증을 통과해야 한다.
 - For P217 and later, continue on the Windows workspace only after preserving the Windows baseline stabilization posture.
@@ -302,7 +302,7 @@
 | Slot | 목표 | 주요 산출물 | 완료 기준 |
 | --- | --- | --- | --- |
 | P305 | Law Firm E2E Report | law-firm E2E report | Promoted to Phase 305; `law_firm_e2e_report` verifies representative law-firm matter->resource->evidence->draft->citation->approval->audit scenario rows after the P304 Backup/Restore Drill baseline; keeps sources read-only; requires matter, resource, evidence lineage, draft, citation, approval, and audit chain stages to pass; preserves attorney/partner/human review gates, zero approval decisions, zero legal advice or legal conclusion, zero client-facing output, zero workflow/runtime/delivery/protected-action execution, and Windows baseline stability |
-| P306 | personal-dev E2E scenario 실행 | personal-dev E2E report | issue->plan->worktree->diff->test->PR draft->audit 통과 |
+| P306 | Personal Dev E2E Report | personal-dev E2E report | Promoted to Phase 306; `personal_dev_e2e_report` verifies representative personal-dev issue->plan->worktree->diff->test->PR draft->audit scenario rows after the P305 Law Firm E2E Report Windows baseline; keeps sources read-only; requires issue intake, plan reconciliation, worktree lane, diff review, canonical test, PR draft, and audit chain stages to pass; preserves human review gates and zero issue mutation, task-state write, command execution, git command, PR creation, GitHub API call, branch push, merge, release, rollback execution, patch application, protected mutation, external-agent invocation, legal advice, client-facing output, and Windows baseline stability |
 | P307 | creative-document E2E scenario 실행 | creative-document E2E report | template->render->layout->approval->output artifact 통과 |
 | P308 | connector/resource expansion E2E 실행 | ingestion E2E report | connector->backfill->quarantine->evidence/dashboard 통과 |
 | P309 | deployment runbook 작성 | deployment runbook | local/dev/prod-like 실행, optional Desktop Companion deployment, rollback 절차 문서화 |

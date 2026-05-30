@@ -3532,6 +3532,34 @@ try {
   assert.equal(lawFirmE2eReportValidations.collection, "law_firm_e2e_report_validations");
   assert.ok(lawFirmE2eReportValidations.count <= 5);
 
+  const personalDevE2eReportArtifacts = await fetchJson(`${url}/api/personal-dev-e2e-reports?personal_dev_e2e_report_status=complete&limit=1`);
+  assert.equal(personalDevE2eReportArtifacts.collection, "personal_dev_e2e_reports");
+  assert.ok(personalDevE2eReportArtifacts.count <= 1);
+
+  const personalDevE2eReportSources = await fetchJson(`${url}/api/personal-dev-e2e-report-sources?source_status=passed&limit=12`);
+  assert.equal(personalDevE2eReportSources.collection, "personal_dev_e2e_report_sources");
+  assert.ok(personalDevE2eReportSources.count <= 12);
+
+  const personalDevE2eReportScenarioRows = await fetchJson(`${url}/api/personal-dev-e2e-scenario-rows?scenario_status=passed&issue_gate_passed=true&plan_gate_passed=true&worktree_gate_passed=true&diff_gate_passed=true&test_gate_passed=true&pr_draft_gate_passed=true&audit_gate_passed=true&limit=5`);
+  assert.equal(personalDevE2eReportScenarioRows.collection, "personal_dev_e2e_scenario_rows");
+  assert.ok(personalDevE2eReportScenarioRows.count <= 5);
+
+  const personalDevE2eReportChainStages = await fetchJson(`${url}/api/personal-dev-e2e-chain-stages?stage_status=passed&limit=10`);
+  assert.equal(personalDevE2eReportChainStages.collection, "personal_dev_e2e_chain_stages");
+  assert.ok(personalDevE2eReportChainStages.count <= 10);
+
+  const personalDevE2eReportGateResults = await fetchJson(`${url}/api/personal-dev-e2e-gate-results?gate_status=passed&limit=10`);
+  assert.equal(personalDevE2eReportGateResults.collection, "personal_dev_e2e_gate_results");
+  assert.ok(personalDevE2eReportGateResults.count <= 10);
+
+  const personalDevE2eReportBoundary = await fetchJson(`${url}/api/personal-dev-e2e-report-boundary?boundary_status=enforced&read_only=true&client_facing_output_generated=false&limit=1`);
+  assert.equal(personalDevE2eReportBoundary.collection, "personal_dev_e2e_report_boundary");
+  assert.ok(personalDevE2eReportBoundary.count <= 1);
+
+  const personalDevE2eReportValidations = await fetchJson(`${url}/api/personal-dev-e2e-report-validations?status=passed&limit=5`);
+  assert.equal(personalDevE2eReportValidations.collection, "personal_dev_e2e_report_validations");
+  assert.ok(personalDevE2eReportValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

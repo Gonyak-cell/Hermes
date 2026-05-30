@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/personal-dev-e2e-report.schema.json",
+  "title": "Personal Dev E2E Report",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "personal_dev_e2e_report_id",
+    "capability_id",
+    "personal_dev_e2e_report_contract",
+    "source_statuses",
+    "personal_dev_e2e_scenario_rows",
+    "personal_dev_e2e_chain_stages",
+    "personal_dev_e2e_gate_results",
+    "personal_dev_e2e_report_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "personal-dev-e2e-report.v1" },
+    "personal_dev_e2e_report_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "personal_dev.e2e.report" },
+    "personal_dev_e2e_report_contract": {
+      "type": "object",
+      "required": ["contract_id", "capability_id", "phase_slot", "previous_phase_slot", "next_phase_slot", "scenario", "execution_model"],
+      "properties": {
+        "contract_id": { "const": "personal-dev-e2e-report.v1" },
+        "capability_id": { "const": "personal_dev.e2e.report" },
+        "phase_slot": { "const": "P306" },
+        "previous_phase_slot": { "const": "P305" },
+        "next_phase_slot": { "const": "P307" },
+        "scenario": { "const": "issue_to_plan_to_worktree_to_diff_to_test_to_pr_draft_to_audit" },
+        "execution_model": { "const": "deterministic_read_only_report" }
+      }
+    },
+    "source_statuses": {
+      "type": "array",
+      "minItems": 11,
+      "items": {
+        "type": "object",
+        "required": ["source_id", "source_status", "validation_error_count"],
+        "properties": {
+          "source_status": { "const": "passed" },
+          "validation_error_count": { "const": 0 }
+        }
+      }
+    },
+    "personal_dev_e2e_scenario_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "personal_dev_e2e_scenario_id",
+          "phase_slot",
+          "scenario_status",
+          "issue_gate_passed",
+          "plan_gate_passed",
+          "worktree_gate_passed",
+          "diff_gate_passed",
+          "test_gate_passed",
+          "pr_draft_gate_passed",
+          "audit_gate_passed",
+          "human_review_required",
+          "task_state_write_performed",
+          "issue_mutation_performed",
+          "command_execution_performed",
+          "pull_request_creation_performed",
+          "github_api_called",
+          "merge_performed",
+          "release_performed",
+          "rollback_execution_performed",
+          "patch_application_performed",
+          "protected_mutation_performed",
+          "external_agent_invocation_performed",
+          "legal_advice_generated",
+          "client_facing_output_generated",
+          "mutation_performed"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P306" },
+          "scenario_status": { "const": "passed" },
+          "issue_gate_passed": { "const": true },
+          "plan_gate_passed": { "const": true },
+          "worktree_gate_passed": { "const": true },
+          "diff_gate_passed": { "const": true },
+          "test_gate_passed": { "const": true },
+          "pr_draft_gate_passed": { "const": true },
+          "audit_gate_passed": { "const": true },
+          "human_review_required": { "const": true },
+          "task_state_write_performed": { "const": false },
+          "issue_mutation_performed": { "const": false },
+          "command_execution_performed": { "const": false },
+          "pull_request_creation_performed": { "const": false },
+          "github_api_called": { "const": false },
+          "merge_performed": { "const": false },
+          "release_performed": { "const": false },
+          "rollback_execution_performed": { "const": false },
+          "patch_application_performed": { "const": false },
+          "protected_mutation_performed": { "const": false },
+          "external_agent_invocation_performed": { "const": false },
+          "legal_advice_generated": { "const": false },
+          "client_facing_output_generated": { "const": false },
+          "mutation_performed": { "const": false }
+        }
+      }
+    },
+    "personal_dev_e2e_chain_stages": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "object",
+        "required": ["chain_stage", "stage_status", "read_only", "mutation_performed", "human_review_required"],
+        "properties": {
+          "chain_stage": { "enum": ["issue", "plan", "worktree", "diff", "test", "pr_draft", "audit"] },
+          "stage_status": { "const": "passed" },
+          "read_only": { "const": true },
+          "mutation_performed": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "personal_dev_e2e_gate_results": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["gate_status", "gate_violation"],
+        "properties": {
+          "gate_status": { "const": "passed" },
+          "gate_violation": { "const": false }
+        }
+      }
+    },
+    "personal_dev_e2e_report_boundary": {
+      "type": "object",
+      "required": ["boundary_status", "phase_slot", "read_only", "report_only", "command_execution_performed", "runtime_execution_performed", "pull_request_creation_performed", "github_api_called", "merge_performed", "release_performed", "protected_mutation_performed", "human_review_required", "windows_baseline_stability_preserved"],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "phase_slot": { "const": "P306" },
+        "read_only": { "const": true },
+        "report_only": { "const": true },
+        "command_execution_performed": { "const": false },
+        "runtime_execution_performed": { "const": false },
+        "pull_request_creation_performed": { "const": false },
+        "github_api_called": { "const": false },
+        "merge_performed": { "const": false },
+        "release_performed": { "const": false },
+        "protected_mutation_performed": { "const": false },
+        "human_review_required": { "const": true },
+        "windows_baseline_stability_preserved": { "const": true }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "personal_dev_e2e_report_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "failed_source_status_count",
+        "scenario_row_count",
+        "passed_scenario_row_count",
+        "failed_scenario_row_count",
+        "chain_stage_count",
+        "passed_chain_stage_count",
+        "failed_chain_stage_count",
+        "issue_to_audit_path_complete",
+        "gate_violation_count",
+        "command_execution_performed",
+        "pull_request_creation_performed",
+        "github_api_called",
+        "merge_performed",
+        "release_performed",
+        "human_review_required",
+        "windows_baseline_stability_preserved",
+        "validation_error_count"
+      ],
+      "properties": {
+        "personal_dev_e2e_report_status": { "const": "complete" },
+        "phase_slot": { "const": "P306" },
+        "previous_phase_slot": { "const": "P305" },
+        "next_phase_slot": { "const": "P307" },
+        "failed_source_status_count": { "const": 0 },
+        "failed_scenario_row_count": { "const": 0 },
+        "failed_chain_stage_count": { "const": 0 },
+        "issue_to_audit_path_complete": { "const": true },
+        "gate_violation_count": { "const": 0 },
+        "command_execution_performed": { "const": false },
+        "pull_request_creation_performed": { "const": false },
+        "github_api_called": { "const": false },
+        "merge_performed": { "const": false },
+        "release_performed": { "const": false },
+        "human_review_required": { "const": true },
+        "windows_baseline_stability_preserved": { "const": true },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

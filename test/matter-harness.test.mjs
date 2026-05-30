@@ -104,6 +104,7 @@ import { runAccessReviewReport } from "../src/access-review-report.mjs";
 import { runPerformanceCostBudgetReport } from "../src/performance-cost-budget-report.mjs";
 import { runBackupRestoreDrill } from "../src/backup-restore-drill.mjs";
 import { runLawFirmE2eReport } from "../src/law-firm-e2e-report.mjs";
+import { runPersonalDevE2eReport } from "../src/personal-dev-e2e-report.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -2005,6 +2006,7 @@ describe("matter harness", () => {
         performanceCostBudgetReportPath: path.join(outDir, "performance-cost-budget", "performance-cost-budget-report.json"),
         backupRestoreDrillPath: path.join(outDir, "backup-restore-drill", "backup-restore-drill-report.json"),
         lawFirmE2eReportPath: path.join(outDir, "law-firm-e2e-report", "law-firm-e2e-report.json"),
+        personalDevE2eReportPath: path.join(outDir, "personal-dev-e2e-report", "personal-dev-e2e-report.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -2144,6 +2146,7 @@ describe("matter harness", () => {
         performanceCostBudgetReportPath: false,
         backupRestoreDrillPath: false,
         lawFirmE2eReportPath: false,
+        personalDevE2eReportPath: false,
         observabilityFreezePath: false,
         capabilityManifestV2Path: false,
         packManifestCompatibilityPath: false,
@@ -13377,6 +13380,7 @@ describe("matter harness", () => {
         performanceCostBudgetReportPath: false,
         backupRestoreDrillPath: false,
         lawFirmE2eReportPath: false,
+        personalDevE2eReportPath: false,
         outDir: path.join(outDir, "dashboard-pre-checkpoint"),
         runAt: "2026-05-23T06:35:08.000Z",
       });
@@ -15004,6 +15008,72 @@ describe("matter harness", () => {
       assert.match(await readFile(path.join(outDir, "law-firm-e2e-report", "summary.md"), "utf8"), /Law Firm E2E Report/);
 
       contractGoldenFixtureArtifactPaths.law_firm_e2e_report = path.join(outDir, "law-firm-e2e-report", "law-firm-e2e-report.json");
+      const personalDevE2eReport = await runPersonalDevE2eReport({
+        lawFirmE2eReportPath: path.join(outDir, "law-firm-e2e-report", "law-firm-e2e-report.json"),
+        personalDevE2eFreezePath: path.join(outDir, "personal-dev-e2e-freeze", "personal-dev-e2e-freeze.json"),
+        issueIntakeAdapterPath: path.join(outDir, "issue-intake-adapter", "issue-intake-adapter.json"),
+        planRequestContractPath: path.join(outDir, "plan-request-contract", "plan-request-contract.json"),
+        planReconciliationPath: path.join(outDir, "plan-reconciliation", "plan-reconciliation.json"),
+        devLaneLedgerPath: path.join(outDir, "dev-lane-ledger", "dev-lane-ledger.json"),
+        implementationPatchCapturePath: path.join(outDir, "implementation-patch-capture", "implementation-patch-capture.json"),
+        diffReviewGatePath: path.join(outDir, "diff-review-gate", "diff-review-gate.json"),
+        canonicalTestMatrixPath: path.join(outDir, "canonical-test-matrix", "canonical-test-matrix.json"),
+        prDraftArtifactPath: path.join(outDir, "pr-draft-artifact", "pr-draft-artifact.json"),
+        auditEventLedgerPath: path.join(outDir, "audit-event-ledger", "audit-event-ledger.json"),
+        outDir: path.join(outDir, "personal-dev-e2e-report"),
+        runAt: "2026-05-23T07:27:36.250Z",
+      });
+      const personalDevE2eReportSchema = JSON.parse(await readFile("schemas/personal-dev-e2e-report.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(personalDevE2eReport, personalDevE2eReportSchema, {}, "personal_dev_e2e_report"), [], JSON.stringify(personalDevE2eReport.validation.errors));
+      assert.equal(personalDevE2eReport.summary.personal_dev_e2e_report_status, "complete");
+      assert.equal(personalDevE2eReport.summary.phase_slot, "P306");
+      assert.equal(personalDevE2eReport.summary.previous_phase_slot, "P305");
+      assert.equal(personalDevE2eReport.summary.next_phase_slot, "P307");
+      assert.equal(personalDevE2eReport.summary.source_law_firm_e2e_report_status, "complete");
+      assert.equal(personalDevE2eReport.summary.source_law_firm_e2e_report_phase_slot, "P305");
+      assert.equal(personalDevE2eReport.summary.source_law_firm_e2e_report_next_phase_slot, "P306");
+      assert.equal(personalDevE2eReport.summary.failed_source_status_count, 0);
+      assert.equal(personalDevE2eReport.summary.scenario_row_count, 1);
+      assert.equal(personalDevE2eReport.summary.passed_scenario_row_count, 1);
+      assert.equal(personalDevE2eReport.summary.chain_stage_count, 7);
+      assert.equal(personalDevE2eReport.summary.passed_chain_stage_count, 7);
+      assert.equal(personalDevE2eReport.summary.issue_to_audit_path_complete, true);
+      assert.equal(personalDevE2eReport.summary.issue_stage_passed_count, 1);
+      assert.equal(personalDevE2eReport.summary.plan_stage_passed_count, 1);
+      assert.equal(personalDevE2eReport.summary.worktree_stage_passed_count, 1);
+      assert.equal(personalDevE2eReport.summary.diff_stage_passed_count, 1);
+      assert.equal(personalDevE2eReport.summary.test_stage_passed_count, 1);
+      assert.equal(personalDevE2eReport.summary.pr_draft_stage_passed_count, 1);
+      assert.equal(personalDevE2eReport.summary.audit_stage_passed_count, 1);
+      assert.ok(personalDevE2eReport.summary.issue_record_count >= 1);
+      assert.ok(personalDevE2eReport.summary.plan_request_count >= 2);
+      assert.ok(personalDevE2eReport.summary.worktree_record_count >= 1);
+      assert.ok(personalDevE2eReport.summary.patch_record_count >= 1);
+      assert.ok(personalDevE2eReport.summary.required_test_dimension_count >= 1);
+      assert.ok(personalDevE2eReport.summary.pr_draft_output_artifact_count >= 1);
+      assert.equal(personalDevE2eReport.summary.gate_violation_count, 0);
+      assert.equal(personalDevE2eReport.summary.read_only, true);
+      assert.equal(personalDevE2eReport.summary.report_only, true);
+      assert.equal(personalDevE2eReport.summary.task_state_write_performed, false);
+      assert.equal(personalDevE2eReport.summary.issue_mutation_performed, false);
+      assert.equal(personalDevE2eReport.summary.command_execution_performed, false);
+      assert.equal(personalDevE2eReport.summary.pull_request_creation_performed, false);
+      assert.equal(personalDevE2eReport.summary.github_api_called, false);
+      assert.equal(personalDevE2eReport.summary.merge_performed, false);
+      assert.equal(personalDevE2eReport.summary.release_performed, false);
+      assert.equal(personalDevE2eReport.summary.external_agent_invocation_performed, false);
+      assert.equal(personalDevE2eReport.summary.human_review_required, true);
+      assert.equal(personalDevE2eReport.summary.windows_baseline_stability_preserved, true);
+      assert.equal(personalDevE2eReport.summary.validation_error_count, 0);
+      assert.ok(personalDevE2eReport.source_statuses.every((row) => row.source_status === "passed"));
+      assert.ok(personalDevE2eReport.personal_dev_e2e_scenario_rows.every((row) => row.scenario_status === "passed" && row.issue_gate_passed && row.plan_gate_passed && row.worktree_gate_passed && row.diff_gate_passed && row.test_gate_passed && row.pr_draft_gate_passed && row.audit_gate_passed));
+      assert.ok(personalDevE2eReport.personal_dev_e2e_chain_stages.every((row) => row.stage_status === "passed" && row.read_only && !row.mutation_performed));
+      assert.ok(personalDevE2eReport.personal_dev_e2e_gate_results.every((row) => row.gate_status === "passed" && !row.gate_violation));
+      assert.equal(personalDevE2eReport.personal_dev_e2e_report_boundary.boundary_status, "enforced");
+      assert.ok(personalDevE2eReport.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "personal-dev-e2e-report", "summary.md"), "utf8"), /Personal Dev E2E Report/);
+
+      contractGoldenFixtureArtifactPaths.personal_dev_e2e_report = path.join(outDir, "personal-dev-e2e-report", "personal-dev-e2e-report.json");
       contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: contractGoldenFixtureArtifactPaths,
         fixtureIds: Object.keys(contractGoldenFixtureArtifactPaths),
@@ -15015,8 +15085,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 207);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 207);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 208);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 208);
       assert.equal(contractGoldenFixtures.summary.missing_artifact_count, 0);
       assert.equal(contractGoldenFixtures.summary.validation_error_count, 0);
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "dashboard_api_freeze"));
@@ -15029,6 +15099,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "performance_cost_budget_report"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "backup_restore_drill"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "law_firm_e2e_report"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "personal_dev_e2e_report"));
 
       contractValidationSuite = await runContractValidationSuite({
         contractGoldenFixturesPath: path.join(outDir, "contract-golden-fixtures", "contract-golden-fixtures.json"),
@@ -15042,8 +15113,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractValidationSuite.summary.validation_suite_status, "complete");
-      assert.equal(contractValidationSuite.summary.fixture_count, 207);
-      assert.equal(contractValidationSuite.summary.validated_fixture_count, 207);
+      assert.equal(contractValidationSuite.summary.fixture_count, 208);
+      assert.equal(contractValidationSuite.summary.validated_fixture_count, 208);
       assert.equal(contractValidationSuite.summary.schema_invalid_fixture_count, 0);
       assert.equal(contractValidationSuite.summary.regression_failed_count, 0);
       assert.equal(contractValidationSuite.summary.missing_package_script_count, 0);
@@ -15058,6 +15129,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "compliance:performance-cost-budget-report"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "compliance:backup-restore-drill"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:e2e-report"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:e2e-report"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
 
       const dashboard = await runReviewDashboard({
@@ -15130,6 +15202,10 @@ describe("matter harness", () => {
       assert.equal(lawFirmE2eReportCheckpoint?.acceptance_profile, "law_firm_e2e_report_gate");
       assert.equal(lawFirmE2eReportCheckpoint?.status, "passed");
       assert.equal(lawFirmE2eReportCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const personalDevE2eReportCheckpoint = dashboardApiFreezeGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-personal-dev-e2e-report");
+      assert.equal(personalDevE2eReportCheckpoint?.acceptance_profile, "personal_dev_e2e_report_gate");
+      assert.equal(personalDevE2eReportCheckpoint?.status, "passed");
+      assert.equal(personalDevE2eReportCheckpoint?.implementation_status, "passed_with_operational_gate");
       assert.equal(dashboard.summary.evidence_approved_count, 1);
       assert.equal(dashboard.summary.evidence_review_draft_item_count, evidenceReviewDraft.summary.review_item_count);
       assert.equal(dashboard.summary.evidence_review_draft_attorney_count, evidenceReviewDraft.summary.attorney_review_count);
@@ -20933,6 +21009,47 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.law_firm_e2e_report_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.law_firm_e2e_report_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.law_firm_e2e_report_validation_error_count, 0);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_status, "complete");
+      assert.equal(dashboard.summary.personal_dev_e2e_report_id, personalDevE2eReport.summary.personal_dev_e2e_report_id);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_phase_slot, "P306");
+      assert.equal(dashboard.summary.personal_dev_e2e_report_previous_phase_slot, "P305");
+      assert.equal(dashboard.summary.personal_dev_e2e_report_next_phase_slot, "P307");
+      assert.equal(dashboard.summary.personal_dev_e2e_report_source_law_firm_e2e_report_status, "complete");
+      assert.equal(dashboard.summary.personal_dev_e2e_report_source_law_firm_e2e_report_phase_slot, "P305");
+      assert.equal(dashboard.summary.personal_dev_e2e_report_source_law_firm_e2e_report_next_phase_slot, "P306");
+      assert.equal(dashboard.summary.personal_dev_e2e_report_failed_source_status_count, 0);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_scenario_row_count, personalDevE2eReport.summary.scenario_row_count);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_passed_scenario_row_count, personalDevE2eReport.summary.passed_scenario_row_count);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_failed_scenario_row_count, 0);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_chain_stage_count, 7);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_passed_chain_stage_count, 7);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_failed_chain_stage_count, 0);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_issue_stage_passed_count, 1);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_plan_stage_passed_count, 1);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_worktree_stage_passed_count, 1);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_diff_stage_passed_count, 1);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_test_stage_passed_count, 1);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_pr_draft_stage_passed_count, 1);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_audit_stage_passed_count, 1);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_issue_to_audit_path_complete, true);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_gate_violation_count, 0);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_read_only, true);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_report_only, true);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_task_state_write_performed, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_issue_mutation_performed, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_command_execution_performed, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_pull_request_creation_performed, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_github_api_called, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_merge_performed, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_release_performed, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_protected_mutation_performed, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_external_agent_invocation_performed, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_human_review_required, true);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_desktop_read_only, true);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.personal_dev_e2e_report_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -25326,6 +25443,42 @@ describe("matter harness", () => {
       assert.equal(lawFirmE2eReportStage?.metrics.windows_baseline_stability_preserved, true);
       assert.equal(lawFirmE2eReportStage?.metrics.mac_windows_completion_instability_guard, true);
       assert.equal(lawFirmE2eReportStage?.metrics.validation_error_count, 0);
+      const personalDevE2eReportStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "personal_dev_e2e_report");
+      assert.equal(personalDevE2eReportStage?.status, "passed");
+      assert.equal(personalDevE2eReportStage?.metrics.personal_dev_e2e_report_status, "complete");
+      assert.equal(personalDevE2eReportStage?.metrics.personal_dev_e2e_report_id, personalDevE2eReport.summary.personal_dev_e2e_report_id);
+      assert.equal(personalDevE2eReportStage?.metrics.phase_slot, "P306");
+      assert.equal(personalDevE2eReportStage?.metrics.previous_phase_slot, "P305");
+      assert.equal(personalDevE2eReportStage?.metrics.next_phase_slot, "P307");
+      assert.equal(personalDevE2eReportStage?.metrics.source_law_firm_e2e_report_status, "complete");
+      assert.equal(personalDevE2eReportStage?.metrics.failed_source_status_count, 0);
+      assert.equal(personalDevE2eReportStage?.metrics.scenario_row_count, personalDevE2eReport.summary.scenario_row_count);
+      assert.equal(personalDevE2eReportStage?.metrics.passed_scenario_row_count, personalDevE2eReport.summary.passed_scenario_row_count);
+      assert.equal(personalDevE2eReportStage?.metrics.chain_stage_count, 7);
+      assert.equal(personalDevE2eReportStage?.metrics.passed_chain_stage_count, 7);
+      assert.equal(personalDevE2eReportStage?.metrics.issue_stage_passed_count, 1);
+      assert.equal(personalDevE2eReportStage?.metrics.plan_stage_passed_count, 1);
+      assert.equal(personalDevE2eReportStage?.metrics.worktree_stage_passed_count, 1);
+      assert.equal(personalDevE2eReportStage?.metrics.diff_stage_passed_count, 1);
+      assert.equal(personalDevE2eReportStage?.metrics.test_stage_passed_count, 1);
+      assert.equal(personalDevE2eReportStage?.metrics.pr_draft_stage_passed_count, 1);
+      assert.equal(personalDevE2eReportStage?.metrics.audit_stage_passed_count, 1);
+      assert.equal(personalDevE2eReportStage?.metrics.issue_to_audit_path_complete, true);
+      assert.equal(personalDevE2eReportStage?.metrics.gate_violation_count, 0);
+      assert.equal(personalDevE2eReportStage?.metrics.read_only, true);
+      assert.equal(personalDevE2eReportStage?.metrics.report_only, true);
+      assert.equal(personalDevE2eReportStage?.metrics.task_state_write_performed, false);
+      assert.equal(personalDevE2eReportStage?.metrics.issue_mutation_performed, false);
+      assert.equal(personalDevE2eReportStage?.metrics.command_execution_performed, false);
+      assert.equal(personalDevE2eReportStage?.metrics.pull_request_creation_performed, false);
+      assert.equal(personalDevE2eReportStage?.metrics.github_api_called, false);
+      assert.equal(personalDevE2eReportStage?.metrics.merge_performed, false);
+      assert.equal(personalDevE2eReportStage?.metrics.release_performed, false);
+      assert.equal(personalDevE2eReportStage?.metrics.external_agent_invocation_performed, false);
+      assert.equal(personalDevE2eReportStage?.metrics.human_review_required, true);
+      assert.equal(personalDevE2eReportStage?.metrics.desktop_read_only, true);
+      assert.equal(personalDevE2eReportStage?.metrics.desktop_source_of_truth, false);
+      assert.equal(personalDevE2eReportStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -28991,6 +29144,34 @@ describe("matter harness", () => {
       const lawFirmE2eReportValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/law-firm-e2e-report-validations?status=passed", apiOptions)).body);
       assert.equal(lawFirmE2eReportValidationsResponse.collection, "law_firm_e2e_report_validations");
       assert.equal(lawFirmE2eReportValidationsResponse.count, lawFirmE2eReport.summary.validation_item_count);
+
+      const personalDevE2eReportArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-e2e-reports?personal_dev_e2e_report_status=complete", apiOptions)).body);
+      assert.equal(personalDevE2eReportArtifactsResponse.collection, "personal_dev_e2e_reports");
+      assert.equal(personalDevE2eReportArtifactsResponse.count, 1);
+
+      const personalDevE2eReportSourcesResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-e2e-report-sources?source_status=passed", apiOptions)).body);
+      assert.equal(personalDevE2eReportSourcesResponse.collection, "personal_dev_e2e_report_sources");
+      assert.equal(personalDevE2eReportSourcesResponse.count, personalDevE2eReport.summary.source_status_count);
+
+      const personalDevE2eReportScenarioRowsResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-e2e-scenario-rows?scenario_status=passed&issue_gate_passed=true&plan_gate_passed=true&worktree_gate_passed=true&diff_gate_passed=true&test_gate_passed=true&pr_draft_gate_passed=true&audit_gate_passed=true", apiOptions)).body);
+      assert.equal(personalDevE2eReportScenarioRowsResponse.collection, "personal_dev_e2e_scenario_rows");
+      assert.equal(personalDevE2eReportScenarioRowsResponse.count, personalDevE2eReport.summary.scenario_row_count);
+
+      const personalDevE2eReportChainStagesResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-e2e-chain-stages?stage_status=passed", apiOptions)).body);
+      assert.equal(personalDevE2eReportChainStagesResponse.collection, "personal_dev_e2e_chain_stages");
+      assert.equal(personalDevE2eReportChainStagesResponse.count, personalDevE2eReport.summary.chain_stage_count);
+
+      const personalDevE2eReportGateResultsResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-e2e-gate-results?gate_status=passed", apiOptions)).body);
+      assert.equal(personalDevE2eReportGateResultsResponse.collection, "personal_dev_e2e_gate_results");
+      assert.equal(personalDevE2eReportGateResultsResponse.count, personalDevE2eReport.summary.gate_result_count);
+
+      const personalDevE2eReportBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-e2e-report-boundary?boundary_status=enforced&read_only=true&client_facing_output_generated=false", apiOptions)).body);
+      assert.equal(personalDevE2eReportBoundaryResponse.collection, "personal_dev_e2e_report_boundary");
+      assert.equal(personalDevE2eReportBoundaryResponse.count, 1);
+
+      const personalDevE2eReportValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-e2e-report-validations?status=passed", apiOptions)).body);
+      assert.equal(personalDevE2eReportValidationsResponse.collection, "personal_dev_e2e_report_validations");
+      assert.equal(personalDevE2eReportValidationsResponse.count, personalDevE2eReport.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

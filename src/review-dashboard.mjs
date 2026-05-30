@@ -88,6 +88,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   technicalDebtLedgerPath: "artifacts/technical-debt-ledger/latest/technical-debt-ledger.json",
   personalDevDashboardApiPath: "artifacts/personal-dev-dashboard-api/latest/personal-dev-dashboard-api.json",
   personalDevE2eFreezePath: "artifacts/personal-dev-e2e-freeze/latest/personal-dev-e2e-freeze.json",
+  personalDevE2eReportPath: "artifacts/personal-dev-e2e-report/latest/personal-dev-e2e-report.json",
   creativeDocumentPackManifestPath: "artifacts/creative-document-pack-manifest/latest/creative-document-pack-manifest.json",
   templateRegistryPath: "artifacts/template-registry/latest/template-registry.json",
   styleRegistryPath: "artifacts/style-registry/latest/style-registry.json",
@@ -724,6 +725,11 @@ const SOURCE_DEFINITIONS = [
     option: "personalDevE2eFreezePath",
     source_id: "personal_dev_e2e_freeze",
     label: "Personal Dev E2E Freeze",
+  },
+  {
+    option: "personalDevE2eReportPath",
+    source_id: "personal_dev_e2e_report",
+    label: "Personal Dev E2E Report",
   },
   {
     option: "creativeDocumentPackManifestPath",
@@ -2078,6 +2084,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "technical_debt_ledger") return data.summary ?? {};
   if (sourceId === "personal_dev_dashboard_api") return data.summary ?? {};
   if (sourceId === "personal_dev_e2e_freeze") return data.summary ?? {};
+  if (sourceId === "personal_dev_e2e_report") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -2405,6 +2412,7 @@ function buildStageStatuses(artifacts, sources) {
     buildPerformanceCostBudgetReportStage(artifacts.performance_cost_budget_report, sourceById.get("performance_cost_budget_report")),
     buildBackupRestoreDrillStage(artifacts.backup_restore_drill, sourceById.get("backup_restore_drill")),
     buildLawFirmE2eReportStage(artifacts.law_firm_e2e_report, sourceById.get("law_firm_e2e_report")),
+    buildPersonalDevE2eReportStage(artifacts.personal_dev_e2e_report, sourceById.get("personal_dev_e2e_report")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -16852,6 +16860,182 @@ function buildLawFirmE2eReportStage(artifact, source) {
   };
 }
 
+function buildPersonalDevE2eReportStage(artifact, source) {
+  if (!artifact) return missingStage("personal_dev_e2e_report", "Personal Dev E2E Report", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.personal_dev_e2e_report_status !== "complete"
+    || summary.phase_slot !== "P306"
+    || summary.previous_phase_slot !== "P305"
+    || summary.next_phase_slot !== "P307"
+    || summary.source_law_firm_e2e_report_status !== "complete"
+    || summary.source_law_firm_e2e_report_phase_slot !== "P305"
+    || summary.source_law_firm_e2e_report_next_phase_slot !== "P306"
+    || summary.failed_source_status_count !== 0
+    || summary.scenario_row_count < 1
+    || summary.passed_scenario_row_count !== summary.scenario_row_count
+    || summary.failed_scenario_row_count !== 0
+    || summary.chain_stage_count < 7
+    || summary.passed_chain_stage_count < 7
+    || summary.failed_chain_stage_count !== 0
+    || summary.issue_to_audit_path_complete !== true
+    || summary.issue_stage_passed_count < 1
+    || summary.plan_stage_passed_count < 1
+    || summary.worktree_stage_passed_count < 1
+    || summary.diff_stage_passed_count < 1
+    || summary.test_stage_passed_count < 1
+    || summary.pr_draft_stage_passed_count < 1
+    || summary.audit_stage_passed_count < 1
+    || summary.issue_record_count < 1
+    || summary.normalized_task_count < 1
+    || summary.issue_task_binding_count < 1
+    || summary.plan_request_count < 2
+    || summary.ready_plan_request_count < 2
+    || summary.plan_candidate_count < 2
+    || summary.unresolved_conflict_count !== 0
+    || summary.dev_lane_count < 1
+    || summary.branch_record_count < 1
+    || summary.worktree_record_count < 1
+    || summary.patch_record_count < 1
+    || summary.diff_capture_count < 1
+    || summary.diff_review_result_count < 1
+    || summary.passed_with_human_gate_count !== summary.diff_review_result_count
+    || summary.required_test_dimension_count < 1
+    || summary.passed_required_test_dimension_count !== summary.required_test_dimension_count
+    || summary.failed_test_dimension_count !== 0
+    || summary.pr_draft_output_artifact_count < 1
+    || summary.gate_violation_count !== 0
+    || summary.read_only !== true
+    || summary.report_only !== true
+    || summary.task_state_write_performed !== false
+    || summary.issue_mutation_performed !== false
+    || summary.command_execution_performed !== false
+    || summary.git_command_executed !== false
+    || summary.filesystem_mutation_performed !== false
+    || summary.patch_application_performed !== false
+    || summary.protected_mutation_performed !== false
+    || summary.runtime_execution_performed !== false
+    || summary.external_agent_invocation_performed !== false
+    || summary.pull_request_creation_performed !== false
+    || summary.github_api_called !== false
+    || summary.branch_push_performed !== false
+    || summary.merge_performed !== false
+    || summary.release_performed !== false
+    || summary.rollback_execution_performed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.human_review_required !== true
+    || summary.desktop_read_only !== true
+    || summary.desktop_source_of_truth !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "personal_dev_e2e_report",
+    label: "Personal Dev E2E Report",
+    status,
+    message: `${summary.passed_chain_stage_count ?? 0}/${summary.chain_stage_count ?? 0} chain stage(s), ${summary.passed_scenario_row_count ?? 0}/${summary.scenario_row_count ?? 0} scenario row(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      personal_dev_e2e_report_status: summary.personal_dev_e2e_report_status ?? "unknown",
+      personal_dev_e2e_report_id: summary.personal_dev_e2e_report_id ?? artifact.personal_dev_e2e_report_id ?? null,
+      capability_id: summary.capability_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_status_count: summary.source_status_count ?? 0,
+      passed_source_status_count: summary.passed_source_status_count ?? 0,
+      failed_source_status_count: summary.failed_source_status_count ?? 0,
+      source_law_firm_e2e_report_status: summary.source_law_firm_e2e_report_status ?? "unknown",
+      source_law_firm_e2e_report_phase_slot: summary.source_law_firm_e2e_report_phase_slot ?? null,
+      source_law_firm_e2e_report_next_phase_slot: summary.source_law_firm_e2e_report_next_phase_slot ?? null,
+      source_personal_dev_e2e_freeze_status: summary.source_personal_dev_e2e_freeze_status ?? "unknown",
+      source_personal_dev_e2e_freeze_issue_to_pr_path_complete: summary.source_personal_dev_e2e_freeze_issue_to_pr_path_complete ?? false,
+      scenario_row_count: summary.scenario_row_count ?? 0,
+      passed_scenario_row_count: summary.passed_scenario_row_count ?? 0,
+      failed_scenario_row_count: summary.failed_scenario_row_count ?? 0,
+      chain_stage_count: summary.chain_stage_count ?? 0,
+      passed_chain_stage_count: summary.passed_chain_stage_count ?? 0,
+      failed_chain_stage_count: summary.failed_chain_stage_count ?? 0,
+      issue_stage_passed_count: summary.issue_stage_passed_count ?? 0,
+      plan_stage_passed_count: summary.plan_stage_passed_count ?? 0,
+      worktree_stage_passed_count: summary.worktree_stage_passed_count ?? 0,
+      diff_stage_passed_count: summary.diff_stage_passed_count ?? 0,
+      test_stage_passed_count: summary.test_stage_passed_count ?? 0,
+      pr_draft_stage_passed_count: summary.pr_draft_stage_passed_count ?? 0,
+      audit_stage_passed_count: summary.audit_stage_passed_count ?? 0,
+      issue_to_audit_path_complete: summary.issue_to_audit_path_complete ?? false,
+      issue_source_count: summary.issue_source_count ?? 0,
+      issue_record_count: summary.issue_record_count ?? 0,
+      normalized_task_count: summary.normalized_task_count ?? 0,
+      issue_task_binding_count: summary.issue_task_binding_count ?? 0,
+      plan_request_count: summary.plan_request_count ?? 0,
+      ready_plan_request_count: summary.ready_plan_request_count ?? 0,
+      plan_candidate_count: summary.plan_candidate_count ?? 0,
+      ready_plan_candidate_count: summary.ready_plan_candidate_count ?? 0,
+      unresolved_conflict_count: summary.unresolved_conflict_count ?? 0,
+      selected_scope_item_count: summary.selected_scope_item_count ?? 0,
+      dev_lane_count: summary.dev_lane_count ?? 0,
+      branch_record_count: summary.branch_record_count ?? 0,
+      worktree_record_count: summary.worktree_record_count ?? 0,
+      materialized_worktree_count: summary.materialized_worktree_count ?? 0,
+      patch_record_count: summary.patch_record_count ?? 0,
+      diff_capture_count: summary.diff_capture_count ?? 0,
+      diff_review_result_count: summary.diff_review_result_count ?? 0,
+      passed_with_human_gate_count: summary.passed_with_human_gate_count ?? 0,
+      required_test_dimension_count: summary.required_test_dimension_count ?? 0,
+      passed_required_test_dimension_count: summary.passed_required_test_dimension_count ?? 0,
+      failed_test_dimension_count: summary.failed_test_dimension_count ?? 0,
+      pr_draft_output_artifact_count: summary.pr_draft_output_artifact_count ?? 0,
+      pr_draft_section_count: summary.pr_draft_section_count ?? 0,
+      test_evidence_count: summary.test_evidence_count ?? 0,
+      risk_count: summary.risk_count ?? 0,
+      rollback_step_count: summary.rollback_step_count ?? 0,
+      audit_trail_record_count: summary.audit_trail_record_count ?? 0,
+      separated_audit_record_count: summary.separated_audit_record_count ?? 0,
+      human_review_required_audit_record_count: summary.human_review_required_audit_record_count ?? 0,
+      protected_action_executed_audit_record_count: summary.protected_action_executed_audit_record_count ?? 0,
+      gate_result_count: summary.gate_result_count ?? 0,
+      passed_gate_result_count: summary.passed_gate_result_count ?? 0,
+      failed_gate_result_count: summary.failed_gate_result_count ?? 0,
+      gate_violation_count: summary.gate_violation_count ?? 0,
+      read_only: summary.read_only ?? false,
+      report_only: summary.report_only ?? false,
+      source_artifact_read_performed: summary.source_artifact_read_performed ?? false,
+      source_content_read_performed: summary.source_content_read_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      task_state_write_performed: summary.task_state_write_performed ?? true,
+      issue_mutation_performed: summary.issue_mutation_performed ?? true,
+      command_execution_performed: summary.command_execution_performed ?? true,
+      git_command_executed: summary.git_command_executed ?? true,
+      filesystem_mutation_performed: summary.filesystem_mutation_performed ?? true,
+      patch_application_performed: summary.patch_application_performed ?? true,
+      protected_mutation_performed: summary.protected_mutation_performed ?? true,
+      workflow_transition_performed: summary.workflow_transition_performed ?? true,
+      runtime_execution_performed: summary.runtime_execution_performed ?? true,
+      external_agent_invocation_performed: summary.external_agent_invocation_performed ?? true,
+      pull_request_creation_performed: summary.pull_request_creation_performed ?? true,
+      github_api_called: summary.github_api_called ?? true,
+      branch_push_performed: summary.branch_push_performed ?? true,
+      merge_performed: summary.merge_performed ?? true,
+      release_performed: summary.release_performed ?? true,
+      rollback_execution_performed: summary.rollback_execution_performed ?? true,
+      legal_advice_generated: summary.legal_advice_generated ?? true,
+      client_facing_output_generated: summary.client_facing_output_generated ?? true,
+      human_review_required: summary.human_review_required ?? false,
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_source_of_truth: summary.desktop_source_of_truth ?? true,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -23838,6 +24022,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_law_firm_e2e_report", "rerun_law_firm_e2e_report", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.personal_dev_e2e_report?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "personal_dev_e2e_report";
+    items.push({
+      action_item_id: `dashboard.action.personal_dev_e2e_report.${slugify(subjectId)}`,
+      source_stage: "personal_dev_e2e_report",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Personal Dev E2E Report",
+      subject_ref: {
+        subject_type: "personal_dev_e2e_report_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_personal_dev_e2e_report", "rerun_personal_dev_e2e_report", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -31968,6 +32170,59 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     law_firm_e2e_report_windows_baseline_stability_preserved: artifacts.law_firm_e2e_report?.summary?.windows_baseline_stability_preserved ?? false,
     law_firm_e2e_report_mac_windows_completion_instability_guard: artifacts.law_firm_e2e_report?.summary?.mac_windows_completion_instability_guard ?? false,
     law_firm_e2e_report_validation_error_count: artifacts.law_firm_e2e_report?.summary?.validation_error_count ?? artifacts.law_firm_e2e_report?.validation?.errors?.length ?? 0,
+    personal_dev_e2e_report_status: artifacts.personal_dev_e2e_report?.summary?.personal_dev_e2e_report_status ?? "unknown",
+    personal_dev_e2e_report_id: artifacts.personal_dev_e2e_report?.summary?.personal_dev_e2e_report_id ?? artifacts.personal_dev_e2e_report?.personal_dev_e2e_report_id ?? null,
+    personal_dev_e2e_report_phase_slot: artifacts.personal_dev_e2e_report?.summary?.phase_slot ?? null,
+    personal_dev_e2e_report_previous_phase_slot: artifacts.personal_dev_e2e_report?.summary?.previous_phase_slot ?? null,
+    personal_dev_e2e_report_next_phase_slot: artifacts.personal_dev_e2e_report?.summary?.next_phase_slot ?? null,
+    personal_dev_e2e_report_source_law_firm_e2e_report_status: artifacts.personal_dev_e2e_report?.summary?.source_law_firm_e2e_report_status ?? "unknown",
+    personal_dev_e2e_report_source_law_firm_e2e_report_phase_slot: artifacts.personal_dev_e2e_report?.summary?.source_law_firm_e2e_report_phase_slot ?? null,
+    personal_dev_e2e_report_source_law_firm_e2e_report_next_phase_slot: artifacts.personal_dev_e2e_report?.summary?.source_law_firm_e2e_report_next_phase_slot ?? null,
+    personal_dev_e2e_report_failed_source_status_count: artifacts.personal_dev_e2e_report?.summary?.failed_source_status_count ?? 0,
+    personal_dev_e2e_report_scenario_row_count: artifacts.personal_dev_e2e_report?.summary?.scenario_row_count ?? 0,
+    personal_dev_e2e_report_passed_scenario_row_count: artifacts.personal_dev_e2e_report?.summary?.passed_scenario_row_count ?? 0,
+    personal_dev_e2e_report_failed_scenario_row_count: artifacts.personal_dev_e2e_report?.summary?.failed_scenario_row_count ?? 0,
+    personal_dev_e2e_report_chain_stage_count: artifacts.personal_dev_e2e_report?.summary?.chain_stage_count ?? 0,
+    personal_dev_e2e_report_passed_chain_stage_count: artifacts.personal_dev_e2e_report?.summary?.passed_chain_stage_count ?? 0,
+    personal_dev_e2e_report_failed_chain_stage_count: artifacts.personal_dev_e2e_report?.summary?.failed_chain_stage_count ?? 0,
+    personal_dev_e2e_report_issue_stage_passed_count: artifacts.personal_dev_e2e_report?.summary?.issue_stage_passed_count ?? 0,
+    personal_dev_e2e_report_plan_stage_passed_count: artifacts.personal_dev_e2e_report?.summary?.plan_stage_passed_count ?? 0,
+    personal_dev_e2e_report_worktree_stage_passed_count: artifacts.personal_dev_e2e_report?.summary?.worktree_stage_passed_count ?? 0,
+    personal_dev_e2e_report_diff_stage_passed_count: artifacts.personal_dev_e2e_report?.summary?.diff_stage_passed_count ?? 0,
+    personal_dev_e2e_report_test_stage_passed_count: artifacts.personal_dev_e2e_report?.summary?.test_stage_passed_count ?? 0,
+    personal_dev_e2e_report_pr_draft_stage_passed_count: artifacts.personal_dev_e2e_report?.summary?.pr_draft_stage_passed_count ?? 0,
+    personal_dev_e2e_report_audit_stage_passed_count: artifacts.personal_dev_e2e_report?.summary?.audit_stage_passed_count ?? 0,
+    personal_dev_e2e_report_issue_to_audit_path_complete: artifacts.personal_dev_e2e_report?.summary?.issue_to_audit_path_complete ?? false,
+    personal_dev_e2e_report_issue_record_count: artifacts.personal_dev_e2e_report?.summary?.issue_record_count ?? 0,
+    personal_dev_e2e_report_normalized_task_count: artifacts.personal_dev_e2e_report?.summary?.normalized_task_count ?? 0,
+    personal_dev_e2e_report_plan_request_count: artifacts.personal_dev_e2e_report?.summary?.plan_request_count ?? 0,
+    personal_dev_e2e_report_plan_candidate_count: artifacts.personal_dev_e2e_report?.summary?.plan_candidate_count ?? 0,
+    personal_dev_e2e_report_dev_lane_count: artifacts.personal_dev_e2e_report?.summary?.dev_lane_count ?? 0,
+    personal_dev_e2e_report_worktree_record_count: artifacts.personal_dev_e2e_report?.summary?.worktree_record_count ?? 0,
+    personal_dev_e2e_report_patch_record_count: artifacts.personal_dev_e2e_report?.summary?.patch_record_count ?? 0,
+    personal_dev_e2e_report_diff_review_result_count: artifacts.personal_dev_e2e_report?.summary?.diff_review_result_count ?? 0,
+    personal_dev_e2e_report_required_test_dimension_count: artifacts.personal_dev_e2e_report?.summary?.required_test_dimension_count ?? 0,
+    personal_dev_e2e_report_passed_required_test_dimension_count: artifacts.personal_dev_e2e_report?.summary?.passed_required_test_dimension_count ?? 0,
+    personal_dev_e2e_report_pr_draft_output_artifact_count: artifacts.personal_dev_e2e_report?.summary?.pr_draft_output_artifact_count ?? 0,
+    personal_dev_e2e_report_audit_trail_record_count: artifacts.personal_dev_e2e_report?.summary?.audit_trail_record_count ?? 0,
+    personal_dev_e2e_report_gate_violation_count: artifacts.personal_dev_e2e_report?.summary?.gate_violation_count ?? 0,
+    personal_dev_e2e_report_read_only: artifacts.personal_dev_e2e_report?.summary?.read_only ?? false,
+    personal_dev_e2e_report_report_only: artifacts.personal_dev_e2e_report?.summary?.report_only ?? false,
+    personal_dev_e2e_report_task_state_write_performed: artifacts.personal_dev_e2e_report?.summary?.task_state_write_performed ?? true,
+    personal_dev_e2e_report_issue_mutation_performed: artifacts.personal_dev_e2e_report?.summary?.issue_mutation_performed ?? true,
+    personal_dev_e2e_report_command_execution_performed: artifacts.personal_dev_e2e_report?.summary?.command_execution_performed ?? true,
+    personal_dev_e2e_report_pull_request_creation_performed: artifacts.personal_dev_e2e_report?.summary?.pull_request_creation_performed ?? true,
+    personal_dev_e2e_report_github_api_called: artifacts.personal_dev_e2e_report?.summary?.github_api_called ?? true,
+    personal_dev_e2e_report_merge_performed: artifacts.personal_dev_e2e_report?.summary?.merge_performed ?? true,
+    personal_dev_e2e_report_release_performed: artifacts.personal_dev_e2e_report?.summary?.release_performed ?? true,
+    personal_dev_e2e_report_protected_mutation_performed: artifacts.personal_dev_e2e_report?.summary?.protected_mutation_performed ?? true,
+    personal_dev_e2e_report_external_agent_invocation_performed: artifacts.personal_dev_e2e_report?.summary?.external_agent_invocation_performed ?? true,
+    personal_dev_e2e_report_human_review_required: artifacts.personal_dev_e2e_report?.summary?.human_review_required ?? false,
+    personal_dev_e2e_report_desktop_read_only: artifacts.personal_dev_e2e_report?.summary?.desktop_read_only ?? false,
+    personal_dev_e2e_report_desktop_source_of_truth: artifacts.personal_dev_e2e_report?.summary?.desktop_source_of_truth ?? true,
+    personal_dev_e2e_report_windows_baseline_stability_preserved: artifacts.personal_dev_e2e_report?.summary?.windows_baseline_stability_preserved ?? false,
+    personal_dev_e2e_report_mac_windows_completion_instability_guard: artifacts.personal_dev_e2e_report?.summary?.mac_windows_completion_instability_guard ?? false,
+    personal_dev_e2e_report_validation_error_count: artifacts.personal_dev_e2e_report?.summary?.validation_error_count ?? artifacts.personal_dev_e2e_report?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -33388,6 +33643,8 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Backup/restore Desktop source-of-truth rows: ${dashboard.summary.backup_restore_drill_desktop_source_of_truth_count ?? 0}`);
   lines.push(`- Law-firm E2E chain matter/resource/evidence/draft/citation/approval/audit: ${dashboard.summary.law_firm_e2e_report_matter_stage_passed_count ?? 0}/${dashboard.summary.law_firm_e2e_report_resource_stage_passed_count ?? 0}/${dashboard.summary.law_firm_e2e_report_evidence_stage_passed_count ?? 0}/${dashboard.summary.law_firm_e2e_report_draft_stage_passed_count ?? 0}/${dashboard.summary.law_firm_e2e_report_citation_stage_passed_count ?? 0}/${dashboard.summary.law_firm_e2e_report_approval_stage_passed_count ?? 0}/${dashboard.summary.law_firm_e2e_report_audit_stage_passed_count ?? 0}`);
   lines.push(`- Law-firm E2E scenario rows and client-facing output: ${dashboard.summary.law_firm_e2e_report_passed_scenario_row_count ?? 0}/${dashboard.summary.law_firm_e2e_report_scenario_row_count ?? 0}, ${dashboard.summary.law_firm_e2e_report_client_facing_output_generated ?? false}`);
+  lines.push(`- Personal-dev E2E chain issue/plan/worktree/diff/test/PR/audit: ${dashboard.summary.personal_dev_e2e_report_issue_stage_passed_count ?? 0}/${dashboard.summary.personal_dev_e2e_report_plan_stage_passed_count ?? 0}/${dashboard.summary.personal_dev_e2e_report_worktree_stage_passed_count ?? 0}/${dashboard.summary.personal_dev_e2e_report_diff_stage_passed_count ?? 0}/${dashboard.summary.personal_dev_e2e_report_test_stage_passed_count ?? 0}/${dashboard.summary.personal_dev_e2e_report_pr_draft_stage_passed_count ?? 0}/${dashboard.summary.personal_dev_e2e_report_audit_stage_passed_count ?? 0}`);
+  lines.push(`- Personal-dev E2E scenario rows and PR mutation: ${dashboard.summary.personal_dev_e2e_report_passed_scenario_row_count ?? 0}/${dashboard.summary.personal_dev_e2e_report_scenario_row_count ?? 0}, ${dashboard.summary.personal_dev_e2e_report_pull_request_creation_performed ?? false}`);
   lines.push(`- Ledger API/dashboard panels and routes: ${dashboard.summary.ledger_api_dashboard_passed_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_panel_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_declared_route_count ?? 0}/${dashboard.summary.ledger_api_dashboard_route_count ?? 0}`);
   lines.push(`- Ledger API/dashboard domains run/audit/cost/error/event: ${dashboard.summary.ledger_api_dashboard_run_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_audit_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cost_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_error_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_event_panel_count ?? 0}`);
   lines.push(`- Ledger API/dashboard metrics/cross links/errors: ${dashboard.summary.ledger_api_dashboard_metric_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_linked_cross_link_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cross_link_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_validation_error_count ?? 0}`);
@@ -33737,6 +33994,8 @@ function parseArgs(argv) {
     else if (arg === "--no-personal-dev-dashboard-api") parsed.personalDevDashboardApiPath = false;
     else if (arg === "--personal-dev-e2e-freeze") parsed.personalDevE2eFreezePath = argv[++index];
     else if (arg === "--no-personal-dev-e2e-freeze") parsed.personalDevE2eFreezePath = false;
+    else if (arg === "--personal-dev-e2e-report") parsed.personalDevE2eReportPath = argv[++index];
+    else if (arg === "--no-personal-dev-e2e-report") parsed.personalDevE2eReportPath = false;
     else if (arg === "--creative-document-pack-manifest") parsed.creativeDocumentPackManifestPath = argv[++index];
     else if (arg === "--no-creative-document-pack-manifest") parsed.creativeDocumentPackManifestPath = false;
     else if (arg === "--template-registry") parsed.templateRegistryPath = argv[++index];

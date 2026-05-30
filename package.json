@@ -245,6 +245,7 @@
     "personal-dev:technical-debt": "node scripts/technical-debt-ledger.mjs",
     "personal-dev:dashboard-api": "node scripts/personal-dev-dashboard-api.mjs",
     "personal-dev:e2e-freeze": "node scripts/personal-dev-e2e-freeze.mjs",
+    "personal-dev:e2e-report": "node scripts/personal-dev-e2e-report.mjs",
     "personal-dev:plan-request": "node scripts/plan-request-contract.mjs",
     "personal-dev:plan-reconciliation": "node scripts/plan-reconciliation.mjs",
     "personal-dev:scope-freeze": "node scripts/scope-freeze-gate.mjs",

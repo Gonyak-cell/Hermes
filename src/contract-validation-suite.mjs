@@ -203,6 +203,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "personal-dev:technical-debt",
   "personal-dev:dashboard-api",
   "personal-dev:e2e-freeze",
+  "personal-dev:e2e-report",
   "personal-dev:repo-profile",
   "workflows:state-model",
   "workflows:runner",

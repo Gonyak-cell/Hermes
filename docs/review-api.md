@@ -96,6 +96,12 @@ Access Review Report routes expose the read-only report artifact, source status 
 
 Routes: `/api/access-review-reports`, `/api/access-review-sources`, `/api/access-review-subjects`, `/api/access-review-matter-rows`, `/api/access-review-resource-rows`, `/api/access-review-findings`, `/api/access-review-gate-results`, `/api/access-review-boundary`, `/api/access-review-validations`.
 
+## P303 Performance/Cost Budget Report Routes
+
+Performance/Cost Budget Report routes expose the read-only report artifact, source status rows, performance budget rows, cost budget rows, gate result rows, boundary, and validation rows. Supported filters include `performance_cost_budget_report_status`, `source_status`, `budget_scope`, `budget_kind`, `budget_status`, `budget_report_only`, `budget_mutation_performed`, `cost_mutation_performed`, `runtime_execution_performed`, `metric_write_allowed`, `gate_status`, `boundary_status`, `read_only`, `status`, and `limit`.
+
+Routes: `/api/performance-cost-budget-reports`, `/api/performance-cost-budget-sources`, `/api/performance-budget-rows`, `/api/cost-budget-rows`, `/api/performance-cost-budget-gate-results`, `/api/performance-cost-budget-boundary`, `/api/performance-cost-budget-validations`.
+
 ## P245 LDD RFI Generator Routes
 
 LDD RFI Generator routes expose read-only draft-only RFI packets, draft questions, missing-material links, issue links, matter summaries, and validation/boundary rows. Supported filters include `ldd_rfi_generator_status`, `ldd_rfi_matter_status`, `rfi_rule_type`, `rfi_draft_status`, `rfi_question_type`, `rfi_question_priority`, `rfi_question_status`, `rfi_missing_material_status`, `rfi_issue_link_status`, `deterministic_rfi_generation_performed`, `ldd_rfi_question_id`, `ldd_issue_record_id`, `ldd_vdr_missing_data_record_id`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.

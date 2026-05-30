@@ -175,6 +175,7 @@ const GOAL_ITEMS = [
   sourceItem("secrets_scan_gate", "Secrets Scan Gate", "security", "secrets_scan_gate", "control-plane-secrets-scan-gate", { acceptance_profile: "secrets_scan_gate_gate" }),
   sourceItem("retention_deletion_policy", "Retention Deletion Policy", "compliance", "retention_deletion_policy", "control-plane-retention-deletion-policy", { acceptance_profile: "retention_deletion_policy_gate" }),
   sourceItem("access_review_report", "Access Review Report", "compliance", "access_review_report", "control-plane-access-review-report", { acceptance_profile: "access_review_report_gate" }),
+  sourceItem("performance_cost_budget_report", "Performance/Cost Budget Report", "compliance", "performance_cost_budget_report", "control-plane-performance-cost-budget-report", { acceptance_profile: "performance_cost_budget_report_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -709,6 +710,7 @@ function evaluateStageAcceptance(item, stage) {
     "secrets_scan_gate_gate",
     "retention_deletion_policy_gate",
     "access_review_report_gate",
+    "performance_cost_budget_report_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -6756,6 +6758,63 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Access Review Report locks P302 tenant, matter, user, runtime, and resource access review visibility while preserving read-only report-only behavior, no permission mutation, human-review gates, and Windows baseline stability.");
+    }
+  }
+
+  if (item.acceptance_profile === "performance_cost_budget_report_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.performance_cost_budget_report_status === "complete"
+      && metrics.phase_slot === "P303"
+      && metrics.previous_phase_slot === "P302"
+      && metrics.next_phase_slot === "P304"
+      && metrics.source_access_review_report_status === "complete"
+      && metrics.source_access_review_report_phase_slot === "P302"
+      && metrics.source_access_review_report_next_phase_slot === "P303"
+      && metrics.failed_source_status_count === 0
+      && metrics.performance_budget_row_count >= 10
+      && metrics.cost_budget_row_count >= 10
+      && metrics.batch_budget_row_count >= 1
+      && metrics.workflow_budget_row_count >= 1
+      && metrics.runtime_budget_row_count >= 1
+      && metrics.duration_limit_row_count >= 1
+      && metrics.cost_limit_row_count >= 1
+      && metrics.token_limit_row_count >= 1
+      && metrics.failed_performance_budget_row_count === 0
+      && metrics.failed_cost_budget_row_count === 0
+      && metrics.performance_budget_violation_count === 0
+      && metrics.cost_budget_violation_count === 0
+      && metrics.budget_violation_count === 0
+      && metrics.gate_result_count >= 10
+      && metrics.passed_gate_result_count === metrics.gate_result_count
+      && metrics.failed_gate_result_count === 0
+      && metrics.gate_violation_count === 0
+      && metrics.read_only === true
+      && metrics.budget_report_only === true
+      && metrics.source_artifact_read_performed === true
+      && metrics.source_content_read_performed === false
+      && metrics.source_ingest_performed === false
+      && metrics.metric_write_allowed === false
+      && metrics.budget_mutation_performed === false
+      && metrics.cost_mutation_performed === false
+      && metrics.runtime_execution_performed === false
+      && metrics.batch_execution_performed === false
+      && metrics.workflow_execution_performed === false
+      && metrics.runtime_control_performed === false
+      && metrics.route_execution_performed === false
+      && metrics.server_started === false
+      && metrics.protected_action_executed === false
+      && metrics.external_transfer_performed === false
+      && metrics.network_access_performed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.human_review_required === true
+      && metrics.client_facing_ready === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Performance/Cost Budget Report locks P303 batch, workflow, and runtime time/cost/token budget visibility with no budget mutation, no runtime execution, human-review gates, and Windows baseline stability.");
     }
   }
 

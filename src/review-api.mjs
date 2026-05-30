@@ -7065,6 +7065,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("access_review_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/performance-cost-budget-reports") {
+    const result = await readDashboardSourceArtifact(dashboard, "performance_cost_budget_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("performance_cost_budget_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("performance_cost_budget_reports", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/performance-cost-budget-sources") {
+    const result = await readDashboardSourceArtifact(dashboard, "performance_cost_budget_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("performance_cost_budget_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("performance_cost_budget_sources", result.artifact.source_statuses ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/performance-budget-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "performance_cost_budget_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("performance_cost_budget_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("performance_budget_rows", result.artifact.performance_budget_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/cost-budget-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "performance_cost_budget_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("performance_cost_budget_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("cost_budget_rows", result.artifact.cost_budget_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/performance-cost-budget-gate-results") {
+    const result = await readDashboardSourceArtifact(dashboard, "performance_cost_budget_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("performance_cost_budget_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("performance_cost_budget_gate_results", result.artifact.performance_cost_budget_gate_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/performance-cost-budget-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "performance_cost_budget_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("performance_cost_budget_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("performance_cost_budget_boundary", [result.artifact.performance_cost_budget_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/performance-cost-budget-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "performance_cost_budget_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("performance_cost_budget_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("performance_cost_budget_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -13678,6 +13727,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/access-review-gate-results", "Access Review Report gate result rows"),
       route("GET", "/api/access-review-boundary", "Access Review Report read-only boundary"),
       route("GET", "/api/access-review-validations", "Access Review Report validation rows"),
+      route("GET", "/api/performance-cost-budget-reports", "Performance/Cost Budget Report artifact"),
+      route("GET", "/api/performance-cost-budget-sources", "Performance/Cost Budget Report source status rows"),
+      route("GET", "/api/performance-budget-rows", "Performance budget rows"),
+      route("GET", "/api/cost-budget-rows", "Cost budget rows"),
+      route("GET", "/api/performance-cost-budget-gate-results", "Performance/Cost Budget Report gate result rows"),
+      route("GET", "/api/performance-cost-budget-boundary", "Performance/Cost Budget Report read-only boundary"),
+      route("GET", "/api/performance-cost-budget-validations", "Performance/Cost Budget Report validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -14952,6 +15008,19 @@ function filterItems(items, searchParams) {
     "secrets_scan_gate_status",
     "retention_deletion_policy_status",
     "access_review_report_status",
+    "performance_cost_budget_report_status",
+    "budget_scope",
+    "budget_kind",
+    "budget_status",
+    "budget_report_only",
+    "budget_mutation_allowed",
+    "cost_mutation_allowed",
+    "runtime_execution_allowed",
+    "protected_action_allowed",
+    "budget_mutation_performed",
+    "cost_mutation_performed",
+    "runtime_execution_performed",
+    "metric_write_allowed",
     "access_review_status",
     "finding_status",
     "access_decision",
@@ -17004,6 +17073,19 @@ function readFilterValue(item, key) {
   if (key === "secrets_scan_gate_status") return item.summary?.secrets_scan_gate_status ?? item.secrets_scan_gate_status;
   if (key === "retention_deletion_policy_status") return item.summary?.retention_deletion_policy_status ?? item.retention_deletion_policy_status;
   if (key === "access_review_report_status") return item.summary?.access_review_report_status ?? item.access_review_report_status;
+  if (key === "performance_cost_budget_report_status") return item.summary?.performance_cost_budget_report_status ?? item.performance_cost_budget_report_status;
+  if (key === "budget_scope") return item.budget_scope;
+  if (key === "budget_kind") return item.budget_kind;
+  if (key === "budget_status") return item.budget_status;
+  if (key === "budget_report_only") return String(Boolean(item.budget_report_only));
+  if (key === "budget_mutation_allowed") return String(Boolean(item.budget_mutation_allowed));
+  if (key === "cost_mutation_allowed") return String(Boolean(item.cost_mutation_allowed));
+  if (key === "runtime_execution_allowed") return String(Boolean(item.runtime_execution_allowed));
+  if (key === "protected_action_allowed") return String(Boolean(item.protected_action_allowed));
+  if (key === "budget_mutation_performed") return String(Boolean(item.budget_mutation_performed));
+  if (key === "cost_mutation_performed") return String(Boolean(item.cost_mutation_performed));
+  if (key === "runtime_execution_performed") return String(Boolean(item.runtime_execution_performed));
+  if (key === "metric_write_allowed") return String(Boolean(item.metric_write_allowed));
   if (key === "access_review_status") return item.access_review_status ?? item.review_status;
   if (key === "finding_status") return item.finding_status;
   if (key === "access_decision") return item.access_decision;

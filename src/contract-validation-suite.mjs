@@ -124,6 +124,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "security:secrets-scan-gate",
   "compliance:retention-deletion-policy",
   "compliance:access-review-report",
+  "compliance:performance-cost-budget-report",
   "capabilities:manifest-v2",
   "capabilities:registry-api",
   "packs:compatibility",

@@ -138,6 +138,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   secretsScanGatePath: "artifacts/secrets-scan-gate/latest/secrets-scan-gate.json",
   retentionDeletionPolicyPath: "artifacts/retention-deletion-policy/latest/retention-deletion-policy.json",
   accessReviewReportPath: "artifacts/access-review-report/latest/access-review-report.json",
+  performanceCostBudgetReportPath: "artifacts/performance-cost-budget/latest/performance-cost-budget-report.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -971,6 +972,11 @@ const SOURCE_DEFINITIONS = [
     option: "accessReviewReportPath",
     source_id: "access_review_report",
     label: "Access Review Report",
+  },
+  {
+    option: "performanceCostBudgetReportPath",
+    source_id: "performance_cost_budget_report",
+    label: "Performance/Cost Budget Report",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -2384,6 +2390,7 @@ function buildStageStatuses(artifacts, sources) {
     buildSecretsScanGateStage(artifacts.secrets_scan_gate, sourceById.get("secrets_scan_gate")),
     buildRetentionDeletionPolicyStage(artifacts.retention_deletion_policy, sourceById.get("retention_deletion_policy")),
     buildAccessReviewReportStage(artifacts.access_review_report, sourceById.get("access_review_report")),
+    buildPerformanceCostBudgetReportStage(artifacts.performance_cost_budget_report, sourceById.get("performance_cost_budget_report")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -16418,6 +16425,128 @@ function buildAccessReviewReportStage(artifact, source) {
   };
 }
 
+function buildPerformanceCostBudgetReportStage(artifact, source) {
+  if (!artifact) return missingStage("performance_cost_budget_report", "Performance/Cost Budget Report", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.performance_cost_budget_report_status !== "complete"
+    || summary.phase_slot !== "P303"
+    || summary.previous_phase_slot !== "P302"
+    || summary.next_phase_slot !== "P304"
+    || summary.source_access_review_report_status !== "complete"
+    || summary.source_access_review_report_phase_slot !== "P302"
+    || summary.source_access_review_report_next_phase_slot !== "P303"
+    || summary.failed_source_status_count !== 0
+    || summary.performance_budget_row_count < 10
+    || summary.cost_budget_row_count < 10
+    || summary.batch_budget_row_count < 1
+    || summary.workflow_budget_row_count < 1
+    || summary.runtime_budget_row_count < 1
+    || summary.duration_limit_row_count < 1
+    || summary.cost_limit_row_count < 1
+    || summary.token_limit_row_count < 1
+    || summary.budget_violation_count !== 0
+    || summary.gate_violation_count !== 0
+    || summary.read_only !== true
+    || summary.budget_report_only !== true
+    || summary.source_artifact_read_performed !== true
+    || summary.source_content_read_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.metric_write_allowed !== false
+    || summary.budget_mutation_performed !== false
+    || summary.cost_mutation_performed !== false
+    || summary.runtime_execution_performed !== false
+    || summary.batch_execution_performed !== false
+    || summary.workflow_execution_performed !== false
+    || summary.runtime_control_performed !== false
+    || summary.route_execution_performed !== false
+    || summary.server_started !== false
+    || summary.protected_action_executed !== false
+    || summary.external_transfer_performed !== false
+    || summary.network_access_performed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.human_review_required !== true
+    || summary.client_facing_ready !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "performance_cost_budget_report",
+    label: "Performance/Cost Budget Report",
+    status,
+    message: `${summary.batch_budget_row_count ?? 0}/${summary.workflow_budget_row_count ?? 0}/${summary.runtime_budget_row_count ?? 0} batch/workflow/runtime budget row(s), ${summary.budget_violation_count ?? 0} budget violation(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      performance_cost_budget_report_status: summary.performance_cost_budget_report_status ?? "unknown",
+      performance_cost_budget_report_id: summary.performance_cost_budget_report_id ?? null,
+      capability_id: summary.capability_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_status_count: summary.source_status_count ?? 0,
+      passed_source_status_count: summary.passed_source_status_count ?? 0,
+      failed_source_status_count: summary.failed_source_status_count ?? 0,
+      source_access_review_report_status: summary.source_access_review_report_status ?? "unknown",
+      source_access_review_report_phase_slot: summary.source_access_review_report_phase_slot ?? null,
+      source_access_review_report_next_phase_slot: summary.source_access_review_report_next_phase_slot ?? null,
+      performance_budget_row_count: summary.performance_budget_row_count ?? 0,
+      passed_performance_budget_row_count: summary.passed_performance_budget_row_count ?? 0,
+      failed_performance_budget_row_count: summary.failed_performance_budget_row_count ?? 0,
+      cost_budget_row_count: summary.cost_budget_row_count ?? 0,
+      passed_cost_budget_row_count: summary.passed_cost_budget_row_count ?? 0,
+      failed_cost_budget_row_count: summary.failed_cost_budget_row_count ?? 0,
+      batch_budget_row_count: summary.batch_budget_row_count ?? 0,
+      workflow_budget_row_count: summary.workflow_budget_row_count ?? 0,
+      runtime_budget_row_count: summary.runtime_budget_row_count ?? 0,
+      duration_limit_row_count: summary.duration_limit_row_count ?? 0,
+      cost_limit_row_count: summary.cost_limit_row_count ?? 0,
+      token_limit_row_count: summary.token_limit_row_count ?? 0,
+      performance_budget_violation_count: summary.performance_budget_violation_count ?? 0,
+      cost_budget_violation_count: summary.cost_budget_violation_count ?? 0,
+      budget_violation_count: summary.budget_violation_count ?? 0,
+      gate_result_count: summary.gate_result_count ?? 0,
+      passed_gate_result_count: summary.passed_gate_result_count ?? 0,
+      failed_gate_result_count: summary.failed_gate_result_count ?? 0,
+      gate_violation_count: summary.gate_violation_count ?? 0,
+      total_observed_duration_ms: summary.total_observed_duration_ms ?? 0,
+      total_observed_runtime_seconds: summary.total_observed_runtime_seconds ?? 0,
+      total_observed_latency_seconds: summary.total_observed_latency_seconds ?? 0,
+      total_observed_usd: summary.total_observed_usd ?? 0,
+      total_usd_limit: summary.total_usd_limit ?? 0,
+      total_observed_tokens: summary.total_observed_tokens ?? 0,
+      read_only: summary.read_only ?? false,
+      budget_report_only: summary.budget_report_only ?? false,
+      source_artifact_read_performed: summary.source_artifact_read_performed ?? false,
+      source_content_read_performed: summary.source_content_read_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      metric_write_allowed: summary.metric_write_allowed ?? true,
+      budget_mutation_performed: summary.budget_mutation_performed ?? true,
+      cost_mutation_performed: summary.cost_mutation_performed ?? true,
+      runtime_execution_performed: summary.runtime_execution_performed ?? true,
+      batch_execution_performed: summary.batch_execution_performed ?? true,
+      workflow_execution_performed: summary.workflow_execution_performed ?? true,
+      runtime_control_performed: summary.runtime_control_performed ?? true,
+      route_execution_performed: summary.route_execution_performed ?? true,
+      server_started: summary.server_started ?? true,
+      protected_action_executed: summary.protected_action_executed ?? true,
+      external_transfer_performed: summary.external_transfer_performed ?? true,
+      network_access_performed: summary.network_access_performed ?? true,
+      legal_advice_generated: summary.legal_advice_generated ?? true,
+      client_facing_output_generated: summary.client_facing_output_generated ?? true,
+      human_review_required: summary.human_review_required ?? false,
+      client_facing_ready: summary.client_facing_ready ?? true,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -23350,6 +23479,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_access_review_report", "rerun_access_review_report", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.performance_cost_budget_report?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "performance_cost_budget_report";
+    items.push({
+      action_item_id: `dashboard.action.performance_cost_budget_report.${slugify(subjectId)}`,
+      source_stage: "performance_cost_budget_report",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Performance/Cost Budget Report",
+      subject_ref: {
+        subject_type: "performance_cost_budget_report_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_performance_cost_budget_report", "rerun_performance_cost_budget_report", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -31321,6 +31468,69 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     access_review_report_validation_item_count: artifacts.access_review_report?.summary?.validation_item_count ?? 0,
     access_review_report_failed_checkpoint_count: artifacts.access_review_report?.summary?.failed_checkpoint_count ?? 0,
     access_review_report_validation_error_count: artifacts.access_review_report?.summary?.validation_error_count ?? artifacts.access_review_report?.validation?.errors?.length ?? 0,
+    performance_cost_budget_report_status: artifacts.performance_cost_budget_report?.summary?.performance_cost_budget_report_status ?? "unknown",
+    performance_cost_budget_report_id: artifacts.performance_cost_budget_report?.summary?.performance_cost_budget_report_id ?? null,
+    performance_cost_budget_report_capability_id: artifacts.performance_cost_budget_report?.summary?.capability_id ?? null,
+    performance_cost_budget_report_phase_slot: artifacts.performance_cost_budget_report?.summary?.phase_slot ?? null,
+    performance_cost_budget_report_previous_phase_slot: artifacts.performance_cost_budget_report?.summary?.previous_phase_slot ?? null,
+    performance_cost_budget_report_next_phase_slot: artifacts.performance_cost_budget_report?.summary?.next_phase_slot ?? null,
+    performance_cost_budget_report_source_status_count: artifacts.performance_cost_budget_report?.summary?.source_status_count ?? 0,
+    performance_cost_budget_report_passed_source_status_count: artifacts.performance_cost_budget_report?.summary?.passed_source_status_count ?? 0,
+    performance_cost_budget_report_failed_source_status_count: artifacts.performance_cost_budget_report?.summary?.failed_source_status_count ?? 0,
+    performance_cost_budget_report_source_access_review_report_status: artifacts.performance_cost_budget_report?.summary?.source_access_review_report_status ?? "unknown",
+    performance_cost_budget_report_source_access_review_report_phase_slot: artifacts.performance_cost_budget_report?.summary?.source_access_review_report_phase_slot ?? null,
+    performance_cost_budget_report_source_access_review_report_next_phase_slot: artifacts.performance_cost_budget_report?.summary?.source_access_review_report_next_phase_slot ?? null,
+    performance_cost_budget_report_performance_budget_row_count: artifacts.performance_cost_budget_report?.summary?.performance_budget_row_count ?? 0,
+    performance_cost_budget_report_passed_performance_budget_row_count: artifacts.performance_cost_budget_report?.summary?.passed_performance_budget_row_count ?? 0,
+    performance_cost_budget_report_failed_performance_budget_row_count: artifacts.performance_cost_budget_report?.summary?.failed_performance_budget_row_count ?? 0,
+    performance_cost_budget_report_cost_budget_row_count: artifacts.performance_cost_budget_report?.summary?.cost_budget_row_count ?? 0,
+    performance_cost_budget_report_passed_cost_budget_row_count: artifacts.performance_cost_budget_report?.summary?.passed_cost_budget_row_count ?? 0,
+    performance_cost_budget_report_failed_cost_budget_row_count: artifacts.performance_cost_budget_report?.summary?.failed_cost_budget_row_count ?? 0,
+    performance_cost_budget_report_batch_budget_row_count: artifacts.performance_cost_budget_report?.summary?.batch_budget_row_count ?? 0,
+    performance_cost_budget_report_workflow_budget_row_count: artifacts.performance_cost_budget_report?.summary?.workflow_budget_row_count ?? 0,
+    performance_cost_budget_report_runtime_budget_row_count: artifacts.performance_cost_budget_report?.summary?.runtime_budget_row_count ?? 0,
+    performance_cost_budget_report_duration_limit_row_count: artifacts.performance_cost_budget_report?.summary?.duration_limit_row_count ?? 0,
+    performance_cost_budget_report_cost_limit_row_count: artifacts.performance_cost_budget_report?.summary?.cost_limit_row_count ?? 0,
+    performance_cost_budget_report_token_limit_row_count: artifacts.performance_cost_budget_report?.summary?.token_limit_row_count ?? 0,
+    performance_cost_budget_report_performance_budget_violation_count: artifacts.performance_cost_budget_report?.summary?.performance_budget_violation_count ?? 0,
+    performance_cost_budget_report_cost_budget_violation_count: artifacts.performance_cost_budget_report?.summary?.cost_budget_violation_count ?? 0,
+    performance_cost_budget_report_budget_violation_count: artifacts.performance_cost_budget_report?.summary?.budget_violation_count ?? 0,
+    performance_cost_budget_report_gate_result_count: artifacts.performance_cost_budget_report?.summary?.gate_result_count ?? 0,
+    performance_cost_budget_report_passed_gate_result_count: artifacts.performance_cost_budget_report?.summary?.passed_gate_result_count ?? 0,
+    performance_cost_budget_report_failed_gate_result_count: artifacts.performance_cost_budget_report?.summary?.failed_gate_result_count ?? 0,
+    performance_cost_budget_report_gate_violation_count: artifacts.performance_cost_budget_report?.summary?.gate_violation_count ?? 0,
+    performance_cost_budget_report_total_observed_duration_ms: artifacts.performance_cost_budget_report?.summary?.total_observed_duration_ms ?? 0,
+    performance_cost_budget_report_total_observed_runtime_seconds: artifacts.performance_cost_budget_report?.summary?.total_observed_runtime_seconds ?? 0,
+    performance_cost_budget_report_total_observed_latency_seconds: artifacts.performance_cost_budget_report?.summary?.total_observed_latency_seconds ?? 0,
+    performance_cost_budget_report_total_observed_usd: artifacts.performance_cost_budget_report?.summary?.total_observed_usd ?? 0,
+    performance_cost_budget_report_total_usd_limit: artifacts.performance_cost_budget_report?.summary?.total_usd_limit ?? 0,
+    performance_cost_budget_report_total_observed_tokens: artifacts.performance_cost_budget_report?.summary?.total_observed_tokens ?? 0,
+    performance_cost_budget_report_read_only: artifacts.performance_cost_budget_report?.summary?.read_only ?? false,
+    performance_cost_budget_report_budget_report_only: artifacts.performance_cost_budget_report?.summary?.budget_report_only ?? false,
+    performance_cost_budget_report_source_artifact_read_performed: artifacts.performance_cost_budget_report?.summary?.source_artifact_read_performed ?? false,
+    performance_cost_budget_report_source_content_read_performed: artifacts.performance_cost_budget_report?.summary?.source_content_read_performed ?? false,
+    performance_cost_budget_report_source_ingest_performed: artifacts.performance_cost_budget_report?.summary?.source_ingest_performed ?? false,
+    performance_cost_budget_report_metric_write_allowed: artifacts.performance_cost_budget_report?.summary?.metric_write_allowed ?? true,
+    performance_cost_budget_report_budget_mutation_performed: artifacts.performance_cost_budget_report?.summary?.budget_mutation_performed ?? true,
+    performance_cost_budget_report_cost_mutation_performed: artifacts.performance_cost_budget_report?.summary?.cost_mutation_performed ?? true,
+    performance_cost_budget_report_runtime_execution_performed: artifacts.performance_cost_budget_report?.summary?.runtime_execution_performed ?? true,
+    performance_cost_budget_report_batch_execution_performed: artifacts.performance_cost_budget_report?.summary?.batch_execution_performed ?? true,
+    performance_cost_budget_report_workflow_execution_performed: artifacts.performance_cost_budget_report?.summary?.workflow_execution_performed ?? true,
+    performance_cost_budget_report_runtime_control_performed: artifacts.performance_cost_budget_report?.summary?.runtime_control_performed ?? true,
+    performance_cost_budget_report_route_execution_performed: artifacts.performance_cost_budget_report?.summary?.route_execution_performed ?? true,
+    performance_cost_budget_report_server_started: artifacts.performance_cost_budget_report?.summary?.server_started ?? true,
+    performance_cost_budget_report_protected_action_executed: artifacts.performance_cost_budget_report?.summary?.protected_action_executed ?? true,
+    performance_cost_budget_report_external_transfer_performed: artifacts.performance_cost_budget_report?.summary?.external_transfer_performed ?? true,
+    performance_cost_budget_report_network_access_performed: artifacts.performance_cost_budget_report?.summary?.network_access_performed ?? true,
+    performance_cost_budget_report_legal_advice_generated: artifacts.performance_cost_budget_report?.summary?.legal_advice_generated ?? true,
+    performance_cost_budget_report_client_facing_output_generated: artifacts.performance_cost_budget_report?.summary?.client_facing_output_generated ?? true,
+    performance_cost_budget_report_human_review_required: artifacts.performance_cost_budget_report?.summary?.human_review_required ?? false,
+    performance_cost_budget_report_client_facing_ready: artifacts.performance_cost_budget_report?.summary?.client_facing_ready ?? true,
+    performance_cost_budget_report_windows_baseline_stability_preserved: artifacts.performance_cost_budget_report?.summary?.windows_baseline_stability_preserved ?? false,
+    performance_cost_budget_report_mac_windows_completion_instability_guard: artifacts.performance_cost_budget_report?.summary?.mac_windows_completion_instability_guard ?? false,
+    performance_cost_budget_report_validation_item_count: artifacts.performance_cost_budget_report?.summary?.validation_item_count ?? 0,
+    performance_cost_budget_report_failed_checkpoint_count: artifacts.performance_cost_budget_report?.summary?.failed_checkpoint_count ?? 0,
+    performance_cost_budget_report_validation_error_count: artifacts.performance_cost_budget_report?.summary?.validation_error_count ?? artifacts.performance_cost_budget_report?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -32735,6 +32945,8 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Retention/deletion active holds and deletion allowed: ${dashboard.summary.retention_deletion_policy_active_deletion_hold_count ?? 0}/${dashboard.summary.retention_deletion_policy_deletion_hold_record_count ?? 0}, ${dashboard.summary.retention_deletion_policy_deletion_allowed_policy_count ?? 0}`);
   lines.push(`- Access review subjects and matter/resource rows: ${dashboard.summary.access_review_report_subject_review_count ?? 0}, ${dashboard.summary.access_review_report_matter_access_row_count ?? 0}/${dashboard.summary.access_review_report_resource_access_row_count ?? 0}`);
   lines.push(`- Access review allowed/review/denied and mutations: ${dashboard.summary.access_review_report_view_allowed_count ?? 0}/${dashboard.summary.access_review_report_view_requires_human_confirmation_count ?? 0}/${dashboard.summary.access_review_report_view_denied_count ?? 0}, ${dashboard.summary.access_review_report_permission_mutation_performed ?? false}`);
+  lines.push(`- Performance/cost budget rows batch/workflow/runtime: ${dashboard.summary.performance_cost_budget_report_batch_budget_row_count ?? 0}/${dashboard.summary.performance_cost_budget_report_workflow_budget_row_count ?? 0}/${dashboard.summary.performance_cost_budget_report_runtime_budget_row_count ?? 0}`);
+  lines.push(`- Performance/cost budget violations and mutations: ${dashboard.summary.performance_cost_budget_report_budget_violation_count ?? 0}, ${dashboard.summary.performance_cost_budget_report_budget_mutation_performed ?? false}/${dashboard.summary.performance_cost_budget_report_cost_mutation_performed ?? false}`);
   lines.push(`- Ledger API/dashboard panels and routes: ${dashboard.summary.ledger_api_dashboard_passed_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_panel_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_declared_route_count ?? 0}/${dashboard.summary.ledger_api_dashboard_route_count ?? 0}`);
   lines.push(`- Ledger API/dashboard domains run/audit/cost/error/event: ${dashboard.summary.ledger_api_dashboard_run_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_audit_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cost_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_error_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_event_panel_count ?? 0}`);
   lines.push(`- Ledger API/dashboard metrics/cross links/errors: ${dashboard.summary.ledger_api_dashboard_metric_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_linked_cross_link_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cross_link_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_validation_error_count ?? 0}`);
@@ -33184,6 +33396,8 @@ function parseArgs(argv) {
     else if (arg === "--no-retention-deletion-policy") parsed.retentionDeletionPolicyPath = false;
     else if (arg === "--access-review-report") parsed.accessReviewReportPath = argv[++index];
     else if (arg === "--no-access-review-report") parsed.accessReviewReportPath = false;
+    else if (arg === "--performance-cost-budget-report") parsed.performanceCostBudgetReportPath = argv[++index];
+    else if (arg === "--no-performance-cost-budget-report") parsed.performanceCostBudgetReportPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

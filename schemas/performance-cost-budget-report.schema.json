@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/hermes-law-firm-harness/performance-cost-budget-report.schema.json",
+  "title": "Performance/Cost Budget Report",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "performance_cost_budget_report_id",
+    "capability_id",
+    "source_statuses",
+    "performance_cost_budget_contract",
+    "performance_budget_rows",
+    "cost_budget_rows",
+    "performance_cost_budget_gate_results",
+    "performance_cost_budget_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "performance-cost-budget-report.v1" },
+    "generated_at": { "type": "string" },
+    "performance_cost_budget_report_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "compliance.performance_cost_budget_report" },
+    "source_statuses": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/source_status" }
+    },
+    "performance_cost_budget_contract": { "$ref": "#/$defs/contract" },
+    "performance_budget_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/budget_row" }
+    },
+    "cost_budget_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/budget_row" }
+    },
+    "performance_cost_budget_gate_results": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/gate_result" }
+    },
+    "performance_cost_budget_boundary": { "$ref": "#/$defs/boundary" },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "errors": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_status": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["source_id", "source_available", "expected_status", "actual_status", "source_status", "validation_error_count"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "source_available": { "const": true },
+        "expected_status": { "type": "string" },
+        "actual_status": { "type": "string" },
+        "source_status": { "const": "passed" },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "contract": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["contract_status", "capability_id", "phase_slot", "previous_phase_slot", "next_phase_slot", "budget_scopes", "budget_report_only", "mutation_allowed", "runtime_execution_allowed", "human_review_required", "client_facing_ready"],
+      "properties": {
+        "contract_status": { "const": "active" },
+        "capability_id": { "const": "compliance.performance_cost_budget_report" },
+        "phase_slot": { "const": "P303" },
+        "previous_phase_slot": { "const": "P302" },
+        "next_phase_slot": { "const": "P304" },
+        "budget_scopes": {
+          "type": "array",
+          "contains": { "const": "batch" }
+        },
+        "budget_report_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "runtime_execution_allowed": { "const": false },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false }
+      }
+    },
+    "budget_row": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["budget_scope", "budget_kind", "subject_id", "source_id", "observed_value", "limit_value", "violation_count", "budget_status", "budget_report_only", "budget_mutation_performed", "cost_mutation_performed", "runtime_execution_performed", "protected_action_executed", "human_review_required", "client_facing_ready", "windows_baseline_stability_preserved", "mac_windows_completion_instability_guard"],
+      "properties": {
+        "budget_scope": { "enum": ["batch", "workflow", "runtime"] },
+        "budget_kind": { "type": "string", "minLength": 1 },
+        "subject_id": { "type": "string", "minLength": 1 },
+        "source_id": { "type": "string", "minLength": 1 },
+        "observed_value": { "type": "number", "minimum": 0 },
+        "limit_value": { "type": "number", "minimum": 0 },
+        "violation_count": { "const": 0 },
+        "budget_status": { "const": "passed" },
+        "budget_report_only": { "const": true },
+        "budget_mutation_performed": { "const": false },
+        "cost_mutation_performed": { "const": false },
+        "runtime_execution_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true }
+      }
+    },
+    "gate_result": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["gate_id", "violation_count", "gate_decision", "gate_fail_on_violation", "budget_mutation_allowed", "cost_mutation_allowed", "runtime_execution_allowed", "protected_action_allowed", "human_review_required", "client_facing_ready", "gate_status"],
+      "properties": {
+        "gate_id": { "type": "string", "minLength": 1 },
+        "violation_count": { "const": 0 },
+        "gate_decision": { "const": "hold_for_budget_review" },
+        "gate_fail_on_violation": { "const": true },
+        "budget_mutation_allowed": { "const": false },
+        "cost_mutation_allowed": { "const": false },
+        "runtime_execution_allowed": { "const": false },
+        "protected_action_allowed": { "const": false },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false },
+        "gate_status": { "const": "passed" }
+      }
+    },
+    "boundary": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["boundary_status", "read_only", "budget_report_only", "source_content_read_performed", "source_ingest_performed", "metric_write_allowed", "budget_mutation_performed", "cost_mutation_performed", "runtime_execution_performed", "batch_execution_performed", "workflow_execution_performed", "runtime_control_performed", "route_execution_performed", "server_started", "protected_action_executed", "external_transfer_performed", "network_access_performed", "legal_advice_generated", "client_facing_output_generated", "human_review_required", "client_facing_ready", "windows_baseline_stability_preserved", "mac_windows_completion_instability_guard"],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "read_only": { "const": true },
+        "budget_report_only": { "const": true },
+        "source_content_read_performed": { "const": false },
+        "source_ingest_performed": { "const": false },
+        "metric_write_allowed": { "const": false },
+        "budget_mutation_performed": { "const": false },
+        "cost_mutation_performed": { "const": false },
+        "runtime_execution_performed": { "const": false },
+        "batch_execution_performed": { "const": false },
+        "workflow_execution_performed": { "const": false },
+        "runtime_control_performed": { "const": false },
+        "route_execution_performed": { "const": false },
+        "server_started": { "const": false },
+        "protected_action_executed": { "const": false },
+        "external_transfer_performed": { "const": false },
+        "network_access_performed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["path", "check_id", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "const": "passed" },
+        "message": { "type": "string" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["performance_cost_budget_report_status", "capability_id", "phase_slot", "previous_phase_slot", "next_phase_slot", "source_access_review_report_status", "source_access_review_report_phase_slot", "source_access_review_report_next_phase_slot", "failed_source_status_count", "performance_budget_row_count", "cost_budget_row_count", "batch_budget_row_count", "workflow_budget_row_count", "runtime_budget_row_count", "duration_limit_row_count", "cost_limit_row_count", "token_limit_row_count", "budget_violation_count", "gate_violation_count", "read_only", "budget_report_only", "metric_write_allowed", "budget_mutation_performed", "cost_mutation_performed", "runtime_execution_performed", "batch_execution_performed", "workflow_execution_performed", "runtime_control_performed", "route_execution_performed", "server_started", "protected_action_executed", "external_transfer_performed", "network_access_performed", "legal_advice_generated", "client_facing_output_generated", "human_review_required", "client_facing_ready", "windows_baseline_stability_preserved", "mac_windows_completion_instability_guard", "validation_error_count"],
+      "properties": {
+        "performance_cost_budget_report_status": { "const": "complete" },
+        "capability_id": { "const": "compliance.performance_cost_budget_report" },
+        "phase_slot": { "const": "P303" },
+        "previous_phase_slot": { "const": "P302" },
+        "next_phase_slot": { "const": "P304" },
+        "source_access_review_report_status": { "const": "complete" },
+        "source_access_review_report_phase_slot": { "const": "P302" },
+        "source_access_review_report_next_phase_slot": { "const": "P303" },
+        "failed_source_status_count": { "const": 0 },
+        "performance_budget_row_count": { "type": "integer", "minimum": 10 },
+        "cost_budget_row_count": { "type": "integer", "minimum": 10 },
+        "batch_budget_row_count": { "type": "integer", "minimum": 1 },
+        "workflow_budget_row_count": { "type": "integer", "minimum": 1 },
+        "runtime_budget_row_count": { "type": "integer", "minimum": 1 },
+        "duration_limit_row_count": { "type": "integer", "minimum": 1 },
+        "cost_limit_row_count": { "type": "integer", "minimum": 1 },
+        "token_limit_row_count": { "type": "integer", "minimum": 1 },
+        "budget_violation_count": { "const": 0 },
+        "gate_violation_count": { "const": 0 },
+        "read_only": { "const": true },
+        "budget_report_only": { "const": true },
+        "metric_write_allowed": { "const": false },
+        "budget_mutation_performed": { "const": false },
+        "cost_mutation_performed": { "const": false },
+        "runtime_execution_performed": { "const": false },
+        "batch_execution_performed": { "const": false },
+        "workflow_execution_performed": { "const": false },
+        "runtime_control_performed": { "const": false },
+        "route_execution_performed": { "const": false },
+        "server_started": { "const": false },
+        "protected_action_executed": { "const": false },
+        "external_transfer_performed": { "const": false },
+        "network_access_performed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

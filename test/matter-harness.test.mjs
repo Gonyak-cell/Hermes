@@ -101,6 +101,7 @@ import { runExternalModelPolicyAudit } from "../src/external-model-policy-audit.
 import { runSecretsScanGate } from "../src/secrets-scan-gate.mjs";
 import { runRetentionDeletionPolicy } from "../src/retention-deletion-policy.mjs";
 import { runAccessReviewReport } from "../src/access-review-report.mjs";
+import { runPerformanceCostBudgetReport } from "../src/performance-cost-budget-report.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -1999,6 +2000,7 @@ describe("matter harness", () => {
         secretsScanGatePath: path.join(outDir, "secrets-scan-gate", "secrets-scan-gate.json"),
         retentionDeletionPolicyPath: path.join(outDir, "retention-deletion-policy", "retention-deletion-policy.json"),
         accessReviewReportPath: path.join(outDir, "access-review-report", "access-review-report.json"),
+        performanceCostBudgetReportPath: path.join(outDir, "performance-cost-budget", "performance-cost-budget-report.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -2135,6 +2137,7 @@ describe("matter harness", () => {
         secretsScanGatePath: false,
         retentionDeletionPolicyPath: false,
         accessReviewReportPath: false,
+        performanceCostBudgetReportPath: false,
         observabilityFreezePath: false,
         capabilityManifestV2Path: false,
         packManifestCompatibilityPath: false,
@@ -13365,6 +13368,7 @@ describe("matter harness", () => {
         secretsScanGatePath: false,
         retentionDeletionPolicyPath: false,
         accessReviewReportPath: false,
+        performanceCostBudgetReportPath: false,
         outDir: path.join(outDir, "dashboard-pre-checkpoint"),
         runAt: "2026-05-23T06:35:08.000Z",
       });
@@ -14793,6 +14797,70 @@ describe("matter harness", () => {
       assert.match(await readFile(path.join(outDir, "access-review-report", "summary.md"), "utf8"), /Access Review Report/);
 
       contractGoldenFixtureArtifactPaths.access_review_report = path.join(outDir, "access-review-report", "access-review-report.json");
+      const performanceCostBudgetReport = await runPerformanceCostBudgetReport({
+        accessReviewReportPath: path.join(outDir, "access-review-report", "access-review-report.json"),
+        costObservabilityDashboardPath: path.join(outDir, "cost-observability-dashboard", "cost-observability-dashboard.json"),
+        costBudgetLedgerPath: path.join(outDir, "cost-budget", "cost-budget-ledger.json"),
+        workflowRunLedgerPath: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
+        runtimeFreezePath: path.join(outDir, "runtime-freeze", "runtime-freeze.json"),
+        controlPlaneLoopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
+        outDir: path.join(outDir, "performance-cost-budget"),
+        runAt: "2026-05-23T07:26:35.495Z",
+      });
+      const performanceCostBudgetReportSchema = JSON.parse(await readFile("schemas/performance-cost-budget-report.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(performanceCostBudgetReport, performanceCostBudgetReportSchema, {}, "performance_cost_budget_report"), [], JSON.stringify(performanceCostBudgetReport.validation.errors));
+      assert.equal(performanceCostBudgetReport.summary.performance_cost_budget_report_status, "complete");
+      assert.equal(performanceCostBudgetReport.summary.phase_slot, "P303");
+      assert.equal(performanceCostBudgetReport.summary.previous_phase_slot, "P302");
+      assert.equal(performanceCostBudgetReport.summary.next_phase_slot, "P304");
+      assert.equal(performanceCostBudgetReport.summary.source_access_review_report_status, "complete");
+      assert.equal(performanceCostBudgetReport.summary.source_access_review_report_phase_slot, "P302");
+      assert.equal(performanceCostBudgetReport.summary.source_access_review_report_next_phase_slot, "P303");
+      assert.equal(performanceCostBudgetReport.summary.failed_source_status_count, 0);
+      assert.ok(performanceCostBudgetReport.summary.performance_budget_row_count >= 10);
+      assert.ok(performanceCostBudgetReport.summary.cost_budget_row_count >= 10);
+      assert.ok(performanceCostBudgetReport.summary.batch_budget_row_count >= 1);
+      assert.ok(performanceCostBudgetReport.summary.workflow_budget_row_count >= 1);
+      assert.ok(performanceCostBudgetReport.summary.runtime_budget_row_count >= 1);
+      assert.ok(performanceCostBudgetReport.summary.duration_limit_row_count >= 1);
+      assert.ok(performanceCostBudgetReport.summary.cost_limit_row_count >= 1);
+      assert.ok(performanceCostBudgetReport.summary.token_limit_row_count >= 1);
+      assert.equal(performanceCostBudgetReport.summary.failed_performance_budget_row_count, 0);
+      assert.equal(performanceCostBudgetReport.summary.failed_cost_budget_row_count, 0);
+      assert.equal(performanceCostBudgetReport.summary.budget_violation_count, 0);
+      assert.equal(performanceCostBudgetReport.summary.gate_violation_count, 0);
+      assert.equal(performanceCostBudgetReport.summary.read_only, true);
+      assert.equal(performanceCostBudgetReport.summary.budget_report_only, true);
+      assert.equal(performanceCostBudgetReport.summary.source_content_read_performed, false);
+      assert.equal(performanceCostBudgetReport.summary.source_ingest_performed, false);
+      assert.equal(performanceCostBudgetReport.summary.metric_write_allowed, false);
+      assert.equal(performanceCostBudgetReport.summary.budget_mutation_performed, false);
+      assert.equal(performanceCostBudgetReport.summary.cost_mutation_performed, false);
+      assert.equal(performanceCostBudgetReport.summary.runtime_execution_performed, false);
+      assert.equal(performanceCostBudgetReport.summary.batch_execution_performed, false);
+      assert.equal(performanceCostBudgetReport.summary.workflow_execution_performed, false);
+      assert.equal(performanceCostBudgetReport.summary.runtime_control_performed, false);
+      assert.equal(performanceCostBudgetReport.summary.route_execution_performed, false);
+      assert.equal(performanceCostBudgetReport.summary.server_started, false);
+      assert.equal(performanceCostBudgetReport.summary.protected_action_executed, false);
+      assert.equal(performanceCostBudgetReport.summary.external_transfer_performed, false);
+      assert.equal(performanceCostBudgetReport.summary.network_access_performed, false);
+      assert.equal(performanceCostBudgetReport.summary.legal_advice_generated, false);
+      assert.equal(performanceCostBudgetReport.summary.client_facing_output_generated, false);
+      assert.equal(performanceCostBudgetReport.summary.human_review_required, true);
+      assert.equal(performanceCostBudgetReport.summary.client_facing_ready, false);
+      assert.equal(performanceCostBudgetReport.summary.windows_baseline_stability_preserved, true);
+      assert.equal(performanceCostBudgetReport.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(performanceCostBudgetReport.summary.validation_error_count, 0);
+      assert.ok(performanceCostBudgetReport.source_statuses.every((row) => row.source_status === "passed"));
+      assert.ok(performanceCostBudgetReport.performance_budget_rows.every((row) => row.budget_status === "passed" && row.violation_count === 0 && !row.runtime_execution_performed));
+      assert.ok(performanceCostBudgetReport.cost_budget_rows.every((row) => row.budget_status === "passed" && row.violation_count === 0 && !row.budget_mutation_performed && !row.cost_mutation_performed));
+      assert.ok(performanceCostBudgetReport.performance_cost_budget_gate_results.every((row) => row.gate_status === "passed" && !row.budget_mutation_allowed && !row.runtime_execution_allowed));
+      assert.equal(performanceCostBudgetReport.performance_cost_budget_boundary.boundary_status, "enforced");
+      assert.ok(performanceCostBudgetReport.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "performance-cost-budget", "summary.md"), "utf8"), /Performance\/Cost Budget Report/);
+
+      contractGoldenFixtureArtifactPaths.performance_cost_budget_report = path.join(outDir, "performance-cost-budget", "performance-cost-budget-report.json");
       contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: contractGoldenFixtureArtifactPaths,
         fixtureIds: Object.keys(contractGoldenFixtureArtifactPaths),
@@ -14804,8 +14872,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 204);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 204);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 205);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 205);
       assert.equal(contractGoldenFixtures.summary.missing_artifact_count, 0);
       assert.equal(contractGoldenFixtures.summary.validation_error_count, 0);
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "dashboard_api_freeze"));
@@ -14815,6 +14883,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "secrets_scan_gate"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "retention_deletion_policy"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "access_review_report"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "performance_cost_budget_report"));
 
       contractValidationSuite = await runContractValidationSuite({
         contractGoldenFixturesPath: path.join(outDir, "contract-golden-fixtures", "contract-golden-fixtures.json"),
@@ -14828,8 +14897,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractValidationSuite.summary.validation_suite_status, "complete");
-      assert.equal(contractValidationSuite.summary.fixture_count, 204);
-      assert.equal(contractValidationSuite.summary.validated_fixture_count, 204);
+      assert.equal(contractValidationSuite.summary.fixture_count, 205);
+      assert.equal(contractValidationSuite.summary.validated_fixture_count, 205);
       assert.equal(contractValidationSuite.summary.schema_invalid_fixture_count, 0);
       assert.equal(contractValidationSuite.summary.regression_failed_count, 0);
       assert.equal(contractValidationSuite.summary.missing_package_script_count, 0);
@@ -14841,6 +14910,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "security:secrets-scan-gate"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "compliance:retention-deletion-policy"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "compliance:access-review-report"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "compliance:performance-cost-budget-report"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
 
       const dashboard = await runReviewDashboard({
@@ -14901,6 +14971,10 @@ describe("matter harness", () => {
       assert.equal(accessReviewReportCheckpoint?.acceptance_profile, "access_review_report_gate");
       assert.equal(accessReviewReportCheckpoint?.status, "passed");
       assert.equal(accessReviewReportCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const performanceCostBudgetReportCheckpoint = dashboardApiFreezeGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-performance-cost-budget-report");
+      assert.equal(performanceCostBudgetReportCheckpoint?.acceptance_profile, "performance_cost_budget_report_gate");
+      assert.equal(performanceCostBudgetReportCheckpoint?.status, "passed");
+      assert.equal(performanceCostBudgetReportCheckpoint?.implementation_status, "passed_with_operational_gate");
       assert.equal(dashboard.summary.evidence_approved_count, 1);
       assert.equal(dashboard.summary.evidence_review_draft_item_count, evidenceReviewDraft.summary.review_item_count);
       assert.equal(dashboard.summary.evidence_review_draft_attorney_count, evidenceReviewDraft.summary.attorney_review_count);
@@ -20580,6 +20654,46 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.access_review_report_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.access_review_report_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.access_review_report_validation_error_count, 0);
+      assert.equal(dashboard.summary.performance_cost_budget_report_status, "complete");
+      assert.equal(dashboard.summary.performance_cost_budget_report_id, performanceCostBudgetReport.summary.performance_cost_budget_report_id);
+      assert.equal(dashboard.summary.performance_cost_budget_report_phase_slot, "P303");
+      assert.equal(dashboard.summary.performance_cost_budget_report_previous_phase_slot, "P302");
+      assert.equal(dashboard.summary.performance_cost_budget_report_next_phase_slot, "P304");
+      assert.equal(dashboard.summary.performance_cost_budget_report_source_access_review_report_status, "complete");
+      assert.equal(dashboard.summary.performance_cost_budget_report_source_access_review_report_phase_slot, "P302");
+      assert.equal(dashboard.summary.performance_cost_budget_report_source_access_review_report_next_phase_slot, "P303");
+      assert.equal(dashboard.summary.performance_cost_budget_report_failed_source_status_count, 0);
+      assert.equal(dashboard.summary.performance_cost_budget_report_performance_budget_row_count, performanceCostBudgetReport.summary.performance_budget_row_count);
+      assert.equal(dashboard.summary.performance_cost_budget_report_cost_budget_row_count, performanceCostBudgetReport.summary.cost_budget_row_count);
+      assert.equal(dashboard.summary.performance_cost_budget_report_batch_budget_row_count, performanceCostBudgetReport.summary.batch_budget_row_count);
+      assert.equal(dashboard.summary.performance_cost_budget_report_workflow_budget_row_count, performanceCostBudgetReport.summary.workflow_budget_row_count);
+      assert.equal(dashboard.summary.performance_cost_budget_report_runtime_budget_row_count, performanceCostBudgetReport.summary.runtime_budget_row_count);
+      assert.equal(dashboard.summary.performance_cost_budget_report_duration_limit_row_count, performanceCostBudgetReport.summary.duration_limit_row_count);
+      assert.equal(dashboard.summary.performance_cost_budget_report_cost_limit_row_count, performanceCostBudgetReport.summary.cost_limit_row_count);
+      assert.equal(dashboard.summary.performance_cost_budget_report_token_limit_row_count, performanceCostBudgetReport.summary.token_limit_row_count);
+      assert.equal(dashboard.summary.performance_cost_budget_report_budget_violation_count, 0);
+      assert.equal(dashboard.summary.performance_cost_budget_report_gate_violation_count, 0);
+      assert.equal(dashboard.summary.performance_cost_budget_report_read_only, true);
+      assert.equal(dashboard.summary.performance_cost_budget_report_budget_report_only, true);
+      assert.equal(dashboard.summary.performance_cost_budget_report_metric_write_allowed, false);
+      assert.equal(dashboard.summary.performance_cost_budget_report_budget_mutation_performed, false);
+      assert.equal(dashboard.summary.performance_cost_budget_report_cost_mutation_performed, false);
+      assert.equal(dashboard.summary.performance_cost_budget_report_runtime_execution_performed, false);
+      assert.equal(dashboard.summary.performance_cost_budget_report_batch_execution_performed, false);
+      assert.equal(dashboard.summary.performance_cost_budget_report_workflow_execution_performed, false);
+      assert.equal(dashboard.summary.performance_cost_budget_report_runtime_control_performed, false);
+      assert.equal(dashboard.summary.performance_cost_budget_report_route_execution_performed, false);
+      assert.equal(dashboard.summary.performance_cost_budget_report_server_started, false);
+      assert.equal(dashboard.summary.performance_cost_budget_report_protected_action_executed, false);
+      assert.equal(dashboard.summary.performance_cost_budget_report_external_transfer_performed, false);
+      assert.equal(dashboard.summary.performance_cost_budget_report_network_access_performed, false);
+      assert.equal(dashboard.summary.performance_cost_budget_report_legal_advice_generated, false);
+      assert.equal(dashboard.summary.performance_cost_budget_report_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.performance_cost_budget_report_human_review_required, true);
+      assert.equal(dashboard.summary.performance_cost_budget_report_client_facing_ready, false);
+      assert.equal(dashboard.summary.performance_cost_budget_report_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.performance_cost_budget_report_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.performance_cost_budget_report_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -24846,6 +24960,45 @@ describe("matter harness", () => {
       assert.equal(accessReviewReportStage?.metrics.windows_baseline_stability_preserved, true);
       assert.equal(accessReviewReportStage?.metrics.mac_windows_completion_instability_guard, true);
       assert.equal(accessReviewReportStage?.metrics.validation_error_count, 0);
+      const performanceCostBudgetReportStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "performance_cost_budget_report");
+      assert.equal(performanceCostBudgetReportStage?.status, "passed");
+      assert.equal(performanceCostBudgetReportStage?.metrics.performance_cost_budget_report_status, "complete");
+      assert.equal(performanceCostBudgetReportStage?.metrics.performance_cost_budget_report_id, performanceCostBudgetReport.summary.performance_cost_budget_report_id);
+      assert.equal(performanceCostBudgetReportStage?.metrics.phase_slot, "P303");
+      assert.equal(performanceCostBudgetReportStage?.metrics.previous_phase_slot, "P302");
+      assert.equal(performanceCostBudgetReportStage?.metrics.next_phase_slot, "P304");
+      assert.equal(performanceCostBudgetReportStage?.metrics.source_access_review_report_status, "complete");
+      assert.equal(performanceCostBudgetReportStage?.metrics.source_access_review_report_phase_slot, "P302");
+      assert.equal(performanceCostBudgetReportStage?.metrics.source_access_review_report_next_phase_slot, "P303");
+      assert.equal(performanceCostBudgetReportStage?.metrics.failed_source_status_count, 0);
+      assert.equal(performanceCostBudgetReportStage?.metrics.performance_budget_row_count, performanceCostBudgetReport.summary.performance_budget_row_count);
+      assert.equal(performanceCostBudgetReportStage?.metrics.cost_budget_row_count, performanceCostBudgetReport.summary.cost_budget_row_count);
+      assert.equal(performanceCostBudgetReportStage?.metrics.batch_budget_row_count, performanceCostBudgetReport.summary.batch_budget_row_count);
+      assert.equal(performanceCostBudgetReportStage?.metrics.workflow_budget_row_count, performanceCostBudgetReport.summary.workflow_budget_row_count);
+      assert.equal(performanceCostBudgetReportStage?.metrics.runtime_budget_row_count, performanceCostBudgetReport.summary.runtime_budget_row_count);
+      assert.equal(performanceCostBudgetReportStage?.metrics.budget_violation_count, 0);
+      assert.equal(performanceCostBudgetReportStage?.metrics.gate_violation_count, 0);
+      assert.equal(performanceCostBudgetReportStage?.metrics.read_only, true);
+      assert.equal(performanceCostBudgetReportStage?.metrics.budget_report_only, true);
+      assert.equal(performanceCostBudgetReportStage?.metrics.metric_write_allowed, false);
+      assert.equal(performanceCostBudgetReportStage?.metrics.budget_mutation_performed, false);
+      assert.equal(performanceCostBudgetReportStage?.metrics.cost_mutation_performed, false);
+      assert.equal(performanceCostBudgetReportStage?.metrics.runtime_execution_performed, false);
+      assert.equal(performanceCostBudgetReportStage?.metrics.batch_execution_performed, false);
+      assert.equal(performanceCostBudgetReportStage?.metrics.workflow_execution_performed, false);
+      assert.equal(performanceCostBudgetReportStage?.metrics.runtime_control_performed, false);
+      assert.equal(performanceCostBudgetReportStage?.metrics.route_execution_performed, false);
+      assert.equal(performanceCostBudgetReportStage?.metrics.server_started, false);
+      assert.equal(performanceCostBudgetReportStage?.metrics.protected_action_executed, false);
+      assert.equal(performanceCostBudgetReportStage?.metrics.external_transfer_performed, false);
+      assert.equal(performanceCostBudgetReportStage?.metrics.network_access_performed, false);
+      assert.equal(performanceCostBudgetReportStage?.metrics.legal_advice_generated, false);
+      assert.equal(performanceCostBudgetReportStage?.metrics.client_facing_output_generated, false);
+      assert.equal(performanceCostBudgetReportStage?.metrics.human_review_required, true);
+      assert.equal(performanceCostBudgetReportStage?.metrics.client_facing_ready, false);
+      assert.equal(performanceCostBudgetReportStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(performanceCostBudgetReportStage?.metrics.mac_windows_completion_instability_guard, true);
+      assert.equal(performanceCostBudgetReportStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -28427,6 +28580,34 @@ describe("matter harness", () => {
       const accessReviewValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/access-review-validations?status=passed", apiOptions)).body);
       assert.equal(accessReviewValidationsResponse.collection, "access_review_validations");
       assert.equal(accessReviewValidationsResponse.count, accessReviewReport.summary.validation_item_count);
+
+      const performanceCostBudgetReportsResponse = JSON.parse((await buildReviewApiResponse("/api/performance-cost-budget-reports?performance_cost_budget_report_status=complete", apiOptions)).body);
+      assert.equal(performanceCostBudgetReportsResponse.collection, "performance_cost_budget_reports");
+      assert.equal(performanceCostBudgetReportsResponse.count, 1);
+
+      const performanceCostBudgetSourcesResponse = JSON.parse((await buildReviewApiResponse("/api/performance-cost-budget-sources?source_status=passed", apiOptions)).body);
+      assert.equal(performanceCostBudgetSourcesResponse.collection, "performance_cost_budget_sources");
+      assert.equal(performanceCostBudgetSourcesResponse.count, performanceCostBudgetReport.summary.source_status_count);
+
+      const performanceBudgetRowsResponse = JSON.parse((await buildReviewApiResponse("/api/performance-budget-rows?budget_scope=workflow&budget_status=passed", apiOptions)).body);
+      assert.equal(performanceBudgetRowsResponse.collection, "performance_budget_rows");
+      assert.equal(performanceBudgetRowsResponse.count, performanceCostBudgetReport.performance_budget_rows.filter((row) => row.budget_scope === "workflow").length);
+
+      const costBudgetRowsResponse = JSON.parse((await buildReviewApiResponse("/api/cost-budget-rows?budget_scope=runtime&budget_status=passed", apiOptions)).body);
+      assert.equal(costBudgetRowsResponse.collection, "cost_budget_rows");
+      assert.equal(costBudgetRowsResponse.count, performanceCostBudgetReport.cost_budget_rows.filter((row) => row.budget_scope === "runtime").length);
+
+      const performanceCostBudgetGateResultsResponse = JSON.parse((await buildReviewApiResponse("/api/performance-cost-budget-gate-results?gate_status=passed&budget_mutation_allowed=false", apiOptions)).body);
+      assert.equal(performanceCostBudgetGateResultsResponse.collection, "performance_cost_budget_gate_results");
+      assert.equal(performanceCostBudgetGateResultsResponse.count, performanceCostBudgetReport.summary.gate_result_count);
+
+      const performanceCostBudgetBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/performance-cost-budget-boundary?boundary_status=enforced&budget_report_only=true", apiOptions)).body);
+      assert.equal(performanceCostBudgetBoundaryResponse.collection, "performance_cost_budget_boundary");
+      assert.equal(performanceCostBudgetBoundaryResponse.count, 1);
+
+      const performanceCostBudgetValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/performance-cost-budget-validations?status=passed", apiOptions)).body);
+      assert.equal(performanceCostBudgetValidationsResponse.collection, "performance_cost_budget_validations");
+      assert.equal(performanceCostBudgetValidationsResponse.count, performanceCostBudgetReport.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

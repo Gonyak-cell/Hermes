@@ -3448,6 +3448,34 @@ try {
   assert.equal(accessReviewValidations.collection, "access_review_validations");
   assert.ok(accessReviewValidations.count <= 5);
 
+  const performanceCostBudgetReports = await fetchJson(`${url}/api/performance-cost-budget-reports?performance_cost_budget_report_status=complete&limit=1`);
+  assert.equal(performanceCostBudgetReports.collection, "performance_cost_budget_reports");
+  assert.ok(performanceCostBudgetReports.count <= 1);
+
+  const performanceCostBudgetSources = await fetchJson(`${url}/api/performance-cost-budget-sources?source_status=passed&limit=10`);
+  assert.equal(performanceCostBudgetSources.collection, "performance_cost_budget_sources");
+  assert.ok(performanceCostBudgetSources.count <= 10);
+
+  const performanceBudgetRows = await fetchJson(`${url}/api/performance-budget-rows?budget_scope=workflow&budget_status=passed&limit=10`);
+  assert.equal(performanceBudgetRows.collection, "performance_budget_rows");
+  assert.ok(performanceBudgetRows.count <= 10);
+
+  const costBudgetRows = await fetchJson(`${url}/api/cost-budget-rows?budget_scope=runtime&budget_status=passed&limit=10`);
+  assert.equal(costBudgetRows.collection, "cost_budget_rows");
+  assert.ok(costBudgetRows.count <= 10);
+
+  const performanceCostBudgetGateResults = await fetchJson(`${url}/api/performance-cost-budget-gate-results?gate_status=passed&budget_mutation_allowed=false&limit=10`);
+  assert.equal(performanceCostBudgetGateResults.collection, "performance_cost_budget_gate_results");
+  assert.ok(performanceCostBudgetGateResults.count <= 10);
+
+  const performanceCostBudgetBoundary = await fetchJson(`${url}/api/performance-cost-budget-boundary?boundary_status=enforced&budget_report_only=true&limit=1`);
+  assert.equal(performanceCostBudgetBoundary.collection, "performance_cost_budget_boundary");
+  assert.ok(performanceCostBudgetBoundary.count <= 1);
+
+  const performanceCostBudgetValidations = await fetchJson(`${url}/api/performance-cost-budget-validations?status=passed&limit=5`);
+  assert.equal(performanceCostBudgetValidations.collection, "performance_cost_budget_validations");
+  assert.ok(performanceCostBudgetValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

@@ -211,6 +211,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     secrets_scan_gate: "artifacts/secrets-scan-gate/latest/secrets-scan-gate.json",
     retention_deletion_policy: "artifacts/retention-deletion-policy/latest/retention-deletion-policy.json",
     access_review_report: "artifacts/access-review-report/latest/access-review-report.json",
+    performance_cost_budget_report: "artifacts/performance-cost-budget/latest/performance-cost-budget-report.json",
   },
 };
 
@@ -415,6 +416,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("secrets_scan_gate", "Secrets Scan Gate", "security", "secrets-scan-gate.schema.json"),
   fixtureDefinition("retention_deletion_policy", "Retention Deletion Policy", "compliance", "retention-deletion-policy.schema.json"),
   fixtureDefinition("access_review_report", "Access Review Report", "compliance", "access-review-report.schema.json"),
+  fixtureDefinition("performance_cost_budget_report", "Performance/Cost Budget Report", "compliance", "performance-cost-budget-report.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),

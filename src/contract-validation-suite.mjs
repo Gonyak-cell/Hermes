@@ -172,6 +172,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "deployment:runbook",
   "operator:handbook",
   "release:candidate",
+  "release:freeze",
   "connectors:contract-v2",
   "connectors:local-folder",
   "connectors:onedrive-boundary",

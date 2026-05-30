@@ -108,6 +108,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   deploymentRunbookPath: "artifacts/deployment-runbook/latest/deployment-runbook.json",
   operatorHandbookPath: "artifacts/operator-handbook/latest/operator-handbook.json",
   releaseCandidateReportPath: "artifacts/release-candidate-report/latest/release-candidate-report.json",
+  v1FreezePath: "artifacts/v1-freeze/latest/v1-freeze.json",
   connectorContractV2Path: "artifacts/connector-contract-v2/latest/connector-contract-v2.json",
   localFolderConnectorPath: "artifacts/local-folder-connector/latest/local-folder-connector.json",
   onedriveConnectorBoundaryPath: "artifacts/onedrive-connector-boundary/latest/onedrive-connector-boundary.json",
@@ -830,6 +831,11 @@ const SOURCE_DEFINITIONS = [
     option: "releaseCandidateReportPath",
     source_id: "release_candidate_report",
     label: "Release Candidate Report",
+  },
+  {
+    option: "v1FreezePath",
+    source_id: "v1_freeze",
+    label: "Hermes Harness v1.0 Freeze",
   },
   {
     option: "connectorContractV2Path",
@@ -2001,6 +2007,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "deployment_runbook") return data.summary ?? {};
   if (sourceId === "operator_handbook") return data.summary ?? {};
   if (sourceId === "release_candidate_report") return data.summary ?? {};
+  if (sourceId === "v1_freeze") return data.summary ?? {};
   if (sourceId === "connector_contract_v2") return data.summary ?? {};
   if (sourceId === "local_folder_connector") return data.summary ?? {};
   if (sourceId === "onedrive_connector_boundary") return data.summary ?? {};
@@ -2413,6 +2420,7 @@ function buildStageStatuses(artifacts, sources) {
     buildDeploymentRunbookStage(artifacts.deployment_runbook, sourceById.get("deployment_runbook")),
     buildOperatorHandbookStage(artifacts.operator_handbook, sourceById.get("operator_handbook")),
     buildReleaseCandidateReportStage(artifacts.release_candidate_report, sourceById.get("release_candidate_report")),
+    buildV1FreezeStage(artifacts.v1_freeze, sourceById.get("v1_freeze")),
     buildConnectorContractV2Stage(artifacts.connector_contract_v2, sourceById.get("connector_contract_v2")),
     buildLocalFolderConnectorStage(artifacts.local_folder_connector, sourceById.get("local_folder_connector")),
     buildOneDriveConnectorBoundaryStage(artifacts.onedrive_connector_boundary, sourceById.get("onedrive_connector_boundary")),
@@ -12802,6 +12810,83 @@ function buildReleaseCandidateReportStage(artifact, source) {
       ...summary,
       release_candidate_status: summary.release_candidate_status ?? "unknown",
       release_candidate_report_id: summary.release_candidate_report_id ?? null,
+      validation_error_count: validationErrorCount,
+    },
+  };
+}
+
+function buildV1FreezeStage(artifact, source) {
+  if (!artifact) return missingStage("v1_freeze", "Hermes Harness v1.0 Freeze", source);
+  const summary = artifact.summary ?? {};
+  const validationErrorCount = summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0;
+  const status = artifact.validation?.valid === false
+    || summary.v1_freeze_status !== "complete"
+    || summary.phase_slot !== "P312"
+    || summary.previous_phase_slot !== "P311"
+    || summary.next_phase_slot !== "COMPLETE"
+    || summary.source_release_candidate_status !== "complete"
+    || summary.source_release_candidate_phase_slot !== "P311"
+    || summary.source_release_candidate_next_phase_slot !== "P312"
+    || summary.source_dashboard_api_freeze_status !== "complete"
+    || summary.source_contract_golden_fixture_status !== "complete"
+    || summary.source_contract_validation_suite_status !== "complete"
+    || summary.source_control_plane_goal_checkpoint_status !== "passed"
+    || summary.source_control_plane_loop_status !== "passed"
+    || summary.source_operator_handbook_status !== "complete"
+    || (summary.failed_source_status_count ?? 0) !== 0
+    || (summary.passed_checklist_row_count ?? 0) !== (summary.checklist_row_count ?? -1)
+    || (summary.passed_gate_result_count ?? 0) !== (summary.gate_result_count ?? -1)
+    || (summary.gate_violation_count ?? 0) !== 0
+    || (summary.dashboard_blocking_gate_count ?? 0) !== 0
+    || summary.dashboard_api_smoke_ready !== true
+    || summary.dashboard_desktop_ready !== true
+    || (summary.contract_golden_fixture_count ?? 0) < 213
+    || summary.contract_validation_regression_passed_count !== summary.contract_validation_fixture_count
+    || (summary.control_plane_goal_checkpoint_attention_item_count ?? 0) !== 0
+    || (summary.control_plane_loop_failed_step_count ?? 0) !== 0
+    || summary.release_candidate_passed_matrix_row_count !== summary.release_candidate_matrix_row_count
+    || summary.operator_handbook_ready_surface_count !== summary.operator_handbook_surface_count
+    || summary.ready_for_v1_freeze_gate !== true
+    || summary.read_only !== true
+    || summary.report_only !== true
+    || summary.freeze_note_only !== true
+    || summary.tag_created === true
+    || summary.release_published === true
+    || summary.git_command_executed === true
+    || summary.command_execution_performed === true
+    || summary.test_execution_performed === true
+    || summary.route_execution_performed === true
+    || summary.server_started === true
+    || summary.deployment_execution_performed === true
+    || summary.recovery_execution_performed === true
+    || summary.rollback_execution_performed === true
+    || summary.restore_execution_performed === true
+    || summary.protected_action_executed === true
+    || summary.delivery_execution_performed === true
+    || summary.legal_advice_generated === true
+    || summary.client_facing_output_generated === true
+    || summary.client_facing_ready === true
+    || summary.human_review_required !== true
+    || summary.attorney_review_required !== true
+    || summary.approval_required_for_release !== true
+    || summary.desktop_read_only !== true
+    || summary.desktop_source_of_truth !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || summary.all_planned_slots_promoted !== true
+    || validationErrorCount !== 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "v1_freeze",
+    label: "Hermes Harness v1.0 Freeze",
+    status,
+    message: `${summary.passed_checklist_row_count ?? 0}/${summary.checklist_row_count ?? 0} checklist row(s), ${summary.passed_gate_result_count ?? 0}/${summary.gate_result_count ?? 0} gate(s), ${summary.dashboard_pending_approval_count ?? 0}/${summary.dashboard_blocking_gate_count ?? 0} pending/blocking.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      ...summary,
+      v1_freeze_status: summary.v1_freeze_status ?? "unknown",
+      v1_freeze_id: summary.v1_freeze_id ?? null,
       validation_error_count: validationErrorCount,
     },
   };
@@ -23990,6 +24075,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.v1_freeze?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "v1_freeze";
+    items.push({
+      action_item_id: `dashboard.action.v1_freeze.${slugify(subjectId)}`,
+      source_stage: "v1_freeze",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Hermes Harness v1.0 Freeze",
+      subject_ref: {
+        subject_type: "v1_freeze_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_v1_freeze", "rerun_v1_freeze", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.connector_contract_v2?.validation?.errors ?? []) {
     const subjectId = error.path ?? "connector_contract_v2";
     items.push({
@@ -31048,6 +31151,77 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     release_candidate_windows_baseline_stability_preserved: artifacts.release_candidate_report?.summary?.windows_baseline_stability_preserved ?? false,
     release_candidate_mac_windows_completion_instability_guard: artifacts.release_candidate_report?.summary?.mac_windows_completion_instability_guard ?? false,
     release_candidate_validation_error_count: artifacts.release_candidate_report?.summary?.validation_error_count ?? artifacts.release_candidate_report?.validation?.errors?.length ?? 0,
+    v1_freeze_status: artifacts.v1_freeze?.summary?.v1_freeze_status ?? "unknown",
+    v1_freeze_id: artifacts.v1_freeze?.summary?.v1_freeze_id ?? null,
+    v1_freeze_phase_slot: artifacts.v1_freeze?.summary?.phase_slot ?? null,
+    v1_freeze_previous_phase_slot: artifacts.v1_freeze?.summary?.previous_phase_slot ?? null,
+    v1_freeze_next_phase_slot: artifacts.v1_freeze?.summary?.next_phase_slot ?? null,
+    v1_freeze_source_release_candidate_status: artifacts.v1_freeze?.summary?.source_release_candidate_status ?? "unknown",
+    v1_freeze_source_release_candidate_phase_slot: artifacts.v1_freeze?.summary?.source_release_candidate_phase_slot ?? null,
+    v1_freeze_source_release_candidate_next_phase_slot: artifacts.v1_freeze?.summary?.source_release_candidate_next_phase_slot ?? null,
+    v1_freeze_source_dashboard_api_freeze_status: artifacts.v1_freeze?.summary?.source_dashboard_api_freeze_status ?? "unknown",
+    v1_freeze_source_contract_golden_fixture_status: artifacts.v1_freeze?.summary?.source_contract_golden_fixture_status ?? "unknown",
+    v1_freeze_source_contract_validation_suite_status: artifacts.v1_freeze?.summary?.source_contract_validation_suite_status ?? "unknown",
+    v1_freeze_source_control_plane_goal_checkpoint_status: artifacts.v1_freeze?.summary?.source_control_plane_goal_checkpoint_status ?? "unknown",
+    v1_freeze_source_control_plane_loop_status: artifacts.v1_freeze?.summary?.source_control_plane_loop_status ?? "unknown",
+    v1_freeze_source_operator_handbook_status: artifacts.v1_freeze?.summary?.source_operator_handbook_status ?? "unknown",
+    v1_freeze_failed_source_status_count: artifacts.v1_freeze?.summary?.failed_source_status_count ?? 0,
+    v1_freeze_checklist_row_count: artifacts.v1_freeze?.summary?.checklist_row_count ?? 0,
+    v1_freeze_passed_checklist_row_count: artifacts.v1_freeze?.summary?.passed_checklist_row_count ?? 0,
+    v1_freeze_failed_checklist_row_count: artifacts.v1_freeze?.summary?.failed_checklist_row_count ?? 0,
+    v1_freeze_gate_result_count: artifacts.v1_freeze?.summary?.gate_result_count ?? 0,
+    v1_freeze_passed_gate_result_count: artifacts.v1_freeze?.summary?.passed_gate_result_count ?? 0,
+    v1_freeze_gate_violation_count: artifacts.v1_freeze?.summary?.gate_violation_count ?? 0,
+    v1_freeze_dashboard_pending_approval_count: artifacts.v1_freeze?.summary?.dashboard_pending_approval_count ?? 0,
+    v1_freeze_dashboard_blocking_gate_count: artifacts.v1_freeze?.summary?.dashboard_blocking_gate_count ?? 0,
+    v1_freeze_dashboard_api_route_count: artifacts.v1_freeze?.summary?.dashboard_api_route_count ?? 0,
+    v1_freeze_dashboard_api_smoke_ready: artifacts.v1_freeze?.summary?.dashboard_api_smoke_ready ?? false,
+    v1_freeze_dashboard_desktop_ready: artifacts.v1_freeze?.summary?.dashboard_desktop_ready ?? false,
+    v1_freeze_contract_golden_fixture_count: artifacts.v1_freeze?.summary?.contract_golden_fixture_count ?? 0,
+    v1_freeze_contract_validation_fixture_count: artifacts.v1_freeze?.summary?.contract_validation_fixture_count ?? 0,
+    v1_freeze_contract_validation_regression_passed_count: artifacts.v1_freeze?.summary?.contract_validation_regression_passed_count ?? 0,
+    v1_freeze_control_plane_goal_checkpoint_item_count: artifacts.v1_freeze?.summary?.control_plane_goal_checkpoint_item_count ?? 0,
+    v1_freeze_control_plane_goal_checkpoint_passed_item_count: artifacts.v1_freeze?.summary?.control_plane_goal_checkpoint_passed_item_count ?? 0,
+    v1_freeze_control_plane_goal_checkpoint_attention_item_count: artifacts.v1_freeze?.summary?.control_plane_goal_checkpoint_attention_item_count ?? 0,
+    v1_freeze_control_plane_loop_step_count: artifacts.v1_freeze?.summary?.control_plane_loop_step_count ?? 0,
+    v1_freeze_control_plane_loop_passed_step_count: artifacts.v1_freeze?.summary?.control_plane_loop_passed_step_count ?? 0,
+    v1_freeze_control_plane_loop_failed_step_count: artifacts.v1_freeze?.summary?.control_plane_loop_failed_step_count ?? 0,
+    v1_freeze_operator_handbook_ready_surface_count: artifacts.v1_freeze?.summary?.operator_handbook_ready_surface_count ?? 0,
+    v1_freeze_operator_handbook_surface_count: artifacts.v1_freeze?.summary?.operator_handbook_surface_count ?? 0,
+    v1_freeze_release_candidate_matrix_row_count: artifacts.v1_freeze?.summary?.release_candidate_matrix_row_count ?? 0,
+    v1_freeze_release_candidate_passed_matrix_row_count: artifacts.v1_freeze?.summary?.release_candidate_passed_matrix_row_count ?? 0,
+    v1_freeze_ready_for_v1_freeze_gate: artifacts.v1_freeze?.summary?.ready_for_v1_freeze_gate ?? false,
+    v1_freeze_pending_human_approval_count: artifacts.v1_freeze?.summary?.pending_human_approval_count ?? 0,
+    v1_freeze_operational_blocker_count: artifacts.v1_freeze?.summary?.operational_blocker_count ?? 0,
+    v1_freeze_read_only: artifacts.v1_freeze?.summary?.read_only ?? false,
+    v1_freeze_report_only: artifacts.v1_freeze?.summary?.report_only ?? false,
+    v1_freeze_freeze_note_only: artifacts.v1_freeze?.summary?.freeze_note_only ?? false,
+    v1_freeze_tag_created: artifacts.v1_freeze?.summary?.tag_created ?? false,
+    v1_freeze_release_published: artifacts.v1_freeze?.summary?.release_published ?? false,
+    v1_freeze_git_command_executed: artifacts.v1_freeze?.summary?.git_command_executed ?? false,
+    v1_freeze_command_execution_performed: artifacts.v1_freeze?.summary?.command_execution_performed ?? false,
+    v1_freeze_test_execution_performed: artifacts.v1_freeze?.summary?.test_execution_performed ?? false,
+    v1_freeze_route_execution_performed: artifacts.v1_freeze?.summary?.route_execution_performed ?? false,
+    v1_freeze_server_started: artifacts.v1_freeze?.summary?.server_started ?? false,
+    v1_freeze_deployment_execution_performed: artifacts.v1_freeze?.summary?.deployment_execution_performed ?? false,
+    v1_freeze_recovery_execution_performed: artifacts.v1_freeze?.summary?.recovery_execution_performed ?? false,
+    v1_freeze_rollback_execution_performed: artifacts.v1_freeze?.summary?.rollback_execution_performed ?? false,
+    v1_freeze_restore_execution_performed: artifacts.v1_freeze?.summary?.restore_execution_performed ?? false,
+    v1_freeze_protected_action_executed: artifacts.v1_freeze?.summary?.protected_action_executed ?? false,
+    v1_freeze_delivery_execution_performed: artifacts.v1_freeze?.summary?.delivery_execution_performed ?? false,
+    v1_freeze_legal_advice_generated: artifacts.v1_freeze?.summary?.legal_advice_generated ?? false,
+    v1_freeze_client_facing_output_generated: artifacts.v1_freeze?.summary?.client_facing_output_generated ?? false,
+    v1_freeze_client_facing_ready: artifacts.v1_freeze?.summary?.client_facing_ready ?? false,
+    v1_freeze_human_review_required: artifacts.v1_freeze?.summary?.human_review_required ?? false,
+    v1_freeze_attorney_review_required: artifacts.v1_freeze?.summary?.attorney_review_required ?? false,
+    v1_freeze_approval_required_for_release: artifacts.v1_freeze?.summary?.approval_required_for_release ?? false,
+    v1_freeze_desktop_read_only: artifacts.v1_freeze?.summary?.desktop_read_only ?? false,
+    v1_freeze_desktop_source_of_truth: artifacts.v1_freeze?.summary?.desktop_source_of_truth ?? true,
+    v1_freeze_windows_baseline_stability_preserved: artifacts.v1_freeze?.summary?.windows_baseline_stability_preserved ?? false,
+    v1_freeze_mac_windows_completion_instability_guard: artifacts.v1_freeze?.summary?.mac_windows_completion_instability_guard ?? false,
+    v1_freeze_all_planned_slots_promoted: artifacts.v1_freeze?.summary?.all_planned_slots_promoted ?? false,
+    v1_freeze_failed_checkpoint_count: artifacts.v1_freeze?.summary?.failed_checkpoint_count ?? 0,
+    v1_freeze_validation_error_count: artifacts.v1_freeze?.summary?.validation_error_count ?? artifacts.v1_freeze?.validation?.errors?.length ?? 0,
     connector_contract_v2_status: artifacts.connector_contract_v2?.summary?.connector_contract_status ?? "unknown",
     connector_contract_v2_contract_id: artifacts.connector_contract_v2?.summary?.connector_contract_id ?? null,
     connector_contract_v2_interface_schema_version: artifacts.connector_contract_v2?.summary?.interface_schema_version ?? null,
@@ -34618,6 +34792,8 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Operator handbook recovery and execution: ${dashboard.summary.operator_handbook_documented_recovery_step_count ?? 0}/${dashboard.summary.operator_handbook_recovery_step_count ?? 0}, ${dashboard.summary.operator_handbook_recovery_execution_performed ?? false}/${dashboard.summary.operator_handbook_command_execution_performed ?? false}`);
   lines.push(`- Release candidate matrix and commands: ${dashboard.summary.release_candidate_passed_matrix_row_count ?? 0}/${dashboard.summary.release_candidate_matrix_row_count ?? 0}, ${dashboard.summary.release_candidate_ready_command_count ?? 0}/${dashboard.summary.release_candidate_command_count ?? 0}`);
   lines.push(`- Release candidate blockers and execution: ${dashboard.summary.release_candidate_dashboard_pending_approval_count ?? 0}/${dashboard.summary.release_candidate_dashboard_blocking_gate_count ?? 0}, ${dashboard.summary.release_candidate_command_execution_performed ?? false}/${dashboard.summary.release_candidate_route_execution_performed ?? false}`);
+  lines.push(`- v1 freeze checklist and gates: ${dashboard.summary.v1_freeze_passed_checklist_row_count ?? 0}/${dashboard.summary.v1_freeze_checklist_row_count ?? 0}, ${dashboard.summary.v1_freeze_passed_gate_result_count ?? 0}/${dashboard.summary.v1_freeze_gate_result_count ?? 0}`);
+  lines.push(`- v1 freeze tag/release execution: ${dashboard.summary.v1_freeze_tag_created ?? false}/${dashboard.summary.v1_freeze_release_published ?? false}, ${dashboard.summary.v1_freeze_git_command_executed ?? false}/${dashboard.summary.v1_freeze_deployment_execution_performed ?? false}`);
   lines.push(`- Ledger API/dashboard panels and routes: ${dashboard.summary.ledger_api_dashboard_passed_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_panel_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_declared_route_count ?? 0}/${dashboard.summary.ledger_api_dashboard_route_count ?? 0}`);
   lines.push(`- Ledger API/dashboard domains run/audit/cost/error/event: ${dashboard.summary.ledger_api_dashboard_run_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_audit_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cost_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_error_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_event_panel_count ?? 0}`);
   lines.push(`- Ledger API/dashboard metrics/cross links/errors: ${dashboard.summary.ledger_api_dashboard_metric_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_linked_cross_link_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cross_link_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_validation_error_count ?? 0}`);
@@ -35007,6 +35183,8 @@ function parseArgs(argv) {
     else if (arg === "--no-operator-handbook") parsed.operatorHandbookPath = false;
     else if (arg === "--release-candidate-report") parsed.releaseCandidateReportPath = argv[++index];
     else if (arg === "--no-release-candidate-report") parsed.releaseCandidateReportPath = false;
+    else if (arg === "--v1-freeze") parsed.v1FreezePath = argv[++index];
+    else if (arg === "--no-v1-freeze") parsed.v1FreezePath = false;
     else if (arg === "--connector-contract-v2") parsed.connectorContractV2Path = argv[++index];
     else if (arg === "--no-connector-contract-v2") parsed.connectorContractV2Path = false;
     else if (arg === "--local-folder-connector") parsed.localFolderConnectorPath = argv[++index];

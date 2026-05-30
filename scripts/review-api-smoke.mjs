@@ -3716,6 +3716,30 @@ try {
   assert.equal(releaseCandidateValidations.collection, "release_candidate_validations");
   assert.ok(releaseCandidateValidations.count <= 5);
 
+  const v1Freezes = await fetchJson(`${url}/api/v1-freezes?v1_freeze_status=complete&limit=1`);
+  assert.equal(v1Freezes.collection, "v1_freezes");
+  assert.ok(v1Freezes.count <= 1);
+
+  const v1FreezeSources = await fetchJson(`${url}/api/v1-freeze-sources?source_status=passed&limit=10`);
+  assert.equal(v1FreezeSources.collection, "v1_freeze_sources");
+  assert.ok(v1FreezeSources.count <= 10);
+
+  const v1FreezeChecklist = await fetchJson(`${url}/api/v1-freeze-checklist?v1_freeze_check_status=passed&limit=10`);
+  assert.equal(v1FreezeChecklist.collection, "v1_freeze_checklist");
+  assert.ok(v1FreezeChecklist.count <= 10);
+
+  const v1FreezeGates = await fetchJson(`${url}/api/v1-freeze-gates?v1_freeze_gate_passed=true&limit=10`);
+  assert.equal(v1FreezeGates.collection, "v1_freeze_gates");
+  assert.ok(v1FreezeGates.count <= 10);
+
+  const v1FreezeBoundary = await fetchJson(`${url}/api/v1-freeze-boundary?boundary_status=enforced&read_only=true&client_facing_output_generated=false&limit=1`);
+  assert.equal(v1FreezeBoundary.collection, "v1_freeze_boundary");
+  assert.ok(v1FreezeBoundary.count <= 1);
+
+  const v1FreezeValidations = await fetchJson(`${url}/api/v1-freeze-validations?status=passed&limit=5`);
+  assert.equal(v1FreezeValidations.collection, "v1_freeze_validations");
+  assert.ok(v1FreezeValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

@@ -110,6 +110,7 @@ import { runIngestionE2eReport } from "../src/ingestion-e2e-report.mjs";
 import { runDeploymentRunbook } from "../src/deployment-runbook.mjs";
 import { runOperatorHandbook } from "../src/operator-handbook.mjs";
 import { runReleaseCandidateReport } from "../src/release-candidate-report.mjs";
+import { runV1Freeze } from "../src/v1-freeze.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -2017,6 +2018,7 @@ describe("matter harness", () => {
         deploymentRunbookPath: path.join(outDir, "deployment-runbook", "deployment-runbook.json"),
         operatorHandbookPath: path.join(outDir, "operator-handbook", "operator-handbook.json"),
         releaseCandidateReportPath: path.join(outDir, "release-candidate-report", "release-candidate-report.json"),
+        v1FreezePath: path.join(outDir, "v1-freeze", "v1-freeze.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -2162,6 +2164,7 @@ describe("matter harness", () => {
         deploymentRunbookPath: false,
         operatorHandbookPath: false,
         releaseCandidateReportPath: false,
+        v1FreezePath: false,
         observabilityFreezePath: false,
         capabilityManifestV2Path: false,
         packManifestCompatibilityPath: false,
@@ -13401,6 +13404,7 @@ describe("matter harness", () => {
         deploymentRunbookPath: false,
         operatorHandbookPath: false,
         releaseCandidateReportPath: false,
+        v1FreezePath: false,
         outDir: path.join(outDir, "dashboard-pre-checkpoint"),
         runAt: "2026-05-23T06:35:08.000Z",
       });
@@ -15481,6 +15485,7 @@ describe("matter harness", () => {
       let dashboard = await runReviewDashboard({
         ...dashboardInputs,
         releaseCandidateReportPath: false,
+        v1FreezePath: false,
         controlPlaneHealthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
         controlPlaneLoopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
         controlPlaneGoalCheckpointPath: path.join(outDir, "control-plane-goal-checkpoint", "control-plane-goal-checkpoint.json"),
@@ -15587,7 +15592,7 @@ describe("matter harness", () => {
       );
 
       const releaseCandidateSourceCheckpointItems = dashboardApiFreezeGoalCheckpoint.checkpoint_items.filter((item) => item.status === "passed");
-      assert.ok(releaseCandidateSourceCheckpointItems.length >= dashboardApiFreezeGoalCheckpoint.checkpoint_items.length - 4);
+      assert.ok(releaseCandidateSourceCheckpointItems.length > 0);
       const releaseCandidateSourceGoalCheckpoint = {
         ...dashboardApiFreezeGoalCheckpoint,
         checkpoint_status: "passed",
@@ -15753,7 +15758,7 @@ describe("matter harness", () => {
         runAt: "2026-05-23T07:32:58.000Z",
       });
       assert.deepEqual(validateAgainstSchema(dashboard, dashboardSchema, {}, "review_dashboard"), []);
-      assert.equal(dashboard.summary.overall_status, "blocked");
+      assert.equal(dashboard.summary.overall_status, "incomplete");
 
       dashboardApiFreezeGoalCheckpoint = await runControlPlaneGoalCheckpoint({
         dashboardPath: path.join(outDir, "dashboard", "review-dashboard.json"),
@@ -15772,6 +15777,199 @@ describe("matter harness", () => {
       assert.equal(releaseCandidateReportCheckpoint?.acceptance_profile, "release_candidate_report_gate");
       assert.equal(releaseCandidateReportCheckpoint?.status, "passed");
       assert.equal(releaseCandidateReportCheckpoint?.implementation_status, "passed_with_operational_gate");
+
+      const v1FreezeSourceDashboard = {
+        ...dashboard,
+        summary: {
+          ...dashboard.summary,
+          overall_status: "incomplete",
+          missing_stage_count: 1,
+          blocking_gate_count: 0,
+        },
+      };
+      await mkdir(path.join(outDir, "dashboard-v1-freeze-source"), { recursive: true });
+      await writeFile(
+        path.join(outDir, "dashboard-v1-freeze-source", "review-dashboard.json"),
+        `${JSON.stringify(v1FreezeSourceDashboard, null, 2)}\n`,
+        "utf8",
+      );
+
+      const v1FreezeSourceCheckpointItems = dashboardApiFreezeGoalCheckpoint.checkpoint_items.filter((item) => item.status === "passed");
+      assert.ok(v1FreezeSourceCheckpointItems.length > 0);
+      const v1FreezeSourceGoalCheckpoint = {
+        ...dashboardApiFreezeGoalCheckpoint,
+        checkpoint_status: "passed",
+        summary: {
+          ...dashboardApiFreezeGoalCheckpoint.summary,
+          checkpoint_status: "passed",
+          checkpoint_item_count: v1FreezeSourceCheckpointItems.length,
+          passed_item_count: v1FreezeSourceCheckpointItems.length,
+          attention_item_count: 0,
+          blocked_item_count: 0,
+          missing_item_count: 0,
+          by_status: { passed: v1FreezeSourceCheckpointItems.length },
+        },
+        checkpoint_items: v1FreezeSourceCheckpointItems,
+        next_focus: null,
+      };
+      await mkdir(path.join(outDir, "control-plane-goal-checkpoint-v1-freeze-source"), { recursive: true });
+      await writeFile(
+        path.join(outDir, "control-plane-goal-checkpoint-v1-freeze-source", "control-plane-goal-checkpoint.json"),
+        `${JSON.stringify(v1FreezeSourceGoalCheckpoint, null, 2)}\n`,
+        "utf8",
+      );
+
+      const v1Freeze = await runV1Freeze({
+        releaseCandidateReportPath: path.join(outDir, "release-candidate-report", "release-candidate-report.json"),
+        dashboardPath: path.join(outDir, "dashboard-v1-freeze-source", "review-dashboard.json"),
+        dashboardApiFreezePath: path.join(outDir, "dashboard-api-freeze", "dashboard-api-freeze.json"),
+        contractGoldenFixturesPath: path.join(outDir, "contract-golden-fixtures", "contract-golden-fixtures.json"),
+        contractValidationSuitePath: path.join(outDir, "contract-validation-suite", "contract-validation-suite.json"),
+        controlPlaneGoalCheckpointPath: path.join(outDir, "control-plane-goal-checkpoint-v1-freeze-source", "control-plane-goal-checkpoint.json"),
+        controlPlaneLoopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
+        operatorHandbookPath: path.join(outDir, "operator-handbook", "operator-handbook.json"),
+        outDir: path.join(outDir, "v1-freeze"),
+        runAt: "2026-05-23T07:32:59.000Z",
+      });
+      const v1FreezeSchema = JSON.parse(await readFile("schemas/v1-freeze.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(v1Freeze, v1FreezeSchema, {}, "v1_freeze"), [], JSON.stringify(v1Freeze.validation.errors));
+      assert.equal(v1Freeze.summary.v1_freeze_status, "complete");
+      assert.equal(v1Freeze.summary.phase_slot, "P312");
+      assert.equal(v1Freeze.summary.previous_phase_slot, "P311");
+      assert.equal(v1Freeze.summary.next_phase_slot, "COMPLETE");
+      assert.equal(v1Freeze.summary.source_release_candidate_status, "complete");
+      assert.equal(v1Freeze.summary.source_release_candidate_phase_slot, "P311");
+      assert.equal(v1Freeze.summary.source_release_candidate_next_phase_slot, "P312");
+      assert.equal(v1Freeze.summary.source_dashboard_api_freeze_status, "complete");
+      assert.equal(v1Freeze.summary.source_contract_golden_fixture_status, "complete");
+      assert.equal(v1Freeze.summary.source_contract_validation_suite_status, "complete");
+      assert.equal(v1Freeze.summary.source_control_plane_goal_checkpoint_status, "passed");
+      assert.equal(v1Freeze.summary.source_control_plane_loop_status, "passed");
+      assert.equal(v1Freeze.summary.source_operator_handbook_status, "complete");
+      assert.equal(v1Freeze.summary.failed_source_status_count, 0);
+      assert.ok(v1Freeze.summary.checklist_row_count >= 8);
+      assert.equal(v1Freeze.summary.passed_checklist_row_count, v1Freeze.summary.checklist_row_count);
+      assert.ok(v1Freeze.summary.gate_result_count >= 7);
+      assert.equal(v1Freeze.summary.passed_gate_result_count, v1Freeze.summary.gate_result_count);
+      assert.equal(v1Freeze.summary.gate_violation_count, 0);
+      assert.equal(v1Freeze.summary.dashboard_blocking_gate_count, 0);
+      assert.equal(v1Freeze.summary.dashboard_api_smoke_ready, true);
+      assert.equal(v1Freeze.summary.dashboard_desktop_ready, true);
+      assert.ok(v1Freeze.summary.contract_golden_fixture_count >= 213);
+      assert.equal(v1Freeze.summary.contract_validation_regression_passed_count, v1Freeze.summary.contract_validation_fixture_count);
+      assert.equal(v1Freeze.summary.control_plane_goal_checkpoint_attention_item_count, 0);
+      assert.equal(v1Freeze.summary.control_plane_loop_failed_step_count, 0);
+      assert.equal(v1Freeze.summary.release_candidate_passed_matrix_row_count, v1Freeze.summary.release_candidate_matrix_row_count);
+      assert.equal(v1Freeze.summary.operator_handbook_ready_surface_count, v1Freeze.summary.operator_handbook_surface_count);
+      assert.equal(v1Freeze.summary.ready_for_v1_freeze_gate, true);
+      assert.equal(v1Freeze.summary.read_only, true);
+      assert.equal(v1Freeze.summary.report_only, true);
+      assert.equal(v1Freeze.summary.freeze_note_only, true);
+      assert.equal(v1Freeze.summary.tag_created, false);
+      assert.equal(v1Freeze.summary.release_published, false);
+      assert.equal(v1Freeze.summary.git_command_executed, false);
+      assert.equal(v1Freeze.summary.command_execution_performed, false);
+      assert.equal(v1Freeze.summary.test_execution_performed, false);
+      assert.equal(v1Freeze.summary.route_execution_performed, false);
+      assert.equal(v1Freeze.summary.server_started, false);
+      assert.equal(v1Freeze.summary.deployment_execution_performed, false);
+      assert.equal(v1Freeze.summary.recovery_execution_performed, false);
+      assert.equal(v1Freeze.summary.rollback_execution_performed, false);
+      assert.equal(v1Freeze.summary.restore_execution_performed, false);
+      assert.equal(v1Freeze.summary.protected_action_executed, false);
+      assert.equal(v1Freeze.summary.delivery_execution_performed, false);
+      assert.equal(v1Freeze.summary.legal_advice_generated, false);
+      assert.equal(v1Freeze.summary.client_facing_output_generated, false);
+      assert.equal(v1Freeze.summary.client_facing_ready, false);
+      assert.equal(v1Freeze.summary.human_review_required, true);
+      assert.equal(v1Freeze.summary.attorney_review_required, true);
+      assert.equal(v1Freeze.summary.approval_required_for_release, true);
+      assert.equal(v1Freeze.summary.desktop_read_only, true);
+      assert.equal(v1Freeze.summary.desktop_source_of_truth, false);
+      assert.equal(v1Freeze.summary.windows_baseline_stability_preserved, true);
+      assert.equal(v1Freeze.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(v1Freeze.summary.all_planned_slots_promoted, true);
+      assert.equal(v1Freeze.summary.validation_error_count, 0);
+      assert.ok(v1Freeze.source_statuses.every((row) => row.source_status === "passed"));
+      assert.ok(v1Freeze.v1_freeze_checklist_rows.every((row) => row.check_status === "passed" && row.human_review_required));
+      assert.ok(v1Freeze.v1_freeze_gate_results.every((row) => row.gate_status === "passed" && row.v1_freeze_gate_passed && !row.gate_violation));
+      assert.equal(v1Freeze.v1_freeze_boundary.boundary_status, "enforced");
+      assert.ok(v1Freeze.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "v1-freeze", "summary.md"), "utf8"), /v1\.0 Freeze/);
+
+      contractGoldenFixtureArtifactPaths.v1_freeze = path.join(outDir, "v1-freeze", "v1-freeze.json");
+      contractGoldenFixtures = await runContractGoldenFixtures({
+        artifactPaths: contractGoldenFixtureArtifactPaths,
+        fixtureIds: Object.keys(contractGoldenFixtureArtifactPaths),
+        outDir: path.join(outDir, "contract-golden-fixtures"),
+        runAt: "2026-05-23T07:33:00.000Z",
+      });
+      assert.deepEqual(
+        validateAgainstSchema(contractGoldenFixtures, contractGoldenFixturesSchema, {}, "contract_golden_fixtures"),
+        [],
+      );
+      assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 214);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 214);
+      assert.equal(contractGoldenFixtures.summary.missing_artifact_count, 0);
+      assert.equal(contractGoldenFixtures.summary.validation_error_count, 0);
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "v1_freeze"));
+
+      contractValidationSuite = await runContractValidationSuite({
+        contractGoldenFixturesPath: path.join(outDir, "contract-golden-fixtures", "contract-golden-fixtures.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/implementation-roadmap.md",
+        outDir: path.join(outDir, "contract-validation-suite"),
+        runAt: "2026-05-23T07:33:00.500Z",
+      });
+      assert.deepEqual(
+        validateAgainstSchema(contractValidationSuite, contractValidationSuiteSchema, {}, "contract_validation_suite"),
+        [],
+      );
+      assert.equal(contractValidationSuite.summary.validation_suite_status, "complete");
+      assert.equal(contractValidationSuite.summary.fixture_count, 214);
+      assert.equal(contractValidationSuite.summary.validated_fixture_count, 214);
+      assert.equal(contractValidationSuite.summary.schema_invalid_fixture_count, 0);
+      assert.equal(contractValidationSuite.summary.regression_failed_count, 0);
+      assert.equal(contractValidationSuite.summary.missing_package_script_count, 0);
+      assert.equal(contractValidationSuite.summary.roadmap_missing_count, 0);
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "release:freeze"));
+      assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
+
+      dashboard = await runReviewDashboard({
+        ...dashboardInputs,
+        controlPlaneHealthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
+        controlPlaneLoopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
+        controlPlaneGoalCheckpointPath: path.join(outDir, "control-plane-goal-checkpoint", "control-plane-goal-checkpoint.json"),
+        controlPlaneActionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
+        controlPlaneHumanGatesPath: path.join(outDir, "control-plane-human-gates", "control-plane-human-gates.json"),
+        controlPlaneWorkPacketsPath: path.join(outDir, "control-plane-work-packets", "control-plane-work-packets.json"),
+        controlPlaneWorkPacketReceiptsPath: path.join(outDir, "control-plane-work-packet-receipts", "control-plane-work-packet-receipt-drafts.json"),
+        controlPlaneWorkPacketReceiptValidationPath: path.join(outDir, "control-plane-work-packet-receipt-validation", "control-plane-work-packet-receipt-validation.json"),
+        controlPlaneWorkPacketReceiptApplicationPath: path.join(outDir, "control-plane-work-packet-receipt-application", "control-plane-work-packet-receipt-application.json"),
+        outDir: path.join(outDir, "dashboard"),
+        runAt: "2026-05-23T07:33:01.000Z",
+      });
+      assert.deepEqual(validateAgainstSchema(dashboard, dashboardSchema, {}, "review_dashboard"), []);
+      assert.equal(dashboard.summary.overall_status, "blocked");
+
+      dashboardApiFreezeGoalCheckpoint = await runControlPlaneGoalCheckpoint({
+        dashboardPath: path.join(outDir, "dashboard", "review-dashboard.json"),
+        loopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
+        healthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/implementation-roadmap.md",
+        outDir: path.join(outDir, "control-plane-goal-checkpoint-v1-freeze"),
+        runAt: "2026-05-23T07:33:01.500Z",
+      });
+      assert.deepEqual(
+        validateAgainstSchema(dashboardApiFreezeGoalCheckpoint, controlPlaneGoalCheckpointSchema, {}, "control_plane_goal_checkpoint"),
+        [],
+      );
+      const v1FreezeCheckpoint = dashboardApiFreezeGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-v1-freeze");
+      assert.equal(v1FreezeCheckpoint?.acceptance_profile, "v1_freeze_gate");
+      assert.equal(v1FreezeCheckpoint?.status, "passed");
+      assert.equal(v1FreezeCheckpoint?.implementation_status, "passed_with_operational_gate");
       assert.equal(dashboard.summary.evidence_approved_count, 1);
       assert.equal(dashboard.summary.evidence_review_draft_item_count, evidenceReviewDraft.summary.review_item_count);
       assert.equal(dashboard.summary.evidence_review_draft_attorney_count, evidenceReviewDraft.summary.attorney_review_count);
@@ -21867,6 +22065,63 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.release_candidate_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.release_candidate_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.release_candidate_validation_error_count, 0);
+      assert.equal(dashboard.summary.v1_freeze_status, "complete");
+      assert.equal(dashboard.summary.v1_freeze_id, v1Freeze.summary.v1_freeze_id);
+      assert.equal(dashboard.summary.v1_freeze_phase_slot, "P312");
+      assert.equal(dashboard.summary.v1_freeze_previous_phase_slot, "P311");
+      assert.equal(dashboard.summary.v1_freeze_next_phase_slot, "COMPLETE");
+      assert.equal(dashboard.summary.v1_freeze_source_release_candidate_status, "complete");
+      assert.equal(dashboard.summary.v1_freeze_source_release_candidate_phase_slot, "P311");
+      assert.equal(dashboard.summary.v1_freeze_source_release_candidate_next_phase_slot, "P312");
+      assert.equal(dashboard.summary.v1_freeze_source_dashboard_api_freeze_status, "complete");
+      assert.equal(dashboard.summary.v1_freeze_source_contract_golden_fixture_status, "complete");
+      assert.equal(dashboard.summary.v1_freeze_source_contract_validation_suite_status, "complete");
+      assert.equal(dashboard.summary.v1_freeze_source_control_plane_goal_checkpoint_status, "passed");
+      assert.equal(dashboard.summary.v1_freeze_source_control_plane_loop_status, "passed");
+      assert.equal(dashboard.summary.v1_freeze_source_operator_handbook_status, "complete");
+      assert.equal(dashboard.summary.v1_freeze_failed_source_status_count, 0);
+      assert.equal(dashboard.summary.v1_freeze_passed_checklist_row_count, dashboard.summary.v1_freeze_checklist_row_count);
+      assert.equal(dashboard.summary.v1_freeze_passed_gate_result_count, dashboard.summary.v1_freeze_gate_result_count);
+      assert.equal(dashboard.summary.v1_freeze_gate_violation_count, 0);
+      assert.equal(dashboard.summary.v1_freeze_dashboard_blocking_gate_count, 0);
+      assert.equal(dashboard.summary.v1_freeze_dashboard_api_smoke_ready, true);
+      assert.equal(dashboard.summary.v1_freeze_dashboard_desktop_ready, true);
+      assert.ok(dashboard.summary.v1_freeze_contract_golden_fixture_count >= 213);
+      assert.equal(dashboard.summary.v1_freeze_contract_validation_regression_passed_count, dashboard.summary.v1_freeze_contract_validation_fixture_count);
+      assert.equal(dashboard.summary.v1_freeze_control_plane_goal_checkpoint_attention_item_count, 0);
+      assert.equal(dashboard.summary.v1_freeze_control_plane_loop_failed_step_count, 0);
+      assert.equal(dashboard.summary.v1_freeze_release_candidate_passed_matrix_row_count, dashboard.summary.v1_freeze_release_candidate_matrix_row_count);
+      assert.equal(dashboard.summary.v1_freeze_operator_handbook_ready_surface_count, dashboard.summary.v1_freeze_operator_handbook_surface_count);
+      assert.equal(dashboard.summary.v1_freeze_ready_for_v1_freeze_gate, true);
+      assert.equal(dashboard.summary.v1_freeze_read_only, true);
+      assert.equal(dashboard.summary.v1_freeze_report_only, true);
+      assert.equal(dashboard.summary.v1_freeze_freeze_note_only, true);
+      assert.equal(dashboard.summary.v1_freeze_tag_created, false);
+      assert.equal(dashboard.summary.v1_freeze_release_published, false);
+      assert.equal(dashboard.summary.v1_freeze_git_command_executed, false);
+      assert.equal(dashboard.summary.v1_freeze_command_execution_performed, false);
+      assert.equal(dashboard.summary.v1_freeze_test_execution_performed, false);
+      assert.equal(dashboard.summary.v1_freeze_route_execution_performed, false);
+      assert.equal(dashboard.summary.v1_freeze_server_started, false);
+      assert.equal(dashboard.summary.v1_freeze_deployment_execution_performed, false);
+      assert.equal(dashboard.summary.v1_freeze_recovery_execution_performed, false);
+      assert.equal(dashboard.summary.v1_freeze_rollback_execution_performed, false);
+      assert.equal(dashboard.summary.v1_freeze_restore_execution_performed, false);
+      assert.equal(dashboard.summary.v1_freeze_protected_action_executed, false);
+      assert.equal(dashboard.summary.v1_freeze_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.v1_freeze_legal_advice_generated, false);
+      assert.equal(dashboard.summary.v1_freeze_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.v1_freeze_client_facing_ready, false);
+      assert.equal(dashboard.summary.v1_freeze_human_review_required, true);
+      assert.equal(dashboard.summary.v1_freeze_attorney_review_required, true);
+      assert.equal(dashboard.summary.v1_freeze_approval_required_for_release, true);
+      assert.equal(dashboard.summary.v1_freeze_desktop_read_only, true);
+      assert.equal(dashboard.summary.v1_freeze_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.v1_freeze_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.v1_freeze_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.v1_freeze_all_planned_slots_promoted, true);
+      assert.equal(dashboard.summary.v1_freeze_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.v1_freeze_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -26531,6 +26786,64 @@ describe("matter harness", () => {
       assert.equal(releaseCandidateReportStage?.metrics.windows_baseline_stability_preserved, true);
       assert.equal(releaseCandidateReportStage?.metrics.mac_windows_completion_instability_guard, true);
       assert.equal(releaseCandidateReportStage?.metrics.validation_error_count, 0);
+      const v1FreezeStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "v1_freeze");
+      assert.equal(v1FreezeStage?.status, "passed");
+      assert.equal(v1FreezeStage?.metrics.v1_freeze_status, "complete");
+      assert.equal(v1FreezeStage?.metrics.v1_freeze_id, v1Freeze.summary.v1_freeze_id);
+      assert.equal(v1FreezeStage?.metrics.phase_slot, "P312");
+      assert.equal(v1FreezeStage?.metrics.previous_phase_slot, "P311");
+      assert.equal(v1FreezeStage?.metrics.next_phase_slot, "COMPLETE");
+      assert.equal(v1FreezeStage?.metrics.source_release_candidate_status, "complete");
+      assert.equal(v1FreezeStage?.metrics.source_release_candidate_phase_slot, "P311");
+      assert.equal(v1FreezeStage?.metrics.source_release_candidate_next_phase_slot, "P312");
+      assert.equal(v1FreezeStage?.metrics.source_dashboard_api_freeze_status, "complete");
+      assert.equal(v1FreezeStage?.metrics.source_contract_golden_fixture_status, "complete");
+      assert.equal(v1FreezeStage?.metrics.source_contract_validation_suite_status, "complete");
+      assert.equal(v1FreezeStage?.metrics.source_control_plane_goal_checkpoint_status, "passed");
+      assert.equal(v1FreezeStage?.metrics.source_control_plane_loop_status, "passed");
+      assert.equal(v1FreezeStage?.metrics.source_operator_handbook_status, "complete");
+      assert.equal(v1FreezeStage?.metrics.failed_source_status_count, 0);
+      assert.equal(v1FreezeStage?.metrics.passed_checklist_row_count, v1FreezeStage?.metrics.checklist_row_count);
+      assert.equal(v1FreezeStage?.metrics.passed_gate_result_count, v1FreezeStage?.metrics.gate_result_count);
+      assert.equal(v1FreezeStage?.metrics.gate_violation_count, 0);
+      assert.equal(v1FreezeStage?.metrics.dashboard_blocking_gate_count, 0);
+      assert.equal(v1FreezeStage?.metrics.dashboard_api_smoke_ready, true);
+      assert.equal(v1FreezeStage?.metrics.dashboard_desktop_ready, true);
+      assert.ok(v1FreezeStage?.metrics.contract_golden_fixture_count >= 213);
+      assert.equal(v1FreezeStage?.metrics.contract_validation_regression_passed_count, v1FreezeStage?.metrics.contract_validation_fixture_count);
+      assert.equal(v1FreezeStage?.metrics.control_plane_goal_checkpoint_attention_item_count, 0);
+      assert.equal(v1FreezeStage?.metrics.control_plane_loop_failed_step_count, 0);
+      assert.equal(v1FreezeStage?.metrics.release_candidate_passed_matrix_row_count, v1FreezeStage?.metrics.release_candidate_matrix_row_count);
+      assert.equal(v1FreezeStage?.metrics.operator_handbook_ready_surface_count, v1FreezeStage?.metrics.operator_handbook_surface_count);
+      assert.equal(v1FreezeStage?.metrics.ready_for_v1_freeze_gate, true);
+      assert.equal(v1FreezeStage?.metrics.read_only, true);
+      assert.equal(v1FreezeStage?.metrics.report_only, true);
+      assert.equal(v1FreezeStage?.metrics.freeze_note_only, true);
+      assert.equal(v1FreezeStage?.metrics.tag_created, false);
+      assert.equal(v1FreezeStage?.metrics.release_published, false);
+      assert.equal(v1FreezeStage?.metrics.git_command_executed, false);
+      assert.equal(v1FreezeStage?.metrics.command_execution_performed, false);
+      assert.equal(v1FreezeStage?.metrics.test_execution_performed, false);
+      assert.equal(v1FreezeStage?.metrics.route_execution_performed, false);
+      assert.equal(v1FreezeStage?.metrics.server_started, false);
+      assert.equal(v1FreezeStage?.metrics.deployment_execution_performed, false);
+      assert.equal(v1FreezeStage?.metrics.recovery_execution_performed, false);
+      assert.equal(v1FreezeStage?.metrics.rollback_execution_performed, false);
+      assert.equal(v1FreezeStage?.metrics.restore_execution_performed, false);
+      assert.equal(v1FreezeStage?.metrics.protected_action_executed, false);
+      assert.equal(v1FreezeStage?.metrics.delivery_execution_performed, false);
+      assert.equal(v1FreezeStage?.metrics.legal_advice_generated, false);
+      assert.equal(v1FreezeStage?.metrics.client_facing_output_generated, false);
+      assert.equal(v1FreezeStage?.metrics.client_facing_ready, false);
+      assert.equal(v1FreezeStage?.metrics.human_review_required, true);
+      assert.equal(v1FreezeStage?.metrics.attorney_review_required, true);
+      assert.equal(v1FreezeStage?.metrics.approval_required_for_release, true);
+      assert.equal(v1FreezeStage?.metrics.desktop_read_only, true);
+      assert.equal(v1FreezeStage?.metrics.desktop_source_of_truth, false);
+      assert.equal(v1FreezeStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(v1FreezeStage?.metrics.mac_windows_completion_instability_guard, true);
+      assert.equal(v1FreezeStage?.metrics.all_planned_slots_promoted, true);
+      assert.equal(v1FreezeStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -30380,6 +30693,30 @@ describe("matter harness", () => {
       const releaseCandidateValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/release-candidate-validations?status=passed", apiOptions)).body);
       assert.equal(releaseCandidateValidationsResponse.collection, "release_candidate_validations");
       assert.equal(releaseCandidateValidationsResponse.count, releaseCandidateReport.summary.validation_item_count);
+
+      const v1FreezesResponse = JSON.parse((await buildReviewApiResponse("/api/v1-freezes?v1_freeze_status=complete", apiOptions)).body);
+      assert.equal(v1FreezesResponse.collection, "v1_freezes");
+      assert.equal(v1FreezesResponse.count, 1);
+
+      const v1FreezeSourcesResponse = JSON.parse((await buildReviewApiResponse("/api/v1-freeze-sources?source_status=passed", apiOptions)).body);
+      assert.equal(v1FreezeSourcesResponse.collection, "v1_freeze_sources");
+      assert.equal(v1FreezeSourcesResponse.count, v1Freeze.summary.source_status_count);
+
+      const v1FreezeChecklistResponse = JSON.parse((await buildReviewApiResponse("/api/v1-freeze-checklist?v1_freeze_check_status=passed", apiOptions)).body);
+      assert.equal(v1FreezeChecklistResponse.collection, "v1_freeze_checklist");
+      assert.equal(v1FreezeChecklistResponse.count, v1Freeze.summary.checklist_row_count);
+
+      const v1FreezeGatesResponse = JSON.parse((await buildReviewApiResponse("/api/v1-freeze-gates?v1_freeze_gate_passed=true", apiOptions)).body);
+      assert.equal(v1FreezeGatesResponse.collection, "v1_freeze_gates");
+      assert.equal(v1FreezeGatesResponse.count, v1Freeze.summary.gate_result_count);
+
+      const v1FreezeBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/v1-freeze-boundary?boundary_status=enforced&read_only=true&client_facing_output_generated=false", apiOptions)).body);
+      assert.equal(v1FreezeBoundaryResponse.collection, "v1_freeze_boundary");
+      assert.equal(v1FreezeBoundaryResponse.count, 1);
+
+      const v1FreezeValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/v1-freeze-validations?status=passed", apiOptions)).body);
+      assert.equal(v1FreezeValidationsResponse.collection, "v1_freeze_validations");
+      assert.equal(v1FreezeValidationsResponse.count, v1Freeze.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

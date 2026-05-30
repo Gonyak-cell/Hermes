@@ -157,6 +157,7 @@
     "deployment:runbook": "node scripts/deployment-runbook.mjs",
     "operator:handbook": "node scripts/operator-handbook.mjs",
     "release:candidate": "node scripts/release-candidate-report.mjs",
+    "release:freeze": "node scripts/v1-freeze.mjs",
     "connectors:contract-v2": "node scripts/connector-contract-v2.mjs",
     "connectors:local-folder": "node scripts/local-folder-connector.mjs",
     "connectors:onedrive-boundary": "node scripts/onedrive-connector-boundary.mjs",

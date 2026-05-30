@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/v1-freeze.schema.json",
+  "title": "Hermes Harness v1.0 Freeze",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "v1_freeze_id",
+    "capability_id",
+    "v1_freeze_contract",
+    "source_statuses",
+    "v1_freeze_checklist_rows",
+    "v1_freeze_gate_results",
+    "v1_freeze_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "v1-freeze.v1" },
+    "v1_freeze_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "release.v1_freeze" },
+    "v1_freeze_contract": {
+      "type": "object",
+      "required": ["contract_id", "capability_id", "phase_slot", "previous_phase_slot", "next_phase_slot", "freeze_scope", "execution_model"],
+      "properties": {
+        "contract_id": { "const": "v1-freeze.v1" },
+        "capability_id": { "const": "release.v1_freeze" },
+        "phase_slot": { "const": "P312" },
+        "previous_phase_slot": { "const": "P311" },
+        "next_phase_slot": { "const": "COMPLETE" },
+        "freeze_scope": { "const": "hermes_harness_v1_0_acceptance_freeze" },
+        "execution_model": { "const": "deterministic_read_only_freeze_report" }
+      }
+    },
+    "source_statuses": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["source_id", "source_status", "validation_error_count"],
+        "properties": {
+          "source_status": { "const": "passed" },
+          "validation_error_count": { "const": 0 }
+        }
+      }
+    },
+    "v1_freeze_checklist_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["check_id", "check_status", "tag_created", "release_published", "human_review_required"],
+        "properties": {
+          "check_status": { "const": "passed" },
+          "tag_created": { "const": false },
+          "release_published": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "v1_freeze_gate_results": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "object",
+        "required": ["gate_status", "v1_freeze_gate_passed", "gate_violation"],
+        "properties": {
+          "gate_status": { "const": "passed" },
+          "v1_freeze_gate_passed": { "const": true },
+          "gate_violation": { "const": false }
+        }
+      }
+    },
+    "v1_freeze_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "phase_slot",
+        "read_only",
+        "report_only",
+        "freeze_note_only",
+        "tag_created",
+        "release_published",
+        "git_command_executed",
+        "command_execution_performed",
+        "test_execution_performed",
+        "route_execution_performed",
+        "server_started",
+        "deployment_execution_performed",
+        "recovery_execution_performed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "human_review_required",
+        "all_planned_slots_promoted"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "phase_slot": { "const": "P312" },
+        "read_only": { "const": true },
+        "report_only": { "const": true },
+        "freeze_note_only": { "const": true },
+        "tag_created": { "const": false },
+        "release_published": { "const": false },
+        "git_command_executed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "test_execution_performed": { "const": false },
+        "route_execution_performed": { "const": false },
+        "server_started": { "const": false },
+        "deployment_execution_performed": { "const": false },
+        "recovery_execution_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true },
+        "all_planned_slots_promoted": { "const": true }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "v1_freeze_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "failed_source_status_count",
+        "checklist_row_count",
+        "passed_checklist_row_count",
+        "gate_violation_count",
+        "dashboard_blocking_gate_count",
+        "dashboard_api_smoke_ready",
+        "dashboard_desktop_ready",
+        "control_plane_goal_checkpoint_attention_item_count",
+        "control_plane_loop_failed_step_count",
+        "tag_created",
+        "release_published",
+        "git_command_executed",
+        "command_execution_performed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "all_planned_slots_promoted",
+        "validation_error_count"
+      ],
+      "properties": {
+        "v1_freeze_status": { "const": "complete" },
+        "phase_slot": { "const": "P312" },
+        "previous_phase_slot": { "const": "P311" },
+        "next_phase_slot": { "const": "COMPLETE" },
+        "failed_source_status_count": { "const": 0 },
+        "gate_violation_count": { "const": 0 },
+        "dashboard_blocking_gate_count": { "const": 0 },
+        "dashboard_api_smoke_ready": { "const": true },
+        "dashboard_desktop_ready": { "const": true },
+        "control_plane_goal_checkpoint_attention_item_count": { "const": 0 },
+        "control_plane_loop_failed_step_count": { "const": 0 },
+        "tag_created": { "const": false },
+        "release_published": { "const": false },
+        "git_command_executed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "all_planned_slots_promoted": { "const": true },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

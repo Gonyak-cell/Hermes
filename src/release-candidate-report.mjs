@@ -647,7 +647,10 @@ function isReleaseCandidateSelfReferenceGoldenFixtures(data) {
     && (summary.fixture_count ?? 0) >= 212
     && (summary.missing_artifact_count ?? 0) === 0
     && errors.length > 0
-    && errors.every((error) => String(error.path ?? "").includes("release_candidate_report"));
+    && errors.every((error) => {
+      const pathValue = String(error.path ?? "");
+      return pathValue.includes("release_candidate_report") || pathValue.includes("v1_freeze");
+    });
 }
 
 function isReleaseCandidateSelfReferenceValidationSuite(data) {
@@ -662,7 +665,7 @@ function isReleaseCandidateSelfReferenceValidationSuite(data) {
     && errors.length > 0
     && errors.every((error) => {
       const pathValue = String(error.path ?? "");
-      return pathValue === "source_golden_fixtures" || pathValue.includes("release_candidate_report");
+      return pathValue === "source_golden_fixtures" || pathValue.includes("release_candidate_report") || pathValue.includes("v1_freeze");
     });
 }
 
@@ -672,6 +675,7 @@ function isReleaseCandidateSelfReferenceGoalCheckpoint(data) {
     "control-plane-contract-golden-fixtures",
     "control-plane-contract-validation-suite",
     "control-plane-release-candidate-report",
+    "control-plane-v1-freeze",
   ]);
   const attentionItems = (data?.checkpoint_items ?? []).filter((item) => item.status !== "passed");
   return summary.checkpoint_status === "attention"

@@ -184,6 +184,7 @@ const GOAL_ITEMS = [
   sourceItem("deployment_runbook", "Deployment Runbook", "deployment", "deployment_runbook", "control-plane-deployment-runbook", { acceptance_profile: "deployment_runbook_gate" }),
   sourceItem("operator_handbook", "Operator Handbook", "operator", "operator_handbook", "control-plane-operator-handbook", { acceptance_profile: "operator_handbook_gate" }),
   sourceItem("release_candidate_report", "Release Candidate Report", "release", "release_candidate_report", "control-plane-release-candidate-report", { acceptance_profile: "release_candidate_report_gate" }),
+  sourceItem("v1_freeze", "Hermes Harness v1.0 Freeze", "release", "v1_freeze", "control-plane-v1-freeze", { acceptance_profile: "v1_freeze_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -727,6 +728,7 @@ function evaluateStageAcceptance(item, stage) {
     "deployment_runbook_gate",
     "operator_handbook_gate",
     "release_candidate_report_gate",
+    "v1_freeze_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -7377,6 +7379,71 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Release Candidate Report locks P311 validate/test/control-plane/API/dashboard/E2E/Desktop readiness as a read-only matrix with known human-review backlog and no command, route, protected, legal, client-facing, deployment, or recovery execution.");
+    }
+  }
+
+  if (item.acceptance_profile === "v1_freeze_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.v1_freeze_status === "complete"
+      && metrics.phase_slot === "P312"
+      && metrics.previous_phase_slot === "P311"
+      && metrics.next_phase_slot === "COMPLETE"
+      && metrics.source_release_candidate_status === "complete"
+      && metrics.source_release_candidate_phase_slot === "P311"
+      && metrics.source_release_candidate_next_phase_slot === "P312"
+      && metrics.source_dashboard_api_freeze_status === "complete"
+      && metrics.source_contract_golden_fixture_status === "complete"
+      && metrics.source_contract_validation_suite_status === "complete"
+      && metrics.source_control_plane_goal_checkpoint_status === "passed"
+      && metrics.source_control_plane_loop_status === "passed"
+      && metrics.source_operator_handbook_status === "complete"
+      && metrics.failed_source_status_count === 0
+      && metrics.checklist_row_count >= 8
+      && metrics.passed_checklist_row_count === metrics.checklist_row_count
+      && metrics.gate_result_count >= 7
+      && metrics.passed_gate_result_count === metrics.gate_result_count
+      && metrics.gate_violation_count === 0
+      && metrics.dashboard_blocking_gate_count === 0
+      && metrics.dashboard_api_smoke_ready === true
+      && metrics.dashboard_desktop_ready === true
+      && metrics.contract_golden_fixture_count >= 213
+      && metrics.contract_validation_regression_passed_count === metrics.contract_validation_fixture_count
+      && metrics.control_plane_goal_checkpoint_attention_item_count === 0
+      && metrics.control_plane_loop_failed_step_count === 0
+      && metrics.release_candidate_passed_matrix_row_count === metrics.release_candidate_matrix_row_count
+      && metrics.operator_handbook_ready_surface_count === metrics.operator_handbook_surface_count
+      && metrics.ready_for_v1_freeze_gate === true
+      && metrics.read_only === true
+      && metrics.report_only === true
+      && metrics.freeze_note_only === true
+      && metrics.tag_created === false
+      && metrics.release_published === false
+      && metrics.git_command_executed === false
+      && metrics.command_execution_performed === false
+      && metrics.test_execution_performed === false
+      && metrics.route_execution_performed === false
+      && metrics.server_started === false
+      && metrics.deployment_execution_performed === false
+      && metrics.recovery_execution_performed === false
+      && metrics.rollback_execution_performed === false
+      && metrics.restore_execution_performed === false
+      && metrics.protected_action_executed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.client_facing_ready === false
+      && metrics.human_review_required === true
+      && metrics.attorney_review_required === true
+      && metrics.approval_required_for_release === true
+      && metrics.desktop_read_only === true
+      && metrics.desktop_source_of_truth === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+      && metrics.all_planned_slots_promoted === true
+    ) {
+      return passedWithOperationalGate(stage, "Hermes Harness v1.0 Freeze locks P312 as the read-only final freeze with all planned slots promoted, tag/release work documented but unexecuted, and human/attorney/release approvals preserved.");
     }
   }
 

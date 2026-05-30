@@ -7534,6 +7534,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("release_candidate_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/v1-freezes") {
+    const result = await readDashboardSourceArtifact(dashboard, "v1_freeze");
+    if (!result.available) {
+      return jsonResponse(503, buildError("v1_freeze_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("v1_freezes", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/v1-freeze-sources") {
+    const result = await readDashboardSourceArtifact(dashboard, "v1_freeze");
+    if (!result.available) {
+      return jsonResponse(503, buildError("v1_freeze_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("v1_freeze_sources", result.artifact.source_statuses ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/v1-freeze-checklist") {
+    const result = await readDashboardSourceArtifact(dashboard, "v1_freeze");
+    if (!result.available) {
+      return jsonResponse(503, buildError("v1_freeze_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("v1_freeze_checklist", result.artifact.v1_freeze_checklist_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/v1-freeze-gates") {
+    const result = await readDashboardSourceArtifact(dashboard, "v1_freeze");
+    if (!result.available) {
+      return jsonResponse(503, buildError("v1_freeze_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("v1_freeze_gates", result.artifact.v1_freeze_gate_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/v1-freeze-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "v1_freeze");
+    if (!result.available) {
+      return jsonResponse(503, buildError("v1_freeze_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("v1_freeze_boundary", [result.artifact.v1_freeze_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/v1-freeze-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "v1_freeze");
+    if (!result.available) {
+      return jsonResponse(503, buildError("v1_freeze_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("v1_freeze_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -13894,6 +13936,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/release-candidate-gates", "Release Candidate gate rows"),
       route("GET", "/api/release-candidate-boundary", "Release Candidate boundary"),
       route("GET", "/api/release-candidate-validations", "Release Candidate validation rows"),
+      route("GET", "/api/v1-freezes", "Hermes Harness v1.0 Freeze artifact"),
+      route("GET", "/api/v1-freeze-sources", "v1 Freeze source rows"),
+      route("GET", "/api/v1-freeze-checklist", "v1 Freeze checklist rows"),
+      route("GET", "/api/v1-freeze-gates", "v1 Freeze gate rows"),
+      route("GET", "/api/v1-freeze-boundary", "v1 Freeze boundary"),
+      route("GET", "/api/v1-freeze-validations", "v1 Freeze validation rows"),
       route("GET", "/api/connector-contracts-v2", "Connector Contract v2 artifact"),
       route("GET", "/api/connector-definitions", "Connector v2 definition rows"),
       route("GET", "/api/connector-source-contracts", "Connector source id contract rows"),
@@ -15273,6 +15321,7 @@ function filterItems(items, searchParams) {
     "deployment_runbook_status",
     "operator_handbook_status",
     "release_candidate_status",
+    "v1_freeze_status",
     "environment_id",
     "environment_status",
     "command_status",
@@ -15291,6 +15340,8 @@ function filterItems(items, searchParams) {
     "command_group",
     "release_candidate_command_status",
     "release_candidate_gate_passed",
+    "v1_freeze_check_status",
+    "v1_freeze_gate_passed",
     "connector_to_dashboard_path_complete",
     "connector_gate_passed",
     "backfill_gate_passed",
@@ -17410,6 +17461,7 @@ function readFilterValue(item, key) {
   if (key === "deployment_runbook_status") return item.summary?.deployment_runbook_status ?? item.deployment_runbook_status;
   if (key === "operator_handbook_status") return item.summary?.operator_handbook_status ?? item.operator_handbook_status;
   if (key === "release_candidate_status") return item.summary?.release_candidate_status ?? item.release_candidate_status;
+  if (key === "v1_freeze_status") return item.summary?.v1_freeze_status ?? item.v1_freeze_status;
   if (key === "environment_id") return item.environment_id;
   if (key === "environment_status") return item.environment_status;
   if (key === "command_status") return item.command_status;
@@ -17428,6 +17480,8 @@ function readFilterValue(item, key) {
   if (key === "command_group") return item.command_group;
   if (key === "release_candidate_command_status") return item.command_status;
   if (key === "release_candidate_gate_passed") return String(item.release_candidate_gate_passed === true || (item.gate_status === "passed" && item.gate_violation === false));
+  if (key === "v1_freeze_check_status") return item.check_status;
+  if (key === "v1_freeze_gate_passed") return String(item.v1_freeze_gate_passed === true || (item.gate_status === "passed" && item.gate_violation === false));
   if (key === "connector_to_dashboard_path_complete") return item.summary?.connector_to_dashboard_path_complete ?? item.connector_to_dashboard_path_complete;
   if (key === "connector_gate_passed") return item.connector_gate_passed;
   if (key === "backfill_gate_passed") return item.backfill_gate_passed;

@@ -150,6 +150,12 @@ Release Candidate routes expose the read-only P311 release candidate report arti
 
 Routes: `/api/release-candidate-reports`, `/api/release-candidate-sources`, `/api/release-candidate-matrix`, `/api/release-candidate-commands`, `/api/release-candidate-gates`, `/api/release-candidate-boundary`, `/api/release-candidate-validations`.
 
+## P312 v1 Freeze Routes
+
+v1 Freeze routes expose the read-only P312 Hermes Harness v1.0 freeze artifact, source status rows, checklist rows, gate rows, boundary, and validation rows. Supported filters include `v1_freeze_status`, `source_status`, `v1_freeze_check_status`, `v1_freeze_gate_passed`, `gate_status`, `boundary_status`, `read_only`, `legal_advice_generated`, `client_facing_output_generated`, `status`, and `limit`.
+
+Routes: `/api/v1-freezes`, `/api/v1-freeze-sources`, `/api/v1-freeze-checklist`, `/api/v1-freeze-gates`, `/api/v1-freeze-boundary`, `/api/v1-freeze-validations`.
+
 ## P245 LDD RFI Generator Routes
 
 LDD RFI Generator routes expose read-only draft-only RFI packets, draft questions, missing-material links, issue links, matter summaries, and validation/boundary rows. Supported filters include `ldd_rfi_generator_status`, `ldd_rfi_matter_status`, `rfi_rule_type`, `rfi_draft_status`, `rfi_question_type`, `rfi_question_priority`, `rfi_question_status`, `rfi_missing_material_status`, `rfi_issue_link_status`, `deterministic_rfi_generation_performed`, `ldd_rfi_question_id`, `ldd_issue_record_id`, `ldd_vdr_missing_data_record_id`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.

@@ -4,8 +4,8 @@
 
 운영 규칙:
 
-- Current actual completion baseline is Phase 311.
-- Remaining planned slots are P312, 1 total.
+- Current actual completion baseline is Phase 312.
+- Remaining planned slots are none, 0 total.
 - 각 slot은 `검증 -> 보강 -> 구현 -> 검증 -> commit -> roadmap 승격` 순서로 처리한다.
 - 모든 slot은 가능하면 `npm run validate`, `npm test`, 해당 slice command, `npm run control-plane:loop`, API/dashboard smoke 중 관련 검증을 통과해야 한다.
 - For P217 and later, continue on the Windows workspace only after preserving the Windows baseline stabilization posture.
@@ -308,4 +308,4 @@
 | P309 | Deployment Runbook | deployment runbook | Promoted to Phase 309; `deployment_runbook` documents local/dev/prod-like verification, optional read-only Desktop Companion posture, and human-gated rollback procedure after the P308 Ingestion E2E Report Windows baseline; verifies Dashboard/API Freeze, Backup/Restore Drill, Runtime Freeze, Control Plane Loop, and Rollback Plan Artifact sources; preserves read-only/report-only/runbook-only boundaries and zero deployment execution, local/prod-like execution, Desktop deployment/install/gateway execution, server start, route execution, rollback/restore/command execution, external network access, secret reads, protected action, legal advice, client-facing output, and Mac/Windows completion instability |
 | P310 | Operator Handbook | operator handbook | Promoted to Phase 310; `operator_handbook` combines the P309 Deployment Runbook with approval queue, matter cockpit, policy violation queue, backup/restore drill, run ledger, dashboard/API freeze, dashboard IA, control-plane loop, and receipt/runbook draft sources into a read-only Desktop operator handbook for approvals, receipts, policy triage, recovery handoff, and navigation; preserves human/attorney review gates, Windows baseline stability, and zero approval application, receipt application, policy mutation, recovery/rollback/restore execution, command execution, route execution, server start, protected action, legal advice, and client-facing output |
 | P311 | v1.0 release candidate 검증 | release candidate report | Promoted to Phase 311; `release_candidate_report` records the validate/test, contract regression, API/dashboard freeze, control-plane, E2E acceptance, deployment/operator, Desktop readiness, and human-review backlog matrix after the P310 Operator Handbook Windows baseline; preserves pending approval visibility, human/attorney/release gates, Desktop read-only/not-source-of-truth posture, Windows stability, and zero command/test/route/server/deployment/recovery/rollback/restore/protected-action/delivery/legal/client-facing execution |
-| P312 | Hermes Harness v1.0 freeze | v1.0 freeze note, tag checklist | 모든 planned slot이 실제 phase로 승격되고 Electron import 없이 desktop-compatible API/operator UI contract가 release gate 통과 |
+| P312 | Hermes Harness v1.0 freeze | v1.0 freeze note, tag checklist | Promoted to Phase 312; `v1_freeze` documents the read-only Hermes Harness v1.0 freeze, P311 release candidate, contract/dashboard/control-plane gates, tag/release checklist, zero tag/release/deploy/command/test/route/server/recovery/rollback/restore/protected-action/legal/client-facing execution, pending approvals visibility, Windows stability, Desktop read-only/not-source-of-truth posture, and no remaining planned slots |

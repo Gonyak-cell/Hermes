@@ -3196,6 +3196,50 @@ try {
   assert.equal(policyViolationQueueValidations.collection, "policy_violation_queue_validations");
   assert.ok(policyViolationQueueValidations.count <= 20);
 
+  const costObservabilityDashboards = await fetchJson(`${url}/api/cost-observability-dashboards?cost_observability_dashboard_status=complete&limit=1`);
+  assert.equal(costObservabilityDashboards.collection, "cost_observability_dashboards");
+  assert.ok(costObservabilityDashboards.count <= 1);
+
+  const costObservabilityPanels = await fetchJson(`${url}/api/cost-observability-panels?cost_observability_panel_status=ready&limit=6`);
+  assert.equal(costObservabilityPanels.collection, "cost_observability_panels");
+  assert.ok(costObservabilityPanels.count <= 6);
+
+  const costObservabilityCostRows = await fetchJson(`${url}/api/cost-observability-cost-rows?cost_row_status=ready&cost_row_type=category_rollup&cost_category=provider&read_only=true&limit=20`);
+  assert.equal(costObservabilityCostRows.collection, "cost_observability_cost_rows");
+  assert.ok(costObservabilityCostRows.count <= 20);
+
+  const costObservabilityTokenRows = await fetchJson(`${url}/api/cost-observability-token-rows?token_row_status=ready&rollup_type=runtime&runtime_id=codex&read_only=true&limit=20`);
+  assert.equal(costObservabilityTokenRows.collection, "cost_observability_token_rows");
+  assert.ok(costObservabilityTokenRows.count <= 20);
+
+  const costObservabilityLatencyRows = await fetchJson(`${url}/api/cost-observability-latency-rows?latency_row_status=ready&read_only=true&limit=20`);
+  assert.equal(costObservabilityLatencyRows.collection, "cost_observability_latency_rows");
+  assert.ok(costObservabilityLatencyRows.count <= 20);
+
+  const costObservabilityErrorRows = await fetchJson(`${url}/api/cost-observability-error-rows?error_row_status=open&error_kind=run_blocked&read_only=true&limit=20`);
+  assert.equal(costObservabilityErrorRows.collection, "cost_observability_error_rows");
+  assert.ok(costObservabilityErrorRows.count <= 20);
+
+  const costObservabilityRetryRows = await fetchJson(`${url}/api/cost-observability-retry-rows?retry_row_status=ready&retry_state=retry_available&read_only=true&limit=20`);
+  assert.equal(costObservabilityRetryRows.collection, "cost_observability_retry_rows");
+  assert.ok(costObservabilityRetryRows.count <= 20);
+
+  const costObservabilityRuntimeRollups = await fetchJson(`${url}/api/cost-observability-runtime-rollups?provider_runtime_rollup_status=ready&runtime_id=codex&read_only=true&limit=20`);
+  assert.equal(costObservabilityRuntimeRollups.collection, "cost_observability_provider_runtime_rollups");
+  assert.ok(costObservabilityRuntimeRollups.count <= 20);
+
+  const costObservabilityBoundary = await fetchJson(`${url}/api/cost-observability-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(costObservabilityBoundary.collection, "cost_observability_boundary");
+  assert.ok(costObservabilityBoundary.count <= 1);
+
+  const costObservabilityChecks = await fetchJson(`${url}/api/cost-observability-checks?status=passed&limit=30`);
+  assert.equal(costObservabilityChecks.collection, "cost_observability_checks");
+  assert.ok(costObservabilityChecks.count <= 30);
+
+  const costObservabilityValidations = await fetchJson(`${url}/api/cost-observability-validations?status=passed&limit=30`);
+  assert.equal(costObservabilityValidations.collection, "cost_observability_validations");
+  assert.ok(costObservabilityValidations.count <= 30);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

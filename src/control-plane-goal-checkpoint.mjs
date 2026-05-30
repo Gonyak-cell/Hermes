@@ -167,6 +167,7 @@ const GOAL_ITEMS = [
   sourceItem("run_ledger_viewer", "Run Ledger Viewer", "api", "run_ledger_viewer", "control-plane-run-ledger-viewer", { acceptance_profile: "run_ledger_viewer_gate" }),
   sourceItem("matter_cockpit_ui", "Matter Cockpit UI", "api", "matter_cockpit_ui", "control-plane-matter-cockpit-ui", { acceptance_profile: "matter_cockpit_ui_gate" }),
   sourceItem("policy_violation_queue", "Policy Violation Queue", "api", "policy_violation_queue", "control-plane-policy-violation-queue", { acceptance_profile: "policy_violation_queue_gate" }),
+  sourceItem("cost_observability_dashboard", "Cost/Observability Dashboard", "api", "cost_observability_dashboard", "control-plane-cost-observability-dashboard", { acceptance_profile: "cost_observability_dashboard_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -693,6 +694,7 @@ function evaluateStageAcceptance(item, stage) {
     "run_ledger_viewer_gate",
     "matter_cockpit_ui_gate",
     "policy_violation_queue_gate",
+    "cost_observability_dashboard_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -6284,6 +6286,62 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Policy Violation Queue locks P294 model, tool/runtime, access, and output policy queue items into read-only actor actions without source reads, policy mutation, approval or receipt application, protected action execution, delivery, route execution, server start, legal advice, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "cost_observability_dashboard_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.cost_observability_dashboard_status === "complete"
+      && metrics.phase_slot === "P295"
+      && metrics.previous_phase_slot === "P294"
+      && metrics.next_phase_slot === "P296"
+      && metrics.source_cost_budget_ledger_status === "valid"
+      && metrics.source_token_usage_ledger_status === "valid"
+      && metrics.source_cost_attribution_ledger_status === "valid"
+      && metrics.source_cost_record_projection_status === "complete"
+      && metrics.source_token_usage_projection_status === "complete"
+      && metrics.source_observability_trace_projection_status === "complete"
+      && metrics.source_error_retry_ledger_status === "complete"
+      && metrics.source_observability_freeze_status === "complete"
+      && metrics.source_policy_violation_queue_status === "complete"
+      && metrics.source_policy_violation_queue_phase_slot === "P294"
+      && metrics.source_policy_violation_queue_next_phase_slot === "P295"
+      && metrics.cost_observability_panel_count === 6
+      && metrics.required_panel_count === 6
+      && metrics.ready_panel_count === 6
+      && metrics.cost_row_count > 0
+      && metrics.token_row_count > 0
+      && metrics.latency_row_count > 0
+      && metrics.error_row_count > 0
+      && metrics.retry_row_count > 0
+      && metrics.provider_runtime_rollup_count > 0
+      && metrics.total_token_count > 0
+      && metrics.total_runtime_seconds > 0
+      && metrics.open_error_count > 0
+      && metrics.read_only === true
+      && metrics.preview_only === true
+      && metrics.dashboard_projection_only === true
+      && metrics.source_content_read_performed === false
+      && metrics.source_ingest_performed === false
+      && metrics.metric_write_allowed === false
+      && metrics.budget_mutation_allowed === false
+      && metrics.runtime_control_performed === false
+      && metrics.retry_execution_performed === false
+      && metrics.approval_application_performed === false
+      && metrics.protected_action_executed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.route_execution_performed === false
+      && metrics.server_started === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.human_review_required === true
+      && metrics.client_facing_ready === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Cost/Observability Dashboard locks P295 token, cost, latency, error, retry, and provider/runtime rollups into read-only Desktop/API projections without source reads, metric writes, budget mutation, runtime control, retry execution, approval application, protected action execution, delivery, route execution, server start, legal advice, or client-facing output.");
     }
   }
 

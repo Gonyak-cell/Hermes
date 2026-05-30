@@ -130,6 +130,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   runLedgerViewerPath: "artifacts/run-ledger-viewer/latest/run-ledger-viewer.json",
   matterCockpitUiPath: "artifacts/matter-cockpit-ui/latest/matter-cockpit-ui.json",
   policyViolationQueuePath: "artifacts/policy-violation-queue/latest/policy-violation-queue.json",
+  costObservabilityDashboardPath: "artifacts/cost-observability-dashboard/latest/cost-observability-dashboard.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -923,6 +924,11 @@ const SOURCE_DEFINITIONS = [
     option: "policyViolationQueuePath",
     source_id: "policy_violation_queue",
     label: "Policy Violation Queue",
+  },
+  {
+    option: "costObservabilityDashboardPath",
+    source_id: "cost_observability_dashboard",
+    label: "Cost/Observability Dashboard",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -2328,6 +2334,7 @@ function buildStageStatuses(artifacts, sources) {
     buildRunLedgerViewerStage(artifacts.run_ledger_viewer, sourceById.get("run_ledger_viewer")),
     buildMatterCockpitUiStage(artifacts.matter_cockpit_ui, sourceById.get("matter_cockpit_ui")),
     buildPolicyViolationQueueStage(artifacts.policy_violation_queue, sourceById.get("policy_violation_queue")),
+    buildCostObservabilityDashboardStage(artifacts.cost_observability_dashboard, sourceById.get("cost_observability_dashboard")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -15360,6 +15367,131 @@ function buildPolicyViolationQueueStage(artifact, source) {
   };
 }
 
+function buildCostObservabilityDashboardStage(artifact, source) {
+  if (!artifact) return missingStage("cost_observability_dashboard", "Cost/Observability Dashboard", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.cost_observability_dashboard_status !== "complete"
+    || summary.phase_slot !== "P295"
+    || summary.previous_phase_slot !== "P294"
+    || summary.next_phase_slot !== "P296"
+    || summary.source_cost_budget_ledger_status !== "valid"
+    || summary.source_token_usage_ledger_status !== "valid"
+    || summary.source_cost_attribution_ledger_status !== "valid"
+    || summary.source_cost_record_projection_status !== "complete"
+    || summary.source_token_usage_projection_status !== "complete"
+    || summary.source_observability_trace_projection_status !== "complete"
+    || summary.source_error_retry_ledger_status !== "complete"
+    || summary.source_observability_freeze_status !== "complete"
+    || summary.source_policy_violation_queue_status !== "complete"
+    || summary.source_policy_violation_queue_phase_slot !== "P294"
+    || summary.source_policy_violation_queue_next_phase_slot !== "P295"
+    || summary.cost_observability_panel_count !== 6
+    || summary.ready_panel_count !== 6
+    || summary.cost_row_count <= 0
+    || summary.token_row_count <= 0
+    || summary.latency_row_count <= 0
+    || summary.error_row_count <= 0
+    || summary.retry_row_count <= 0
+    || summary.provider_runtime_rollup_count <= 0
+    || summary.total_token_count <= 0
+    || summary.total_runtime_seconds <= 0
+    || summary.open_error_count <= 0
+    || summary.read_only !== true
+    || summary.preview_only !== true
+    || summary.dashboard_projection_only !== true
+    || summary.source_content_read_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.metric_write_allowed !== false
+    || summary.budget_mutation_allowed !== false
+    || summary.runtime_control_performed !== false
+    || summary.retry_execution_performed !== false
+    || summary.approval_application_performed !== false
+    || summary.protected_action_executed !== false
+    || summary.delivery_execution_performed !== false
+    || summary.route_execution_performed !== false
+    || summary.server_started !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.human_review_required !== true
+    || summary.client_facing_ready !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "cost_observability_dashboard",
+    label: "Cost/Observability Dashboard",
+    status,
+    message: `${summary.cost_row_count ?? 0} cost, ${summary.token_row_count ?? 0} token, ${summary.latency_row_count ?? 0} latency, ${summary.error_row_count ?? 0} error, ${summary.retry_row_count ?? 0} retry, and ${summary.provider_runtime_rollup_count ?? 0} rollup row(s) ready.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      cost_observability_dashboard_status: summary.cost_observability_dashboard_status ?? "unknown",
+      cost_observability_dashboard_id: summary.cost_observability_dashboard_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_observability_workflow_run_count: summary.source_observability_workflow_run_count ?? 0,
+      source_cost_budget_ledger_status: summary.source_cost_budget_ledger_status ?? "unknown",
+      source_token_usage_ledger_status: summary.source_token_usage_ledger_status ?? "unknown",
+      source_cost_attribution_ledger_status: summary.source_cost_attribution_ledger_status ?? "unknown",
+      source_cost_record_projection_status: summary.source_cost_record_projection_status ?? "unknown",
+      source_token_usage_projection_status: summary.source_token_usage_projection_status ?? "unknown",
+      source_observability_trace_projection_status: summary.source_observability_trace_projection_status ?? "unknown",
+      source_error_retry_ledger_status: summary.source_error_retry_ledger_status ?? "unknown",
+      source_observability_freeze_status: summary.source_observability_freeze_status ?? "unknown",
+      source_policy_violation_queue_status: summary.source_policy_violation_queue_status ?? "unknown",
+      source_policy_violation_queue_phase_slot: summary.source_policy_violation_queue_phase_slot ?? null,
+      source_policy_violation_queue_next_phase_slot: summary.source_policy_violation_queue_next_phase_slot ?? null,
+      cost_observability_panel_count: summary.cost_observability_panel_count ?? 0,
+      required_panel_count: summary.required_panel_count ?? 0,
+      ready_panel_count: summary.ready_panel_count ?? 0,
+      cost_row_count: summary.cost_row_count ?? 0,
+      token_row_count: summary.token_row_count ?? 0,
+      latency_row_count: summary.latency_row_count ?? 0,
+      error_row_count: summary.error_row_count ?? 0,
+      retry_row_count: summary.retry_row_count ?? 0,
+      provider_runtime_rollup_count: summary.provider_runtime_rollup_count ?? 0,
+      total_projected_usd: summary.total_projected_usd ?? 0,
+      total_budget_usd: summary.total_budget_usd ?? 0,
+      total_budget_remaining_usd: summary.total_budget_remaining_usd ?? 0,
+      total_token_count: summary.total_token_count ?? 0,
+      total_input_token_count: summary.total_input_token_count ?? 0,
+      total_output_token_count: summary.total_output_token_count ?? 0,
+      total_runtime_seconds: summary.total_runtime_seconds ?? 0,
+      open_error_count: summary.open_error_count ?? 0,
+      retry_available_count: summary.retry_available_count ?? 0,
+      auto_retry_scheduled_count: summary.auto_retry_scheduled_count ?? 0,
+      timeout_observed_count: summary.timeout_observed_count ?? 0,
+      resume_blocked_count: summary.resume_blocked_count ?? 0,
+      read_only: summary.read_only ?? false,
+      preview_only: summary.preview_only ?? false,
+      dashboard_projection_only: summary.dashboard_projection_only ?? false,
+      source_content_read_performed: summary.source_content_read_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      metric_write_allowed: summary.metric_write_allowed ?? false,
+      budget_mutation_allowed: summary.budget_mutation_allowed ?? false,
+      runtime_control_performed: summary.runtime_control_performed ?? false,
+      retry_execution_performed: summary.retry_execution_performed ?? false,
+      approval_application_performed: summary.approval_application_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      route_execution_performed: summary.route_execution_performed ?? false,
+      server_started: summary.server_started ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      human_review_required: summary.human_review_required ?? false,
+      client_facing_ready: summary.client_facing_ready ?? true,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -22148,6 +22280,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_policy_violation_queue", "rerun_policy_violation_queue", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.cost_observability_dashboard?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "cost_observability_dashboard";
+    items.push({
+      action_item_id: `dashboard.action.cost_observability_dashboard.${slugify(subjectId)}`,
+      source_stage: "cost_observability_dashboard",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Cost/Observability Dashboard",
+      subject_ref: {
+        subject_type: "cost_observability_dashboard_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_cost_observability_dashboard", "rerun_cost_observability_dashboard", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -29641,6 +29791,67 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     policy_violation_queue_validation_item_count: artifacts.policy_violation_queue?.summary?.validation_item_count ?? 0,
     policy_violation_queue_failed_checkpoint_count: artifacts.policy_violation_queue?.summary?.failed_checkpoint_count ?? 0,
     policy_violation_queue_validation_error_count: artifacts.policy_violation_queue?.summary?.validation_error_count ?? artifacts.policy_violation_queue?.validation?.errors?.length ?? 0,
+    cost_observability_dashboard_status: artifacts.cost_observability_dashboard?.summary?.cost_observability_dashboard_status ?? "unknown",
+    cost_observability_dashboard_id: artifacts.cost_observability_dashboard?.summary?.cost_observability_dashboard_id ?? null,
+    cost_observability_dashboard_phase_slot: artifacts.cost_observability_dashboard?.summary?.phase_slot ?? null,
+    cost_observability_dashboard_previous_phase_slot: artifacts.cost_observability_dashboard?.summary?.previous_phase_slot ?? null,
+    cost_observability_dashboard_next_phase_slot: artifacts.cost_observability_dashboard?.summary?.next_phase_slot ?? null,
+    cost_observability_dashboard_source_observability_workflow_run_count: artifacts.cost_observability_dashboard?.summary?.source_observability_workflow_run_count ?? 0,
+    cost_observability_dashboard_source_cost_budget_ledger_status: artifacts.cost_observability_dashboard?.summary?.source_cost_budget_ledger_status ?? "unknown",
+    cost_observability_dashboard_source_token_usage_ledger_status: artifacts.cost_observability_dashboard?.summary?.source_token_usage_ledger_status ?? "unknown",
+    cost_observability_dashboard_source_cost_attribution_ledger_status: artifacts.cost_observability_dashboard?.summary?.source_cost_attribution_ledger_status ?? "unknown",
+    cost_observability_dashboard_source_cost_record_projection_status: artifacts.cost_observability_dashboard?.summary?.source_cost_record_projection_status ?? "unknown",
+    cost_observability_dashboard_source_token_usage_projection_status: artifacts.cost_observability_dashboard?.summary?.source_token_usage_projection_status ?? "unknown",
+    cost_observability_dashboard_source_observability_trace_projection_status: artifacts.cost_observability_dashboard?.summary?.source_observability_trace_projection_status ?? "unknown",
+    cost_observability_dashboard_source_error_retry_ledger_status: artifacts.cost_observability_dashboard?.summary?.source_error_retry_ledger_status ?? "unknown",
+    cost_observability_dashboard_source_observability_freeze_status: artifacts.cost_observability_dashboard?.summary?.source_observability_freeze_status ?? "unknown",
+    cost_observability_dashboard_source_policy_violation_queue_status: artifacts.cost_observability_dashboard?.summary?.source_policy_violation_queue_status ?? "unknown",
+    cost_observability_dashboard_source_policy_violation_queue_phase_slot: artifacts.cost_observability_dashboard?.summary?.source_policy_violation_queue_phase_slot ?? null,
+    cost_observability_dashboard_source_policy_violation_queue_next_phase_slot: artifacts.cost_observability_dashboard?.summary?.source_policy_violation_queue_next_phase_slot ?? null,
+    cost_observability_dashboard_panel_count: artifacts.cost_observability_dashboard?.summary?.cost_observability_panel_count ?? 0,
+    cost_observability_dashboard_required_panel_count: artifacts.cost_observability_dashboard?.summary?.required_panel_count ?? 0,
+    cost_observability_dashboard_ready_panel_count: artifacts.cost_observability_dashboard?.summary?.ready_panel_count ?? 0,
+    cost_observability_dashboard_cost_row_count: artifacts.cost_observability_dashboard?.summary?.cost_row_count ?? 0,
+    cost_observability_dashboard_token_row_count: artifacts.cost_observability_dashboard?.summary?.token_row_count ?? 0,
+    cost_observability_dashboard_latency_row_count: artifacts.cost_observability_dashboard?.summary?.latency_row_count ?? 0,
+    cost_observability_dashboard_error_row_count: artifacts.cost_observability_dashboard?.summary?.error_row_count ?? 0,
+    cost_observability_dashboard_retry_row_count: artifacts.cost_observability_dashboard?.summary?.retry_row_count ?? 0,
+    cost_observability_dashboard_provider_runtime_rollup_count: artifacts.cost_observability_dashboard?.summary?.provider_runtime_rollup_count ?? 0,
+    cost_observability_dashboard_total_projected_usd: artifacts.cost_observability_dashboard?.summary?.total_projected_usd ?? 0,
+    cost_observability_dashboard_total_budget_usd: artifacts.cost_observability_dashboard?.summary?.total_budget_usd ?? 0,
+    cost_observability_dashboard_total_budget_remaining_usd: artifacts.cost_observability_dashboard?.summary?.total_budget_remaining_usd ?? 0,
+    cost_observability_dashboard_total_token_count: artifacts.cost_observability_dashboard?.summary?.total_token_count ?? 0,
+    cost_observability_dashboard_total_input_token_count: artifacts.cost_observability_dashboard?.summary?.total_input_token_count ?? 0,
+    cost_observability_dashboard_total_output_token_count: artifacts.cost_observability_dashboard?.summary?.total_output_token_count ?? 0,
+    cost_observability_dashboard_total_runtime_seconds: artifacts.cost_observability_dashboard?.summary?.total_runtime_seconds ?? 0,
+    cost_observability_dashboard_open_error_count: artifacts.cost_observability_dashboard?.summary?.open_error_count ?? 0,
+    cost_observability_dashboard_retry_available_count: artifacts.cost_observability_dashboard?.summary?.retry_available_count ?? 0,
+    cost_observability_dashboard_auto_retry_scheduled_count: artifacts.cost_observability_dashboard?.summary?.auto_retry_scheduled_count ?? 0,
+    cost_observability_dashboard_timeout_observed_count: artifacts.cost_observability_dashboard?.summary?.timeout_observed_count ?? 0,
+    cost_observability_dashboard_resume_blocked_count: artifacts.cost_observability_dashboard?.summary?.resume_blocked_count ?? 0,
+    cost_observability_dashboard_read_only: artifacts.cost_observability_dashboard?.summary?.read_only ?? false,
+    cost_observability_dashboard_preview_only: artifacts.cost_observability_dashboard?.summary?.preview_only ?? false,
+    cost_observability_dashboard_dashboard_projection_only: artifacts.cost_observability_dashboard?.summary?.dashboard_projection_only ?? false,
+    cost_observability_dashboard_source_content_read_performed: artifacts.cost_observability_dashboard?.summary?.source_content_read_performed ?? false,
+    cost_observability_dashboard_source_ingest_performed: artifacts.cost_observability_dashboard?.summary?.source_ingest_performed ?? false,
+    cost_observability_dashboard_metric_write_allowed: artifacts.cost_observability_dashboard?.summary?.metric_write_allowed ?? false,
+    cost_observability_dashboard_budget_mutation_allowed: artifacts.cost_observability_dashboard?.summary?.budget_mutation_allowed ?? false,
+    cost_observability_dashboard_runtime_control_performed: artifacts.cost_observability_dashboard?.summary?.runtime_control_performed ?? false,
+    cost_observability_dashboard_retry_execution_performed: artifacts.cost_observability_dashboard?.summary?.retry_execution_performed ?? false,
+    cost_observability_dashboard_approval_application_performed: artifacts.cost_observability_dashboard?.summary?.approval_application_performed ?? false,
+    cost_observability_dashboard_protected_action_executed: artifacts.cost_observability_dashboard?.summary?.protected_action_executed ?? false,
+    cost_observability_dashboard_delivery_execution_performed: artifacts.cost_observability_dashboard?.summary?.delivery_execution_performed ?? false,
+    cost_observability_dashboard_route_execution_performed: artifacts.cost_observability_dashboard?.summary?.route_execution_performed ?? false,
+    cost_observability_dashboard_server_started: artifacts.cost_observability_dashboard?.summary?.server_started ?? false,
+    cost_observability_dashboard_legal_advice_generated: artifacts.cost_observability_dashboard?.summary?.legal_advice_generated ?? false,
+    cost_observability_dashboard_client_facing_output_generated: artifacts.cost_observability_dashboard?.summary?.client_facing_output_generated ?? false,
+    cost_observability_dashboard_human_review_required: artifacts.cost_observability_dashboard?.summary?.human_review_required ?? false,
+    cost_observability_dashboard_client_facing_ready: artifacts.cost_observability_dashboard?.summary?.client_facing_ready ?? true,
+    cost_observability_dashboard_windows_baseline_stability_preserved: artifacts.cost_observability_dashboard?.summary?.windows_baseline_stability_preserved ?? false,
+    cost_observability_dashboard_mac_windows_completion_instability_guard: artifacts.cost_observability_dashboard?.summary?.mac_windows_completion_instability_guard ?? false,
+    cost_observability_dashboard_validation_item_count: artifacts.cost_observability_dashboard?.summary?.validation_item_count ?? 0,
+    cost_observability_dashboard_failed_checkpoint_count: artifacts.cost_observability_dashboard?.summary?.failed_checkpoint_count ?? 0,
+    cost_observability_dashboard_validation_error_count: artifacts.cost_observability_dashboard?.summary?.validation_error_count ?? artifacts.cost_observability_dashboard?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -31484,6 +31695,8 @@ function parseArgs(argv) {
     else if (arg === "--no-matter-cockpit-ui") parsed.matterCockpitUiPath = false;
     else if (arg === "--policy-violation-queue") parsed.policyViolationQueuePath = argv[++index];
     else if (arg === "--no-policy-violation-queue") parsed.policyViolationQueuePath = false;
+    else if (arg === "--cost-observability-dashboard") parsed.costObservabilityDashboardPath = argv[++index];
+    else if (arg === "--no-cost-observability-dashboard") parsed.costObservabilityDashboardPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

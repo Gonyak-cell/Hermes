@@ -6624,6 +6624,83 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("policy_violation_queue_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/cost-observability-dashboards") {
+    const result = await readDashboardSourceArtifact(dashboard, "cost_observability_dashboard");
+    if (!result.available) {
+      return jsonResponse(503, buildError("cost_observability_dashboard_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("cost_observability_dashboards", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/cost-observability-panels") {
+    const result = await readDashboardSourceArtifact(dashboard, "cost_observability_dashboard");
+    if (!result.available) {
+      return jsonResponse(503, buildError("cost_observability_dashboard_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("cost_observability_panels", result.artifact.cost_observability_panels ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/cost-observability-cost-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "cost_observability_dashboard");
+    if (!result.available) {
+      return jsonResponse(503, buildError("cost_observability_dashboard_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("cost_observability_cost_rows", result.artifact.cost_observability_cost_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/cost-observability-token-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "cost_observability_dashboard");
+    if (!result.available) {
+      return jsonResponse(503, buildError("cost_observability_dashboard_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("cost_observability_token_rows", result.artifact.cost_observability_token_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/cost-observability-latency-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "cost_observability_dashboard");
+    if (!result.available) {
+      return jsonResponse(503, buildError("cost_observability_dashboard_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("cost_observability_latency_rows", result.artifact.cost_observability_latency_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/cost-observability-error-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "cost_observability_dashboard");
+    if (!result.available) {
+      return jsonResponse(503, buildError("cost_observability_dashboard_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("cost_observability_error_rows", result.artifact.cost_observability_error_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/cost-observability-retry-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "cost_observability_dashboard");
+    if (!result.available) {
+      return jsonResponse(503, buildError("cost_observability_dashboard_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("cost_observability_retry_rows", result.artifact.cost_observability_retry_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/cost-observability-runtime-rollups") {
+    const result = await readDashboardSourceArtifact(dashboard, "cost_observability_dashboard");
+    if (!result.available) {
+      return jsonResponse(503, buildError("cost_observability_dashboard_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("cost_observability_provider_runtime_rollups", result.artifact.cost_observability_provider_runtime_rollups ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/cost-observability-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "cost_observability_dashboard");
+    if (!result.available) {
+      return jsonResponse(503, buildError("cost_observability_dashboard_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("cost_observability_boundary", [result.artifact.cost_observability_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/cost-observability-checks") {
+    const result = await readDashboardSourceArtifact(dashboard, "cost_observability_dashboard");
+    if (!result.available) {
+      return jsonResponse(503, buildError("cost_observability_dashboard_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("cost_observability_checks", result.artifact.cost_observability_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/cost-observability-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "cost_observability_dashboard");
+    if (!result.available) {
+      return jsonResponse(503, buildError("cost_observability_dashboard_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("cost_observability_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -13174,6 +13251,17 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/policy-violation-queue-boundary", "Policy Violation Queue read-only boundary"),
       route("GET", "/api/policy-violation-queue-checks", "Policy Violation Queue check rows"),
       route("GET", "/api/policy-violation-queue-validations", "Policy Violation Queue validation rows"),
+      route("GET", "/api/cost-observability-dashboards", "Cost/Observability Dashboard artifact"),
+      route("GET", "/api/cost-observability-panels", "Cost/Observability Dashboard panel rows"),
+      route("GET", "/api/cost-observability-cost-rows", "Cost/Observability cost rows"),
+      route("GET", "/api/cost-observability-token-rows", "Cost/Observability token rows"),
+      route("GET", "/api/cost-observability-latency-rows", "Cost/Observability latency rows"),
+      route("GET", "/api/cost-observability-error-rows", "Cost/Observability error rows"),
+      route("GET", "/api/cost-observability-retry-rows", "Cost/Observability retry rows"),
+      route("GET", "/api/cost-observability-runtime-rollups", "Cost/Observability provider/runtime rollups"),
+      route("GET", "/api/cost-observability-boundary", "Cost/Observability Dashboard read-only boundary"),
+      route("GET", "/api/cost-observability-checks", "Cost/Observability Dashboard check rows"),
+      route("GET", "/api/cost-observability-validations", "Cost/Observability Dashboard validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -14417,6 +14505,19 @@ function filterItems(items, searchParams) {
     "policy_layer",
     "actor_action_status",
     "actor_action_type",
+    "cost_observability_dashboard_status",
+    "cost_observability_panel_status",
+    "cost_row_status",
+    "cost_row_type",
+    "cost_category",
+    "token_row_status",
+    "latency_row_status",
+    "error_row_status",
+    "error_kind",
+    "retry_row_status",
+    "retry_state",
+    "provider_runtime_rollup_status",
+    "rollup_type",
     "workflow_run_id",
     "agent_run_id",
     "runtime_id",
@@ -16400,6 +16501,19 @@ function readFilterValue(item, key) {
   if (key === "policy_layer") return item.policy_layer;
   if (key === "actor_action_status") return item.action_status ?? item.actor_action_status;
   if (key === "actor_action_type") return item.actor_action_type;
+  if (key === "cost_observability_dashboard_status") return item.summary?.cost_observability_dashboard_status ?? item.cost_observability_dashboard_status;
+  if (key === "cost_observability_panel_status") return item.panel_status;
+  if (key === "cost_row_status") return item.cost_row_status;
+  if (key === "cost_row_type") return item.cost_row_type;
+  if (key === "cost_category") return item.cost_category;
+  if (key === "token_row_status") return item.token_row_status;
+  if (key === "latency_row_status") return item.latency_row_status;
+  if (key === "error_row_status") return item.error_row_status ?? item.error_status;
+  if (key === "error_kind") return item.error_kind;
+  if (key === "retry_row_status") return item.retry_row_status;
+  if (key === "retry_state") return item.retry_state;
+  if (key === "provider_runtime_rollup_status") return item.rollup_status;
+  if (key === "rollup_type") return item.rollup_type;
   if (key === "workflow_run_id") return item.workflow_run_id;
   if (key === "agent_run_id") return item.agent_run_id;
   if (key === "runtime_id") return item.runtime_id ?? item.runtime_ids ?? item.metadata?.runtime_id;

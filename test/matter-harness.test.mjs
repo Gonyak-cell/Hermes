@@ -93,6 +93,7 @@ import { runSourceSpanInspector } from "../src/source-span-inspector.mjs";
 import { runRunLedgerViewer } from "../src/run-ledger-viewer.mjs";
 import { runMatterCockpitUi } from "../src/matter-cockpit-ui.mjs";
 import { runPolicyViolationQueue } from "../src/policy-violation-queue.mjs";
+import { runCostObservabilityDashboard } from "../src/cost-observability-dashboard.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -1983,6 +1984,7 @@ describe("matter harness", () => {
         runLedgerViewerPath: path.join(outDir, "run-ledger-viewer", "run-ledger-viewer.json"),
         matterCockpitUiPath: path.join(outDir, "matter-cockpit-ui", "matter-cockpit-ui.json"),
         policyViolationQueuePath: path.join(outDir, "policy-violation-queue", "policy-violation-queue.json"),
+        costObservabilityDashboardPath: path.join(outDir, "cost-observability-dashboard", "cost-observability-dashboard.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -12600,6 +12602,83 @@ describe("matter harness", () => {
       assert.ok(policyViolationQueue.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "policy-violation-queue", "summary.md"), "utf8"), /Policy Violation Queue/);
 
+      const costObservabilityDashboard = await runCostObservabilityDashboard({
+        observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
+        costBudgetLedgerPath: path.join(outDir, "cost-budget", "cost-budget-ledger.json"),
+        tokenUsageLedgerPath: path.join(outDir, "token-usage", "token-usage-ledger.json"),
+        costAttributionLedgerPath: path.join(outDir, "cost-attribution", "cost-attribution-ledger.json"),
+        costRecordProjectionPath: path.join(outDir, "cost-record-projection", "cost-record-projection.json"),
+        tokenUsageProjectionPath: path.join(outDir, "token-usage-projection", "token-usage-projection.json"),
+        observabilityTraceProjectionPath: path.join(outDir, "observability-trace-projection", "observability-trace-projection.json"),
+        errorRetryLedgerPath: path.join(outDir, "error-retry-ledger", "error-retry-ledger.json"),
+        observabilityFreezePath: path.join(outDir, "observability-freeze", "observability-freeze.json"),
+        policyViolationQueuePath: path.join(outDir, "policy-violation-queue", "policy-violation-queue.json"),
+        outDir: path.join(outDir, "cost-observability-dashboard"),
+        runAt: "2026-05-23T07:26:34.000Z",
+      });
+      const costObservabilityDashboardSchema = JSON.parse(await readFile("schemas/cost-observability-dashboard.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(costObservabilityDashboard, costObservabilityDashboardSchema, {}, "cost_observability_dashboard"), [], JSON.stringify(costObservabilityDashboard.validation.errors));
+      assert.equal(costObservabilityDashboard.summary.cost_observability_dashboard_status, "complete");
+      assert.equal(costObservabilityDashboard.summary.phase_slot, "P295");
+      assert.equal(costObservabilityDashboard.summary.previous_phase_slot, "P294");
+      assert.equal(costObservabilityDashboard.summary.next_phase_slot, "P296");
+      assert.equal(costObservabilityDashboard.summary.source_cost_budget_ledger_status, "valid");
+      assert.equal(costObservabilityDashboard.summary.source_token_usage_ledger_status, "valid");
+      assert.equal(costObservabilityDashboard.summary.source_cost_attribution_ledger_status, "valid");
+      assert.equal(costObservabilityDashboard.summary.source_cost_record_projection_status, "complete");
+      assert.equal(costObservabilityDashboard.summary.source_token_usage_projection_status, "complete");
+      assert.equal(costObservabilityDashboard.summary.source_observability_trace_projection_status, "complete");
+      assert.equal(costObservabilityDashboard.summary.source_error_retry_ledger_status, "complete");
+      assert.equal(costObservabilityDashboard.summary.source_observability_freeze_status, "complete");
+      assert.equal(costObservabilityDashboard.summary.source_policy_violation_queue_status, "complete");
+      assert.equal(costObservabilityDashboard.summary.source_policy_violation_queue_phase_slot, "P294");
+      assert.equal(costObservabilityDashboard.summary.source_policy_violation_queue_next_phase_slot, "P295");
+      assert.equal(costObservabilityDashboard.summary.cost_observability_panel_count, 6);
+      assert.equal(costObservabilityDashboard.summary.required_panel_count, 6);
+      assert.equal(costObservabilityDashboard.summary.ready_panel_count, 6);
+      assert.ok(costObservabilityDashboard.summary.cost_row_count > 0);
+      assert.ok(costObservabilityDashboard.summary.token_row_count > 0);
+      assert.equal(costObservabilityDashboard.summary.latency_row_count, observabilityCatalog.summary.workflow_run_count);
+      assert.equal(costObservabilityDashboard.summary.error_row_count, errorRetryLedger.summary.projected_error_record_count);
+      assert.equal(costObservabilityDashboard.summary.retry_row_count, errorRetryLedger.summary.retry_record_count);
+      assert.ok(costObservabilityDashboard.summary.provider_runtime_rollup_count > 0);
+      assert.equal(costObservabilityDashboard.summary.total_token_count, tokenUsageProjection.summary.total_token_count);
+      assert.ok(costObservabilityDashboard.summary.total_projected_usd > 0);
+      assert.ok(costObservabilityDashboard.summary.total_runtime_seconds > 0);
+      assert.ok(costObservabilityDashboard.summary.open_error_count > 0);
+      assert.equal(costObservabilityDashboard.summary.read_only, true);
+      assert.equal(costObservabilityDashboard.summary.preview_only, true);
+      assert.equal(costObservabilityDashboard.summary.dashboard_projection_only, true);
+      assert.equal(costObservabilityDashboard.summary.source_content_read_performed, false);
+      assert.equal(costObservabilityDashboard.summary.source_ingest_performed, false);
+      assert.equal(costObservabilityDashboard.summary.metric_write_allowed, false);
+      assert.equal(costObservabilityDashboard.summary.budget_mutation_allowed, false);
+      assert.equal(costObservabilityDashboard.summary.runtime_control_performed, false);
+      assert.equal(costObservabilityDashboard.summary.retry_execution_performed, false);
+      assert.equal(costObservabilityDashboard.summary.approval_application_performed, false);
+      assert.equal(costObservabilityDashboard.summary.protected_action_executed, false);
+      assert.equal(costObservabilityDashboard.summary.delivery_execution_performed, false);
+      assert.equal(costObservabilityDashboard.summary.route_execution_performed, false);
+      assert.equal(costObservabilityDashboard.summary.server_started, false);
+      assert.equal(costObservabilityDashboard.summary.legal_advice_generated, false);
+      assert.equal(costObservabilityDashboard.summary.client_facing_output_generated, false);
+      assert.equal(costObservabilityDashboard.summary.human_review_required, true);
+      assert.equal(costObservabilityDashboard.summary.client_facing_ready, false);
+      assert.equal(costObservabilityDashboard.summary.windows_baseline_stability_preserved, true);
+      assert.equal(costObservabilityDashboard.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(costObservabilityDashboard.summary.validation_error_count, 0);
+      assert.ok(costObservabilityDashboard.cost_observability_panels.every((panel) => panel.panel_status === "ready" && panel.read_only && panel.preview_only && panel.dashboard_projection_only && panel.metric_write_allowed === false && panel.runtime_control_allowed === false && panel.retry_execution_allowed === false && panel.budget_mutation_allowed === false && panel.delivery_execution_allowed === false && panel.human_review_required && panel.client_facing_ready === false));
+      assert.ok(costObservabilityDashboard.cost_observability_cost_rows.every((row) => row.cost_row_status === "ready" && row.read_only && row.preview_only));
+      assert.ok(costObservabilityDashboard.cost_observability_token_rows.every((row) => row.token_row_status === "ready" && row.read_only && row.preview_only));
+      assert.ok(costObservabilityDashboard.cost_observability_latency_rows.every((row) => row.latency_row_status === "ready" && row.read_only && row.preview_only));
+      assert.ok(costObservabilityDashboard.cost_observability_error_rows.every((row) => row.error_row_status === "open" && row.read_only && row.preview_only));
+      assert.ok(costObservabilityDashboard.cost_observability_retry_rows.every((row) => row.retry_row_status === "ready" && row.read_only && row.preview_only));
+      assert.ok(costObservabilityDashboard.cost_observability_provider_runtime_rollups.every((row) => row.rollup_status === "ready" && row.read_only && row.preview_only));
+      assert.equal(costObservabilityDashboard.cost_observability_boundary.boundary_status, "enforced");
+      assert.ok(costObservabilityDashboard.cost_observability_checks.every((item) => item.status === "passed"));
+      assert.ok(costObservabilityDashboard.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "cost-observability-dashboard", "summary.md"), "utf8"), /Cost\/Observability Dashboard/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -12818,6 +12897,7 @@ describe("matter harness", () => {
           run_ledger_viewer: path.join(outDir, "run-ledger-viewer", "run-ledger-viewer.json"),
           matter_cockpit_ui: path.join(outDir, "matter-cockpit-ui", "matter-cockpit-ui.json"),
           policy_violation_queue: path.join(outDir, "policy-violation-queue", "policy-violation-queue.json"),
+          cost_observability_dashboard: path.join(outDir, "cost-observability-dashboard", "cost-observability-dashboard.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -12869,8 +12949,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 196);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 196);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 197);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 197);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -13054,6 +13134,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "run_ledger_viewer"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_cockpit_ui"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "policy_violation_queue"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "cost_observability_dashboard"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -13143,6 +13224,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "ledgers:api-dashboard"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "ledgers:golden-fixtures"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "observability:freeze"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "observability:cost-dashboard"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "capabilities:manifest-v2"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "packs:compatibility"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:pack-manifest"));
@@ -14020,6 +14102,10 @@ describe("matter harness", () => {
       assert.equal(policyViolationQueueCheckpoint?.acceptance_profile, "policy_violation_queue_gate");
       assert.equal(policyViolationQueueCheckpoint?.status, "passed");
       assert.equal(policyViolationQueueCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const costObservabilityDashboardCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-cost-observability-dashboard");
+      assert.equal(costObservabilityDashboardCheckpoint?.acceptance_profile, "cost_observability_dashboard_gate");
+      assert.equal(costObservabilityDashboardCheckpoint?.status, "passed");
+      assert.equal(costObservabilityDashboardCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -19488,6 +19574,53 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.policy_violation_queue_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.policy_violation_queue_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.policy_violation_queue_validation_error_count, 0);
+      assert.equal(dashboard.summary.cost_observability_dashboard_status, "complete");
+      assert.equal(dashboard.summary.cost_observability_dashboard_id, costObservabilityDashboard.summary.cost_observability_dashboard_id);
+      assert.equal(dashboard.summary.cost_observability_dashboard_phase_slot, "P295");
+      assert.equal(dashboard.summary.cost_observability_dashboard_previous_phase_slot, "P294");
+      assert.equal(dashboard.summary.cost_observability_dashboard_next_phase_slot, "P296");
+      assert.equal(dashboard.summary.cost_observability_dashboard_source_cost_budget_ledger_status, "valid");
+      assert.equal(dashboard.summary.cost_observability_dashboard_source_token_usage_ledger_status, "valid");
+      assert.equal(dashboard.summary.cost_observability_dashboard_source_cost_attribution_ledger_status, "valid");
+      assert.equal(dashboard.summary.cost_observability_dashboard_source_cost_record_projection_status, "complete");
+      assert.equal(dashboard.summary.cost_observability_dashboard_source_token_usage_projection_status, "complete");
+      assert.equal(dashboard.summary.cost_observability_dashboard_source_observability_trace_projection_status, "complete");
+      assert.equal(dashboard.summary.cost_observability_dashboard_source_error_retry_ledger_status, "complete");
+      assert.equal(dashboard.summary.cost_observability_dashboard_source_observability_freeze_status, "complete");
+      assert.equal(dashboard.summary.cost_observability_dashboard_source_policy_violation_queue_status, "complete");
+      assert.equal(dashboard.summary.cost_observability_dashboard_source_policy_violation_queue_phase_slot, "P294");
+      assert.equal(dashboard.summary.cost_observability_dashboard_source_policy_violation_queue_next_phase_slot, "P295");
+      assert.equal(dashboard.summary.cost_observability_dashboard_panel_count, 6);
+      assert.equal(dashboard.summary.cost_observability_dashboard_ready_panel_count, 6);
+      assert.equal(dashboard.summary.cost_observability_dashboard_cost_row_count, costObservabilityDashboard.summary.cost_row_count);
+      assert.equal(dashboard.summary.cost_observability_dashboard_token_row_count, costObservabilityDashboard.summary.token_row_count);
+      assert.equal(dashboard.summary.cost_observability_dashboard_latency_row_count, costObservabilityDashboard.summary.latency_row_count);
+      assert.equal(dashboard.summary.cost_observability_dashboard_error_row_count, costObservabilityDashboard.summary.error_row_count);
+      assert.equal(dashboard.summary.cost_observability_dashboard_retry_row_count, costObservabilityDashboard.summary.retry_row_count);
+      assert.equal(dashboard.summary.cost_observability_dashboard_provider_runtime_rollup_count, costObservabilityDashboard.summary.provider_runtime_rollup_count);
+      assert.equal(dashboard.summary.cost_observability_dashboard_total_projected_usd, costObservabilityDashboard.summary.total_projected_usd);
+      assert.equal(dashboard.summary.cost_observability_dashboard_total_token_count, tokenUsageProjection.summary.total_token_count);
+      assert.equal(dashboard.summary.cost_observability_dashboard_total_runtime_seconds, costObservabilityDashboard.summary.total_runtime_seconds);
+      assert.equal(dashboard.summary.cost_observability_dashboard_open_error_count, costObservabilityDashboard.summary.open_error_count);
+      assert.equal(dashboard.summary.cost_observability_dashboard_read_only, true);
+      assert.equal(dashboard.summary.cost_observability_dashboard_preview_only, true);
+      assert.equal(dashboard.summary.cost_observability_dashboard_dashboard_projection_only, true);
+      assert.equal(dashboard.summary.cost_observability_dashboard_source_content_read_performed, false);
+      assert.equal(dashboard.summary.cost_observability_dashboard_source_ingest_performed, false);
+      assert.equal(dashboard.summary.cost_observability_dashboard_metric_write_allowed, false);
+      assert.equal(dashboard.summary.cost_observability_dashboard_budget_mutation_allowed, false);
+      assert.equal(dashboard.summary.cost_observability_dashboard_runtime_control_performed, false);
+      assert.equal(dashboard.summary.cost_observability_dashboard_retry_execution_performed, false);
+      assert.equal(dashboard.summary.cost_observability_dashboard_approval_application_performed, false);
+      assert.equal(dashboard.summary.cost_observability_dashboard_protected_action_executed, false);
+      assert.equal(dashboard.summary.cost_observability_dashboard_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.cost_observability_dashboard_route_execution_performed, false);
+      assert.equal(dashboard.summary.cost_observability_dashboard_server_started, false);
+      assert.equal(dashboard.summary.cost_observability_dashboard_legal_advice_generated, false);
+      assert.equal(dashboard.summary.cost_observability_dashboard_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.cost_observability_dashboard_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.cost_observability_dashboard_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.cost_observability_dashboard_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -23368,6 +23501,47 @@ describe("matter harness", () => {
       assert.equal(policyViolationQueueStage?.metrics.legal_advice_generated, false);
       assert.equal(policyViolationQueueStage?.metrics.client_facing_output_generated, false);
       assert.equal(policyViolationQueueStage?.metrics.validation_error_count, 0);
+      const costObservabilityDashboardStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "cost_observability_dashboard");
+      assert.equal(costObservabilityDashboardStage?.status, "passed");
+      assert.equal(costObservabilityDashboardStage?.metrics.cost_observability_dashboard_status, "complete");
+      assert.equal(costObservabilityDashboardStage?.metrics.cost_observability_dashboard_id, costObservabilityDashboard.summary.cost_observability_dashboard_id);
+      assert.equal(costObservabilityDashboardStage?.metrics.phase_slot, "P295");
+      assert.equal(costObservabilityDashboardStage?.metrics.previous_phase_slot, "P294");
+      assert.equal(costObservabilityDashboardStage?.metrics.next_phase_slot, "P296");
+      assert.equal(costObservabilityDashboardStage?.metrics.source_cost_budget_ledger_status, "valid");
+      assert.equal(costObservabilityDashboardStage?.metrics.source_token_usage_ledger_status, "valid");
+      assert.equal(costObservabilityDashboardStage?.metrics.source_cost_attribution_ledger_status, "valid");
+      assert.equal(costObservabilityDashboardStage?.metrics.source_cost_record_projection_status, "complete");
+      assert.equal(costObservabilityDashboardStage?.metrics.source_token_usage_projection_status, "complete");
+      assert.equal(costObservabilityDashboardStage?.metrics.source_observability_trace_projection_status, "complete");
+      assert.equal(costObservabilityDashboardStage?.metrics.source_error_retry_ledger_status, "complete");
+      assert.equal(costObservabilityDashboardStage?.metrics.source_observability_freeze_status, "complete");
+      assert.equal(costObservabilityDashboardStage?.metrics.source_policy_violation_queue_status, "complete");
+      assert.equal(costObservabilityDashboardStage?.metrics.source_policy_violation_queue_phase_slot, "P294");
+      assert.equal(costObservabilityDashboardStage?.metrics.source_policy_violation_queue_next_phase_slot, "P295");
+      assert.equal(costObservabilityDashboardStage?.metrics.cost_observability_panel_count, 6);
+      assert.equal(costObservabilityDashboardStage?.metrics.ready_panel_count, 6);
+      assert.equal(costObservabilityDashboardStage?.metrics.cost_row_count, costObservabilityDashboard.summary.cost_row_count);
+      assert.equal(costObservabilityDashboardStage?.metrics.token_row_count, costObservabilityDashboard.summary.token_row_count);
+      assert.equal(costObservabilityDashboardStage?.metrics.latency_row_count, costObservabilityDashboard.summary.latency_row_count);
+      assert.equal(costObservabilityDashboardStage?.metrics.error_row_count, costObservabilityDashboard.summary.error_row_count);
+      assert.equal(costObservabilityDashboardStage?.metrics.retry_row_count, costObservabilityDashboard.summary.retry_row_count);
+      assert.equal(costObservabilityDashboardStage?.metrics.provider_runtime_rollup_count, costObservabilityDashboard.summary.provider_runtime_rollup_count);
+      assert.equal(costObservabilityDashboardStage?.metrics.total_token_count, tokenUsageProjection.summary.total_token_count);
+      assert.equal(costObservabilityDashboardStage?.metrics.read_only, true);
+      assert.equal(costObservabilityDashboardStage?.metrics.preview_only, true);
+      assert.equal(costObservabilityDashboardStage?.metrics.dashboard_projection_only, true);
+      assert.equal(costObservabilityDashboardStage?.metrics.metric_write_allowed, false);
+      assert.equal(costObservabilityDashboardStage?.metrics.budget_mutation_allowed, false);
+      assert.equal(costObservabilityDashboardStage?.metrics.runtime_control_performed, false);
+      assert.equal(costObservabilityDashboardStage?.metrics.retry_execution_performed, false);
+      assert.equal(costObservabilityDashboardStage?.metrics.protected_action_executed, false);
+      assert.equal(costObservabilityDashboardStage?.metrics.delivery_execution_performed, false);
+      assert.equal(costObservabilityDashboardStage?.metrics.route_execution_performed, false);
+      assert.equal(costObservabilityDashboardStage?.metrics.server_started, false);
+      assert.equal(costObservabilityDashboardStage?.metrics.legal_advice_generated, false);
+      assert.equal(costObservabilityDashboardStage?.metrics.client_facing_output_generated, false);
+      assert.equal(costObservabilityDashboardStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -23598,6 +23772,17 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-violation-queue-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-violation-queue-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-violation-queue-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-observability-dashboards"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-observability-panels"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-observability-cost-rows"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-observability-token-rows"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-observability-latency-rows"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-observability-error-rows"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-observability-retry-rows"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-observability-runtime-rollups"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-observability-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-observability-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-observability-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -26638,6 +26823,50 @@ describe("matter harness", () => {
       const policyViolationQueueValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/policy-violation-queue-validations?status=passed", apiOptions)).body);
       assert.equal(policyViolationQueueValidationsResponse.collection, "policy_violation_queue_validations");
       assert.equal(policyViolationQueueValidationsResponse.count, policyViolationQueue.summary.validation_item_count);
+
+      const costObservabilityDashboardsResponse = JSON.parse((await buildReviewApiResponse("/api/cost-observability-dashboards?cost_observability_dashboard_status=complete", apiOptions)).body);
+      assert.equal(costObservabilityDashboardsResponse.collection, "cost_observability_dashboards");
+      assert.equal(costObservabilityDashboardsResponse.count, 1);
+
+      const costObservabilityPanelsResponse = JSON.parse((await buildReviewApiResponse("/api/cost-observability-panels?cost_observability_panel_status=ready", apiOptions)).body);
+      assert.equal(costObservabilityPanelsResponse.collection, "cost_observability_panels");
+      assert.equal(costObservabilityPanelsResponse.count, costObservabilityDashboard.summary.cost_observability_panel_count);
+
+      const costObservabilityCostRowsResponse = JSON.parse((await buildReviewApiResponse("/api/cost-observability-cost-rows?cost_row_status=ready&cost_row_type=category_rollup&cost_category=provider&read_only=true", apiOptions)).body);
+      assert.equal(costObservabilityCostRowsResponse.collection, "cost_observability_cost_rows");
+      assert.equal(costObservabilityCostRowsResponse.count, costObservabilityDashboard.cost_observability_cost_rows.filter((row) => row.cost_row_type === "category_rollup" && row.cost_category === "provider").length);
+
+      const costObservabilityTokenRowsResponse = JSON.parse((await buildReviewApiResponse("/api/cost-observability-token-rows?token_row_status=ready&rollup_type=runtime&runtime_id=codex&read_only=true", apiOptions)).body);
+      assert.equal(costObservabilityTokenRowsResponse.collection, "cost_observability_token_rows");
+      assert.equal(costObservabilityTokenRowsResponse.count, costObservabilityDashboard.cost_observability_token_rows.filter((row) => row.rollup_type === "runtime" && row.runtime_id === "codex").length);
+
+      const costObservabilityLatencyRowsResponse = JSON.parse((await buildReviewApiResponse("/api/cost-observability-latency-rows?latency_row_status=ready&read_only=true", apiOptions)).body);
+      assert.equal(costObservabilityLatencyRowsResponse.collection, "cost_observability_latency_rows");
+      assert.equal(costObservabilityLatencyRowsResponse.count, costObservabilityDashboard.summary.latency_row_count);
+
+      const costObservabilityErrorRowsResponse = JSON.parse((await buildReviewApiResponse("/api/cost-observability-error-rows?error_row_status=open&error_kind=run_blocked&read_only=true", apiOptions)).body);
+      assert.equal(costObservabilityErrorRowsResponse.collection, "cost_observability_error_rows");
+      assert.equal(costObservabilityErrorRowsResponse.count, costObservabilityDashboard.cost_observability_error_rows.filter((row) => row.error_kind === "run_blocked").length);
+
+      const costObservabilityRetryRowsResponse = JSON.parse((await buildReviewApiResponse("/api/cost-observability-retry-rows?retry_row_status=ready&retry_state=retry_available&read_only=true", apiOptions)).body);
+      assert.equal(costObservabilityRetryRowsResponse.collection, "cost_observability_retry_rows");
+      assert.equal(costObservabilityRetryRowsResponse.count, costObservabilityDashboard.cost_observability_retry_rows.filter((row) => row.retry_state === "retry_available").length);
+
+      const costObservabilityRuntimeRollupsResponse = JSON.parse((await buildReviewApiResponse("/api/cost-observability-runtime-rollups?provider_runtime_rollup_status=ready&runtime_id=codex&read_only=true", apiOptions)).body);
+      assert.equal(costObservabilityRuntimeRollupsResponse.collection, "cost_observability_provider_runtime_rollups");
+      assert.equal(costObservabilityRuntimeRollupsResponse.count, costObservabilityDashboard.cost_observability_provider_runtime_rollups.filter((row) => row.runtime_id === "codex").length);
+
+      const costObservabilityBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/cost-observability-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(costObservabilityBoundaryResponse.collection, "cost_observability_boundary");
+      assert.equal(costObservabilityBoundaryResponse.count, 1);
+
+      const costObservabilityChecksResponse = JSON.parse((await buildReviewApiResponse("/api/cost-observability-checks?status=passed", apiOptions)).body);
+      assert.equal(costObservabilityChecksResponse.collection, "cost_observability_checks");
+      assert.equal(costObservabilityChecksResponse.count, costObservabilityDashboard.summary.validation_item_count);
+
+      const costObservabilityValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/cost-observability-validations?status=passed", apiOptions)).body);
+      assert.equal(costObservabilityValidationsResponse.collection, "cost_observability_validations");
+      assert.equal(costObservabilityValidationsResponse.count, costObservabilityDashboard.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

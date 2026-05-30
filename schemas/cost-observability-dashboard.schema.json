@@ -1,0 +1,481 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/cost-observability-dashboard.schema.json",
+  "title": "Hermes Cost Observability Dashboard",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "cost_observability_dashboard_id",
+    "cost_observability_dashboard_status",
+    "capability_id",
+    "phase_slot",
+    "previous_phase_slot",
+    "next_phase_slot",
+    "generated_at",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "cost_observability_dashboard_contract",
+    "cost_observability_panels",
+    "cost_observability_cost_rows",
+    "cost_observability_token_rows",
+    "cost_observability_latency_rows",
+    "cost_observability_error_rows",
+    "cost_observability_retry_rows",
+    "cost_observability_provider_runtime_rollups",
+    "cost_observability_boundary",
+    "cost_observability_checks",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "cost-observability-dashboard.v1" },
+    "cost_observability_dashboard_id": { "type": "string", "minLength": 1 },
+    "cost_observability_dashboard_status": { "enum": ["complete", "attention"] },
+    "capability_id": { "const": "desktop.cost_observability_dashboard" },
+    "phase_slot": { "const": "P295" },
+    "previous_phase_slot": { "const": "P294" },
+    "next_phase_slot": { "const": "P296" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": {
+      "type": "object",
+      "minProperties": 10,
+      "additionalProperties": { "$ref": "#/$defs/source_contract" }
+    },
+    "cost_observability_dashboard_contract": { "type": "object" },
+    "cost_observability_panels": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/panel" }
+    },
+    "cost_observability_cost_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/cost_row" }
+    },
+    "cost_observability_token_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/token_row" }
+    },
+    "cost_observability_latency_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/latency_row" }
+    },
+    "cost_observability_error_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/error_row" }
+    },
+    "cost_observability_retry_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/retry_row" }
+    },
+    "cost_observability_provider_runtime_rollups": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/runtime_rollup" }
+    },
+    "cost_observability_boundary": { "$ref": "#/$defs/boundary" },
+    "cost_observability_checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation_items": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_contract": {
+      "type": "object",
+      "required": ["schema_version", "status", "generated_at", "validation_error_count"],
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "status": { "type": "string" },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "panel": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema_version",
+        "cost_observability_panel_id",
+        "panel_key",
+        "panel_status",
+        "row_count",
+        "read_only",
+        "preview_only",
+        "dashboard_projection_only",
+        "metric_write_allowed",
+        "runtime_control_allowed",
+        "retry_execution_allowed",
+        "budget_mutation_allowed",
+        "delivery_execution_allowed",
+        "legal_advice_generated",
+        "client_facing_ready",
+        "human_review_required"
+      ],
+      "properties": {
+        "schema_version": { "const": "cost-observability-panel.v1" },
+        "cost_observability_panel_id": { "type": "string" },
+        "panel_key": { "enum": ["cost", "tokens", "latency", "errors", "retries", "rollups"] },
+        "panel_status": { "const": "ready" },
+        "row_count": { "type": "integer", "minimum": 0 },
+        "read_only": { "const": true },
+        "preview_only": { "const": true },
+        "dashboard_projection_only": { "const": true },
+        "metric_write_allowed": { "const": false },
+        "runtime_control_allowed": { "const": false },
+        "retry_execution_allowed": { "const": false },
+        "budget_mutation_allowed": { "const": false },
+        "delivery_execution_allowed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_ready": { "const": false },
+        "human_review_required": { "const": true }
+      }
+    },
+    "cost_row": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema_version",
+        "cost_observability_cost_row_id",
+        "cost_row_type",
+        "cost_row_status",
+        "total_projected_usd",
+        "total_token_count",
+        "total_runtime_seconds",
+        "read_only",
+        "preview_only"
+      ],
+      "properties": {
+        "schema_version": { "const": "cost-observability-cost-row.v1" },
+        "cost_observability_cost_row_id": { "type": "string" },
+        "cost_row_type": { "enum": ["category_rollup", "run_rollup", "runtime_rollup"] },
+        "cost_row_status": { "const": "ready" },
+        "total_projected_usd": { "type": "number", "minimum": 0 },
+        "total_token_count": { "type": "number", "minimum": 0 },
+        "total_runtime_seconds": { "type": "number", "minimum": 0 },
+        "read_only": { "const": true },
+        "preview_only": { "const": true }
+      }
+    },
+    "token_row": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema_version",
+        "cost_observability_token_row_id",
+        "token_row_status",
+        "rollup_type",
+        "rollup_key",
+        "total_token_count",
+        "provider_cost_projected_usd",
+        "read_only",
+        "preview_only"
+      ],
+      "properties": {
+        "schema_version": { "const": "cost-observability-token-row.v1" },
+        "cost_observability_token_row_id": { "type": "string" },
+        "token_row_status": { "const": "ready" },
+        "rollup_type": { "type": "string" },
+        "rollup_key": { "type": "string" },
+        "total_token_count": { "type": "integer", "minimum": 0 },
+        "provider_cost_projected_usd": { "type": "number", "minimum": 0 },
+        "read_only": { "const": true },
+        "preview_only": { "const": true }
+      }
+    },
+    "latency_row": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema_version",
+        "cost_observability_latency_row_id",
+        "latency_row_status",
+        "workflow_run_id",
+        "runtime_seconds",
+        "latency_status",
+        "read_only",
+        "preview_only"
+      ],
+      "properties": {
+        "schema_version": { "const": "cost-observability-latency-row.v1" },
+        "cost_observability_latency_row_id": { "type": "string" },
+        "latency_row_status": { "const": "ready" },
+        "workflow_run_id": { "type": "string" },
+        "runtime_seconds": { "type": "number", "minimum": 0 },
+        "latency_status": { "enum": ["nominal", "attention"] },
+        "read_only": { "const": true },
+        "preview_only": { "const": true }
+      }
+    },
+    "error_row": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema_version",
+        "cost_observability_error_row_id",
+        "error_row_status",
+        "projected_error_record_id",
+        "error_kind",
+        "error_status",
+        "workflow_run_id",
+        "read_only",
+        "preview_only"
+      ],
+      "properties": {
+        "schema_version": { "const": "cost-observability-error-row.v1" },
+        "cost_observability_error_row_id": { "type": "string" },
+        "error_row_status": { "const": "open" },
+        "projected_error_record_id": { "type": "string" },
+        "error_kind": { "type": "string" },
+        "error_status": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "read_only": { "const": true },
+        "preview_only": { "const": true }
+      }
+    },
+    "retry_row": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema_version",
+        "cost_observability_retry_row_id",
+        "retry_row_status",
+        "retry_record_id",
+        "projected_error_record_id",
+        "workflow_run_id",
+        "retry_state",
+        "auto_retry_scheduled",
+        "read_only",
+        "preview_only"
+      ],
+      "properties": {
+        "schema_version": { "const": "cost-observability-retry-row.v1" },
+        "cost_observability_retry_row_id": { "type": "string" },
+        "retry_row_status": { "const": "ready" },
+        "retry_record_id": { "type": "string" },
+        "projected_error_record_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "retry_state": { "type": "string" },
+        "auto_retry_scheduled": { "type": "boolean" },
+        "read_only": { "const": true },
+        "preview_only": { "const": true }
+      }
+    },
+    "runtime_rollup": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema_version",
+        "cost_observability_provider_runtime_rollup_id",
+        "rollup_status",
+        "provider_boundary",
+        "runtime_id",
+        "provider_cost_record_count",
+        "total_projected_usd",
+        "total_token_count",
+        "runtime_seconds",
+        "error_count",
+        "retry_record_count",
+        "read_only",
+        "preview_only"
+      ],
+      "properties": {
+        "schema_version": { "const": "cost-observability-provider-runtime-rollup.v1" },
+        "cost_observability_provider_runtime_rollup_id": { "type": "string" },
+        "rollup_status": { "const": "ready" },
+        "provider_boundary": { "const": "provider_cost_category" },
+        "runtime_id": { "type": "string" },
+        "provider_cost_record_count": { "type": "integer", "minimum": 0 },
+        "total_projected_usd": { "type": "number", "minimum": 0 },
+        "total_token_count": { "type": "integer", "minimum": 0 },
+        "runtime_seconds": { "type": "number", "minimum": 0 },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "retry_record_count": { "type": "integer", "minimum": 0 },
+        "read_only": { "const": true },
+        "preview_only": { "const": true }
+      }
+    },
+    "boundary": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema_version",
+        "boundary_status",
+        "read_only",
+        "preview_only",
+        "dashboard_projection_only",
+        "source_content_read_performed",
+        "source_ingest_performed",
+        "metric_write_allowed",
+        "budget_mutation_allowed",
+        "runtime_control_performed",
+        "retry_execution_performed",
+        "approval_application_performed",
+        "protected_action_executed",
+        "delivery_execution_performed",
+        "route_execution_performed",
+        "server_started",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "human_review_required",
+        "client_facing_ready",
+        "windows_baseline_stability_preserved",
+        "mac_windows_completion_instability_guard"
+      ],
+      "properties": {
+        "schema_version": { "const": "cost-observability-boundary.v1" },
+        "boundary_status": { "const": "enforced" },
+        "read_only": { "const": true },
+        "preview_only": { "const": true },
+        "dashboard_projection_only": { "const": true },
+        "source_content_read_performed": { "const": false },
+        "source_ingest_performed": { "const": false },
+        "metric_write_allowed": { "const": false },
+        "budget_mutation_allowed": { "const": false },
+        "runtime_control_performed": { "const": false },
+        "retry_execution_performed": { "const": false },
+        "approval_application_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "route_execution_performed": { "const": false },
+        "server_started": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_item_id", "check_id", "path", "status", "message"],
+      "properties": {
+        "validation_item_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "path": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message", "check_id"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" },
+              "check_id": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "cost_observability_dashboard_status",
+        "cost_observability_dashboard_id",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "source_cost_budget_ledger_status",
+        "source_token_usage_ledger_status",
+        "source_cost_attribution_ledger_status",
+        "source_cost_record_projection_status",
+        "source_token_usage_projection_status",
+        "source_observability_trace_projection_status",
+        "source_error_retry_ledger_status",
+        "source_observability_freeze_status",
+        "source_policy_violation_queue_status",
+        "cost_observability_panel_count",
+        "cost_row_count",
+        "token_row_count",
+        "latency_row_count",
+        "error_row_count",
+        "retry_row_count",
+        "provider_runtime_rollup_count",
+        "total_projected_usd",
+        "total_token_count",
+        "total_runtime_seconds",
+        "open_error_count",
+        "retry_available_count",
+        "read_only",
+        "preview_only",
+        "dashboard_projection_only",
+        "metric_write_allowed",
+        "budget_mutation_allowed",
+        "runtime_control_performed",
+        "retry_execution_performed",
+        "delivery_execution_performed",
+        "route_execution_performed",
+        "server_started",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "windows_baseline_stability_preserved",
+        "mac_windows_completion_instability_guard",
+        "validation_item_count",
+        "failed_checkpoint_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "cost_observability_dashboard_status": { "enum": ["complete", "attention"] },
+        "cost_observability_dashboard_id": { "type": "string" },
+        "phase_slot": { "const": "P295" },
+        "previous_phase_slot": { "const": "P294" },
+        "next_phase_slot": { "const": "P296" },
+        "cost_observability_panel_count": { "type": "integer", "minimum": 6 },
+        "cost_row_count": { "type": "integer", "minimum": 1 },
+        "token_row_count": { "type": "integer", "minimum": 1 },
+        "latency_row_count": { "type": "integer", "minimum": 1 },
+        "error_row_count": { "type": "integer", "minimum": 1 },
+        "retry_row_count": { "type": "integer", "minimum": 1 },
+        "provider_runtime_rollup_count": { "type": "integer", "minimum": 1 },
+        "total_projected_usd": { "type": "number", "minimum": 0 },
+        "total_token_count": { "type": "integer", "minimum": 1 },
+        "total_runtime_seconds": { "type": "number", "minimum": 1 },
+        "open_error_count": { "type": "integer", "minimum": 1 },
+        "retry_available_count": { "type": "integer", "minimum": 0 },
+        "read_only": { "const": true },
+        "preview_only": { "const": true },
+        "dashboard_projection_only": { "const": true },
+        "metric_write_allowed": { "const": false },
+        "budget_mutation_allowed": { "const": false },
+        "runtime_control_performed": { "const": false },
+        "retry_execution_performed": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "route_execution_performed": { "const": false },
+        "server_started": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

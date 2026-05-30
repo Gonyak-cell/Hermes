@@ -116,6 +116,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "ledgers:api-dashboard",
   "ledgers:golden-fixtures",
   "observability:freeze",
+  "observability:cost-dashboard",
   "capabilities:manifest-v2",
   "capabilities:registry-api",
   "packs:compatibility",

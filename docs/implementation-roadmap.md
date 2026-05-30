@@ -7690,6 +7690,20 @@ Changes:
 - Golden fixture count increased to 196 and `policy_violation_queue` is included as a regression fixture.
 - `npm run policy:violation-queue -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
 
+## Phase 295 - Cost/Observability Dashboard
+
+Phase 295 adds `cost_observability_dashboard`, a read-only Desktop cost and observability projection over cost budget, token usage, cost attribution, cost record projection, token projection, observability trace projection, error/retry ledger, observability freeze, and the P294 Policy Violation Queue guard. It gives the Desktop cost, token, latency, error, retry, and provider/runtime rollup panels without reading source content, ingesting sources, writing metrics, mutating budgets, controlling runtimes, executing retries, applying approvals, executing protected actions, delivering output, executing routes, starting a server, generating legal advice, or producing client-facing output.
+
+Changes:
+
+- Added `src/cost-observability-dashboard.mjs`, `scripts/cost-observability-dashboard.mjs`, `schemas/cost-observability-dashboard.schema.json`, and `docs/cost-observability-dashboard.md`.
+- Added `observability:cost-dashboard` npm script.
+- The dashboard emits `cost-observability-dashboard.json`, panel rows, cost rows, token rows, latency rows, error rows, retry rows, provider/runtime rollup rows, boundary, checks, validation report, and summary markdown under `artifacts/cost-observability-dashboard/latest`.
+- Review Dashboard stage/summary, Review API routes/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests now include `cost_observability_dashboard`.
+- The artifact is read-only and preview-only and does not read source content, ingest sources, write metrics, mutate budgets, control runtimes, execute retries, apply approvals, execute protected actions, deliver output, execute routes, start a server, generate legal advice, or produce client-facing output.
+- Golden fixture count increased to 197 and `cost_observability_dashboard` is included as a regression fixture.
+- `npm run observability:cost-dashboard -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -7698,9 +7712,9 @@ Changes:
 
 운영 원칙:
 
-- Current actual completion baseline is Phase 294.
+- Current actual completion baseline is Phase 295.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- Remaining planned slots are P295-P312, 18 total.
+- Remaining planned slots are P296-P312, 17 total.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - P217 이후 personal-dev 작업은 Mac Phase 216 결과를 Windows 작업공간에서 계속 이어가되, Phase 217 본작업보다 Windows 기준선 안정화 게이트를 선행 조건으로 둔 판단을 기준으로 운영한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.

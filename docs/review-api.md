@@ -48,6 +48,12 @@ Policy Violation Queue routes expose the read-only policy violation queue artifa
 
 Routes: `/api/policy-violation-queue-artifacts`, `/api/policy-violation-queue-panels`, `/api/policy-violation-queue-items`, `/api/policy-violation-actor-actions`, `/api/policy-violation-queue-boundary`, `/api/policy-violation-queue-checks`, `/api/policy-violation-queue-validations`.
 
+## P295 Cost/Observability Dashboard Routes
+
+Cost/Observability Dashboard routes expose the read-only cost observability dashboard artifact, panel rows, cost rows, token rows, latency rows, error rows, retry rows, provider/runtime rollup rows, checks, boundary, and validation rows. Supported filters include `cost_observability_dashboard_status`, `cost_observability_panel_status`, `cost_row_status`, `cost_row_type`, `token_row_status`, `latency_row_status`, `error_row_status`, `retry_row_status`, `provider_runtime_rollup_status`, `cost_category`, `rollup_type`, `runtime_id`, `workflow_run_id`, `domain_pack`, `matter_id`, `error_kind`, `retry_state`, `read_only`, `preview_only`, `boundary_status`, `status`, and `limit`.
+
+Routes: `/api/cost-observability-dashboards`, `/api/cost-observability-panels`, `/api/cost-observability-cost-rows`, `/api/cost-observability-token-rows`, `/api/cost-observability-latency-rows`, `/api/cost-observability-error-rows`, `/api/cost-observability-retry-rows`, `/api/cost-observability-runtime-rollups`, `/api/cost-observability-boundary`, `/api/cost-observability-checks`, `/api/cost-observability-validations`.
+
 ## P245 LDD RFI Generator Routes
 
 LDD RFI Generator routes expose read-only draft-only RFI packets, draft questions, missing-material links, issue links, matter summaries, and validation/boundary rows. Supported filters include `ldd_rfi_generator_status`, `ldd_rfi_matter_status`, `rfi_rule_type`, `rfi_draft_status`, `rfi_question_type`, `rfi_question_priority`, `rfi_question_status`, `rfi_missing_material_status`, `rfi_issue_link_status`, `deterministic_rfi_generation_performed`, `ldd_rfi_question_id`, `ldd_issue_record_id`, `ldd_vdr_missing_data_record_id`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.

@@ -7718,6 +7718,20 @@ Changes:
 - Golden fixture count increased to 198 and `dashboard_api_freeze` is included as a regression fixture.
 - `npm run dashboard:api-freeze -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
 
+## Phase 297 - Threat Model Refresh
+
+Phase 297 adds `threat_model_refresh`, a read-only threat model refresh for the Windows-stabilized Desktop/API baseline. It joins the P296 Dashboard/API Freeze guard, Workflow Prompt Injection Boundary, Secrets Broker Contract, Runtime API Dashboard, Runtime Freeze, Capability Registry API, Dev Protected Scan, and Control Plane Loop so Phase 217 and later work can continue on this Windows machine without Mac/Windows completion drift.
+
+Changes:
+
+- Added `src/threat-model-refresh.mjs`, `scripts/threat-model-refresh.mjs`, `schemas/threat-model-refresh.schema.json`, and `docs/threat-model-refresh.md`.
+- Added `security:threat-model` npm script.
+- The refresh emits `threat-model-refresh.json`, source rows, risk rows, control rows, evidence rows, boundary, checks, validation report, and summary markdown under `artifacts/threat-model-refresh/latest`.
+- Review Dashboard stage/summary, Review API routes/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests now include `threat_model_refresh`.
+- The artifact tracks prompt injection, data leak, over-agency, insecure tool, Desktop installer, Desktop auto-update, Desktop SSH, Desktop cron, Desktop gateway, and provider key risks while preserving no source content reads, no source ingest, no agent invocation, no tool execution, no route execution, no server start, no Desktop mutation, no installer/auto-update/SSH/cron/gateway control, no raw secret/provider key materialization, no protected action execution, no delivery execution, no legal advice, no client-facing output, human-review gates, and Windows baseline stability.
+- Golden fixture count increased to 199 and `threat_model_refresh` is included as a regression fixture.
+- `npm run security:threat-model -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -7726,9 +7740,9 @@ Changes:
 
 운영 원칙:
 
-- Current actual completion baseline is Phase 296.
+- Current actual completion baseline is Phase 297.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- Remaining planned slots are P297-P312, 16 total.
+- Remaining planned slots are P298-P312, 15 total.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - P217 이후 personal-dev 작업은 Mac Phase 216 결과를 Windows 작업공간에서 계속 이어가되, Phase 217 본작업보다 Windows 기준선 안정화 게이트를 선행 조건으로 둔 판단을 기준으로 운영한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.

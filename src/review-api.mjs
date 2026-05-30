@@ -6757,6 +6757,62 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("dashboard_api_freeze_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/threat-model-refreshes") {
+    const result = await readDashboardSourceArtifact(dashboard, "threat_model_refresh");
+    if (!result.available) {
+      return jsonResponse(503, buildError("threat_model_refresh_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("threat_model_refreshes", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/threat-model-sources") {
+    const result = await readDashboardSourceArtifact(dashboard, "threat_model_refresh");
+    if (!result.available) {
+      return jsonResponse(503, buildError("threat_model_refresh_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("threat_model_sources", result.artifact.threat_model_sources ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/threat-model-risks") {
+    const result = await readDashboardSourceArtifact(dashboard, "threat_model_refresh");
+    if (!result.available) {
+      return jsonResponse(503, buildError("threat_model_refresh_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("threat_model_risks", result.artifact.threat_model_risks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/threat-model-controls") {
+    const result = await readDashboardSourceArtifact(dashboard, "threat_model_refresh");
+    if (!result.available) {
+      return jsonResponse(503, buildError("threat_model_refresh_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("threat_model_controls", result.artifact.threat_model_controls ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/threat-model-evidence") {
+    const result = await readDashboardSourceArtifact(dashboard, "threat_model_refresh");
+    if (!result.available) {
+      return jsonResponse(503, buildError("threat_model_refresh_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("threat_model_evidence", result.artifact.threat_model_evidence ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/threat-model-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "threat_model_refresh");
+    if (!result.available) {
+      return jsonResponse(503, buildError("threat_model_refresh_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("threat_model_boundary", [result.artifact.threat_model_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/threat-model-checks") {
+    const result = await readDashboardSourceArtifact(dashboard, "threat_model_refresh");
+    if (!result.available) {
+      return jsonResponse(503, buildError("threat_model_refresh_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("threat_model_checks", result.artifact.threat_model_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/threat-model-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "threat_model_refresh");
+    if (!result.available) {
+      return jsonResponse(503, buildError("threat_model_refresh_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("threat_model_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -13326,6 +13382,14 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/dashboard-api-freeze-boundary", "Dashboard/API Freeze read-only boundary"),
       route("GET", "/api/dashboard-api-freeze-checks", "Dashboard/API Freeze check rows"),
       route("GET", "/api/dashboard-api-freeze-validations", "Dashboard/API Freeze validation rows"),
+      route("GET", "/api/threat-model-refreshes", "Threat Model Refresh artifact"),
+      route("GET", "/api/threat-model-sources", "Threat Model Refresh source status rows"),
+      route("GET", "/api/threat-model-risks", "Threat Model Refresh risk rows"),
+      route("GET", "/api/threat-model-controls", "Threat Model Refresh control rows"),
+      route("GET", "/api/threat-model-evidence", "Threat Model Refresh evidence rows"),
+      route("GET", "/api/threat-model-boundary", "Threat Model Refresh read-only boundary"),
+      route("GET", "/api/threat-model-checks", "Threat Model Refresh check rows"),
+      route("GET", "/api/threat-model-validations", "Threat Model Refresh validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -14587,6 +14651,14 @@ function filterItems(items, searchParams) {
     "desktop_ready_api_contract_status",
     "route_probe_status",
     "route_fixture_status",
+    "threat_model_refresh_status",
+    "threat_model_source_status",
+    "risk_category",
+    "risk_status",
+    "mitigation_status",
+    "residual_risk_status",
+    "control_status",
+    "evidence_status",
     "method",
     "path",
     "workflow_run_id",
@@ -16590,6 +16662,14 @@ function readFilterValue(item, key) {
   if (key === "desktop_ready_api_contract_status") return item.contract_status;
   if (key === "route_probe_status") return item.probe_status;
   if (key === "route_fixture_status") return item.fixture_status;
+  if (key === "threat_model_refresh_status") return item.summary?.threat_model_refresh_status ?? item.threat_model_refresh_status;
+  if (key === "threat_model_source_status") return item.source_status;
+  if (key === "risk_category") return item.risk_category;
+  if (key === "risk_status") return item.risk_status;
+  if (key === "mitigation_status") return item.mitigation_status;
+  if (key === "residual_risk_status") return item.residual_risk_status;
+  if (key === "control_status") return item.control_status;
+  if (key === "evidence_status") return item.evidence_status;
   if (key === "method") return item.method;
   if (key === "path") return item.path;
   if (key === "workflow_run_id") return item.workflow_run_id;

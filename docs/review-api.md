@@ -60,6 +60,12 @@ Dashboard/API Freeze routes expose the read-only freeze artifact, source status 
 
 Routes: `/api/dashboard-api-freezes`, `/api/dashboard-api-freeze-sources`, `/api/desktop-ready-api-contracts`, `/api/dashboard-api-freeze-route-probes`, `/api/dashboard-api-freeze-route-fixtures`, `/api/dashboard-api-freeze-boundary`, `/api/dashboard-api-freeze-checks`, `/api/dashboard-api-freeze-validations`.
 
+## P297 Threat Model Refresh Routes
+
+Threat Model Refresh routes expose the read-only threat model artifact, source rows, risk rows, control rows, evidence rows, boundary, checks, and validation rows. Supported filters include `threat_model_refresh_status`, `threat_model_source_status`, `risk_category`, `risk_status`, `mitigation_status`, `residual_risk_status`, `control_status`, `evidence_status`, `read_only`, `boundary_status`, `status`, and `limit`.
+
+Routes: `/api/threat-model-refreshes`, `/api/threat-model-sources`, `/api/threat-model-risks`, `/api/threat-model-controls`, `/api/threat-model-evidence`, `/api/threat-model-boundary`, `/api/threat-model-checks`, `/api/threat-model-validations`.
+
 ## P245 LDD RFI Generator Routes
 
 LDD RFI Generator routes expose read-only draft-only RFI packets, draft questions, missing-material links, issue links, matter summaries, and validation/boundary rows. Supported filters include `ldd_rfi_generator_status`, `ldd_rfi_matter_status`, `rfi_rule_type`, `rfi_draft_status`, `rfi_question_type`, `rfi_question_priority`, `rfi_question_status`, `rfi_missing_material_status`, `rfi_issue_link_status`, `deterministic_rfi_generation_performed`, `ldd_rfi_question_id`, `ldd_issue_record_id`, `ldd_vdr_missing_data_record_id`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.

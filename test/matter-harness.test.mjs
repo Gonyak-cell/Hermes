@@ -95,6 +95,7 @@ import { runMatterCockpitUi } from "../src/matter-cockpit-ui.mjs";
 import { runPolicyViolationQueue } from "../src/policy-violation-queue.mjs";
 import { runCostObservabilityDashboard } from "../src/cost-observability-dashboard.mjs";
 import { runDashboardApiFreeze } from "../src/dashboard-api-freeze.mjs";
+import { runThreatModelRefresh } from "../src/threat-model-refresh.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -1987,6 +1988,7 @@ describe("matter harness", () => {
         policyViolationQueuePath: path.join(outDir, "policy-violation-queue", "policy-violation-queue.json"),
         costObservabilityDashboardPath: path.join(outDir, "cost-observability-dashboard", "cost-observability-dashboard.json"),
         dashboardApiFreezePath: path.join(outDir, "dashboard-api-freeze", "dashboard-api-freeze.json"),
+        threatModelRefreshPath: path.join(outDir, "threat-model-refresh", "threat-model-refresh.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -2117,6 +2119,7 @@ describe("matter harness", () => {
         controlPlaneLoopPath: false,
         controlPlaneGoalCheckpointPath: false,
         controlPlaneAuditTrailPath: false,
+        threatModelRefreshPath: false,
         observabilityFreezePath: false,
         capabilityManifestV2Path: false,
         packManifestCompatibilityPath: false,
@@ -13341,6 +13344,7 @@ describe("matter harness", () => {
         controlPlaneWorkPacketReceiptValidationPath: path.join(outDir, "control-plane-work-packet-receipt-validation", "control-plane-work-packet-receipt-validation.json"),
         controlPlaneWorkPacketReceiptApplicationPath: path.join(outDir, "control-plane-work-packet-receipt-application", "control-plane-work-packet-receipt-application.json"),
         dashboardApiFreezePath: false,
+        threatModelRefreshPath: false,
         outDir: path.join(outDir, "dashboard-pre-checkpoint"),
         runAt: "2026-05-23T06:35:08.000Z",
       });
@@ -14348,6 +14352,87 @@ describe("matter harness", () => {
       assert.match(await readFile(path.join(outDir, "dashboard-api-freeze", "summary.md"), "utf8"), /Dashboard\/API Freeze/);
 
       contractGoldenFixtureArtifactPaths.dashboard_api_freeze = path.join(outDir, "dashboard-api-freeze", "dashboard-api-freeze.json");
+      const threatModelRefresh = await runThreatModelRefresh({
+        dashboardApiFreezePath: path.join(outDir, "dashboard-api-freeze", "dashboard-api-freeze.json"),
+        workflowPromptInjectionBoundaryPath: path.join(outDir, "workflow-prompt-injection-boundary", "workflow-prompt-injection-boundary.json"),
+        secretsBrokerContractPath: path.join(outDir, "secrets-broker", "secrets-broker-contract.json"),
+        runtimeApiDashboardPath: path.join(outDir, "runtime-api-dashboard", "runtime-api-dashboard.json"),
+        runtimeFreezePath: path.join(outDir, "runtime-freeze", "runtime-freeze.json"),
+        capabilityRegistryApiPath: path.join(outDir, "capability-registry-api", "capability-registry-api.json"),
+        devProtectedScanPath: path.join(outDir, "dev-protected-scan", "dev-protected-scan.json"),
+        controlPlaneLoopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
+        outDir: path.join(outDir, "threat-model-refresh"),
+        runAt: "2026-05-23T07:26:35.250Z",
+      });
+      const threatModelRefreshSchema = JSON.parse(await readFile("schemas/threat-model-refresh.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(threatModelRefresh, threatModelRefreshSchema, {}, "threat_model_refresh"), [], JSON.stringify(threatModelRefresh.validation.errors));
+      assert.equal(threatModelRefresh.summary.threat_model_refresh_status, "complete");
+      assert.equal(threatModelRefresh.summary.phase_slot, "P297");
+      assert.equal(threatModelRefresh.summary.previous_phase_slot, "P296");
+      assert.equal(threatModelRefresh.summary.next_phase_slot, "P298");
+      assert.equal(threatModelRefresh.summary.source_dashboard_api_freeze_status, "complete");
+      assert.equal(threatModelRefresh.summary.source_dashboard_api_freeze_phase_slot, "P296");
+      assert.equal(threatModelRefresh.summary.source_dashboard_api_freeze_next_phase_slot, "P297");
+      assert.equal(threatModelRefresh.summary.failed_source_status_count, 0);
+      assert.equal(threatModelRefresh.summary.required_risk_category_count, 10);
+      assert.equal(threatModelRefresh.summary.tracked_risk_count, 10);
+      assert.equal(threatModelRefresh.summary.covered_risk_count, 10);
+      assert.equal(threatModelRefresh.summary.attention_risk_count, 0);
+      assert.equal(threatModelRefresh.summary.implemented_control_count, threatModelRefresh.summary.control_count);
+      assert.equal(threatModelRefresh.summary.passed_evidence_row_count, threatModelRefresh.summary.evidence_row_count);
+      assert.equal(threatModelRefresh.summary.prompt_injection_risk_tracked, true);
+      assert.equal(threatModelRefresh.summary.data_leak_risk_tracked, true);
+      assert.equal(threatModelRefresh.summary.over_agency_risk_tracked, true);
+      assert.equal(threatModelRefresh.summary.insecure_tool_risk_tracked, true);
+      assert.equal(threatModelRefresh.summary.desktop_installer_risk_tracked, true);
+      assert.equal(threatModelRefresh.summary.desktop_auto_update_risk_tracked, true);
+      assert.equal(threatModelRefresh.summary.desktop_ssh_risk_tracked, true);
+      assert.equal(threatModelRefresh.summary.desktop_cron_risk_tracked, true);
+      assert.equal(threatModelRefresh.summary.desktop_gateway_risk_tracked, true);
+      assert.equal(threatModelRefresh.summary.provider_key_risk_tracked, true);
+      assert.equal(threatModelRefresh.summary.prompt_injection_promoted_instruction_count, 0);
+      assert.equal(threatModelRefresh.summary.raw_secret_material_allowed_count, 0);
+      assert.equal(threatModelRefresh.summary.provider_key_direct_access_allowed_count, 0);
+      assert.equal(threatModelRefresh.summary.desktop_runtime_execution_allowed, false);
+      assert.equal(threatModelRefresh.summary.desktop_runtime_control_allowed, false);
+      assert.equal(threatModelRefresh.summary.desktop_installer_or_gateway_control, false);
+      assert.equal(threatModelRefresh.summary.desktop_ssh_or_cron_control, false);
+      assert.equal(threatModelRefresh.summary.read_only, true);
+      assert.equal(threatModelRefresh.summary.preview_only, true);
+      assert.equal(threatModelRefresh.summary.threat_model_only, true);
+      assert.equal(threatModelRefresh.summary.source_content_read_performed, false);
+      assert.equal(threatModelRefresh.summary.source_ingest_performed, false);
+      assert.equal(threatModelRefresh.summary.agent_invocation_performed, false);
+      assert.equal(threatModelRefresh.summary.tool_execution_performed, false);
+      assert.equal(threatModelRefresh.summary.route_execution_performed, false);
+      assert.equal(threatModelRefresh.summary.server_started, false);
+      assert.equal(threatModelRefresh.summary.desktop_mutation_allowed, false);
+      assert.equal(threatModelRefresh.summary.installer_control_allowed, false);
+      assert.equal(threatModelRefresh.summary.auto_update_control_allowed, false);
+      assert.equal(threatModelRefresh.summary.ssh_control_allowed, false);
+      assert.equal(threatModelRefresh.summary.cron_control_allowed, false);
+      assert.equal(threatModelRefresh.summary.gateway_control_allowed, false);
+      assert.equal(threatModelRefresh.summary.raw_secret_material_exposed, false);
+      assert.equal(threatModelRefresh.summary.provider_key_materialized, false);
+      assert.equal(threatModelRefresh.summary.protected_action_executed, false);
+      assert.equal(threatModelRefresh.summary.delivery_execution_performed, false);
+      assert.equal(threatModelRefresh.summary.legal_advice_generated, false);
+      assert.equal(threatModelRefresh.summary.client_facing_output_generated, false);
+      assert.equal(threatModelRefresh.summary.human_review_required, true);
+      assert.equal(threatModelRefresh.summary.client_facing_ready, false);
+      assert.equal(threatModelRefresh.summary.windows_baseline_stability_preserved, true);
+      assert.equal(threatModelRefresh.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(threatModelRefresh.summary.validation_error_count, 0);
+      assert.ok(threatModelRefresh.threat_model_sources.every((row) => row.source_status === "passed"));
+      assert.ok(threatModelRefresh.threat_model_risks.every((row) => row.risk_status === "tracked" && row.mitigation_status === "covered" && row.residual_risk_status === "accepted_with_controls"));
+      assert.ok(threatModelRefresh.threat_model_controls.every((row) => row.control_status === "implemented"));
+      assert.ok(threatModelRefresh.threat_model_evidence.every((row) => row.evidence_status === "passed"));
+      assert.equal(threatModelRefresh.threat_model_boundary.boundary_status, "enforced");
+      assert.ok(threatModelRefresh.threat_model_checks.every((item) => item.status === "passed"));
+      assert.ok(threatModelRefresh.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "threat-model-refresh", "summary.md"), "utf8"), /Threat Model Refresh/);
+
+      contractGoldenFixtureArtifactPaths.threat_model_refresh = path.join(outDir, "threat-model-refresh", "threat-model-refresh.json");
       contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: contractGoldenFixtureArtifactPaths,
         fixtureIds: Object.keys(contractGoldenFixtureArtifactPaths),
@@ -14359,11 +14444,12 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 198);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 198);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 199);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 199);
       assert.equal(contractGoldenFixtures.summary.missing_artifact_count, 0);
       assert.equal(contractGoldenFixtures.summary.validation_error_count, 0);
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "dashboard_api_freeze"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "threat_model_refresh"));
 
       contractValidationSuite = await runContractValidationSuite({
         contractGoldenFixturesPath: path.join(outDir, "contract-golden-fixtures", "contract-golden-fixtures.json"),
@@ -14377,13 +14463,14 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractValidationSuite.summary.validation_suite_status, "complete");
-      assert.equal(contractValidationSuite.summary.fixture_count, 198);
-      assert.equal(contractValidationSuite.summary.validated_fixture_count, 198);
+      assert.equal(contractValidationSuite.summary.fixture_count, 199);
+      assert.equal(contractValidationSuite.summary.validated_fixture_count, 199);
       assert.equal(contractValidationSuite.summary.schema_invalid_fixture_count, 0);
       assert.equal(contractValidationSuite.summary.regression_failed_count, 0);
       assert.equal(contractValidationSuite.summary.missing_package_script_count, 0);
       assert.equal(contractValidationSuite.summary.roadmap_missing_count, 0);
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "dashboard:api-freeze"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "security:threat-model"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
 
       const dashboard = await runReviewDashboard({
@@ -14420,6 +14507,10 @@ describe("matter harness", () => {
       assert.equal(dashboardApiFreezeCheckpoint?.acceptance_profile, "dashboard_api_freeze_gate");
       assert.equal(dashboardApiFreezeCheckpoint?.status, "passed");
       assert.equal(dashboardApiFreezeCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const threatModelRefreshCheckpoint = dashboardApiFreezeGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-threat-model-refresh");
+      assert.equal(threatModelRefreshCheckpoint?.acceptance_profile, "threat_model_refresh_gate");
+      assert.equal(threatModelRefreshCheckpoint?.status, "passed");
+      assert.equal(threatModelRefreshCheckpoint?.implementation_status, "passed_with_operational_gate");
       assert.equal(dashboard.summary.evidence_approved_count, 1);
       assert.equal(dashboard.summary.evidence_review_draft_item_count, evidenceReviewDraft.summary.review_item_count);
       assert.equal(dashboard.summary.evidence_review_draft_attorney_count, evidenceReviewDraft.summary.attorney_review_count);
@@ -19804,6 +19895,64 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.dashboard_api_freeze_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.dashboard_api_freeze_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.dashboard_api_freeze_validation_error_count, 0);
+      assert.equal(dashboard.summary.threat_model_refresh_status, "complete");
+      assert.equal(dashboard.summary.threat_model_refresh_id, threatModelRefresh.summary.threat_model_refresh_id);
+      assert.equal(dashboard.summary.threat_model_refresh_phase_slot, "P297");
+      assert.equal(dashboard.summary.threat_model_refresh_previous_phase_slot, "P296");
+      assert.equal(dashboard.summary.threat_model_refresh_next_phase_slot, "P298");
+      assert.equal(dashboard.summary.threat_model_refresh_source_dashboard_api_freeze_status, "complete");
+      assert.equal(dashboard.summary.threat_model_refresh_source_dashboard_api_freeze_phase_slot, "P296");
+      assert.equal(dashboard.summary.threat_model_refresh_source_dashboard_api_freeze_next_phase_slot, "P297");
+      assert.equal(dashboard.summary.threat_model_refresh_failed_source_status_count, 0);
+      assert.equal(dashboard.summary.threat_model_refresh_required_risk_category_count, 10);
+      assert.equal(dashboard.summary.threat_model_refresh_tracked_risk_count, 10);
+      assert.equal(dashboard.summary.threat_model_refresh_covered_risk_count, 10);
+      assert.equal(dashboard.summary.threat_model_refresh_attention_risk_count, 0);
+      assert.equal(dashboard.summary.threat_model_refresh_implemented_control_count, threatModelRefresh.summary.control_count);
+      assert.equal(dashboard.summary.threat_model_refresh_passed_evidence_row_count, threatModelRefresh.summary.evidence_row_count);
+      assert.equal(dashboard.summary.threat_model_refresh_prompt_injection_risk_tracked, true);
+      assert.equal(dashboard.summary.threat_model_refresh_data_leak_risk_tracked, true);
+      assert.equal(dashboard.summary.threat_model_refresh_over_agency_risk_tracked, true);
+      assert.equal(dashboard.summary.threat_model_refresh_insecure_tool_risk_tracked, true);
+      assert.equal(dashboard.summary.threat_model_refresh_desktop_installer_risk_tracked, true);
+      assert.equal(dashboard.summary.threat_model_refresh_desktop_auto_update_risk_tracked, true);
+      assert.equal(dashboard.summary.threat_model_refresh_desktop_ssh_risk_tracked, true);
+      assert.equal(dashboard.summary.threat_model_refresh_desktop_cron_risk_tracked, true);
+      assert.equal(dashboard.summary.threat_model_refresh_desktop_gateway_risk_tracked, true);
+      assert.equal(dashboard.summary.threat_model_refresh_provider_key_risk_tracked, true);
+      assert.equal(dashboard.summary.threat_model_refresh_prompt_injection_promoted_instruction_count, 0);
+      assert.equal(dashboard.summary.threat_model_refresh_raw_secret_material_allowed_count, 0);
+      assert.equal(dashboard.summary.threat_model_refresh_provider_key_direct_access_allowed_count, 0);
+      assert.equal(dashboard.summary.threat_model_refresh_desktop_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.threat_model_refresh_desktop_runtime_control_allowed, false);
+      assert.equal(dashboard.summary.threat_model_refresh_desktop_installer_or_gateway_control, false);
+      assert.equal(dashboard.summary.threat_model_refresh_desktop_ssh_or_cron_control, false);
+      assert.equal(dashboard.summary.threat_model_refresh_read_only, true);
+      assert.equal(dashboard.summary.threat_model_refresh_preview_only, true);
+      assert.equal(dashboard.summary.threat_model_refresh_threat_model_only, true);
+      assert.equal(dashboard.summary.threat_model_refresh_source_content_read_performed, false);
+      assert.equal(dashboard.summary.threat_model_refresh_source_ingest_performed, false);
+      assert.equal(dashboard.summary.threat_model_refresh_agent_invocation_performed, false);
+      assert.equal(dashboard.summary.threat_model_refresh_tool_execution_performed, false);
+      assert.equal(dashboard.summary.threat_model_refresh_route_execution_performed, false);
+      assert.equal(dashboard.summary.threat_model_refresh_server_started, false);
+      assert.equal(dashboard.summary.threat_model_refresh_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.threat_model_refresh_installer_control_allowed, false);
+      assert.equal(dashboard.summary.threat_model_refresh_auto_update_control_allowed, false);
+      assert.equal(dashboard.summary.threat_model_refresh_ssh_control_allowed, false);
+      assert.equal(dashboard.summary.threat_model_refresh_cron_control_allowed, false);
+      assert.equal(dashboard.summary.threat_model_refresh_gateway_control_allowed, false);
+      assert.equal(dashboard.summary.threat_model_refresh_raw_secret_material_exposed, false);
+      assert.equal(dashboard.summary.threat_model_refresh_provider_key_materialized, false);
+      assert.equal(dashboard.summary.threat_model_refresh_protected_action_executed, false);
+      assert.equal(dashboard.summary.threat_model_refresh_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.threat_model_refresh_legal_advice_generated, false);
+      assert.equal(dashboard.summary.threat_model_refresh_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.threat_model_refresh_human_review_required, true);
+      assert.equal(dashboard.summary.threat_model_refresh_client_facing_ready, false);
+      assert.equal(dashboard.summary.threat_model_refresh_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.threat_model_refresh_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.threat_model_refresh_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -23770,6 +23919,62 @@ describe("matter harness", () => {
       assert.equal(dashboardApiFreezeStage?.metrics.legal_advice_generated, false);
       assert.equal(dashboardApiFreezeStage?.metrics.client_facing_output_generated, false);
       assert.equal(dashboardApiFreezeStage?.metrics.validation_error_count, 0);
+      const threatModelRefreshStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "threat_model_refresh");
+      assert.equal(threatModelRefreshStage?.status, "passed");
+      assert.equal(threatModelRefreshStage?.metrics.threat_model_refresh_status, "complete");
+      assert.equal(threatModelRefreshStage?.metrics.threat_model_refresh_id, threatModelRefresh.summary.threat_model_refresh_id);
+      assert.equal(threatModelRefreshStage?.metrics.phase_slot, "P297");
+      assert.equal(threatModelRefreshStage?.metrics.previous_phase_slot, "P296");
+      assert.equal(threatModelRefreshStage?.metrics.next_phase_slot, "P298");
+      assert.equal(threatModelRefreshStage?.metrics.source_dashboard_api_freeze_status, "complete");
+      assert.equal(threatModelRefreshStage?.metrics.source_dashboard_api_freeze_phase_slot, "P296");
+      assert.equal(threatModelRefreshStage?.metrics.source_dashboard_api_freeze_next_phase_slot, "P297");
+      assert.equal(threatModelRefreshStage?.metrics.failed_source_status_count, 0);
+      assert.equal(threatModelRefreshStage?.metrics.required_risk_category_count, 10);
+      assert.equal(threatModelRefreshStage?.metrics.tracked_risk_count, 10);
+      assert.equal(threatModelRefreshStage?.metrics.covered_risk_count, 10);
+      assert.equal(threatModelRefreshStage?.metrics.attention_risk_count, 0);
+      assert.equal(threatModelRefreshStage?.metrics.implemented_control_count, threatModelRefresh.summary.control_count);
+      assert.equal(threatModelRefreshStage?.metrics.passed_evidence_row_count, threatModelRefresh.summary.evidence_row_count);
+      assert.equal(threatModelRefreshStage?.metrics.prompt_injection_risk_tracked, true);
+      assert.equal(threatModelRefreshStage?.metrics.data_leak_risk_tracked, true);
+      assert.equal(threatModelRefreshStage?.metrics.over_agency_risk_tracked, true);
+      assert.equal(threatModelRefreshStage?.metrics.insecure_tool_risk_tracked, true);
+      assert.equal(threatModelRefreshStage?.metrics.desktop_installer_risk_tracked, true);
+      assert.equal(threatModelRefreshStage?.metrics.desktop_auto_update_risk_tracked, true);
+      assert.equal(threatModelRefreshStage?.metrics.desktop_ssh_risk_tracked, true);
+      assert.equal(threatModelRefreshStage?.metrics.desktop_cron_risk_tracked, true);
+      assert.equal(threatModelRefreshStage?.metrics.desktop_gateway_risk_tracked, true);
+      assert.equal(threatModelRefreshStage?.metrics.provider_key_risk_tracked, true);
+      assert.equal(threatModelRefreshStage?.metrics.prompt_injection_promoted_instruction_count, 0);
+      assert.equal(threatModelRefreshStage?.metrics.raw_secret_material_allowed_count, 0);
+      assert.equal(threatModelRefreshStage?.metrics.provider_key_direct_access_allowed_count, 0);
+      assert.equal(threatModelRefreshStage?.metrics.desktop_runtime_execution_allowed, false);
+      assert.equal(threatModelRefreshStage?.metrics.desktop_runtime_control_allowed, false);
+      assert.equal(threatModelRefreshStage?.metrics.desktop_installer_or_gateway_control, false);
+      assert.equal(threatModelRefreshStage?.metrics.desktop_ssh_or_cron_control, false);
+      assert.equal(threatModelRefreshStage?.metrics.read_only, true);
+      assert.equal(threatModelRefreshStage?.metrics.preview_only, true);
+      assert.equal(threatModelRefreshStage?.metrics.threat_model_only, true);
+      assert.equal(threatModelRefreshStage?.metrics.source_content_read_performed, false);
+      assert.equal(threatModelRefreshStage?.metrics.source_ingest_performed, false);
+      assert.equal(threatModelRefreshStage?.metrics.agent_invocation_performed, false);
+      assert.equal(threatModelRefreshStage?.metrics.tool_execution_performed, false);
+      assert.equal(threatModelRefreshStage?.metrics.route_execution_performed, false);
+      assert.equal(threatModelRefreshStage?.metrics.server_started, false);
+      assert.equal(threatModelRefreshStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(threatModelRefreshStage?.metrics.installer_control_allowed, false);
+      assert.equal(threatModelRefreshStage?.metrics.auto_update_control_allowed, false);
+      assert.equal(threatModelRefreshStage?.metrics.ssh_control_allowed, false);
+      assert.equal(threatModelRefreshStage?.metrics.cron_control_allowed, false);
+      assert.equal(threatModelRefreshStage?.metrics.gateway_control_allowed, false);
+      assert.equal(threatModelRefreshStage?.metrics.raw_secret_material_exposed, false);
+      assert.equal(threatModelRefreshStage?.metrics.provider_key_materialized, false);
+      assert.equal(threatModelRefreshStage?.metrics.protected_action_executed, false);
+      assert.equal(threatModelRefreshStage?.metrics.delivery_execution_performed, false);
+      assert.equal(threatModelRefreshStage?.metrics.legal_advice_generated, false);
+      assert.equal(threatModelRefreshStage?.metrics.client_facing_output_generated, false);
+      assert.equal(threatModelRefreshStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -24019,6 +24224,14 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/dashboard-api-freeze-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/dashboard-api-freeze-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/dashboard-api-freeze-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/threat-model-refreshes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/threat-model-sources"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/threat-model-risks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/threat-model-controls"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/threat-model-evidence"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/threat-model-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/threat-model-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/threat-model-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -27136,6 +27349,42 @@ describe("matter harness", () => {
       const dashboardApiFreezeValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/dashboard-api-freeze-validations?status=passed", apiOptions)).body);
       assert.equal(dashboardApiFreezeValidationsResponse.collection, "dashboard_api_freeze_validations");
       assert.equal(dashboardApiFreezeValidationsResponse.count, dashboardApiFreeze.summary.validation_item_count);
+
+      const threatModelRefreshesResponse = JSON.parse((await buildReviewApiResponse("/api/threat-model-refreshes?threat_model_refresh_status=complete", apiOptions)).body);
+      assert.equal(threatModelRefreshesResponse.collection, "threat_model_refreshes");
+      assert.equal(threatModelRefreshesResponse.count, 1);
+
+      const threatModelSourcesResponse = JSON.parse((await buildReviewApiResponse("/api/threat-model-sources?threat_model_source_status=passed", apiOptions)).body);
+      assert.equal(threatModelSourcesResponse.collection, "threat_model_sources");
+      assert.equal(threatModelSourcesResponse.count, threatModelRefresh.summary.source_status_count);
+
+      const threatModelRisksResponse = JSON.parse((await buildReviewApiResponse("/api/threat-model-risks?risk_status=tracked&mitigation_status=covered", apiOptions)).body);
+      assert.equal(threatModelRisksResponse.collection, "threat_model_risks");
+      assert.equal(threatModelRisksResponse.count, threatModelRefresh.summary.tracked_risk_count);
+
+      const providerKeyThreatModelRisksResponse = JSON.parse((await buildReviewApiResponse("/api/threat-model-risks?risk_category=provider_key&residual_risk_status=accepted_with_controls", apiOptions)).body);
+      assert.equal(providerKeyThreatModelRisksResponse.collection, "threat_model_risks");
+      assert.equal(providerKeyThreatModelRisksResponse.count, 1);
+
+      const threatModelControlsResponse = JSON.parse((await buildReviewApiResponse("/api/threat-model-controls?control_status=implemented&read_only=true", apiOptions)).body);
+      assert.equal(threatModelControlsResponse.collection, "threat_model_controls");
+      assert.equal(threatModelControlsResponse.count, threatModelRefresh.summary.control_count);
+
+      const threatModelEvidenceResponse = JSON.parse((await buildReviewApiResponse("/api/threat-model-evidence?evidence_status=passed&read_only=true", apiOptions)).body);
+      assert.equal(threatModelEvidenceResponse.collection, "threat_model_evidence");
+      assert.equal(threatModelEvidenceResponse.count, threatModelRefresh.summary.evidence_row_count);
+
+      const threatModelBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/threat-model-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(threatModelBoundaryResponse.collection, "threat_model_boundary");
+      assert.equal(threatModelBoundaryResponse.count, 1);
+
+      const threatModelChecksResponse = JSON.parse((await buildReviewApiResponse("/api/threat-model-checks?status=passed", apiOptions)).body);
+      assert.equal(threatModelChecksResponse.collection, "threat_model_checks");
+      assert.equal(threatModelChecksResponse.count, threatModelRefresh.summary.validation_item_count);
+
+      const threatModelValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/threat-model-validations?status=passed", apiOptions)).body);
+      assert.equal(threatModelValidationsResponse.collection, "threat_model_validations");
+      assert.equal(threatModelValidationsResponse.count, threatModelRefresh.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

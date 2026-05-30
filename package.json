@@ -20,6 +20,7 @@
     "context:packets": "node scripts/context-packet-ledger.mjs",
     "dashboard:ia": "node scripts/review-dashboard-ia.mjs",
     "dashboard:api-freeze": "node scripts/dashboard-api-freeze.mjs",
+    "security:threat-model": "node scripts/threat-model-refresh.mjs",
     "contracts:inventory": "node scripts/contract-inventory.mjs",
     "contracts:dependencies": "node scripts/contract-dependency-map.mjs",
     "contracts:versioning": "node scripts/schema-versioning-rules.mjs",

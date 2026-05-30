@@ -1,0 +1,183 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://hermes.local/schemas/threat-model-refresh.schema.json",
+  "title": "Threat Model Refresh",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "threat_model_refresh_id",
+    "summary",
+    "threat_model_sources",
+    "threat_model_risks",
+    "threat_model_controls",
+    "threat_model_evidence",
+    "threat_model_boundary",
+    "threat_model_checks",
+    "validation",
+    "validation_items"
+  ],
+  "properties": {
+    "schema_version": { "const": "threat-model-refresh.v1" },
+    "generated_at": { "type": "string" },
+    "threat_model_refresh_id": { "type": "string" },
+    "summary": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "threat_model_refresh_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "required_risk_category_count",
+        "tracked_risk_count",
+        "covered_risk_count",
+        "validation_error_count",
+        "prompt_injection_risk_tracked",
+        "data_leak_risk_tracked",
+        "over_agency_risk_tracked",
+        "insecure_tool_risk_tracked",
+        "desktop_installer_risk_tracked",
+        "desktop_auto_update_risk_tracked",
+        "desktop_ssh_risk_tracked",
+        "desktop_cron_risk_tracked",
+        "desktop_gateway_risk_tracked",
+        "provider_key_risk_tracked"
+      ],
+      "properties": {
+        "threat_model_refresh_status": { "const": "complete" },
+        "phase_slot": { "const": "P297" },
+        "previous_phase_slot": { "const": "P296" },
+        "next_phase_slot": { "const": "P298" },
+        "required_risk_category_count": { "const": 10 },
+        "tracked_risk_count": { "minimum": 10 },
+        "covered_risk_count": { "minimum": 10 },
+        "attention_risk_count": { "const": 0 },
+        "validation_error_count": { "const": 0 },
+        "prompt_injection_risk_tracked": { "const": true },
+        "data_leak_risk_tracked": { "const": true },
+        "over_agency_risk_tracked": { "const": true },
+        "insecure_tool_risk_tracked": { "const": true },
+        "desktop_installer_risk_tracked": { "const": true },
+        "desktop_auto_update_risk_tracked": { "const": true },
+        "desktop_ssh_risk_tracked": { "const": true },
+        "desktop_cron_risk_tracked": { "const": true },
+        "desktop_gateway_risk_tracked": { "const": true },
+        "provider_key_risk_tracked": { "const": true },
+        "prompt_injection_promoted_instruction_count": { "const": 0 },
+        "raw_secret_material_allowed_count": { "const": 0 },
+        "provider_key_direct_access_allowed_count": { "const": 0 },
+        "desktop_runtime_execution_allowed": { "const": false },
+        "desktop_runtime_control_allowed": { "const": false },
+        "desktop_installer_or_gateway_control": { "const": false },
+        "desktop_ssh_or_cron_control": { "const": false },
+        "read_only": { "const": true },
+        "client_facing_ready": { "const": false },
+        "legal_advice_generated": { "const": false }
+      }
+    },
+    "threat_model_sources": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["source_id", "source_status"],
+        "properties": {
+          "source_status": { "enum": ["passed"] }
+        }
+      }
+    },
+    "threat_model_risks": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["risk_category", "risk_status", "mitigation_status", "residual_risk_status"],
+        "properties": {
+          "risk_status": { "const": "tracked" },
+          "mitigation_status": { "const": "covered" },
+          "residual_risk_status": { "const": "accepted_with_controls" },
+          "read_only": { "const": true },
+          "mutation_allowed": { "const": false },
+          "client_facing_ready": { "const": false }
+        }
+      }
+    },
+    "threat_model_controls": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["control_id", "control_status"],
+        "properties": {
+          "control_status": { "const": "implemented" },
+          "read_only": { "const": true },
+          "mutation_allowed": { "const": false },
+          "client_facing_ready": { "const": false }
+        }
+      }
+    },
+    "threat_model_evidence": {
+      "type": "array",
+      "minItems": 18,
+      "items": {
+        "type": "object",
+        "required": ["evidence_id", "evidence_status"],
+        "properties": {
+          "evidence_status": { "const": "passed" },
+          "read_only": { "const": true },
+          "source_content_read_performed": { "const": false },
+          "secret_material_exposed": { "const": false }
+        }
+      }
+    },
+    "threat_model_boundary": {
+      "type": "object",
+      "required": ["boundary_status", "read_only", "desktop_mutation_allowed", "provider_key_materialized", "legal_advice_generated", "client_facing_output_generated"],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "read_only": { "const": true },
+        "threat_model_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "installer_control_allowed": { "const": false },
+        "auto_update_control_allowed": { "const": false },
+        "ssh_control_allowed": { "const": false },
+        "cron_control_allowed": { "const": false },
+        "gateway_control_allowed": { "const": false },
+        "raw_secret_material_exposed": { "const": false },
+        "provider_key_materialized": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "client_facing_ready": { "const": false },
+        "windows_baseline_stability_preserved": { "const": true }
+      }
+    },
+    "threat_model_checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "status": { "const": "passed" }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "errors": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "status": { "const": "passed" }
+        }
+      }
+    }
+  }
+}

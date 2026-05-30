@@ -3272,6 +3272,38 @@ try {
   assert.equal(dashboardApiFreezeValidations.collection, "dashboard_api_freeze_validations");
   assert.ok(dashboardApiFreezeValidations.count <= 30);
 
+  const threatModelRefreshes = await fetchJson(`${url}/api/threat-model-refreshes?threat_model_refresh_status=complete&limit=1`);
+  assert.equal(threatModelRefreshes.collection, "threat_model_refreshes");
+  assert.ok(threatModelRefreshes.count <= 1);
+
+  const threatModelSources = await fetchJson(`${url}/api/threat-model-sources?threat_model_source_status=passed&limit=20`);
+  assert.equal(threatModelSources.collection, "threat_model_sources");
+  assert.ok(threatModelSources.count <= 20);
+
+  const threatModelRisks = await fetchJson(`${url}/api/threat-model-risks?risk_status=tracked&mitigation_status=covered&limit=20`);
+  assert.equal(threatModelRisks.collection, "threat_model_risks");
+  assert.ok(threatModelRisks.count <= 20);
+
+  const threatModelControls = await fetchJson(`${url}/api/threat-model-controls?control_status=implemented&read_only=true&limit=20`);
+  assert.equal(threatModelControls.collection, "threat_model_controls");
+  assert.ok(threatModelControls.count <= 20);
+
+  const threatModelEvidence = await fetchJson(`${url}/api/threat-model-evidence?evidence_status=passed&read_only=true&limit=30`);
+  assert.equal(threatModelEvidence.collection, "threat_model_evidence");
+  assert.ok(threatModelEvidence.count <= 30);
+
+  const threatModelBoundary = await fetchJson(`${url}/api/threat-model-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(threatModelBoundary.collection, "threat_model_boundary");
+  assert.ok(threatModelBoundary.count <= 1);
+
+  const threatModelChecks = await fetchJson(`${url}/api/threat-model-checks?status=passed&limit=30`);
+  assert.equal(threatModelChecks.collection, "threat_model_checks");
+  assert.ok(threatModelChecks.count <= 30);
+
+  const threatModelValidations = await fetchJson(`${url}/api/threat-model-validations?status=passed&limit=30`);
+  assert.equal(threatModelValidations.collection, "threat_model_validations");
+  assert.ok(threatModelValidations.count <= 30);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

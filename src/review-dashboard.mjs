@@ -132,6 +132,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   policyViolationQueuePath: "artifacts/policy-violation-queue/latest/policy-violation-queue.json",
   costObservabilityDashboardPath: "artifacts/cost-observability-dashboard/latest/cost-observability-dashboard.json",
   dashboardApiFreezePath: "artifacts/dashboard-api-freeze/latest/dashboard-api-freeze.json",
+  threatModelRefreshPath: "artifacts/threat-model-refresh/latest/threat-model-refresh.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -935,6 +936,11 @@ const SOURCE_DEFINITIONS = [
     option: "dashboardApiFreezePath",
     source_id: "dashboard_api_freeze",
     label: "Dashboard/API Freeze",
+  },
+  {
+    option: "threatModelRefreshPath",
+    source_id: "threat_model_refresh",
+    label: "Threat Model Refresh",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -2342,6 +2348,7 @@ function buildStageStatuses(artifacts, sources) {
     buildPolicyViolationQueueStage(artifacts.policy_violation_queue, sourceById.get("policy_violation_queue")),
     buildCostObservabilityDashboardStage(artifacts.cost_observability_dashboard, sourceById.get("cost_observability_dashboard")),
     buildDashboardApiFreezeStage(artifacts.dashboard_api_freeze, sourceById.get("dashboard_api_freeze")),
+    buildThreatModelRefreshStage(artifacts.threat_model_refresh, sourceById.get("threat_model_refresh")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -15619,6 +15626,145 @@ function buildDashboardApiFreezeStage(artifact, source) {
   };
 }
 
+function buildThreatModelRefreshStage(artifact, source) {
+  if (!artifact) return missingStage("threat_model_refresh", "Threat Model Refresh", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.threat_model_refresh_status !== "complete"
+    || summary.phase_slot !== "P297"
+    || summary.previous_phase_slot !== "P296"
+    || summary.next_phase_slot !== "P298"
+    || summary.source_dashboard_api_freeze_status !== "complete"
+    || summary.source_dashboard_api_freeze_phase_slot !== "P296"
+    || summary.source_dashboard_api_freeze_next_phase_slot !== "P297"
+    || summary.failed_source_status_count !== 0
+    || summary.tracked_risk_count < summary.required_risk_category_count
+    || summary.covered_risk_count < summary.required_risk_category_count
+    || summary.attention_risk_count !== 0
+    || summary.implemented_control_count !== summary.control_count
+    || summary.passed_evidence_row_count !== summary.evidence_row_count
+    || summary.prompt_injection_risk_tracked !== true
+    || summary.data_leak_risk_tracked !== true
+    || summary.over_agency_risk_tracked !== true
+    || summary.insecure_tool_risk_tracked !== true
+    || summary.desktop_installer_risk_tracked !== true
+    || summary.desktop_auto_update_risk_tracked !== true
+    || summary.desktop_ssh_risk_tracked !== true
+    || summary.desktop_cron_risk_tracked !== true
+    || summary.desktop_gateway_risk_tracked !== true
+    || summary.provider_key_risk_tracked !== true
+    || summary.prompt_injection_promoted_instruction_count !== 0
+    || summary.raw_secret_material_allowed_count !== 0
+    || summary.provider_key_direct_access_allowed_count !== 0
+    || summary.desktop_runtime_execution_allowed !== false
+    || summary.desktop_runtime_control_allowed !== false
+    || summary.desktop_installer_or_gateway_control !== false
+    || summary.desktop_ssh_or_cron_control !== false
+    || summary.read_only !== true
+    || summary.preview_only !== true
+    || summary.threat_model_only !== true
+    || summary.source_content_read_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.agent_invocation_performed !== false
+    || summary.tool_execution_performed !== false
+    || summary.route_execution_performed !== false
+    || summary.server_started !== false
+    || summary.desktop_mutation_allowed !== false
+    || summary.installer_control_allowed !== false
+    || summary.auto_update_control_allowed !== false
+    || summary.ssh_control_allowed !== false
+    || summary.cron_control_allowed !== false
+    || summary.gateway_control_allowed !== false
+    || summary.raw_secret_material_exposed !== false
+    || summary.provider_key_materialized !== false
+    || summary.protected_action_executed !== false
+    || summary.delivery_execution_performed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.human_review_required !== true
+    || summary.client_facing_ready !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "threat_model_refresh",
+    label: "Threat Model Refresh",
+    status,
+    message: `${summary.covered_risk_count ?? 0}/${summary.required_risk_category_count ?? 0} required risk category(s) covered across ${summary.control_count ?? 0} control(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      threat_model_refresh_status: summary.threat_model_refresh_status ?? "unknown",
+      threat_model_refresh_id: summary.threat_model_refresh_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_status_count: summary.source_status_count ?? 0,
+      passed_source_status_count: summary.passed_source_status_count ?? 0,
+      failed_source_status_count: summary.failed_source_status_count ?? 0,
+      source_dashboard_api_freeze_status: summary.source_dashboard_api_freeze_status ?? "unknown",
+      source_dashboard_api_freeze_phase_slot: summary.source_dashboard_api_freeze_phase_slot ?? null,
+      source_dashboard_api_freeze_next_phase_slot: summary.source_dashboard_api_freeze_next_phase_slot ?? null,
+      required_risk_category_count: summary.required_risk_category_count ?? 0,
+      tracked_risk_count: summary.tracked_risk_count ?? 0,
+      covered_risk_count: summary.covered_risk_count ?? 0,
+      attention_risk_count: summary.attention_risk_count ?? 0,
+      implemented_control_count: summary.implemented_control_count ?? 0,
+      control_count: summary.control_count ?? 0,
+      evidence_row_count: summary.evidence_row_count ?? 0,
+      passed_evidence_row_count: summary.passed_evidence_row_count ?? 0,
+      attention_evidence_row_count: summary.attention_evidence_row_count ?? 0,
+      prompt_injection_risk_tracked: summary.prompt_injection_risk_tracked ?? false,
+      data_leak_risk_tracked: summary.data_leak_risk_tracked ?? false,
+      over_agency_risk_tracked: summary.over_agency_risk_tracked ?? false,
+      insecure_tool_risk_tracked: summary.insecure_tool_risk_tracked ?? false,
+      desktop_installer_risk_tracked: summary.desktop_installer_risk_tracked ?? false,
+      desktop_auto_update_risk_tracked: summary.desktop_auto_update_risk_tracked ?? false,
+      desktop_ssh_risk_tracked: summary.desktop_ssh_risk_tracked ?? false,
+      desktop_cron_risk_tracked: summary.desktop_cron_risk_tracked ?? false,
+      desktop_gateway_risk_tracked: summary.desktop_gateway_risk_tracked ?? false,
+      provider_key_risk_tracked: summary.provider_key_risk_tracked ?? false,
+      prompt_injection_neutralized_count: summary.prompt_injection_neutralized_count ?? 0,
+      prompt_injection_promoted_instruction_count: summary.prompt_injection_promoted_instruction_count ?? 0,
+      raw_secret_material_allowed_count: summary.raw_secret_material_allowed_count ?? 0,
+      provider_key_direct_access_allowed_count: summary.provider_key_direct_access_allowed_count ?? 0,
+      desktop_runtime_execution_allowed: summary.desktop_runtime_execution_allowed ?? false,
+      desktop_runtime_control_allowed: summary.desktop_runtime_control_allowed ?? false,
+      desktop_installer_or_gateway_control: summary.desktop_installer_or_gateway_control ?? false,
+      desktop_ssh_or_cron_control: summary.desktop_ssh_or_cron_control ?? false,
+      read_only: summary.read_only ?? false,
+      preview_only: summary.preview_only ?? false,
+      threat_model_only: summary.threat_model_only ?? false,
+      source_content_read_performed: summary.source_content_read_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      agent_invocation_performed: summary.agent_invocation_performed ?? false,
+      tool_execution_performed: summary.tool_execution_performed ?? false,
+      route_execution_performed: summary.route_execution_performed ?? false,
+      server_started: summary.server_started ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      installer_control_allowed: summary.installer_control_allowed ?? false,
+      auto_update_control_allowed: summary.auto_update_control_allowed ?? false,
+      ssh_control_allowed: summary.ssh_control_allowed ?? false,
+      cron_control_allowed: summary.cron_control_allowed ?? false,
+      gateway_control_allowed: summary.gateway_control_allowed ?? false,
+      raw_secret_material_exposed: summary.raw_secret_material_exposed ?? false,
+      provider_key_materialized: summary.provider_key_materialized ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      human_review_required: summary.human_review_required ?? false,
+      client_facing_ready: summary.client_facing_ready ?? true,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -22443,6 +22589,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_dashboard_api_freeze", "rerun_dashboard_api_freeze", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.threat_model_refresh?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "threat_model_refresh";
+    items.push({
+      action_item_id: `dashboard.action.threat_model_refresh.${slugify(subjectId)}`,
+      source_stage: "threat_model_refresh",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Threat Model Refresh",
+      subject_ref: {
+        subject_type: "threat_model_refresh_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_threat_model_refresh", "rerun_threat_model_refresh", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -30058,6 +30222,71 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     dashboard_api_freeze_validation_item_count: artifacts.dashboard_api_freeze?.summary?.validation_item_count ?? 0,
     dashboard_api_freeze_failed_checkpoint_count: artifacts.dashboard_api_freeze?.summary?.failed_checkpoint_count ?? 0,
     dashboard_api_freeze_validation_error_count: artifacts.dashboard_api_freeze?.summary?.validation_error_count ?? artifacts.dashboard_api_freeze?.validation?.errors?.length ?? 0,
+    threat_model_refresh_status: artifacts.threat_model_refresh?.summary?.threat_model_refresh_status ?? "unknown",
+    threat_model_refresh_id: artifacts.threat_model_refresh?.summary?.threat_model_refresh_id ?? null,
+    threat_model_refresh_phase_slot: artifacts.threat_model_refresh?.summary?.phase_slot ?? null,
+    threat_model_refresh_previous_phase_slot: artifacts.threat_model_refresh?.summary?.previous_phase_slot ?? null,
+    threat_model_refresh_next_phase_slot: artifacts.threat_model_refresh?.summary?.next_phase_slot ?? null,
+    threat_model_refresh_source_status_count: artifacts.threat_model_refresh?.summary?.source_status_count ?? 0,
+    threat_model_refresh_passed_source_status_count: artifacts.threat_model_refresh?.summary?.passed_source_status_count ?? 0,
+    threat_model_refresh_failed_source_status_count: artifacts.threat_model_refresh?.summary?.failed_source_status_count ?? 0,
+    threat_model_refresh_source_dashboard_api_freeze_status: artifacts.threat_model_refresh?.summary?.source_dashboard_api_freeze_status ?? "unknown",
+    threat_model_refresh_source_dashboard_api_freeze_phase_slot: artifacts.threat_model_refresh?.summary?.source_dashboard_api_freeze_phase_slot ?? null,
+    threat_model_refresh_source_dashboard_api_freeze_next_phase_slot: artifacts.threat_model_refresh?.summary?.source_dashboard_api_freeze_next_phase_slot ?? null,
+    threat_model_refresh_required_risk_category_count: artifacts.threat_model_refresh?.summary?.required_risk_category_count ?? 0,
+    threat_model_refresh_tracked_risk_count: artifacts.threat_model_refresh?.summary?.tracked_risk_count ?? 0,
+    threat_model_refresh_covered_risk_count: artifacts.threat_model_refresh?.summary?.covered_risk_count ?? 0,
+    threat_model_refresh_attention_risk_count: artifacts.threat_model_refresh?.summary?.attention_risk_count ?? 0,
+    threat_model_refresh_implemented_control_count: artifacts.threat_model_refresh?.summary?.implemented_control_count ?? 0,
+    threat_model_refresh_control_count: artifacts.threat_model_refresh?.summary?.control_count ?? 0,
+    threat_model_refresh_evidence_row_count: artifacts.threat_model_refresh?.summary?.evidence_row_count ?? 0,
+    threat_model_refresh_passed_evidence_row_count: artifacts.threat_model_refresh?.summary?.passed_evidence_row_count ?? 0,
+    threat_model_refresh_attention_evidence_row_count: artifacts.threat_model_refresh?.summary?.attention_evidence_row_count ?? 0,
+    threat_model_refresh_prompt_injection_risk_tracked: artifacts.threat_model_refresh?.summary?.prompt_injection_risk_tracked ?? false,
+    threat_model_refresh_data_leak_risk_tracked: artifacts.threat_model_refresh?.summary?.data_leak_risk_tracked ?? false,
+    threat_model_refresh_over_agency_risk_tracked: artifacts.threat_model_refresh?.summary?.over_agency_risk_tracked ?? false,
+    threat_model_refresh_insecure_tool_risk_tracked: artifacts.threat_model_refresh?.summary?.insecure_tool_risk_tracked ?? false,
+    threat_model_refresh_desktop_installer_risk_tracked: artifacts.threat_model_refresh?.summary?.desktop_installer_risk_tracked ?? false,
+    threat_model_refresh_desktop_auto_update_risk_tracked: artifacts.threat_model_refresh?.summary?.desktop_auto_update_risk_tracked ?? false,
+    threat_model_refresh_desktop_ssh_risk_tracked: artifacts.threat_model_refresh?.summary?.desktop_ssh_risk_tracked ?? false,
+    threat_model_refresh_desktop_cron_risk_tracked: artifacts.threat_model_refresh?.summary?.desktop_cron_risk_tracked ?? false,
+    threat_model_refresh_desktop_gateway_risk_tracked: artifacts.threat_model_refresh?.summary?.desktop_gateway_risk_tracked ?? false,
+    threat_model_refresh_provider_key_risk_tracked: artifacts.threat_model_refresh?.summary?.provider_key_risk_tracked ?? false,
+    threat_model_refresh_prompt_injection_promoted_instruction_count: artifacts.threat_model_refresh?.summary?.prompt_injection_promoted_instruction_count ?? 0,
+    threat_model_refresh_raw_secret_material_allowed_count: artifacts.threat_model_refresh?.summary?.raw_secret_material_allowed_count ?? 0,
+    threat_model_refresh_provider_key_direct_access_allowed_count: artifacts.threat_model_refresh?.summary?.provider_key_direct_access_allowed_count ?? 0,
+    threat_model_refresh_desktop_runtime_execution_allowed: artifacts.threat_model_refresh?.summary?.desktop_runtime_execution_allowed ?? false,
+    threat_model_refresh_desktop_runtime_control_allowed: artifacts.threat_model_refresh?.summary?.desktop_runtime_control_allowed ?? false,
+    threat_model_refresh_desktop_installer_or_gateway_control: artifacts.threat_model_refresh?.summary?.desktop_installer_or_gateway_control ?? false,
+    threat_model_refresh_desktop_ssh_or_cron_control: artifacts.threat_model_refresh?.summary?.desktop_ssh_or_cron_control ?? false,
+    threat_model_refresh_read_only: artifacts.threat_model_refresh?.summary?.read_only ?? false,
+    threat_model_refresh_preview_only: artifacts.threat_model_refresh?.summary?.preview_only ?? false,
+    threat_model_refresh_threat_model_only: artifacts.threat_model_refresh?.summary?.threat_model_only ?? false,
+    threat_model_refresh_source_content_read_performed: artifacts.threat_model_refresh?.summary?.source_content_read_performed ?? false,
+    threat_model_refresh_source_ingest_performed: artifacts.threat_model_refresh?.summary?.source_ingest_performed ?? false,
+    threat_model_refresh_agent_invocation_performed: artifacts.threat_model_refresh?.summary?.agent_invocation_performed ?? false,
+    threat_model_refresh_tool_execution_performed: artifacts.threat_model_refresh?.summary?.tool_execution_performed ?? false,
+    threat_model_refresh_route_execution_performed: artifacts.threat_model_refresh?.summary?.route_execution_performed ?? false,
+    threat_model_refresh_server_started: artifacts.threat_model_refresh?.summary?.server_started ?? false,
+    threat_model_refresh_desktop_mutation_allowed: artifacts.threat_model_refresh?.summary?.desktop_mutation_allowed ?? false,
+    threat_model_refresh_installer_control_allowed: artifacts.threat_model_refresh?.summary?.installer_control_allowed ?? false,
+    threat_model_refresh_auto_update_control_allowed: artifacts.threat_model_refresh?.summary?.auto_update_control_allowed ?? false,
+    threat_model_refresh_ssh_control_allowed: artifacts.threat_model_refresh?.summary?.ssh_control_allowed ?? false,
+    threat_model_refresh_cron_control_allowed: artifacts.threat_model_refresh?.summary?.cron_control_allowed ?? false,
+    threat_model_refresh_gateway_control_allowed: artifacts.threat_model_refresh?.summary?.gateway_control_allowed ?? false,
+    threat_model_refresh_raw_secret_material_exposed: artifacts.threat_model_refresh?.summary?.raw_secret_material_exposed ?? false,
+    threat_model_refresh_provider_key_materialized: artifacts.threat_model_refresh?.summary?.provider_key_materialized ?? false,
+    threat_model_refresh_protected_action_executed: artifacts.threat_model_refresh?.summary?.protected_action_executed ?? false,
+    threat_model_refresh_delivery_execution_performed: artifacts.threat_model_refresh?.summary?.delivery_execution_performed ?? false,
+    threat_model_refresh_legal_advice_generated: artifacts.threat_model_refresh?.summary?.legal_advice_generated ?? false,
+    threat_model_refresh_client_facing_output_generated: artifacts.threat_model_refresh?.summary?.client_facing_output_generated ?? false,
+    threat_model_refresh_human_review_required: artifacts.threat_model_refresh?.summary?.human_review_required ?? false,
+    threat_model_refresh_client_facing_ready: artifacts.threat_model_refresh?.summary?.client_facing_ready ?? true,
+    threat_model_refresh_windows_baseline_stability_preserved: artifacts.threat_model_refresh?.summary?.windows_baseline_stability_preserved ?? false,
+    threat_model_refresh_mac_windows_completion_instability_guard: artifacts.threat_model_refresh?.summary?.mac_windows_completion_instability_guard ?? false,
+    threat_model_refresh_validation_item_count: artifacts.threat_model_refresh?.summary?.validation_item_count ?? 0,
+    threat_model_refresh_failed_checkpoint_count: artifacts.threat_model_refresh?.summary?.failed_checkpoint_count ?? 0,
+    threat_model_refresh_validation_error_count: artifacts.threat_model_refresh?.summary?.validation_error_count ?? artifacts.threat_model_refresh?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -31905,6 +32134,8 @@ function parseArgs(argv) {
     else if (arg === "--no-cost-observability-dashboard") parsed.costObservabilityDashboardPath = false;
     else if (arg === "--dashboard-api-freeze") parsed.dashboardApiFreezePath = argv[++index];
     else if (arg === "--no-dashboard-api-freeze") parsed.dashboardApiFreezePath = false;
+    else if (arg === "--threat-model-refresh") parsed.threatModelRefreshPath = argv[++index];
+    else if (arg === "--no-threat-model-refresh") parsed.threatModelRefreshPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

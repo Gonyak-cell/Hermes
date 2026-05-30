@@ -205,6 +205,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     policy_violation_queue: "artifacts/policy-violation-queue/latest/policy-violation-queue.json",
     cost_observability_dashboard: "artifacts/cost-observability-dashboard/latest/cost-observability-dashboard.json",
     dashboard_api_freeze: "artifacts/dashboard-api-freeze/latest/dashboard-api-freeze.json",
+    threat_model_refresh: "artifacts/threat-model-refresh/latest/threat-model-refresh.json",
   },
 };
 
@@ -403,6 +404,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("policy_violation_queue", "Policy Violation Queue", "api", "policy-violation-queue.schema.json"),
   fixtureDefinition("cost_observability_dashboard", "Cost/Observability Dashboard", "api", "cost-observability-dashboard.schema.json"),
   fixtureDefinition("dashboard_api_freeze", "Dashboard/API Freeze", "api", "dashboard-api-freeze.schema.json"),
+  fixtureDefinition("threat_model_refresh", "Threat Model Refresh", "security", "threat-model-refresh.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),

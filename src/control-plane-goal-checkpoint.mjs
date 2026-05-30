@@ -169,6 +169,7 @@ const GOAL_ITEMS = [
   sourceItem("policy_violation_queue", "Policy Violation Queue", "api", "policy_violation_queue", "control-plane-policy-violation-queue", { acceptance_profile: "policy_violation_queue_gate" }),
   sourceItem("cost_observability_dashboard", "Cost/Observability Dashboard", "api", "cost_observability_dashboard", "control-plane-cost-observability-dashboard", { acceptance_profile: "cost_observability_dashboard_gate" }),
   sourceItem("dashboard_api_freeze", "Dashboard/API Freeze", "api", "dashboard_api_freeze", "control-plane-dashboard-api-freeze", { acceptance_profile: "dashboard_api_freeze_gate" }),
+  sourceItem("threat_model_refresh", "Threat Model Refresh", "security", "threat_model_refresh", "control-plane-threat-model-refresh", { acceptance_profile: "threat_model_refresh_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -697,6 +698,7 @@ function evaluateStageAcceptance(item, stage) {
     "policy_violation_queue_gate",
     "cost_observability_dashboard_gate",
     "dashboard_api_freeze_gate",
+    "threat_model_refresh_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -6394,6 +6396,71 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Dashboard/API Freeze locks P296 route inventory, dashboard IA, dashboard build, route probes, route fixtures, and Desktop-ready API contract as a read-only report while preserving human review gates and preventing dashboard/API mutation, route execution, server start, protected action execution, delivery, legal advice, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "threat_model_refresh_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.threat_model_refresh_status === "complete"
+      && metrics.phase_slot === "P297"
+      && metrics.previous_phase_slot === "P296"
+      && metrics.next_phase_slot === "P298"
+      && metrics.source_dashboard_api_freeze_status === "complete"
+      && metrics.source_dashboard_api_freeze_phase_slot === "P296"
+      && metrics.source_dashboard_api_freeze_next_phase_slot === "P297"
+      && metrics.failed_source_status_count === 0
+      && metrics.required_risk_category_count === 10
+      && metrics.tracked_risk_count >= metrics.required_risk_category_count
+      && metrics.covered_risk_count >= metrics.required_risk_category_count
+      && metrics.attention_risk_count === 0
+      && metrics.implemented_control_count === metrics.control_count
+      && metrics.passed_evidence_row_count === metrics.evidence_row_count
+      && metrics.prompt_injection_risk_tracked === true
+      && metrics.data_leak_risk_tracked === true
+      && metrics.over_agency_risk_tracked === true
+      && metrics.insecure_tool_risk_tracked === true
+      && metrics.desktop_installer_risk_tracked === true
+      && metrics.desktop_auto_update_risk_tracked === true
+      && metrics.desktop_ssh_risk_tracked === true
+      && metrics.desktop_cron_risk_tracked === true
+      && metrics.desktop_gateway_risk_tracked === true
+      && metrics.provider_key_risk_tracked === true
+      && metrics.prompt_injection_promoted_instruction_count === 0
+      && metrics.raw_secret_material_allowed_count === 0
+      && metrics.provider_key_direct_access_allowed_count === 0
+      && metrics.desktop_runtime_execution_allowed === false
+      && metrics.desktop_runtime_control_allowed === false
+      && metrics.desktop_installer_or_gateway_control === false
+      && metrics.desktop_ssh_or_cron_control === false
+      && metrics.read_only === true
+      && metrics.preview_only === true
+      && metrics.threat_model_only === true
+      && metrics.source_content_read_performed === false
+      && metrics.source_ingest_performed === false
+      && metrics.agent_invocation_performed === false
+      && metrics.tool_execution_performed === false
+      && metrics.route_execution_performed === false
+      && metrics.server_started === false
+      && metrics.desktop_mutation_allowed === false
+      && metrics.installer_control_allowed === false
+      && metrics.auto_update_control_allowed === false
+      && metrics.ssh_control_allowed === false
+      && metrics.cron_control_allowed === false
+      && metrics.gateway_control_allowed === false
+      && metrics.raw_secret_material_exposed === false
+      && metrics.provider_key_materialized === false
+      && metrics.protected_action_executed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.human_review_required === true
+      && metrics.client_facing_ready === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Threat Model Refresh locks P297 prompt injection, data leak, over-agency, insecure tool, Desktop installer/auto-update/SSH/cron/gateway, and provider key risks behind read-only controls while preserving Windows baseline stability and human-review gates.");
     }
   }
 

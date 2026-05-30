@@ -6701,6 +6701,62 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("cost_observability_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/dashboard-api-freezes") {
+    const result = await readDashboardSourceArtifact(dashboard, "dashboard_api_freeze");
+    if (!result.available) {
+      return jsonResponse(503, buildError("dashboard_api_freeze_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("dashboard_api_freezes", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/dashboard-api-freeze-sources") {
+    const result = await readDashboardSourceArtifact(dashboard, "dashboard_api_freeze");
+    if (!result.available) {
+      return jsonResponse(503, buildError("dashboard_api_freeze_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("dashboard_api_freeze_sources", result.artifact.dashboard_api_freeze_sources ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/desktop-ready-api-contracts") {
+    const result = await readDashboardSourceArtifact(dashboard, "dashboard_api_freeze");
+    if (!result.available) {
+      return jsonResponse(503, buildError("dashboard_api_freeze_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("desktop_ready_api_contracts", [result.artifact.desktop_ready_api_contract].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/dashboard-api-freeze-route-probes") {
+    const result = await readDashboardSourceArtifact(dashboard, "dashboard_api_freeze");
+    if (!result.available) {
+      return jsonResponse(503, buildError("dashboard_api_freeze_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("dashboard_api_route_probes", result.artifact.dashboard_api_route_probes ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/dashboard-api-freeze-route-fixtures") {
+    const result = await readDashboardSourceArtifact(dashboard, "dashboard_api_freeze");
+    if (!result.available) {
+      return jsonResponse(503, buildError("dashboard_api_freeze_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("dashboard_api_route_fixtures", result.artifact.dashboard_api_route_fixtures ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/dashboard-api-freeze-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "dashboard_api_freeze");
+    if (!result.available) {
+      return jsonResponse(503, buildError("dashboard_api_freeze_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("dashboard_api_freeze_boundary", [result.artifact.dashboard_api_freeze_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/dashboard-api-freeze-checks") {
+    const result = await readDashboardSourceArtifact(dashboard, "dashboard_api_freeze");
+    if (!result.available) {
+      return jsonResponse(503, buildError("dashboard_api_freeze_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("dashboard_api_freeze_checks", result.artifact.dashboard_api_freeze_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/dashboard-api-freeze-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "dashboard_api_freeze");
+    if (!result.available) {
+      return jsonResponse(503, buildError("dashboard_api_freeze_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("dashboard_api_freeze_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -13262,6 +13318,14 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/cost-observability-boundary", "Cost/Observability Dashboard read-only boundary"),
       route("GET", "/api/cost-observability-checks", "Cost/Observability Dashboard check rows"),
       route("GET", "/api/cost-observability-validations", "Cost/Observability Dashboard validation rows"),
+      route("GET", "/api/dashboard-api-freezes", "Dashboard/API Freeze artifact"),
+      route("GET", "/api/dashboard-api-freeze-sources", "Dashboard/API Freeze source status rows"),
+      route("GET", "/api/desktop-ready-api-contracts", "Desktop-ready API contract rows"),
+      route("GET", "/api/dashboard-api-freeze-route-probes", "Dashboard/API Freeze route probe rows"),
+      route("GET", "/api/dashboard-api-freeze-route-fixtures", "Dashboard/API Freeze route fixture rows"),
+      route("GET", "/api/dashboard-api-freeze-boundary", "Dashboard/API Freeze read-only boundary"),
+      route("GET", "/api/dashboard-api-freeze-checks", "Dashboard/API Freeze check rows"),
+      route("GET", "/api/dashboard-api-freeze-validations", "Dashboard/API Freeze validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -14518,6 +14582,13 @@ function filterItems(items, searchParams) {
     "retry_state",
     "provider_runtime_rollup_status",
     "rollup_type",
+    "dashboard_api_freeze_status",
+    "dashboard_api_freeze_source_status",
+    "desktop_ready_api_contract_status",
+    "route_probe_status",
+    "route_fixture_status",
+    "method",
+    "path",
     "workflow_run_id",
     "agent_run_id",
     "runtime_id",
@@ -16514,6 +16585,13 @@ function readFilterValue(item, key) {
   if (key === "retry_state") return item.retry_state;
   if (key === "provider_runtime_rollup_status") return item.rollup_status;
   if (key === "rollup_type") return item.rollup_type;
+  if (key === "dashboard_api_freeze_status") return item.summary?.dashboard_api_freeze_status ?? item.dashboard_api_freeze_status;
+  if (key === "dashboard_api_freeze_source_status") return item.source_status;
+  if (key === "desktop_ready_api_contract_status") return item.contract_status;
+  if (key === "route_probe_status") return item.probe_status;
+  if (key === "route_fixture_status") return item.fixture_status;
+  if (key === "method") return item.method;
+  if (key === "path") return item.path;
   if (key === "workflow_run_id") return item.workflow_run_id;
   if (key === "agent_run_id") return item.agent_run_id;
   if (key === "runtime_id") return item.runtime_id ?? item.runtime_ids ?? item.metadata?.runtime_id;

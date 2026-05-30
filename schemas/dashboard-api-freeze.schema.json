@@ -1,0 +1,268 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/schemas/dashboard-api-freeze.schema.json",
+  "title": "Hermes Dashboard/API Freeze",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "dashboard_api_freeze_id",
+    "dashboard_api_freeze_status",
+    "capability_id",
+    "phase_slot",
+    "previous_phase_slot",
+    "next_phase_slot",
+    "output_dir",
+    "inputs",
+    "freeze_scope",
+    "dashboard_api_freeze_sources",
+    "desktop_ready_api_contract",
+    "dashboard_api_route_probes",
+    "dashboard_api_route_fixtures",
+    "dashboard_api_freeze_boundary",
+    "dashboard_api_freeze_checks",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "dashboard-api-freeze.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "dashboard_api_freeze_id": { "type": "string" },
+    "dashboard_api_freeze_status": { "enum": ["complete", "attention"] },
+    "capability_id": { "const": "dashboard.dashboard_api_freeze" },
+    "phase_slot": { "const": "P296" },
+    "previous_phase_slot": { "const": "P295" },
+    "next_phase_slot": { "const": "P297" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "freeze_scope": {
+      "type": "object",
+      "required": ["track", "frozen_slots", "source_phase_range", "next_planned_slot", "next_track"],
+      "properties": {
+        "track": { "const": "API, Dashboard, Evidence Viewer, Matter Cockpit" },
+        "frozen_slots": { "type": "array", "minItems": 10, "items": { "type": "string" } },
+        "source_phase_range": { "type": "string" },
+        "next_planned_slot": { "const": "P297" },
+        "next_track": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "dashboard_api_freeze_sources": {
+      "type": "array",
+      "minItems": 11,
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "desktop_ready_api_contract": { "$ref": "#/$defs/desktop_contract" },
+    "dashboard_api_route_probes": {
+      "type": "array",
+      "minItems": 18,
+      "items": { "$ref": "#/$defs/probe" }
+    },
+    "dashboard_api_route_fixtures": {
+      "type": "array",
+      "minItems": 18,
+      "items": { "$ref": "#/$defs/fixture" }
+    },
+    "dashboard_api_freeze_boundary": { "$ref": "#/$defs/boundary" },
+    "dashboard_api_freeze_checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/check" }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/check" }
+    },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["schema_version", "source_id", "label", "planned_slot", "source_group", "path", "available", "observed_status", "source_status", "validation_error_count", "content_hash"],
+      "properties": {
+        "schema_version": { "const": "dashboard-api-freeze-source.v1" },
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "planned_slot": { "type": "string" },
+        "source_group": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "status_key": { "type": ["string", "null"] },
+        "expected_status": { "type": ["string", "null"] },
+        "observed_status": { "type": ["string", "null"] },
+        "phase_slot": { "type": ["string", "null"] },
+        "expected_next_phase_slot": { "type": ["string", "null"] },
+        "next_phase_slot": { "type": ["string", "null"] },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "source_status": { "enum": ["passed", "failed"] },
+        "content_hash": { "type": ["string", "null"] },
+        "error": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "desktop_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "desktop_ready_api_contract_id",
+        "generated_at",
+        "contract_status",
+        "source_of_truth",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "route_count",
+        "route_probe_count",
+        "passed_route_probe_count",
+        "route_fixture_count",
+        "read_only",
+        "desktop_ready",
+        "route_index_ready",
+        "dashboard_ia_ready",
+        "dashboard_build_ready",
+        "api_smoke_ready",
+        "route_fixture_ready",
+        "human_review_gates_preserved",
+        "client_facing_ready",
+        "server_started",
+        "route_execution_performed",
+        "dashboard_mutation_allowed",
+        "api_mutation_allowed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated"
+      ],
+      "properties": {
+        "schema_version": { "const": "desktop-ready-api-contract.v1" },
+        "desktop_ready_api_contract_id": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "contract_status": { "const": "ready" },
+        "source_of_truth": { "type": "string" },
+        "phase_slot": { "const": "P296" },
+        "previous_phase_slot": { "const": "P295" },
+        "next_phase_slot": { "const": "P297" },
+        "route_count": { "type": "integer", "minimum": 1 },
+        "route_probe_count": { "type": "integer", "minimum": 18 },
+        "passed_route_probe_count": { "type": "integer", "minimum": 18 },
+        "route_fixture_count": { "type": "integer", "minimum": 18 },
+        "read_only": { "const": true },
+        "desktop_ready": { "const": true },
+        "route_index_ready": { "const": true },
+        "dashboard_ia_ready": { "const": true },
+        "dashboard_build_ready": { "const": true },
+        "api_smoke_ready": { "const": true },
+        "route_fixture_ready": { "const": true },
+        "human_review_gates_preserved": { "const": true },
+        "client_facing_ready": { "const": false },
+        "server_started": { "const": false },
+        "route_execution_performed": { "const": false },
+        "dashboard_mutation_allowed": { "const": false },
+        "api_mutation_allowed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "probe": {
+      "type": "object",
+      "required": ["schema_version", "route_probe_id", "generated_at", "method", "path", "status_code", "probe_status", "read_only", "route_execution_performed", "server_started"],
+      "properties": {
+        "schema_version": { "const": "dashboard-api-route-probe.v1" },
+        "route_probe_id": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "method": { "const": "GET" },
+        "path": { "type": "string" },
+        "status_code": { "const": 200 },
+        "probe_status": { "const": "passed" },
+        "read_only": { "const": true },
+        "route_execution_performed": { "const": false },
+        "server_started": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "fixture": {
+      "type": "object",
+      "required": ["schema_version", "route_fixture_id", "generated_at", "method", "path", "route_status", "fixture_status", "read_only", "mutation_allowed"],
+      "properties": {
+        "schema_version": { "const": "dashboard-api-route-fixture.v1" },
+        "route_fixture_id": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "method": { "const": "GET" },
+        "path": { "type": "string" },
+        "route_status": { "type": "string" },
+        "fixture_status": { "enum": ["listed", "passed"] },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "boundary": {
+      "type": "object",
+      "required": ["schema_version", "boundary_status", "freeze_report_only", "read_only", "preview_only", "source_content_read_performed", "source_ingest_performed", "dashboard_mutation_allowed", "api_mutation_allowed", "route_execution_performed", "server_started", "protected_action_executed", "delivery_execution_performed", "legal_advice_generated", "client_facing_output_generated", "human_review_required", "client_facing_ready", "windows_baseline_stability_preserved", "mac_windows_completion_instability_guard"],
+      "properties": {
+        "schema_version": { "const": "dashboard-api-freeze-boundary.v1" },
+        "boundary_status": { "const": "enforced" },
+        "freeze_report_only": { "const": true },
+        "read_only": { "const": true },
+        "preview_only": { "const": true },
+        "source_content_read_performed": { "const": false },
+        "source_ingest_performed": { "const": false },
+        "dashboard_mutation_allowed": { "const": false },
+        "api_mutation_allowed": { "const": false },
+        "route_execution_performed": { "const": false },
+        "server_started": { "const": false },
+        "protected_action_executed": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "check": {
+      "type": "object",
+      "required": ["schema_version", "validation_item_id", "path", "check_id", "status", "message"],
+      "properties": {
+        "schema_version": { "const": "dashboard-api-freeze-check.v1" },
+        "validation_item_id": { "type": "string" },
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "errors": { "type": "array", "maxItems": 0 }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": ["dashboard_api_freeze_status", "phase_slot", "previous_phase_slot", "next_phase_slot", "api_route_count", "route_probe_count", "route_fixture_count", "desktop_ready", "validation_error_count"],
+      "properties": {
+        "dashboard_api_freeze_status": { "const": "complete" },
+        "phase_slot": { "const": "P296" },
+        "previous_phase_slot": { "const": "P295" },
+        "next_phase_slot": { "const": "P297" },
+        "api_route_count": { "type": "integer", "minimum": 1 },
+        "route_probe_count": { "type": "integer", "minimum": 18 },
+        "route_fixture_count": { "type": "integer", "minimum": 18 },
+        "desktop_ready": { "const": true },
+        "validation_error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

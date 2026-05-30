@@ -131,6 +131,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   matterCockpitUiPath: "artifacts/matter-cockpit-ui/latest/matter-cockpit-ui.json",
   policyViolationQueuePath: "artifacts/policy-violation-queue/latest/policy-violation-queue.json",
   costObservabilityDashboardPath: "artifacts/cost-observability-dashboard/latest/cost-observability-dashboard.json",
+  dashboardApiFreezePath: "artifacts/dashboard-api-freeze/latest/dashboard-api-freeze.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -929,6 +930,11 @@ const SOURCE_DEFINITIONS = [
     option: "costObservabilityDashboardPath",
     source_id: "cost_observability_dashboard",
     label: "Cost/Observability Dashboard",
+  },
+  {
+    option: "dashboardApiFreezePath",
+    source_id: "dashboard_api_freeze",
+    label: "Dashboard/API Freeze",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -2335,6 +2341,7 @@ function buildStageStatuses(artifacts, sources) {
     buildMatterCockpitUiStage(artifacts.matter_cockpit_ui, sourceById.get("matter_cockpit_ui")),
     buildPolicyViolationQueueStage(artifacts.policy_violation_queue, sourceById.get("policy_violation_queue")),
     buildCostObservabilityDashboardStage(artifacts.cost_observability_dashboard, sourceById.get("cost_observability_dashboard")),
+    buildDashboardApiFreezeStage(artifacts.dashboard_api_freeze, sourceById.get("dashboard_api_freeze")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -15492,6 +15499,126 @@ function buildCostObservabilityDashboardStage(artifact, source) {
   };
 }
 
+function buildDashboardApiFreezeStage(artifact, source) {
+  if (!artifact) return missingStage("dashboard_api_freeze", "Dashboard/API Freeze", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.dashboard_api_freeze_status !== "complete"
+    || summary.phase_slot !== "P296"
+    || summary.previous_phase_slot !== "P295"
+    || summary.next_phase_slot !== "P297"
+    || summary.source_api_route_inventory_status !== "complete"
+    || summary.source_review_dashboard_ia_status !== "complete"
+    || summary.source_cost_observability_dashboard_status !== "complete"
+    || summary.source_cost_observability_dashboard_phase_slot !== "P295"
+    || summary.source_cost_observability_dashboard_next_phase_slot !== "P296"
+    || summary.failed_source_status_count !== 0
+    || summary.api_route_count <= 0
+    || summary.read_only_route_count !== summary.api_route_count
+    || summary.mutation_route_count !== 0
+    || summary.dashboard_ia_route_binding_count !== summary.api_route_count
+    || summary.route_probe_count <= 0
+    || summary.passed_route_probe_count !== summary.route_probe_count
+    || summary.route_fixture_count <= 0
+    || summary.desktop_ready !== true
+    || summary.route_index_ready !== true
+    || summary.dashboard_ia_ready !== true
+    || summary.dashboard_build_ready !== true
+    || summary.api_smoke_ready !== true
+    || summary.route_fixture_ready !== true
+    || summary.read_only !== true
+    || summary.preview_only !== true
+    || summary.freeze_report_only !== true
+    || summary.source_content_read_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.dashboard_mutation_allowed !== false
+    || summary.api_mutation_allowed !== false
+    || summary.route_execution_performed !== false
+    || summary.server_started !== false
+    || summary.approval_application_performed !== false
+    || summary.protected_action_executed !== false
+    || summary.delivery_execution_performed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.human_review_required !== true
+    || summary.client_facing_ready !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "dashboard_api_freeze",
+    label: "Dashboard/API Freeze",
+    status,
+    message: `${summary.api_route_count ?? 0} route(s), ${summary.route_probe_count ?? 0} probe(s), and ${summary.route_fixture_count ?? 0} fixture(s) frozen for Desktop-ready API use.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      dashboard_api_freeze_status: summary.dashboard_api_freeze_status ?? "unknown",
+      dashboard_api_freeze_id: summary.dashboard_api_freeze_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_api_route_inventory_status: summary.source_api_route_inventory_status ?? "unknown",
+      source_api_route_inventory_phase_slot: summary.source_api_route_inventory_phase_slot ?? null,
+      source_api_route_inventory_next_phase_slot: summary.source_api_route_inventory_next_phase_slot ?? null,
+      source_review_dashboard_ia_status: summary.source_review_dashboard_ia_status ?? "unknown",
+      source_review_dashboard_ia_phase_slot: summary.source_review_dashboard_ia_phase_slot ?? null,
+      source_review_dashboard_ia_next_phase_slot: summary.source_review_dashboard_ia_next_phase_slot ?? null,
+      source_cost_observability_dashboard_status: summary.source_cost_observability_dashboard_status ?? "unknown",
+      source_cost_observability_dashboard_phase_slot: summary.source_cost_observability_dashboard_phase_slot ?? null,
+      source_cost_observability_dashboard_next_phase_slot: summary.source_cost_observability_dashboard_next_phase_slot ?? null,
+      source_status_count: summary.source_status_count ?? 0,
+      passed_source_status_count: summary.passed_source_status_count ?? 0,
+      failed_source_status_count: summary.failed_source_status_count ?? 0,
+      dashboard_overall_status: summary.dashboard_overall_status ?? "unknown",
+      dashboard_stage_count: summary.dashboard_stage_count ?? 0,
+      dashboard_missing_stage_count: summary.dashboard_missing_stage_count ?? 0,
+      dashboard_blocking_gate_count: summary.dashboard_blocking_gate_count ?? 0,
+      dashboard_pending_approval_count: summary.dashboard_pending_approval_count ?? 0,
+      dashboard_action_item_count: summary.dashboard_action_item_count ?? 0,
+      api_route_count: summary.api_route_count ?? 0,
+      api_route_group_count: summary.api_route_group_count ?? 0,
+      read_only_route_count: summary.read_only_route_count ?? 0,
+      mutation_route_count: summary.mutation_route_count ?? 0,
+      dashboard_ia_section_count: summary.dashboard_ia_section_count ?? 0,
+      dashboard_ia_route_binding_count: summary.dashboard_ia_route_binding_count ?? 0,
+      route_probe_count: summary.route_probe_count ?? 0,
+      passed_route_probe_count: summary.passed_route_probe_count ?? 0,
+      route_fixture_count: summary.route_fixture_count ?? 0,
+      listed_route_fixture_count: summary.listed_route_fixture_count ?? 0,
+      desktop_ready: summary.desktop_ready ?? false,
+      desktop_ready_api_contract_status: summary.desktop_ready_api_contract_status ?? "unknown",
+      route_index_ready: summary.route_index_ready ?? false,
+      dashboard_ia_ready: summary.dashboard_ia_ready ?? false,
+      dashboard_build_ready: summary.dashboard_build_ready ?? false,
+      api_smoke_ready: summary.api_smoke_ready ?? false,
+      route_fixture_ready: summary.route_fixture_ready ?? false,
+      read_only: summary.read_only ?? false,
+      preview_only: summary.preview_only ?? false,
+      freeze_report_only: summary.freeze_report_only ?? false,
+      source_content_read_performed: summary.source_content_read_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      dashboard_mutation_allowed: summary.dashboard_mutation_allowed ?? false,
+      api_mutation_allowed: summary.api_mutation_allowed ?? false,
+      route_execution_performed: summary.route_execution_performed ?? false,
+      server_started: summary.server_started ?? false,
+      approval_application_performed: summary.approval_application_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      human_review_required: summary.human_review_required ?? false,
+      client_facing_ready: summary.client_facing_ready ?? true,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -22298,6 +22425,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_cost_observability_dashboard", "rerun_cost_observability_dashboard", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.dashboard_api_freeze?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "dashboard_api_freeze";
+    items.push({
+      action_item_id: `dashboard.action.dashboard_api_freeze.${slugify(subjectId)}`,
+      source_stage: "dashboard_api_freeze",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Dashboard/API Freeze",
+      subject_ref: {
+        subject_type: "dashboard_api_freeze_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_dashboard_api_freeze", "rerun_dashboard_api_freeze", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -29852,6 +29997,67 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     cost_observability_dashboard_validation_item_count: artifacts.cost_observability_dashboard?.summary?.validation_item_count ?? 0,
     cost_observability_dashboard_failed_checkpoint_count: artifacts.cost_observability_dashboard?.summary?.failed_checkpoint_count ?? 0,
     cost_observability_dashboard_validation_error_count: artifacts.cost_observability_dashboard?.summary?.validation_error_count ?? artifacts.cost_observability_dashboard?.validation?.errors?.length ?? 0,
+    dashboard_api_freeze_status: artifacts.dashboard_api_freeze?.summary?.dashboard_api_freeze_status ?? "unknown",
+    dashboard_api_freeze_id: artifacts.dashboard_api_freeze?.summary?.dashboard_api_freeze_id ?? null,
+    dashboard_api_freeze_phase_slot: artifacts.dashboard_api_freeze?.summary?.phase_slot ?? null,
+    dashboard_api_freeze_previous_phase_slot: artifacts.dashboard_api_freeze?.summary?.previous_phase_slot ?? null,
+    dashboard_api_freeze_next_phase_slot: artifacts.dashboard_api_freeze?.summary?.next_phase_slot ?? null,
+    dashboard_api_freeze_source_api_route_inventory_status: artifacts.dashboard_api_freeze?.summary?.source_api_route_inventory_status ?? "unknown",
+    dashboard_api_freeze_source_api_route_inventory_phase_slot: artifacts.dashboard_api_freeze?.summary?.source_api_route_inventory_phase_slot ?? null,
+    dashboard_api_freeze_source_api_route_inventory_next_phase_slot: artifacts.dashboard_api_freeze?.summary?.source_api_route_inventory_next_phase_slot ?? null,
+    dashboard_api_freeze_source_review_dashboard_ia_status: artifacts.dashboard_api_freeze?.summary?.source_review_dashboard_ia_status ?? "unknown",
+    dashboard_api_freeze_source_review_dashboard_ia_phase_slot: artifacts.dashboard_api_freeze?.summary?.source_review_dashboard_ia_phase_slot ?? null,
+    dashboard_api_freeze_source_review_dashboard_ia_next_phase_slot: artifacts.dashboard_api_freeze?.summary?.source_review_dashboard_ia_next_phase_slot ?? null,
+    dashboard_api_freeze_source_cost_observability_dashboard_status: artifacts.dashboard_api_freeze?.summary?.source_cost_observability_dashboard_status ?? "unknown",
+    dashboard_api_freeze_source_cost_observability_dashboard_phase_slot: artifacts.dashboard_api_freeze?.summary?.source_cost_observability_dashboard_phase_slot ?? null,
+    dashboard_api_freeze_source_cost_observability_dashboard_next_phase_slot: artifacts.dashboard_api_freeze?.summary?.source_cost_observability_dashboard_next_phase_slot ?? null,
+    dashboard_api_freeze_source_status_count: artifacts.dashboard_api_freeze?.summary?.source_status_count ?? 0,
+    dashboard_api_freeze_passed_source_status_count: artifacts.dashboard_api_freeze?.summary?.passed_source_status_count ?? 0,
+    dashboard_api_freeze_failed_source_status_count: artifacts.dashboard_api_freeze?.summary?.failed_source_status_count ?? 0,
+    dashboard_api_freeze_dashboard_overall_status: artifacts.dashboard_api_freeze?.summary?.dashboard_overall_status ?? "unknown",
+    dashboard_api_freeze_dashboard_stage_count: artifacts.dashboard_api_freeze?.summary?.dashboard_stage_count ?? 0,
+    dashboard_api_freeze_dashboard_missing_stage_count: artifacts.dashboard_api_freeze?.summary?.dashboard_missing_stage_count ?? 0,
+    dashboard_api_freeze_dashboard_blocking_gate_count: artifacts.dashboard_api_freeze?.summary?.dashboard_blocking_gate_count ?? 0,
+    dashboard_api_freeze_dashboard_pending_approval_count: artifacts.dashboard_api_freeze?.summary?.dashboard_pending_approval_count ?? 0,
+    dashboard_api_freeze_dashboard_action_item_count: artifacts.dashboard_api_freeze?.summary?.dashboard_action_item_count ?? 0,
+    dashboard_api_freeze_api_route_count: artifacts.dashboard_api_freeze?.summary?.api_route_count ?? 0,
+    dashboard_api_freeze_api_route_group_count: artifacts.dashboard_api_freeze?.summary?.api_route_group_count ?? 0,
+    dashboard_api_freeze_read_only_route_count: artifacts.dashboard_api_freeze?.summary?.read_only_route_count ?? 0,
+    dashboard_api_freeze_mutation_route_count: artifacts.dashboard_api_freeze?.summary?.mutation_route_count ?? 0,
+    dashboard_api_freeze_dashboard_ia_section_count: artifacts.dashboard_api_freeze?.summary?.dashboard_ia_section_count ?? 0,
+    dashboard_api_freeze_dashboard_ia_route_binding_count: artifacts.dashboard_api_freeze?.summary?.dashboard_ia_route_binding_count ?? 0,
+    dashboard_api_freeze_route_probe_count: artifacts.dashboard_api_freeze?.summary?.route_probe_count ?? 0,
+    dashboard_api_freeze_passed_route_probe_count: artifacts.dashboard_api_freeze?.summary?.passed_route_probe_count ?? 0,
+    dashboard_api_freeze_route_fixture_count: artifacts.dashboard_api_freeze?.summary?.route_fixture_count ?? 0,
+    dashboard_api_freeze_listed_route_fixture_count: artifacts.dashboard_api_freeze?.summary?.listed_route_fixture_count ?? 0,
+    dashboard_api_freeze_desktop_ready: artifacts.dashboard_api_freeze?.summary?.desktop_ready ?? false,
+    dashboard_api_freeze_desktop_ready_api_contract_status: artifacts.dashboard_api_freeze?.summary?.desktop_ready_api_contract_status ?? "unknown",
+    dashboard_api_freeze_route_index_ready: artifacts.dashboard_api_freeze?.summary?.route_index_ready ?? false,
+    dashboard_api_freeze_dashboard_ia_ready: artifacts.dashboard_api_freeze?.summary?.dashboard_ia_ready ?? false,
+    dashboard_api_freeze_dashboard_build_ready: artifacts.dashboard_api_freeze?.summary?.dashboard_build_ready ?? false,
+    dashboard_api_freeze_api_smoke_ready: artifacts.dashboard_api_freeze?.summary?.api_smoke_ready ?? false,
+    dashboard_api_freeze_route_fixture_ready: artifacts.dashboard_api_freeze?.summary?.route_fixture_ready ?? false,
+    dashboard_api_freeze_read_only: artifacts.dashboard_api_freeze?.summary?.read_only ?? false,
+    dashboard_api_freeze_preview_only: artifacts.dashboard_api_freeze?.summary?.preview_only ?? false,
+    dashboard_api_freeze_freeze_report_only: artifacts.dashboard_api_freeze?.summary?.freeze_report_only ?? false,
+    dashboard_api_freeze_source_content_read_performed: artifacts.dashboard_api_freeze?.summary?.source_content_read_performed ?? false,
+    dashboard_api_freeze_source_ingest_performed: artifacts.dashboard_api_freeze?.summary?.source_ingest_performed ?? false,
+    dashboard_api_freeze_dashboard_mutation_allowed: artifacts.dashboard_api_freeze?.summary?.dashboard_mutation_allowed ?? false,
+    dashboard_api_freeze_api_mutation_allowed: artifacts.dashboard_api_freeze?.summary?.api_mutation_allowed ?? false,
+    dashboard_api_freeze_route_execution_performed: artifacts.dashboard_api_freeze?.summary?.route_execution_performed ?? false,
+    dashboard_api_freeze_server_started: artifacts.dashboard_api_freeze?.summary?.server_started ?? false,
+    dashboard_api_freeze_approval_application_performed: artifacts.dashboard_api_freeze?.summary?.approval_application_performed ?? false,
+    dashboard_api_freeze_protected_action_executed: artifacts.dashboard_api_freeze?.summary?.protected_action_executed ?? false,
+    dashboard_api_freeze_delivery_execution_performed: artifacts.dashboard_api_freeze?.summary?.delivery_execution_performed ?? false,
+    dashboard_api_freeze_legal_advice_generated: artifacts.dashboard_api_freeze?.summary?.legal_advice_generated ?? false,
+    dashboard_api_freeze_client_facing_output_generated: artifacts.dashboard_api_freeze?.summary?.client_facing_output_generated ?? false,
+    dashboard_api_freeze_human_review_required: artifacts.dashboard_api_freeze?.summary?.human_review_required ?? false,
+    dashboard_api_freeze_client_facing_ready: artifacts.dashboard_api_freeze?.summary?.client_facing_ready ?? true,
+    dashboard_api_freeze_windows_baseline_stability_preserved: artifacts.dashboard_api_freeze?.summary?.windows_baseline_stability_preserved ?? false,
+    dashboard_api_freeze_mac_windows_completion_instability_guard: artifacts.dashboard_api_freeze?.summary?.mac_windows_completion_instability_guard ?? false,
+    dashboard_api_freeze_validation_item_count: artifacts.dashboard_api_freeze?.summary?.validation_item_count ?? 0,
+    dashboard_api_freeze_failed_checkpoint_count: artifacts.dashboard_api_freeze?.summary?.failed_checkpoint_count ?? 0,
+    dashboard_api_freeze_validation_error_count: artifacts.dashboard_api_freeze?.summary?.validation_error_count ?? artifacts.dashboard_api_freeze?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -31697,6 +31903,8 @@ function parseArgs(argv) {
     else if (arg === "--no-policy-violation-queue") parsed.policyViolationQueuePath = false;
     else if (arg === "--cost-observability-dashboard") parsed.costObservabilityDashboardPath = argv[++index];
     else if (arg === "--no-cost-observability-dashboard") parsed.costObservabilityDashboardPath = false;
+    else if (arg === "--dashboard-api-freeze") parsed.dashboardApiFreezePath = argv[++index];
+    else if (arg === "--no-dashboard-api-freeze") parsed.dashboardApiFreezePath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

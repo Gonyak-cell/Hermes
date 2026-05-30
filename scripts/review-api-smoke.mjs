@@ -3240,6 +3240,38 @@ try {
   assert.equal(costObservabilityValidations.collection, "cost_observability_validations");
   assert.ok(costObservabilityValidations.count <= 30);
 
+  const dashboardApiFreezes = await fetchJson(`${url}/api/dashboard-api-freezes?dashboard_api_freeze_status=complete&limit=1`);
+  assert.equal(dashboardApiFreezes.collection, "dashboard_api_freezes");
+  assert.ok(dashboardApiFreezes.count <= 1);
+
+  const dashboardApiFreezeSources = await fetchJson(`${url}/api/dashboard-api-freeze-sources?dashboard_api_freeze_source_status=passed&limit=20`);
+  assert.equal(dashboardApiFreezeSources.collection, "dashboard_api_freeze_sources");
+  assert.ok(dashboardApiFreezeSources.count <= 20);
+
+  const desktopReadyApiContracts = await fetchJson(`${url}/api/desktop-ready-api-contracts?desktop_ready_api_contract_status=ready&read_only=true&limit=1`);
+  assert.equal(desktopReadyApiContracts.collection, "desktop_ready_api_contracts");
+  assert.ok(desktopReadyApiContracts.count <= 1);
+
+  const dashboardApiRouteProbes = await fetchJson(`${url}/api/dashboard-api-freeze-route-probes?route_probe_status=passed&read_only=true&limit=20`);
+  assert.equal(dashboardApiRouteProbes.collection, "dashboard_api_route_probes");
+  assert.ok(dashboardApiRouteProbes.count <= 20);
+
+  const dashboardApiRouteFixtures = await fetchJson(`${url}/api/dashboard-api-freeze-route-fixtures?route_fixture_status=passed&method=GET&read_only=true&limit=20`);
+  assert.equal(dashboardApiRouteFixtures.collection, "dashboard_api_route_fixtures");
+  assert.ok(dashboardApiRouteFixtures.count <= 20);
+
+  const dashboardApiFreezeBoundary = await fetchJson(`${url}/api/dashboard-api-freeze-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(dashboardApiFreezeBoundary.collection, "dashboard_api_freeze_boundary");
+  assert.ok(dashboardApiFreezeBoundary.count <= 1);
+
+  const dashboardApiFreezeChecks = await fetchJson(`${url}/api/dashboard-api-freeze-checks?status=passed&limit=30`);
+  assert.equal(dashboardApiFreezeChecks.collection, "dashboard_api_freeze_checks");
+  assert.ok(dashboardApiFreezeChecks.count <= 30);
+
+  const dashboardApiFreezeValidations = await fetchJson(`${url}/api/dashboard-api-freeze-validations?status=passed&limit=30`);
+  assert.equal(dashboardApiFreezeValidations.collection, "dashboard_api_freeze_validations");
+  assert.ok(dashboardApiFreezeValidations.count <= 30);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

@@ -168,6 +168,7 @@ const GOAL_ITEMS = [
   sourceItem("matter_cockpit_ui", "Matter Cockpit UI", "api", "matter_cockpit_ui", "control-plane-matter-cockpit-ui", { acceptance_profile: "matter_cockpit_ui_gate" }),
   sourceItem("policy_violation_queue", "Policy Violation Queue", "api", "policy_violation_queue", "control-plane-policy-violation-queue", { acceptance_profile: "policy_violation_queue_gate" }),
   sourceItem("cost_observability_dashboard", "Cost/Observability Dashboard", "api", "cost_observability_dashboard", "control-plane-cost-observability-dashboard", { acceptance_profile: "cost_observability_dashboard_gate" }),
+  sourceItem("dashboard_api_freeze", "Dashboard/API Freeze", "api", "dashboard_api_freeze", "control-plane-dashboard-api-freeze", { acceptance_profile: "dashboard_api_freeze_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -695,6 +696,7 @@ function evaluateStageAcceptance(item, stage) {
     "matter_cockpit_ui_gate",
     "policy_violation_queue_gate",
     "cost_observability_dashboard_gate",
+    "dashboard_api_freeze_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -6342,6 +6344,56 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Cost/Observability Dashboard locks P295 token, cost, latency, error, retry, and provider/runtime rollups into read-only Desktop/API projections without source reads, metric writes, budget mutation, runtime control, retry execution, approval application, protected action execution, delivery, route execution, server start, legal advice, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "dashboard_api_freeze_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.dashboard_api_freeze_status === "complete"
+      && metrics.phase_slot === "P296"
+      && metrics.previous_phase_slot === "P295"
+      && metrics.next_phase_slot === "P297"
+      && metrics.source_api_route_inventory_status === "complete"
+      && metrics.source_review_dashboard_ia_status === "complete"
+      && metrics.source_cost_observability_dashboard_status === "complete"
+      && metrics.source_cost_observability_dashboard_phase_slot === "P295"
+      && metrics.source_cost_observability_dashboard_next_phase_slot === "P296"
+      && metrics.failed_source_status_count === 0
+      && metrics.api_route_count > 0
+      && metrics.read_only_route_count === metrics.api_route_count
+      && metrics.mutation_route_count === 0
+      && metrics.dashboard_ia_route_binding_count === metrics.api_route_count
+      && metrics.route_probe_count > 0
+      && metrics.passed_route_probe_count === metrics.route_probe_count
+      && metrics.route_fixture_count >= metrics.route_probe_count
+      && metrics.desktop_ready === true
+      && metrics.route_index_ready === true
+      && metrics.dashboard_ia_ready === true
+      && metrics.dashboard_build_ready === true
+      && metrics.api_smoke_ready === true
+      && metrics.route_fixture_ready === true
+      && metrics.read_only === true
+      && metrics.preview_only === true
+      && metrics.freeze_report_only === true
+      && metrics.source_content_read_performed === false
+      && metrics.source_ingest_performed === false
+      && metrics.dashboard_mutation_allowed === false
+      && metrics.api_mutation_allowed === false
+      && metrics.route_execution_performed === false
+      && metrics.server_started === false
+      && metrics.approval_application_performed === false
+      && metrics.protected_action_executed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.human_review_required === true
+      && metrics.client_facing_ready === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Dashboard/API Freeze locks P296 route inventory, dashboard IA, dashboard build, route probes, route fixtures, and Desktop-ready API contract as a read-only report while preserving human review gates and preventing dashboard/API mutation, route execution, server start, protected action execution, delivery, legal advice, or client-facing output.");
     }
   }
 

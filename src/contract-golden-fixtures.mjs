@@ -204,6 +204,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     matter_cockpit_ui: "artifacts/matter-cockpit-ui/latest/matter-cockpit-ui.json",
     policy_violation_queue: "artifacts/policy-violation-queue/latest/policy-violation-queue.json",
     cost_observability_dashboard: "artifacts/cost-observability-dashboard/latest/cost-observability-dashboard.json",
+    dashboard_api_freeze: "artifacts/dashboard-api-freeze/latest/dashboard-api-freeze.json",
   },
 };
 
@@ -401,6 +402,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("matter_cockpit_ui", "Matter Cockpit UI", "api", "matter-cockpit-ui.schema.json"),
   fixtureDefinition("policy_violation_queue", "Policy Violation Queue", "api", "policy-violation-queue.schema.json"),
   fixtureDefinition("cost_observability_dashboard", "Cost/Observability Dashboard", "api", "cost-observability-dashboard.schema.json"),
+  fixtureDefinition("dashboard_api_freeze", "Dashboard/API Freeze", "api", "dashboard-api-freeze.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),
@@ -422,8 +424,14 @@ export async function buildContractGoldenFixtures(options = {}) {
   const generatedAt = new Date(options.runAt ?? new Date()).toISOString();
   const outputDir = path.resolve(options.outDir ?? DEFAULT_CONTRACT_GOLDEN_FIXTURES_OUT_DIR);
   const inputs = normalizeInputs(options);
+  const selectedFixtureIds = Array.isArray(options.fixtureIds)
+    ? new Set(options.fixtureIds.map(String))
+    : null;
+  const fixtureDefinitions = selectedFixtureIds
+    ? GOLDEN_FIXTURE_DEFINITIONS.filter((definition) => selectedFixtureIds.has(definition.fixture_id))
+    : GOLDEN_FIXTURE_DEFINITIONS;
   const goldenFixtures = [];
-  for (const definition of GOLDEN_FIXTURE_DEFINITIONS) {
+  for (const definition of fixtureDefinitions) {
     goldenFixtures.push(await buildGoldenFixtureRecord(definition, inputs, generatedAt));
   }
   const regressionHashManifest = buildRegressionHashManifest(goldenFixtures, generatedAt);
@@ -438,14 +446,14 @@ export async function buildContractGoldenFixtures(options = {}) {
     golden_fixture_manifest: {
       schema_version: "contract-golden-fixture-manifest.v1",
       generated_at: generatedAt,
-      required_fixture_count: GOLDEN_FIXTURE_DEFINITIONS.length,
-      fixture_definitions: GOLDEN_FIXTURE_DEFINITIONS,
+      required_fixture_count: fixtureDefinitions.length,
+      fixture_definitions: fixtureDefinitions,
     },
     golden_fixtures: goldenFixtures,
     regression_hash_manifest: regressionHashManifest,
     validation_items: validationItems,
     validation,
-    summary: summarizeGoldenFixtures(goldenFixtures, validationItems, validation),
+    summary: summarizeGoldenFixtures(goldenFixtures, validationItems, validation, fixtureDefinitions.length),
   };
   return {
     ...result,
@@ -609,12 +617,12 @@ function buildValidationItems(goldenFixtures, regressionHashManifest) {
   return items;
 }
 
-function summarizeGoldenFixtures(goldenFixtures, validationItems, validation) {
+function summarizeGoldenFixtures(goldenFixtures, validationItems, validation, requiredFixtureCount = GOLDEN_FIXTURE_DEFINITIONS.length) {
   const failedValidationItems = validationItems.filter((item) => item.status === "failed");
   return {
     golden_fixture_status: validation.valid ? "complete" : "blocked",
     fixture_count: goldenFixtures.length,
-    required_fixture_count: GOLDEN_FIXTURE_DEFINITIONS.length,
+    required_fixture_count: requiredFixtureCount,
     locked_fixture_count: goldenFixtures.filter((fixture) => fixture.fixture_status === "locked").length,
     blocked_fixture_count: goldenFixtures.filter((fixture) => fixture.fixture_status === "blocked").length,
     schema_valid_fixture_count: goldenFixtures.filter((fixture) => fixture.schema_validation_status === "passed").length,

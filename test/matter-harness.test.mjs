@@ -94,6 +94,7 @@ import { runRunLedgerViewer } from "../src/run-ledger-viewer.mjs";
 import { runMatterCockpitUi } from "../src/matter-cockpit-ui.mjs";
 import { runPolicyViolationQueue } from "../src/policy-violation-queue.mjs";
 import { runCostObservabilityDashboard } from "../src/cost-observability-dashboard.mjs";
+import { runDashboardApiFreeze } from "../src/dashboard-api-freeze.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -1985,6 +1986,7 @@ describe("matter harness", () => {
         matterCockpitUiPath: path.join(outDir, "matter-cockpit-ui", "matter-cockpit-ui.json"),
         policyViolationQueuePath: path.join(outDir, "policy-violation-queue", "policy-violation-queue.json"),
         costObservabilityDashboardPath: path.join(outDir, "cost-observability-dashboard", "cost-observability-dashboard.json"),
+        dashboardApiFreezePath: path.join(outDir, "dashboard-api-freeze", "dashboard-api-freeze.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -12740,8 +12742,7 @@ describe("matter harness", () => {
       assert.ok(evidencePlaneFreeze.representative_traces.every((trace) => trace.trace_status === "complete" && trace.guardrails.client_facing_ready === false));
       assert.match(await readFile(path.join(outDir, "evidence-plane-freeze", "summary.md"), "utf8"), /Evidence Plane Freeze/);
 
-      const contractGoldenFixtures = await runContractGoldenFixtures({
-        artifactPaths: {
+      const contractGoldenFixtureArtifactPaths = {
           contract_inventory: path.join(outDir, "contract-inventory", "contract-inventory.json"),
           contract_dependency_map: path.join(outDir, "contract-dependency-map", "contract-dependency-map.json"),
           schema_versioning_rules: path.join(outDir, "schema-versioning-rules", "schema-versioning-rules.json"),
@@ -12939,7 +12940,10 @@ describe("matter harness", () => {
           workflow_golden_cases: path.join(outDir, "workflow-golden-cases", "workflow-golden-cases.json"),
           workflow_gate_freeze: path.join(outDir, "workflow-gate-freeze", "workflow-gate-freeze.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
-        },
+        };
+      let contractGoldenFixtures = await runContractGoldenFixtures({
+        artifactPaths: contractGoldenFixtureArtifactPaths,
+        fixtureIds: Object.keys(contractGoldenFixtureArtifactPaths).filter((fixtureId) => fixtureId !== "dashboard_api_freeze"),
         outDir: path.join(outDir, "contract-golden-fixtures"),
         runAt: "2026-05-23T06:35:08.000Z",
       });
@@ -13148,7 +13152,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "contract-golden-fixtures", "summary.md"), "utf8"), /Contract Golden Fixtures/);
 
-      const contractValidationSuite = await runContractValidationSuite({
+      let contractValidationSuite = await runContractValidationSuite({
         contractGoldenFixturesPath: path.join(outDir, "contract-golden-fixtures", "contract-golden-fixtures.json"),
         packagePath: "package.json",
         roadmapPath: "docs/implementation-roadmap.md",
@@ -13225,6 +13229,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "ledgers:golden-fixtures"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "observability:freeze"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "observability:cost-dashboard"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "dashboard:api-freeze"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "capabilities:manifest-v2"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "packs:compatibility"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:pack-manifest"));
@@ -13335,6 +13340,7 @@ describe("matter harness", () => {
         controlPlaneWorkPacketReceiptsPath: path.join(outDir, "control-plane-work-packet-receipts", "control-plane-work-packet-receipt-drafts.json"),
         controlPlaneWorkPacketReceiptValidationPath: path.join(outDir, "control-plane-work-packet-receipt-validation", "control-plane-work-packet-receipt-validation.json"),
         controlPlaneWorkPacketReceiptApplicationPath: path.join(outDir, "control-plane-work-packet-receipt-application", "control-plane-work-packet-receipt-application.json"),
+        dashboardApiFreezePath: false,
         outDir: path.join(outDir, "dashboard-pre-checkpoint"),
         runAt: "2026-05-23T06:35:08.000Z",
       });
@@ -14268,6 +14274,118 @@ describe("matter harness", () => {
       assert.ok(controlPlaneGoalCheckpoint.checkpoint_items.some((item) => item.implementation_status === "passed_with_operational_gate"));
       assert.match(await readFile(path.join(outDir, "control-plane-goal-checkpoint", "summary.md"), "utf8"), /Control Plane Goal Checkpoint/);
 
+      const dashboardApiFreeze = await runDashboardApiFreeze({
+        apiRouteInventoryPath: path.join(outDir, "api-route-inventory", "api-route-inventory.json"),
+        reviewDashboardIaPath: path.join(outDir, "review-dashboard-ia", "review-dashboard-ia.json"),
+        reviewDashboardArtifactPath: path.join(outDir, "dashboard-pre-checkpoint", "review-dashboard.json"),
+        approvalQueueUiPath: path.join(outDir, "approval-queue-ui", "approval-queue-ui.json"),
+        evidenceViewerUiPath: path.join(outDir, "evidence-viewer-ui", "evidence-viewer-ui.json"),
+        sourceSpanInspectorPath: path.join(outDir, "source-span-inspector", "source-span-inspector.json"),
+        runLedgerViewerPath: path.join(outDir, "run-ledger-viewer", "run-ledger-viewer.json"),
+        matterCockpitUiPath: path.join(outDir, "matter-cockpit-ui", "matter-cockpit-ui.json"),
+        policyViolationQueuePath: path.join(outDir, "policy-violation-queue", "policy-violation-queue.json"),
+        costObservabilityDashboardPath: path.join(outDir, "cost-observability-dashboard", "cost-observability-dashboard.json"),
+        controlPlaneLoopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
+        outDir: path.join(outDir, "dashboard-api-freeze"),
+        runAt: "2026-05-23T07:26:35.000Z",
+      });
+      const dashboardApiFreezeSchema = JSON.parse(await readFile("schemas/dashboard-api-freeze.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(dashboardApiFreeze, dashboardApiFreezeSchema, {}, "dashboard_api_freeze"), [], JSON.stringify(dashboardApiFreeze.validation.errors));
+      assert.equal(dashboardApiFreeze.summary.dashboard_api_freeze_status, "complete");
+      assert.equal(dashboardApiFreeze.summary.phase_slot, "P296");
+      assert.equal(dashboardApiFreeze.summary.previous_phase_slot, "P295");
+      assert.equal(dashboardApiFreeze.summary.next_phase_slot, "P297");
+      assert.equal(dashboardApiFreeze.summary.source_api_route_inventory_status, "complete");
+      assert.equal(dashboardApiFreeze.summary.source_api_route_inventory_phase_slot, "P287");
+      assert.equal(dashboardApiFreeze.summary.source_api_route_inventory_next_phase_slot, "P288");
+      assert.equal(dashboardApiFreeze.summary.source_review_dashboard_ia_status, "complete");
+      assert.equal(dashboardApiFreeze.summary.source_review_dashboard_ia_phase_slot, "P288");
+      assert.equal(dashboardApiFreeze.summary.source_review_dashboard_ia_next_phase_slot, "P289");
+      assert.equal(dashboardApiFreeze.summary.source_cost_observability_dashboard_status, "complete");
+      assert.equal(dashboardApiFreeze.summary.source_cost_observability_dashboard_phase_slot, "P295");
+      assert.equal(dashboardApiFreeze.summary.source_cost_observability_dashboard_next_phase_slot, "P296");
+      assert.equal(dashboardApiFreeze.summary.failed_source_status_count, 0);
+      assert.ok(dashboardApiFreeze.summary.dashboard_stage_count > 0);
+      assert.ok(dashboardApiFreeze.summary.dashboard_missing_stage_count >= 0);
+      assert.ok(dashboardApiFreeze.summary.dashboard_blocking_gate_count >= 0);
+      assert.equal(dashboardApiFreeze.summary.api_route_count, apiRouteInventory.summary.api_route_count);
+      assert.equal(dashboardApiFreeze.summary.read_only_route_count, apiRouteInventory.summary.api_route_count);
+      assert.equal(dashboardApiFreeze.summary.mutation_route_count, 0);
+      assert.equal(dashboardApiFreeze.summary.dashboard_ia_route_binding_count, apiRouteInventory.summary.api_route_count);
+      assert.equal(dashboardApiFreeze.summary.route_probe_count, dashboardApiFreeze.summary.passed_route_probe_count);
+      assert.ok(dashboardApiFreeze.summary.route_probe_count >= 18);
+      assert.ok(dashboardApiFreeze.summary.route_fixture_count >= dashboardApiFreeze.summary.route_probe_count);
+      assert.equal(dashboardApiFreeze.summary.desktop_ready, true);
+      assert.equal(dashboardApiFreeze.summary.route_index_ready, true);
+      assert.equal(dashboardApiFreeze.summary.dashboard_ia_ready, true);
+      assert.equal(dashboardApiFreeze.summary.dashboard_build_ready, true);
+      assert.equal(dashboardApiFreeze.summary.api_smoke_ready, true);
+      assert.equal(dashboardApiFreeze.summary.route_fixture_ready, true);
+      assert.equal(dashboardApiFreeze.summary.read_only, true);
+      assert.equal(dashboardApiFreeze.summary.preview_only, true);
+      assert.equal(dashboardApiFreeze.summary.freeze_report_only, true);
+      assert.equal(dashboardApiFreeze.summary.source_content_read_performed, false);
+      assert.equal(dashboardApiFreeze.summary.source_ingest_performed, false);
+      assert.equal(dashboardApiFreeze.summary.dashboard_mutation_allowed, false);
+      assert.equal(dashboardApiFreeze.summary.api_mutation_allowed, false);
+      assert.equal(dashboardApiFreeze.summary.route_execution_performed, false);
+      assert.equal(dashboardApiFreeze.summary.server_started, false);
+      assert.equal(dashboardApiFreeze.summary.protected_action_executed, false);
+      assert.equal(dashboardApiFreeze.summary.delivery_execution_performed, false);
+      assert.equal(dashboardApiFreeze.summary.legal_advice_generated, false);
+      assert.equal(dashboardApiFreeze.summary.client_facing_output_generated, false);
+      assert.equal(dashboardApiFreeze.summary.human_review_required, true);
+      assert.equal(dashboardApiFreeze.summary.client_facing_ready, false);
+      assert.equal(dashboardApiFreeze.summary.windows_baseline_stability_preserved, true);
+      assert.equal(dashboardApiFreeze.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(dashboardApiFreeze.summary.validation_error_count, 0);
+      assert.ok(dashboardApiFreeze.dashboard_api_freeze_sources.every((row) => row.source_status === "passed"));
+      assert.ok(dashboardApiFreeze.dashboard_api_route_probes.every((row) => row.probe_status === "passed" && row.status_code === 200 && row.read_only && row.server_started === false && row.route_execution_performed === false));
+      assert.ok(dashboardApiFreeze.dashboard_api_route_fixtures.every((row) => row.read_only && row.mutation_allowed === false && row.method === "GET"));
+      assert.equal(dashboardApiFreeze.dashboard_api_freeze_boundary.boundary_status, "enforced");
+      assert.ok(dashboardApiFreeze.dashboard_api_freeze_checks.every((item) => item.status === "passed"));
+      assert.ok(dashboardApiFreeze.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "dashboard-api-freeze", "summary.md"), "utf8"), /Dashboard\/API Freeze/);
+
+      contractGoldenFixtureArtifactPaths.dashboard_api_freeze = path.join(outDir, "dashboard-api-freeze", "dashboard-api-freeze.json");
+      contractGoldenFixtures = await runContractGoldenFixtures({
+        artifactPaths: contractGoldenFixtureArtifactPaths,
+        fixtureIds: Object.keys(contractGoldenFixtureArtifactPaths),
+        outDir: path.join(outDir, "contract-golden-fixtures"),
+        runAt: "2026-05-23T07:26:35.500Z",
+      });
+      assert.deepEqual(
+        validateAgainstSchema(contractGoldenFixtures, contractGoldenFixturesSchema, {}, "contract_golden_fixtures"),
+        [],
+      );
+      assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 198);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 198);
+      assert.equal(contractGoldenFixtures.summary.missing_artifact_count, 0);
+      assert.equal(contractGoldenFixtures.summary.validation_error_count, 0);
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "dashboard_api_freeze"));
+
+      contractValidationSuite = await runContractValidationSuite({
+        contractGoldenFixturesPath: path.join(outDir, "contract-golden-fixtures", "contract-golden-fixtures.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/implementation-roadmap.md",
+        outDir: path.join(outDir, "contract-validation-suite"),
+        runAt: "2026-05-23T07:26:36.000Z",
+      });
+      assert.deepEqual(
+        validateAgainstSchema(contractValidationSuite, contractValidationSuiteSchema, {}, "contract_validation_suite"),
+        [],
+      );
+      assert.equal(contractValidationSuite.summary.validation_suite_status, "complete");
+      assert.equal(contractValidationSuite.summary.fixture_count, 198);
+      assert.equal(contractValidationSuite.summary.validated_fixture_count, 198);
+      assert.equal(contractValidationSuite.summary.schema_invalid_fixture_count, 0);
+      assert.equal(contractValidationSuite.summary.regression_failed_count, 0);
+      assert.equal(contractValidationSuite.summary.missing_package_script_count, 0);
+      assert.equal(contractValidationSuite.summary.roadmap_missing_count, 0);
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "dashboard:api-freeze"));
+      assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
+
       const dashboard = await runReviewDashboard({
         ...dashboardInputs,
         controlPlaneHealthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
@@ -14285,6 +14403,23 @@ describe("matter harness", () => {
       const dashboardSchema = JSON.parse(await readFile("schemas/review-dashboard.schema.json", "utf8"));
       assert.deepEqual(validateAgainstSchema(dashboard, dashboardSchema, {}, "review_dashboard"), []);
       assert.equal(dashboard.summary.overall_status, "blocked");
+      const dashboardApiFreezeGoalCheckpoint = await runControlPlaneGoalCheckpoint({
+        dashboardPath: path.join(outDir, "dashboard", "review-dashboard.json"),
+        loopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
+        healthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/implementation-roadmap.md",
+        outDir: path.join(outDir, "control-plane-goal-checkpoint-dashboard-api-freeze"),
+        runAt: "2026-05-23T07:26:36.500Z",
+      });
+      assert.deepEqual(
+        validateAgainstSchema(dashboardApiFreezeGoalCheckpoint, controlPlaneGoalCheckpointSchema, {}, "control_plane_goal_checkpoint"),
+        [],
+      );
+      const dashboardApiFreezeCheckpoint = dashboardApiFreezeGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-dashboard-api-freeze");
+      assert.equal(dashboardApiFreezeCheckpoint?.acceptance_profile, "dashboard_api_freeze_gate");
+      assert.equal(dashboardApiFreezeCheckpoint?.status, "passed");
+      assert.equal(dashboardApiFreezeCheckpoint?.implementation_status, "passed_with_operational_gate");
       assert.equal(dashboard.summary.evidence_approved_count, 1);
       assert.equal(dashboard.summary.evidence_review_draft_item_count, evidenceReviewDraft.summary.review_item_count);
       assert.equal(dashboard.summary.evidence_review_draft_attorney_count, evidenceReviewDraft.summary.attorney_review_count);
@@ -19621,6 +19756,54 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.cost_observability_dashboard_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.cost_observability_dashboard_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.cost_observability_dashboard_validation_error_count, 0);
+      assert.equal(dashboard.summary.dashboard_api_freeze_status, "complete");
+      assert.equal(dashboard.summary.dashboard_api_freeze_id, dashboardApiFreeze.summary.dashboard_api_freeze_id);
+      assert.equal(dashboard.summary.dashboard_api_freeze_phase_slot, "P296");
+      assert.equal(dashboard.summary.dashboard_api_freeze_previous_phase_slot, "P295");
+      assert.equal(dashboard.summary.dashboard_api_freeze_next_phase_slot, "P297");
+      assert.equal(dashboard.summary.dashboard_api_freeze_source_api_route_inventory_status, "complete");
+      assert.equal(dashboard.summary.dashboard_api_freeze_source_api_route_inventory_phase_slot, "P287");
+      assert.equal(dashboard.summary.dashboard_api_freeze_source_api_route_inventory_next_phase_slot, "P288");
+      assert.equal(dashboard.summary.dashboard_api_freeze_source_review_dashboard_ia_status, "complete");
+      assert.equal(dashboard.summary.dashboard_api_freeze_source_review_dashboard_ia_phase_slot, "P288");
+      assert.equal(dashboard.summary.dashboard_api_freeze_source_review_dashboard_ia_next_phase_slot, "P289");
+      assert.equal(dashboard.summary.dashboard_api_freeze_source_cost_observability_dashboard_status, "complete");
+      assert.equal(dashboard.summary.dashboard_api_freeze_source_cost_observability_dashboard_phase_slot, "P295");
+      assert.equal(dashboard.summary.dashboard_api_freeze_source_cost_observability_dashboard_next_phase_slot, "P296");
+      assert.equal(dashboard.summary.dashboard_api_freeze_failed_source_status_count, 0);
+      assert.equal(dashboard.summary.dashboard_api_freeze_api_route_count, dashboardApiFreeze.summary.api_route_count);
+      assert.equal(dashboard.summary.dashboard_api_freeze_read_only_route_count, dashboardApiFreeze.summary.read_only_route_count);
+      assert.equal(dashboard.summary.dashboard_api_freeze_mutation_route_count, 0);
+      assert.equal(dashboard.summary.dashboard_api_freeze_dashboard_ia_route_binding_count, dashboardApiFreeze.summary.dashboard_ia_route_binding_count);
+      assert.equal(dashboard.summary.dashboard_api_freeze_route_probe_count, dashboardApiFreeze.summary.route_probe_count);
+      assert.equal(dashboard.summary.dashboard_api_freeze_passed_route_probe_count, dashboardApiFreeze.summary.route_probe_count);
+      assert.equal(dashboard.summary.dashboard_api_freeze_route_fixture_count, dashboardApiFreeze.summary.route_fixture_count);
+      assert.equal(dashboard.summary.dashboard_api_freeze_desktop_ready, true);
+      assert.equal(dashboard.summary.dashboard_api_freeze_desktop_ready_api_contract_status, "ready");
+      assert.equal(dashboard.summary.dashboard_api_freeze_route_index_ready, true);
+      assert.equal(dashboard.summary.dashboard_api_freeze_dashboard_ia_ready, true);
+      assert.equal(dashboard.summary.dashboard_api_freeze_dashboard_build_ready, true);
+      assert.equal(dashboard.summary.dashboard_api_freeze_api_smoke_ready, true);
+      assert.equal(dashboard.summary.dashboard_api_freeze_route_fixture_ready, true);
+      assert.equal(dashboard.summary.dashboard_api_freeze_read_only, true);
+      assert.equal(dashboard.summary.dashboard_api_freeze_preview_only, true);
+      assert.equal(dashboard.summary.dashboard_api_freeze_freeze_report_only, true);
+      assert.equal(dashboard.summary.dashboard_api_freeze_source_content_read_performed, false);
+      assert.equal(dashboard.summary.dashboard_api_freeze_source_ingest_performed, false);
+      assert.equal(dashboard.summary.dashboard_api_freeze_dashboard_mutation_allowed, false);
+      assert.equal(dashboard.summary.dashboard_api_freeze_api_mutation_allowed, false);
+      assert.equal(dashboard.summary.dashboard_api_freeze_route_execution_performed, false);
+      assert.equal(dashboard.summary.dashboard_api_freeze_server_started, false);
+      assert.equal(dashboard.summary.dashboard_api_freeze_approval_application_performed, false);
+      assert.equal(dashboard.summary.dashboard_api_freeze_protected_action_executed, false);
+      assert.equal(dashboard.summary.dashboard_api_freeze_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.dashboard_api_freeze_legal_advice_generated, false);
+      assert.equal(dashboard.summary.dashboard_api_freeze_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.dashboard_api_freeze_human_review_required, true);
+      assert.equal(dashboard.summary.dashboard_api_freeze_client_facing_ready, false);
+      assert.equal(dashboard.summary.dashboard_api_freeze_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.dashboard_api_freeze_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.dashboard_api_freeze_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -23542,6 +23725,51 @@ describe("matter harness", () => {
       assert.equal(costObservabilityDashboardStage?.metrics.legal_advice_generated, false);
       assert.equal(costObservabilityDashboardStage?.metrics.client_facing_output_generated, false);
       assert.equal(costObservabilityDashboardStage?.metrics.validation_error_count, 0);
+      const dashboardApiFreezeStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "dashboard_api_freeze");
+      assert.equal(dashboardApiFreezeStage?.status, "passed");
+      assert.equal(dashboardApiFreezeStage?.metrics.dashboard_api_freeze_status, "complete");
+      assert.equal(dashboardApiFreezeStage?.metrics.dashboard_api_freeze_id, dashboardApiFreeze.summary.dashboard_api_freeze_id);
+      assert.equal(dashboardApiFreezeStage?.metrics.phase_slot, "P296");
+      assert.equal(dashboardApiFreezeStage?.metrics.previous_phase_slot, "P295");
+      assert.equal(dashboardApiFreezeStage?.metrics.next_phase_slot, "P297");
+      assert.equal(dashboardApiFreezeStage?.metrics.source_api_route_inventory_status, "complete");
+      assert.equal(dashboardApiFreezeStage?.metrics.source_api_route_inventory_phase_slot, "P287");
+      assert.equal(dashboardApiFreezeStage?.metrics.source_api_route_inventory_next_phase_slot, "P288");
+      assert.equal(dashboardApiFreezeStage?.metrics.source_review_dashboard_ia_status, "complete");
+      assert.equal(dashboardApiFreezeStage?.metrics.source_review_dashboard_ia_phase_slot, "P288");
+      assert.equal(dashboardApiFreezeStage?.metrics.source_review_dashboard_ia_next_phase_slot, "P289");
+      assert.equal(dashboardApiFreezeStage?.metrics.source_cost_observability_dashboard_status, "complete");
+      assert.equal(dashboardApiFreezeStage?.metrics.source_cost_observability_dashboard_phase_slot, "P295");
+      assert.equal(dashboardApiFreezeStage?.metrics.source_cost_observability_dashboard_next_phase_slot, "P296");
+      assert.equal(dashboardApiFreezeStage?.metrics.failed_source_status_count, 0);
+      assert.equal(dashboardApiFreezeStage?.metrics.api_route_count, dashboardApiFreeze.summary.api_route_count);
+      assert.equal(dashboardApiFreezeStage?.metrics.read_only_route_count, dashboardApiFreeze.summary.read_only_route_count);
+      assert.equal(dashboardApiFreezeStage?.metrics.mutation_route_count, 0);
+      assert.equal(dashboardApiFreezeStage?.metrics.dashboard_ia_route_binding_count, dashboardApiFreeze.summary.dashboard_ia_route_binding_count);
+      assert.equal(dashboardApiFreezeStage?.metrics.route_probe_count, dashboardApiFreeze.summary.route_probe_count);
+      assert.equal(dashboardApiFreezeStage?.metrics.passed_route_probe_count, dashboardApiFreeze.summary.route_probe_count);
+      assert.equal(dashboardApiFreezeStage?.metrics.route_fixture_count, dashboardApiFreeze.summary.route_fixture_count);
+      assert.equal(dashboardApiFreezeStage?.metrics.desktop_ready, true);
+      assert.equal(dashboardApiFreezeStage?.metrics.desktop_ready_api_contract_status, "ready");
+      assert.equal(dashboardApiFreezeStage?.metrics.route_index_ready, true);
+      assert.equal(dashboardApiFreezeStage?.metrics.dashboard_ia_ready, true);
+      assert.equal(dashboardApiFreezeStage?.metrics.dashboard_build_ready, true);
+      assert.equal(dashboardApiFreezeStage?.metrics.api_smoke_ready, true);
+      assert.equal(dashboardApiFreezeStage?.metrics.route_fixture_ready, true);
+      assert.equal(dashboardApiFreezeStage?.metrics.read_only, true);
+      assert.equal(dashboardApiFreezeStage?.metrics.preview_only, true);
+      assert.equal(dashboardApiFreezeStage?.metrics.freeze_report_only, true);
+      assert.equal(dashboardApiFreezeStage?.metrics.source_content_read_performed, false);
+      assert.equal(dashboardApiFreezeStage?.metrics.source_ingest_performed, false);
+      assert.equal(dashboardApiFreezeStage?.metrics.dashboard_mutation_allowed, false);
+      assert.equal(dashboardApiFreezeStage?.metrics.api_mutation_allowed, false);
+      assert.equal(dashboardApiFreezeStage?.metrics.route_execution_performed, false);
+      assert.equal(dashboardApiFreezeStage?.metrics.server_started, false);
+      assert.equal(dashboardApiFreezeStage?.metrics.protected_action_executed, false);
+      assert.equal(dashboardApiFreezeStage?.metrics.delivery_execution_performed, false);
+      assert.equal(dashboardApiFreezeStage?.metrics.legal_advice_generated, false);
+      assert.equal(dashboardApiFreezeStage?.metrics.client_facing_output_generated, false);
+      assert.equal(dashboardApiFreezeStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -23783,6 +24011,14 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-observability-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-observability-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-observability-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/dashboard-api-freezes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/dashboard-api-freeze-sources"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/desktop-ready-api-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/dashboard-api-freeze-route-probes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/dashboard-api-freeze-route-fixtures"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/dashboard-api-freeze-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/dashboard-api-freeze-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/dashboard-api-freeze-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -26867,6 +27103,39 @@ describe("matter harness", () => {
       const costObservabilityValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/cost-observability-validations?status=passed", apiOptions)).body);
       assert.equal(costObservabilityValidationsResponse.collection, "cost_observability_validations");
       assert.equal(costObservabilityValidationsResponse.count, costObservabilityDashboard.summary.validation_item_count);
+
+      const dashboardApiFreezesResponse = JSON.parse((await buildReviewApiResponse("/api/dashboard-api-freezes?dashboard_api_freeze_status=complete", apiOptions)).body);
+      assert.equal(dashboardApiFreezesResponse.collection, "dashboard_api_freezes");
+      assert.equal(dashboardApiFreezesResponse.count, 1);
+
+      const dashboardApiFreezeSourcesResponse = JSON.parse((await buildReviewApiResponse("/api/dashboard-api-freeze-sources?dashboard_api_freeze_source_status=passed", apiOptions)).body);
+      assert.equal(dashboardApiFreezeSourcesResponse.collection, "dashboard_api_freeze_sources");
+      assert.equal(dashboardApiFreezeSourcesResponse.count, dashboardApiFreeze.summary.source_status_count);
+
+      const desktopReadyApiContractsResponse = JSON.parse((await buildReviewApiResponse("/api/desktop-ready-api-contracts?desktop_ready_api_contract_status=ready&read_only=true", apiOptions)).body);
+      assert.equal(desktopReadyApiContractsResponse.collection, "desktop_ready_api_contracts");
+      assert.equal(desktopReadyApiContractsResponse.count, 1);
+
+      const dashboardApiFreezeRouteProbesResponse = JSON.parse((await buildReviewApiResponse("/api/dashboard-api-freeze-route-probes?route_probe_status=passed&read_only=true", apiOptions)).body);
+      assert.equal(dashboardApiFreezeRouteProbesResponse.collection, "dashboard_api_route_probes");
+      assert.equal(dashboardApiFreezeRouteProbesResponse.count, dashboardApiFreeze.summary.route_probe_count);
+
+      const passedDashboardApiRouteFixtureCount = dashboardApiFreeze.dashboard_api_route_fixtures.filter((row) => row.fixture_status === "passed").length;
+      const dashboardApiFreezeRouteFixturesResponse = JSON.parse((await buildReviewApiResponse("/api/dashboard-api-freeze-route-fixtures?route_fixture_status=passed&method=GET&read_only=true", apiOptions)).body);
+      assert.equal(dashboardApiFreezeRouteFixturesResponse.collection, "dashboard_api_route_fixtures");
+      assert.equal(dashboardApiFreezeRouteFixturesResponse.count, passedDashboardApiRouteFixtureCount);
+
+      const dashboardApiFreezeBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/dashboard-api-freeze-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(dashboardApiFreezeBoundaryResponse.collection, "dashboard_api_freeze_boundary");
+      assert.equal(dashboardApiFreezeBoundaryResponse.count, 1);
+
+      const dashboardApiFreezeChecksResponse = JSON.parse((await buildReviewApiResponse("/api/dashboard-api-freeze-checks?status=passed", apiOptions)).body);
+      assert.equal(dashboardApiFreezeChecksResponse.collection, "dashboard_api_freeze_checks");
+      assert.equal(dashboardApiFreezeChecksResponse.count, dashboardApiFreeze.summary.validation_item_count);
+
+      const dashboardApiFreezeValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/dashboard-api-freeze-validations?status=passed", apiOptions)).body);
+      assert.equal(dashboardApiFreezeValidationsResponse.collection, "dashboard_api_freeze_validations");
+      assert.equal(dashboardApiFreezeValidationsResponse.count, dashboardApiFreeze.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

@@ -3616,6 +3616,42 @@ try {
   assert.equal(ingestionE2eReportValidations.collection, "ingestion_e2e_report_validations");
   assert.ok(ingestionE2eReportValidations.count <= 5);
 
+  const deploymentRunbooks = await fetchJson(`${url}/api/deployment-runbooks?deployment_runbook_status=complete&limit=1`);
+  assert.equal(deploymentRunbooks.collection, "deployment_runbooks");
+  assert.ok(deploymentRunbooks.count <= 1);
+
+  const deploymentRunbookSources = await fetchJson(`${url}/api/deployment-runbook-sources?source_status=passed&limit=10`);
+  assert.equal(deploymentRunbookSources.collection, "deployment_runbook_sources");
+  assert.ok(deploymentRunbookSources.count <= 10);
+
+  const deploymentEnvironments = await fetchJson(`${url}/api/deployment-environments?environment_status=ready&limit=10`);
+  assert.equal(deploymentEnvironments.collection, "deployment_environments");
+  assert.ok(deploymentEnvironments.count <= 10);
+
+  const deploymentCommands = await fetchJson(`${url}/api/deployment-commands?command_status=documented&command_executed=false&limit=20`);
+  assert.equal(deploymentCommands.collection, "deployment_commands");
+  assert.ok(deploymentCommands.count <= 20);
+
+  const deploymentChecklists = await fetchJson(`${url}/api/deployment-checklists?status=passed&limit=10`);
+  assert.equal(deploymentChecklists.collection, "deployment_checklists");
+  assert.ok(deploymentChecklists.count <= 10);
+
+  const deploymentRollbackProcedures = await fetchJson(`${url}/api/deployment-rollback-procedures?rollback_status=documented&limit=10`);
+  assert.equal(deploymentRollbackProcedures.collection, "deployment_rollback_procedures");
+  assert.ok(deploymentRollbackProcedures.count <= 10);
+
+  const deploymentGateResults = await fetchJson(`${url}/api/deployment-gate-results?deployment_gate_passed=true&limit=10`);
+  assert.equal(deploymentGateResults.collection, "deployment_gate_results");
+  assert.ok(deploymentGateResults.count <= 10);
+
+  const deploymentRunbookBoundary = await fetchJson(`${url}/api/deployment-runbook-boundary?boundary_status=enforced&read_only=true&client_facing_output_generated=false&limit=1`);
+  assert.equal(deploymentRunbookBoundary.collection, "deployment_runbook_boundary");
+  assert.ok(deploymentRunbookBoundary.count <= 1);
+
+  const deploymentRunbookValidations = await fetchJson(`${url}/api/deployment-runbook-validations?status=passed&limit=5`);
+  assert.equal(deploymentRunbookValidations.collection, "deployment_runbook_validations");
+  assert.ok(deploymentRunbookValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

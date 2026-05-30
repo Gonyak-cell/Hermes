@@ -154,6 +154,7 @@
     "creative-document:freeze": "node scripts/creative-document-freeze.mjs",
     "creative-document:e2e-report": "node scripts/creative-document-e2e-report.mjs",
     "ingestion:e2e-report": "node scripts/ingestion-e2e-report.mjs",
+    "deployment:runbook": "node scripts/deployment-runbook.mjs",
     "connectors:contract-v2": "node scripts/connector-contract-v2.mjs",
     "connectors:local-folder": "node scripts/local-folder-connector.mjs",
     "connectors:onedrive-boundary": "node scripts/onedrive-connector-boundary.mjs",

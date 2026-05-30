@@ -7359,6 +7359,69 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("ingestion_e2e_report_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/deployment-runbooks") {
+    const result = await readDashboardSourceArtifact(dashboard, "deployment_runbook");
+    if (!result.available) {
+      return jsonResponse(503, buildError("deployment_runbook_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("deployment_runbooks", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/deployment-runbook-sources") {
+    const result = await readDashboardSourceArtifact(dashboard, "deployment_runbook");
+    if (!result.available) {
+      return jsonResponse(503, buildError("deployment_runbook_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("deployment_runbook_sources", result.artifact.source_statuses ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/deployment-environments") {
+    const result = await readDashboardSourceArtifact(dashboard, "deployment_runbook");
+    if (!result.available) {
+      return jsonResponse(503, buildError("deployment_runbook_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("deployment_environments", result.artifact.deployment_environment_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/deployment-commands") {
+    const result = await readDashboardSourceArtifact(dashboard, "deployment_runbook");
+    if (!result.available) {
+      return jsonResponse(503, buildError("deployment_runbook_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("deployment_commands", result.artifact.deployment_command_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/deployment-checklists") {
+    const result = await readDashboardSourceArtifact(dashboard, "deployment_runbook");
+    if (!result.available) {
+      return jsonResponse(503, buildError("deployment_runbook_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("deployment_checklists", result.artifact.deployment_checklist_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/deployment-rollback-procedures") {
+    const result = await readDashboardSourceArtifact(dashboard, "deployment_runbook");
+    if (!result.available) {
+      return jsonResponse(503, buildError("deployment_runbook_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("deployment_rollback_procedures", result.artifact.rollback_procedure_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/deployment-gate-results") {
+    const result = await readDashboardSourceArtifact(dashboard, "deployment_runbook");
+    if (!result.available) {
+      return jsonResponse(503, buildError("deployment_runbook_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("deployment_gate_results", result.artifact.deployment_gate_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/deployment-runbook-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "deployment_runbook");
+    if (!result.available) {
+      return jsonResponse(503, buildError("deployment_runbook_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("deployment_runbook_boundary", [result.artifact.deployment_runbook_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/deployment-runbook-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "deployment_runbook");
+    if (!result.available) {
+      return jsonResponse(503, buildError("deployment_runbook_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("deployment_runbook_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -13694,6 +13757,15 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/ingestion-e2e-gate-results", "Ingestion E2E gate result rows"),
       route("GET", "/api/ingestion-e2e-report-boundary", "Ingestion E2E Report boundary"),
       route("GET", "/api/ingestion-e2e-report-validations", "Ingestion E2E Report validation rows"),
+      route("GET", "/api/deployment-runbooks", "Deployment Runbook artifact"),
+      route("GET", "/api/deployment-runbook-sources", "Deployment Runbook source rows"),
+      route("GET", "/api/deployment-environments", "Deployment environment rows"),
+      route("GET", "/api/deployment-commands", "Deployment command rows"),
+      route("GET", "/api/deployment-checklists", "Deployment checklist rows"),
+      route("GET", "/api/deployment-rollback-procedures", "Deployment rollback procedure rows"),
+      route("GET", "/api/deployment-gate-results", "Deployment gate result rows"),
+      route("GET", "/api/deployment-runbook-boundary", "Deployment Runbook boundary"),
+      route("GET", "/api/deployment-runbook-validations", "Deployment Runbook validation rows"),
       route("GET", "/api/connector-contracts-v2", "Connector Contract v2 artifact"),
       route("GET", "/api/connector-definitions", "Connector v2 definition rows"),
       route("GET", "/api/connector-source-contracts", "Connector source id contract rows"),
@@ -15070,6 +15142,13 @@ function filterItems(items, searchParams) {
     "approval_gate_passed",
     "output_artifact_gate_passed",
     "ingestion_e2e_report_status",
+    "deployment_runbook_status",
+    "environment_id",
+    "environment_status",
+    "command_status",
+    "command_executed",
+    "rollback_status",
+    "deployment_gate_passed",
     "connector_to_dashboard_path_complete",
     "connector_gate_passed",
     "backfill_gate_passed",
@@ -17186,6 +17265,13 @@ function readFilterValue(item, key) {
   if (key === "approval_gate_passed") return item.approval_gate_passed;
   if (key === "output_artifact_gate_passed") return item.output_artifact_gate_passed;
   if (key === "ingestion_e2e_report_status") return item.summary?.ingestion_e2e_report_status ?? item.ingestion_e2e_report_status;
+  if (key === "deployment_runbook_status") return item.summary?.deployment_runbook_status ?? item.deployment_runbook_status;
+  if (key === "environment_id") return item.environment_id;
+  if (key === "environment_status") return item.environment_status;
+  if (key === "command_status") return item.command_status;
+  if (key === "command_executed") return String(Boolean(item.command_executed));
+  if (key === "rollback_status") return item.rollback_status;
+  if (key === "deployment_gate_passed") return String(item.gate_status === "passed" && item.gate_violation === false);
   if (key === "connector_to_dashboard_path_complete") return item.summary?.connector_to_dashboard_path_complete ?? item.connector_to_dashboard_path_complete;
   if (key === "connector_gate_passed") return item.connector_gate_passed;
   if (key === "backfill_gate_passed") return item.backfill_gate_passed;

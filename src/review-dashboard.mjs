@@ -105,6 +105,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   creativeDocumentFreezePath: "artifacts/creative-document-freeze/latest/creative-document-freeze.json",
   creativeDocumentE2eReportPath: "artifacts/creative-document-e2e-report/latest/creative-document-e2e-report.json",
   ingestionE2eReportPath: "artifacts/ingestion-e2e-report/latest/ingestion-e2e-report.json",
+  deploymentRunbookPath: "artifacts/deployment-runbook/latest/deployment-runbook.json",
   connectorContractV2Path: "artifacts/connector-contract-v2/latest/connector-contract-v2.json",
   localFolderConnectorPath: "artifacts/local-folder-connector/latest/local-folder-connector.json",
   onedriveConnectorBoundaryPath: "artifacts/onedrive-connector-boundary/latest/onedrive-connector-boundary.json",
@@ -812,6 +813,11 @@ const SOURCE_DEFINITIONS = [
     option: "ingestionE2eReportPath",
     source_id: "ingestion_e2e_report",
     label: "Ingestion E2E Report",
+  },
+  {
+    option: "deploymentRunbookPath",
+    source_id: "deployment_runbook",
+    label: "Deployment Runbook",
   },
   {
     option: "connectorContractV2Path",
@@ -1980,6 +1986,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "creative_document_freeze") return data.summary ?? {};
   if (sourceId === "creative_document_e2e_report") return data.summary ?? {};
   if (sourceId === "ingestion_e2e_report") return data.summary ?? {};
+  if (sourceId === "deployment_runbook") return data.summary ?? {};
   if (sourceId === "connector_contract_v2") return data.summary ?? {};
   if (sourceId === "local_folder_connector") return data.summary ?? {};
   if (sourceId === "onedrive_connector_boundary") return data.summary ?? {};
@@ -2389,6 +2396,7 @@ function buildStageStatuses(artifacts, sources) {
     buildCreativeDocumentFreezeStage(artifacts.creative_document_freeze, sourceById.get("creative_document_freeze")),
     buildCreativeDocumentE2eReportStage(artifacts.creative_document_e2e_report, sourceById.get("creative_document_e2e_report")),
     buildIngestionE2eReportStage(artifacts.ingestion_e2e_report, sourceById.get("ingestion_e2e_report")),
+    buildDeploymentRunbookStage(artifacts.deployment_runbook, sourceById.get("deployment_runbook")),
     buildConnectorContractV2Stage(artifacts.connector_contract_v2, sourceById.get("connector_contract_v2")),
     buildLocalFolderConnectorStage(artifacts.local_folder_connector, sourceById.get("local_folder_connector")),
     buildOneDriveConnectorBoundaryStage(artifacts.onedrive_connector_boundary, sourceById.get("onedrive_connector_boundary")),
@@ -12498,6 +12506,151 @@ function buildIngestionE2eReportStage(artifact, source) {
       client_facing_ready: summary.client_facing_ready ?? false,
       human_review_required: summary.human_review_required ?? false,
       attorney_review_required: summary.attorney_review_required ?? false,
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_source_of_truth: summary.desktop_source_of_truth ?? true,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildDeploymentRunbookStage(artifact, source) {
+  if (!artifact) return missingStage("deployment_runbook", "Deployment Runbook", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.deployment_runbook_status !== "complete"
+    || summary.phase_slot !== "P309"
+    || summary.previous_phase_slot !== "P308"
+    || summary.next_phase_slot !== "P310"
+    || summary.source_ingestion_e2e_report_status !== "complete"
+    || summary.source_ingestion_e2e_report_phase_slot !== "P308"
+    || summary.source_ingestion_e2e_report_next_phase_slot !== "P309"
+    || summary.source_dashboard_api_freeze_status !== "complete"
+    || summary.source_backup_restore_drill_status !== "complete"
+    || summary.source_runtime_freeze_status !== "complete"
+    || summary.source_control_plane_loop_status !== "passed"
+    || summary.source_rollback_plan_artifact_status !== "complete"
+    || summary.failed_source_status_count > 0
+    || summary.ready_environment_count !== summary.environment_count
+    || summary.documented_command_count !== summary.command_count
+    || summary.command_executed_count > 0
+    || summary.passed_checklist_row_count !== summary.checklist_row_count
+    || summary.documented_rollback_procedure_step_count !== summary.rollback_procedure_step_count
+    || summary.gate_violation_count > 0
+    || summary.deployment_execution_performed === true
+    || summary.local_execution_performed === true
+    || summary.prod_like_execution_performed === true
+    || summary.desktop_companion_deployment_performed === true
+    || summary.desktop_installer_execution_performed === true
+    || summary.desktop_gateway_execution_performed === true
+    || summary.server_started === true
+    || summary.route_execution_performed === true
+    || summary.rollback_execution_performed === true
+    || summary.command_execution_performed === true
+    || summary.protected_action_executed === true
+    || summary.legal_advice_generated === true
+    || summary.client_facing_output_generated === true
+    || summary.client_facing_ready === true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "deployment_runbook",
+    label: "Deployment Runbook",
+    status,
+    message: `${summary.ready_environment_count ?? 0}/${summary.environment_count ?? 0} environment(s), ${summary.documented_command_count ?? 0}/${summary.command_count ?? 0} command(s), ${summary.documented_rollback_procedure_step_count ?? 0}/${summary.rollback_procedure_step_count ?? 0} rollback step(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      deployment_runbook_status: summary.deployment_runbook_status ?? "unknown",
+      deployment_runbook_id: summary.deployment_runbook_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_ingestion_e2e_report_status: summary.source_ingestion_e2e_report_status ?? "unknown",
+      source_ingestion_e2e_report_phase_slot: summary.source_ingestion_e2e_report_phase_slot ?? null,
+      source_ingestion_e2e_report_next_phase_slot: summary.source_ingestion_e2e_report_next_phase_slot ?? null,
+      source_dashboard_api_freeze_status: summary.source_dashboard_api_freeze_status ?? "unknown",
+      source_backup_restore_drill_status: summary.source_backup_restore_drill_status ?? "unknown",
+      source_runtime_freeze_status: summary.source_runtime_freeze_status ?? "unknown",
+      source_control_plane_loop_status: summary.source_control_plane_loop_status ?? "unknown",
+      source_rollback_plan_artifact_status: summary.source_rollback_plan_artifact_status ?? "unknown",
+      source_status_count: summary.source_status_count ?? 0,
+      passed_source_status_count: summary.passed_source_status_count ?? 0,
+      failed_source_status_count: summary.failed_source_status_count ?? 0,
+      environment_count: summary.environment_count ?? 0,
+      ready_environment_count: summary.ready_environment_count ?? 0,
+      local_environment_ready_count: summary.local_environment_ready_count ?? 0,
+      dev_environment_ready_count: summary.dev_environment_ready_count ?? 0,
+      prod_like_environment_ready_count: summary.prod_like_environment_ready_count ?? 0,
+      desktop_companion_environment_ready_count: summary.desktop_companion_environment_ready_count ?? 0,
+      rollback_environment_ready_count: summary.rollback_environment_ready_count ?? 0,
+      command_count: summary.command_count ?? 0,
+      documented_command_count: summary.documented_command_count ?? 0,
+      command_executed_count: summary.command_executed_count ?? 0,
+      auto_execute_allowed_count: summary.auto_execute_allowed_count ?? 0,
+      human_approval_required_command_count: summary.human_approval_required_command_count ?? 0,
+      checklist_row_count: summary.checklist_row_count ?? 0,
+      passed_checklist_row_count: summary.passed_checklist_row_count ?? 0,
+      rollback_procedure_step_count: summary.rollback_procedure_step_count ?? 0,
+      documented_rollback_procedure_step_count: summary.documented_rollback_procedure_step_count ?? 0,
+      human_review_required_rollback_count: summary.human_review_required_rollback_count ?? 0,
+      rollback_execution_performed_count: summary.rollback_execution_performed_count ?? 0,
+      gate_result_count: summary.gate_result_count ?? 0,
+      passed_gate_result_count: summary.passed_gate_result_count ?? 0,
+      failed_gate_result_count: summary.failed_gate_result_count ?? 0,
+      gate_violation_count: summary.gate_violation_count ?? 0,
+      dashboard_api_route_count: summary.dashboard_api_route_count ?? 0,
+      dashboard_desktop_ready: summary.dashboard_desktop_ready ?? false,
+      runtime_desktop_read_only: summary.runtime_desktop_read_only ?? false,
+      runtime_desktop_source_of_truth: summary.runtime_desktop_source_of_truth ?? true,
+      backup_restore_dry_run_only: summary.backup_restore_dry_run_only ?? false,
+      backup_restore_execution_performed: summary.backup_restore_execution_performed ?? false,
+      rollback_plan_command_target_count: summary.rollback_plan_command_target_count ?? 0,
+      rollback_plan_execution_performed: summary.rollback_plan_execution_performed ?? false,
+      control_plane_loop_passed_step_count: summary.control_plane_loop_passed_step_count ?? 0,
+      control_plane_loop_failed_step_count: summary.control_plane_loop_failed_step_count ?? 0,
+      local_dev_prod_like_command_coverage_complete: summary.local_dev_prod_like_command_coverage_complete ?? false,
+      rollback_procedure_documented: summary.rollback_procedure_documented ?? false,
+      read_only: summary.read_only ?? false,
+      report_only: summary.report_only ?? false,
+      runbook_only: summary.runbook_only ?? false,
+      source_artifact_read_performed: summary.source_artifact_read_performed ?? false,
+      source_artifact_mutation_performed: summary.source_artifact_mutation_performed ?? false,
+      deployment_execution_performed: summary.deployment_execution_performed ?? false,
+      local_execution_performed: summary.local_execution_performed ?? false,
+      prod_like_execution_performed: summary.prod_like_execution_performed ?? false,
+      production_deployment_performed: summary.production_deployment_performed ?? false,
+      desktop_companion_optional: summary.desktop_companion_optional ?? false,
+      desktop_companion_deployment_required: summary.desktop_companion_deployment_required ?? true,
+      desktop_companion_deployment_optional: summary.desktop_companion_deployment_optional ?? false,
+      desktop_companion_deployment_performed: summary.desktop_companion_deployment_performed ?? false,
+      desktop_companion_install_performed: summary.desktop_companion_install_performed ?? false,
+      desktop_installer_execution_performed: summary.desktop_installer_execution_performed ?? false,
+      desktop_gateway_execution_performed: summary.desktop_gateway_execution_performed ?? false,
+      desktop_installer_or_gateway_execution_performed: summary.desktop_installer_or_gateway_execution_performed ?? false,
+      server_started: summary.server_started ?? false,
+      route_execution_performed: summary.route_execution_performed ?? false,
+      rollback_execution_performed: summary.rollback_execution_performed ?? false,
+      restore_execution_performed: summary.restore_execution_performed ?? false,
+      command_execution_performed: summary.command_execution_performed ?? false,
+      git_command_executed: summary.git_command_executed ?? false,
+      filesystem_mutation_performed: summary.filesystem_mutation_performed ?? false,
+      source_mutation_performed: summary.source_mutation_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      external_network_access_performed: summary.external_network_access_performed ?? false,
+      secret_material_read: summary.secret_material_read ?? false,
+      provider_key_exposed: summary.provider_key_exposed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      client_facing_ready: summary.client_facing_ready ?? false,
+      human_review_required: summary.human_review_required ?? false,
+      attorney_review_required: summary.attorney_review_required ?? false,
+      approval_required_for_prod_like: summary.approval_required_for_prod_like ?? false,
+      approval_required_for_rollback: summary.approval_required_for_rollback ?? false,
       desktop_read_only: summary.desktop_read_only ?? false,
       desktop_source_of_truth: summary.desktop_source_of_truth ?? true,
       windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
@@ -23638,6 +23791,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.deployment_runbook?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "deployment_runbook";
+    items.push({
+      action_item_id: `dashboard.action.deployment_runbook.${slugify(subjectId)}`,
+      source_stage: "deployment_runbook",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Deployment Runbook",
+      subject_ref: {
+        subject_type: "deployment_runbook_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_deployment_runbook", "rerun_deployment_runbook", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.connector_contract_v2?.validation?.errors ?? []) {
     const subjectId = error.path ?? "connector_contract_v2";
     items.push({
@@ -30503,6 +30674,66 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     ingestion_e2e_report_windows_baseline_stability_preserved: artifacts.ingestion_e2e_report?.summary?.windows_baseline_stability_preserved ?? false,
     ingestion_e2e_report_mac_windows_completion_instability_guard: artifacts.ingestion_e2e_report?.summary?.mac_windows_completion_instability_guard ?? false,
     ingestion_e2e_report_validation_error_count: artifacts.ingestion_e2e_report?.summary?.validation_error_count ?? artifacts.ingestion_e2e_report?.validation?.errors?.length ?? 0,
+    deployment_runbook_status: artifacts.deployment_runbook?.summary?.deployment_runbook_status ?? "unknown",
+    deployment_runbook_id: artifacts.deployment_runbook?.summary?.deployment_runbook_id ?? null,
+    deployment_runbook_phase_slot: artifacts.deployment_runbook?.summary?.phase_slot ?? null,
+    deployment_runbook_previous_phase_slot: artifacts.deployment_runbook?.summary?.previous_phase_slot ?? null,
+    deployment_runbook_next_phase_slot: artifacts.deployment_runbook?.summary?.next_phase_slot ?? null,
+    deployment_runbook_source_ingestion_e2e_report_status: artifacts.deployment_runbook?.summary?.source_ingestion_e2e_report_status ?? "unknown",
+    deployment_runbook_source_ingestion_e2e_report_phase_slot: artifacts.deployment_runbook?.summary?.source_ingestion_e2e_report_phase_slot ?? null,
+    deployment_runbook_source_ingestion_e2e_report_next_phase_slot: artifacts.deployment_runbook?.summary?.source_ingestion_e2e_report_next_phase_slot ?? null,
+    deployment_runbook_source_dashboard_api_freeze_status: artifacts.deployment_runbook?.summary?.source_dashboard_api_freeze_status ?? "unknown",
+    deployment_runbook_source_backup_restore_drill_status: artifacts.deployment_runbook?.summary?.source_backup_restore_drill_status ?? "unknown",
+    deployment_runbook_source_runtime_freeze_status: artifacts.deployment_runbook?.summary?.source_runtime_freeze_status ?? "unknown",
+    deployment_runbook_source_control_plane_loop_status: artifacts.deployment_runbook?.summary?.source_control_plane_loop_status ?? "unknown",
+    deployment_runbook_source_rollback_plan_artifact_status: artifacts.deployment_runbook?.summary?.source_rollback_plan_artifact_status ?? "unknown",
+    deployment_runbook_failed_source_status_count: artifacts.deployment_runbook?.summary?.failed_source_status_count ?? 0,
+    deployment_runbook_environment_count: artifacts.deployment_runbook?.summary?.environment_count ?? 0,
+    deployment_runbook_ready_environment_count: artifacts.deployment_runbook?.summary?.ready_environment_count ?? 0,
+    deployment_runbook_local_environment_ready_count: artifacts.deployment_runbook?.summary?.local_environment_ready_count ?? 0,
+    deployment_runbook_dev_environment_ready_count: artifacts.deployment_runbook?.summary?.dev_environment_ready_count ?? 0,
+    deployment_runbook_prod_like_environment_ready_count: artifacts.deployment_runbook?.summary?.prod_like_environment_ready_count ?? 0,
+    deployment_runbook_desktop_companion_environment_ready_count: artifacts.deployment_runbook?.summary?.desktop_companion_environment_ready_count ?? 0,
+    deployment_runbook_rollback_environment_ready_count: artifacts.deployment_runbook?.summary?.rollback_environment_ready_count ?? 0,
+    deployment_runbook_command_count: artifacts.deployment_runbook?.summary?.command_count ?? 0,
+    deployment_runbook_documented_command_count: artifacts.deployment_runbook?.summary?.documented_command_count ?? 0,
+    deployment_runbook_command_executed_count: artifacts.deployment_runbook?.summary?.command_executed_count ?? 0,
+    deployment_runbook_checklist_row_count: artifacts.deployment_runbook?.summary?.checklist_row_count ?? 0,
+    deployment_runbook_passed_checklist_row_count: artifacts.deployment_runbook?.summary?.passed_checklist_row_count ?? 0,
+    deployment_runbook_rollback_procedure_step_count: artifacts.deployment_runbook?.summary?.rollback_procedure_step_count ?? 0,
+    deployment_runbook_documented_rollback_procedure_step_count: artifacts.deployment_runbook?.summary?.documented_rollback_procedure_step_count ?? 0,
+    deployment_runbook_human_review_required_rollback_count: artifacts.deployment_runbook?.summary?.human_review_required_rollback_count ?? 0,
+    deployment_runbook_gate_result_count: artifacts.deployment_runbook?.summary?.gate_result_count ?? 0,
+    deployment_runbook_passed_gate_result_count: artifacts.deployment_runbook?.summary?.passed_gate_result_count ?? 0,
+    deployment_runbook_gate_violation_count: artifacts.deployment_runbook?.summary?.gate_violation_count ?? 0,
+    deployment_runbook_local_dev_prod_like_command_coverage_complete: artifacts.deployment_runbook?.summary?.local_dev_prod_like_command_coverage_complete ?? false,
+    deployment_runbook_rollback_procedure_documented: artifacts.deployment_runbook?.summary?.rollback_procedure_documented ?? false,
+    deployment_runbook_read_only: artifacts.deployment_runbook?.summary?.read_only ?? false,
+    deployment_runbook_report_only: artifacts.deployment_runbook?.summary?.report_only ?? false,
+    deployment_runbook_runbook_only: artifacts.deployment_runbook?.summary?.runbook_only ?? false,
+    deployment_runbook_deployment_execution_performed: artifacts.deployment_runbook?.summary?.deployment_execution_performed ?? false,
+    deployment_runbook_local_execution_performed: artifacts.deployment_runbook?.summary?.local_execution_performed ?? false,
+    deployment_runbook_prod_like_execution_performed: artifacts.deployment_runbook?.summary?.prod_like_execution_performed ?? false,
+    deployment_runbook_desktop_companion_deployment_required: artifacts.deployment_runbook?.summary?.desktop_companion_deployment_required ?? true,
+    deployment_runbook_desktop_companion_deployment_optional: artifacts.deployment_runbook?.summary?.desktop_companion_deployment_optional ?? false,
+    deployment_runbook_desktop_companion_deployment_performed: artifacts.deployment_runbook?.summary?.desktop_companion_deployment_performed ?? false,
+    deployment_runbook_desktop_installer_execution_performed: artifacts.deployment_runbook?.summary?.desktop_installer_execution_performed ?? false,
+    deployment_runbook_desktop_gateway_execution_performed: artifacts.deployment_runbook?.summary?.desktop_gateway_execution_performed ?? false,
+    deployment_runbook_server_started: artifacts.deployment_runbook?.summary?.server_started ?? false,
+    deployment_runbook_route_execution_performed: artifacts.deployment_runbook?.summary?.route_execution_performed ?? false,
+    deployment_runbook_rollback_execution_performed: artifacts.deployment_runbook?.summary?.rollback_execution_performed ?? false,
+    deployment_runbook_command_execution_performed: artifacts.deployment_runbook?.summary?.command_execution_performed ?? false,
+    deployment_runbook_protected_action_executed: artifacts.deployment_runbook?.summary?.protected_action_executed ?? false,
+    deployment_runbook_legal_advice_generated: artifacts.deployment_runbook?.summary?.legal_advice_generated ?? false,
+    deployment_runbook_client_facing_output_generated: artifacts.deployment_runbook?.summary?.client_facing_output_generated ?? false,
+    deployment_runbook_human_review_required: artifacts.deployment_runbook?.summary?.human_review_required ?? false,
+    deployment_runbook_approval_required_for_prod_like: artifacts.deployment_runbook?.summary?.approval_required_for_prod_like ?? false,
+    deployment_runbook_approval_required_for_rollback: artifacts.deployment_runbook?.summary?.approval_required_for_rollback ?? false,
+    deployment_runbook_desktop_read_only: artifacts.deployment_runbook?.summary?.desktop_read_only ?? false,
+    deployment_runbook_desktop_source_of_truth: artifacts.deployment_runbook?.summary?.desktop_source_of_truth ?? true,
+    deployment_runbook_windows_baseline_stability_preserved: artifacts.deployment_runbook?.summary?.windows_baseline_stability_preserved ?? false,
+    deployment_runbook_mac_windows_completion_instability_guard: artifacts.deployment_runbook?.summary?.mac_windows_completion_instability_guard ?? false,
+    deployment_runbook_validation_error_count: artifacts.deployment_runbook?.summary?.validation_error_count ?? artifacts.deployment_runbook?.validation?.errors?.length ?? 0,
     connector_contract_v2_status: artifacts.connector_contract_v2?.summary?.connector_contract_status ?? "unknown",
     connector_contract_v2_contract_id: artifacts.connector_contract_v2?.summary?.connector_contract_id ?? null,
     connector_contract_v2_interface_schema_version: artifacts.connector_contract_v2?.summary?.interface_schema_version ?? null,
@@ -34067,6 +34298,8 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Creative-document E2E scenario rows and delivery: ${dashboard.summary.creative_document_e2e_report_passed_scenario_row_count ?? 0}/${dashboard.summary.creative_document_e2e_report_scenario_row_count ?? 0}, ${dashboard.summary.creative_document_e2e_report_delivery_execution_performed ?? false}`);
   lines.push(`- Ingestion E2E chain connector/backfill/quarantine/evidence/dashboard: ${dashboard.summary.ingestion_e2e_report_connector_stage_passed_count ?? 0}/${dashboard.summary.ingestion_e2e_report_backfill_stage_passed_count ?? 0}/${dashboard.summary.ingestion_e2e_report_quarantine_stage_passed_count ?? 0}/${dashboard.summary.ingestion_e2e_report_evidence_stage_passed_count ?? 0}/${dashboard.summary.ingestion_e2e_report_dashboard_stage_passed_count ?? 0}`);
   lines.push(`- Ingestion E2E scenario rows and evidence: ${dashboard.summary.ingestion_e2e_report_passed_scenario_row_count ?? 0}/${dashboard.summary.ingestion_e2e_report_scenario_row_count ?? 0}, ${dashboard.summary.ingestion_e2e_report_evidence_item_count ?? 0}`);
+  lines.push(`- Deployment runbook environments and commands: ${dashboard.summary.deployment_runbook_ready_environment_count ?? 0}/${dashboard.summary.deployment_runbook_environment_count ?? 0}, ${dashboard.summary.deployment_runbook_documented_command_count ?? 0}/${dashboard.summary.deployment_runbook_command_count ?? 0}`);
+  lines.push(`- Deployment runbook rollback and execution: ${dashboard.summary.deployment_runbook_documented_rollback_procedure_step_count ?? 0}/${dashboard.summary.deployment_runbook_rollback_procedure_step_count ?? 0}, ${dashboard.summary.deployment_runbook_deployment_execution_performed ?? false}/${dashboard.summary.deployment_runbook_rollback_execution_performed ?? false}`);
   lines.push(`- Ledger API/dashboard panels and routes: ${dashboard.summary.ledger_api_dashboard_passed_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_panel_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_declared_route_count ?? 0}/${dashboard.summary.ledger_api_dashboard_route_count ?? 0}`);
   lines.push(`- Ledger API/dashboard domains run/audit/cost/error/event: ${dashboard.summary.ledger_api_dashboard_run_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_audit_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cost_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_error_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_event_panel_count ?? 0}`);
   lines.push(`- Ledger API/dashboard metrics/cross links/errors: ${dashboard.summary.ledger_api_dashboard_metric_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_linked_cross_link_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cross_link_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_validation_error_count ?? 0}`);
@@ -34450,6 +34683,8 @@ function parseArgs(argv) {
     else if (arg === "--no-creative-document-e2e-report") parsed.creativeDocumentE2eReportPath = false;
     else if (arg === "--ingestion-e2e-report") parsed.ingestionE2eReportPath = argv[++index];
     else if (arg === "--no-ingestion-e2e-report") parsed.ingestionE2eReportPath = false;
+    else if (arg === "--deployment-runbook") parsed.deploymentRunbookPath = argv[++index];
+    else if (arg === "--no-deployment-runbook") parsed.deploymentRunbookPath = false;
     else if (arg === "--connector-contract-v2") parsed.connectorContractV2Path = argv[++index];
     else if (arg === "--no-connector-contract-v2") parsed.connectorContractV2Path = false;
     else if (arg === "--local-folder-connector") parsed.localFolderConnectorPath = argv[++index];

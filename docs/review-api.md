@@ -132,6 +132,12 @@ Ingestion E2E Report routes expose the read-only P308 scenario report artifact, 
 
 Routes: `/api/ingestion-e2e-reports`, `/api/ingestion-e2e-report-sources`, `/api/ingestion-e2e-scenario-rows`, `/api/ingestion-e2e-chain-stages`, `/api/ingestion-e2e-gate-results`, `/api/ingestion-e2e-report-boundary`, `/api/ingestion-e2e-report-validations`.
 
+## P309 Deployment Runbook Routes
+
+Deployment Runbook routes expose the read-only P309 deployment runbook artifact, source status rows, local/dev/prod-like/Desktop/rollback environment rows, documented command rows, checklist rows, human-gated rollback procedure rows, gate result rows, boundary, and validation rows. Supported filters include `deployment_runbook_status`, `source_status`, `environment_id`, `environment_status`, `command_status`, `command_executed`, `rollback_status`, `deployment_gate_passed`, `gate_status`, `boundary_status`, `read_only`, `legal_advice_generated`, `client_facing_output_generated`, `status`, and `limit`.
+
+Routes: `/api/deployment-runbooks`, `/api/deployment-runbook-sources`, `/api/deployment-environments`, `/api/deployment-commands`, `/api/deployment-checklists`, `/api/deployment-rollback-procedures`, `/api/deployment-gate-results`, `/api/deployment-runbook-boundary`, `/api/deployment-runbook-validations`.
+
 ## P245 LDD RFI Generator Routes
 
 LDD RFI Generator routes expose read-only draft-only RFI packets, draft questions, missing-material links, issue links, matter summaries, and validation/boundary rows. Supported filters include `ldd_rfi_generator_status`, `ldd_rfi_matter_status`, `rfi_rule_type`, `rfi_draft_status`, `rfi_question_type`, `rfi_question_priority`, `rfi_question_status`, `rfi_missing_material_status`, `rfi_issue_link_status`, `deterministic_rfi_generation_performed`, `ldd_rfi_question_id`, `ldd_issue_record_id`, `ldd_vdr_missing_data_record_id`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.

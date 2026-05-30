@@ -1,0 +1,223 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/deployment-runbook.schema.json",
+  "title": "Deployment Runbook",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "deployment_runbook_id",
+    "capability_id",
+    "deployment_runbook_contract",
+    "source_statuses",
+    "deployment_environment_rows",
+    "deployment_command_rows",
+    "deployment_checklist_rows",
+    "rollback_procedure_rows",
+    "deployment_gate_results",
+    "deployment_runbook_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "deployment-runbook.v1" },
+    "deployment_runbook_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "deployment.runbook" },
+    "deployment_runbook_contract": {
+      "type": "object",
+      "required": ["contract_id", "capability_id", "phase_slot", "previous_phase_slot", "next_phase_slot", "deployment_scope", "execution_model"],
+      "properties": {
+        "contract_id": { "const": "deployment-runbook.v1" },
+        "capability_id": { "const": "deployment.runbook" },
+        "phase_slot": { "const": "P309" },
+        "previous_phase_slot": { "const": "P308" },
+        "next_phase_slot": { "const": "P310" },
+        "deployment_scope": { "const": "local_dev_prod_like_desktop_companion_optional_and_rollback" },
+        "execution_model": { "const": "deterministic_read_only_runbook" }
+      }
+    },
+    "source_statuses": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["source_id", "source_status", "validation_error_count"],
+        "properties": {
+          "source_status": { "const": "passed" },
+          "validation_error_count": { "const": 0 }
+        }
+      }
+    },
+    "deployment_environment_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["environment_id", "environment_status", "deployment_execution_performed", "human_review_required"],
+        "properties": {
+          "environment_id": { "enum": ["local", "dev", "prod_like", "desktop_companion_optional", "rollback"] },
+          "environment_status": { "const": "ready" },
+          "deployment_execution_performed": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "deployment_command_rows": {
+      "type": "array",
+      "minItems": 15,
+      "items": {
+        "type": "object",
+        "required": ["command_key", "command_status", "command_executed", "auto_execute_allowed", "protected_action_executed"],
+        "properties": {
+          "command_status": { "const": "documented" },
+          "command_executed": { "const": false },
+          "auto_execute_allowed": { "const": false },
+          "protected_action_executed": { "const": false }
+        }
+      }
+    },
+    "deployment_checklist_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["check_key", "check_status"],
+        "properties": {
+          "check_status": { "const": "passed" }
+        }
+      }
+    },
+    "rollback_procedure_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["step_key", "rollback_status", "requires_human_approval", "rollback_execution_performed", "protected_action_executed"],
+        "properties": {
+          "rollback_status": { "const": "documented" },
+          "requires_human_approval": { "const": true },
+          "rollback_execution_performed": { "const": false },
+          "protected_action_executed": { "const": false }
+        }
+      }
+    },
+    "deployment_gate_results": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["gate_status", "gate_violation"],
+        "properties": {
+          "gate_status": { "const": "passed" },
+          "gate_violation": { "const": false }
+        }
+      }
+    },
+    "deployment_runbook_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "phase_slot",
+        "read_only",
+        "report_only",
+        "runbook_only",
+        "deployment_execution_performed",
+        "local_execution_performed",
+        "prod_like_execution_performed",
+        "production_deployment_performed",
+        "desktop_companion_deployment_required",
+        "desktop_companion_deployment_optional",
+        "desktop_companion_deployment_performed",
+        "desktop_companion_install_performed",
+        "desktop_installer_execution_performed",
+        "desktop_gateway_execution_performed",
+        "rollback_execution_performed",
+        "restore_execution_performed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "human_review_required",
+        "windows_baseline_stability_preserved"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "phase_slot": { "const": "P309" },
+        "read_only": { "const": true },
+        "report_only": { "const": true },
+        "runbook_only": { "const": true },
+        "deployment_execution_performed": { "const": false },
+        "local_execution_performed": { "const": false },
+        "prod_like_execution_performed": { "const": false },
+        "production_deployment_performed": { "const": false },
+        "desktop_companion_deployment_required": { "const": false },
+        "desktop_companion_deployment_optional": { "const": true },
+        "desktop_companion_deployment_performed": { "const": false },
+        "desktop_companion_install_performed": { "const": false },
+        "desktop_installer_execution_performed": { "const": false },
+        "desktop_gateway_execution_performed": { "const": false },
+        "rollback_execution_performed": { "const": false },
+        "restore_execution_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true },
+        "windows_baseline_stability_preserved": { "const": true }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "deployment_runbook_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "failed_source_status_count",
+        "environment_count",
+        "ready_environment_count",
+        "command_count",
+        "documented_command_count",
+        "command_executed_count",
+        "rollback_procedure_documented",
+        "deployment_execution_performed",
+        "local_execution_performed",
+        "prod_like_execution_performed",
+        "desktop_companion_deployment_required",
+        "desktop_companion_deployment_optional",
+        "desktop_companion_deployment_performed",
+        "desktop_installer_execution_performed",
+        "desktop_gateway_execution_performed",
+        "rollback_execution_performed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "human_review_required",
+        "windows_baseline_stability_preserved",
+        "validation_error_count"
+      ],
+      "properties": {
+        "deployment_runbook_status": { "const": "complete" },
+        "phase_slot": { "const": "P309" },
+        "previous_phase_slot": { "const": "P308" },
+        "next_phase_slot": { "const": "P310" },
+        "failed_source_status_count": { "const": 0 },
+        "command_executed_count": { "const": 0 },
+        "rollback_procedure_documented": { "const": true },
+        "deployment_execution_performed": { "const": false },
+        "local_execution_performed": { "const": false },
+        "prod_like_execution_performed": { "const": false },
+        "desktop_companion_deployment_required": { "const": false },
+        "desktop_companion_deployment_optional": { "const": true },
+        "desktop_companion_deployment_performed": { "const": false },
+        "desktop_installer_execution_performed": { "const": false },
+        "desktop_gateway_execution_performed": { "const": false },
+        "rollback_execution_performed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true },
+        "windows_baseline_stability_preserved": { "const": true },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

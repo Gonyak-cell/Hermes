@@ -107,6 +107,7 @@ import { runLawFirmE2eReport } from "../src/law-firm-e2e-report.mjs";
 import { runPersonalDevE2eReport } from "../src/personal-dev-e2e-report.mjs";
 import { runCreativeDocumentE2eReport } from "../src/creative-document-e2e-report.mjs";
 import { runIngestionE2eReport } from "../src/ingestion-e2e-report.mjs";
+import { runDeploymentRunbook } from "../src/deployment-runbook.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -2011,6 +2012,7 @@ describe("matter harness", () => {
         personalDevE2eReportPath: path.join(outDir, "personal-dev-e2e-report", "personal-dev-e2e-report.json"),
         creativeDocumentE2eReportPath: path.join(outDir, "creative-document-e2e-report", "creative-document-e2e-report.json"),
         ingestionE2eReportPath: path.join(outDir, "ingestion-e2e-report", "ingestion-e2e-report.json"),
+        deploymentRunbookPath: path.join(outDir, "deployment-runbook", "deployment-runbook.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -2153,6 +2155,7 @@ describe("matter harness", () => {
         personalDevE2eReportPath: false,
         creativeDocumentE2eReportPath: false,
         ingestionE2eReportPath: false,
+        deploymentRunbookPath: false,
         observabilityFreezePath: false,
         capabilityManifestV2Path: false,
         packManifestCompatibilityPath: false,
@@ -13389,6 +13392,7 @@ describe("matter harness", () => {
         personalDevE2eReportPath: false,
         creativeDocumentE2eReportPath: false,
         ingestionE2eReportPath: false,
+        deploymentRunbookPath: false,
         outDir: path.join(outDir, "dashboard-pre-checkpoint"),
         runAt: "2026-05-23T06:35:08.000Z",
       });
@@ -15235,6 +15239,87 @@ describe("matter harness", () => {
       assert.match(await readFile(path.join(outDir, "ingestion-e2e-report", "summary.md"), "utf8"), /Ingestion E2E Report/);
 
       contractGoldenFixtureArtifactPaths.ingestion_e2e_report = path.join(outDir, "ingestion-e2e-report", "ingestion-e2e-report.json");
+      const deploymentRunbook = await runDeploymentRunbook({
+        ingestionE2eReportPath: path.join(outDir, "ingestion-e2e-report", "ingestion-e2e-report.json"),
+        dashboardApiFreezePath: path.join(outDir, "dashboard-api-freeze", "dashboard-api-freeze.json"),
+        backupRestoreDrillPath: path.join(outDir, "backup-restore-drill", "backup-restore-drill-report.json"),
+        runtimeFreezePath: path.join(outDir, "runtime-freeze", "runtime-freeze.json"),
+        controlPlaneLoopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
+        rollbackPlanArtifactPath: path.join(outDir, "rollback-plan-artifact", "rollback-plan-artifact.json"),
+        outDir: path.join(outDir, "deployment-runbook"),
+        runAt: "2026-05-23T07:30:56.250Z",
+      });
+      const deploymentRunbookSchema = JSON.parse(await readFile("schemas/deployment-runbook.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(deploymentRunbook, deploymentRunbookSchema, {}, "deployment_runbook"), [], JSON.stringify(deploymentRunbook.validation.errors));
+      assert.equal(deploymentRunbook.summary.deployment_runbook_status, "complete");
+      assert.equal(deploymentRunbook.summary.phase_slot, "P309");
+      assert.equal(deploymentRunbook.summary.previous_phase_slot, "P308");
+      assert.equal(deploymentRunbook.summary.next_phase_slot, "P310");
+      assert.equal(deploymentRunbook.summary.source_ingestion_e2e_report_status, "complete");
+      assert.equal(deploymentRunbook.summary.source_ingestion_e2e_report_phase_slot, "P308");
+      assert.equal(deploymentRunbook.summary.source_ingestion_e2e_report_next_phase_slot, "P309");
+      assert.equal(deploymentRunbook.summary.source_dashboard_api_freeze_status, "complete");
+      assert.equal(deploymentRunbook.summary.source_backup_restore_drill_status, "complete");
+      assert.equal(deploymentRunbook.summary.source_runtime_freeze_status, "complete");
+      assert.equal(deploymentRunbook.summary.source_control_plane_loop_status, "passed");
+      assert.equal(deploymentRunbook.summary.source_rollback_plan_artifact_status, "complete");
+      assert.equal(deploymentRunbook.summary.failed_source_status_count, 0);
+      assert.equal(deploymentRunbook.summary.environment_count, 5);
+      assert.equal(deploymentRunbook.summary.ready_environment_count, 5);
+      assert.equal(deploymentRunbook.summary.local_environment_ready_count, 1);
+      assert.equal(deploymentRunbook.summary.dev_environment_ready_count, 1);
+      assert.equal(deploymentRunbook.summary.prod_like_environment_ready_count, 1);
+      assert.equal(deploymentRunbook.summary.desktop_companion_environment_ready_count, 1);
+      assert.equal(deploymentRunbook.summary.rollback_environment_ready_count, 1);
+      assert.ok(deploymentRunbook.summary.command_count >= 15);
+      assert.equal(deploymentRunbook.summary.documented_command_count, deploymentRunbook.summary.command_count);
+      assert.equal(deploymentRunbook.summary.command_executed_count, 0);
+      assert.equal(deploymentRunbook.summary.auto_execute_allowed_count, 0);
+      assert.ok(deploymentRunbook.summary.checklist_row_count >= 6);
+      assert.equal(deploymentRunbook.summary.passed_checklist_row_count, deploymentRunbook.summary.checklist_row_count);
+      assert.ok(deploymentRunbook.summary.rollback_procedure_step_count >= 4);
+      assert.equal(deploymentRunbook.summary.documented_rollback_procedure_step_count, deploymentRunbook.summary.rollback_procedure_step_count);
+      assert.equal(deploymentRunbook.summary.human_review_required_rollback_count, deploymentRunbook.summary.rollback_procedure_step_count);
+      assert.equal(deploymentRunbook.summary.gate_violation_count, 0);
+      assert.equal(deploymentRunbook.summary.local_dev_prod_like_command_coverage_complete, true);
+      assert.equal(deploymentRunbook.summary.rollback_procedure_documented, true);
+      assert.equal(deploymentRunbook.summary.read_only, true);
+      assert.equal(deploymentRunbook.summary.report_only, true);
+      assert.equal(deploymentRunbook.summary.runbook_only, true);
+      assert.equal(deploymentRunbook.summary.deployment_execution_performed, false);
+      assert.equal(deploymentRunbook.summary.local_execution_performed, false);
+      assert.equal(deploymentRunbook.summary.prod_like_execution_performed, false);
+      assert.equal(deploymentRunbook.summary.desktop_companion_deployment_required, false);
+      assert.equal(deploymentRunbook.summary.desktop_companion_deployment_optional, true);
+      assert.equal(deploymentRunbook.summary.desktop_companion_deployment_performed, false);
+      assert.equal(deploymentRunbook.summary.desktop_installer_execution_performed, false);
+      assert.equal(deploymentRunbook.summary.desktop_gateway_execution_performed, false);
+      assert.equal(deploymentRunbook.summary.server_started, false);
+      assert.equal(deploymentRunbook.summary.route_execution_performed, false);
+      assert.equal(deploymentRunbook.summary.rollback_execution_performed, false);
+      assert.equal(deploymentRunbook.summary.command_execution_performed, false);
+      assert.equal(deploymentRunbook.summary.protected_action_executed, false);
+      assert.equal(deploymentRunbook.summary.legal_advice_generated, false);
+      assert.equal(deploymentRunbook.summary.client_facing_output_generated, false);
+      assert.equal(deploymentRunbook.summary.human_review_required, true);
+      assert.equal(deploymentRunbook.summary.approval_required_for_prod_like, true);
+      assert.equal(deploymentRunbook.summary.approval_required_for_rollback, true);
+      assert.equal(deploymentRunbook.summary.desktop_read_only, true);
+      assert.equal(deploymentRunbook.summary.desktop_source_of_truth, false);
+      assert.equal(deploymentRunbook.summary.windows_baseline_stability_preserved, true);
+      assert.equal(deploymentRunbook.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(deploymentRunbook.summary.validation_error_count, 0);
+      assert.ok(deploymentRunbook.source_statuses.every((row) => row.source_status === "passed"));
+      assert.ok(deploymentRunbook.deployment_environment_rows.every((row) => row.environment_status === "ready" && !row.deployment_execution_performed));
+      assert.ok(deploymentRunbook.deployment_command_rows.every((row) => row.command_status === "documented" && !row.command_executed && !row.auto_execute_allowed));
+      assert.ok(deploymentRunbook.deployment_checklist_rows.every((row) => row.check_status === "passed"));
+      assert.ok(deploymentRunbook.rollback_procedure_rows.every((row) => row.rollback_status === "documented" && row.requires_human_approval && !row.rollback_execution_performed));
+      assert.ok(deploymentRunbook.deployment_gate_results.every((row) => row.gate_status === "passed" && !row.gate_violation));
+      assert.equal(deploymentRunbook.deployment_runbook_boundary.boundary_status, "enforced");
+      assert.ok(deploymentRunbook.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "deployment-runbook", "summary.md"), "utf8"), /Deployment Runbook/);
+
+      contractGoldenFixtureArtifactPaths.deployment_runbook = path.join(outDir, "deployment-runbook", "deployment-runbook.json");
       contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: contractGoldenFixtureArtifactPaths,
         fixtureIds: Object.keys(contractGoldenFixtureArtifactPaths),
@@ -15246,8 +15331,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 210);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 210);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 211);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 211);
       assert.equal(contractGoldenFixtures.summary.missing_artifact_count, 0);
       assert.equal(contractGoldenFixtures.summary.validation_error_count, 0);
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "dashboard_api_freeze"));
@@ -15263,6 +15348,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "personal_dev_e2e_report"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "creative_document_e2e_report"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "ingestion_e2e_report"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "deployment_runbook"));
 
       contractValidationSuite = await runContractValidationSuite({
         contractGoldenFixturesPath: path.join(outDir, "contract-golden-fixtures", "contract-golden-fixtures.json"),
@@ -15276,8 +15362,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractValidationSuite.summary.validation_suite_status, "complete");
-      assert.equal(contractValidationSuite.summary.fixture_count, 210);
-      assert.equal(contractValidationSuite.summary.validated_fixture_count, 210);
+      assert.equal(contractValidationSuite.summary.fixture_count, 211);
+      assert.equal(contractValidationSuite.summary.validated_fixture_count, 211);
       assert.equal(contractValidationSuite.summary.schema_invalid_fixture_count, 0);
       assert.equal(contractValidationSuite.summary.regression_failed_count, 0);
       assert.equal(contractValidationSuite.summary.missing_package_script_count, 0);
@@ -15295,6 +15381,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:e2e-report"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:e2e-report"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "ingestion:e2e-report"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "deployment:runbook"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
 
       const dashboard = await runReviewDashboard({
@@ -15379,6 +15466,10 @@ describe("matter harness", () => {
       assert.equal(ingestionE2eReportCheckpoint?.acceptance_profile, "ingestion_e2e_report_gate");
       assert.equal(ingestionE2eReportCheckpoint?.status, "passed");
       assert.equal(ingestionE2eReportCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const deploymentRunbookCheckpoint = dashboardApiFreezeGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-deployment-runbook");
+      assert.equal(deploymentRunbookCheckpoint?.acceptance_profile, "deployment_runbook_gate");
+      assert.equal(deploymentRunbookCheckpoint?.status, "passed");
+      assert.equal(deploymentRunbookCheckpoint?.implementation_status, "passed_with_operational_gate");
       assert.equal(dashboard.summary.evidence_approved_count, 1);
       assert.equal(dashboard.summary.evidence_review_draft_item_count, evidenceReviewDraft.summary.review_item_count);
       assert.equal(dashboard.summary.evidence_review_draft_attorney_count, evidenceReviewDraft.summary.attorney_review_count);
@@ -21318,6 +21409,54 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.ingestion_e2e_report_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.ingestion_e2e_report_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.ingestion_e2e_report_validation_error_count, 0);
+      assert.equal(dashboard.summary.deployment_runbook_status, "complete");
+      assert.equal(dashboard.summary.deployment_runbook_id, deploymentRunbook.summary.deployment_runbook_id);
+      assert.equal(dashboard.summary.deployment_runbook_phase_slot, "P309");
+      assert.equal(dashboard.summary.deployment_runbook_previous_phase_slot, "P308");
+      assert.equal(dashboard.summary.deployment_runbook_next_phase_slot, "P310");
+      assert.equal(dashboard.summary.deployment_runbook_source_ingestion_e2e_report_status, "complete");
+      assert.equal(dashboard.summary.deployment_runbook_source_dashboard_api_freeze_status, "complete");
+      assert.equal(dashboard.summary.deployment_runbook_source_backup_restore_drill_status, "complete");
+      assert.equal(dashboard.summary.deployment_runbook_source_runtime_freeze_status, "complete");
+      assert.equal(dashboard.summary.deployment_runbook_source_control_plane_loop_status, "passed");
+      assert.equal(dashboard.summary.deployment_runbook_source_rollback_plan_artifact_status, "complete");
+      assert.equal(dashboard.summary.deployment_runbook_failed_source_status_count, 0);
+      assert.equal(dashboard.summary.deployment_runbook_environment_count, 5);
+      assert.equal(dashboard.summary.deployment_runbook_ready_environment_count, 5);
+      assert.equal(dashboard.summary.deployment_runbook_documented_command_count, dashboard.summary.deployment_runbook_command_count);
+      assert.equal(dashboard.summary.deployment_runbook_command_executed_count, 0);
+      assert.equal(dashboard.summary.deployment_runbook_passed_checklist_row_count, dashboard.summary.deployment_runbook_checklist_row_count);
+      assert.equal(dashboard.summary.deployment_runbook_documented_rollback_procedure_step_count, dashboard.summary.deployment_runbook_rollback_procedure_step_count);
+      assert.equal(dashboard.summary.deployment_runbook_human_review_required_rollback_count, dashboard.summary.deployment_runbook_rollback_procedure_step_count);
+      assert.equal(dashboard.summary.deployment_runbook_gate_violation_count, 0);
+      assert.equal(dashboard.summary.deployment_runbook_local_dev_prod_like_command_coverage_complete, true);
+      assert.equal(dashboard.summary.deployment_runbook_rollback_procedure_documented, true);
+      assert.equal(dashboard.summary.deployment_runbook_read_only, true);
+      assert.equal(dashboard.summary.deployment_runbook_report_only, true);
+      assert.equal(dashboard.summary.deployment_runbook_runbook_only, true);
+      assert.equal(dashboard.summary.deployment_runbook_deployment_execution_performed, false);
+      assert.equal(dashboard.summary.deployment_runbook_local_execution_performed, false);
+      assert.equal(dashboard.summary.deployment_runbook_prod_like_execution_performed, false);
+      assert.equal(dashboard.summary.deployment_runbook_desktop_companion_deployment_required, false);
+      assert.equal(dashboard.summary.deployment_runbook_desktop_companion_deployment_optional, true);
+      assert.equal(dashboard.summary.deployment_runbook_desktop_companion_deployment_performed, false);
+      assert.equal(dashboard.summary.deployment_runbook_desktop_installer_execution_performed, false);
+      assert.equal(dashboard.summary.deployment_runbook_desktop_gateway_execution_performed, false);
+      assert.equal(dashboard.summary.deployment_runbook_server_started, false);
+      assert.equal(dashboard.summary.deployment_runbook_route_execution_performed, false);
+      assert.equal(dashboard.summary.deployment_runbook_rollback_execution_performed, false);
+      assert.equal(dashboard.summary.deployment_runbook_command_execution_performed, false);
+      assert.equal(dashboard.summary.deployment_runbook_protected_action_executed, false);
+      assert.equal(dashboard.summary.deployment_runbook_legal_advice_generated, false);
+      assert.equal(dashboard.summary.deployment_runbook_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.deployment_runbook_human_review_required, true);
+      assert.equal(dashboard.summary.deployment_runbook_approval_required_for_prod_like, true);
+      assert.equal(dashboard.summary.deployment_runbook_approval_required_for_rollback, true);
+      assert.equal(dashboard.summary.deployment_runbook_desktop_read_only, true);
+      assert.equal(dashboard.summary.deployment_runbook_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.deployment_runbook_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.deployment_runbook_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.deployment_runbook_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -25822,6 +25961,58 @@ describe("matter harness", () => {
       assert.equal(ingestionE2eReportStage?.metrics.desktop_read_only, true);
       assert.equal(ingestionE2eReportStage?.metrics.desktop_source_of_truth, false);
       assert.equal(ingestionE2eReportStage?.metrics.validation_error_count, 0);
+      const deploymentRunbookStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "deployment_runbook");
+      assert.equal(deploymentRunbookStage?.status, "passed");
+      assert.equal(deploymentRunbookStage?.metrics.deployment_runbook_status, "complete");
+      assert.equal(deploymentRunbookStage?.metrics.deployment_runbook_id, deploymentRunbook.summary.deployment_runbook_id);
+      assert.equal(deploymentRunbookStage?.metrics.phase_slot, "P309");
+      assert.equal(deploymentRunbookStage?.metrics.previous_phase_slot, "P308");
+      assert.equal(deploymentRunbookStage?.metrics.next_phase_slot, "P310");
+      assert.equal(deploymentRunbookStage?.metrics.source_ingestion_e2e_report_status, "complete");
+      assert.equal(deploymentRunbookStage?.metrics.source_ingestion_e2e_report_phase_slot, "P308");
+      assert.equal(deploymentRunbookStage?.metrics.source_ingestion_e2e_report_next_phase_slot, "P309");
+      assert.equal(deploymentRunbookStage?.metrics.source_dashboard_api_freeze_status, "complete");
+      assert.equal(deploymentRunbookStage?.metrics.source_backup_restore_drill_status, "complete");
+      assert.equal(deploymentRunbookStage?.metrics.source_runtime_freeze_status, "complete");
+      assert.equal(deploymentRunbookStage?.metrics.source_control_plane_loop_status, "passed");
+      assert.equal(deploymentRunbookStage?.metrics.source_rollback_plan_artifact_status, "complete");
+      assert.equal(deploymentRunbookStage?.metrics.failed_source_status_count, 0);
+      assert.equal(deploymentRunbookStage?.metrics.environment_count, 5);
+      assert.equal(deploymentRunbookStage?.metrics.ready_environment_count, 5);
+      assert.equal(deploymentRunbookStage?.metrics.documented_command_count, deploymentRunbookStage?.metrics.command_count);
+      assert.equal(deploymentRunbookStage?.metrics.command_executed_count, 0);
+      assert.equal(deploymentRunbookStage?.metrics.passed_checklist_row_count, deploymentRunbookStage?.metrics.checklist_row_count);
+      assert.equal(deploymentRunbookStage?.metrics.documented_rollback_procedure_step_count, deploymentRunbookStage?.metrics.rollback_procedure_step_count);
+      assert.equal(deploymentRunbookStage?.metrics.human_review_required_rollback_count, deploymentRunbookStage?.metrics.rollback_procedure_step_count);
+      assert.equal(deploymentRunbookStage?.metrics.gate_violation_count, 0);
+      assert.equal(deploymentRunbookStage?.metrics.local_dev_prod_like_command_coverage_complete, true);
+      assert.equal(deploymentRunbookStage?.metrics.rollback_procedure_documented, true);
+      assert.equal(deploymentRunbookStage?.metrics.read_only, true);
+      assert.equal(deploymentRunbookStage?.metrics.report_only, true);
+      assert.equal(deploymentRunbookStage?.metrics.runbook_only, true);
+      assert.equal(deploymentRunbookStage?.metrics.deployment_execution_performed, false);
+      assert.equal(deploymentRunbookStage?.metrics.local_execution_performed, false);
+      assert.equal(deploymentRunbookStage?.metrics.prod_like_execution_performed, false);
+      assert.equal(deploymentRunbookStage?.metrics.desktop_companion_deployment_required, false);
+      assert.equal(deploymentRunbookStage?.metrics.desktop_companion_deployment_optional, true);
+      assert.equal(deploymentRunbookStage?.metrics.desktop_companion_deployment_performed, false);
+      assert.equal(deploymentRunbookStage?.metrics.desktop_installer_execution_performed, false);
+      assert.equal(deploymentRunbookStage?.metrics.desktop_gateway_execution_performed, false);
+      assert.equal(deploymentRunbookStage?.metrics.server_started, false);
+      assert.equal(deploymentRunbookStage?.metrics.route_execution_performed, false);
+      assert.equal(deploymentRunbookStage?.metrics.rollback_execution_performed, false);
+      assert.equal(deploymentRunbookStage?.metrics.command_execution_performed, false);
+      assert.equal(deploymentRunbookStage?.metrics.protected_action_executed, false);
+      assert.equal(deploymentRunbookStage?.metrics.legal_advice_generated, false);
+      assert.equal(deploymentRunbookStage?.metrics.client_facing_output_generated, false);
+      assert.equal(deploymentRunbookStage?.metrics.human_review_required, true);
+      assert.equal(deploymentRunbookStage?.metrics.approval_required_for_prod_like, true);
+      assert.equal(deploymentRunbookStage?.metrics.approval_required_for_rollback, true);
+      assert.equal(deploymentRunbookStage?.metrics.desktop_read_only, true);
+      assert.equal(deploymentRunbookStage?.metrics.desktop_source_of_truth, false);
+      assert.equal(deploymentRunbookStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(deploymentRunbookStage?.metrics.mac_windows_completion_instability_guard, true);
+      assert.equal(deploymentRunbookStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -29571,6 +29762,42 @@ describe("matter harness", () => {
       const ingestionE2eReportValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/ingestion-e2e-report-validations?status=passed", apiOptions)).body);
       assert.equal(ingestionE2eReportValidationsResponse.collection, "ingestion_e2e_report_validations");
       assert.equal(ingestionE2eReportValidationsResponse.count, ingestionE2eReport.summary.validation_item_count);
+
+      const deploymentRunbooksResponse = JSON.parse((await buildReviewApiResponse("/api/deployment-runbooks?deployment_runbook_status=complete", apiOptions)).body);
+      assert.equal(deploymentRunbooksResponse.collection, "deployment_runbooks");
+      assert.equal(deploymentRunbooksResponse.count, 1);
+
+      const deploymentRunbookSourcesResponse = JSON.parse((await buildReviewApiResponse("/api/deployment-runbook-sources?source_status=passed", apiOptions)).body);
+      assert.equal(deploymentRunbookSourcesResponse.collection, "deployment_runbook_sources");
+      assert.equal(deploymentRunbookSourcesResponse.count, deploymentRunbook.summary.source_status_count);
+
+      const deploymentEnvironmentsResponse = JSON.parse((await buildReviewApiResponse("/api/deployment-environments?environment_status=ready", apiOptions)).body);
+      assert.equal(deploymentEnvironmentsResponse.collection, "deployment_environments");
+      assert.equal(deploymentEnvironmentsResponse.count, deploymentRunbook.summary.environment_count);
+
+      const deploymentCommandsResponse = JSON.parse((await buildReviewApiResponse("/api/deployment-commands?command_status=documented&command_executed=false", apiOptions)).body);
+      assert.equal(deploymentCommandsResponse.collection, "deployment_commands");
+      assert.equal(deploymentCommandsResponse.count, deploymentRunbook.summary.command_count);
+
+      const deploymentChecklistsResponse = JSON.parse((await buildReviewApiResponse("/api/deployment-checklists", apiOptions)).body);
+      assert.equal(deploymentChecklistsResponse.collection, "deployment_checklists");
+      assert.equal(deploymentChecklistsResponse.count, deploymentRunbook.summary.checklist_row_count);
+
+      const deploymentRollbackProceduresResponse = JSON.parse((await buildReviewApiResponse("/api/deployment-rollback-procedures?rollback_status=documented", apiOptions)).body);
+      assert.equal(deploymentRollbackProceduresResponse.collection, "deployment_rollback_procedures");
+      assert.equal(deploymentRollbackProceduresResponse.count, deploymentRunbook.summary.rollback_procedure_step_count);
+
+      const deploymentGateResultsResponse = JSON.parse((await buildReviewApiResponse("/api/deployment-gate-results?deployment_gate_passed=true", apiOptions)).body);
+      assert.equal(deploymentGateResultsResponse.collection, "deployment_gate_results");
+      assert.equal(deploymentGateResultsResponse.count, deploymentRunbook.summary.gate_result_count);
+
+      const deploymentRunbookBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/deployment-runbook-boundary?boundary_status=enforced&read_only=true&client_facing_output_generated=false", apiOptions)).body);
+      assert.equal(deploymentRunbookBoundaryResponse.collection, "deployment_runbook_boundary");
+      assert.equal(deploymentRunbookBoundaryResponse.count, 1);
+
+      const deploymentRunbookValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/deployment-runbook-validations?status=passed", apiOptions)).body);
+      assert.equal(deploymentRunbookValidationsResponse.collection, "deployment_runbook_validations");
+      assert.equal(deploymentRunbookValidationsResponse.count, deploymentRunbook.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

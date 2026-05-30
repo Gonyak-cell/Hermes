@@ -169,6 +169,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "creative-document:freeze",
   "creative-document:e2e-report",
   "ingestion:e2e-report",
+  "deployment:runbook",
   "connectors:contract-v2",
   "connectors:local-folder",
   "connectors:onedrive-boundary",

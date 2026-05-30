@@ -181,6 +181,7 @@ const GOAL_ITEMS = [
   sourceItem("personal_dev_e2e_report", "Personal Dev E2E Report", "personal_dev", "personal_dev_e2e_report", "control-plane-personal-dev-e2e-report", { acceptance_profile: "personal_dev_e2e_report_gate" }),
   sourceItem("creative_document_e2e_report", "Creative Document E2E Report", "creative_document", "creative_document_e2e_report", "control-plane-creative-document-e2e-report", { acceptance_profile: "creative_document_e2e_report_gate" }),
   sourceItem("ingestion_e2e_report", "Ingestion E2E Report", "resource_evidence", "ingestion_e2e_report", "control-plane-ingestion-e2e-report", { acceptance_profile: "ingestion_e2e_report_gate" }),
+  sourceItem("deployment_runbook", "Deployment Runbook", "deployment", "deployment_runbook", "control-plane-deployment-runbook", { acceptance_profile: "deployment_runbook_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -721,6 +722,7 @@ function evaluateStageAcceptance(item, stage) {
     "personal_dev_e2e_report_gate",
     "creative_document_e2e_report_gate",
     "ingestion_e2e_report_gate",
+    "deployment_runbook_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -7154,6 +7156,82 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Ingestion E2E Report locks P308 connector->backfill->quarantine->evidence->dashboard coverage with no connector/backfill/ingest/quarantine/dashboard execution, human-review gates, and Windows baseline stability.");
+    }
+  }
+
+  if (item.acceptance_profile === "deployment_runbook_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.deployment_runbook_status === "complete"
+      && metrics.phase_slot === "P309"
+      && metrics.previous_phase_slot === "P308"
+      && metrics.next_phase_slot === "P310"
+      && metrics.source_ingestion_e2e_report_status === "complete"
+      && metrics.source_ingestion_e2e_report_phase_slot === "P308"
+      && metrics.source_ingestion_e2e_report_next_phase_slot === "P309"
+      && metrics.source_dashboard_api_freeze_status === "complete"
+      && metrics.source_backup_restore_drill_status === "complete"
+      && metrics.source_runtime_freeze_status === "complete"
+      && metrics.source_control_plane_loop_status === "passed"
+      && metrics.source_rollback_plan_artifact_status === "complete"
+      && metrics.failed_source_status_count === 0
+      && metrics.environment_count >= 5
+      && metrics.ready_environment_count === metrics.environment_count
+      && metrics.local_environment_ready_count >= 1
+      && metrics.dev_environment_ready_count >= 1
+      && metrics.prod_like_environment_ready_count >= 1
+      && metrics.desktop_companion_environment_ready_count >= 1
+      && metrics.rollback_environment_ready_count >= 1
+      && metrics.command_count >= 10
+      && metrics.documented_command_count === metrics.command_count
+      && metrics.command_executed_count === 0
+      && metrics.auto_execute_allowed_count === 0
+      && metrics.checklist_row_count >= 5
+      && metrics.passed_checklist_row_count === metrics.checklist_row_count
+      && metrics.rollback_procedure_step_count >= 3
+      && metrics.documented_rollback_procedure_step_count === metrics.rollback_procedure_step_count
+      && metrics.human_review_required_rollback_count === metrics.rollback_procedure_step_count
+      && metrics.rollback_execution_performed_count === 0
+      && metrics.gate_result_count >= 5
+      && metrics.passed_gate_result_count === metrics.gate_result_count
+      && metrics.gate_violation_count === 0
+      && metrics.local_dev_prod_like_command_coverage_complete === true
+      && metrics.rollback_procedure_documented === true
+      && metrics.read_only === true
+      && metrics.report_only === true
+      && metrics.runbook_only === true
+      && metrics.deployment_execution_performed === false
+      && metrics.local_execution_performed === false
+      && metrics.prod_like_execution_performed === false
+      && metrics.production_deployment_performed === false
+      && metrics.desktop_companion_deployment_required === false
+      && metrics.desktop_companion_deployment_optional === true
+      && metrics.desktop_companion_deployment_performed === false
+      && metrics.desktop_companion_install_performed === false
+      && metrics.desktop_installer_execution_performed === false
+      && metrics.desktop_gateway_execution_performed === false
+      && metrics.server_started === false
+      && metrics.route_execution_performed === false
+      && metrics.rollback_execution_performed === false
+      && metrics.restore_execution_performed === false
+      && metrics.command_execution_performed === false
+      && metrics.external_network_access_performed === false
+      && metrics.secret_material_read === false
+      && metrics.protected_action_executed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.client_facing_ready === false
+      && metrics.human_review_required === true
+      && metrics.approval_required_for_prod_like === true
+      && metrics.approval_required_for_rollback === true
+      && metrics.desktop_read_only === true
+      && metrics.desktop_source_of_truth === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Deployment Runbook locks P309 local/dev/prod-like/Desktop optional/rollback procedures as read-only documentation with no deployment, server, command, rollback, protected, legal, or client-facing execution.");
     }
   }
 

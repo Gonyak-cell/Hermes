@@ -96,6 +96,7 @@ import { runPolicyViolationQueue } from "../src/policy-violation-queue.mjs";
 import { runCostObservabilityDashboard } from "../src/cost-observability-dashboard.mjs";
 import { runDashboardApiFreeze } from "../src/dashboard-api-freeze.mjs";
 import { runThreatModelRefresh } from "../src/threat-model-refresh.mjs";
+import { runPromptInjectionTestSuite } from "../src/prompt-injection-test-suite.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -1989,6 +1990,7 @@ describe("matter harness", () => {
         costObservabilityDashboardPath: path.join(outDir, "cost-observability-dashboard", "cost-observability-dashboard.json"),
         dashboardApiFreezePath: path.join(outDir, "dashboard-api-freeze", "dashboard-api-freeze.json"),
         threatModelRefreshPath: path.join(outDir, "threat-model-refresh", "threat-model-refresh.json"),
+        promptInjectionTestSuitePath: path.join(outDir, "prompt-injection-test-suite", "prompt-injection-test-suite.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -2120,6 +2122,7 @@ describe("matter harness", () => {
         controlPlaneGoalCheckpointPath: false,
         controlPlaneAuditTrailPath: false,
         threatModelRefreshPath: false,
+        promptInjectionTestSuitePath: false,
         observabilityFreezePath: false,
         capabilityManifestV2Path: false,
         packManifestCompatibilityPath: false,
@@ -13345,6 +13348,7 @@ describe("matter harness", () => {
         controlPlaneWorkPacketReceiptApplicationPath: path.join(outDir, "control-plane-work-packet-receipt-application", "control-plane-work-packet-receipt-application.json"),
         dashboardApiFreezePath: false,
         threatModelRefreshPath: false,
+        promptInjectionTestSuitePath: false,
         outDir: path.join(outDir, "dashboard-pre-checkpoint"),
         runAt: "2026-05-23T06:35:08.000Z",
       });
@@ -14433,6 +14437,68 @@ describe("matter harness", () => {
       assert.match(await readFile(path.join(outDir, "threat-model-refresh", "summary.md"), "utf8"), /Threat Model Refresh/);
 
       contractGoldenFixtureArtifactPaths.threat_model_refresh = path.join(outDir, "threat-model-refresh", "threat-model-refresh.json");
+      const promptInjectionTestSuite = await runPromptInjectionTestSuite({
+        threatModelRefreshPath: path.join(outDir, "threat-model-refresh", "threat-model-refresh.json"),
+        workflowPromptInjectionBoundaryPath: path.join(outDir, "workflow-prompt-injection-boundary", "workflow-prompt-injection-boundary.json"),
+        outDir: path.join(outDir, "prompt-injection-test-suite"),
+        runAt: "2026-05-23T07:26:35.375Z",
+      });
+      const promptInjectionTestSuiteSchema = JSON.parse(await readFile("schemas/prompt-injection-test-suite.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(promptInjectionTestSuite, promptInjectionTestSuiteSchema, {}, "prompt_injection_test_suite"), [], JSON.stringify(promptInjectionTestSuite.validation.errors));
+      assert.equal(promptInjectionTestSuite.summary.prompt_injection_test_suite_status, "complete");
+      assert.equal(promptInjectionTestSuite.summary.phase_slot, "P298");
+      assert.equal(promptInjectionTestSuite.summary.previous_phase_slot, "P297");
+      assert.equal(promptInjectionTestSuite.summary.next_phase_slot, "P299");
+      assert.equal(promptInjectionTestSuite.summary.source_threat_model_refresh_status, "complete");
+      assert.equal(promptInjectionTestSuite.summary.source_threat_model_refresh_phase_slot, "P297");
+      assert.equal(promptInjectionTestSuite.summary.source_threat_model_refresh_next_phase_slot, "P298");
+      assert.equal(promptInjectionTestSuite.summary.source_workflow_prompt_injection_boundary_status, "complete");
+      assert.equal(promptInjectionTestSuite.summary.failed_source_status_count, 0);
+      assert.equal(promptInjectionTestSuite.summary.test_case_count, 10);
+      assert.equal(promptInjectionTestSuite.summary.passed_test_case_count, 10);
+      assert.equal(promptInjectionTestSuite.summary.failed_test_case_count, 0);
+      assert.equal(promptInjectionTestSuite.summary.external_document_instruction_fixture_count, 10);
+      assert.equal(promptInjectionTestSuite.summary.synthetic_fixture_count, 10);
+      assert.ok(promptInjectionTestSuite.summary.detected_instruction_signal_count >= 10);
+      assert.equal(promptInjectionTestSuite.summary.neutralized_instruction_signal_count, promptInjectionTestSuite.summary.detected_instruction_signal_count);
+      assert.equal(promptInjectionTestSuite.summary.expected_signal_detected_count, 10);
+      assert.equal(promptInjectionTestSuite.summary.promoted_prompt_instruction_count, 0);
+      assert.equal(promptInjectionTestSuite.summary.promoted_tool_instruction_count, 0);
+      assert.equal(promptInjectionTestSuite.summary.policy_override_allowed_count, 0);
+      assert.equal(promptInjectionTestSuite.summary.tool_instruction_allowed_count, 0);
+      assert.equal(promptInjectionTestSuite.summary.system_prompt_override_allowed_count, 0);
+      assert.equal(promptInjectionTestSuite.summary.raw_instruction_execution_allowed_count, 0);
+      assert.equal(promptInjectionTestSuite.summary.client_facing_output_allowed_count, 0);
+      assert.equal(promptInjectionTestSuite.summary.external_transfer_allowed_count, 0);
+      assert.equal(promptInjectionTestSuite.summary.protected_action_executed_count, 0);
+      assert.equal(promptInjectionTestSuite.summary.promotion_check_count, 60);
+      assert.equal(promptInjectionTestSuite.summary.passed_promotion_check_count, 60);
+      assert.equal(promptInjectionTestSuite.summary.failed_promotion_check_count, 0);
+      assert.equal(promptInjectionTestSuite.summary.read_only, true);
+      assert.equal(promptInjectionTestSuite.summary.synthetic_fixture_only, true);
+      assert.equal(promptInjectionTestSuite.summary.source_content_read_performed, false);
+      assert.equal(promptInjectionTestSuite.summary.source_ingest_performed, false);
+      assert.equal(promptInjectionTestSuite.summary.agent_invocation_performed, false);
+      assert.equal(promptInjectionTestSuite.summary.tool_execution_performed, false);
+      assert.equal(promptInjectionTestSuite.summary.route_execution_performed, false);
+      assert.equal(promptInjectionTestSuite.summary.server_started, false);
+      assert.equal(promptInjectionTestSuite.summary.legal_advice_generated, false);
+      assert.equal(promptInjectionTestSuite.summary.client_facing_output_generated, false);
+      assert.equal(promptInjectionTestSuite.summary.human_review_required, true);
+      assert.equal(promptInjectionTestSuite.summary.client_facing_ready, false);
+      assert.equal(promptInjectionTestSuite.summary.windows_baseline_stability_preserved, true);
+      assert.equal(promptInjectionTestSuite.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(promptInjectionTestSuite.summary.validation_error_count, 0);
+      assert.ok(promptInjectionTestSuite.prompt_injection_test_fixtures.every((fixture) => fixture.synthetic_fixture && fixture.fixture_group === "external_document_instruction" && fixture.external_document_instruction_present));
+      assert.ok(promptInjectionTestSuite.prompt_injection_test_results.every((result) => result.test_case_status === "passed" && !result.promoted_to_prompt_instruction && !result.promoted_to_tool_instruction && !result.policy_override_allowed && !result.tool_instruction_allowed && !result.system_prompt_override_allowed && !result.raw_instruction_execution_allowed && !result.agent_invocation_performed && !result.tool_execution_performed && !result.route_execution_performed));
+      assert.ok(promptInjectionTestSuite.instruction_promotion_checks.every((check) => check.promotion_check_status === "passed"));
+      assert.equal(promptInjectionTestSuite.prompt_injection_test_boundary.boundary_status, "enforced");
+      assert.equal(promptInjectionTestSuite.prompt_injection_test_boundary.read_only, true);
+      assert.equal(promptInjectionTestSuite.prompt_injection_test_boundary.synthetic_fixture_only, true);
+      assert.ok(promptInjectionTestSuite.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "prompt-injection-test-suite", "summary.md"), "utf8"), /Prompt Injection Test Suite/);
+
+      contractGoldenFixtureArtifactPaths.prompt_injection_test_suite = path.join(outDir, "prompt-injection-test-suite", "prompt-injection-test-suite.json");
       contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: contractGoldenFixtureArtifactPaths,
         fixtureIds: Object.keys(contractGoldenFixtureArtifactPaths),
@@ -14444,12 +14510,13 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 199);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 199);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 200);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 200);
       assert.equal(contractGoldenFixtures.summary.missing_artifact_count, 0);
       assert.equal(contractGoldenFixtures.summary.validation_error_count, 0);
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "dashboard_api_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "threat_model_refresh"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "prompt_injection_test_suite"));
 
       contractValidationSuite = await runContractValidationSuite({
         contractGoldenFixturesPath: path.join(outDir, "contract-golden-fixtures", "contract-golden-fixtures.json"),
@@ -14463,14 +14530,15 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractValidationSuite.summary.validation_suite_status, "complete");
-      assert.equal(contractValidationSuite.summary.fixture_count, 199);
-      assert.equal(contractValidationSuite.summary.validated_fixture_count, 199);
+      assert.equal(contractValidationSuite.summary.fixture_count, 200);
+      assert.equal(contractValidationSuite.summary.validated_fixture_count, 200);
       assert.equal(contractValidationSuite.summary.schema_invalid_fixture_count, 0);
       assert.equal(contractValidationSuite.summary.regression_failed_count, 0);
       assert.equal(contractValidationSuite.summary.missing_package_script_count, 0);
       assert.equal(contractValidationSuite.summary.roadmap_missing_count, 0);
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "dashboard:api-freeze"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "security:threat-model"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "security:prompt-injection-tests"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
 
       const dashboard = await runReviewDashboard({
@@ -14511,6 +14579,10 @@ describe("matter harness", () => {
       assert.equal(threatModelRefreshCheckpoint?.acceptance_profile, "threat_model_refresh_gate");
       assert.equal(threatModelRefreshCheckpoint?.status, "passed");
       assert.equal(threatModelRefreshCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const promptInjectionTestSuiteCheckpoint = dashboardApiFreezeGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-prompt-injection-test-suite");
+      assert.equal(promptInjectionTestSuiteCheckpoint?.acceptance_profile, "prompt_injection_test_suite_gate");
+      assert.equal(promptInjectionTestSuiteCheckpoint?.status, "passed");
+      assert.equal(promptInjectionTestSuiteCheckpoint?.implementation_status, "passed_with_operational_gate");
       assert.equal(dashboard.summary.evidence_approved_count, 1);
       assert.equal(dashboard.summary.evidence_review_draft_item_count, evidenceReviewDraft.summary.review_item_count);
       assert.equal(dashboard.summary.evidence_review_draft_attorney_count, evidenceReviewDraft.summary.attorney_review_count);
@@ -19953,6 +20025,51 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.threat_model_refresh_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.threat_model_refresh_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.threat_model_refresh_validation_error_count, 0);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_status, "complete");
+      assert.equal(dashboard.summary.prompt_injection_test_suite_id, promptInjectionTestSuite.summary.prompt_injection_test_suite_id);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_phase_slot, "P298");
+      assert.equal(dashboard.summary.prompt_injection_test_suite_previous_phase_slot, "P297");
+      assert.equal(dashboard.summary.prompt_injection_test_suite_next_phase_slot, "P299");
+      assert.equal(dashboard.summary.prompt_injection_test_suite_source_threat_model_refresh_status, "complete");
+      assert.equal(dashboard.summary.prompt_injection_test_suite_source_threat_model_refresh_phase_slot, "P297");
+      assert.equal(dashboard.summary.prompt_injection_test_suite_source_threat_model_refresh_next_phase_slot, "P298");
+      assert.equal(dashboard.summary.prompt_injection_test_suite_source_workflow_prompt_injection_boundary_status, "complete");
+      assert.equal(dashboard.summary.prompt_injection_test_suite_failed_source_status_count, 0);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_test_case_count, promptInjectionTestSuite.summary.test_case_count);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_passed_test_case_count, promptInjectionTestSuite.summary.passed_test_case_count);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_failed_test_case_count, 0);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_external_document_instruction_fixture_count, promptInjectionTestSuite.summary.external_document_instruction_fixture_count);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_synthetic_fixture_count, promptInjectionTestSuite.summary.synthetic_fixture_count);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_detected_instruction_signal_count, promptInjectionTestSuite.summary.detected_instruction_signal_count);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_neutralized_instruction_signal_count, promptInjectionTestSuite.summary.neutralized_instruction_signal_count);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_expected_signal_detected_count, promptInjectionTestSuite.summary.expected_signal_detected_count);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_promoted_prompt_instruction_count, 0);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_promoted_tool_instruction_count, 0);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_policy_override_allowed_count, 0);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_tool_instruction_allowed_count, 0);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_system_prompt_override_allowed_count, 0);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_raw_instruction_execution_allowed_count, 0);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_client_facing_output_allowed_count, 0);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_external_transfer_allowed_count, 0);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_protected_action_executed_count, 0);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_promotion_check_count, promptInjectionTestSuite.summary.promotion_check_count);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_passed_promotion_check_count, promptInjectionTestSuite.summary.passed_promotion_check_count);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_failed_promotion_check_count, 0);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_read_only, true);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_synthetic_fixture_only, true);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_source_content_read_performed, false);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_source_ingest_performed, false);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_agent_invocation_performed, false);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_tool_execution_performed, false);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_route_execution_performed, false);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_server_started, false);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_legal_advice_generated, false);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_human_review_required, true);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_client_facing_ready, false);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.prompt_injection_test_suite_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -23975,6 +24092,53 @@ describe("matter harness", () => {
       assert.equal(threatModelRefreshStage?.metrics.legal_advice_generated, false);
       assert.equal(threatModelRefreshStage?.metrics.client_facing_output_generated, false);
       assert.equal(threatModelRefreshStage?.metrics.validation_error_count, 0);
+      const promptInjectionTestSuiteStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "prompt_injection_test_suite");
+      assert.equal(promptInjectionTestSuiteStage?.status, "passed");
+      assert.equal(promptInjectionTestSuiteStage?.metrics.prompt_injection_test_suite_status, "complete");
+      assert.equal(promptInjectionTestSuiteStage?.metrics.prompt_injection_test_suite_id, promptInjectionTestSuite.summary.prompt_injection_test_suite_id);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.phase_slot, "P298");
+      assert.equal(promptInjectionTestSuiteStage?.metrics.previous_phase_slot, "P297");
+      assert.equal(promptInjectionTestSuiteStage?.metrics.next_phase_slot, "P299");
+      assert.equal(promptInjectionTestSuiteStage?.metrics.source_threat_model_refresh_status, "complete");
+      assert.equal(promptInjectionTestSuiteStage?.metrics.source_threat_model_refresh_phase_slot, "P297");
+      assert.equal(promptInjectionTestSuiteStage?.metrics.source_threat_model_refresh_next_phase_slot, "P298");
+      assert.equal(promptInjectionTestSuiteStage?.metrics.source_workflow_prompt_injection_boundary_status, "complete");
+      assert.equal(promptInjectionTestSuiteStage?.metrics.failed_source_status_count, 0);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.test_case_count, promptInjectionTestSuite.summary.test_case_count);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.passed_test_case_count, promptInjectionTestSuite.summary.passed_test_case_count);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.failed_test_case_count, 0);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.external_document_instruction_fixture_count, promptInjectionTestSuite.summary.external_document_instruction_fixture_count);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.synthetic_fixture_count, promptInjectionTestSuite.summary.synthetic_fixture_count);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.detected_instruction_signal_count, promptInjectionTestSuite.summary.detected_instruction_signal_count);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.neutralized_instruction_signal_count, promptInjectionTestSuite.summary.neutralized_instruction_signal_count);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.expected_signal_detected_count, promptInjectionTestSuite.summary.expected_signal_detected_count);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.promoted_prompt_instruction_count, 0);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.promoted_tool_instruction_count, 0);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.policy_override_allowed_count, 0);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.tool_instruction_allowed_count, 0);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.system_prompt_override_allowed_count, 0);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.raw_instruction_execution_allowed_count, 0);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.client_facing_output_allowed_count, 0);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.external_transfer_allowed_count, 0);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.protected_action_executed_count, 0);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.promotion_check_count, promptInjectionTestSuite.summary.promotion_check_count);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.passed_promotion_check_count, promptInjectionTestSuite.summary.passed_promotion_check_count);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.failed_promotion_check_count, 0);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.read_only, true);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.synthetic_fixture_only, true);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.source_content_read_performed, false);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.source_ingest_performed, false);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.agent_invocation_performed, false);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.tool_execution_performed, false);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.route_execution_performed, false);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.server_started, false);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.legal_advice_generated, false);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.client_facing_output_generated, false);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.human_review_required, true);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.client_facing_ready, false);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.mac_windows_completion_instability_guard, true);
+      assert.equal(promptInjectionTestSuiteStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -24232,6 +24396,12 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/threat-model-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/threat-model-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/threat-model-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/prompt-injection-test-suites"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/prompt-injection-test-fixtures"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/prompt-injection-test-results"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/prompt-injection-promotion-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/prompt-injection-test-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/prompt-injection-test-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -27385,6 +27555,30 @@ describe("matter harness", () => {
       const threatModelValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/threat-model-validations?status=passed", apiOptions)).body);
       assert.equal(threatModelValidationsResponse.collection, "threat_model_validations");
       assert.equal(threatModelValidationsResponse.count, threatModelRefresh.summary.validation_item_count);
+
+      const promptInjectionTestSuitesResponse = JSON.parse((await buildReviewApiResponse("/api/prompt-injection-test-suites?prompt_injection_test_suite_status=complete", apiOptions)).body);
+      assert.equal(promptInjectionTestSuitesResponse.collection, "prompt_injection_test_suites");
+      assert.equal(promptInjectionTestSuitesResponse.count, 1);
+
+      const promptInjectionTestFixturesResponse = JSON.parse((await buildReviewApiResponse("/api/prompt-injection-test-fixtures?fixture_group=external_document_instruction", apiOptions)).body);
+      assert.equal(promptInjectionTestFixturesResponse.collection, "prompt_injection_test_fixtures");
+      assert.equal(promptInjectionTestFixturesResponse.count, promptInjectionTestSuite.summary.external_document_instruction_fixture_count);
+
+      const promptInjectionTestResultsResponse = JSON.parse((await buildReviewApiResponse("/api/prompt-injection-test-results?test_case_status=passed", apiOptions)).body);
+      assert.equal(promptInjectionTestResultsResponse.collection, "prompt_injection_test_results");
+      assert.equal(promptInjectionTestResultsResponse.count, promptInjectionTestSuite.summary.passed_test_case_count);
+
+      const promptInjectionPromotionChecksResponse = JSON.parse((await buildReviewApiResponse("/api/prompt-injection-promotion-checks?promotion_check_status=passed&check_kind=prompt_instruction_promotion", apiOptions)).body);
+      assert.equal(promptInjectionPromotionChecksResponse.collection, "prompt_injection_promotion_checks");
+      assert.equal(promptInjectionPromotionChecksResponse.count, promptInjectionTestSuite.summary.test_case_count);
+
+      const promptInjectionTestBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/prompt-injection-test-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(promptInjectionTestBoundaryResponse.collection, "prompt_injection_test_boundary");
+      assert.equal(promptInjectionTestBoundaryResponse.count, 1);
+
+      const promptInjectionTestValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/prompt-injection-test-validations?status=passed", apiOptions)).body);
+      assert.equal(promptInjectionTestValidationsResponse.collection, "prompt_injection_test_validations");
+      assert.equal(promptInjectionTestValidationsResponse.count, promptInjectionTestSuite.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

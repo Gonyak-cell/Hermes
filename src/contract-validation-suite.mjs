@@ -119,6 +119,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "observability:cost-dashboard",
   "dashboard:api-freeze",
   "security:threat-model",
+  "security:prompt-injection-tests",
   "capabilities:manifest-v2",
   "capabilities:registry-api",
   "packs:compatibility",

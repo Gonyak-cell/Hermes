@@ -66,6 +66,12 @@ Threat Model Refresh routes expose the read-only threat model artifact, source r
 
 Routes: `/api/threat-model-refreshes`, `/api/threat-model-sources`, `/api/threat-model-risks`, `/api/threat-model-controls`, `/api/threat-model-evidence`, `/api/threat-model-boundary`, `/api/threat-model-checks`, `/api/threat-model-validations`.
 
+## P298 Prompt Injection Test Suite Routes
+
+Prompt Injection Test Suite routes expose the read-only synthetic external-document instruction fixtures, test results, instruction promotion checks, boundary, and validation rows. Supported filters include `prompt_injection_test_suite_status`, `fixture_group`, `external_surface`, `test_case_status`, `promotion_check_status`, `check_kind`, `read_only`, `boundary_status`, `status`, and `limit`.
+
+Routes: `/api/prompt-injection-test-suites`, `/api/prompt-injection-test-fixtures`, `/api/prompt-injection-test-results`, `/api/prompt-injection-promotion-checks`, `/api/prompt-injection-test-boundary`, `/api/prompt-injection-test-validations`.
+
 ## P245 LDD RFI Generator Routes
 
 LDD RFI Generator routes expose read-only draft-only RFI packets, draft questions, missing-material links, issue links, matter summaries, and validation/boundary rows. Supported filters include `ldd_rfi_generator_status`, `ldd_rfi_matter_status`, `rfi_rule_type`, `rfi_draft_status`, `rfi_question_type`, `rfi_question_priority`, `rfi_question_status`, `rfi_missing_material_status`, `rfi_issue_link_status`, `deterministic_rfi_generation_performed`, `ldd_rfi_question_id`, `ldd_issue_record_id`, `ldd_vdr_missing_data_record_id`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.

@@ -6813,6 +6813,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("threat_model_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/prompt-injection-test-suites") {
+    const result = await readDashboardSourceArtifact(dashboard, "prompt_injection_test_suite");
+    if (!result.available) {
+      return jsonResponse(503, buildError("prompt_injection_test_suite_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("prompt_injection_test_suites", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/prompt-injection-test-fixtures") {
+    const result = await readDashboardSourceArtifact(dashboard, "prompt_injection_test_suite");
+    if (!result.available) {
+      return jsonResponse(503, buildError("prompt_injection_test_suite_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("prompt_injection_test_fixtures", result.artifact.prompt_injection_test_fixtures ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/prompt-injection-test-results") {
+    const result = await readDashboardSourceArtifact(dashboard, "prompt_injection_test_suite");
+    if (!result.available) {
+      return jsonResponse(503, buildError("prompt_injection_test_suite_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("prompt_injection_test_results", result.artifact.prompt_injection_test_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/prompt-injection-promotion-checks") {
+    const result = await readDashboardSourceArtifact(dashboard, "prompt_injection_test_suite");
+    if (!result.available) {
+      return jsonResponse(503, buildError("prompt_injection_test_suite_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("prompt_injection_promotion_checks", result.artifact.instruction_promotion_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/prompt-injection-test-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "prompt_injection_test_suite");
+    if (!result.available) {
+      return jsonResponse(503, buildError("prompt_injection_test_suite_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("prompt_injection_test_boundary", [result.artifact.prompt_injection_test_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/prompt-injection-test-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "prompt_injection_test_suite");
+    if (!result.available) {
+      return jsonResponse(503, buildError("prompt_injection_test_suite_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("prompt_injection_test_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -13390,6 +13432,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/threat-model-boundary", "Threat Model Refresh read-only boundary"),
       route("GET", "/api/threat-model-checks", "Threat Model Refresh check rows"),
       route("GET", "/api/threat-model-validations", "Threat Model Refresh validation rows"),
+      route("GET", "/api/prompt-injection-test-suites", "Prompt Injection Test Suite artifact"),
+      route("GET", "/api/prompt-injection-test-fixtures", "Prompt Injection Test Suite fixture rows"),
+      route("GET", "/api/prompt-injection-test-results", "Prompt Injection Test Suite result rows"),
+      route("GET", "/api/prompt-injection-promotion-checks", "Prompt Injection promotion check rows"),
+      route("GET", "/api/prompt-injection-test-boundary", "Prompt Injection Test Suite read-only boundary"),
+      route("GET", "/api/prompt-injection-test-validations", "Prompt Injection Test Suite validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -14659,6 +14707,12 @@ function filterItems(items, searchParams) {
     "residual_risk_status",
     "control_status",
     "evidence_status",
+    "prompt_injection_test_suite_status",
+    "fixture_group",
+    "external_surface",
+    "test_case_status",
+    "promotion_check_status",
+    "check_kind",
     "method",
     "path",
     "workflow_run_id",
@@ -16670,6 +16724,12 @@ function readFilterValue(item, key) {
   if (key === "residual_risk_status") return item.residual_risk_status;
   if (key === "control_status") return item.control_status;
   if (key === "evidence_status") return item.evidence_status;
+  if (key === "prompt_injection_test_suite_status") return item.summary?.prompt_injection_test_suite_status ?? item.prompt_injection_test_suite_status;
+  if (key === "fixture_group") return item.fixture_group;
+  if (key === "external_surface") return item.external_surface;
+  if (key === "test_case_status") return item.test_case_status;
+  if (key === "promotion_check_status") return item.promotion_check_status;
+  if (key === "check_kind") return item.check_kind;
   if (key === "method") return item.method;
   if (key === "path") return item.path;
   if (key === "workflow_run_id") return item.workflow_run_id;

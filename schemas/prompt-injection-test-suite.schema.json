@@ -1,0 +1,199 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://hermes.local/schemas/prompt-injection-test-suite.schema.json",
+  "title": "Prompt Injection Test Suite",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "prompt_injection_test_suite_id",
+    "summary",
+    "source_statuses",
+    "prompt_injection_test_fixtures",
+    "prompt_injection_test_results",
+    "instruction_promotion_checks",
+    "prompt_injection_test_boundary",
+    "validation",
+    "validation_items"
+  ],
+  "properties": {
+    "schema_version": { "const": "prompt-injection-test-suite.v1" },
+    "generated_at": { "type": "string" },
+    "prompt_injection_test_suite_id": { "type": "string" },
+    "summary": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "prompt_injection_test_suite_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "test_case_count",
+        "passed_test_case_count",
+        "promoted_prompt_instruction_count",
+        "promoted_tool_instruction_count",
+        "policy_override_allowed_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "prompt_injection_test_suite_status": { "const": "complete" },
+        "phase_slot": { "const": "P298" },
+        "previous_phase_slot": { "const": "P297" },
+        "next_phase_slot": { "const": "P299" },
+        "source_threat_model_refresh_status": { "const": "complete" },
+        "source_threat_model_refresh_phase_slot": { "const": "P297" },
+        "source_threat_model_refresh_next_phase_slot": { "const": "P298" },
+        "source_workflow_prompt_injection_boundary_status": { "const": "complete" },
+        "test_case_count": { "type": "integer", "minimum": 10 },
+        "passed_test_case_count": { "type": "integer", "minimum": 10 },
+        "failed_test_case_count": { "const": 0 },
+        "external_document_instruction_fixture_count": { "type": "integer", "minimum": 10 },
+        "synthetic_fixture_count": { "type": "integer", "minimum": 10 },
+        "detected_instruction_signal_count": { "type": "integer", "minimum": 10 },
+        "neutralized_instruction_signal_count": { "type": "integer", "minimum": 10 },
+        "promoted_prompt_instruction_count": { "const": 0 },
+        "promoted_tool_instruction_count": { "const": 0 },
+        "policy_override_allowed_count": { "const": 0 },
+        "tool_instruction_allowed_count": { "const": 0 },
+        "system_prompt_override_allowed_count": { "const": 0 },
+        "raw_instruction_execution_allowed_count": { "const": 0 },
+        "client_facing_output_allowed_count": { "const": 0 },
+        "external_transfer_allowed_count": { "const": 0 },
+        "protected_action_executed_count": { "const": 0 },
+        "failed_promotion_check_count": { "const": 0 },
+        "read_only": { "const": true },
+        "synthetic_fixture_only": { "const": true },
+        "source_content_read_performed": { "const": false },
+        "source_ingest_performed": { "const": false },
+        "agent_invocation_performed": { "const": false },
+        "tool_execution_performed": { "const": false },
+        "route_execution_performed": { "const": false },
+        "server_started": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "client_facing_ready": { "const": false },
+        "windows_baseline_stability_preserved": { "const": true },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "source_statuses": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "properties": {
+          "source_status": { "const": "passed" }
+        }
+      }
+    },
+    "prompt_injection_test_fixtures": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["test_case_id", "fixture_group", "external_surface", "synthetic_fixture", "external_document_instruction_present"],
+        "properties": {
+          "fixture_group": { "const": "external_document_instruction" },
+          "synthetic_fixture": { "const": true },
+          "source_content_read_performed": { "const": false },
+          "source_ingest_performed": { "const": false },
+          "external_document_instruction_present": { "const": true },
+          "expected_promoted_to_prompt_instruction": { "const": false },
+          "expected_promoted_to_tool_instruction": { "const": false },
+          "expected_policy_override_allowed": { "const": false },
+          "expected_external_transfer_allowed": { "const": false },
+          "expected_protected_action_execution_allowed": { "const": false },
+          "client_facing_ready": { "const": false }
+        }
+      }
+    },
+    "prompt_injection_test_results": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["test_case_id", "test_case_status", "detected_signal_count"],
+        "properties": {
+          "test_case_status": { "const": "passed" },
+          "detected_signal_count": { "type": "integer", "minimum": 1 },
+          "expected_signals_detected": { "const": true },
+          "content_role": { "const": "evidence_content" },
+          "instruction_treatment": { "const": "evidence_content_only" },
+          "promoted_to_prompt_instruction": { "const": false },
+          "promoted_to_tool_instruction": { "const": false },
+          "policy_override_allowed": { "const": false },
+          "tool_instruction_allowed": { "const": false },
+          "system_prompt_override_allowed": { "const": false },
+          "raw_instruction_execution_allowed": { "const": false },
+          "client_facing_output_allowed": { "const": false },
+          "external_transfer_allowed": { "const": false },
+          "protected_action_execution_allowed": { "const": false },
+          "agent_invocation_performed": { "const": false },
+          "tool_execution_performed": { "const": false },
+          "route_execution_performed": { "const": false },
+          "server_started": { "const": false },
+          "client_facing_ready": { "const": false }
+        }
+      }
+    },
+    "instruction_promotion_checks": {
+      "type": "array",
+      "minItems": 60,
+      "items": {
+        "type": "object",
+        "required": ["promotion_check_id", "promotion_check_status"],
+        "properties": {
+          "expected_value": { "const": false },
+          "observed_value": { "const": false },
+          "promotion_check_status": { "const": "passed" },
+          "read_only": { "const": true },
+          "client_facing_ready": { "const": false }
+        }
+      }
+    },
+    "prompt_injection_test_boundary": {
+      "type": "object",
+      "required": ["boundary_status", "synthetic_fixture_only", "read_only", "prompt_instruction_promotion_allowed", "tool_instruction_promotion_allowed"],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "synthetic_fixture_only": { "const": true },
+        "read_only": { "const": true },
+        "source_content_read_performed": { "const": false },
+        "source_ingest_performed": { "const": false },
+        "agent_invocation_performed": { "const": false },
+        "tool_execution_performed": { "const": false },
+        "route_execution_performed": { "const": false },
+        "server_started": { "const": false },
+        "prompt_instruction_promotion_allowed": { "const": false },
+        "tool_instruction_promotion_allowed": { "const": false },
+        "policy_override_allowed": { "const": false },
+        "raw_instruction_execution_allowed": { "const": false },
+        "client_facing_output_allowed": { "const": false },
+        "external_transfer_allowed": { "const": false },
+        "protected_action_execution_allowed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "client_facing_ready": { "const": false },
+        "windows_baseline_stability_preserved": { "const": true }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "errors": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "status": { "const": "passed" }
+        }
+      }
+    }
+  }
+}

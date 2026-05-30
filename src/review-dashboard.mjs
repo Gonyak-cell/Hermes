@@ -133,6 +133,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   costObservabilityDashboardPath: "artifacts/cost-observability-dashboard/latest/cost-observability-dashboard.json",
   dashboardApiFreezePath: "artifacts/dashboard-api-freeze/latest/dashboard-api-freeze.json",
   threatModelRefreshPath: "artifacts/threat-model-refresh/latest/threat-model-refresh.json",
+  promptInjectionTestSuitePath: "artifacts/prompt-injection-test-suite/latest/prompt-injection-test-suite.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -941,6 +942,11 @@ const SOURCE_DEFINITIONS = [
     option: "threatModelRefreshPath",
     source_id: "threat_model_refresh",
     label: "Threat Model Refresh",
+  },
+  {
+    option: "promptInjectionTestSuitePath",
+    source_id: "prompt_injection_test_suite",
+    label: "Prompt Injection Test Suite",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -2349,6 +2355,7 @@ function buildStageStatuses(artifacts, sources) {
     buildCostObservabilityDashboardStage(artifacts.cost_observability_dashboard, sourceById.get("cost_observability_dashboard")),
     buildDashboardApiFreezeStage(artifacts.dashboard_api_freeze, sourceById.get("dashboard_api_freeze")),
     buildThreatModelRefreshStage(artifacts.threat_model_refresh, sourceById.get("threat_model_refresh")),
+    buildPromptInjectionTestSuiteStage(artifacts.prompt_injection_test_suite, sourceById.get("prompt_injection_test_suite")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -15765,6 +15772,114 @@ function buildThreatModelRefreshStage(artifact, source) {
   };
 }
 
+function buildPromptInjectionTestSuiteStage(artifact, source) {
+  if (!artifact) return missingStage("prompt_injection_test_suite", "Prompt Injection Test Suite", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.prompt_injection_test_suite_status !== "complete"
+    || summary.phase_slot !== "P298"
+    || summary.previous_phase_slot !== "P297"
+    || summary.next_phase_slot !== "P299"
+    || summary.source_threat_model_refresh_status !== "complete"
+    || summary.source_threat_model_refresh_phase_slot !== "P297"
+    || summary.source_threat_model_refresh_next_phase_slot !== "P298"
+    || summary.source_workflow_prompt_injection_boundary_status !== "complete"
+    || summary.failed_source_status_count !== 0
+    || summary.test_case_count < 10
+    || summary.passed_test_case_count !== summary.test_case_count
+    || summary.failed_test_case_count !== 0
+    || summary.external_document_instruction_fixture_count < 10
+    || summary.synthetic_fixture_count !== summary.test_case_count
+    || summary.detected_instruction_signal_count < summary.test_case_count
+    || summary.neutralized_instruction_signal_count !== summary.detected_instruction_signal_count
+    || summary.promoted_prompt_instruction_count !== 0
+    || summary.promoted_tool_instruction_count !== 0
+    || summary.policy_override_allowed_count !== 0
+    || summary.tool_instruction_allowed_count !== 0
+    || summary.system_prompt_override_allowed_count !== 0
+    || summary.raw_instruction_execution_allowed_count !== 0
+    || summary.client_facing_output_allowed_count !== 0
+    || summary.external_transfer_allowed_count !== 0
+    || summary.protected_action_executed_count !== 0
+    || summary.failed_promotion_check_count !== 0
+    || summary.read_only !== true
+    || summary.synthetic_fixture_only !== true
+    || summary.source_content_read_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.agent_invocation_performed !== false
+    || summary.tool_execution_performed !== false
+    || summary.route_execution_performed !== false
+    || summary.server_started !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.human_review_required !== true
+    || summary.client_facing_ready !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "prompt_injection_test_suite",
+    label: "Prompt Injection Test Suite",
+    status,
+    message: `${summary.passed_test_case_count ?? 0}/${summary.test_case_count ?? 0} prompt injection fixture(s) pass without instruction promotion.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      prompt_injection_test_suite_status: summary.prompt_injection_test_suite_status ?? "unknown",
+      prompt_injection_test_suite_id: summary.prompt_injection_test_suite_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_status_count: summary.source_status_count ?? 0,
+      passed_source_status_count: summary.passed_source_status_count ?? 0,
+      failed_source_status_count: summary.failed_source_status_count ?? 0,
+      source_threat_model_refresh_status: summary.source_threat_model_refresh_status ?? "unknown",
+      source_threat_model_refresh_phase_slot: summary.source_threat_model_refresh_phase_slot ?? null,
+      source_threat_model_refresh_next_phase_slot: summary.source_threat_model_refresh_next_phase_slot ?? null,
+      source_workflow_prompt_injection_boundary_status: summary.source_workflow_prompt_injection_boundary_status ?? "unknown",
+      test_case_count: summary.test_case_count ?? 0,
+      passed_test_case_count: summary.passed_test_case_count ?? 0,
+      failed_test_case_count: summary.failed_test_case_count ?? 0,
+      external_document_instruction_fixture_count: summary.external_document_instruction_fixture_count ?? 0,
+      synthetic_fixture_count: summary.synthetic_fixture_count ?? 0,
+      detected_instruction_signal_count: summary.detected_instruction_signal_count ?? 0,
+      neutralized_instruction_signal_count: summary.neutralized_instruction_signal_count ?? 0,
+      expected_signal_detected_count: summary.expected_signal_detected_count ?? 0,
+      promoted_prompt_instruction_count: summary.promoted_prompt_instruction_count ?? 0,
+      promoted_tool_instruction_count: summary.promoted_tool_instruction_count ?? 0,
+      policy_override_allowed_count: summary.policy_override_allowed_count ?? 0,
+      tool_instruction_allowed_count: summary.tool_instruction_allowed_count ?? 0,
+      system_prompt_override_allowed_count: summary.system_prompt_override_allowed_count ?? 0,
+      raw_instruction_execution_allowed_count: summary.raw_instruction_execution_allowed_count ?? 0,
+      client_facing_output_allowed_count: summary.client_facing_output_allowed_count ?? 0,
+      external_transfer_allowed_count: summary.external_transfer_allowed_count ?? 0,
+      protected_action_executed_count: summary.protected_action_executed_count ?? 0,
+      promotion_check_count: summary.promotion_check_count ?? 0,
+      passed_promotion_check_count: summary.passed_promotion_check_count ?? 0,
+      failed_promotion_check_count: summary.failed_promotion_check_count ?? 0,
+      read_only: summary.read_only ?? false,
+      preview_only: summary.preview_only ?? false,
+      synthetic_fixture_only: summary.synthetic_fixture_only ?? false,
+      source_content_read_performed: summary.source_content_read_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      agent_invocation_performed: summary.agent_invocation_performed ?? false,
+      tool_execution_performed: summary.tool_execution_performed ?? false,
+      route_execution_performed: summary.route_execution_performed ?? false,
+      server_started: summary.server_started ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      human_review_required: summary.human_review_required ?? false,
+      client_facing_ready: summary.client_facing_ready ?? true,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -22607,6 +22722,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_threat_model_refresh", "rerun_threat_model_refresh", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.prompt_injection_test_suite?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "prompt_injection_test_suite";
+    items.push({
+      action_item_id: `dashboard.action.prompt_injection_test_suite.${slugify(subjectId)}`,
+      source_stage: "prompt_injection_test_suite",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Prompt Injection Test Suite",
+      subject_ref: {
+        subject_type: "prompt_injection_test_suite_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_prompt_injection_test_suite", "rerun_prompt_injection_tests", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -30287,6 +30420,56 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     threat_model_refresh_validation_item_count: artifacts.threat_model_refresh?.summary?.validation_item_count ?? 0,
     threat_model_refresh_failed_checkpoint_count: artifacts.threat_model_refresh?.summary?.failed_checkpoint_count ?? 0,
     threat_model_refresh_validation_error_count: artifacts.threat_model_refresh?.summary?.validation_error_count ?? artifacts.threat_model_refresh?.validation?.errors?.length ?? 0,
+    prompt_injection_test_suite_status: artifacts.prompt_injection_test_suite?.summary?.prompt_injection_test_suite_status ?? "unknown",
+    prompt_injection_test_suite_id: artifacts.prompt_injection_test_suite?.summary?.prompt_injection_test_suite_id ?? null,
+    prompt_injection_test_suite_phase_slot: artifacts.prompt_injection_test_suite?.summary?.phase_slot ?? null,
+    prompt_injection_test_suite_previous_phase_slot: artifacts.prompt_injection_test_suite?.summary?.previous_phase_slot ?? null,
+    prompt_injection_test_suite_next_phase_slot: artifacts.prompt_injection_test_suite?.summary?.next_phase_slot ?? null,
+    prompt_injection_test_suite_source_status_count: artifacts.prompt_injection_test_suite?.summary?.source_status_count ?? 0,
+    prompt_injection_test_suite_passed_source_status_count: artifacts.prompt_injection_test_suite?.summary?.passed_source_status_count ?? 0,
+    prompt_injection_test_suite_failed_source_status_count: artifacts.prompt_injection_test_suite?.summary?.failed_source_status_count ?? 0,
+    prompt_injection_test_suite_source_threat_model_refresh_status: artifacts.prompt_injection_test_suite?.summary?.source_threat_model_refresh_status ?? "unknown",
+    prompt_injection_test_suite_source_threat_model_refresh_phase_slot: artifacts.prompt_injection_test_suite?.summary?.source_threat_model_refresh_phase_slot ?? null,
+    prompt_injection_test_suite_source_threat_model_refresh_next_phase_slot: artifacts.prompt_injection_test_suite?.summary?.source_threat_model_refresh_next_phase_slot ?? null,
+    prompt_injection_test_suite_source_workflow_prompt_injection_boundary_status: artifacts.prompt_injection_test_suite?.summary?.source_workflow_prompt_injection_boundary_status ?? "unknown",
+    prompt_injection_test_suite_test_case_count: artifacts.prompt_injection_test_suite?.summary?.test_case_count ?? 0,
+    prompt_injection_test_suite_passed_test_case_count: artifacts.prompt_injection_test_suite?.summary?.passed_test_case_count ?? 0,
+    prompt_injection_test_suite_failed_test_case_count: artifacts.prompt_injection_test_suite?.summary?.failed_test_case_count ?? 0,
+    prompt_injection_test_suite_external_document_instruction_fixture_count: artifacts.prompt_injection_test_suite?.summary?.external_document_instruction_fixture_count ?? 0,
+    prompt_injection_test_suite_synthetic_fixture_count: artifacts.prompt_injection_test_suite?.summary?.synthetic_fixture_count ?? 0,
+    prompt_injection_test_suite_detected_instruction_signal_count: artifacts.prompt_injection_test_suite?.summary?.detected_instruction_signal_count ?? 0,
+    prompt_injection_test_suite_neutralized_instruction_signal_count: artifacts.prompt_injection_test_suite?.summary?.neutralized_instruction_signal_count ?? 0,
+    prompt_injection_test_suite_expected_signal_detected_count: artifacts.prompt_injection_test_suite?.summary?.expected_signal_detected_count ?? 0,
+    prompt_injection_test_suite_promoted_prompt_instruction_count: artifacts.prompt_injection_test_suite?.summary?.promoted_prompt_instruction_count ?? 0,
+    prompt_injection_test_suite_promoted_tool_instruction_count: artifacts.prompt_injection_test_suite?.summary?.promoted_tool_instruction_count ?? 0,
+    prompt_injection_test_suite_policy_override_allowed_count: artifacts.prompt_injection_test_suite?.summary?.policy_override_allowed_count ?? 0,
+    prompt_injection_test_suite_tool_instruction_allowed_count: artifacts.prompt_injection_test_suite?.summary?.tool_instruction_allowed_count ?? 0,
+    prompt_injection_test_suite_system_prompt_override_allowed_count: artifacts.prompt_injection_test_suite?.summary?.system_prompt_override_allowed_count ?? 0,
+    prompt_injection_test_suite_raw_instruction_execution_allowed_count: artifacts.prompt_injection_test_suite?.summary?.raw_instruction_execution_allowed_count ?? 0,
+    prompt_injection_test_suite_client_facing_output_allowed_count: artifacts.prompt_injection_test_suite?.summary?.client_facing_output_allowed_count ?? 0,
+    prompt_injection_test_suite_external_transfer_allowed_count: artifacts.prompt_injection_test_suite?.summary?.external_transfer_allowed_count ?? 0,
+    prompt_injection_test_suite_protected_action_executed_count: artifacts.prompt_injection_test_suite?.summary?.protected_action_executed_count ?? 0,
+    prompt_injection_test_suite_promotion_check_count: artifacts.prompt_injection_test_suite?.summary?.promotion_check_count ?? 0,
+    prompt_injection_test_suite_passed_promotion_check_count: artifacts.prompt_injection_test_suite?.summary?.passed_promotion_check_count ?? 0,
+    prompt_injection_test_suite_failed_promotion_check_count: artifacts.prompt_injection_test_suite?.summary?.failed_promotion_check_count ?? 0,
+    prompt_injection_test_suite_read_only: artifacts.prompt_injection_test_suite?.summary?.read_only ?? false,
+    prompt_injection_test_suite_preview_only: artifacts.prompt_injection_test_suite?.summary?.preview_only ?? false,
+    prompt_injection_test_suite_synthetic_fixture_only: artifacts.prompt_injection_test_suite?.summary?.synthetic_fixture_only ?? false,
+    prompt_injection_test_suite_source_content_read_performed: artifacts.prompt_injection_test_suite?.summary?.source_content_read_performed ?? false,
+    prompt_injection_test_suite_source_ingest_performed: artifacts.prompt_injection_test_suite?.summary?.source_ingest_performed ?? false,
+    prompt_injection_test_suite_agent_invocation_performed: artifacts.prompt_injection_test_suite?.summary?.agent_invocation_performed ?? false,
+    prompt_injection_test_suite_tool_execution_performed: artifacts.prompt_injection_test_suite?.summary?.tool_execution_performed ?? false,
+    prompt_injection_test_suite_route_execution_performed: artifacts.prompt_injection_test_suite?.summary?.route_execution_performed ?? false,
+    prompt_injection_test_suite_server_started: artifacts.prompt_injection_test_suite?.summary?.server_started ?? false,
+    prompt_injection_test_suite_legal_advice_generated: artifacts.prompt_injection_test_suite?.summary?.legal_advice_generated ?? false,
+    prompt_injection_test_suite_client_facing_output_generated: artifacts.prompt_injection_test_suite?.summary?.client_facing_output_generated ?? false,
+    prompt_injection_test_suite_human_review_required: artifacts.prompt_injection_test_suite?.summary?.human_review_required ?? false,
+    prompt_injection_test_suite_client_facing_ready: artifacts.prompt_injection_test_suite?.summary?.client_facing_ready ?? true,
+    prompt_injection_test_suite_windows_baseline_stability_preserved: artifacts.prompt_injection_test_suite?.summary?.windows_baseline_stability_preserved ?? false,
+    prompt_injection_test_suite_mac_windows_completion_instability_guard: artifacts.prompt_injection_test_suite?.summary?.mac_windows_completion_instability_guard ?? false,
+    prompt_injection_test_suite_validation_item_count: artifacts.prompt_injection_test_suite?.summary?.validation_item_count ?? 0,
+    prompt_injection_test_suite_failed_checkpoint_count: artifacts.prompt_injection_test_suite?.summary?.failed_checkpoint_count ?? 0,
+    prompt_injection_test_suite_validation_error_count: artifacts.prompt_injection_test_suite?.summary?.validation_error_count ?? artifacts.prompt_injection_test_suite?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -32136,6 +32319,8 @@ function parseArgs(argv) {
     else if (arg === "--no-dashboard-api-freeze") parsed.dashboardApiFreezePath = false;
     else if (arg === "--threat-model-refresh") parsed.threatModelRefreshPath = argv[++index];
     else if (arg === "--no-threat-model-refresh") parsed.threatModelRefreshPath = false;
+    else if (arg === "--prompt-injection-test-suite") parsed.promptInjectionTestSuitePath = argv[++index];
+    else if (arg === "--no-prompt-injection-test-suite") parsed.promptInjectionTestSuitePath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

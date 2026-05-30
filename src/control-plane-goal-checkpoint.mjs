@@ -170,6 +170,7 @@ const GOAL_ITEMS = [
   sourceItem("cost_observability_dashboard", "Cost/Observability Dashboard", "api", "cost_observability_dashboard", "control-plane-cost-observability-dashboard", { acceptance_profile: "cost_observability_dashboard_gate" }),
   sourceItem("dashboard_api_freeze", "Dashboard/API Freeze", "api", "dashboard_api_freeze", "control-plane-dashboard-api-freeze", { acceptance_profile: "dashboard_api_freeze_gate" }),
   sourceItem("threat_model_refresh", "Threat Model Refresh", "security", "threat_model_refresh", "control-plane-threat-model-refresh", { acceptance_profile: "threat_model_refresh_gate" }),
+  sourceItem("prompt_injection_test_suite", "Prompt Injection Test Suite", "security", "prompt_injection_test_suite", "control-plane-prompt-injection-test-suite", { acceptance_profile: "prompt_injection_test_suite_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -699,6 +700,7 @@ function evaluateStageAcceptance(item, stage) {
     "cost_observability_dashboard_gate",
     "dashboard_api_freeze_gate",
     "threat_model_refresh_gate",
+    "prompt_injection_test_suite_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -6461,6 +6463,55 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Threat Model Refresh locks P297 prompt injection, data leak, over-agency, insecure tool, Desktop installer/auto-update/SSH/cron/gateway, and provider key risks behind read-only controls while preserving Windows baseline stability and human-review gates.");
+    }
+  }
+
+  if (item.acceptance_profile === "prompt_injection_test_suite_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.prompt_injection_test_suite_status === "complete"
+      && metrics.phase_slot === "P298"
+      && metrics.previous_phase_slot === "P297"
+      && metrics.next_phase_slot === "P299"
+      && metrics.source_threat_model_refresh_status === "complete"
+      && metrics.source_threat_model_refresh_phase_slot === "P297"
+      && metrics.source_threat_model_refresh_next_phase_slot === "P298"
+      && metrics.source_workflow_prompt_injection_boundary_status === "complete"
+      && metrics.failed_source_status_count === 0
+      && metrics.test_case_count >= 10
+      && metrics.passed_test_case_count === metrics.test_case_count
+      && metrics.failed_test_case_count === 0
+      && metrics.external_document_instruction_fixture_count >= 10
+      && metrics.synthetic_fixture_count === metrics.test_case_count
+      && metrics.detected_instruction_signal_count >= metrics.test_case_count
+      && metrics.neutralized_instruction_signal_count === metrics.detected_instruction_signal_count
+      && metrics.promoted_prompt_instruction_count === 0
+      && metrics.promoted_tool_instruction_count === 0
+      && metrics.policy_override_allowed_count === 0
+      && metrics.tool_instruction_allowed_count === 0
+      && metrics.system_prompt_override_allowed_count === 0
+      && metrics.raw_instruction_execution_allowed_count === 0
+      && metrics.client_facing_output_allowed_count === 0
+      && metrics.external_transfer_allowed_count === 0
+      && metrics.protected_action_executed_count === 0
+      && metrics.failed_promotion_check_count === 0
+      && metrics.read_only === true
+      && metrics.synthetic_fixture_only === true
+      && metrics.source_content_read_performed === false
+      && metrics.source_ingest_performed === false
+      && metrics.agent_invocation_performed === false
+      && metrics.tool_execution_performed === false
+      && metrics.route_execution_performed === false
+      && metrics.server_started === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.human_review_required === true
+      && metrics.client_facing_ready === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Prompt Injection Test Suite locks P298 synthetic external-document instruction fixtures and proves they are neutralized as evidence content without prompt/tool/policy promotion, transfer, protected action, legal advice, or client-facing output.");
     }
   }
 

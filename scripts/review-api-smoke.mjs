@@ -3304,6 +3304,30 @@ try {
   assert.equal(threatModelValidations.collection, "threat_model_validations");
   assert.ok(threatModelValidations.count <= 30);
 
+  const promptInjectionTestSuites = await fetchJson(`${url}/api/prompt-injection-test-suites?prompt_injection_test_suite_status=complete&limit=1`);
+  assert.equal(promptInjectionTestSuites.collection, "prompt_injection_test_suites");
+  assert.ok(promptInjectionTestSuites.count <= 1);
+
+  const promptInjectionTestFixtures = await fetchJson(`${url}/api/prompt-injection-test-fixtures?fixture_group=external_document_instruction&limit=20`);
+  assert.equal(promptInjectionTestFixtures.collection, "prompt_injection_test_fixtures");
+  assert.ok(promptInjectionTestFixtures.count <= 20);
+
+  const promptInjectionTestResults = await fetchJson(`${url}/api/prompt-injection-test-results?test_case_status=passed&limit=20`);
+  assert.equal(promptInjectionTestResults.collection, "prompt_injection_test_results");
+  assert.ok(promptInjectionTestResults.count <= 20);
+
+  const promptInjectionPromotionChecks = await fetchJson(`${url}/api/prompt-injection-promotion-checks?promotion_check_status=passed&check_kind=prompt_instruction_promotion&limit=20`);
+  assert.equal(promptInjectionPromotionChecks.collection, "prompt_injection_promotion_checks");
+  assert.ok(promptInjectionPromotionChecks.count <= 20);
+
+  const promptInjectionTestBoundary = await fetchJson(`${url}/api/prompt-injection-test-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(promptInjectionTestBoundary.collection, "prompt_injection_test_boundary");
+  assert.ok(promptInjectionTestBoundary.count <= 1);
+
+  const promptInjectionTestValidations = await fetchJson(`${url}/api/prompt-injection-test-validations?status=passed&limit=30`);
+  assert.equal(promptInjectionTestValidations.collection, "prompt_injection_test_validations");
+  assert.ok(promptInjectionTestValidations.count <= 30);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

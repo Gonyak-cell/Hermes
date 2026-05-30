@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/release-candidate-report.schema.json",
+  "title": "Release Candidate Report",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "release_candidate_report_id",
+    "capability_id",
+    "release_candidate_contract",
+    "source_statuses",
+    "release_candidate_matrix_rows",
+    "release_candidate_command_rows",
+    "release_candidate_gate_results",
+    "release_candidate_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "release-candidate-report.v1" },
+    "release_candidate_report_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "release.candidate_report" },
+    "release_candidate_contract": {
+      "type": "object",
+      "required": ["contract_id", "capability_id", "phase_slot", "previous_phase_slot", "next_phase_slot", "release_candidate_scope", "execution_model"],
+      "properties": {
+        "contract_id": { "const": "release-candidate-report.v1" },
+        "capability_id": { "const": "release.candidate_report" },
+        "phase_slot": { "const": "P311" },
+        "previous_phase_slot": { "const": "P310" },
+        "next_phase_slot": { "const": "P312" },
+        "release_candidate_scope": { "const": "validate_test_control_plane_api_dashboard_e2e_desktop_readiness" },
+        "execution_model": { "const": "deterministic_read_only_release_candidate_report" }
+      }
+    },
+    "source_statuses": {
+      "type": "array",
+      "minItems": 17,
+      "items": {
+        "type": "object",
+        "required": ["source_id", "source_status", "validation_error_count"],
+        "properties": {
+          "source_status": { "const": "passed" },
+          "validation_error_count": { "const": 0 }
+        }
+      }
+    },
+    "release_candidate_matrix_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["matrix_id", "matrix_status", "human_review_required"],
+        "properties": {
+          "matrix_status": { "const": "passed" },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "release_candidate_command_rows": {
+      "type": "array",
+      "minItems": 20,
+      "items": {
+        "type": "object",
+        "required": ["command_key", "command_status", "package_script_present", "command_executed_by_report", "auto_execute_allowed", "protected_action_executed"],
+        "properties": {
+          "command_status": { "const": "ready" },
+          "package_script_present": { "const": true },
+          "command_executed_by_report": { "const": false },
+          "auto_execute_allowed": { "const": false },
+          "protected_action_executed": { "const": false }
+        }
+      }
+    },
+    "release_candidate_gate_results": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "object",
+        "required": ["gate_status", "release_candidate_gate_passed", "gate_violation"],
+        "properties": {
+          "gate_status": { "const": "passed" },
+          "release_candidate_gate_passed": { "const": true },
+          "gate_violation": { "const": false }
+        }
+      }
+    },
+    "release_candidate_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "phase_slot",
+        "read_only",
+        "report_only",
+        "release_candidate_only",
+        "command_execution_performed",
+        "test_execution_performed",
+        "route_execution_performed",
+        "server_started",
+        "deployment_execution_performed",
+        "recovery_execution_performed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "human_review_required",
+        "windows_baseline_stability_preserved"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "phase_slot": { "const": "P311" },
+        "read_only": { "const": true },
+        "report_only": { "const": true },
+        "release_candidate_only": { "const": true },
+        "command_execution_performed": { "const": false },
+        "test_execution_performed": { "const": false },
+        "route_execution_performed": { "const": false },
+        "server_started": { "const": false },
+        "deployment_execution_performed": { "const": false },
+        "recovery_execution_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true },
+        "windows_baseline_stability_preserved": { "const": true }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "release_candidate_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "failed_source_status_count",
+        "matrix_row_count",
+        "passed_matrix_row_count",
+        "command_count",
+        "ready_command_count",
+        "command_executed_by_report_count",
+        "gate_violation_count",
+        "dashboard_blocking_gate_count",
+        "dashboard_api_smoke_ready",
+        "dashboard_desktop_ready",
+        "control_plane_goal_checkpoint_attention_item_count",
+        "control_plane_loop_failed_step_count",
+        "command_execution_performed",
+        "route_execution_performed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "human_review_required",
+        "windows_baseline_stability_preserved",
+        "validation_error_count"
+      ],
+      "properties": {
+        "release_candidate_status": { "const": "complete" },
+        "phase_slot": { "const": "P311" },
+        "previous_phase_slot": { "const": "P310" },
+        "next_phase_slot": { "const": "P312" },
+        "failed_source_status_count": { "const": 0 },
+        "command_executed_by_report_count": { "const": 0 },
+        "gate_violation_count": { "const": 0 },
+        "dashboard_blocking_gate_count": { "const": 0 },
+        "dashboard_api_smoke_ready": { "const": true },
+        "dashboard_desktop_ready": { "const": true },
+        "control_plane_goal_checkpoint_attention_item_count": { "const": 0 },
+        "control_plane_loop_failed_step_count": { "const": 0 },
+        "command_execution_performed": { "const": false },
+        "route_execution_performed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true },
+        "windows_baseline_stability_preserved": { "const": true },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

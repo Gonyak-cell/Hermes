@@ -144,6 +144,12 @@ Operator Handbook routes expose the read-only P310 operator handbook artifact, s
 
 Routes: `/api/operator-handbooks`, `/api/operator-handbook-sources`, `/api/operator-surfaces`, `/api/operator-workflows`, `/api/operator-screens`, `/api/operator-recovery-procedures`, `/api/operator-gates`, `/api/operator-handbook-boundary`, `/api/operator-handbook-validations`.
 
+## P311 Release Candidate Routes
+
+Release Candidate routes expose the read-only P311 release candidate report artifact, source status rows, validation matrix rows, command checklist rows, gate rows, boundary, and validation rows. Supported filters include `release_candidate_status`, `source_status`, `matrix_id`, `matrix_status`, `command_key`, `command_group`, `release_candidate_command_status`, `release_candidate_gate_passed`, `gate_status`, `boundary_status`, `read_only`, `legal_advice_generated`, `client_facing_output_generated`, `status`, and `limit`.
+
+Routes: `/api/release-candidate-reports`, `/api/release-candidate-sources`, `/api/release-candidate-matrix`, `/api/release-candidate-commands`, `/api/release-candidate-gates`, `/api/release-candidate-boundary`, `/api/release-candidate-validations`.
+
 ## P245 LDD RFI Generator Routes
 
 LDD RFI Generator routes expose read-only draft-only RFI packets, draft questions, missing-material links, issue links, matter summaries, and validation/boundary rows. Supported filters include `ldd_rfi_generator_status`, `ldd_rfi_matter_status`, `rfi_rule_type`, `rfi_draft_status`, `rfi_question_type`, `rfi_question_priority`, `rfi_question_status`, `rfi_missing_material_status`, `rfi_issue_link_status`, `deterministic_rfi_generation_performed`, `ldd_rfi_question_id`, `ldd_issue_record_id`, `ldd_vdr_missing_data_record_id`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.

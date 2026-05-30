@@ -109,6 +109,7 @@ import { runCreativeDocumentE2eReport } from "../src/creative-document-e2e-repor
 import { runIngestionE2eReport } from "../src/ingestion-e2e-report.mjs";
 import { runDeploymentRunbook } from "../src/deployment-runbook.mjs";
 import { runOperatorHandbook } from "../src/operator-handbook.mjs";
+import { runReleaseCandidateReport } from "../src/release-candidate-report.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -2015,6 +2016,7 @@ describe("matter harness", () => {
         ingestionE2eReportPath: path.join(outDir, "ingestion-e2e-report", "ingestion-e2e-report.json"),
         deploymentRunbookPath: path.join(outDir, "deployment-runbook", "deployment-runbook.json"),
         operatorHandbookPath: path.join(outDir, "operator-handbook", "operator-handbook.json"),
+        releaseCandidateReportPath: path.join(outDir, "release-candidate-report", "release-candidate-report.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -2159,6 +2161,7 @@ describe("matter harness", () => {
         ingestionE2eReportPath: false,
         deploymentRunbookPath: false,
         operatorHandbookPath: false,
+        releaseCandidateReportPath: false,
         observabilityFreezePath: false,
         capabilityManifestV2Path: false,
         packManifestCompatibilityPath: false,
@@ -13397,6 +13400,7 @@ describe("matter harness", () => {
         ingestionE2eReportPath: false,
         deploymentRunbookPath: false,
         operatorHandbookPath: false,
+        releaseCandidateReportPath: false,
         outDir: path.join(outDir, "dashboard-pre-checkpoint"),
         runAt: "2026-05-23T06:35:08.000Z",
       });
@@ -15474,8 +15478,9 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "operator:handbook"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
 
-      const dashboard = await runReviewDashboard({
+      let dashboard = await runReviewDashboard({
         ...dashboardInputs,
+        releaseCandidateReportPath: false,
         controlPlaneHealthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
         controlPlaneLoopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
         controlPlaneGoalCheckpointPath: path.join(outDir, "control-plane-goal-checkpoint", "control-plane-goal-checkpoint.json"),
@@ -15490,8 +15495,8 @@ describe("matter harness", () => {
       });
       const dashboardSchema = JSON.parse(await readFile("schemas/review-dashboard.schema.json", "utf8"));
       assert.deepEqual(validateAgainstSchema(dashboard, dashboardSchema, {}, "review_dashboard"), []);
-      assert.equal(dashboard.summary.overall_status, "blocked");
-      const dashboardApiFreezeGoalCheckpoint = await runControlPlaneGoalCheckpoint({
+      assert.equal(dashboard.summary.overall_status, "incomplete");
+      let dashboardApiFreezeGoalCheckpoint = await runControlPlaneGoalCheckpoint({
         dashboardPath: path.join(outDir, "dashboard", "review-dashboard.json"),
         loopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
         healthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
@@ -15564,6 +15569,209 @@ describe("matter harness", () => {
       assert.equal(operatorHandbookCheckpoint?.acceptance_profile, "operator_handbook_gate");
       assert.equal(operatorHandbookCheckpoint?.status, "passed");
       assert.equal(operatorHandbookCheckpoint?.implementation_status, "passed_with_operational_gate");
+
+      const releaseCandidateSourceDashboard = {
+        ...dashboard,
+        summary: {
+          ...dashboard.summary,
+          overall_status: "incomplete",
+          missing_stage_count: 1,
+          blocking_gate_count: 0,
+        },
+      };
+      await mkdir(path.join(outDir, "dashboard-release-candidate-source"), { recursive: true });
+      await writeFile(
+        path.join(outDir, "dashboard-release-candidate-source", "review-dashboard.json"),
+        `${JSON.stringify(releaseCandidateSourceDashboard, null, 2)}\n`,
+        "utf8",
+      );
+
+      const releaseCandidateSourceCheckpointItems = dashboardApiFreezeGoalCheckpoint.checkpoint_items.filter((item) => item.status === "passed");
+      assert.ok(releaseCandidateSourceCheckpointItems.length >= dashboardApiFreezeGoalCheckpoint.checkpoint_items.length - 4);
+      const releaseCandidateSourceGoalCheckpoint = {
+        ...dashboardApiFreezeGoalCheckpoint,
+        checkpoint_status: "passed",
+        summary: {
+          ...dashboardApiFreezeGoalCheckpoint.summary,
+          checkpoint_status: "passed",
+          checkpoint_item_count: releaseCandidateSourceCheckpointItems.length,
+          passed_item_count: releaseCandidateSourceCheckpointItems.length,
+          attention_item_count: 0,
+          blocked_item_count: 0,
+          missing_item_count: 0,
+          by_status: { passed: releaseCandidateSourceCheckpointItems.length },
+        },
+        checkpoint_items: releaseCandidateSourceCheckpointItems,
+        next_focus: null,
+      };
+      await mkdir(path.join(outDir, "control-plane-goal-checkpoint-release-candidate-source"), { recursive: true });
+      await writeFile(
+        path.join(outDir, "control-plane-goal-checkpoint-release-candidate-source", "control-plane-goal-checkpoint.json"),
+        `${JSON.stringify(releaseCandidateSourceGoalCheckpoint, null, 2)}\n`,
+        "utf8",
+      );
+
+      const releaseCandidateReport = await runReleaseCandidateReport({
+        operatorHandbookPath: path.join(outDir, "operator-handbook", "operator-handbook.json"),
+        deploymentRunbookPath: path.join(outDir, "deployment-runbook", "deployment-runbook.json"),
+        dashboardPath: path.join(outDir, "dashboard-release-candidate-source", "review-dashboard.json"),
+        dashboardApiFreezePath: path.join(outDir, "dashboard-api-freeze", "dashboard-api-freeze.json"),
+        contractInventoryPath: path.join(outDir, "contract-inventory", "contract-inventory.json"),
+        contractDependencyMapPath: path.join(outDir, "contract-dependency-map", "contract-dependency-map.json"),
+        apiRouteInventoryPath: path.join(outDir, "api-route-inventory", "api-route-inventory.json"),
+        reviewDashboardIaPath: path.join(outDir, "review-dashboard-ia", "review-dashboard-ia.json"),
+        contractGoldenFixturesPath: path.join(outDir, "contract-golden-fixtures", "contract-golden-fixtures.json"),
+        contractValidationSuitePath: path.join(outDir, "contract-validation-suite", "contract-validation-suite.json"),
+        controlPlaneGoalCheckpointPath: path.join(outDir, "control-plane-goal-checkpoint-release-candidate-source", "control-plane-goal-checkpoint.json"),
+        controlPlaneLoopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
+        lawFirmE2eReportPath: path.join(outDir, "law-firm-e2e-report", "law-firm-e2e-report.json"),
+        personalDevE2eReportPath: path.join(outDir, "personal-dev-e2e-report", "personal-dev-e2e-report.json"),
+        creativeDocumentE2eReportPath: path.join(outDir, "creative-document-e2e-report", "creative-document-e2e-report.json"),
+        ingestionE2eReportPath: path.join(outDir, "ingestion-e2e-report", "ingestion-e2e-report.json"),
+        backupRestoreDrillPath: path.join(outDir, "backup-restore-drill", "backup-restore-drill-report.json"),
+        outDir: path.join(outDir, "release-candidate-report"),
+        runAt: "2026-05-23T07:32:56.250Z",
+      });
+      const releaseCandidateReportSchema = JSON.parse(await readFile("schemas/release-candidate-report.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(releaseCandidateReport, releaseCandidateReportSchema, {}, "release_candidate_report"), [], JSON.stringify(releaseCandidateReport.validation.errors));
+      assert.equal(releaseCandidateReport.summary.release_candidate_status, "complete");
+      assert.equal(releaseCandidateReport.summary.phase_slot, "P311");
+      assert.equal(releaseCandidateReport.summary.previous_phase_slot, "P310");
+      assert.equal(releaseCandidateReport.summary.next_phase_slot, "P312");
+      assert.equal(releaseCandidateReport.summary.source_operator_handbook_status, "complete");
+      assert.equal(releaseCandidateReport.summary.source_operator_handbook_phase_slot, "P310");
+      assert.equal(releaseCandidateReport.summary.source_operator_handbook_next_phase_slot, "P311");
+      assert.equal(releaseCandidateReport.summary.source_dashboard_api_freeze_status, "complete");
+      assert.equal(releaseCandidateReport.summary.source_contract_inventory_status, "complete");
+      assert.equal(releaseCandidateReport.summary.source_contract_dependency_map_status, "complete");
+      assert.equal(releaseCandidateReport.summary.source_api_route_inventory_status, "complete");
+      assert.equal(releaseCandidateReport.summary.source_review_dashboard_ia_status, "complete");
+      assert.equal(releaseCandidateReport.summary.source_contract_golden_fixture_status, "complete");
+      assert.equal(releaseCandidateReport.summary.source_contract_validation_suite_status, "complete");
+      assert.equal(releaseCandidateReport.summary.source_control_plane_goal_checkpoint_status, "passed");
+      assert.equal(releaseCandidateReport.summary.source_control_plane_loop_status, "passed");
+      assert.equal(releaseCandidateReport.summary.failed_source_status_count, 0);
+      assert.ok(releaseCandidateReport.summary.matrix_row_count >= 8);
+      assert.equal(releaseCandidateReport.summary.passed_matrix_row_count, releaseCandidateReport.summary.matrix_row_count);
+      assert.ok(releaseCandidateReport.summary.command_count >= 20);
+      assert.equal(releaseCandidateReport.summary.ready_command_count, releaseCandidateReport.summary.command_count);
+      assert.equal(releaseCandidateReport.summary.command_executed_by_report_count, 0);
+      assert.equal(releaseCandidateReport.summary.passed_gate_result_count, releaseCandidateReport.summary.gate_result_count);
+      assert.equal(releaseCandidateReport.summary.gate_violation_count, 0);
+      assert.equal(releaseCandidateReport.summary.dashboard_blocking_gate_count, 0);
+      assert.equal(releaseCandidateReport.summary.dashboard_api_smoke_ready, true);
+      assert.equal(releaseCandidateReport.summary.dashboard_desktop_ready, true);
+      assert.ok(releaseCandidateReport.summary.contract_golden_fixture_count >= 212);
+      assert.equal(releaseCandidateReport.summary.contract_validation_regression_passed_count, releaseCandidateReport.summary.contract_validation_fixture_count);
+      assert.equal(releaseCandidateReport.summary.control_plane_goal_checkpoint_attention_item_count, 0);
+      assert.equal(releaseCandidateReport.summary.control_plane_loop_failed_step_count, 0);
+      assert.equal(releaseCandidateReport.summary.operator_handbook_ready_surface_count, releaseCandidateReport.summary.operator_handbook_surface_count);
+      assert.equal(releaseCandidateReport.summary.operator_handbook_desktop_read_only, true);
+      assert.equal(releaseCandidateReport.summary.operator_handbook_desktop_source_of_truth, false);
+      assert.equal(releaseCandidateReport.summary.read_only, true);
+      assert.equal(releaseCandidateReport.summary.report_only, true);
+      assert.equal(releaseCandidateReport.summary.release_candidate_only, true);
+      assert.equal(releaseCandidateReport.summary.command_execution_performed, false);
+      assert.equal(releaseCandidateReport.summary.test_execution_performed, false);
+      assert.equal(releaseCandidateReport.summary.route_execution_performed, false);
+      assert.equal(releaseCandidateReport.summary.server_started, false);
+      assert.equal(releaseCandidateReport.summary.deployment_execution_performed, false);
+      assert.equal(releaseCandidateReport.summary.recovery_execution_performed, false);
+      assert.equal(releaseCandidateReport.summary.rollback_execution_performed, false);
+      assert.equal(releaseCandidateReport.summary.restore_execution_performed, false);
+      assert.equal(releaseCandidateReport.summary.protected_action_executed, false);
+      assert.equal(releaseCandidateReport.summary.delivery_execution_performed, false);
+      assert.equal(releaseCandidateReport.summary.legal_advice_generated, false);
+      assert.equal(releaseCandidateReport.summary.client_facing_output_generated, false);
+      assert.equal(releaseCandidateReport.summary.human_review_required, true);
+      assert.equal(releaseCandidateReport.summary.attorney_review_required, true);
+      assert.equal(releaseCandidateReport.summary.approval_required_for_release, true);
+      assert.equal(releaseCandidateReport.summary.desktop_read_only, true);
+      assert.equal(releaseCandidateReport.summary.desktop_source_of_truth, false);
+      assert.equal(releaseCandidateReport.summary.windows_baseline_stability_preserved, true);
+      assert.equal(releaseCandidateReport.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(releaseCandidateReport.summary.validation_error_count, 0);
+      assert.ok(releaseCandidateReport.source_statuses.every((row) => row.source_status === "passed"));
+      assert.ok(releaseCandidateReport.release_candidate_matrix_rows.every((row) => row.matrix_status === "passed" && row.human_review_required));
+      assert.ok(releaseCandidateReport.release_candidate_command_rows.every((row) => row.command_status === "ready" && !row.command_executed_by_report && !row.auto_execute_allowed));
+      assert.ok(releaseCandidateReport.release_candidate_gate_results.every((row) => row.gate_status === "passed" && row.release_candidate_gate_passed && !row.gate_violation));
+      assert.equal(releaseCandidateReport.release_candidate_boundary.boundary_status, "enforced");
+      assert.ok(releaseCandidateReport.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "release-candidate-report", "summary.md"), "utf8"), /Release Candidate Report/);
+
+      contractGoldenFixtureArtifactPaths.release_candidate_report = path.join(outDir, "release-candidate-report", "release-candidate-report.json");
+      contractGoldenFixtures = await runContractGoldenFixtures({
+        artifactPaths: contractGoldenFixtureArtifactPaths,
+        fixtureIds: Object.keys(contractGoldenFixtureArtifactPaths),
+        outDir: path.join(outDir, "contract-golden-fixtures"),
+        runAt: "2026-05-23T07:32:57.000Z",
+      });
+      assert.deepEqual(
+        validateAgainstSchema(contractGoldenFixtures, contractGoldenFixturesSchema, {}, "contract_golden_fixtures"),
+        [],
+      );
+      assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 213);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 213);
+      assert.equal(contractGoldenFixtures.summary.missing_artifact_count, 0);
+      assert.equal(contractGoldenFixtures.summary.validation_error_count, 0);
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "release_candidate_report"));
+
+      contractValidationSuite = await runContractValidationSuite({
+        contractGoldenFixturesPath: path.join(outDir, "contract-golden-fixtures", "contract-golden-fixtures.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/implementation-roadmap.md",
+        outDir: path.join(outDir, "contract-validation-suite"),
+        runAt: "2026-05-23T07:32:57.500Z",
+      });
+      assert.deepEqual(
+        validateAgainstSchema(contractValidationSuite, contractValidationSuiteSchema, {}, "contract_validation_suite"),
+        [],
+      );
+      assert.equal(contractValidationSuite.summary.validation_suite_status, "complete");
+      assert.equal(contractValidationSuite.summary.fixture_count, 213);
+      assert.equal(contractValidationSuite.summary.validated_fixture_count, 213);
+      assert.equal(contractValidationSuite.summary.schema_invalid_fixture_count, 0);
+      assert.equal(contractValidationSuite.summary.regression_failed_count, 0);
+      assert.equal(contractValidationSuite.summary.missing_package_script_count, 0);
+      assert.equal(contractValidationSuite.summary.roadmap_missing_count, 0);
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "release:candidate"));
+      assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
+
+      dashboard = await runReviewDashboard({
+        ...dashboardInputs,
+        controlPlaneHealthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
+        controlPlaneLoopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
+        controlPlaneGoalCheckpointPath: path.join(outDir, "control-plane-goal-checkpoint", "control-plane-goal-checkpoint.json"),
+        controlPlaneActionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
+        controlPlaneHumanGatesPath: path.join(outDir, "control-plane-human-gates", "control-plane-human-gates.json"),
+        controlPlaneWorkPacketsPath: path.join(outDir, "control-plane-work-packets", "control-plane-work-packets.json"),
+        controlPlaneWorkPacketReceiptsPath: path.join(outDir, "control-plane-work-packet-receipts", "control-plane-work-packet-receipt-drafts.json"),
+        controlPlaneWorkPacketReceiptValidationPath: path.join(outDir, "control-plane-work-packet-receipt-validation", "control-plane-work-packet-receipt-validation.json"),
+        controlPlaneWorkPacketReceiptApplicationPath: path.join(outDir, "control-plane-work-packet-receipt-application", "control-plane-work-packet-receipt-application.json"),
+        outDir: path.join(outDir, "dashboard"),
+        runAt: "2026-05-23T07:32:58.000Z",
+      });
+      assert.deepEqual(validateAgainstSchema(dashboard, dashboardSchema, {}, "review_dashboard"), []);
+      assert.equal(dashboard.summary.overall_status, "blocked");
+
+      dashboardApiFreezeGoalCheckpoint = await runControlPlaneGoalCheckpoint({
+        dashboardPath: path.join(outDir, "dashboard", "review-dashboard.json"),
+        loopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
+        healthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/implementation-roadmap.md",
+        outDir: path.join(outDir, "control-plane-goal-checkpoint-dashboard-api-freeze"),
+        runAt: "2026-05-23T07:32:58.500Z",
+      });
+      assert.deepEqual(
+        validateAgainstSchema(dashboardApiFreezeGoalCheckpoint, controlPlaneGoalCheckpointSchema, {}, "control_plane_goal_checkpoint"),
+        [],
+      );
+      const releaseCandidateReportCheckpoint = dashboardApiFreezeGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-release-candidate-report");
+      assert.equal(releaseCandidateReportCheckpoint?.acceptance_profile, "release_candidate_report_gate");
+      assert.equal(releaseCandidateReportCheckpoint?.status, "passed");
+      assert.equal(releaseCandidateReportCheckpoint?.implementation_status, "passed_with_operational_gate");
       assert.equal(dashboard.summary.evidence_approved_count, 1);
       assert.equal(dashboard.summary.evidence_review_draft_item_count, evidenceReviewDraft.summary.review_item_count);
       assert.equal(dashboard.summary.evidence_review_draft_attorney_count, evidenceReviewDraft.summary.attorney_review_count);
@@ -21603,6 +21811,62 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.operator_handbook_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.operator_handbook_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.operator_handbook_validation_error_count, 0);
+      assert.equal(dashboard.summary.release_candidate_status, "complete");
+      assert.equal(dashboard.summary.release_candidate_report_id, releaseCandidateReport.summary.release_candidate_report_id);
+      assert.equal(dashboard.summary.release_candidate_phase_slot, "P311");
+      assert.equal(dashboard.summary.release_candidate_previous_phase_slot, "P310");
+      assert.equal(dashboard.summary.release_candidate_next_phase_slot, "P312");
+      assert.equal(dashboard.summary.release_candidate_source_operator_handbook_status, "complete");
+      assert.equal(dashboard.summary.release_candidate_source_dashboard_api_freeze_status, "complete");
+      assert.equal(dashboard.summary.release_candidate_source_contract_inventory_status, "complete");
+      assert.equal(dashboard.summary.release_candidate_source_contract_dependency_map_status, "complete");
+      assert.equal(dashboard.summary.release_candidate_source_api_route_inventory_status, "complete");
+      assert.equal(dashboard.summary.release_candidate_source_review_dashboard_ia_status, "complete");
+      assert.equal(dashboard.summary.release_candidate_source_contract_golden_fixture_status, "complete");
+      assert.equal(dashboard.summary.release_candidate_source_contract_validation_suite_status, "complete");
+      assert.equal(dashboard.summary.release_candidate_source_control_plane_goal_checkpoint_status, "passed");
+      assert.equal(dashboard.summary.release_candidate_source_control_plane_loop_status, "passed");
+      assert.equal(dashboard.summary.release_candidate_failed_source_status_count, 0);
+      assert.equal(dashboard.summary.release_candidate_passed_matrix_row_count, dashboard.summary.release_candidate_matrix_row_count);
+      assert.equal(dashboard.summary.release_candidate_ready_command_count, dashboard.summary.release_candidate_command_count);
+      assert.equal(dashboard.summary.release_candidate_command_executed_by_report_count, 0);
+      assert.equal(dashboard.summary.release_candidate_passed_gate_result_count, dashboard.summary.release_candidate_gate_result_count);
+      assert.equal(dashboard.summary.release_candidate_gate_violation_count, 0);
+      assert.equal(dashboard.summary.release_candidate_dashboard_blocking_gate_count, 0);
+      assert.equal(dashboard.summary.release_candidate_dashboard_api_smoke_ready, true);
+      assert.equal(dashboard.summary.release_candidate_dashboard_desktop_ready, true);
+      assert.ok(dashboard.summary.release_candidate_contract_golden_fixture_count >= 212);
+      assert.equal(dashboard.summary.release_candidate_contract_validation_regression_passed_count, dashboard.summary.release_candidate_contract_validation_fixture_count);
+      assert.equal(dashboard.summary.release_candidate_control_plane_goal_checkpoint_attention_item_count, 0);
+      assert.equal(dashboard.summary.release_candidate_control_plane_loop_failed_step_count, 0);
+      assert.equal(dashboard.summary.release_candidate_operator_handbook_ready_surface_count, dashboard.summary.release_candidate_operator_handbook_surface_count);
+      assert.equal(dashboard.summary.release_candidate_operator_handbook_desktop_read_only, true);
+      assert.equal(dashboard.summary.release_candidate_operator_handbook_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.release_candidate_ready_for_v1_freeze_gate, true);
+      assert.equal(dashboard.summary.release_candidate_ready_for_v1_freeze_with_human_review_backlog, true);
+      assert.equal(dashboard.summary.release_candidate_read_only, true);
+      assert.equal(dashboard.summary.release_candidate_report_only, true);
+      assert.equal(dashboard.summary.release_candidate_only, true);
+      assert.equal(dashboard.summary.release_candidate_command_execution_performed, false);
+      assert.equal(dashboard.summary.release_candidate_test_execution_performed, false);
+      assert.equal(dashboard.summary.release_candidate_route_execution_performed, false);
+      assert.equal(dashboard.summary.release_candidate_server_started, false);
+      assert.equal(dashboard.summary.release_candidate_deployment_execution_performed, false);
+      assert.equal(dashboard.summary.release_candidate_recovery_execution_performed, false);
+      assert.equal(dashboard.summary.release_candidate_rollback_execution_performed, false);
+      assert.equal(dashboard.summary.release_candidate_restore_execution_performed, false);
+      assert.equal(dashboard.summary.release_candidate_protected_action_executed, false);
+      assert.equal(dashboard.summary.release_candidate_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.release_candidate_legal_advice_generated, false);
+      assert.equal(dashboard.summary.release_candidate_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.release_candidate_human_review_required, true);
+      assert.equal(dashboard.summary.release_candidate_attorney_review_required, true);
+      assert.equal(dashboard.summary.release_candidate_approval_required_for_release, true);
+      assert.equal(dashboard.summary.release_candidate_desktop_read_only, true);
+      assert.equal(dashboard.summary.release_candidate_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.release_candidate_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.release_candidate_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.release_candidate_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -26213,6 +26477,60 @@ describe("matter harness", () => {
       assert.equal(operatorHandbookStage?.metrics.windows_baseline_stability_preserved, true);
       assert.equal(operatorHandbookStage?.metrics.mac_windows_completion_instability_guard, true);
       assert.equal(operatorHandbookStage?.metrics.validation_error_count, 0);
+      const releaseCandidateReportStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "release_candidate_report");
+      assert.equal(releaseCandidateReportStage?.status, "passed");
+      assert.equal(releaseCandidateReportStage?.metrics.release_candidate_status, "complete");
+      assert.equal(releaseCandidateReportStage?.metrics.release_candidate_report_id, releaseCandidateReport.summary.release_candidate_report_id);
+      assert.equal(releaseCandidateReportStage?.metrics.phase_slot, "P311");
+      assert.equal(releaseCandidateReportStage?.metrics.previous_phase_slot, "P310");
+      assert.equal(releaseCandidateReportStage?.metrics.next_phase_slot, "P312");
+      assert.equal(releaseCandidateReportStage?.metrics.source_operator_handbook_status, "complete");
+      assert.equal(releaseCandidateReportStage?.metrics.source_dashboard_api_freeze_status, "complete");
+      assert.equal(releaseCandidateReportStage?.metrics.source_contract_inventory_status, "complete");
+      assert.equal(releaseCandidateReportStage?.metrics.source_contract_dependency_map_status, "complete");
+      assert.equal(releaseCandidateReportStage?.metrics.source_api_route_inventory_status, "complete");
+      assert.equal(releaseCandidateReportStage?.metrics.source_review_dashboard_ia_status, "complete");
+      assert.equal(releaseCandidateReportStage?.metrics.source_contract_golden_fixture_status, "complete");
+      assert.equal(releaseCandidateReportStage?.metrics.source_contract_validation_suite_status, "complete");
+      assert.equal(releaseCandidateReportStage?.metrics.source_control_plane_goal_checkpoint_status, "passed");
+      assert.equal(releaseCandidateReportStage?.metrics.source_control_plane_loop_status, "passed");
+      assert.equal(releaseCandidateReportStage?.metrics.failed_source_status_count, 0);
+      assert.equal(releaseCandidateReportStage?.metrics.passed_matrix_row_count, releaseCandidateReportStage?.metrics.matrix_row_count);
+      assert.equal(releaseCandidateReportStage?.metrics.ready_command_count, releaseCandidateReportStage?.metrics.command_count);
+      assert.equal(releaseCandidateReportStage?.metrics.command_executed_by_report_count, 0);
+      assert.equal(releaseCandidateReportStage?.metrics.passed_gate_result_count, releaseCandidateReportStage?.metrics.gate_result_count);
+      assert.equal(releaseCandidateReportStage?.metrics.gate_violation_count, 0);
+      assert.equal(releaseCandidateReportStage?.metrics.dashboard_blocking_gate_count, 0);
+      assert.equal(releaseCandidateReportStage?.metrics.dashboard_api_smoke_ready, true);
+      assert.equal(releaseCandidateReportStage?.metrics.dashboard_desktop_ready, true);
+      assert.equal(releaseCandidateReportStage?.metrics.control_plane_goal_checkpoint_attention_item_count, 0);
+      assert.equal(releaseCandidateReportStage?.metrics.control_plane_loop_failed_step_count, 0);
+      assert.equal(releaseCandidateReportStage?.metrics.operator_handbook_ready_surface_count, releaseCandidateReportStage?.metrics.operator_handbook_surface_count);
+      assert.equal(releaseCandidateReportStage?.metrics.operator_handbook_desktop_read_only, true);
+      assert.equal(releaseCandidateReportStage?.metrics.operator_handbook_desktop_source_of_truth, false);
+      assert.equal(releaseCandidateReportStage?.metrics.read_only, true);
+      assert.equal(releaseCandidateReportStage?.metrics.report_only, true);
+      assert.equal(releaseCandidateReportStage?.metrics.release_candidate_only, true);
+      assert.equal(releaseCandidateReportStage?.metrics.command_execution_performed, false);
+      assert.equal(releaseCandidateReportStage?.metrics.test_execution_performed, false);
+      assert.equal(releaseCandidateReportStage?.metrics.route_execution_performed, false);
+      assert.equal(releaseCandidateReportStage?.metrics.server_started, false);
+      assert.equal(releaseCandidateReportStage?.metrics.deployment_execution_performed, false);
+      assert.equal(releaseCandidateReportStage?.metrics.recovery_execution_performed, false);
+      assert.equal(releaseCandidateReportStage?.metrics.rollback_execution_performed, false);
+      assert.equal(releaseCandidateReportStage?.metrics.restore_execution_performed, false);
+      assert.equal(releaseCandidateReportStage?.metrics.protected_action_executed, false);
+      assert.equal(releaseCandidateReportStage?.metrics.delivery_execution_performed, false);
+      assert.equal(releaseCandidateReportStage?.metrics.legal_advice_generated, false);
+      assert.equal(releaseCandidateReportStage?.metrics.client_facing_output_generated, false);
+      assert.equal(releaseCandidateReportStage?.metrics.human_review_required, true);
+      assert.equal(releaseCandidateReportStage?.metrics.attorney_review_required, true);
+      assert.equal(releaseCandidateReportStage?.metrics.approval_required_for_release, true);
+      assert.equal(releaseCandidateReportStage?.metrics.desktop_read_only, true);
+      assert.equal(releaseCandidateReportStage?.metrics.desktop_source_of_truth, false);
+      assert.equal(releaseCandidateReportStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(releaseCandidateReportStage?.metrics.mac_windows_completion_instability_guard, true);
+      assert.equal(releaseCandidateReportStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -30034,6 +30352,34 @@ describe("matter harness", () => {
       const operatorHandbookValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/operator-handbook-validations?status=passed", apiOptions)).body);
       assert.equal(operatorHandbookValidationsResponse.collection, "operator_handbook_validations");
       assert.equal(operatorHandbookValidationsResponse.count, operatorHandbook.summary.validation_item_count);
+
+      const releaseCandidateReportsResponse = JSON.parse((await buildReviewApiResponse("/api/release-candidate-reports?release_candidate_status=complete", apiOptions)).body);
+      assert.equal(releaseCandidateReportsResponse.collection, "release_candidate_reports");
+      assert.equal(releaseCandidateReportsResponse.count, 1);
+
+      const releaseCandidateSourcesResponse = JSON.parse((await buildReviewApiResponse("/api/release-candidate-sources?source_status=passed", apiOptions)).body);
+      assert.equal(releaseCandidateSourcesResponse.collection, "release_candidate_sources");
+      assert.equal(releaseCandidateSourcesResponse.count, releaseCandidateReport.summary.source_status_count);
+
+      const releaseCandidateMatrixResponse = JSON.parse((await buildReviewApiResponse("/api/release-candidate-matrix?matrix_status=passed", apiOptions)).body);
+      assert.equal(releaseCandidateMatrixResponse.collection, "release_candidate_matrix");
+      assert.equal(releaseCandidateMatrixResponse.count, releaseCandidateReport.summary.matrix_row_count);
+
+      const releaseCandidateCommandsResponse = JSON.parse((await buildReviewApiResponse("/api/release-candidate-commands?release_candidate_command_status=ready", apiOptions)).body);
+      assert.equal(releaseCandidateCommandsResponse.collection, "release_candidate_commands");
+      assert.equal(releaseCandidateCommandsResponse.count, releaseCandidateReport.summary.command_count);
+
+      const releaseCandidateGatesResponse = JSON.parse((await buildReviewApiResponse("/api/release-candidate-gates?release_candidate_gate_passed=true", apiOptions)).body);
+      assert.equal(releaseCandidateGatesResponse.collection, "release_candidate_gates");
+      assert.equal(releaseCandidateGatesResponse.count, releaseCandidateReport.summary.gate_result_count);
+
+      const releaseCandidateBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/release-candidate-boundary?boundary_status=enforced&read_only=true&client_facing_output_generated=false", apiOptions)).body);
+      assert.equal(releaseCandidateBoundaryResponse.collection, "release_candidate_boundary");
+      assert.equal(releaseCandidateBoundaryResponse.count, 1);
+
+      const releaseCandidateValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/release-candidate-validations?status=passed", apiOptions)).body);
+      assert.equal(releaseCandidateValidationsResponse.collection, "release_candidate_validations");
+      assert.equal(releaseCandidateValidationsResponse.count, releaseCandidateReport.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

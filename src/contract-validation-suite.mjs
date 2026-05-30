@@ -171,6 +171,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "ingestion:e2e-report",
   "deployment:runbook",
   "operator:handbook",
+  "release:candidate",
   "connectors:contract-v2",
   "connectors:local-folder",
   "connectors:onedrive-boundary",

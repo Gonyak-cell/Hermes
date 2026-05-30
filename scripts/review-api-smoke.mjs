@@ -3688,6 +3688,34 @@ try {
   assert.equal(operatorHandbookValidations.collection, "operator_handbook_validations");
   assert.ok(operatorHandbookValidations.count <= 5);
 
+  const releaseCandidateReports = await fetchJson(`${url}/api/release-candidate-reports?release_candidate_status=complete&limit=1`);
+  assert.equal(releaseCandidateReports.collection, "release_candidate_reports");
+  assert.ok(releaseCandidateReports.count <= 1);
+
+  const releaseCandidateSources = await fetchJson(`${url}/api/release-candidate-sources?source_status=passed&limit=20`);
+  assert.equal(releaseCandidateSources.collection, "release_candidate_sources");
+  assert.ok(releaseCandidateSources.count <= 20);
+
+  const releaseCandidateMatrix = await fetchJson(`${url}/api/release-candidate-matrix?matrix_status=passed&limit=10`);
+  assert.equal(releaseCandidateMatrix.collection, "release_candidate_matrix");
+  assert.ok(releaseCandidateMatrix.count <= 10);
+
+  const releaseCandidateCommands = await fetchJson(`${url}/api/release-candidate-commands?release_candidate_command_status=ready&limit=20`);
+  assert.equal(releaseCandidateCommands.collection, "release_candidate_commands");
+  assert.ok(releaseCandidateCommands.count <= 20);
+
+  const releaseCandidateGates = await fetchJson(`${url}/api/release-candidate-gates?release_candidate_gate_passed=true&limit=10`);
+  assert.equal(releaseCandidateGates.collection, "release_candidate_gates");
+  assert.ok(releaseCandidateGates.count <= 10);
+
+  const releaseCandidateBoundary = await fetchJson(`${url}/api/release-candidate-boundary?boundary_status=enforced&read_only=true&client_facing_output_generated=false&limit=1`);
+  assert.equal(releaseCandidateBoundary.collection, "release_candidate_boundary");
+  assert.ok(releaseCandidateBoundary.count <= 1);
+
+  const releaseCandidateValidations = await fetchJson(`${url}/api/release-candidate-validations?status=passed&limit=5`);
+  assert.equal(releaseCandidateValidations.collection, "release_candidate_validations");
+  assert.ok(releaseCandidateValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

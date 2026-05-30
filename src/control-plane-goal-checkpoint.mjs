@@ -183,6 +183,7 @@ const GOAL_ITEMS = [
   sourceItem("ingestion_e2e_report", "Ingestion E2E Report", "resource_evidence", "ingestion_e2e_report", "control-plane-ingestion-e2e-report", { acceptance_profile: "ingestion_e2e_report_gate" }),
   sourceItem("deployment_runbook", "Deployment Runbook", "deployment", "deployment_runbook", "control-plane-deployment-runbook", { acceptance_profile: "deployment_runbook_gate" }),
   sourceItem("operator_handbook", "Operator Handbook", "operator", "operator_handbook", "control-plane-operator-handbook", { acceptance_profile: "operator_handbook_gate" }),
+  sourceItem("release_candidate_report", "Release Candidate Report", "release", "release_candidate_report", "control-plane-release-candidate-report", { acceptance_profile: "release_candidate_report_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -725,6 +726,7 @@ function evaluateStageAcceptance(item, stage) {
     "ingestion_e2e_report_gate",
     "deployment_runbook_gate",
     "operator_handbook_gate",
+    "release_candidate_report_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -7308,6 +7310,73 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Operator Handbook locks P310 approval, receipt, policy, recovery, and Desktop navigation guidance as read-only operator documentation with no protected, legal, client-facing, command, route, or recovery execution.");
+    }
+  }
+
+  if (item.acceptance_profile === "release_candidate_report_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.release_candidate_status === "complete"
+      && metrics.phase_slot === "P311"
+      && metrics.previous_phase_slot === "P310"
+      && metrics.next_phase_slot === "P312"
+      && metrics.source_operator_handbook_status === "complete"
+      && metrics.source_operator_handbook_phase_slot === "P310"
+      && metrics.source_operator_handbook_next_phase_slot === "P311"
+      && metrics.source_dashboard_api_freeze_status === "complete"
+      && metrics.source_contract_inventory_status === "complete"
+      && metrics.source_contract_dependency_map_status === "complete"
+      && metrics.source_api_route_inventory_status === "complete"
+      && metrics.source_review_dashboard_ia_status === "complete"
+      && metrics.source_contract_golden_fixture_status === "complete"
+      && metrics.source_contract_validation_suite_status === "complete"
+      && metrics.source_control_plane_goal_checkpoint_status === "passed"
+      && metrics.source_control_plane_loop_status === "passed"
+      && metrics.failed_source_status_count === 0
+      && metrics.matrix_row_count >= 8
+      && metrics.passed_matrix_row_count === metrics.matrix_row_count
+      && metrics.command_count >= 20
+      && metrics.ready_command_count === metrics.command_count
+      && metrics.command_executed_by_report_count === 0
+      && metrics.gate_result_count >= 7
+      && metrics.passed_gate_result_count === metrics.gate_result_count
+      && metrics.gate_violation_count === 0
+      && metrics.dashboard_blocking_gate_count === 0
+      && metrics.dashboard_api_smoke_ready === true
+      && metrics.dashboard_desktop_ready === true
+      && metrics.contract_golden_fixture_count >= 212
+      && metrics.contract_validation_regression_passed_count === metrics.contract_validation_fixture_count
+      && metrics.control_plane_goal_checkpoint_attention_item_count === 0
+      && metrics.control_plane_loop_failed_step_count === 0
+      && metrics.operator_handbook_ready_surface_count === metrics.operator_handbook_surface_count
+      && metrics.operator_handbook_desktop_read_only === true
+      && metrics.operator_handbook_desktop_source_of_truth === false
+      && metrics.read_only === true
+      && metrics.report_only === true
+      && metrics.release_candidate_only === true
+      && metrics.command_execution_performed === false
+      && metrics.test_execution_performed === false
+      && metrics.route_execution_performed === false
+      && metrics.server_started === false
+      && metrics.deployment_execution_performed === false
+      && metrics.recovery_execution_performed === false
+      && metrics.rollback_execution_performed === false
+      && metrics.restore_execution_performed === false
+      && metrics.protected_action_executed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.client_facing_ready === false
+      && metrics.human_review_required === true
+      && metrics.attorney_review_required === true
+      && metrics.approval_required_for_release === true
+      && metrics.desktop_read_only === true
+      && metrics.desktop_source_of_truth === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Release Candidate Report locks P311 validate/test/control-plane/API/dashboard/E2E/Desktop readiness as a read-only matrix with known human-review backlog and no command, route, protected, legal, client-facing, deployment, or recovery execution.");
     }
   }
 

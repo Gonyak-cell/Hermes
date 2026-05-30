@@ -107,6 +107,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   ingestionE2eReportPath: "artifacts/ingestion-e2e-report/latest/ingestion-e2e-report.json",
   deploymentRunbookPath: "artifacts/deployment-runbook/latest/deployment-runbook.json",
   operatorHandbookPath: "artifacts/operator-handbook/latest/operator-handbook.json",
+  releaseCandidateReportPath: "artifacts/release-candidate-report/latest/release-candidate-report.json",
   connectorContractV2Path: "artifacts/connector-contract-v2/latest/connector-contract-v2.json",
   localFolderConnectorPath: "artifacts/local-folder-connector/latest/local-folder-connector.json",
   onedriveConnectorBoundaryPath: "artifacts/onedrive-connector-boundary/latest/onedrive-connector-boundary.json",
@@ -824,6 +825,11 @@ const SOURCE_DEFINITIONS = [
     option: "operatorHandbookPath",
     source_id: "operator_handbook",
     label: "Operator Handbook",
+  },
+  {
+    option: "releaseCandidateReportPath",
+    source_id: "release_candidate_report",
+    label: "Release Candidate Report",
   },
   {
     option: "connectorContractV2Path",
@@ -1994,6 +2000,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "ingestion_e2e_report") return data.summary ?? {};
   if (sourceId === "deployment_runbook") return data.summary ?? {};
   if (sourceId === "operator_handbook") return data.summary ?? {};
+  if (sourceId === "release_candidate_report") return data.summary ?? {};
   if (sourceId === "connector_contract_v2") return data.summary ?? {};
   if (sourceId === "local_folder_connector") return data.summary ?? {};
   if (sourceId === "onedrive_connector_boundary") return data.summary ?? {};
@@ -2405,6 +2412,7 @@ function buildStageStatuses(artifacts, sources) {
     buildIngestionE2eReportStage(artifacts.ingestion_e2e_report, sourceById.get("ingestion_e2e_report")),
     buildDeploymentRunbookStage(artifacts.deployment_runbook, sourceById.get("deployment_runbook")),
     buildOperatorHandbookStage(artifacts.operator_handbook, sourceById.get("operator_handbook")),
+    buildReleaseCandidateReportStage(artifacts.release_candidate_report, sourceById.get("release_candidate_report")),
     buildConnectorContractV2Stage(artifacts.connector_contract_v2, sourceById.get("connector_contract_v2")),
     buildLocalFolderConnectorStage(artifacts.local_folder_connector, sourceById.get("local_folder_connector")),
     buildOneDriveConnectorBoundaryStage(artifacts.onedrive_connector_boundary, sourceById.get("onedrive_connector_boundary")),
@@ -12726,6 +12734,75 @@ function buildOperatorHandbookStage(artifact, source) {
       operator_handbook_status: summary.operator_handbook_status ?? "unknown",
       operator_handbook_id: summary.operator_handbook_id ?? null,
       validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildReleaseCandidateReportStage(artifact, source) {
+  if (!artifact) return missingStage("release_candidate_report", "Release Candidate Report", source);
+  const summary = artifact.summary ?? {};
+  const validationErrorCount = summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0;
+  const status = artifact.validation?.valid === false
+    || summary.release_candidate_status !== "complete"
+    || summary.phase_slot !== "P311"
+    || summary.previous_phase_slot !== "P310"
+    || summary.next_phase_slot !== "P312"
+    || summary.source_operator_handbook_status !== "complete"
+    || summary.source_operator_handbook_phase_slot !== "P310"
+    || summary.source_operator_handbook_next_phase_slot !== "P311"
+    || summary.source_dashboard_api_freeze_status !== "complete"
+    || summary.source_contract_inventory_status !== "complete"
+    || summary.source_contract_dependency_map_status !== "complete"
+    || summary.source_api_route_inventory_status !== "complete"
+    || summary.source_review_dashboard_ia_status !== "complete"
+    || summary.source_contract_golden_fixture_status !== "complete"
+    || summary.source_contract_validation_suite_status !== "complete"
+    || summary.source_control_plane_goal_checkpoint_status !== "passed"
+    || summary.source_control_plane_loop_status !== "passed"
+    || summary.failed_source_status_count > 0
+    || summary.passed_matrix_row_count !== summary.matrix_row_count
+    || summary.ready_command_count !== summary.command_count
+    || summary.command_executed_by_report_count > 0
+    || summary.passed_gate_result_count !== summary.gate_result_count
+    || summary.gate_violation_count > 0
+    || summary.dashboard_blocking_gate_count > 0
+    || summary.dashboard_api_smoke_ready !== true
+    || summary.dashboard_desktop_ready !== true
+    || summary.control_plane_goal_checkpoint_attention_item_count > 0
+    || summary.control_plane_loop_failed_step_count > 0
+    || summary.operator_handbook_ready_surface_count !== summary.operator_handbook_surface_count
+    || summary.operator_handbook_desktop_read_only !== true
+    || summary.operator_handbook_desktop_source_of_truth !== false
+    || summary.read_only !== true
+    || summary.report_only !== true
+    || summary.release_candidate_only !== true
+    || summary.command_execution_performed === true
+    || summary.test_execution_performed === true
+    || summary.route_execution_performed === true
+    || summary.server_started === true
+    || summary.deployment_execution_performed === true
+    || summary.recovery_execution_performed === true
+    || summary.rollback_execution_performed === true
+    || summary.restore_execution_performed === true
+    || summary.protected_action_executed === true
+    || summary.delivery_execution_performed === true
+    || summary.legal_advice_generated === true
+    || summary.client_facing_output_generated === true
+    || summary.client_facing_ready === true
+    || validationErrorCount > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "release_candidate_report",
+    label: "Release Candidate Report",
+    status,
+    message: `${summary.passed_matrix_row_count ?? 0}/${summary.matrix_row_count ?? 0} matrix row(s), ${summary.ready_command_count ?? 0}/${summary.command_count ?? 0} command(s), ${summary.dashboard_pending_approval_count ?? 0}/${summary.dashboard_blocking_gate_count ?? 0} pending/blocking.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      ...summary,
+      release_candidate_status: summary.release_candidate_status ?? "unknown",
+      release_candidate_report_id: summary.release_candidate_report_id ?? null,
+      validation_error_count: validationErrorCount,
     },
   };
 }
@@ -23895,6 +23972,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.release_candidate_report?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "release_candidate_report";
+    items.push({
+      action_item_id: `dashboard.action.release_candidate_report.${slugify(subjectId)}`,
+      source_stage: "release_candidate_report",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Release Candidate Report",
+      subject_ref: {
+        subject_type: "release_candidate_report_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_release_candidate_report", "rerun_release_candidate_report", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.connector_contract_v2?.validation?.errors ?? []) {
     const subjectId = error.path ?? "connector_contract_v2";
     items.push({
@@ -30884,6 +30979,75 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     operator_handbook_windows_baseline_stability_preserved: artifacts.operator_handbook?.summary?.windows_baseline_stability_preserved ?? false,
     operator_handbook_mac_windows_completion_instability_guard: artifacts.operator_handbook?.summary?.mac_windows_completion_instability_guard ?? false,
     operator_handbook_validation_error_count: artifacts.operator_handbook?.summary?.validation_error_count ?? artifacts.operator_handbook?.validation?.errors?.length ?? 0,
+    release_candidate_status: artifacts.release_candidate_report?.summary?.release_candidate_status ?? "unknown",
+    release_candidate_report_id: artifacts.release_candidate_report?.summary?.release_candidate_report_id ?? null,
+    release_candidate_phase_slot: artifacts.release_candidate_report?.summary?.phase_slot ?? null,
+    release_candidate_previous_phase_slot: artifacts.release_candidate_report?.summary?.previous_phase_slot ?? null,
+    release_candidate_next_phase_slot: artifacts.release_candidate_report?.summary?.next_phase_slot ?? null,
+    release_candidate_source_operator_handbook_status: artifacts.release_candidate_report?.summary?.source_operator_handbook_status ?? "unknown",
+    release_candidate_source_dashboard_api_freeze_status: artifacts.release_candidate_report?.summary?.source_dashboard_api_freeze_status ?? "unknown",
+    release_candidate_source_contract_inventory_status: artifacts.release_candidate_report?.summary?.source_contract_inventory_status ?? "unknown",
+    release_candidate_source_contract_dependency_map_status: artifacts.release_candidate_report?.summary?.source_contract_dependency_map_status ?? "unknown",
+    release_candidate_source_api_route_inventory_status: artifacts.release_candidate_report?.summary?.source_api_route_inventory_status ?? "unknown",
+    release_candidate_source_review_dashboard_ia_status: artifacts.release_candidate_report?.summary?.source_review_dashboard_ia_status ?? "unknown",
+    release_candidate_source_contract_golden_fixture_status: artifacts.release_candidate_report?.summary?.source_contract_golden_fixture_status ?? "unknown",
+    release_candidate_source_contract_validation_suite_status: artifacts.release_candidate_report?.summary?.source_contract_validation_suite_status ?? "unknown",
+    release_candidate_source_control_plane_goal_checkpoint_status: artifacts.release_candidate_report?.summary?.source_control_plane_goal_checkpoint_status ?? "unknown",
+    release_candidate_source_control_plane_loop_status: artifacts.release_candidate_report?.summary?.source_control_plane_loop_status ?? "unknown",
+    release_candidate_failed_source_status_count: artifacts.release_candidate_report?.summary?.failed_source_status_count ?? 0,
+    release_candidate_matrix_row_count: artifacts.release_candidate_report?.summary?.matrix_row_count ?? 0,
+    release_candidate_passed_matrix_row_count: artifacts.release_candidate_report?.summary?.passed_matrix_row_count ?? 0,
+    release_candidate_command_count: artifacts.release_candidate_report?.summary?.command_count ?? 0,
+    release_candidate_ready_command_count: artifacts.release_candidate_report?.summary?.ready_command_count ?? 0,
+    release_candidate_command_executed_by_report_count: artifacts.release_candidate_report?.summary?.command_executed_by_report_count ?? 0,
+    release_candidate_gate_result_count: artifacts.release_candidate_report?.summary?.gate_result_count ?? 0,
+    release_candidate_passed_gate_result_count: artifacts.release_candidate_report?.summary?.passed_gate_result_count ?? 0,
+    release_candidate_gate_violation_count: artifacts.release_candidate_report?.summary?.gate_violation_count ?? 0,
+    release_candidate_dashboard_pending_approval_count: artifacts.release_candidate_report?.summary?.dashboard_pending_approval_count ?? 0,
+    release_candidate_dashboard_blocking_gate_count: artifacts.release_candidate_report?.summary?.dashboard_blocking_gate_count ?? 0,
+    release_candidate_dashboard_api_route_count: artifacts.release_candidate_report?.summary?.dashboard_api_route_count ?? 0,
+    release_candidate_dashboard_api_smoke_ready: artifacts.release_candidate_report?.summary?.dashboard_api_smoke_ready ?? false,
+    release_candidate_dashboard_desktop_ready: artifacts.release_candidate_report?.summary?.dashboard_desktop_ready ?? false,
+    release_candidate_contract_golden_fixture_count: artifacts.release_candidate_report?.summary?.contract_golden_fixture_count ?? 0,
+    release_candidate_contract_validation_fixture_count: artifacts.release_candidate_report?.summary?.contract_validation_fixture_count ?? 0,
+    release_candidate_contract_validation_regression_passed_count: artifacts.release_candidate_report?.summary?.contract_validation_regression_passed_count ?? 0,
+    release_candidate_control_plane_goal_checkpoint_item_count: artifacts.release_candidate_report?.summary?.control_plane_goal_checkpoint_item_count ?? 0,
+    release_candidate_control_plane_goal_checkpoint_passed_item_count: artifacts.release_candidate_report?.summary?.control_plane_goal_checkpoint_passed_item_count ?? 0,
+    release_candidate_control_plane_goal_checkpoint_attention_item_count: artifacts.release_candidate_report?.summary?.control_plane_goal_checkpoint_attention_item_count ?? 0,
+    release_candidate_control_plane_loop_step_count: artifacts.release_candidate_report?.summary?.control_plane_loop_step_count ?? 0,
+    release_candidate_control_plane_loop_passed_step_count: artifacts.release_candidate_report?.summary?.control_plane_loop_passed_step_count ?? 0,
+    release_candidate_control_plane_loop_failed_step_count: artifacts.release_candidate_report?.summary?.control_plane_loop_failed_step_count ?? 0,
+    release_candidate_operator_handbook_ready_surface_count: artifacts.release_candidate_report?.summary?.operator_handbook_ready_surface_count ?? 0,
+    release_candidate_operator_handbook_surface_count: artifacts.release_candidate_report?.summary?.operator_handbook_surface_count ?? 0,
+    release_candidate_operator_handbook_desktop_read_only: artifacts.release_candidate_report?.summary?.operator_handbook_desktop_read_only ?? false,
+    release_candidate_operator_handbook_desktop_source_of_truth: artifacts.release_candidate_report?.summary?.operator_handbook_desktop_source_of_truth ?? true,
+    release_candidate_ready_for_v1_freeze_gate: artifacts.release_candidate_report?.summary?.ready_for_v1_freeze_gate ?? false,
+    release_candidate_ready_for_v1_freeze_with_human_review_backlog: artifacts.release_candidate_report?.summary?.ready_for_v1_freeze_with_human_review_backlog ?? false,
+    release_candidate_pending_human_approval_count: artifacts.release_candidate_report?.summary?.pending_human_approval_count ?? 0,
+    release_candidate_operational_blocker_count: artifacts.release_candidate_report?.summary?.operational_blocker_count ?? 0,
+    release_candidate_read_only: artifacts.release_candidate_report?.summary?.read_only ?? false,
+    release_candidate_report_only: artifacts.release_candidate_report?.summary?.report_only ?? false,
+    release_candidate_only: artifacts.release_candidate_report?.summary?.release_candidate_only ?? false,
+    release_candidate_command_execution_performed: artifacts.release_candidate_report?.summary?.command_execution_performed ?? false,
+    release_candidate_test_execution_performed: artifacts.release_candidate_report?.summary?.test_execution_performed ?? false,
+    release_candidate_route_execution_performed: artifacts.release_candidate_report?.summary?.route_execution_performed ?? false,
+    release_candidate_server_started: artifacts.release_candidate_report?.summary?.server_started ?? false,
+    release_candidate_deployment_execution_performed: artifacts.release_candidate_report?.summary?.deployment_execution_performed ?? false,
+    release_candidate_recovery_execution_performed: artifacts.release_candidate_report?.summary?.recovery_execution_performed ?? false,
+    release_candidate_rollback_execution_performed: artifacts.release_candidate_report?.summary?.rollback_execution_performed ?? false,
+    release_candidate_restore_execution_performed: artifacts.release_candidate_report?.summary?.restore_execution_performed ?? false,
+    release_candidate_protected_action_executed: artifacts.release_candidate_report?.summary?.protected_action_executed ?? false,
+    release_candidate_delivery_execution_performed: artifacts.release_candidate_report?.summary?.delivery_execution_performed ?? false,
+    release_candidate_legal_advice_generated: artifacts.release_candidate_report?.summary?.legal_advice_generated ?? false,
+    release_candidate_client_facing_output_generated: artifacts.release_candidate_report?.summary?.client_facing_output_generated ?? false,
+    release_candidate_human_review_required: artifacts.release_candidate_report?.summary?.human_review_required ?? false,
+    release_candidate_attorney_review_required: artifacts.release_candidate_report?.summary?.attorney_review_required ?? false,
+    release_candidate_approval_required_for_release: artifacts.release_candidate_report?.summary?.approval_required_for_release ?? false,
+    release_candidate_desktop_read_only: artifacts.release_candidate_report?.summary?.desktop_read_only ?? false,
+    release_candidate_desktop_source_of_truth: artifacts.release_candidate_report?.summary?.desktop_source_of_truth ?? true,
+    release_candidate_windows_baseline_stability_preserved: artifacts.release_candidate_report?.summary?.windows_baseline_stability_preserved ?? false,
+    release_candidate_mac_windows_completion_instability_guard: artifacts.release_candidate_report?.summary?.mac_windows_completion_instability_guard ?? false,
+    release_candidate_validation_error_count: artifacts.release_candidate_report?.summary?.validation_error_count ?? artifacts.release_candidate_report?.validation?.errors?.length ?? 0,
     connector_contract_v2_status: artifacts.connector_contract_v2?.summary?.connector_contract_status ?? "unknown",
     connector_contract_v2_contract_id: artifacts.connector_contract_v2?.summary?.connector_contract_id ?? null,
     connector_contract_v2_interface_schema_version: artifacts.connector_contract_v2?.summary?.interface_schema_version ?? null,
@@ -34452,6 +34616,8 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Deployment runbook rollback and execution: ${dashboard.summary.deployment_runbook_documented_rollback_procedure_step_count ?? 0}/${dashboard.summary.deployment_runbook_rollback_procedure_step_count ?? 0}, ${dashboard.summary.deployment_runbook_deployment_execution_performed ?? false}/${dashboard.summary.deployment_runbook_rollback_execution_performed ?? false}`);
   lines.push(`- Operator handbook surfaces/workflows/screens: ${dashboard.summary.operator_handbook_ready_surface_count ?? 0}/${dashboard.summary.operator_handbook_surface_count ?? 0}, ${dashboard.summary.operator_handbook_documented_workflow_count ?? 0}/${dashboard.summary.operator_handbook_workflow_count ?? 0}, ${dashboard.summary.operator_handbook_ready_screen_count ?? 0}/${dashboard.summary.operator_handbook_screen_count ?? 0}`);
   lines.push(`- Operator handbook recovery and execution: ${dashboard.summary.operator_handbook_documented_recovery_step_count ?? 0}/${dashboard.summary.operator_handbook_recovery_step_count ?? 0}, ${dashboard.summary.operator_handbook_recovery_execution_performed ?? false}/${dashboard.summary.operator_handbook_command_execution_performed ?? false}`);
+  lines.push(`- Release candidate matrix and commands: ${dashboard.summary.release_candidate_passed_matrix_row_count ?? 0}/${dashboard.summary.release_candidate_matrix_row_count ?? 0}, ${dashboard.summary.release_candidate_ready_command_count ?? 0}/${dashboard.summary.release_candidate_command_count ?? 0}`);
+  lines.push(`- Release candidate blockers and execution: ${dashboard.summary.release_candidate_dashboard_pending_approval_count ?? 0}/${dashboard.summary.release_candidate_dashboard_blocking_gate_count ?? 0}, ${dashboard.summary.release_candidate_command_execution_performed ?? false}/${dashboard.summary.release_candidate_route_execution_performed ?? false}`);
   lines.push(`- Ledger API/dashboard panels and routes: ${dashboard.summary.ledger_api_dashboard_passed_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_panel_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_declared_route_count ?? 0}/${dashboard.summary.ledger_api_dashboard_route_count ?? 0}`);
   lines.push(`- Ledger API/dashboard domains run/audit/cost/error/event: ${dashboard.summary.ledger_api_dashboard_run_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_audit_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cost_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_error_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_event_panel_count ?? 0}`);
   lines.push(`- Ledger API/dashboard metrics/cross links/errors: ${dashboard.summary.ledger_api_dashboard_metric_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_linked_cross_link_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cross_link_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_validation_error_count ?? 0}`);
@@ -34839,6 +35005,8 @@ function parseArgs(argv) {
     else if (arg === "--no-deployment-runbook") parsed.deploymentRunbookPath = false;
     else if (arg === "--operator-handbook") parsed.operatorHandbookPath = argv[++index];
     else if (arg === "--no-operator-handbook") parsed.operatorHandbookPath = false;
+    else if (arg === "--release-candidate-report") parsed.releaseCandidateReportPath = argv[++index];
+    else if (arg === "--no-release-candidate-report") parsed.releaseCandidateReportPath = false;
     else if (arg === "--connector-contract-v2") parsed.connectorContractV2Path = argv[++index];
     else if (arg === "--no-connector-contract-v2") parsed.connectorContractV2Path = false;
     else if (arg === "--local-folder-connector") parsed.localFolderConnectorPath = argv[++index];

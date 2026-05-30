@@ -177,6 +177,7 @@ const GOAL_ITEMS = [
   sourceItem("access_review_report", "Access Review Report", "compliance", "access_review_report", "control-plane-access-review-report", { acceptance_profile: "access_review_report_gate" }),
   sourceItem("performance_cost_budget_report", "Performance/Cost Budget Report", "compliance", "performance_cost_budget_report", "control-plane-performance-cost-budget-report", { acceptance_profile: "performance_cost_budget_report_gate" }),
   sourceItem("backup_restore_drill", "Backup/Restore Drill", "compliance", "backup_restore_drill", "control-plane-backup-restore-drill", { acceptance_profile: "backup_restore_drill_gate" }),
+  sourceItem("law_firm_e2e_report", "Law Firm E2E Report", "law_firm", "law_firm_e2e_report", "control-plane-law-firm-e2e-report", { acceptance_profile: "law_firm_e2e_report_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -713,6 +714,7 @@ function evaluateStageAcceptance(item, stage) {
     "access_review_report_gate",
     "performance_cost_budget_report_gate",
     "backup_restore_drill_gate",
+    "law_firm_e2e_report_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -6868,6 +6870,60 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Backup/Restore Drill locks P304 DB, object, artifact, event, and audit dry-run recovery with Desktop export/import excluded as source of truth, no restore execution, human-review gates, and Windows baseline stability.");
+    }
+  }
+
+  if (item.acceptance_profile === "law_firm_e2e_report_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.law_firm_e2e_report_status === "complete"
+      && metrics.phase_slot === "P305"
+      && metrics.previous_phase_slot === "P304"
+      && metrics.next_phase_slot === "P306"
+      && metrics.source_backup_restore_drill_status === "complete"
+      && metrics.source_backup_restore_drill_phase_slot === "P304"
+      && metrics.source_backup_restore_drill_next_phase_slot === "P305"
+      && metrics.failed_source_status_count === 0
+      && metrics.scenario_row_count >= 1
+      && metrics.passed_scenario_row_count === metrics.scenario_row_count
+      && metrics.failed_scenario_row_count === 0
+      && metrics.chain_stage_count >= 7
+      && metrics.passed_chain_stage_count >= 7
+      && metrics.failed_chain_stage_count === 0
+      && metrics.matter_to_audit_path_complete === true
+      && metrics.matter_stage_passed_count >= 1
+      && metrics.resource_stage_passed_count >= 1
+      && metrics.evidence_stage_passed_count >= 1
+      && metrics.draft_stage_passed_count >= 1
+      && metrics.citation_stage_passed_count >= 1
+      && metrics.approval_stage_passed_count >= 1
+      && metrics.audit_stage_passed_count >= 1
+      && metrics.resource_count >= 1
+      && metrics.evidence_item_count >= 1
+      && metrics.complete_lineage_path_count >= 1
+      && metrics.broken_lineage_path_count === 0
+      && metrics.draft_paragraph_count >= 1
+      && metrics.citation_count >= 1
+      && metrics.approval_requirement_count >= 1
+      && metrics.gate_violation_count === 0
+      && metrics.read_only === true
+      && metrics.report_only === true
+      && metrics.approval_decision_recorded === false
+      && metrics.workflow_transition_performed === false
+      && metrics.runtime_execution_performed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.legal_advice_generated === false
+      && metrics.legal_conclusion_asserted === false
+      && metrics.client_facing_output_generated === false
+      && metrics.human_review_required === true
+      && metrics.attorney_review_required === true
+      && metrics.partner_approval_required_before_client_use === true
+      && metrics.client_facing_ready === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Law Firm E2E Report locks P305 matter->resource->evidence->draft->citation->approval->audit coverage with no legal/client-facing output, no approval decision, human-review gates, and Windows baseline stability.");
     }
   }
 

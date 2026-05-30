@@ -3504,6 +3504,34 @@ try {
   assert.equal(backupRestoreValidations.collection, "backup_restore_validations");
   assert.ok(backupRestoreValidations.count <= 5);
 
+  const lawFirmE2eReportArtifacts = await fetchJson(`${url}/api/law-firm-e2e-reports?law_firm_e2e_report_status=complete&limit=1`);
+  assert.equal(lawFirmE2eReportArtifacts.collection, "law_firm_e2e_reports");
+  assert.ok(lawFirmE2eReportArtifacts.count <= 1);
+
+  const lawFirmE2eReportSources = await fetchJson(`${url}/api/law-firm-e2e-sources?source_status=passed&limit=10`);
+  assert.equal(lawFirmE2eReportSources.collection, "law_firm_e2e_sources");
+  assert.ok(lawFirmE2eReportSources.count <= 10);
+
+  const lawFirmE2eReportScenarioRows = await fetchJson(`${url}/api/law-firm-e2e-scenario-rows?scenario_status=passed&matter_gate_passed=true&resource_gate_passed=true&evidence_gate_passed=true&draft_gate_passed=true&citation_gate_passed=true&approval_gate_passed=true&audit_gate_passed=true&limit=5`);
+  assert.equal(lawFirmE2eReportScenarioRows.collection, "law_firm_e2e_scenario_rows");
+  assert.ok(lawFirmE2eReportScenarioRows.count <= 5);
+
+  const lawFirmE2eReportChainStages = await fetchJson(`${url}/api/law-firm-e2e-chain-stages?stage_status=passed&limit=10`);
+  assert.equal(lawFirmE2eReportChainStages.collection, "law_firm_e2e_chain_stages");
+  assert.ok(lawFirmE2eReportChainStages.count <= 10);
+
+  const lawFirmE2eReportGateResults = await fetchJson(`${url}/api/law-firm-e2e-gate-results?gate_status=passed&limit=10`);
+  assert.equal(lawFirmE2eReportGateResults.collection, "law_firm_e2e_gate_results");
+  assert.ok(lawFirmE2eReportGateResults.count <= 10);
+
+  const lawFirmE2eReportBoundary = await fetchJson(`${url}/api/law-firm-e2e-report-boundary?boundary_status=enforced&read_only=true&client_facing_output_generated=false&limit=1`);
+  assert.equal(lawFirmE2eReportBoundary.collection, "law_firm_e2e_report_boundary");
+  assert.ok(lawFirmE2eReportBoundary.count <= 1);
+
+  const lawFirmE2eReportValidations = await fetchJson(`${url}/api/law-firm-e2e-report-validations?status=passed&limit=5`);
+  assert.equal(lawFirmE2eReportValidations.collection, "law_firm_e2e_report_validations");
+  assert.ok(lawFirmE2eReportValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

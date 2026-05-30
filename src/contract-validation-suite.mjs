@@ -152,6 +152,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "law-firm:provided-materials-review",
   "law-firm:approval-matrix",
   "law-firm:e2e-freeze",
+  "law-firm:e2e-report",
   "creative-document:pack-manifest",
   "creative-document:template-registry",
   "creative-document:style-registry",

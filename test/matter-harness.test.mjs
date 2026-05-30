@@ -103,6 +103,7 @@ import { runRetentionDeletionPolicy } from "../src/retention-deletion-policy.mjs
 import { runAccessReviewReport } from "../src/access-review-report.mjs";
 import { runPerformanceCostBudgetReport } from "../src/performance-cost-budget-report.mjs";
 import { runBackupRestoreDrill } from "../src/backup-restore-drill.mjs";
+import { runLawFirmE2eReport } from "../src/law-firm-e2e-report.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -2003,6 +2004,7 @@ describe("matter harness", () => {
         accessReviewReportPath: path.join(outDir, "access-review-report", "access-review-report.json"),
         performanceCostBudgetReportPath: path.join(outDir, "performance-cost-budget", "performance-cost-budget-report.json"),
         backupRestoreDrillPath: path.join(outDir, "backup-restore-drill", "backup-restore-drill-report.json"),
+        lawFirmE2eReportPath: path.join(outDir, "law-firm-e2e-report", "law-firm-e2e-report.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -2141,6 +2143,7 @@ describe("matter harness", () => {
         accessReviewReportPath: false,
         performanceCostBudgetReportPath: false,
         backupRestoreDrillPath: false,
+        lawFirmE2eReportPath: false,
         observabilityFreezePath: false,
         capabilityManifestV2Path: false,
         packManifestCompatibilityPath: false,
@@ -13373,6 +13376,7 @@ describe("matter harness", () => {
         accessReviewReportPath: false,
         performanceCostBudgetReportPath: false,
         backupRestoreDrillPath: false,
+        lawFirmE2eReportPath: false,
         outDir: path.join(outDir, "dashboard-pre-checkpoint"),
         runAt: "2026-05-23T06:35:08.000Z",
       });
@@ -14930,6 +14934,76 @@ describe("matter harness", () => {
       assert.match(await readFile(path.join(outDir, "backup-restore-drill", "summary.md"), "utf8"), /Backup\/Restore Drill/);
 
       contractGoldenFixtureArtifactPaths.backup_restore_drill = path.join(outDir, "backup-restore-drill", "backup-restore-drill-report.json");
+      const lawFirmE2eReport = await runLawFirmE2eReport({
+        backupRestoreDrillPath: path.join(outDir, "backup-restore-drill", "backup-restore-drill-report.json"),
+        lawFirmE2eFreezePath: path.join(outDir, "law-firm-e2e-freeze", "law-firm-e2e-freeze.json"),
+        resourceContractFreezePath: path.join(outDir, "resource-contract-freeze", "resource-contract-freeze.json"),
+        evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
+        lddReportDraftPath: path.join(outDir, "ldd-report-draft", "ldd-report-draft.json"),
+        citationObjectStorePath: path.join(outDir, "citation-object-store", "citation-object-store.json"),
+        legalApprovalMatrixPath: path.join(outDir, "legal-approval-matrix", "legal-approval-matrix.json"),
+        auditEventLedgerPath: path.join(outDir, "audit-event-ledger", "audit-event-ledger.json"),
+        outDir: path.join(outDir, "law-firm-e2e-report"),
+        runAt: "2026-05-23T07:27:35.750Z",
+      });
+      const lawFirmE2eReportSchema = JSON.parse(await readFile("schemas/law-firm-e2e-report.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(lawFirmE2eReport, lawFirmE2eReportSchema, {}, "law_firm_e2e_report"), [], JSON.stringify(lawFirmE2eReport.validation.errors));
+      assert.equal(lawFirmE2eReport.summary.law_firm_e2e_report_status, "complete");
+      assert.equal(lawFirmE2eReport.summary.phase_slot, "P305");
+      assert.equal(lawFirmE2eReport.summary.previous_phase_slot, "P304");
+      assert.equal(lawFirmE2eReport.summary.next_phase_slot, "P306");
+      assert.equal(lawFirmE2eReport.summary.source_backup_restore_drill_status, "complete");
+      assert.equal(lawFirmE2eReport.summary.source_backup_restore_drill_phase_slot, "P304");
+      assert.equal(lawFirmE2eReport.summary.source_backup_restore_drill_next_phase_slot, "P305");
+      assert.equal(lawFirmE2eReport.summary.failed_source_status_count, 0);
+      assert.equal(lawFirmE2eReport.summary.scenario_row_count, lawFirmE2eFreeze.summary.path_count);
+      assert.equal(lawFirmE2eReport.summary.passed_scenario_row_count, lawFirmE2eReport.summary.scenario_row_count);
+      assert.equal(lawFirmE2eReport.summary.failed_scenario_row_count, 0);
+      assert.equal(lawFirmE2eReport.summary.chain_stage_count, 7);
+      assert.equal(lawFirmE2eReport.summary.passed_chain_stage_count, 7);
+      assert.equal(lawFirmE2eReport.summary.failed_chain_stage_count, 0);
+      assert.equal(lawFirmE2eReport.summary.matter_to_audit_path_complete, true);
+      assert.equal(lawFirmE2eReport.summary.matter_stage_passed_count, 1);
+      assert.equal(lawFirmE2eReport.summary.resource_stage_passed_count, 1);
+      assert.equal(lawFirmE2eReport.summary.evidence_stage_passed_count, 1);
+      assert.equal(lawFirmE2eReport.summary.draft_stage_passed_count, 1);
+      assert.equal(lawFirmE2eReport.summary.citation_stage_passed_count, 1);
+      assert.equal(lawFirmE2eReport.summary.approval_stage_passed_count, 1);
+      assert.equal(lawFirmE2eReport.summary.audit_stage_passed_count, 1);
+      assert.ok(lawFirmE2eReport.summary.resource_count >= 1);
+      assert.ok(lawFirmE2eReport.summary.evidence_item_count >= 1);
+      assert.ok(lawFirmE2eReport.summary.complete_lineage_path_count >= 1);
+      assert.equal(lawFirmE2eReport.summary.broken_lineage_path_count, 0);
+      assert.ok(lawFirmE2eReport.summary.draft_paragraph_count >= 1);
+      assert.ok(lawFirmE2eReport.summary.citation_count >= 1);
+      assert.ok(lawFirmE2eReport.summary.approval_requirement_count >= 1);
+      assert.ok(lawFirmE2eReport.summary.audit_trail_record_count >= 0);
+      assert.equal(lawFirmE2eReport.summary.gate_violation_count, 0);
+      assert.equal(lawFirmE2eReport.summary.read_only, true);
+      assert.equal(lawFirmE2eReport.summary.report_only, true);
+      assert.equal(lawFirmE2eReport.summary.approval_decision_recorded, false);
+      assert.equal(lawFirmE2eReport.summary.workflow_transition_performed, false);
+      assert.equal(lawFirmE2eReport.summary.runtime_execution_performed, false);
+      assert.equal(lawFirmE2eReport.summary.delivery_execution_performed, false);
+      assert.equal(lawFirmE2eReport.summary.legal_advice_generated, false);
+      assert.equal(lawFirmE2eReport.summary.legal_conclusion_asserted, false);
+      assert.equal(lawFirmE2eReport.summary.client_facing_output_generated, false);
+      assert.equal(lawFirmE2eReport.summary.human_review_required, true);
+      assert.equal(lawFirmE2eReport.summary.attorney_review_required, true);
+      assert.equal(lawFirmE2eReport.summary.partner_approval_required_before_client_use, true);
+      assert.equal(lawFirmE2eReport.summary.client_facing_ready, false);
+      assert.equal(lawFirmE2eReport.summary.windows_baseline_stability_preserved, true);
+      assert.equal(lawFirmE2eReport.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(lawFirmE2eReport.summary.validation_error_count, 0);
+      assert.ok(lawFirmE2eReport.source_statuses.every((row) => row.source_status === "passed"));
+      assert.ok(lawFirmE2eReport.law_firm_e2e_scenario_rows.every((row) => row.scenario_status === "passed" && row.matter_gate_passed && row.resource_gate_passed && row.evidence_gate_passed && row.draft_gate_passed && row.citation_gate_passed && row.approval_gate_passed && row.audit_gate_passed));
+      assert.ok(lawFirmE2eReport.law_firm_e2e_chain_stages.every((row) => row.stage_status === "passed" && row.read_only && !row.mutation_performed));
+      assert.ok(lawFirmE2eReport.law_firm_e2e_gate_results.every((row) => row.gate_status === "passed" && !row.gate_violation));
+      assert.equal(lawFirmE2eReport.law_firm_e2e_report_boundary.boundary_status, "enforced");
+      assert.ok(lawFirmE2eReport.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "law-firm-e2e-report", "summary.md"), "utf8"), /Law Firm E2E Report/);
+
+      contractGoldenFixtureArtifactPaths.law_firm_e2e_report = path.join(outDir, "law-firm-e2e-report", "law-firm-e2e-report.json");
       contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: contractGoldenFixtureArtifactPaths,
         fixtureIds: Object.keys(contractGoldenFixtureArtifactPaths),
@@ -14941,8 +15015,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 206);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 206);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 207);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 207);
       assert.equal(contractGoldenFixtures.summary.missing_artifact_count, 0);
       assert.equal(contractGoldenFixtures.summary.validation_error_count, 0);
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "dashboard_api_freeze"));
@@ -14954,6 +15028,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "access_review_report"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "performance_cost_budget_report"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "backup_restore_drill"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "law_firm_e2e_report"));
 
       contractValidationSuite = await runContractValidationSuite({
         contractGoldenFixturesPath: path.join(outDir, "contract-golden-fixtures", "contract-golden-fixtures.json"),
@@ -14967,8 +15042,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractValidationSuite.summary.validation_suite_status, "complete");
-      assert.equal(contractValidationSuite.summary.fixture_count, 206);
-      assert.equal(contractValidationSuite.summary.validated_fixture_count, 206);
+      assert.equal(contractValidationSuite.summary.fixture_count, 207);
+      assert.equal(contractValidationSuite.summary.validated_fixture_count, 207);
       assert.equal(contractValidationSuite.summary.schema_invalid_fixture_count, 0);
       assert.equal(contractValidationSuite.summary.regression_failed_count, 0);
       assert.equal(contractValidationSuite.summary.missing_package_script_count, 0);
@@ -14982,6 +15057,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "compliance:access-review-report"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "compliance:performance-cost-budget-report"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "compliance:backup-restore-drill"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:e2e-report"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
 
       const dashboard = await runReviewDashboard({
@@ -15050,6 +15126,10 @@ describe("matter harness", () => {
       assert.equal(backupRestoreDrillCheckpoint?.acceptance_profile, "backup_restore_drill_gate");
       assert.equal(backupRestoreDrillCheckpoint?.status, "passed");
       assert.equal(backupRestoreDrillCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const lawFirmE2eReportCheckpoint = dashboardApiFreezeGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-law-firm-e2e-report");
+      assert.equal(lawFirmE2eReportCheckpoint?.acceptance_profile, "law_firm_e2e_report_gate");
+      assert.equal(lawFirmE2eReportCheckpoint?.status, "passed");
+      assert.equal(lawFirmE2eReportCheckpoint?.implementation_status, "passed_with_operational_gate");
       assert.equal(dashboard.summary.evidence_approved_count, 1);
       assert.equal(dashboard.summary.evidence_review_draft_item_count, evidenceReviewDraft.summary.review_item_count);
       assert.equal(dashboard.summary.evidence_review_draft_attorney_count, evidenceReviewDraft.summary.attorney_review_count);
@@ -20812,6 +20892,47 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.backup_restore_drill_windows_baseline_stability_preserved, true);
       assert.equal(dashboard.summary.backup_restore_drill_mac_windows_completion_instability_guard, true);
       assert.equal(dashboard.summary.backup_restore_drill_validation_error_count, 0);
+      assert.equal(dashboard.summary.law_firm_e2e_report_status, "complete");
+      assert.equal(dashboard.summary.law_firm_e2e_report_id, lawFirmE2eReport.summary.law_firm_e2e_report_id);
+      assert.equal(dashboard.summary.law_firm_e2e_report_phase_slot, "P305");
+      assert.equal(dashboard.summary.law_firm_e2e_report_previous_phase_slot, "P304");
+      assert.equal(dashboard.summary.law_firm_e2e_report_next_phase_slot, "P306");
+      assert.equal(dashboard.summary.law_firm_e2e_report_source_backup_restore_drill_status, "complete");
+      assert.equal(dashboard.summary.law_firm_e2e_report_source_backup_restore_drill_phase_slot, "P304");
+      assert.equal(dashboard.summary.law_firm_e2e_report_source_backup_restore_drill_next_phase_slot, "P305");
+      assert.equal(dashboard.summary.law_firm_e2e_report_failed_source_status_count, 0);
+      assert.equal(dashboard.summary.law_firm_e2e_report_scenario_row_count, lawFirmE2eReport.summary.scenario_row_count);
+      assert.equal(dashboard.summary.law_firm_e2e_report_passed_scenario_row_count, lawFirmE2eReport.summary.passed_scenario_row_count);
+      assert.equal(dashboard.summary.law_firm_e2e_report_failed_scenario_row_count, 0);
+      assert.equal(dashboard.summary.law_firm_e2e_report_chain_stage_count, 7);
+      assert.equal(dashboard.summary.law_firm_e2e_report_passed_chain_stage_count, 7);
+      assert.equal(dashboard.summary.law_firm_e2e_report_failed_chain_stage_count, 0);
+      assert.equal(dashboard.summary.law_firm_e2e_report_matter_stage_passed_count, 1);
+      assert.equal(dashboard.summary.law_firm_e2e_report_resource_stage_passed_count, 1);
+      assert.equal(dashboard.summary.law_firm_e2e_report_evidence_stage_passed_count, 1);
+      assert.equal(dashboard.summary.law_firm_e2e_report_draft_stage_passed_count, 1);
+      assert.equal(dashboard.summary.law_firm_e2e_report_citation_stage_passed_count, 1);
+      assert.equal(dashboard.summary.law_firm_e2e_report_approval_stage_passed_count, 1);
+      assert.equal(dashboard.summary.law_firm_e2e_report_audit_stage_passed_count, 1);
+      assert.equal(dashboard.summary.law_firm_e2e_report_matter_to_audit_path_complete, true);
+      assert.equal(dashboard.summary.law_firm_e2e_report_broken_lineage_path_count, 0);
+      assert.equal(dashboard.summary.law_firm_e2e_report_gate_violation_count, 0);
+      assert.equal(dashboard.summary.law_firm_e2e_report_read_only, true);
+      assert.equal(dashboard.summary.law_firm_e2e_report_report_only, true);
+      assert.equal(dashboard.summary.law_firm_e2e_report_approval_decision_recorded, false);
+      assert.equal(dashboard.summary.law_firm_e2e_report_workflow_transition_performed, false);
+      assert.equal(dashboard.summary.law_firm_e2e_report_runtime_execution_performed, false);
+      assert.equal(dashboard.summary.law_firm_e2e_report_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.law_firm_e2e_report_legal_advice_generated, false);
+      assert.equal(dashboard.summary.law_firm_e2e_report_legal_conclusion_asserted, false);
+      assert.equal(dashboard.summary.law_firm_e2e_report_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.law_firm_e2e_report_human_review_required, true);
+      assert.equal(dashboard.summary.law_firm_e2e_report_attorney_review_required, true);
+      assert.equal(dashboard.summary.law_firm_e2e_report_partner_approval_required_before_client_use, true);
+      assert.equal(dashboard.summary.law_firm_e2e_report_client_facing_ready, false);
+      assert.equal(dashboard.summary.law_firm_e2e_report_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.law_firm_e2e_report_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.law_firm_e2e_report_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -25162,6 +25283,49 @@ describe("matter harness", () => {
       assert.equal(backupRestoreDrillStage?.metrics.windows_baseline_stability_preserved, true);
       assert.equal(backupRestoreDrillStage?.metrics.mac_windows_completion_instability_guard, true);
       assert.equal(backupRestoreDrillStage?.metrics.validation_error_count, 0);
+      const lawFirmE2eReportStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "law_firm_e2e_report");
+      assert.equal(lawFirmE2eReportStage?.status, "passed");
+      assert.equal(lawFirmE2eReportStage?.metrics.law_firm_e2e_report_status, "complete");
+      assert.equal(lawFirmE2eReportStage?.metrics.law_firm_e2e_report_id, lawFirmE2eReport.summary.law_firm_e2e_report_id);
+      assert.equal(lawFirmE2eReportStage?.metrics.phase_slot, "P305");
+      assert.equal(lawFirmE2eReportStage?.metrics.previous_phase_slot, "P304");
+      assert.equal(lawFirmE2eReportStage?.metrics.next_phase_slot, "P306");
+      assert.equal(lawFirmE2eReportStage?.metrics.source_backup_restore_drill_status, "complete");
+      assert.equal(lawFirmE2eReportStage?.metrics.source_backup_restore_drill_phase_slot, "P304");
+      assert.equal(lawFirmE2eReportStage?.metrics.source_backup_restore_drill_next_phase_slot, "P305");
+      assert.equal(lawFirmE2eReportStage?.metrics.failed_source_status_count, 0);
+      assert.equal(lawFirmE2eReportStage?.metrics.scenario_row_count, lawFirmE2eReport.summary.scenario_row_count);
+      assert.equal(lawFirmE2eReportStage?.metrics.passed_scenario_row_count, lawFirmE2eReport.summary.passed_scenario_row_count);
+      assert.equal(lawFirmE2eReportStage?.metrics.failed_scenario_row_count, 0);
+      assert.equal(lawFirmE2eReportStage?.metrics.chain_stage_count, 7);
+      assert.equal(lawFirmE2eReportStage?.metrics.passed_chain_stage_count, 7);
+      assert.equal(lawFirmE2eReportStage?.metrics.failed_chain_stage_count, 0);
+      assert.equal(lawFirmE2eReportStage?.metrics.matter_stage_passed_count, 1);
+      assert.equal(lawFirmE2eReportStage?.metrics.resource_stage_passed_count, 1);
+      assert.equal(lawFirmE2eReportStage?.metrics.evidence_stage_passed_count, 1);
+      assert.equal(lawFirmE2eReportStage?.metrics.draft_stage_passed_count, 1);
+      assert.equal(lawFirmE2eReportStage?.metrics.citation_stage_passed_count, 1);
+      assert.equal(lawFirmE2eReportStage?.metrics.approval_stage_passed_count, 1);
+      assert.equal(lawFirmE2eReportStage?.metrics.audit_stage_passed_count, 1);
+      assert.equal(lawFirmE2eReportStage?.metrics.matter_to_audit_path_complete, true);
+      assert.equal(lawFirmE2eReportStage?.metrics.broken_lineage_path_count, 0);
+      assert.equal(lawFirmE2eReportStage?.metrics.gate_violation_count, 0);
+      assert.equal(lawFirmE2eReportStage?.metrics.read_only, true);
+      assert.equal(lawFirmE2eReportStage?.metrics.report_only, true);
+      assert.equal(lawFirmE2eReportStage?.metrics.approval_decision_recorded, false);
+      assert.equal(lawFirmE2eReportStage?.metrics.workflow_transition_performed, false);
+      assert.equal(lawFirmE2eReportStage?.metrics.runtime_execution_performed, false);
+      assert.equal(lawFirmE2eReportStage?.metrics.delivery_execution_performed, false);
+      assert.equal(lawFirmE2eReportStage?.metrics.legal_advice_generated, false);
+      assert.equal(lawFirmE2eReportStage?.metrics.legal_conclusion_asserted, false);
+      assert.equal(lawFirmE2eReportStage?.metrics.client_facing_output_generated, false);
+      assert.equal(lawFirmE2eReportStage?.metrics.human_review_required, true);
+      assert.equal(lawFirmE2eReportStage?.metrics.attorney_review_required, true);
+      assert.equal(lawFirmE2eReportStage?.metrics.partner_approval_required_before_client_use, true);
+      assert.equal(lawFirmE2eReportStage?.metrics.client_facing_ready, false);
+      assert.equal(lawFirmE2eReportStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(lawFirmE2eReportStage?.metrics.mac_windows_completion_instability_guard, true);
+      assert.equal(lawFirmE2eReportStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -28799,6 +28963,34 @@ describe("matter harness", () => {
       const backupRestoreValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/backup-restore-validations?status=passed", apiOptions)).body);
       assert.equal(backupRestoreValidationsResponse.collection, "backup_restore_validations");
       assert.equal(backupRestoreValidationsResponse.count, backupRestoreDrill.summary.validation_item_count);
+
+      const lawFirmE2eReportArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/law-firm-e2e-reports?law_firm_e2e_report_status=complete", apiOptions)).body);
+      assert.equal(lawFirmE2eReportArtifactsResponse.collection, "law_firm_e2e_reports");
+      assert.equal(lawFirmE2eReportArtifactsResponse.count, 1);
+
+      const lawFirmE2eReportSourcesResponse = JSON.parse((await buildReviewApiResponse("/api/law-firm-e2e-sources?source_status=passed", apiOptions)).body);
+      assert.equal(lawFirmE2eReportSourcesResponse.collection, "law_firm_e2e_sources");
+      assert.equal(lawFirmE2eReportSourcesResponse.count, lawFirmE2eReport.summary.source_status_count);
+
+      const lawFirmE2eReportScenarioRowsResponse = JSON.parse((await buildReviewApiResponse("/api/law-firm-e2e-scenario-rows?scenario_status=passed&matter_gate_passed=true&resource_gate_passed=true&evidence_gate_passed=true&draft_gate_passed=true&citation_gate_passed=true&approval_gate_passed=true&audit_gate_passed=true", apiOptions)).body);
+      assert.equal(lawFirmE2eReportScenarioRowsResponse.collection, "law_firm_e2e_scenario_rows");
+      assert.equal(lawFirmE2eReportScenarioRowsResponse.count, lawFirmE2eReport.summary.scenario_row_count);
+
+      const lawFirmE2eReportChainStagesResponse = JSON.parse((await buildReviewApiResponse("/api/law-firm-e2e-chain-stages?stage_status=passed", apiOptions)).body);
+      assert.equal(lawFirmE2eReportChainStagesResponse.collection, "law_firm_e2e_chain_stages");
+      assert.equal(lawFirmE2eReportChainStagesResponse.count, lawFirmE2eReport.summary.chain_stage_count);
+
+      const lawFirmE2eReportGateResultsResponse = JSON.parse((await buildReviewApiResponse("/api/law-firm-e2e-gate-results?gate_status=passed", apiOptions)).body);
+      assert.equal(lawFirmE2eReportGateResultsResponse.collection, "law_firm_e2e_gate_results");
+      assert.equal(lawFirmE2eReportGateResultsResponse.count, lawFirmE2eReport.summary.gate_result_count);
+
+      const lawFirmE2eReportBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/law-firm-e2e-report-boundary?boundary_status=enforced&read_only=true&client_facing_output_generated=false", apiOptions)).body);
+      assert.equal(lawFirmE2eReportBoundaryResponse.collection, "law_firm_e2e_report_boundary");
+      assert.equal(lawFirmE2eReportBoundaryResponse.count, 1);
+
+      const lawFirmE2eReportValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/law-firm-e2e-report-validations?status=passed", apiOptions)).body);
+      assert.equal(lawFirmE2eReportValidationsResponse.collection, "law_firm_e2e_report_validations");
+      assert.equal(lawFirmE2eReportValidationsResponse.count, lawFirmE2eReport.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

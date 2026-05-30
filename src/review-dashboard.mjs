@@ -162,6 +162,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   providedMaterialReviewPath: "artifacts/provided-material-review/latest/provided-material-review-ledger.json",
   legalApprovalMatrixPath: "artifacts/legal-approval-matrix/latest/legal-approval-matrix.json",
   lawFirmE2eFreezePath: "artifacts/law-firm-e2e-freeze/latest/law-firm-e2e-freeze.json",
+  lawFirmE2eReportPath: "artifacts/law-firm-e2e-report/latest/law-firm-e2e-report.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -983,6 +984,11 @@ const SOURCE_DEFINITIONS = [
     option: "backupRestoreDrillPath",
     source_id: "backup_restore_drill",
     label: "Backup/Restore Drill",
+  },
+  {
+    option: "lawFirmE2eReportPath",
+    source_id: "law_firm_e2e_report",
+    label: "Law Firm E2E Report",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -2398,6 +2404,7 @@ function buildStageStatuses(artifacts, sources) {
     buildAccessReviewReportStage(artifacts.access_review_report, sourceById.get("access_review_report")),
     buildPerformanceCostBudgetReportStage(artifacts.performance_cost_budget_report, sourceById.get("performance_cost_budget_report")),
     buildBackupRestoreDrillStage(artifacts.backup_restore_drill, sourceById.get("backup_restore_drill")),
+    buildLawFirmE2eReportStage(artifacts.law_firm_e2e_report, sourceById.get("law_firm_e2e_report")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -16690,6 +16697,161 @@ function buildBackupRestoreDrillStage(artifact, source) {
   };
 }
 
+function buildLawFirmE2eReportStage(artifact, source) {
+  if (!artifact) return missingStage("law_firm_e2e_report", "Law Firm E2E Report", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.law_firm_e2e_report_status !== "complete"
+    || summary.phase_slot !== "P305"
+    || summary.previous_phase_slot !== "P304"
+    || summary.next_phase_slot !== "P306"
+    || summary.source_backup_restore_drill_status !== "complete"
+    || summary.source_backup_restore_drill_phase_slot !== "P304"
+    || summary.source_backup_restore_drill_next_phase_slot !== "P305"
+    || summary.failed_source_status_count !== 0
+    || summary.scenario_row_count < 1
+    || summary.passed_scenario_row_count !== summary.scenario_row_count
+    || summary.failed_scenario_row_count !== 0
+    || summary.chain_stage_count < 7
+    || summary.passed_chain_stage_count < 7
+    || summary.failed_chain_stage_count !== 0
+    || summary.matter_to_audit_path_complete !== true
+    || summary.matter_stage_passed_count < 1
+    || summary.resource_stage_passed_count < 1
+    || summary.evidence_stage_passed_count < 1
+    || summary.draft_stage_passed_count < 1
+    || summary.citation_stage_passed_count < 1
+    || summary.approval_stage_passed_count < 1
+    || summary.audit_stage_passed_count < 1
+    || summary.resource_count < 1
+    || summary.evidence_item_count < 1
+    || summary.complete_lineage_path_count < 1
+    || summary.broken_lineage_path_count !== 0
+    || summary.draft_paragraph_count < 1
+    || summary.citation_count < 1
+    || summary.approval_requirement_count < 1
+    || summary.gate_violation_count !== 0
+    || summary.read_only !== true
+    || summary.report_only !== true
+    || summary.source_content_read_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.matter_data_write_performed !== false
+    || summary.resource_write_performed !== false
+    || summary.evidence_write_performed !== false
+    || summary.draft_write_performed !== false
+    || summary.citation_write_performed !== false
+    || summary.approval_decision_recorded !== false
+    || summary.audit_write_performed !== false
+    || summary.workflow_transition_performed !== false
+    || summary.runtime_execution_performed !== false
+    || summary.delivery_execution_performed !== false
+    || summary.route_execution_performed !== false
+    || summary.server_started !== false
+    || summary.protected_action_executed !== false
+    || summary.external_transfer_performed !== false
+    || summary.network_access_performed !== false
+    || summary.legal_advice_generated !== false
+    || summary.legal_conclusion_asserted !== false
+    || summary.client_facing_output_generated !== false
+    || summary.human_review_required !== true
+    || summary.attorney_review_required !== true
+    || summary.partner_approval_required_before_client_use !== true
+    || summary.client_facing_ready !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "law_firm_e2e_report",
+    label: "Law Firm E2E Report",
+    status,
+    message: `${summary.passed_chain_stage_count ?? 0}/${summary.chain_stage_count ?? 0} chain stage(s), ${summary.passed_scenario_row_count ?? 0}/${summary.scenario_row_count ?? 0} scenario row(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      law_firm_e2e_report_status: summary.law_firm_e2e_report_status ?? "unknown",
+      law_firm_e2e_report_id: summary.law_firm_e2e_report_id ?? artifact.law_firm_e2e_report_id ?? null,
+      capability_id: summary.capability_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_status_count: summary.source_status_count ?? 0,
+      passed_source_status_count: summary.passed_source_status_count ?? 0,
+      failed_source_status_count: summary.failed_source_status_count ?? 0,
+      source_backup_restore_drill_status: summary.source_backup_restore_drill_status ?? "unknown",
+      source_backup_restore_drill_phase_slot: summary.source_backup_restore_drill_phase_slot ?? null,
+      source_backup_restore_drill_next_phase_slot: summary.source_backup_restore_drill_next_phase_slot ?? null,
+      scenario_row_count: summary.scenario_row_count ?? 0,
+      passed_scenario_row_count: summary.passed_scenario_row_count ?? 0,
+      failed_scenario_row_count: summary.failed_scenario_row_count ?? 0,
+      chain_stage_count: summary.chain_stage_count ?? 0,
+      passed_chain_stage_count: summary.passed_chain_stage_count ?? 0,
+      failed_chain_stage_count: summary.failed_chain_stage_count ?? 0,
+      matter_stage_passed_count: summary.matter_stage_passed_count ?? 0,
+      resource_stage_passed_count: summary.resource_stage_passed_count ?? 0,
+      evidence_stage_passed_count: summary.evidence_stage_passed_count ?? 0,
+      draft_stage_passed_count: summary.draft_stage_passed_count ?? 0,
+      citation_stage_passed_count: summary.citation_stage_passed_count ?? 0,
+      approval_stage_passed_count: summary.approval_stage_passed_count ?? 0,
+      audit_stage_passed_count: summary.audit_stage_passed_count ?? 0,
+      matter_to_audit_path_complete: summary.matter_to_audit_path_complete ?? false,
+      representative_path_count: summary.representative_path_count ?? 0,
+      resource_count: summary.resource_count ?? 0,
+      evidence_item_count: summary.evidence_item_count ?? 0,
+      complete_lineage_path_count: summary.complete_lineage_path_count ?? 0,
+      broken_lineage_path_count: summary.broken_lineage_path_count ?? 0,
+      draft_paragraph_count: summary.draft_paragraph_count ?? 0,
+      draft_only_count: summary.draft_only_count ?? 0,
+      citation_count: summary.citation_count ?? 0,
+      source_span_bound_citation_count: summary.source_span_bound_citation_count ?? 0,
+      approval_requirement_count: summary.approval_requirement_count ?? 0,
+      approval_gate_link_count: summary.approval_gate_link_count ?? 0,
+      attorney_review_requirement_count: summary.attorney_review_requirement_count ?? 0,
+      partner_approval_requirement_count: summary.partner_approval_requirement_count ?? 0,
+      audit_trail_record_count: summary.audit_trail_record_count ?? 0,
+      separated_audit_record_count: summary.separated_audit_record_count ?? 0,
+      human_review_required_audit_record_count: summary.human_review_required_audit_record_count ?? 0,
+      protected_action_executed_audit_record_count: summary.protected_action_executed_audit_record_count ?? 0,
+      gate_result_count: summary.gate_result_count ?? 0,
+      passed_gate_result_count: summary.passed_gate_result_count ?? 0,
+      failed_gate_result_count: summary.failed_gate_result_count ?? 0,
+      gate_violation_count: summary.gate_violation_count ?? 0,
+      read_only: summary.read_only ?? false,
+      report_only: summary.report_only ?? false,
+      source_artifact_read_performed: summary.source_artifact_read_performed ?? false,
+      source_content_read_performed: summary.source_content_read_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      matter_data_write_performed: summary.matter_data_write_performed ?? true,
+      resource_write_performed: summary.resource_write_performed ?? true,
+      evidence_write_performed: summary.evidence_write_performed ?? true,
+      draft_write_performed: summary.draft_write_performed ?? true,
+      citation_write_performed: summary.citation_write_performed ?? true,
+      approval_decision_recorded: summary.approval_decision_recorded ?? true,
+      audit_write_performed: summary.audit_write_performed ?? true,
+      workflow_transition_performed: summary.workflow_transition_performed ?? true,
+      runtime_execution_performed: summary.runtime_execution_performed ?? true,
+      delivery_execution_performed: summary.delivery_execution_performed ?? true,
+      route_execution_performed: summary.route_execution_performed ?? true,
+      server_started: summary.server_started ?? true,
+      protected_action_executed: summary.protected_action_executed ?? true,
+      external_transfer_performed: summary.external_transfer_performed ?? true,
+      network_access_performed: summary.network_access_performed ?? true,
+      legal_advice_generated: summary.legal_advice_generated ?? true,
+      legal_conclusion_asserted: summary.legal_conclusion_asserted ?? true,
+      client_facing_output_generated: summary.client_facing_output_generated ?? true,
+      human_review_required: summary.human_review_required ?? false,
+      attorney_review_required: summary.attorney_review_required ?? false,
+      partner_approval_required_before_client_use: summary.partner_approval_required_before_client_use ?? false,
+      client_facing_ready: summary.client_facing_ready ?? true,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -23658,6 +23820,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_backup_restore_drill", "rerun_backup_restore_drill", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.law_firm_e2e_report?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "law_firm_e2e_report";
+    items.push({
+      action_item_id: `dashboard.action.law_firm_e2e_report.${slugify(subjectId)}`,
+      source_stage: "law_firm_e2e_report",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Law Firm E2E Report",
+      subject_ref: {
+        subject_type: "law_firm_e2e_report_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_law_firm_e2e_report", "rerun_law_firm_e2e_report", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -31738,6 +31918,56 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     backup_restore_drill_windows_baseline_stability_preserved: artifacts.backup_restore_drill?.summary?.windows_baseline_stability_preserved ?? false,
     backup_restore_drill_mac_windows_completion_instability_guard: artifacts.backup_restore_drill?.summary?.mac_windows_completion_instability_guard ?? false,
     backup_restore_drill_validation_error_count: artifacts.backup_restore_drill?.summary?.validation_error_count ?? artifacts.backup_restore_drill?.validation?.errors?.length ?? 0,
+    law_firm_e2e_report_status: artifacts.law_firm_e2e_report?.summary?.law_firm_e2e_report_status ?? "unknown",
+    law_firm_e2e_report_id: artifacts.law_firm_e2e_report?.summary?.law_firm_e2e_report_id ?? artifacts.law_firm_e2e_report?.law_firm_e2e_report_id ?? null,
+    law_firm_e2e_report_capability_id: artifacts.law_firm_e2e_report?.summary?.capability_id ?? null,
+    law_firm_e2e_report_phase_slot: artifacts.law_firm_e2e_report?.summary?.phase_slot ?? null,
+    law_firm_e2e_report_previous_phase_slot: artifacts.law_firm_e2e_report?.summary?.previous_phase_slot ?? null,
+    law_firm_e2e_report_next_phase_slot: artifacts.law_firm_e2e_report?.summary?.next_phase_slot ?? null,
+    law_firm_e2e_report_source_backup_restore_drill_status: artifacts.law_firm_e2e_report?.summary?.source_backup_restore_drill_status ?? "unknown",
+    law_firm_e2e_report_source_backup_restore_drill_phase_slot: artifacts.law_firm_e2e_report?.summary?.source_backup_restore_drill_phase_slot ?? null,
+    law_firm_e2e_report_source_backup_restore_drill_next_phase_slot: artifacts.law_firm_e2e_report?.summary?.source_backup_restore_drill_next_phase_slot ?? null,
+    law_firm_e2e_report_failed_source_status_count: artifacts.law_firm_e2e_report?.summary?.failed_source_status_count ?? 0,
+    law_firm_e2e_report_scenario_row_count: artifacts.law_firm_e2e_report?.summary?.scenario_row_count ?? 0,
+    law_firm_e2e_report_passed_scenario_row_count: artifacts.law_firm_e2e_report?.summary?.passed_scenario_row_count ?? 0,
+    law_firm_e2e_report_failed_scenario_row_count: artifacts.law_firm_e2e_report?.summary?.failed_scenario_row_count ?? 0,
+    law_firm_e2e_report_chain_stage_count: artifacts.law_firm_e2e_report?.summary?.chain_stage_count ?? 0,
+    law_firm_e2e_report_passed_chain_stage_count: artifacts.law_firm_e2e_report?.summary?.passed_chain_stage_count ?? 0,
+    law_firm_e2e_report_failed_chain_stage_count: artifacts.law_firm_e2e_report?.summary?.failed_chain_stage_count ?? 0,
+    law_firm_e2e_report_matter_stage_passed_count: artifacts.law_firm_e2e_report?.summary?.matter_stage_passed_count ?? 0,
+    law_firm_e2e_report_resource_stage_passed_count: artifacts.law_firm_e2e_report?.summary?.resource_stage_passed_count ?? 0,
+    law_firm_e2e_report_evidence_stage_passed_count: artifacts.law_firm_e2e_report?.summary?.evidence_stage_passed_count ?? 0,
+    law_firm_e2e_report_draft_stage_passed_count: artifacts.law_firm_e2e_report?.summary?.draft_stage_passed_count ?? 0,
+    law_firm_e2e_report_citation_stage_passed_count: artifacts.law_firm_e2e_report?.summary?.citation_stage_passed_count ?? 0,
+    law_firm_e2e_report_approval_stage_passed_count: artifacts.law_firm_e2e_report?.summary?.approval_stage_passed_count ?? 0,
+    law_firm_e2e_report_audit_stage_passed_count: artifacts.law_firm_e2e_report?.summary?.audit_stage_passed_count ?? 0,
+    law_firm_e2e_report_matter_to_audit_path_complete: artifacts.law_firm_e2e_report?.summary?.matter_to_audit_path_complete ?? false,
+    law_firm_e2e_report_resource_count: artifacts.law_firm_e2e_report?.summary?.resource_count ?? 0,
+    law_firm_e2e_report_evidence_item_count: artifacts.law_firm_e2e_report?.summary?.evidence_item_count ?? 0,
+    law_firm_e2e_report_complete_lineage_path_count: artifacts.law_firm_e2e_report?.summary?.complete_lineage_path_count ?? 0,
+    law_firm_e2e_report_broken_lineage_path_count: artifacts.law_firm_e2e_report?.summary?.broken_lineage_path_count ?? 0,
+    law_firm_e2e_report_draft_paragraph_count: artifacts.law_firm_e2e_report?.summary?.draft_paragraph_count ?? 0,
+    law_firm_e2e_report_citation_count: artifacts.law_firm_e2e_report?.summary?.citation_count ?? 0,
+    law_firm_e2e_report_approval_requirement_count: artifacts.law_firm_e2e_report?.summary?.approval_requirement_count ?? 0,
+    law_firm_e2e_report_audit_trail_record_count: artifacts.law_firm_e2e_report?.summary?.audit_trail_record_count ?? 0,
+    law_firm_e2e_report_protected_action_executed_audit_record_count: artifacts.law_firm_e2e_report?.summary?.protected_action_executed_audit_record_count ?? 0,
+    law_firm_e2e_report_gate_violation_count: artifacts.law_firm_e2e_report?.summary?.gate_violation_count ?? 0,
+    law_firm_e2e_report_read_only: artifacts.law_firm_e2e_report?.summary?.read_only ?? false,
+    law_firm_e2e_report_report_only: artifacts.law_firm_e2e_report?.summary?.report_only ?? false,
+    law_firm_e2e_report_approval_decision_recorded: artifacts.law_firm_e2e_report?.summary?.approval_decision_recorded ?? true,
+    law_firm_e2e_report_workflow_transition_performed: artifacts.law_firm_e2e_report?.summary?.workflow_transition_performed ?? true,
+    law_firm_e2e_report_runtime_execution_performed: artifacts.law_firm_e2e_report?.summary?.runtime_execution_performed ?? true,
+    law_firm_e2e_report_delivery_execution_performed: artifacts.law_firm_e2e_report?.summary?.delivery_execution_performed ?? true,
+    law_firm_e2e_report_legal_advice_generated: artifacts.law_firm_e2e_report?.summary?.legal_advice_generated ?? true,
+    law_firm_e2e_report_legal_conclusion_asserted: artifacts.law_firm_e2e_report?.summary?.legal_conclusion_asserted ?? true,
+    law_firm_e2e_report_client_facing_output_generated: artifacts.law_firm_e2e_report?.summary?.client_facing_output_generated ?? true,
+    law_firm_e2e_report_human_review_required: artifacts.law_firm_e2e_report?.summary?.human_review_required ?? false,
+    law_firm_e2e_report_attorney_review_required: artifacts.law_firm_e2e_report?.summary?.attorney_review_required ?? false,
+    law_firm_e2e_report_partner_approval_required_before_client_use: artifacts.law_firm_e2e_report?.summary?.partner_approval_required_before_client_use ?? false,
+    law_firm_e2e_report_client_facing_ready: artifacts.law_firm_e2e_report?.summary?.client_facing_ready ?? true,
+    law_firm_e2e_report_windows_baseline_stability_preserved: artifacts.law_firm_e2e_report?.summary?.windows_baseline_stability_preserved ?? false,
+    law_firm_e2e_report_mac_windows_completion_instability_guard: artifacts.law_firm_e2e_report?.summary?.mac_windows_completion_instability_guard ?? false,
+    law_firm_e2e_report_validation_error_count: artifacts.law_firm_e2e_report?.summary?.validation_error_count ?? artifacts.law_firm_e2e_report?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -33156,6 +33386,8 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Performance/cost budget violations and mutations: ${dashboard.summary.performance_cost_budget_report_budget_violation_count ?? 0}, ${dashboard.summary.performance_cost_budget_report_budget_mutation_performed ?? false}/${dashboard.summary.performance_cost_budget_report_cost_mutation_performed ?? false}`);
   lines.push(`- Backup/restore dry-run planes DB/object/artifact/event/audit: ${dashboard.summary.backup_restore_drill_db_restore_drill_count ?? 0}/${dashboard.summary.backup_restore_drill_object_restore_drill_count ?? 0}/${dashboard.summary.backup_restore_drill_artifact_restore_drill_count ?? 0}/${dashboard.summary.backup_restore_drill_event_restore_drill_count ?? 0}/${dashboard.summary.backup_restore_drill_audit_restore_drill_count ?? 0}`);
   lines.push(`- Backup/restore Desktop source-of-truth rows: ${dashboard.summary.backup_restore_drill_desktop_source_of_truth_count ?? 0}`);
+  lines.push(`- Law-firm E2E chain matter/resource/evidence/draft/citation/approval/audit: ${dashboard.summary.law_firm_e2e_report_matter_stage_passed_count ?? 0}/${dashboard.summary.law_firm_e2e_report_resource_stage_passed_count ?? 0}/${dashboard.summary.law_firm_e2e_report_evidence_stage_passed_count ?? 0}/${dashboard.summary.law_firm_e2e_report_draft_stage_passed_count ?? 0}/${dashboard.summary.law_firm_e2e_report_citation_stage_passed_count ?? 0}/${dashboard.summary.law_firm_e2e_report_approval_stage_passed_count ?? 0}/${dashboard.summary.law_firm_e2e_report_audit_stage_passed_count ?? 0}`);
+  lines.push(`- Law-firm E2E scenario rows and client-facing output: ${dashboard.summary.law_firm_e2e_report_passed_scenario_row_count ?? 0}/${dashboard.summary.law_firm_e2e_report_scenario_row_count ?? 0}, ${dashboard.summary.law_firm_e2e_report_client_facing_output_generated ?? false}`);
   lines.push(`- Ledger API/dashboard panels and routes: ${dashboard.summary.ledger_api_dashboard_passed_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_panel_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_declared_route_count ?? 0}/${dashboard.summary.ledger_api_dashboard_route_count ?? 0}`);
   lines.push(`- Ledger API/dashboard domains run/audit/cost/error/event: ${dashboard.summary.ledger_api_dashboard_run_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_audit_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cost_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_error_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_event_panel_count ?? 0}`);
   lines.push(`- Ledger API/dashboard metrics/cross links/errors: ${dashboard.summary.ledger_api_dashboard_metric_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_linked_cross_link_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cross_link_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_validation_error_count ?? 0}`);
@@ -33609,6 +33841,8 @@ function parseArgs(argv) {
     else if (arg === "--no-performance-cost-budget-report") parsed.performanceCostBudgetReportPath = false;
     else if (arg === "--backup-restore-drill") parsed.backupRestoreDrillPath = argv[++index];
     else if (arg === "--no-backup-restore-drill") parsed.backupRestoreDrillPath = false;
+    else if (arg === "--law-firm-e2e-report") parsed.lawFirmE2eReportPath = argv[++index];
+    else if (arg === "--no-law-firm-e2e-report") parsed.lawFirmE2eReportPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

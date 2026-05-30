@@ -7163,6 +7163,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("backup_restore_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/law-firm-e2e-reports") {
+    const result = await readDashboardSourceArtifact(dashboard, "law_firm_e2e_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("law_firm_e2e_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("law_firm_e2e_reports", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/law-firm-e2e-sources") {
+    const result = await readDashboardSourceArtifact(dashboard, "law_firm_e2e_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("law_firm_e2e_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("law_firm_e2e_sources", result.artifact.source_statuses ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/law-firm-e2e-scenario-rows") {
+    const result = await readDashboardSourceArtifact(dashboard, "law_firm_e2e_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("law_firm_e2e_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("law_firm_e2e_scenario_rows", result.artifact.law_firm_e2e_scenario_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/law-firm-e2e-chain-stages") {
+    const result = await readDashboardSourceArtifact(dashboard, "law_firm_e2e_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("law_firm_e2e_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("law_firm_e2e_chain_stages", result.artifact.law_firm_e2e_chain_stages ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/law-firm-e2e-gate-results") {
+    const result = await readDashboardSourceArtifact(dashboard, "law_firm_e2e_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("law_firm_e2e_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("law_firm_e2e_gate_results", result.artifact.law_firm_e2e_gate_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/law-firm-e2e-report-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "law_firm_e2e_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("law_firm_e2e_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("law_firm_e2e_report_boundary", [result.artifact.law_firm_e2e_report_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/law-firm-e2e-report-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "law_firm_e2e_report");
+    if (!result.available) {
+      return jsonResponse(503, buildError("law_firm_e2e_report_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("law_firm_e2e_report_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -13790,6 +13839,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/backup-restore-gate-results", "Backup/Restore Drill gate result rows"),
       route("GET", "/api/backup-restore-boundary", "Backup/Restore Drill read-only boundary"),
       route("GET", "/api/backup-restore-validations", "Backup/Restore Drill validation rows"),
+      route("GET", "/api/law-firm-e2e-reports", "Law Firm E2E Report artifact"),
+      route("GET", "/api/law-firm-e2e-sources", "Law Firm E2E Report source status rows"),
+      route("GET", "/api/law-firm-e2e-scenario-rows", "Law Firm E2E scenario rows"),
+      route("GET", "/api/law-firm-e2e-chain-stages", "Law Firm E2E chain stage rows"),
+      route("GET", "/api/law-firm-e2e-gate-results", "Law Firm E2E Report gate result rows"),
+      route("GET", "/api/law-firm-e2e-report-boundary", "Law Firm E2E Report read-only boundary"),
+      route("GET", "/api/law-firm-e2e-report-validations", "Law Firm E2E Report validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -15079,6 +15135,21 @@ function filterItems(items, searchParams) {
     "source_of_truth_status",
     "desktop_export_performed",
     "desktop_import_performed",
+    "law_firm_e2e_report_status",
+    "scenario_status",
+    "scenario_kind",
+    "chain_stage",
+    "stage_status",
+    "matter_to_audit_path_complete",
+    "matter_gate_passed",
+    "resource_gate_passed",
+    "evidence_gate_passed",
+    "draft_gate_passed",
+    "citation_gate_passed",
+    "approval_gate_passed",
+    "audit_gate_passed",
+    "legal_advice_generated",
+    "client_facing_output_generated",
     "budget_scope",
     "budget_kind",
     "budget_status",
@@ -17450,10 +17521,21 @@ function readFilterValue(item, key) {
   if (key === "law_firm_e2e_coverage_gate_type") return item.gate_type;
   if (key === "law_firm_e2e_coverage_gate_status") return item.gate_status;
   if (key === "law_firm_e2e_checkpoint_status") return item.status;
+  if (key === "law_firm_e2e_report_status") return item.summary?.law_firm_e2e_report_status ?? item.law_firm_e2e_report_status;
+  if (key === "scenario_status") return item.scenario_status;
+  if (key === "scenario_kind") return item.scenario_kind;
+  if (key === "chain_stage") return item.chain_stage;
+  if (key === "stage_status") return item.stage_status;
+  if (key === "matter_to_audit_path_complete") return String(Boolean(item.summary?.matter_to_audit_path_complete ?? item.matter_to_audit_path_complete));
   if (key === "matter_gate_passed") return String(Boolean(item.matter_gate_passed));
+  if (key === "resource_gate_passed") return String(Boolean(item.resource_gate_passed));
   if (key === "evidence_gate_passed") return String(Boolean(item.evidence_gate_passed));
+  if (key === "draft_gate_passed") return String(Boolean(item.draft_gate_passed));
   if (key === "citation_gate_passed") return String(Boolean(item.citation_gate_passed));
   if (key === "approval_gate_passed") return String(Boolean(item.approval_gate_passed));
+  if (key === "audit_gate_passed") return String(Boolean(item.audit_gate_passed));
+  if (key === "legal_advice_generated") return String(Boolean(item.summary?.legal_advice_generated ?? item.legal_advice_generated));
+  if (key === "client_facing_output_generated") return String(Boolean(item.summary?.client_facing_output_generated ?? item.client_facing_output_generated));
   if (key === "repo_profile_detector_status") return item.summary?.repo_profile_detector_status ?? item.repo_profile_detector_status;
   if (key === "repo_profile_status") return item.summary?.repo_profile_status ?? item.profile_status ?? item.repo_profile_status;
   if (key === "language_id") return item.language_id ?? item.primary_language_id;

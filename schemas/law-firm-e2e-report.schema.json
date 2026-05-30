@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/law-firm-e2e-report.schema.json",
+  "title": "Law Firm E2E Report",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "law_firm_e2e_report_id",
+    "capability_id",
+    "law_firm_e2e_report_contract",
+    "source_statuses",
+    "law_firm_e2e_scenario_rows",
+    "law_firm_e2e_chain_stages",
+    "law_firm_e2e_gate_results",
+    "law_firm_e2e_report_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "law-firm-e2e-report.v1" },
+    "law_firm_e2e_report_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "law_firm.e2e.report" },
+    "law_firm_e2e_report_contract": {
+      "type": "object",
+      "required": ["contract_id", "capability_id", "phase_slot", "previous_phase_slot", "next_phase_slot", "scenario", "execution_model"],
+      "properties": {
+        "contract_id": { "const": "law-firm-e2e-report.v1" },
+        "capability_id": { "const": "law_firm.e2e.report" },
+        "phase_slot": { "const": "P305" },
+        "previous_phase_slot": { "const": "P304" },
+        "next_phase_slot": { "const": "P306" },
+        "scenario": { "const": "matter_to_resource_to_evidence_to_draft_to_citation_to_approval_to_audit" },
+        "execution_model": { "const": "deterministic_read_only_report" }
+      }
+    },
+    "source_statuses": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["source_id", "source_status", "validation_error_count"],
+        "properties": {
+          "source_status": { "const": "passed" },
+          "validation_error_count": { "const": 0 }
+        }
+      }
+    },
+    "law_firm_e2e_scenario_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "law_firm_e2e_scenario_id",
+          "phase_slot",
+          "scenario_status",
+          "matter_gate_passed",
+          "resource_gate_passed",
+          "evidence_gate_passed",
+          "draft_gate_passed",
+          "citation_gate_passed",
+          "approval_gate_passed",
+          "audit_gate_passed",
+          "human_review_required",
+          "attorney_review_required",
+          "partner_approval_required_before_client_use",
+          "approval_decision_recorded",
+          "legal_advice_generated",
+          "legal_conclusion_asserted",
+          "client_facing_output_generated",
+          "mutation_performed"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P305" },
+          "scenario_status": { "const": "passed" },
+          "matter_gate_passed": { "const": true },
+          "resource_gate_passed": { "const": true },
+          "evidence_gate_passed": { "const": true },
+          "draft_gate_passed": { "const": true },
+          "citation_gate_passed": { "const": true },
+          "approval_gate_passed": { "const": true },
+          "audit_gate_passed": { "const": true },
+          "human_review_required": { "const": true },
+          "attorney_review_required": { "const": true },
+          "partner_approval_required_before_client_use": { "const": true },
+          "approval_decision_recorded": { "const": false },
+          "legal_advice_generated": { "const": false },
+          "legal_conclusion_asserted": { "const": false },
+          "client_facing_output_generated": { "const": false },
+          "mutation_performed": { "const": false }
+        }
+      }
+    },
+    "law_firm_e2e_chain_stages": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "object",
+        "required": ["chain_stage", "stage_status", "read_only", "mutation_performed", "human_review_required"],
+        "properties": {
+          "chain_stage": { "enum": ["matter", "resource", "evidence", "draft", "citation", "approval", "audit"] },
+          "stage_status": { "const": "passed" },
+          "read_only": { "const": true },
+          "mutation_performed": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "law_firm_e2e_gate_results": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["gate_status", "gate_violation"],
+        "properties": {
+          "gate_status": { "const": "passed" },
+          "gate_violation": { "const": false }
+        }
+      }
+    },
+    "law_firm_e2e_report_boundary": {
+      "type": "object",
+      "required": ["boundary_status", "phase_slot", "read_only", "report_only", "workflow_transition_performed", "runtime_execution_performed", "approval_decision_recorded", "legal_advice_generated", "client_facing_output_generated", "human_review_required", "windows_baseline_stability_preserved"],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "phase_slot": { "const": "P305" },
+        "read_only": { "const": true },
+        "report_only": { "const": true },
+        "workflow_transition_performed": { "const": false },
+        "runtime_execution_performed": { "const": false },
+        "approval_decision_recorded": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true },
+        "windows_baseline_stability_preserved": { "const": true }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "law_firm_e2e_report_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "failed_source_status_count",
+        "scenario_row_count",
+        "passed_scenario_row_count",
+        "failed_scenario_row_count",
+        "chain_stage_count",
+        "passed_chain_stage_count",
+        "failed_chain_stage_count",
+        "matter_to_audit_path_complete",
+        "gate_violation_count",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "human_review_required",
+        "windows_baseline_stability_preserved",
+        "validation_error_count"
+      ],
+      "properties": {
+        "law_firm_e2e_report_status": { "const": "complete" },
+        "phase_slot": { "const": "P305" },
+        "previous_phase_slot": { "const": "P304" },
+        "next_phase_slot": { "const": "P306" },
+        "failed_source_status_count": { "const": 0 },
+        "failed_scenario_row_count": { "const": 0 },
+        "failed_chain_stage_count": { "const": 0 },
+        "matter_to_audit_path_complete": { "const": true },
+        "gate_violation_count": { "const": 0 },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true },
+        "windows_baseline_stability_preserved": { "const": true },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

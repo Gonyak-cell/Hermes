@@ -213,6 +213,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     access_review_report: "artifacts/access-review-report/latest/access-review-report.json",
     performance_cost_budget_report: "artifacts/performance-cost-budget/latest/performance-cost-budget-report.json",
     backup_restore_drill: "artifacts/backup-restore-drill/latest/backup-restore-drill-report.json",
+    law_firm_e2e_report: "artifacts/law-firm-e2e-report/latest/law-firm-e2e-report.json",
   },
 };
 
@@ -419,6 +420,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("access_review_report", "Access Review Report", "compliance", "access-review-report.schema.json"),
   fixtureDefinition("performance_cost_budget_report", "Performance/Cost Budget Report", "compliance", "performance-cost-budget-report.schema.json"),
   fixtureDefinition("backup_restore_drill", "Backup/Restore Drill", "compliance", "backup-restore-drill.schema.json"),
+  fixtureDefinition("law_firm_e2e_report", "Law Firm E2E Report", "law_firm", "law-firm-e2e-report.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),

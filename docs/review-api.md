@@ -108,6 +108,12 @@ Backup/Restore Drill routes expose the read-only dry-run report artifact, source
 
 Routes: `/api/backup-restore-drills`, `/api/backup-restore-sources`, `/api/restore-drill-rows`, `/api/backup-restore-source-of-truth-rows`, `/api/backup-restore-gate-results`, `/api/backup-restore-boundary`, `/api/backup-restore-validations`.
 
+## P305 Law Firm E2E Report Routes
+
+Law Firm E2E Report routes expose the read-only P305 scenario report artifact, source status rows, representative scenario rows, matter/resource/evidence/draft/citation/approval/audit chain stage rows, gate result rows, boundary, and validation rows. Supported filters include `law_firm_e2e_report_status`, `source_status`, `scenario_status`, `scenario_kind`, `chain_stage`, `stage_status`, `matter_to_audit_path_complete`, `matter_gate_passed`, `resource_gate_passed`, `evidence_gate_passed`, `draft_gate_passed`, `citation_gate_passed`, `approval_gate_passed`, `audit_gate_passed`, `gate_status`, `boundary_status`, `read_only`, `legal_advice_generated`, `client_facing_output_generated`, `status`, and `limit`.
+
+Routes: `/api/law-firm-e2e-reports`, `/api/law-firm-e2e-sources`, `/api/law-firm-e2e-scenario-rows`, `/api/law-firm-e2e-chain-stages`, `/api/law-firm-e2e-gate-results`, `/api/law-firm-e2e-report-boundary`, `/api/law-firm-e2e-report-validations`.
+
 ## P245 LDD RFI Generator Routes
 
 LDD RFI Generator routes expose read-only draft-only RFI packets, draft questions, missing-material links, issue links, matter summaries, and validation/boundary rows. Supported filters include `ldd_rfi_generator_status`, `ldd_rfi_matter_status`, `rfi_rule_type`, `rfi_draft_status`, `rfi_question_type`, `rfi_question_priority`, `rfi_question_status`, `rfi_missing_material_status`, `rfi_issue_link_status`, `deterministic_rfi_generation_performed`, `ldd_rfi_question_id`, `ldd_issue_record_id`, `ldd_vdr_missing_data_record_id`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.

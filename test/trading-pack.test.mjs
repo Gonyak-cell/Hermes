@@ -29,6 +29,7 @@ import { runTradingManualResumeDisabledFixtures } from "../src/trading-manual-re
 import { runTradingRiskOverrideDisabledFixtures } from "../src/trading-risk-override-disabled-fixtures.mjs";
 import { runTradingPromotionDisabledFixtures } from "../src/trading-promotion-disabled-fixtures.mjs";
 import { runTradingFirstTradeDisabledFixtures } from "../src/trading-first-trade-disabled-fixtures.mjs";
+import { runTradingOrderIntentDisabledFixtures } from "../src/trading-order-intent-disabled-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -1980,6 +1981,139 @@ test("trading first trade disabled fixtures --check does not overwrite existing 
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingFirstTradeDisabledFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading order intent disabled fixtures keep order intents blocked", async () => {
+  const result = await runTradingOrderIntentDisabledFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_order_intent_disabled_fixtures_status, "ready_for_trading_order_intent_disabled_regression");
+  assert.equal(result.summary.phase_slot, "P393");
+  assert.equal(result.summary.previous_phase_slot, "P392");
+  assert.equal(result.summary.next_phase_slot, "P394");
+  assert.equal(result.summary.source_first_trade_disabled_status, "ready_for_trading_first_trade_disabled_regression");
+  assert.equal(result.summary.required_fixture_count, 6);
+  assert.equal(result.summary.evidence_count, 6);
+  assert.equal(result.summary.fixture_count, 6);
+  assert.equal(result.summary.passed_fixture_count, 6);
+  assert.equal(result.summary.failed_fixture_count, 0);
+  assert.equal(result.summary.unsafe_order_intent_signal_count, 0);
+  assert.equal(result.summary.order_intent_disabled_covered, true);
+  assert.equal(result.summary.signal_to_order_intent_allowed, false);
+  assert.equal(result.summary.generated_order_intent_count_present, false);
+  assert.equal(result.summary.model_order_intent_generation_allowed, false);
+  assert.equal(result.summary.backtest_order_intent_generated, false);
+  assert.equal(result.summary.shadow_order_intent_executable, false);
+  assert.equal(result.summary.market_order_allowed, false);
+  assert.equal(result.summary.order_intent_route_enabled, false);
+  assert.equal(result.summary.order_submit_route_enabled, false);
+  assert.equal(result.summary.order_intent_generated, false);
+  assert.equal(result.summary.real_order_submitted, false);
+  assert.equal(result.summary.live_execution_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.ok(result.order_intent_disabled_evidence_rows.every((row) => row.evidence_status === "order_intent_disabled" && row.unsafe_order_intent_signal_detected === false));
+  assert.ok(result.order_intent_disabled_fixture_rows.every((row) => row.fixture_status === "passed" && row.fixture_should_fail_when_order_intent_generated && row.fixture_should_fail_when_order_intent_route_enabled));
+  assert.ok(result.order_intent_disabled_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_gate === false));
+});
+
+test("trading order intent disabled fixtures block when order intent is enabled", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-order-intent-enabled-"));
+  try {
+    const signalEngine = JSON.parse(await readFile("examples/trading/signal-engine.json", "utf8"));
+    signalEngine.safety_boundary.order_intent_generated = true;
+    signalEngine.order_intent_boundary.signal_to_order_intent_allowed = true;
+    signalEngine.order_intent_boundary.generated_order_intent_count = 1;
+    signalEngine.dashboard_api_stub.disabled_routes = signalEngine.dashboard_api_stub.disabled_routes.filter((route) => route.path !== "/api/trading/signals/to-order-intent");
+    const signalEnginePath = path.join(root, "signal-engine.json");
+    await writeFile(signalEnginePath, `${JSON.stringify(signalEngine, null, 2)}\n`, "utf8");
+
+    const paperShadow = JSON.parse(await readFile("examples/trading/paper-shadow-live.json", "utf8"));
+    paperShadow.shadow_order_intents[0].non_executable = false;
+    paperShadow.shadow_order_intents[0].review_only = false;
+    paperShadow.shadow_order_intents[0].live_execution_allowed = true;
+    paperShadow.shadow_order_intents[0].market_order_allowed = true;
+    paperShadow.no_order_shadow_mode.real_order_count = 1;
+    const paperShadowPath = path.join(root, "paper-shadow-live.json");
+    await writeFile(paperShadowPath, `${JSON.stringify(paperShadow, null, 2)}\n`, "utf8");
+
+    const executionEngine = JSON.parse(await readFile("examples/trading/execution-engine.json", "utf8"));
+    executionEngine.pre_trade_risk_gate.current_result = "pass";
+    executionEngine.order_controls.order_throttle.max_orders_per_day = 1;
+    executionEngine.order_controls.order_throttle.blocks_order_submission = false;
+    executionEngine.safety_boundary.real_order_submitted = true;
+    executionEngine.dashboard_api_stub.disabled_routes = executionEngine.dashboard_api_stub.disabled_routes.filter((route) => route.path !== "/api/trading/orders/submit");
+    const executionEnginePath = path.join(root, "execution-engine.json");
+    await writeFile(executionEnginePath, `${JSON.stringify(executionEngine, null, 2)}\n`, "utf8");
+
+    const result = await runTradingOrderIntentDisabledFixtures({ signalEnginePath, paperShadowPath, executionEnginePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_order_intent_disabled_fixtures_status, "blocked");
+    assert.ok(result.summary.unsafe_order_intent_signal_count > 0);
+    assert.equal(result.summary.signal_to_order_intent_allowed, true);
+    assert.equal(result.summary.generated_order_intent_count_present, true);
+    assert.equal(result.summary.order_intent_route_enabled, true);
+    assert.equal(result.summary.order_submit_route_enabled, true);
+    assert.equal(result.summary.shadow_order_intent_executable, true);
+    assert.equal(result.summary.market_order_allowed, true);
+    assert.equal(result.summary.order_throttle_missing, true);
+    assert.equal(result.summary.pre_trade_risk_gate_not_blocking, true);
+    assert.equal(result.summary.order_intent_generated, true);
+    assert.equal(result.summary.real_order_submitted, true);
+    assert.equal(result.summary.live_execution_allowed, true);
+    assert.ok(result.order_intent_disabled_fixture_rows.some((row) => row.row_key === "signal_to_order_intent_disabled" && row.fixture_status === "failed" && row.unsafe_order_intent_signal_detected));
+    await assert.rejects(
+      () => runTradingOrderIntentDisabledFixtures({ signalEnginePath, paperShadowPath, executionEnginePath, write: false, check: true }),
+      /Trading order intent disabled fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading order intent disabled fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-order-intent-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:order-intent-disabled-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:order-intent-disabled-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingOrderIntentDisabledFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_order_intent_disabled_fixtures_status, "blocked");
+    assert.ok(result.order_intent_disabled_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.order_intent_disabled_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingOrderIntentDisabledFixtures({ packagePath, write: false, check: true }),
+      /Trading order intent disabled fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading order intent disabled fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-order-intent-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-order-intent-disabled-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-order-intent-disabled-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingOrderIntentDisabledFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

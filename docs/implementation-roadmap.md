@@ -8178,3 +8178,27 @@ Changes:
   no-overwrite behavior.
 - Updated the P341-P500 ledger so P349 owns provenance freeze preflight and P350
   remains reserved for final provenance freeze closeout.
+
+## Phase 350 - Platform Provenance Freeze
+
+Phase 350 closes the P346-P350 baseline provenance freeze detail as a read-only
+record. It consumes P349 provenance freeze preflight in memory, records
+P346-P350 closure rows, and verifies package-script, validation-chain, and
+ledger acceptance gates without executing checks, creating tags, creating signed
+tags, materializing signing keys, creating release bundles, publishing releases,
+or executing protected actions.
+
+Changes:
+
+- Added `src/platform-provenance-freeze.mjs`,
+  `scripts/platform-provenance-freeze.mjs`,
+  `schemas/platform-provenance-freeze.schema.json`, and
+  `docs/platform-provenance-freeze.md`.
+- Added `platform:provenance-freeze` and registered
+  `platform:provenance-freeze -- --check` after
+  `platform:provenance-freeze-preflight` in the validation chain.
+- Added focused platform operations tests for provenance freeze readiness,
+  missing package-script or validation-chain registration, and `--check`
+  no-overwrite behavior.
+- Updated the P341-P500 ledger so P350 owns final provenance freeze closeout and
+  P351-P355 remain reserved for Mac/Windows replay notes and lockfile policy.

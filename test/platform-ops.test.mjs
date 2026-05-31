@@ -12,6 +12,7 @@ import { runPlatformProvenanceLedger } from "../src/platform-provenance-ledger.m
 import { runPlatformReleaseBundleProvenance } from "../src/platform-release-bundle-provenance.mjs";
 import { runPlatformSignedTagProvenance } from "../src/platform-signed-tag-provenance.mjs";
 import { runPlatformProvenanceFreezePreflight } from "../src/platform-provenance-freeze-preflight.mjs";
+import { runPlatformProvenanceFreeze } from "../src/platform-provenance-freeze.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -593,6 +594,75 @@ test("platform provenance freeze preflight --check does not overwrite existing a
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformProvenanceFreezePreflight({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform provenance freeze closes P350 without protected actions", async () => {
+  const result = await runPlatformProvenanceFreeze({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_provenance_freeze_status, "ready");
+  assert.equal(result.summary.phase_slot, "P350");
+  assert.equal(result.summary.previous_phase_slot, "P349");
+  assert.equal(result.summary.next_phase_slot, "P351");
+  assert.equal(result.summary.source_provenance_freeze_preflight_status, "ready");
+  assert.equal(result.summary.freeze_closure_count, 5);
+  assert.equal(result.summary.ready_freeze_closure_count, 5);
+  assert.equal(result.summary.freeze_gate_count, 7);
+  assert.equal(result.summary.ready_freeze_gate_count, 7);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.git_operation_performed, false);
+  assert.equal(result.summary.git_tag_created, false);
+  assert.equal(result.summary.signed_tag_created, false);
+  assert.equal(result.summary.release_bundle_created, false);
+  assert.equal(result.summary.release_published, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.ok(result.freeze_closure_rows.every((row) => row.freeze_closure_status === "ready" && row.final_freeze_recorded));
+  assert.ok(result.freeze_gate_rows.every((row) => row.gate_status === "ready" && row.git_operation_performed_by_report === false));
+});
+
+test("platform provenance freeze blocks when validation chain is missing P350", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-block-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:provenance-freeze"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:provenance-freeze -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformProvenanceFreeze({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_provenance_freeze_status, "blocked");
+    assert.ok(result.freeze_gate_rows.some((row) => row.row_key === "platform_package_scripts_registered" && row.gate_status === "blocked"));
+    assert.ok(result.freeze_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    assert.ok(result.freeze_closure_rows.some((row) => row.source_phase_slot === "P350" && row.freeze_closure_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformProvenanceFreeze({ packagePath, write: false, check: true }),
+      /Platform provenance freeze failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform provenance freeze --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-check-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-provenance-freeze.json");
+    const sentinel = "{ \"sentinel\": \"provenance-freeze\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformProvenanceFreeze({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

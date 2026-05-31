@@ -180,6 +180,11 @@
       "entrypoint_type": "command",
       "name": "trading:broker-write-disabled-fixtures",
       "path": "scripts/trading-broker-write-disabled-fixtures.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:exchange-write-disabled-fixtures",
+      "path": "scripts/trading-exchange-write-disabled-fixtures.mjs"
     }
   ],
   "dependencies": ["common.workflow.approval", "common.audit.replay", "common.test.gate"],
@@ -290,6 +295,12 @@
       "case_id": "golden.trading.broker_write_disabled_fixtures.p386",
       "description": "P386 broker write disabled fixtures prove broker adapter writes, live order submission, live cancel, real order side effects, and broker failover writes remain blocked.",
       "input_ref": "artifacts/trading-broker-write-disabled-fixtures/latest/trading-broker-write-disabled-fixtures.json",
+      "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
+    },
+    {
+      "case_id": "golden.trading.exchange_write_disabled_fixtures.p387",
+      "description": "P387 exchange write disabled fixtures prove exchange adapter writes, live order submission, live cancel, real order side effects, and broker/exchange failover writes remain blocked.",
+      "input_ref": "artifacts/trading-exchange-write-disabled-fixtures/latest/trading-exchange-write-disabled-fixtures.json",
       "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
     }
   ],

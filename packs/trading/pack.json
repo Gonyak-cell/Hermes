@@ -65,7 +65,8 @@
     "schemas/trading/trading-approval-absence-fixtures.schema.json",
     "schemas/trading/trading-live-adapter-disabled-fixtures.schema.json",
     "schemas/trading/trading-credential-lookup-disabled-fixtures.schema.json",
-    "schemas/trading/trading-broker-write-disabled-fixtures.schema.json"
+    "schemas/trading/trading-broker-write-disabled-fixtures.schema.json",
+    "schemas/trading/trading-exchange-write-disabled-fixtures.schema.json"
   ],
   "workflows": [
     "workflow.trading.research_intake.v1",
@@ -106,7 +107,8 @@
     "workflow.trading.approval_absence_fixtures.v1",
     "workflow.trading.live_adapter_disabled_fixtures.v1",
     "workflow.trading.credential_lookup_disabled_fixtures.v1",
-    "workflow.trading.broker_write_disabled_fixtures.v1"
+    "workflow.trading.broker_write_disabled_fixtures.v1",
+    "workflow.trading.exchange_write_disabled_fixtures.v1"
   ],
   "gates": [
     "classification_gate",
@@ -148,7 +150,8 @@
     "golden.trading.approval_absence_fixtures.p383",
     "golden.trading.live_adapter_disabled_fixtures.p384",
     "golden.trading.credential_lookup_disabled_fixtures.p385",
-    "golden.trading.broker_write_disabled_fixtures.p386"
+    "golden.trading.broker_write_disabled_fixtures.p386",
+    "golden.trading.exchange_write_disabled_fixtures.p387"
   ],
   "dependencies": [
     {

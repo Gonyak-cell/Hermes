@@ -49,7 +49,8 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 - P356: `platform:reproducibility-check-registry` registers P341-P356 reproducibility checks in package scripts and validation, while bridging to future release-check commands without executing checks or requiring future scripts now.
 - P357: `platform:reproducibility-evidence-matrix` records grouped reproducibility evidence expectations without collecting evidence, executing checks, or executing future release-check commands.
 - P358: `platform:reproducibility-proof-index` maps reproducibility evidence rows to expected proof references without materializing proof, reading artifacts, collecting evidence, or executing checks.
-- P359-P360: reproducibility operator review and closeout checks remain reserved for the platform validation and future release-check chain.
+- P359: `platform:reproducibility-operator-review` turns proof rows into human-reviewable operator review rows without completing review, applying approvals, reading artifacts, or executing protected actions.
+- P360: reproducibility closeout remains reserved for the platform validation and future release-check chain.
 
 ## P361-P380 Acceptance Criteria
 

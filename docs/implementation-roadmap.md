@@ -8397,4 +8397,30 @@ Changes:
   readiness, missing package-script or validation-chain registration, and
   `--check` no-overwrite behavior.
 - Updated the P341-P500 ledger so P358 owns the reproducibility proof index and
-  P359-P360 remain reserved for operator review and closeout checks.
+  P359 owns the operator review packet.
+
+## Phase 359 - Platform Reproducibility Operator Review
+
+Phase 359 records the reproducibility operator review packet after the P358
+proof index. It consumes P358 in memory and turns each proof row into a
+human-reviewable operator row with an owner role and expected review decision
+without completing review, applying approvals, materializing proof, reading
+artifacts, collecting evidence, running checks, executing release-check
+commands, installing dependencies, regenerating artifacts, importing history,
+changing checkout state, performing git operations, submitting trading orders,
+or executing protected actions.
+
+Changes:
+
+- Added `src/platform-reproducibility-operator-review.mjs`,
+  `scripts/platform-reproducibility-operator-review.mjs`,
+  `schemas/platform-reproducibility-operator-review.schema.json`, and
+  `docs/platform-reproducibility-operator-review.md`.
+- Added `platform:reproducibility-operator-review` and registered
+  `platform:reproducibility-operator-review -- --check` after
+  `platform:reproducibility-proof-index` in the validation chain.
+- Added focused platform operations tests for reproducibility operator review
+  readiness, missing package-script or validation-chain registration, and
+  `--check` no-overwrite behavior.
+- Updated the P341-P500 ledger so P359 owns the reproducibility operator review
+  and P360 remains reserved for closeout.

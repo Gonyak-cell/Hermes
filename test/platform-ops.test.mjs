@@ -21,6 +21,7 @@ import { runPlatformReplayHandoffCloseout } from "../src/platform-replay-handoff
 import { runPlatformReproducibilityCheckRegistry } from "../src/platform-reproducibility-check-registry.mjs";
 import { runPlatformReproducibilityEvidenceMatrix } from "../src/platform-reproducibility-evidence-matrix.mjs";
 import { runPlatformReproducibilityProofIndex } from "../src/platform-reproducibility-proof-index.mjs";
+import { runPlatformReproducibilityOperatorReview } from "../src/platform-reproducibility-operator-review.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -1216,6 +1217,78 @@ test("platform reproducibility proof index --check does not overwrite existing a
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformReproducibilityProofIndex({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform reproducibility operator review records P359 without applying approvals", async () => {
+  const result = await runPlatformReproducibilityOperatorReview({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_reproducibility_operator_review_status, "ready");
+  assert.equal(result.summary.phase_slot, "P359");
+  assert.equal(result.summary.previous_phase_slot, "P358");
+  assert.equal(result.summary.next_phase_slot, "P360");
+  assert.equal(result.summary.source_reproducibility_proof_index_status, "ready");
+  assert.equal(result.summary.operator_review_count, 10);
+  assert.equal(result.summary.ready_operator_review_count, 10);
+  assert.equal(result.summary.operator_review_gate_count, 7);
+  assert.equal(result.summary.ready_operator_review_gate_count, 7);
+  assert.equal(result.summary.review_completed, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.proof_materialized, false);
+  assert.equal(result.summary.artifact_read_performed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.release_check_execution_performed, false);
+  assert.equal(result.summary.artifact_regeneration_performed, false);
+  assert.equal(result.summary.history_import_performed, false);
+  assert.equal(result.summary.repository_checkout_changed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.ok(result.reproducibility_operator_review_rows.every((row) => row.operator_review_status === "ready" && row.source_proof_status === "ready" && row.review_completed_by_report === false && row.approval_applied_by_report === false));
+  assert.ok(result.reproducibility_operator_review_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_report === false));
+});
+
+test("platform reproducibility operator review blocks when validation chain is missing P359", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-repro-review-block-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:reproducibility-operator-review"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:reproducibility-operator-review -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformReproducibilityOperatorReview({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_reproducibility_operator_review_status, "blocked");
+    assert.ok(result.reproducibility_operator_review_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.reproducibility_operator_review_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformReproducibilityOperatorReview({ packagePath, write: false, check: true }),
+      /Platform reproducibility operator review failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform reproducibility operator review --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-repro-review-check-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-reproducibility-operator-review.json");
+    const sentinel = "{ \"sentinel\": \"reproducibility-operator-review\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformReproducibilityOperatorReview({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

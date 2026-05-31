@@ -8371,4 +8371,30 @@ Changes:
   readiness, missing package-script or validation-chain registration, and
   `--check` no-overwrite behavior.
 - Updated the P341-P500 ledger so P357 owns the reproducibility evidence matrix
-  and P358-P360 remain reserved for proof, operator review, and closeout checks.
+  and P358 owns the proof index.
+
+## Phase 358 - Platform Reproducibility Proof Index
+
+Phase 358 records the reproducibility proof index after the P357 evidence
+matrix. It consumes P357 in memory and maps each evidence row to expected proof
+references such as check summaries, validation transcripts, release freeze
+outputs, ledger declarations, and human review notes without materializing
+proof, reading artifacts, collecting evidence, running checks, executing
+release-check commands, installing dependencies, regenerating artifacts,
+importing history, changing checkout state, performing git operations,
+submitting trading orders, or executing protected actions.
+
+Changes:
+
+- Added `src/platform-reproducibility-proof-index.mjs`,
+  `scripts/platform-reproducibility-proof-index.mjs`,
+  `schemas/platform-reproducibility-proof-index.schema.json`, and
+  `docs/platform-reproducibility-proof-index.md`.
+- Added `platform:reproducibility-proof-index` and registered
+  `platform:reproducibility-proof-index -- --check` after
+  `platform:reproducibility-evidence-matrix` in the validation chain.
+- Added focused platform operations tests for reproducibility proof index
+  readiness, missing package-script or validation-chain registration, and
+  `--check` no-overwrite behavior.
+- Updated the P341-P500 ledger so P358 owns the reproducibility proof index and
+  P359-P360 remain reserved for operator review and closeout checks.

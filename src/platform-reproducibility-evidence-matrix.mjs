@@ -298,7 +298,7 @@ function buildEvidenceGateRows({ reproducibilityCheckRegistry, packageJson, plat
     gateRow("reproducibility_evidence_rows_ready", "All reproducibility evidence expectation rows are ready.", evidenceMatrixRows.length >= 10 && evidenceMatrixRows.every((row) => row.reproducibility_evidence_status === "ready")),
     gateRow("future_release_check_bridge_preserved", "Future release-check bridge remains declared and no future release-check command is executed.", reproducibilityCheckRegistry.release_chain_bridge_rows.length >= 3 && reproducibilityCheckRegistry.release_chain_bridge_rows.every((row) => row.release_chain_bridge_status === "ready" && row.package_script_required_now === false)),
     gateRow("no_evidence_collection_execution", "Evidence matrix records expectations without collecting evidence or running commands.", true),
-    gateRow("p358_next_phase_reserved", "P358-P360 remains reserved for reproducibility proof, operator review, and closeout checks.", ledgerText.includes("P358-P360") && ledgerText.includes("reproducibility")),
+    gateRow("p358_next_phase_reserved", "P358 owns reproducibility proof index and P359-P360 remains reserved for operator review and closeout checks.", ledgerText.includes("P358: `platform:reproducibility-proof-index`") && ledgerText.includes("P359-P360") && ledgerText.includes("reproducibility")),
   ];
   return rows.map((row, index) => withOrdinalAndHash(row, index, "reproducibility_evidence_gate_hash"));
 }

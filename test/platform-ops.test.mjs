@@ -20,6 +20,7 @@ import { runPlatformReplayEvidenceChecklist } from "../src/platform-replay-evide
 import { runPlatformReplayHandoffCloseout } from "../src/platform-replay-handoff-closeout.mjs";
 import { runPlatformReproducibilityCheckRegistry } from "../src/platform-reproducibility-check-registry.mjs";
 import { runPlatformReproducibilityEvidenceMatrix } from "../src/platform-reproducibility-evidence-matrix.mjs";
+import { runPlatformReproducibilityProofIndex } from "../src/platform-reproducibility-proof-index.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -1144,6 +1145,77 @@ test("platform reproducibility evidence matrix --check does not overwrite existi
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformReproducibilityEvidenceMatrix({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform reproducibility proof index records P358 without materializing proof", async () => {
+  const result = await runPlatformReproducibilityProofIndex({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_reproducibility_proof_index_status, "ready");
+  assert.equal(result.summary.phase_slot, "P358");
+  assert.equal(result.summary.previous_phase_slot, "P357");
+  assert.equal(result.summary.next_phase_slot, "P359");
+  assert.equal(result.summary.source_reproducibility_evidence_matrix_status, "ready");
+  assert.equal(result.summary.reproducibility_proof_count, 10);
+  assert.equal(result.summary.ready_reproducibility_proof_count, 10);
+  assert.equal(result.summary.reproducibility_proof_gate_count, 7);
+  assert.equal(result.summary.ready_reproducibility_proof_gate_count, 7);
+  assert.equal(result.summary.proof_materialized, false);
+  assert.equal(result.summary.artifact_read_performed, false);
+  assert.equal(result.summary.evidence_collected, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.release_check_execution_performed, false);
+  assert.equal(result.summary.artifact_regeneration_performed, false);
+  assert.equal(result.summary.history_import_performed, false);
+  assert.equal(result.summary.repository_checkout_changed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.ok(result.reproducibility_proof_rows.every((row) => row.reproducibility_proof_status === "ready" && row.expected_proof_reference_count > 0 && row.proof_materialized_by_report === false && row.artifact_read_performed_by_report === false));
+  assert.ok(result.reproducibility_proof_gate_rows.every((row) => row.gate_status === "ready" && row.proof_materialized_by_report === false));
+});
+
+test("platform reproducibility proof index blocks when validation chain is missing P358", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-repro-proof-block-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:reproducibility-proof-index"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:reproducibility-proof-index -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformReproducibilityProofIndex({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_reproducibility_proof_index_status, "blocked");
+    assert.ok(result.reproducibility_proof_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.reproducibility_proof_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformReproducibilityProofIndex({ packagePath, write: false, check: true }),
+      /Platform reproducibility proof index failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform reproducibility proof index --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-repro-proof-check-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-reproducibility-proof-index.json");
+    const sentinel = "{ \"sentinel\": \"reproducibility-proof-index\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformReproducibilityProofIndex({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

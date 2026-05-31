@@ -8689,3 +8689,27 @@ Changes:
 - Added focused tests for closeout rows, missing validation-chain registration,
   blocked source receipt intake, and `--check` no-overwrite behavior.
 - Updated the P341-P500 ledger so P370 owns release-check signoff closeout.
+
+## Phase 371 - Release-Check Status Ledger
+
+Phase 371 adds a unified status ledger over the P370 release-check signoff
+closeout. It summarizes the P361-P370 command, evidence, review, signoff,
+receipt, and closeout state as `ready_pending_human_receipt` without receiving
+receipts, validating receipts, completing signoff, applying approvals, running
+release checks, reading or writing artifacts, publishing releases, or mutating
+release/trading state.
+
+Changes:
+
+- Added `src/platform-release-check-status-ledger.mjs`,
+  `scripts/platform-release-check-status-ledger.mjs`,
+  `schemas/platform-release-check-status-ledger.schema.json`, and
+  `docs/platform-release-check-status-ledger.md`.
+- Added `platform:release-check-status-ledger` and registered
+  `platform:release-check-status-ledger -- --check` in the validation chain.
+- The command consumes the P370 signoff closeout in memory and produces status
+  rows, gate rows, a boundary report, validation output, and a Markdown summary
+  when not in `--check` mode.
+- Added focused tests for status rows, missing validation-chain registration,
+  blocked source closeout, and `--check` no-overwrite behavior.
+- Updated the P341-P500 ledger so P371 owns release-check status visibility.

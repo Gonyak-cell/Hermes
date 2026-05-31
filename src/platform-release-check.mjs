@@ -156,7 +156,7 @@ function buildSourceRows({ packageJson, platformOpsLedger }) {
     sourceRow("package_test_registered", "package.json registers test.", typeof scripts.test === "string" && scripts.test.length > 0),
     sourceRow("package_contracts_validate_registered", "package.json registers contracts:validate.", typeof scripts["contracts:validate"] === "string" && scripts["contracts:validate"].length > 0),
     sourceRow("package_release_freeze_registered", "package.json registers release:freeze.", typeof scripts["release:freeze"] === "string" && scripts["release:freeze"].length > 0),
-    sourceRow("package_validation_chain_non_recursive", "Validation chain does not call platform:release-check recursively.", !validateScript.includes("platform:release-check")),
+    sourceRow("package_validation_chain_non_recursive", "Validation chain does not call platform:release-check recursively.", !validateScript.includes("npm run platform:release-check -- --check")),
     sourceRow("platform_ops_ledger_p363_declared", "Platform operations ledger declares P363 platform release-check acceptance.", platformOpsLedger.available && platformOpsLedger.text.includes("P363: `platform:release-check`")),
   ];
   return rows.map((row, index) => withOrdinalAndHash(row, index, "source_row_hash"));

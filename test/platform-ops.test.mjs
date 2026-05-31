@@ -25,6 +25,7 @@ import { runPlatformReproducibilityOperatorReview } from "../src/platform-reprod
 import { runPlatformReproducibilityCloseout } from "../src/platform-reproducibility-closeout.mjs";
 import { runPlatformOpsCheck } from "../src/platform-ops-check.mjs";
 import { runPlatformReleaseCheck } from "../src/platform-release-check.mjs";
+import { runPlatformReleaseCheckNoWriteAudit } from "../src/platform-release-check-no-write-audit.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -1621,6 +1622,87 @@ test("platform release check --check does not overwrite existing artifacts", asy
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformReleaseCheck({ outDir, write: false, check: true, runner });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform release-check no-write audit verifies P361-P363 guards and tests", async () => {
+  const result = await runPlatformReleaseCheckNoWriteAudit({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.no_write_audit_status, "ready");
+  assert.equal(result.summary.phase_slot, "P364");
+  assert.equal(result.summary.previous_phase_slot, "P363");
+  assert.equal(result.summary.next_phase_slot, "P365");
+  assert.equal(result.summary.no_write_audit_row_count, 3);
+  assert.equal(result.summary.ready_no_write_audit_row_count, 3);
+  assert.equal(result.summary.no_write_audit_gate_count, 8);
+  assert.equal(result.summary.ready_no_write_audit_gate_count, 8);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.package_command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.release_published, false);
+  assert.equal(result.summary.git_operation_performed, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.ok(result.no_write_audit_rows.every((row) => row.no_write_audit_status === "ready" && row.check_parser_write_false && row.write_guard_present && row.no_overwrite_test_present));
+});
+
+test("platform release-check no-write audit blocks when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-release-no-write-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:release-check-no-write-audit -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformReleaseCheckNoWriteAudit({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.no_write_audit_status, "blocked");
+    assert.ok(result.source_rows.some((row) => row.row_key === "validation_chain_registered" && row.source_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformReleaseCheckNoWriteAudit({ packagePath, write: false, check: true }),
+      /Platform release-check no-write audit failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform release-check no-write audit blocks when a write guard is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-release-no-write-source-"));
+  try {
+    const sourcePath = path.join(root, "platform-release-check.mjs");
+    const source = await readFile("src/platform-release-check.mjs", "utf8");
+    await writeFile(sourcePath, source.replace("parsed.write = false;", "parsed.write = true;"), "utf8");
+
+    const result = await runPlatformReleaseCheckNoWriteAudit({ platformReleaseCheckSourcePath: sourcePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.no_write_audit_status, "blocked");
+    assert.ok(result.no_write_audit_rows.some((row) => row.row_key === "platform_release_check" && row.no_write_audit_status === "blocked" && row.check_parser_write_false === false));
+    await assert.rejects(
+      () => runPlatformReleaseCheckNoWriteAudit({ platformReleaseCheckSourcePath: sourcePath, write: false, check: true }),
+      /Platform release-check no-write audit failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform release-check no-write audit --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-release-no-write-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-release-check-no-write-audit.json");
+    const sentinel = "{ \"sentinel\": \"platform-release-check-no-write-audit\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformReleaseCheckNoWriteAudit({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

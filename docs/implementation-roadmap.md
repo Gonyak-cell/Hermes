@@ -8522,3 +8522,24 @@ Changes:
   failure blocking, missing package registration, recursion blocking, and
   `--check` no-overwrite behavior.
 - Updated the P341-P500 ledger so P363 owns the platform release-check bridge.
+
+## Phase 364 - Release-Check No-Write Audit
+
+Phase 364 turns the P361-P363 no-overwrite expectation into a deterministic
+platform audit. It verifies that `trading:release-check`,
+`platform:ops-check`, and `platform:release-check` each parse `--check`, set
+`write = false`, guard report writes behind `options.write !== false`, throw on
+validation failure in check mode, and have explicit no-overwrite tests.
+
+Changes:
+
+- Added `src/platform-release-check-no-write-audit.mjs`,
+  `scripts/platform-release-check-no-write-audit.mjs`,
+  `schemas/platform-release-check-no-write-audit.schema.json`, and
+  `docs/platform-release-check-no-write-audit.md`.
+- Added `platform:release-check-no-write-audit` and registered
+  `platform:release-check-no-write-audit -- --check` in the validation chain.
+- Added focused tests for ready audit rows, missing validation-chain
+  registration, missing source write guards, and `--check` no-overwrite
+  behavior.
+- Updated the P341-P500 ledger so P364 owns release-check no-write evidence.

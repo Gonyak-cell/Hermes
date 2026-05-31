@@ -8346,4 +8346,29 @@ Changes:
   readiness, missing package-script or validation-chain registration, and
   `--check` no-overwrite behavior.
 - Updated the P341-P500 ledger so P356 owns reproducibility check registration
-  and P357-P360 remain reserved for reproducibility evidence and closeout checks.
+  and P357 owns the evidence matrix.
+
+## Phase 357 - Platform Reproducibility Evidence Matrix
+
+Phase 357 records the reproducibility evidence matrix after the P356 check
+registry. It consumes P356 in memory, groups P341-P356 checks into
+human-reviewable evidence expectation rows, and keeps the future P361-P380
+release-check bridge visible without collecting evidence, running checks,
+executing release-check commands, installing dependencies, regenerating
+artifacts, importing history, changing checkout state, performing git
+operations, submitting trading orders, or executing protected actions.
+
+Changes:
+
+- Added `src/platform-reproducibility-evidence-matrix.mjs`,
+  `scripts/platform-reproducibility-evidence-matrix.mjs`,
+  `schemas/platform-reproducibility-evidence-matrix.schema.json`, and
+  `docs/platform-reproducibility-evidence-matrix.md`.
+- Added `platform:reproducibility-evidence-matrix` and registered
+  `platform:reproducibility-evidence-matrix -- --check` after
+  `platform:reproducibility-check-registry` in the validation chain.
+- Added focused platform operations tests for reproducibility evidence matrix
+  readiness, missing package-script or validation-chain registration, and
+  `--check` no-overwrite behavior.
+- Updated the P341-P500 ledger so P357 owns the reproducibility evidence matrix
+  and P358-P360 remain reserved for proof, operator review, and closeout checks.

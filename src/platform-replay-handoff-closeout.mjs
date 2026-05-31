@@ -213,7 +213,7 @@ function buildCloseoutGateRows({ closeoutRows, packageJson, platformOpsLedger, r
     gateRow("p355_ledger_acceptance_declared", "P355 acceptance row is declared in the platform operations ledger.", ledgerText.includes("P355: `platform:replay-handoff-closeout`")),
     gateRow("closeout_rows_ready", "All replay handoff closeout rows are ready.", closeoutRows.length >= 5 && closeoutRows.every((row) => row.closeout_status === "ready")),
     gateRow("no_replay_execution", "Closeout records replay readiness without running replay actions.", true),
-    gateRow("p356_next_phase_reserved", "P356 owns reproducibility check registration and P357-P360 remains reserved for reproducibility evidence and closeout checks.", ledgerText.includes("P356: `platform:reproducibility-check-registry`") && ledgerText.includes("P357-P360") && ledgerText.includes("reproducibility")),
+    gateRow("p356_next_phase_reserved", "P356 owns reproducibility check registration, P357 owns the evidence matrix, and P358-P360 remains reserved.", ledgerText.includes("P356: `platform:reproducibility-check-registry`") && ledgerText.includes("P357: `platform:reproducibility-evidence-matrix`") && ledgerText.includes("P358-P360") && ledgerText.includes("reproducibility")),
   ];
   return rows.map((row, index) => withOrdinalAndHash(row, index, "closeout_gate_hash"));
 }

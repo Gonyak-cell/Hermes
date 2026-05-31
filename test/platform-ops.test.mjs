@@ -19,6 +19,7 @@ import { runPlatformReplayHandoffMap } from "../src/platform-replay-handoff-map.
 import { runPlatformReplayEvidenceChecklist } from "../src/platform-replay-evidence-checklist.mjs";
 import { runPlatformReplayHandoffCloseout } from "../src/platform-replay-handoff-closeout.mjs";
 import { runPlatformReproducibilityCheckRegistry } from "../src/platform-reproducibility-check-registry.mjs";
+import { runPlatformReproducibilityEvidenceMatrix } from "../src/platform-reproducibility-evidence-matrix.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -1074,6 +1075,75 @@ test("platform reproducibility check registry --check does not overwrite existin
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformReproducibilityCheckRegistry({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform reproducibility evidence matrix records P357 without collecting evidence", async () => {
+  const result = await runPlatformReproducibilityEvidenceMatrix({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_reproducibility_evidence_matrix_status, "ready");
+  assert.equal(result.summary.phase_slot, "P357");
+  assert.equal(result.summary.previous_phase_slot, "P356");
+  assert.equal(result.summary.next_phase_slot, "P358");
+  assert.equal(result.summary.source_reproducibility_check_registry_status, "ready");
+  assert.equal(result.summary.reproducibility_evidence_count, 10);
+  assert.equal(result.summary.ready_reproducibility_evidence_count, 10);
+  assert.equal(result.summary.reproducibility_evidence_gate_count, 8);
+  assert.equal(result.summary.ready_reproducibility_evidence_gate_count, 8);
+  assert.equal(result.summary.evidence_collected, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.release_check_execution_performed, false);
+  assert.equal(result.summary.artifact_regeneration_performed, false);
+  assert.equal(result.summary.history_import_performed, false);
+  assert.equal(result.summary.repository_checkout_changed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.ok(result.reproducibility_evidence_rows.every((row) => row.reproducibility_evidence_status === "ready" && row.evidence_collected_by_report === false && row.command_execution_performed_by_report === false));
+  assert.ok(result.reproducibility_evidence_gate_rows.every((row) => row.gate_status === "ready" && row.evidence_collected_by_report === false));
+});
+
+test("platform reproducibility evidence matrix blocks when validation chain is missing P357", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-repro-evidence-block-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:reproducibility-evidence-matrix"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:reproducibility-evidence-matrix -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformReproducibilityEvidenceMatrix({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_reproducibility_evidence_matrix_status, "blocked");
+    assert.ok(result.reproducibility_evidence_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.reproducibility_evidence_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformReproducibilityEvidenceMatrix({ packagePath, write: false, check: true }),
+      /Platform reproducibility evidence matrix failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform reproducibility evidence matrix --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-repro-evidence-check-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-reproducibility-evidence-matrix.json");
+    const sentinel = "{ \"sentinel\": \"reproducibility-evidence-matrix\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformReproducibilityEvidenceMatrix({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

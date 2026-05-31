@@ -8226,3 +8226,25 @@ Changes:
 - Updated the P341-P500 ledger so P351 owns Mac/Windows replay notes and
   P352-P355 remain reserved for lockfile policy detail and replay handoff
   refinements.
+
+## Phase 352 - Platform Lockfile Policy
+
+Phase 352 records lockfile policy detail for the P351-P355 replay handoff
+sequence. It consumes P351 Mac/Windows replay notes in memory, checks package
+manager and lockfile evidence, and records that dependency installs, package
+mutation, lockfile mutation, and artifact regeneration remain outside this
+report.
+
+Changes:
+
+- Added `src/platform-lockfile-policy.mjs`,
+  `scripts/platform-lockfile-policy.mjs`,
+  `schemas/platform-lockfile-policy.schema.json`, and
+  `docs/platform-lockfile-policy.md`.
+- Added `platform:lockfile-policy` and registered
+  `platform:lockfile-policy -- --check` after
+  `platform:mac-windows-replay-notes` in the validation chain.
+- Added focused platform operations tests for lockfile policy readiness, missing
+  package-lock evidence, and `--check` no-overwrite behavior.
+- Updated the P341-P500 ledger so P352 owns lockfile policy and P353-P355 remain
+  reserved for replay handoff refinements.

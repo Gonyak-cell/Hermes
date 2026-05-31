@@ -14,6 +14,7 @@ import { runPlatformSignedTagProvenance } from "../src/platform-signed-tag-prove
 import { runPlatformProvenanceFreezePreflight } from "../src/platform-provenance-freeze-preflight.mjs";
 import { runPlatformProvenanceFreeze } from "../src/platform-provenance-freeze.mjs";
 import { runPlatformMacWindowsReplayNotes } from "../src/platform-mac-windows-replay-notes.mjs";
+import { runPlatformLockfilePolicy } from "../src/platform-lockfile-policy.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -731,6 +732,68 @@ test("platform Mac/Windows replay notes --check does not overwrite existing arti
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformMacWindowsReplayNotes({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform lockfile policy records P352 without lockfile mutation", async () => {
+  const result = await runPlatformLockfilePolicy({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_lockfile_policy_status, "ready");
+  assert.equal(result.summary.phase_slot, "P352");
+  assert.equal(result.summary.previous_phase_slot, "P351");
+  assert.equal(result.summary.next_phase_slot, "P353");
+  assert.equal(result.summary.source_mac_windows_replay_notes_status, "ready");
+  assert.equal(result.summary.lockfile_policy_count, 6);
+  assert.equal(result.summary.ready_lockfile_policy_count, 6);
+  assert.equal(result.summary.lockfile_gate_count, 7);
+  assert.equal(result.summary.ready_lockfile_gate_count, 7);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.dependency_install_performed, false);
+  assert.equal(result.summary.package_mutation_performed, false);
+  assert.equal(result.summary.lockfile_mutation_performed, false);
+  assert.equal(result.summary.artifact_regeneration_performed, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.ok(result.lockfile_policy_rows.every((row) => row.lockfile_policy_status === "ready" && row.lockfile_required));
+  assert.ok(result.lockfile_gate_rows.every((row) => row.gate_status === "ready" && row.lockfile_mutation_performed_by_report === false));
+});
+
+test("platform lockfile policy blocks when package-lock evidence is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-lockfile-policy-block-"));
+  try {
+    const missingPackageLockPath = path.join(root, "missing-package-lock.json");
+
+    const result = await runPlatformLockfilePolicy({ packageLockPath: missingPackageLockPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_lockfile_policy_status, "blocked");
+    assert.ok(result.lockfile_policy_rows.some((row) => row.row_key === "package_lock_present" && row.lockfile_policy_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformLockfilePolicy({ packageLockPath: missingPackageLockPath, write: false, check: true }),
+      /Platform lockfile policy failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform lockfile policy --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-lockfile-policy-check-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-lockfile-policy.json");
+    const sentinel = "{ \"sentinel\": \"lockfile-policy\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformLockfilePolicy({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

@@ -42,7 +42,8 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 - P349: `platform:provenance-freeze-preflight` maps P341-P349 provenance freeze sources and gates before final freeze without executing checks, creating tags, creating signed tags, creating release bundles, or publishing releases.
 - P350: `platform:provenance-freeze` provides final provenance freeze closeout for P346-P350 rows and gates without creating tags, signed tags, release bundles, releases, or protected actions.
 - P351: `platform:mac-windows-replay-notes` documents Mac/Windows replay notes for operator handoff without importing history, changing checkout state, regenerating artifacts, or mutating lockfiles.
-- P352-P355: lockfile policy detail and replay handoff refinements are documented for operator handoff.
+- P352: `platform:lockfile-policy` records package manager, npmrc, and package-lock policy without dependency installs, package mutation, lockfile mutation, or artifact regeneration.
+- P353-P355: replay handoff refinements are documented for operator handoff.
 - P356-P360: reproducibility checks are registered in the platform validation and future release-check chain.
 
 ## P361-P380 Acceptance Criteria

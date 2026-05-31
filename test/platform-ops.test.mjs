@@ -9,6 +9,7 @@ import { runPlatformRuntimeReplayWindow } from "../src/platform-runtime-replay-w
 import { runPlatformOperatorHandoff } from "../src/platform-operator-handoff.mjs";
 import { runPlatformArtifactGuard } from "../src/platform-artifact-guard.mjs";
 import { runPlatformProvenanceLedger } from "../src/platform-provenance-ledger.mjs";
+import { runPlatformReleaseBundleProvenance } from "../src/platform-release-bundle-provenance.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -391,6 +392,69 @@ test("platform provenance ledger --check does not overwrite existing artifacts",
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformProvenanceLedger({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform release bundle provenance maps P347 hash and manifest requirements", async () => {
+  const result = await runPlatformReleaseBundleProvenance({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_release_bundle_provenance_status, "ready");
+  assert.equal(result.summary.phase_slot, "P347");
+  assert.equal(result.summary.previous_phase_slot, "P346");
+  assert.equal(result.summary.next_phase_slot, "P348");
+  assert.equal(result.summary.source_provenance_ledger_status, "ready");
+  assert.equal(result.summary.bundle_hash_requirement_count, 5);
+  assert.equal(result.summary.ready_bundle_hash_requirement_count, 5);
+  assert.equal(result.summary.bundle_manifest_row_count, 5);
+  assert.equal(result.summary.ready_bundle_manifest_row_count, 5);
+  assert.equal(result.summary.bundle_verification_row_count, 5);
+  assert.equal(result.summary.ready_bundle_verification_row_count, 5);
+  assert.equal(result.summary.git_operation_performed, false);
+  assert.equal(result.summary.git_tag_created, false);
+  assert.equal(result.summary.signed_tag_created, false);
+  assert.equal(result.summary.release_bundle_created, false);
+  assert.equal(result.summary.release_published, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.ok(result.bundle_hash_requirement_rows.every((row) => row.requirement_status === "ready" && row.hash_required));
+  assert.ok(result.bundle_manifest_rows.every((row) => row.manifest_row_status === "ready" && row.content_hash));
+});
+
+test("platform release bundle provenance blocks when package lock is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-release-bundle-block-"));
+  try {
+    const missingPackageLockPath = path.join(root, "missing-package-lock.json");
+    const result = await runPlatformReleaseBundleProvenance({ packageLockPath: missingPackageLockPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_release_bundle_provenance_status, "blocked");
+    assert.ok(result.bundle_manifest_rows.some((row) => row.row_key === "package_lock" && row.manifest_row_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformReleaseBundleProvenance({ packageLockPath: missingPackageLockPath, write: false, check: true }),
+      /Platform release bundle provenance failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform release bundle provenance --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-release-bundle-check-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-release-bundle-provenance.json");
+    const sentinel = "{ \"sentinel\": \"release-bundle-provenance\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformReleaseBundleProvenance({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

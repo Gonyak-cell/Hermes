@@ -87,6 +87,7 @@
     "platform:operator-handoff": "node scripts/platform-operator-handoff.mjs",
     "platform:artifact-guard": "node scripts/platform-artifact-guard.mjs",
     "platform:provenance-ledger": "node scripts/platform-provenance-ledger.mjs",
+    "platform:release-bundle-provenance": "node scripts/platform-release-bundle-provenance.mjs",
     "capabilities:manifest-v2": "node scripts/capability-manifest-v2.mjs",
     "capabilities:registry-api": "node scripts/capability-registry-api.mjs",
     "model:routing": "node scripts/model-routing-ledger.mjs",
@@ -356,7 +357,7 @@
     "slice:run": "node scripts/run-vertical-slice.mjs",
     "worktree:prepare": "node scripts/worktree-manager.mjs",
     "validate:core": "node scripts/validate-core-contracts.mjs",
-    "validate": "npm run validate:core && npm run platform:runtime-baseline -- --check && npm run platform:drift-check -- --check && npm run platform:replay-window -- --check && npm run platform:operator-handoff -- --check && npm run platform:artifact-guard -- --check && npm run platform:provenance-ledger -- --check && npm run packs:validate && npm run trading:validate -- --check && npm run trading:safety-check -- --check && npm run trading:strategy-taxonomy -- --check && npm run trading:market-data-report -- --check && npm run trading:feature-report -- --check && npm run trading:signal-report -- --check && npm run trading:model-train-report -- --check && npm run trading:model-eval-report -- --check && npm run trading:backtest-report -- --check && npm run trading:risk-check -- --check && npm run trading:paper-report -- --check && npm run trading:shadow-report -- --check && npm run trading:execution-report -- --check && npm run trading:limited-live-report -- --check && npm run trading:full-auto-report -- --check && node scripts/validate-matter.mjs examples/project-alpha-matter.json && node scripts/validate-matter.mjs examples/project-beta-litigation-matter.json",
+    "validate": "npm run validate:core && npm run platform:runtime-baseline -- --check && npm run platform:drift-check -- --check && npm run platform:replay-window -- --check && npm run platform:operator-handoff -- --check && npm run platform:artifact-guard -- --check && npm run platform:provenance-ledger -- --check && npm run platform:release-bundle-provenance -- --check && npm run packs:validate && npm run trading:validate -- --check && npm run trading:safety-check -- --check && npm run trading:strategy-taxonomy -- --check && npm run trading:market-data-report -- --check && npm run trading:feature-report -- --check && npm run trading:signal-report -- --check && npm run trading:model-train-report -- --check && npm run trading:model-eval-report -- --check && npm run trading:backtest-report -- --check && npm run trading:risk-check -- --check && npm run trading:paper-report -- --check && npm run trading:shadow-report -- --check && npm run trading:execution-report -- --check && npm run trading:limited-live-report -- --check && npm run trading:full-auto-report -- --check && node scripts/validate-matter.mjs examples/project-alpha-matter.json && node scripts/validate-matter.mjs examples/project-beta-litigation-matter.json",
     "test": "node --test test/*.test.mjs"
   },
   "engines": {

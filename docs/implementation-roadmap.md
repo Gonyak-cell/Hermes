@@ -8110,3 +8110,25 @@ Changes:
   hash blocking, and `--check` no-overwrite behavior.
 - Updated the P341-P500 ledger so P346 owns the first provenance ledger and
   P347-P350 remain reserved for expanded release bundle and signed-tag policy.
+
+## Phase 347 - Platform Release Bundle Provenance
+
+Phase 347 expands release-bundle provenance for the P341-P360 stability tranche.
+It consumes the P346 provenance ledger in memory and records required future
+release-bundle hashes, manifest rows, and verification rows without creating
+release bundles, tags, signed tags, releases, or protected actions.
+
+Changes:
+
+- Added `src/platform-release-bundle-provenance.mjs`,
+  `scripts/platform-release-bundle-provenance.mjs`,
+  `schemas/platform-release-bundle-provenance.schema.json`, and
+  `docs/platform-release-bundle-provenance.md`.
+- Added `platform:release-bundle-provenance` and registered
+  `platform:release-bundle-provenance -- --check` after
+  `platform:provenance-ledger` in the validation chain.
+- Added focused platform operations tests for bundle provenance readiness,
+  missing lockfile blocking, and `--check` no-overwrite behavior.
+- Updated the P341-P500 ledger so P347 owns release-bundle hash/manifest
+  provenance and P348-P350 remain reserved for signed-tag and provenance freeze
+  detail.

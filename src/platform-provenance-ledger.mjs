@@ -216,9 +216,9 @@ function provenanceRecord(recordKey, description, sourceRef, passed, details = {
 function buildReleaseHashPolicyRows(platformOpsLedger) {
   const ledgerText = platformOpsLedger.text ?? "";
   const rows = [
-    releaseHashPolicyRow("release_bundle_hash_required", "Future release bundles require an explicit hash record.", ledgerText.includes("release_bundle_hash_required") || ledgerText.includes("release bundle hashes"), {
-      expected_value: "release bundle hashes",
-      actual_value: ledgerText.includes("release bundle hashes") ? "ledger_text" : null,
+    releaseHashPolicyRow("release_bundle_hash_required", "Future release bundles require an explicit hash record.", ledgerText.includes("release_bundle_hash_required") || ledgerText.includes("release bundle hashes") || ledgerText.includes("release-bundle hash policy"), {
+      expected_value: "release bundle hashes or release-bundle hash policy",
+      actual_value: ledgerText.includes("release bundle hashes") || ledgerText.includes("release-bundle hash policy") ? "ledger_text" : null,
     }),
     releaseHashPolicyRow("bundle_manifest_hash_required", "Future release bundles require a manifest hash or equivalent artifact manifest.", true, {
       expected_value: "manifest_hash_required",

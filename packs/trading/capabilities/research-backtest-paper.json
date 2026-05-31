@@ -155,6 +155,11 @@
       "entrypoint_type": "command",
       "name": "trading:safety-regression-fixtures",
       "path": "scripts/trading-safety-regression-fixtures.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:route-inventory-fixtures",
+      "path": "scripts/trading-route-inventory-fixtures.mjs"
     }
   ],
   "dependencies": ["common.workflow.approval", "common.audit.replay", "common.test.gate"],
@@ -235,6 +240,12 @@
       "case_id": "golden.trading.safety_regression_fixtures.p381",
       "description": "P381 safety regression fixtures fail when limited-live, full-auto, automatic order submission, or live order submission flags become true while keeping trading mutation disabled.",
       "input_ref": "artifacts/trading-safety-regression-fixtures/latest/trading-safety-regression-fixtures.json",
+      "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
+    },
+    {
+      "case_id": "golden.trading.route_inventory_fixtures.p382",
+      "description": "P382 route inventory fixtures fail when unsafe Trading route families become active while keeping disabled-route evidence and trading mutation blocked.",
+      "input_ref": "artifacts/trading-route-inventory-fixtures/latest/trading-route-inventory-fixtures.json",
       "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
     }
   ],

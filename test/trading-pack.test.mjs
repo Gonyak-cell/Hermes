@@ -16,6 +16,10 @@ import { runTradingLimitedLiveReport } from "../src/trading-limited-live-governa
 import { runTradingReleaseCheck } from "../src/trading-release-check.mjs";
 import { runTradingSafetyRegressionFixtures } from "../src/trading-safety-regression-fixtures.mjs";
 import {
+  DEFAULT_TRADING_ROUTE_INVENTORY_FIXTURE_SOURCE_PATHS,
+  runTradingRouteInventoryFixtures,
+} from "../src/trading-route-inventory-fixtures.mjs";
+import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
 } from "../src/trading-market-data-feature-store.mjs";
@@ -733,6 +737,112 @@ test("trading safety regression fixtures --check does not overwrite existing art
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingSafetyRegressionFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading route inventory fixtures block unsafe active trading route families", async () => {
+  const result = await runTradingRouteInventoryFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_route_inventory_fixtures_status, "ready_for_trading_route_inventory_regression");
+  assert.equal(result.summary.phase_slot, "P382");
+  assert.equal(result.summary.previous_phase_slot, "P381");
+  assert.equal(result.summary.next_phase_slot, "P383");
+  assert.equal(result.summary.source_safety_regression_status, "ready_for_trading_safety_regression");
+  assert.equal(result.summary.route_source_count, 10);
+  assert.equal(result.summary.ready_route_source_count, 10);
+  assert.equal(result.summary.fixture_count, 4);
+  assert.equal(result.summary.passed_fixture_count, 4);
+  assert.equal(result.summary.failed_fixture_count, 0);
+  assert.equal(result.summary.active_unsafe_route_count, 0);
+  assert.equal(result.summary.required_category_count, 4);
+  assert.equal(result.summary.disabled_coverage_category_count, 4);
+  assert.equal(result.summary.disabled_routes_covered, true);
+  assert.equal(result.summary.mutating_trading_route_enabled, false);
+  assert.equal(result.summary.broker_credential_route_enabled, false);
+  assert.equal(result.summary.live_broker_write_route_enabled, false);
+  assert.equal(result.summary.generic_order_submission_route_enabled, false);
+  assert.equal(result.summary.live_adapter_enabled, false);
+  assert.equal(result.summary.credential_lookup_enabled, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.ok(result.active_route_rows.every((row) => row.method === "GET" && row.unsafe_when_active === false && row.unsafe_category_count === 0));
+  assert.ok(result.route_inventory_fixture_rows.every((row) => row.fixture_status === "passed" && row.active_unsafe_route_count === 0 && row.disabled_route_coverage_present && row.disabled_evidence_route_count > 0));
+  assert.ok(result.route_inventory_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_gate === false));
+});
+
+test("trading route inventory fixtures block active generic order and credential routes", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-route-inventory-unsafe-route-"));
+  try {
+    const unsafeSource = JSON.parse(await readFile("examples/trading/execution-engine.json", "utf8"));
+    unsafeSource.dashboard_api_stub.routes.push({ method: "POST", path: "/api/trading/orders/submit" });
+    unsafeSource.dashboard_api_stub.routes.push({ method: "GET", path: "/api/trading/credentials" });
+    const unsafeSourcePath = path.join(root, "execution-engine-unsafe.json");
+    await writeFile(unsafeSourcePath, `${JSON.stringify(unsafeSource, null, 2)}\n`, "utf8");
+    const routeSourcePaths = [...DEFAULT_TRADING_ROUTE_INVENTORY_FIXTURE_SOURCE_PATHS, unsafeSourcePath];
+
+    const result = await runTradingRouteInventoryFixtures({ routeSourcePaths, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_route_inventory_fixtures_status, "blocked");
+    assert.equal(result.summary.active_unsafe_route_count, 2);
+    assert.equal(result.summary.mutating_trading_route_enabled, true);
+    assert.equal(result.summary.broker_credential_route_enabled, true);
+    assert.equal(result.summary.generic_order_submission_route_enabled, true);
+    assert.ok(result.route_inventory_fixture_rows.some((row) => row.category_key === "generic_order_submission_routes" && row.fixture_status === "failed" && row.active_unsafe_route_count > 0));
+    assert.ok(result.route_inventory_fixture_rows.some((row) => row.category_key === "broker_credential_routes" && row.fixture_status === "failed" && row.active_unsafe_route_count > 0));
+    await assert.rejects(
+      () => runTradingRouteInventoryFixtures({ routeSourcePaths, write: false, check: true }),
+      /Trading route inventory fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading route inventory fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-route-inventory-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:route-inventory-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:route-inventory-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingRouteInventoryFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_route_inventory_fixtures_status, "blocked");
+    assert.ok(result.route_inventory_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.route_inventory_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingRouteInventoryFixtures({ packagePath, write: false, check: true }),
+      /Trading route inventory fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading route inventory fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-route-inventory-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-route-inventory-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-route-inventory-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingRouteInventoryFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

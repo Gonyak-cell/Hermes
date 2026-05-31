@@ -82,6 +82,7 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 ## P381-P400 Acceptance Criteria
 
 - P381: `trading:safety-regression-fixtures` declares fail-fast regression fixtures that block when `limited_live_enabled`, `full_auto_enabled`, `automatic_order_submission_allowed`, or `live_order_submission_allowed` is true without enabling live trading, full-auto, order submission, broker writes, exchange writes, command execution, artifact mutation, or protected actions.
+- P382: `trading:route-inventory-fixtures` declares active-route inventory fixtures that block when mutating Trading routes, broker credential routes, live broker write routes, or generic order submission routes appear outside disabled route evidence without enabling live trading, order submission, broker writes, exchange writes, command execution, artifact mutation, or protected actions.
 - Regression fixtures fail when `limited_live_enabled`, `full_auto_enabled`, `automatic_order_submission_allowed`, or `live_order_submission_allowed` is true.
 - Route inventory fixtures fail when mutating trading routes, broker credential routes, live broker write routes, or generic order submission routes are present.
 - Safety checks cover disabled routes, approval absence, live adapter disabled state, credential lookup disabled state, no broker writes, and no exchange writes.

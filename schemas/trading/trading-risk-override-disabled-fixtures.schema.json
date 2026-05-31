@@ -1,0 +1,298 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/trading/trading-risk-override-disabled-fixtures.schema.json",
+  "title": "Trading Risk Override Disabled Fixtures",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "trading_risk_override_disabled_fixtures_id",
+    "capability_id",
+    "risk_override_disabled_anchor",
+    "risk_override_disabled_evidence_rows",
+    "risk_override_disabled_fixture_rows",
+    "risk_override_disabled_gate_rows",
+    "risk_override_disabled_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "trading-risk-override-disabled-fixtures.v1" },
+    "trading_risk_override_disabled_fixtures_id": {
+      "type": "string",
+      "pattern": "^trading-risk-override-disabled-fixtures\\.[0-9]{8}$"
+    },
+    "capability_id": { "const": "trading.risk_override_disabled_fixtures" },
+    "risk_override_disabled_anchor": {
+      "type": "object",
+      "required": [
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "source_manual_resume_disabled_status",
+        "required_fixture_count"
+      ],
+      "properties": {
+        "phase_slot": { "const": "P390" },
+        "previous_phase_slot": { "const": "P389" },
+        "next_phase_slot": { "const": "P391" },
+        "source_manual_resume_disabled_status": { "const": "ready_for_trading_manual_resume_disabled_regression" },
+        "required_fixture_count": { "const": 5 }
+      }
+    },
+    "risk_override_disabled_evidence_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "row_key",
+          "observed_conditions",
+          "observed_condition_count",
+          "all_conditions_present",
+          "unsafe_risk_override_signal_detected",
+          "evidence_status",
+          "human_review_required"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P390" },
+          "row_key": {
+            "enum": [
+              "risk_override_policy_human_gate_required",
+              "risk_artifact_override_review_required",
+              "risk_safety_boundary_override_without_human_disabled",
+              "risk_override_route_disabled",
+              "risk_override_order_intent_blocked"
+            ]
+          },
+          "observed_conditions": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "condition_path",
+                "expected_safe_value",
+                "observed_value",
+                "condition_present",
+                "unsafe_when_not_safe"
+              ],
+              "properties": {
+                "condition_present": { "const": true },
+                "unsafe_when_not_safe": { "const": true }
+              }
+            }
+          },
+          "all_conditions_present": { "const": true },
+          "unsafe_risk_override_signal_detected": { "const": false },
+          "evidence_status": { "const": "risk_override_disabled" },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "risk_override_disabled_fixture_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "row_key",
+          "expected_risk_override_without_human_allowed",
+          "unsafe_risk_override_signal_detected",
+          "fixture_should_fail_when_override_without_human_allowed",
+          "fixture_should_fail_when_override_route_enabled",
+          "fixture_should_fail_when_order_intent_generated",
+          "fixture_status",
+          "risk_override_without_human_allowed_by_fixture",
+          "risk_override_route_enabled_by_fixture",
+          "order_intent_generated_by_fixture",
+          "live_execution_allowed_by_fixture",
+          "command_execution_performed_by_fixture",
+          "artifact_write_performed_by_fixture",
+          "protected_action_executed_by_fixture",
+          "human_review_required"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P390" },
+          "row_key": {
+            "enum": [
+              "risk_override_policy_human_gate_required",
+              "risk_artifact_override_review_required",
+              "risk_safety_boundary_override_without_human_disabled",
+              "risk_override_route_disabled",
+              "risk_override_order_intent_blocked"
+            ]
+          },
+          "expected_risk_override_without_human_allowed": { "const": false },
+          "unsafe_risk_override_signal_detected": { "const": false },
+          "fixture_should_fail_when_override_without_human_allowed": { "const": true },
+          "fixture_should_fail_when_override_route_enabled": { "const": true },
+          "fixture_should_fail_when_order_intent_generated": { "const": true },
+          "fixture_status": { "const": "passed" },
+          "risk_override_without_human_allowed_by_fixture": { "const": false },
+          "risk_override_route_enabled_by_fixture": { "const": false },
+          "order_intent_generated_by_fixture": { "const": false },
+          "live_execution_allowed_by_fixture": { "const": false },
+          "command_execution_performed_by_fixture": { "const": false },
+          "artifact_write_performed_by_fixture": { "const": false },
+          "protected_action_executed_by_fixture": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "risk_override_disabled_gate_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "row_key",
+          "gate_status",
+          "risk_override_without_human_allowed_by_gate",
+          "risk_override_route_enabled_by_gate",
+          "order_intent_generated_by_gate",
+          "protected_action_executed_by_gate",
+          "human_review_required"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P390" },
+          "gate_status": { "const": "ready" },
+          "risk_override_without_human_allowed_by_gate": { "const": false },
+          "risk_override_route_enabled_by_gate": { "const": false },
+          "order_intent_generated_by_gate": { "const": false },
+          "protected_action_executed_by_gate": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "risk_override_disabled_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "phase_slot",
+        "read_only",
+        "report_only",
+        "required_fixture_count",
+        "risk_override_evidence_count",
+        "fixture_count",
+        "unsafe_risk_override_signal_count",
+        "risk_override_disabled_covered",
+        "source_manual_resume_disabled_ready",
+        "human_approval_required_missing",
+        "protected_action_gate_missing",
+        "override_receipt_required_missing",
+        "risk_override_without_human_allowed",
+        "risk_override_route_enabled",
+        "order_intent_generated",
+        "investment_advice_generated",
+        "trade_recommendation_generated",
+        "live_trade_allowed",
+        "live_execution_allowed",
+        "broker_write_allowed",
+        "exchange_write_allowed",
+        "command_execution_performed",
+        "artifact_write_performed",
+        "protected_action_executed",
+        "human_review_required"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "phase_slot": { "const": "P390" },
+        "read_only": { "const": true },
+        "report_only": { "const": true },
+        "required_fixture_count": { "const": 5 },
+        "risk_override_evidence_count": { "const": 5 },
+        "fixture_count": { "const": 5 },
+        "unsafe_risk_override_signal_count": { "const": 0 },
+        "risk_override_disabled_covered": { "const": true },
+        "source_manual_resume_disabled_ready": { "const": true },
+        "human_approval_required_missing": { "const": false },
+        "protected_action_gate_missing": { "const": false },
+        "override_receipt_required_missing": { "const": false },
+        "risk_override_without_human_allowed": { "const": false },
+        "risk_override_route_enabled": { "const": false },
+        "order_intent_generated": { "const": false },
+        "investment_advice_generated": { "const": false },
+        "trade_recommendation_generated": { "const": false },
+        "live_trade_allowed": { "const": false },
+        "live_execution_allowed": { "const": false },
+        "limited_live_enabled": { "const": false },
+        "full_auto_enabled": { "const": false },
+        "trading_live_enabled": { "const": false },
+        "trading_order_submission_allowed": { "const": false },
+        "automatic_order_submission_allowed": { "const": false },
+        "live_order_submission_allowed": { "const": false },
+        "real_order_submitted": { "const": false },
+        "live_adapter_enabled": { "const": false },
+        "credential_lookup_enabled": { "const": false },
+        "broker_write_allowed": { "const": false },
+        "exchange_write_allowed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "package_command_execution_performed": { "const": false },
+        "release_check_execution_performed": { "const": false },
+        "artifact_write_performed": { "const": false },
+        "release_published": { "const": false },
+        "git_operation_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "human_review_required": { "const": true }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "trading_risk_override_disabled_fixtures_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "source_manual_resume_disabled_status",
+        "required_fixture_count",
+        "evidence_count",
+        "fixture_count",
+        "passed_fixture_count",
+        "unsafe_risk_override_signal_count",
+        "risk_override_disabled_covered",
+        "risk_override_without_human_allowed",
+        "risk_override_route_enabled",
+        "order_intent_generated",
+        "live_trade_allowed",
+        "live_execution_allowed",
+        "validation_error_count"
+      ],
+      "properties": {
+        "trading_risk_override_disabled_fixtures_status": { "const": "ready_for_trading_risk_override_disabled_regression" },
+        "phase_slot": { "const": "P390" },
+        "previous_phase_slot": { "const": "P389" },
+        "next_phase_slot": { "const": "P391" },
+        "source_manual_resume_disabled_status": { "const": "ready_for_trading_manual_resume_disabled_regression" },
+        "required_fixture_count": { "const": 5 },
+        "evidence_count": { "const": 5 },
+        "fixture_count": { "const": 5 },
+        "passed_fixture_count": { "const": 5 },
+        "failed_fixture_count": { "const": 0 },
+        "unsafe_risk_override_signal_count": { "const": 0 },
+        "risk_override_disabled_covered": { "const": true },
+        "human_approval_required_missing": { "const": false },
+        "protected_action_gate_missing": { "const": false },
+        "override_receipt_required_missing": { "const": false },
+        "risk_override_without_human_allowed": { "const": false },
+        "risk_override_route_enabled": { "const": false },
+        "order_intent_generated": { "const": false },
+        "investment_advice_generated": { "const": false },
+        "trade_recommendation_generated": { "const": false },
+        "live_trade_allowed": { "const": false },
+        "live_execution_allowed": { "const": false },
+        "broker_write_allowed": { "const": false },
+        "exchange_write_allowed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "artifact_write_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

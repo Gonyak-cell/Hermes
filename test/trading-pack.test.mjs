@@ -26,6 +26,7 @@ import { runTradingBrokerWriteDisabledFixtures } from "../src/trading-broker-wri
 import { runTradingExchangeWriteDisabledFixtures } from "../src/trading-exchange-write-disabled-fixtures.mjs";
 import { runTradingSafetyBoundaryFixtures } from "../src/trading-safety-boundary-fixtures.mjs";
 import { runTradingManualResumeDisabledFixtures } from "../src/trading-manual-resume-disabled-fixtures.mjs";
+import { runTradingRiskOverrideDisabledFixtures } from "../src/trading-risk-override-disabled-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -1592,6 +1593,116 @@ test("trading manual resume disabled fixtures --check does not overwrite existin
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingManualResumeDisabledFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading risk override disabled fixtures keep override paths human gated", async () => {
+  const result = await runTradingRiskOverrideDisabledFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_risk_override_disabled_fixtures_status, "ready_for_trading_risk_override_disabled_regression");
+  assert.equal(result.summary.phase_slot, "P390");
+  assert.equal(result.summary.previous_phase_slot, "P389");
+  assert.equal(result.summary.next_phase_slot, "P391");
+  assert.equal(result.summary.source_manual_resume_disabled_status, "ready_for_trading_manual_resume_disabled_regression");
+  assert.equal(result.summary.required_fixture_count, 5);
+  assert.equal(result.summary.evidence_count, 5);
+  assert.equal(result.summary.fixture_count, 5);
+  assert.equal(result.summary.passed_fixture_count, 5);
+  assert.equal(result.summary.failed_fixture_count, 0);
+  assert.equal(result.summary.unsafe_risk_override_signal_count, 0);
+  assert.equal(result.summary.risk_override_disabled_covered, true);
+  assert.equal(result.summary.human_approval_required_missing, false);
+  assert.equal(result.summary.protected_action_gate_missing, false);
+  assert.equal(result.summary.override_receipt_required_missing, false);
+  assert.equal(result.summary.risk_override_without_human_allowed, false);
+  assert.equal(result.summary.risk_override_route_enabled, false);
+  assert.equal(result.summary.order_intent_generated, false);
+  assert.equal(result.summary.investment_advice_generated, false);
+  assert.equal(result.summary.trade_recommendation_generated, false);
+  assert.equal(result.summary.live_trade_allowed, false);
+  assert.equal(result.summary.live_execution_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.ok(result.risk_override_disabled_evidence_rows.every((row) => row.evidence_status === "risk_override_disabled" && row.unsafe_risk_override_signal_detected === false));
+  assert.ok(result.risk_override_disabled_fixture_rows.every((row) => row.fixture_status === "passed" && row.fixture_should_fail_when_override_without_human_allowed && row.fixture_should_fail_when_override_route_enabled));
+  assert.ok(result.risk_override_disabled_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_gate === false));
+});
+
+test("trading risk override disabled fixtures block when override route is enabled", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-risk-override-enabled-"));
+  try {
+    const riskEngine = JSON.parse(await readFile("examples/trading/risk-engine.json", "utf8"));
+    riskEngine.override_policy.requires_human_approval = false;
+    riskEngine.override_policy.protected_action_gate_required = false;
+    riskEngine.safety_boundary.risk_override_without_human_allowed = true;
+    riskEngine.safety_boundary.order_intent_generated = true;
+    riskEngine.dashboard_api_stub.mutating_routes_enabled = true;
+    riskEngine.dashboard_api_stub.disabled_routes = riskEngine.dashboard_api_stub.disabled_routes.filter((route) => route.path !== "/api/trading/risk/override");
+    const riskEnginePath = path.join(root, "risk-engine.json");
+    await writeFile(riskEnginePath, `${JSON.stringify(riskEngine, null, 2)}\n`, "utf8");
+
+    const result = await runTradingRiskOverrideDisabledFixtures({ riskEnginePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_risk_override_disabled_fixtures_status, "blocked");
+    assert.ok(result.summary.unsafe_risk_override_signal_count > 0);
+    assert.equal(result.summary.human_approval_required_missing, true);
+    assert.equal(result.summary.protected_action_gate_missing, true);
+    assert.equal(result.summary.risk_override_without_human_allowed, true);
+    assert.equal(result.summary.risk_override_route_enabled, true);
+    assert.equal(result.summary.order_intent_generated, true);
+    assert.ok(result.risk_override_disabled_fixture_rows.some((row) => row.row_key === "risk_override_route_disabled" && row.fixture_status === "failed" && row.unsafe_risk_override_signal_detected));
+    await assert.rejects(
+      () => runTradingRiskOverrideDisabledFixtures({ riskEnginePath, write: false, check: true }),
+      /Trading risk override disabled fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading risk override disabled fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-risk-override-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:risk-override-disabled-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:risk-override-disabled-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingRiskOverrideDisabledFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_risk_override_disabled_fixtures_status, "blocked");
+    assert.ok(result.risk_override_disabled_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.risk_override_disabled_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingRiskOverrideDisabledFixtures({ packagePath, write: false, check: true }),
+      /Trading risk override disabled fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading risk override disabled fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-risk-override-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-risk-override-disabled-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-risk-override-disabled-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingRiskOverrideDisabledFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

@@ -25,6 +25,7 @@ import { runTradingCredentialLookupDisabledFixtures } from "../src/trading-crede
 import { runTradingBrokerWriteDisabledFixtures } from "../src/trading-broker-write-disabled-fixtures.mjs";
 import { runTradingExchangeWriteDisabledFixtures } from "../src/trading-exchange-write-disabled-fixtures.mjs";
 import { runTradingSafetyBoundaryFixtures } from "../src/trading-safety-boundary-fixtures.mjs";
+import { runTradingManualResumeDisabledFixtures } from "../src/trading-manual-resume-disabled-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -1484,6 +1485,113 @@ test("trading safety boundary fixtures --check does not overwrite existing artif
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingSafetyBoundaryFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading manual resume disabled fixtures keep halt and resume paths human gated", async () => {
+  const result = await runTradingManualResumeDisabledFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_manual_resume_disabled_fixtures_status, "ready_for_trading_manual_resume_disabled_regression");
+  assert.equal(result.summary.phase_slot, "P389");
+  assert.equal(result.summary.previous_phase_slot, "P388");
+  assert.equal(result.summary.next_phase_slot, "P390");
+  assert.equal(result.summary.source_safety_boundary_status, "ready_for_trading_safety_boundary_regression");
+  assert.equal(result.summary.required_fixture_count, 6);
+  assert.equal(result.summary.evidence_count, 6);
+  assert.equal(result.summary.fixture_count, 6);
+  assert.equal(result.summary.passed_fixture_count, 6);
+  assert.equal(result.summary.failed_fixture_count, 0);
+  assert.equal(result.summary.unsafe_manual_resume_signal_count, 0);
+  assert.equal(result.summary.manual_resume_disabled_covered, true);
+  assert.equal(result.summary.manual_resume_required_missing, false);
+  assert.equal(result.summary.manual_resume_route_enabled, false);
+  assert.equal(result.summary.live_orders_cancelled, false);
+  assert.equal(result.summary.rollback_to_paper_missing, false);
+  assert.equal(result.summary.protected_action_route_enabled, false);
+  assert.equal(result.summary.external_broker_recovery_allowed, false);
+  assert.equal(result.summary.limited_live_enabled, false);
+  assert.equal(result.summary.full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.equal(result.summary.live_order_submission_allowed, false);
+  assert.equal(result.summary.real_order_submitted, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.ok(result.manual_resume_disabled_evidence_rows.every((row) => row.evidence_status === "manual_resume_disabled" && row.unsafe_manual_resume_signal_detected === false));
+  assert.ok(result.manual_resume_disabled_fixture_rows.every((row) => row.fixture_status === "passed" && row.fixture_should_fail_when_resume_route_enabled && row.fixture_should_fail_when_manual_resume_not_required));
+  assert.ok(result.manual_resume_disabled_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_gate === false));
+});
+
+test("trading manual resume disabled fixtures block when resume route is enabled", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-manual-resume-enabled-"));
+  try {
+    const executionEngine = JSON.parse(await readFile("examples/trading/execution-engine.json", "utf8"));
+    executionEngine.emergency_halt.manual_resume_required = false;
+    executionEngine.emergency_halt.cancels_live_orders = true;
+    executionEngine.manual_resume_policy.resume_route_enabled = true;
+    executionEngine.dashboard_api_stub.disabled_routes = executionEngine.dashboard_api_stub.disabled_routes.filter((route) => route.path !== "/api/trading/execution/resume");
+    const executionEnginePath = path.join(root, "execution-engine.json");
+    await writeFile(executionEnginePath, `${JSON.stringify(executionEngine, null, 2)}\n`, "utf8");
+
+    const result = await runTradingManualResumeDisabledFixtures({ executionEnginePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_manual_resume_disabled_fixtures_status, "blocked");
+    assert.ok(result.summary.unsafe_manual_resume_signal_count > 0);
+    assert.equal(result.summary.manual_resume_required_missing, true);
+    assert.equal(result.summary.manual_resume_route_enabled, true);
+    assert.equal(result.summary.live_orders_cancelled, true);
+    assert.ok(result.manual_resume_disabled_fixture_rows.some((row) => row.row_key === "execution_manual_resume_route_disabled" && row.fixture_status === "failed" && row.unsafe_manual_resume_signal_detected));
+    await assert.rejects(
+      () => runTradingManualResumeDisabledFixtures({ executionEnginePath, write: false, check: true }),
+      /Trading manual resume disabled fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading manual resume disabled fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-manual-resume-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:manual-resume-disabled-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:manual-resume-disabled-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingManualResumeDisabledFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_manual_resume_disabled_fixtures_status, "blocked");
+    assert.ok(result.manual_resume_disabled_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.manual_resume_disabled_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingManualResumeDisabledFixtures({ packagePath, write: false, check: true }),
+      /Trading manual resume disabled fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading manual resume disabled fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-manual-resume-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-manual-resume-disabled-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-manual-resume-disabled-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingManualResumeDisabledFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

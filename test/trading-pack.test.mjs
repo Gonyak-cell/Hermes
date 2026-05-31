@@ -38,6 +38,7 @@ import { runTradingLossStreakCooldownFixtures } from "../src/trading-loss-streak
 import { runTradingModelDegradationHaltFixtures } from "../src/trading-model-degradation-halt-fixtures.mjs";
 import { runTradingDataOutageHaltFixtures } from "../src/trading-data-outage-halt-fixtures.mjs";
 import { runTradingPromotionReceiptContractFixtures } from "../src/trading-promotion-receipt-contract-fixtures.mjs";
+import { runTradingPromotionCompletionGateFixtures } from "../src/trading-promotion-completion-gate-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -3614,6 +3615,150 @@ test("trading promotion receipt contract fixtures --check does not overwrite exi
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingPromotionReceiptContractFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion completion gate fixtures block completion until receipts exist", async () => {
+  const result = await runTradingPromotionCompletionGateFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_promotion_completion_gate_fixtures_status, "ready_for_trading_promotion_completion_gate_regression");
+  assert.equal(result.summary.phase_slot, "P402");
+  assert.equal(result.summary.previous_phase_slot, "P401");
+  assert.equal(result.summary.next_phase_slot, "P403");
+  assert.equal(result.summary.source_promotion_receipt_contract_status, "ready_for_trading_promotion_receipt_contract_regression");
+  assert.equal(result.summary.source_promotion_receipt_contract_ready, true);
+  assert.equal(result.summary.required_stage_count, 6);
+  assert.equal(result.summary.stage_count, 6);
+  assert.equal(result.summary.ready_stage_count, 6);
+  assert.equal(result.summary.blocked_stage_count, 0);
+  assert.equal(result.summary.promotion_completion_gates_covered, true);
+  assert.equal(result.summary.receipt_required_for_every_completion_gate, true);
+  assert.equal(result.summary.completion_gates_block_without_receipts, true);
+  assert.equal(result.summary.completion_claim_count, 0);
+  assert.equal(result.summary.completion_claim_without_receipt_count, 0);
+  assert.equal(result.summary.source_receipt_present, false);
+  assert.equal(result.summary.source_approval_applied, false);
+  assert.equal(result.summary.receipt_materialized, false);
+  assert.equal(result.summary.receipt_input_read_performed, false);
+  assert.equal(result.summary.receipt_validation_performed, false);
+  assert.equal(result.summary.receipt_application_performed, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.governance_reports_complete_with_real_enablement_false, true);
+  assert.equal(result.summary.shadow_live_enabled, false);
+  assert.equal(result.summary.limited_live_enabled, false);
+  assert.equal(result.summary.full_auto_enabled, false);
+  assert.equal(result.summary.automatic_order_submission_allowed, false);
+  assert.equal(result.summary.live_order_submission_allowed, false);
+  assert.equal(result.summary.live_execution_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.deepEqual(
+    result.promotion_completion_stage_rows.map((row) => row.row_key),
+    [
+      "research_to_backtest_completion_gate",
+      "backtest_to_paper_completion_gate",
+      "paper_to_shadow_completion_gate",
+      "shadow_to_limited_live_completion_gate",
+      "limited_live_to_full_auto_completion_gate",
+      "full_auto_activation_completion_gate",
+    ],
+  );
+  assert.ok(result.promotion_completion_stage_rows.every((row) => row.stage_completion_status === "ready_blocking_completion" && row.receipt_required && row.completion_blocked_without_receipt && row.completion_enablement_allowed === false));
+  assert.ok(result.promotion_completion_summary_rows.every((row) => row.summary_status === "completion_blocked_pending_receipt" && row.completion_blocked_without_receipt));
+  assert.ok(result.promotion_completion_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_gate === false));
+});
+
+test("trading promotion completion gate fixtures block when completion is claimed without receipts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-completion-claim-"));
+  try {
+    const paperShadow = JSON.parse(await readFile("examples/trading/paper-shadow-live.json", "utf8"));
+    paperShadow.promotion_criteria_to_shadow.decision = "approved";
+    paperShadow.promotion_criteria_to_shadow.shadow_live_enabled = true;
+    paperShadow.promotion_criteria_to_limited_live.decision = "approved";
+    paperShadow.promotion_criteria_to_limited_live.limited_live_enabled = true;
+    const paperShadowPath = path.join(root, "paper-shadow-live.json");
+    await writeFile(paperShadowPath, `${JSON.stringify(paperShadow, null, 2)}\n`, "utf8");
+
+    const fullAuto = JSON.parse(await readFile("examples/trading/full-auto-governance.json", "utf8"));
+    fullAuto.full_auto_approval_checklist.decision = "approved";
+    fullAuto.safety_boundary.full_auto_enabled = true;
+    fullAuto.safety_boundary.automatic_order_submission_allowed = true;
+    const fullAutoPath = path.join(root, "full-auto-governance.json");
+    await writeFile(fullAutoPath, `${JSON.stringify(fullAuto, null, 2)}\n`, "utf8");
+
+    const result = await runTradingPromotionCompletionGateFixtures({
+      paperShadowPath,
+      fullAutoPath,
+      write: false,
+    });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_promotion_completion_gate_fixtures_status, "blocked");
+    assert.equal(result.summary.source_promotion_receipt_contract_ready, false);
+    assert.ok(result.summary.completion_claim_count > 0);
+    assert.ok(result.summary.completion_claim_without_receipt_count > 0);
+    assert.equal(result.summary.governance_reports_complete_with_real_enablement_false, false);
+    assert.equal(result.summary.shadow_live_enabled, true);
+    assert.equal(result.summary.limited_live_enabled, true);
+    assert.equal(result.summary.full_auto_enabled, true);
+    assert.equal(result.summary.automatic_order_submission_allowed, true);
+    assert.ok(result.promotion_completion_stage_rows.some((row) => row.row_key === "paper_to_shadow_completion_gate" && row.stage_completion_status === "blocked" && row.completion_claim_without_receipt));
+    await assert.rejects(
+      () => runTradingPromotionCompletionGateFixtures({
+        paperShadowPath,
+        fullAutoPath,
+        write: false,
+        check: true,
+      }),
+      /Trading promotion completion gate fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion completion gate fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-completion-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:promotion-completion-gate-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:promotion-completion-gate-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingPromotionCompletionGateFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_promotion_completion_gate_fixtures_status, "blocked");
+    assert.ok(result.promotion_completion_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.promotion_completion_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingPromotionCompletionGateFixtures({ packagePath, write: false, check: true }),
+      /Trading promotion completion gate fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion completion gate fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-completion-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-promotion-completion-gate-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-promotion-completion-gate-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingPromotionCompletionGateFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

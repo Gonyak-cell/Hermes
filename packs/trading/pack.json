@@ -80,7 +80,8 @@
     "schemas/trading/trading-loss-streak-cooldown-fixtures.schema.json",
     "schemas/trading/trading-model-degradation-halt-fixtures.schema.json",
     "schemas/trading/trading-data-outage-halt-fixtures.schema.json",
-    "schemas/trading/trading-promotion-receipt-contract-fixtures.schema.json"
+    "schemas/trading/trading-promotion-receipt-contract-fixtures.schema.json",
+    "schemas/trading/trading-promotion-completion-gate-fixtures.schema.json"
   ],
   "workflows": [
     "workflow.trading.research_intake.v1",
@@ -136,7 +137,8 @@
     "workflow.trading.loss_streak_cooldown_fixtures.v1",
     "workflow.trading.model_degradation_halt_fixtures.v1",
     "workflow.trading.data_outage_halt_fixtures.v1",
-    "workflow.trading.promotion_receipt_contract_fixtures.v1"
+    "workflow.trading.promotion_receipt_contract_fixtures.v1",
+    "workflow.trading.promotion_completion_gate_fixtures.v1"
   ],
   "gates": [
     "classification_gate",

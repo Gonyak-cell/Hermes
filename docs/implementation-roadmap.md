@@ -8638,3 +8638,30 @@ Changes:
   behavior.
 - Updated the P341-P500 ledger so P368 owns release-check signoff receipt
   templates.
+
+## Phase 369 - Release-Check Signoff Receipt Intake
+
+Phase 369 adds a receipt-intake queue over the P368 release-check signoff
+receipt templates. It records which templates are awaiting external human input
+without receiving receipts, validating receipts, marking rows ready for
+validation, completing signoff, applying approvals, materializing receipts,
+running release checks, reading or writing artifacts, publishing releases, or
+mutating release/trading state.
+
+Changes:
+
+- Added `src/platform-release-check-signoff-receipt-intake.mjs`,
+  `scripts/platform-release-check-signoff-receipt-intake.mjs`,
+  `schemas/platform-release-check-signoff-receipt-intake.schema.json`, and
+  `docs/platform-release-check-signoff-receipt-intake.md`.
+- Added `platform:release-check-signoff-receipt-intake` and registered
+  `platform:release-check-signoff-receipt-intake -- --check` in the validation
+  chain.
+- The command consumes the P368 receipt template in memory and produces intake
+  rows, gate rows, a boundary report, validation output, and a Markdown summary
+  when not in `--check` mode.
+- Added focused tests for pending intake rows, missing validation-chain
+  registration, blocked source receipt templates, and `--check` no-overwrite
+  behavior.
+- Updated the P341-P500 ledger so P369 owns release-check signoff receipt
+  intake.

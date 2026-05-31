@@ -250,6 +250,11 @@
       "entrypoint_type": "command",
       "name": "trading:data-outage-halt-fixtures",
       "path": "scripts/trading-data-outage-halt-fixtures.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:promotion-receipt-contract-fixtures",
+      "path": "scripts/trading-promotion-receipt-contract-fixtures.mjs"
     }
   ],
   "dependencies": ["common.workflow.approval", "common.audit.replay", "common.test.gate"],
@@ -444,6 +449,12 @@
       "case_id": "golden.trading.data_outage_halt_fixtures.p400",
       "description": "P400 data-outage halt fixtures prove risk, market-data quality, paper/shadow, limited-live, and full-auto failover paths remain armed, read-only, and non-mutating.",
       "input_ref": "artifacts/trading-data-outage-halt-fixtures/latest/trading-data-outage-halt-fixtures.json",
+      "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
+    },
+    {
+      "case_id": "golden.trading.promotion_receipt_contract_fixtures.p401",
+      "description": "P401 promotion receipt contract fixtures declare independent human approval receipt contracts for each research-to-full-auto promotion hop while keeping real enablement false.",
+      "input_ref": "artifacts/trading-promotion-receipt-contract-fixtures/latest/trading-promotion-receipt-contract-fixtures.json",
       "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
     }
   ],

@@ -23,7 +23,7 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 | P341-P360 | Reproducibility baseline | complete | Pin Node/npm policy, lockfile policy, P340 provenance, deterministic runtime baseline artifact, and `platform:runtime-baseline`. |
 | P361-P380 | Unified platform and trading checks | complete | Add `trading:release-check`, `platform:ops-check`, `platform:release-check`, and receipt-readiness closeout so operators do not rely on remembered command order. |
 | P381-P400 | Trading safety regression | complete | Fail immediately if live, full-auto, automatic order submission, broker credential, generic order, or mutating trading routes become enabled. |
-| P401-P420 | Promotion receipt gates | planned | Require independent human approval receipts for research -> backtest -> paper -> shadow -> limited-live -> full-auto promotion claims. |
+| P401-P420 | Promotion receipt gates | active | Require independent human approval receipts for research -> backtest -> paper -> shadow -> limited-live -> full-auto promotion claims. |
 | P421-P440 | Execution and secret isolation | planned | Keep simulated and live broker adapters schema/API separated; live credentials are external secret handles only. |
 | P441-P460 | Recovery drills | planned | Cover stale data, exchange outage, failed fill, partial fill, duplicate order intent, kill switch, and rollback-to-paper as dry-run receipt drafts. |
 | P461-P480 | Operator observability | planned | Show why live/future mutation is blocked: risk halt, missing approval, disabled route, rollback target, and Desktop read-only boundary. |
@@ -107,6 +107,7 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 
 ## P401-P420 Acceptance Criteria
 
+- P401: `trading:promotion-receipt-contract-fixtures` declares independent human approval receipt contracts and summary rows for research-to-backtest, backtest-to-paper, paper-to-shadow, shadow-to-limited-live, limited-live-to-full-auto, and full-auto activation claims while keeping governance reports read-only/complete only when real enablement, receipt intake, receipt application, live execution, broker writes, exchange writes, artifact mutation, command execution, and protected actions remain false.
 - Each promotion stage has an independent approval receipt contract and summary row.
 - A higher stage cannot be marked complete for enablement without its required receipt.
 - Governance reports may be complete while real enablement remains false.

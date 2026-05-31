@@ -37,6 +37,7 @@ import { runTradingOrderFrequencyThrottleFixtures } from "../src/trading-order-f
 import { runTradingLossStreakCooldownFixtures } from "../src/trading-loss-streak-cooldown-fixtures.mjs";
 import { runTradingModelDegradationHaltFixtures } from "../src/trading-model-degradation-halt-fixtures.mjs";
 import { runTradingDataOutageHaltFixtures } from "../src/trading-data-outage-halt-fixtures.mjs";
+import { runTradingPromotionReceiptContractFixtures } from "../src/trading-promotion-receipt-contract-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -3407,6 +3408,212 @@ test("trading data outage halt fixtures --check does not overwrite existing arti
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingDataOutageHaltFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion receipt contract fixtures declare independent human receipt gates", async () => {
+  const result = await runTradingPromotionReceiptContractFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_promotion_receipt_contract_fixtures_status, "ready_for_trading_promotion_receipt_contract_regression");
+  assert.equal(result.summary.phase_slot, "P401");
+  assert.equal(result.summary.previous_phase_slot, "P400");
+  assert.equal(result.summary.next_phase_slot, "P402");
+  assert.equal(result.summary.source_data_outage_halt_status, "ready_for_trading_data_outage_halt_regression");
+  assert.equal(result.summary.source_data_outage_halt_ready, true);
+  assert.equal(result.summary.required_contract_count, 6);
+  assert.equal(result.summary.contract_count, 6);
+  assert.equal(result.summary.ready_contract_count, 6);
+  assert.equal(result.summary.independent_receipt_contract_count, 6);
+  assert.equal(result.summary.summary_row_count, 6);
+  assert.equal(result.summary.unsafe_promotion_receipt_signal_count, 0);
+  assert.equal(result.summary.promotion_receipt_contracts_covered, true);
+  assert.equal(result.summary.independent_receipt_contracts_declared, true);
+  assert.equal(result.summary.receipt_contracts_ready_for_human_input, true);
+  assert.equal(result.summary.receipt_materialized, false);
+  assert.equal(result.summary.receipt_input_read_performed, false);
+  assert.equal(result.summary.receipt_validation_performed, false);
+  assert.equal(result.summary.receipt_application_performed, false);
+  assert.equal(result.summary.source_receipt_present, false);
+  assert.equal(result.summary.source_approval_applied, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.higher_stage_enablement_claimed, false);
+  assert.equal(result.summary.higher_stage_completion_claim_without_receipt, false);
+  assert.equal(result.summary.governance_reports_complete_with_real_enablement_false, true);
+  assert.equal(result.summary.human_approval_missing_from_source, false);
+  assert.equal(result.summary.shadow_live_enabled, false);
+  assert.equal(result.summary.limited_live_enabled, false);
+  assert.equal(result.summary.full_auto_enabled, false);
+  assert.equal(result.summary.automatic_order_submission_allowed, false);
+  assert.equal(result.summary.live_order_submission_allowed, false);
+  assert.equal(result.summary.live_execution_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.deepEqual(
+    result.promotion_receipt_contract_rows.map((row) => row.row_key),
+    [
+      "research_to_backtest_receipt_contract",
+      "backtest_to_paper_receipt_contract",
+      "paper_to_shadow_receipt_contract",
+      "shadow_to_limited_live_receipt_contract",
+      "limited_live_to_full_auto_receipt_contract",
+      "full_auto_activation_receipt_contract",
+    ],
+  );
+  assert.equal(new Set(result.promotion_receipt_contract_rows.map((row) => row.receipt_contract_id)).size, 6);
+  assert.ok(result.promotion_receipt_contract_rows.every((row) => row.contract_status === "ready_for_human_receipt" && row.receipt_required && row.receipt_contract_independent && row.approval_receipt_present === false && row.promotion_enablement_allowed === false));
+  assert.ok(result.promotion_receipt_summary_rows.every((row) => row.summary_status === "receipt_contract_ready" && row.governance_complete_with_real_enablement_false));
+  assert.ok(result.promotion_receipt_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_gate === false));
+});
+
+test("trading promotion receipt contract fixtures block when promotion receipts or enablement are pre-applied", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-receipt-bypass-"));
+  try {
+    const tradingSample = JSON.parse(await readFile("examples/trading/research-backtest-paper-sample.json", "utf8"));
+    tradingSample.safety_policy.human_approval_required_for_promotion = false;
+    tradingSample.contract_examples["trading-backtest"].promotion_candidate = true;
+    const tradingSamplePath = path.join(root, "research-backtest-paper-sample.json");
+    await writeFile(tradingSamplePath, `${JSON.stringify(tradingSample, null, 2)}\n`, "utf8");
+
+    const modelImprovement = JSON.parse(await readFile("examples/trading/model-improvement-layer.json", "utf8"));
+    modelImprovement.promotion_candidates[0].promotion_artifact.decision = "approved";
+    modelImprovement.promotion_candidates[0].promotion_artifact.human_approval_required = false;
+    modelImprovement.promotion_candidates[0].promotion_artifact.live_promotion_allowed = true;
+    modelImprovement.promotion_policy_gate.human_approval_required = false;
+    modelImprovement.promotion_policy_gate.live_promotion_allowed = true;
+    const modelImprovementPath = path.join(root, "model-improvement-layer.json");
+    await writeFile(modelImprovementPath, `${JSON.stringify(modelImprovement, null, 2)}\n`, "utf8");
+
+    const backtestValidation = JSON.parse(await readFile("examples/trading/backtest-validation.json", "utf8"));
+    backtestValidation.promotion_boundary.promotion_candidate_generated = true;
+    backtestValidation.promotion_boundary.live_promotion_allowed = true;
+    const backtestValidationPath = path.join(root, "backtest-validation.json");
+    await writeFile(backtestValidationPath, `${JSON.stringify(backtestValidation, null, 2)}\n`, "utf8");
+
+    const paperShadow = JSON.parse(await readFile("examples/trading/paper-shadow-live.json", "utf8"));
+    paperShadow.promotion_criteria_to_shadow.decision = "approved";
+    paperShadow.promotion_criteria_to_shadow.human_approval_required = false;
+    paperShadow.promotion_criteria_to_shadow.shadow_live_enabled = true;
+    paperShadow.promotion_criteria_to_limited_live.decision = "approved";
+    paperShadow.promotion_criteria_to_limited_live.human_approval_required = false;
+    paperShadow.promotion_criteria_to_limited_live.limited_live_enabled = true;
+    paperShadow.safety_boundary.live_execution_allowed = true;
+    const paperShadowPath = path.join(root, "paper-shadow-live.json");
+    await writeFile(paperShadowPath, `${JSON.stringify(paperShadow, null, 2)}\n`, "utf8");
+
+    const limitedLive = JSON.parse(await readFile("examples/trading/limited-live-governance.json", "utf8"));
+    limitedLive.safety_boundary.explicit_human_approval_required = false;
+    limitedLive.safety_boundary.approval_receipt_present = true;
+    limitedLive.safety_boundary.limited_live_enabled = true;
+    limitedLive.safety_boundary.full_auto_promotion_allowed = true;
+    limitedLive.promotion_criteria_to_full_auto.decision = "approved";
+    limitedLive.promotion_criteria_to_full_auto.human_approval_required = false;
+    limitedLive.promotion_criteria_to_full_auto.full_auto_enabled = true;
+    const limitedLivePath = path.join(root, "limited-live-governance.json");
+    await writeFile(limitedLivePath, `${JSON.stringify(limitedLive, null, 2)}\n`, "utf8");
+
+    const fullAuto = JSON.parse(await readFile("examples/trading/full-auto-governance.json", "utf8"));
+    fullAuto.full_auto_approval_checklist.approval_required = false;
+    fullAuto.full_auto_approval_checklist.approval_receipt_present = true;
+    fullAuto.full_auto_approval_checklist.decision = "approved";
+    fullAuto.safety_boundary.full_auto_enabled = true;
+    fullAuto.safety_boundary.automatic_order_submission_allowed = true;
+    fullAuto.safety_boundary.live_order_submission_allowed = true;
+    fullAuto.safety_boundary.live_execution_allowed = true;
+    fullAuto.safety_boundary.broker_write_allowed = true;
+    fullAuto.safety_boundary.exchange_write_allowed = true;
+    const fullAutoPath = path.join(root, "full-auto-governance.json");
+    await writeFile(fullAutoPath, `${JSON.stringify(fullAuto, null, 2)}\n`, "utf8");
+
+    const result = await runTradingPromotionReceiptContractFixtures({
+      tradingSamplePath,
+      modelImprovementPath,
+      backtestValidationPath,
+      paperShadowPath,
+      limitedLivePath,
+      fullAutoPath,
+      write: false,
+    });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_promotion_receipt_contract_fixtures_status, "blocked");
+    assert.ok(result.summary.unsafe_promotion_receipt_signal_count > 0);
+    assert.equal(result.summary.human_approval_missing_from_source, true);
+    assert.equal(result.summary.source_receipt_present, true);
+    assert.equal(result.summary.source_approval_applied, true);
+    assert.equal(result.summary.higher_stage_enablement_claimed, true);
+    assert.equal(result.summary.higher_stage_completion_claim_without_receipt, true);
+    assert.equal(result.summary.governance_reports_complete_with_real_enablement_false, false);
+    assert.equal(result.summary.promotion_candidate_generated, true);
+    assert.equal(result.summary.shadow_live_enabled, true);
+    assert.equal(result.summary.limited_live_enabled, true);
+    assert.equal(result.summary.full_auto_enabled, true);
+    assert.equal(result.summary.automatic_order_submission_allowed, true);
+    assert.equal(result.summary.live_order_submission_allowed, true);
+    assert.equal(result.summary.live_promotion_allowed, true);
+    assert.equal(result.summary.live_execution_allowed, true);
+    assert.equal(result.summary.broker_write_allowed, true);
+    assert.equal(result.summary.exchange_write_allowed, true);
+    assert.ok(result.promotion_receipt_contract_rows.some((row) => row.row_key === "full_auto_activation_receipt_contract" && row.contract_status === "blocked" && row.source_receipt_present));
+    await assert.rejects(
+      () => runTradingPromotionReceiptContractFixtures({
+        tradingSamplePath,
+        modelImprovementPath,
+        backtestValidationPath,
+        paperShadowPath,
+        limitedLivePath,
+        fullAutoPath,
+        write: false,
+        check: true,
+      }),
+      /Trading promotion receipt contract fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion receipt contract fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-receipt-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:promotion-receipt-contract-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:promotion-receipt-contract-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingPromotionReceiptContractFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_promotion_receipt_contract_fixtures_status, "blocked");
+    assert.ok(result.promotion_receipt_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.promotion_receipt_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingPromotionReceiptContractFixtures({ packagePath, write: false, check: true }),
+      /Trading promotion receipt contract fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion receipt contract fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-receipt-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-promotion-receipt-contract-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-promotion-receipt-contract-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingPromotionReceiptContractFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

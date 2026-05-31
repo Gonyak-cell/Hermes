@@ -69,7 +69,8 @@
     "schemas/trading/trading-exchange-write-disabled-fixtures.schema.json",
     "schemas/trading/trading-safety-boundary-fixtures.schema.json",
     "schemas/trading/trading-manual-resume-disabled-fixtures.schema.json",
-    "schemas/trading/trading-risk-override-disabled-fixtures.schema.json"
+    "schemas/trading/trading-risk-override-disabled-fixtures.schema.json",
+    "schemas/trading/trading-promotion-disabled-fixtures.schema.json"
   ],
   "workflows": [
     "workflow.trading.research_intake.v1",
@@ -114,7 +115,8 @@
     "workflow.trading.exchange_write_disabled_fixtures.v1",
     "workflow.trading.safety_boundary_fixtures.v1",
     "workflow.trading.manual_resume_disabled_fixtures.v1",
-    "workflow.trading.risk_override_disabled_fixtures.v1"
+    "workflow.trading.risk_override_disabled_fixtures.v1",
+    "workflow.trading.promotion_disabled_fixtures.v1"
   ],
   "gates": [
     "classification_gate",

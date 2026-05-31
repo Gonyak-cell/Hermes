@@ -1,0 +1,318 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/trading/trading-promotion-disabled-fixtures.schema.json",
+  "title": "Trading Promotion Disabled Fixtures",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "trading_promotion_disabled_fixtures_id",
+    "capability_id",
+    "promotion_disabled_anchor",
+    "promotion_disabled_evidence_rows",
+    "promotion_disabled_fixture_rows",
+    "promotion_disabled_gate_rows",
+    "promotion_disabled_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "trading-promotion-disabled-fixtures.v1" },
+    "trading_promotion_disabled_fixtures_id": {
+      "type": "string",
+      "pattern": "^trading-promotion-disabled-fixtures\\.[0-9]{8}$"
+    },
+    "capability_id": { "const": "trading.promotion_disabled_fixtures" },
+    "promotion_disabled_anchor": {
+      "type": "object",
+      "required": [
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "source_risk_override_disabled_status",
+        "required_fixture_count"
+      ],
+      "properties": {
+        "phase_slot": { "const": "P391" },
+        "previous_phase_slot": { "const": "P390" },
+        "next_phase_slot": { "const": "P392" },
+        "source_risk_override_disabled_status": { "const": "ready_for_trading_risk_override_disabled_regression" },
+        "required_fixture_count": { "const": 6 }
+      }
+    },
+    "promotion_disabled_evidence_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "row_key",
+          "observed_conditions",
+          "observed_condition_count",
+          "all_conditions_present",
+          "unsafe_promotion_signal_detected",
+          "evidence_status",
+          "human_review_required"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P391" },
+          "row_key": {
+            "enum": [
+              "model_promotion_policy_gate_blocks_live",
+              "backtest_promotion_boundary_disabled",
+              "paper_to_shadow_promotion_human_gate",
+              "shadow_to_limited_live_promotion_blocked",
+              "limited_live_to_full_auto_promotion_blocked",
+              "full_auto_approval_without_receipt_blocked"
+            ]
+          },
+          "observed_conditions": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "condition_path",
+                "expected_safe_value",
+                "observed_value",
+                "condition_present",
+                "unsafe_when_not_safe"
+              ],
+              "properties": {
+                "condition_present": { "const": true },
+                "unsafe_when_not_safe": { "const": true }
+              }
+            }
+          },
+          "all_conditions_present": { "const": true },
+          "unsafe_promotion_signal_detected": { "const": false },
+          "evidence_status": { "const": "promotion_disabled" },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "promotion_disabled_fixture_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "row_key",
+          "expected_live_promotion_allowed",
+          "unsafe_promotion_signal_detected",
+          "fixture_should_fail_when_human_approval_missing",
+          "fixture_should_fail_when_live_promotion_allowed",
+          "fixture_should_fail_when_promotion_route_enabled",
+          "fixture_status",
+          "live_promotion_allowed_by_fixture",
+          "promotion_route_enabled_by_fixture",
+          "order_intent_generated_by_fixture",
+          "live_execution_allowed_by_fixture",
+          "command_execution_performed_by_fixture",
+          "artifact_write_performed_by_fixture",
+          "protected_action_executed_by_fixture",
+          "human_review_required"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P391" },
+          "row_key": {
+            "enum": [
+              "model_promotion_policy_gate_blocks_live",
+              "backtest_promotion_boundary_disabled",
+              "paper_to_shadow_promotion_human_gate",
+              "shadow_to_limited_live_promotion_blocked",
+              "limited_live_to_full_auto_promotion_blocked",
+              "full_auto_approval_without_receipt_blocked"
+            ]
+          },
+          "expected_live_promotion_allowed": { "const": false },
+          "unsafe_promotion_signal_detected": { "const": false },
+          "fixture_should_fail_when_human_approval_missing": { "const": true },
+          "fixture_should_fail_when_live_promotion_allowed": { "const": true },
+          "fixture_should_fail_when_promotion_route_enabled": { "const": true },
+          "fixture_status": { "const": "passed" },
+          "live_promotion_allowed_by_fixture": { "const": false },
+          "promotion_route_enabled_by_fixture": { "const": false },
+          "order_intent_generated_by_fixture": { "const": false },
+          "live_execution_allowed_by_fixture": { "const": false },
+          "command_execution_performed_by_fixture": { "const": false },
+          "artifact_write_performed_by_fixture": { "const": false },
+          "protected_action_executed_by_fixture": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "promotion_disabled_gate_rows": {
+      "type": "array",
+      "minItems": 11,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "row_key",
+          "gate_status",
+          "live_promotion_allowed_by_gate",
+          "promotion_route_enabled_by_gate",
+          "order_intent_generated_by_gate",
+          "protected_action_executed_by_gate",
+          "human_review_required"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P391" },
+          "gate_status": { "const": "ready" },
+          "live_promotion_allowed_by_gate": { "const": false },
+          "promotion_route_enabled_by_gate": { "const": false },
+          "order_intent_generated_by_gate": { "const": false },
+          "protected_action_executed_by_gate": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "promotion_disabled_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "phase_slot",
+        "read_only",
+        "report_only",
+        "required_fixture_count",
+        "promotion_evidence_count",
+        "fixture_count",
+        "unsafe_promotion_signal_count",
+        "promotion_disabled_covered",
+        "source_risk_override_disabled_ready",
+        "human_approval_required_missing",
+        "approval_receipt_present",
+        "promotion_candidate_generated",
+        "auto_live_promotion_allowed",
+        "live_promotion_allowed",
+        "shadow_live_enabled",
+        "limited_live_enabled",
+        "full_auto_enabled",
+        "full_auto_promotion_allowed",
+        "automatic_order_submission_allowed",
+        "live_order_submission_allowed",
+        "promotion_route_enabled",
+        "order_route_enabled",
+        "broker_write_allowed",
+        "exchange_write_allowed",
+        "command_execution_performed",
+        "artifact_write_performed",
+        "protected_action_executed",
+        "human_review_required"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "phase_slot": { "const": "P391" },
+        "read_only": { "const": true },
+        "report_only": { "const": true },
+        "required_fixture_count": { "const": 6 },
+        "promotion_evidence_count": { "const": 6 },
+        "fixture_count": { "const": 6 },
+        "unsafe_promotion_signal_count": { "const": 0 },
+        "promotion_disabled_covered": { "const": true },
+        "source_risk_override_disabled_ready": { "const": true },
+        "human_approval_required_missing": { "const": false },
+        "approval_receipt_present": { "const": false },
+        "promotion_candidate_generated": { "const": false },
+        "auto_live_promotion_allowed": { "const": false },
+        "live_promotion_allowed": { "const": false },
+        "shadow_live_enabled": { "const": false },
+        "limited_live_enabled": { "const": false },
+        "full_auto_enabled": { "const": false },
+        "full_auto_promotion_allowed": { "const": false },
+        "automatic_order_submission_allowed": { "const": false },
+        "live_order_submission_allowed": { "const": false },
+        "promotion_route_enabled": { "const": false },
+        "order_route_enabled": { "const": false },
+        "risk_override_route_enabled": { "const": false },
+        "order_intent_generated": { "const": false },
+        "investment_advice_generated": { "const": false },
+        "trade_recommendation_generated": { "const": false },
+        "live_trade_allowed": { "const": false },
+        "live_execution_allowed": { "const": false },
+        "trading_live_enabled": { "const": false },
+        "trading_order_submission_allowed": { "const": false },
+        "real_order_submitted": { "const": false },
+        "live_adapter_enabled": { "const": false },
+        "credential_lookup_enabled": { "const": false },
+        "broker_write_allowed": { "const": false },
+        "exchange_write_allowed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "package_command_execution_performed": { "const": false },
+        "release_check_execution_performed": { "const": false },
+        "artifact_write_performed": { "const": false },
+        "release_published": { "const": false },
+        "git_operation_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "human_review_required": { "const": true }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "trading_promotion_disabled_fixtures_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "source_risk_override_disabled_status",
+        "required_fixture_count",
+        "evidence_count",
+        "fixture_count",
+        "passed_fixture_count",
+        "unsafe_promotion_signal_count",
+        "promotion_disabled_covered",
+        "human_approval_required_missing",
+        "approval_receipt_present",
+        "live_promotion_allowed",
+        "promotion_route_enabled",
+        "limited_live_enabled",
+        "full_auto_enabled",
+        "automatic_order_submission_allowed",
+        "live_order_submission_allowed",
+        "broker_write_allowed",
+        "exchange_write_allowed",
+        "command_execution_performed",
+        "artifact_write_performed",
+        "protected_action_executed",
+        "validation_error_count"
+      ],
+      "properties": {
+        "trading_promotion_disabled_fixtures_status": { "const": "ready_for_trading_promotion_disabled_regression" },
+        "phase_slot": { "const": "P391" },
+        "previous_phase_slot": { "const": "P390" },
+        "next_phase_slot": { "const": "P392" },
+        "source_risk_override_disabled_status": { "const": "ready_for_trading_risk_override_disabled_regression" },
+        "required_fixture_count": { "const": 6 },
+        "evidence_count": { "const": 6 },
+        "fixture_count": { "const": 6 },
+        "passed_fixture_count": { "const": 6 },
+        "unsafe_promotion_signal_count": { "const": 0 },
+        "promotion_disabled_covered": { "const": true },
+        "human_approval_required_missing": { "const": false },
+        "approval_receipt_present": { "const": false },
+        "promotion_candidate_generated": { "const": false },
+        "auto_live_promotion_allowed": { "const": false },
+        "live_promotion_allowed": { "const": false },
+        "shadow_live_enabled": { "const": false },
+        "limited_live_enabled": { "const": false },
+        "full_auto_enabled": { "const": false },
+        "full_auto_promotion_allowed": { "const": false },
+        "automatic_order_submission_allowed": { "const": false },
+        "live_order_submission_allowed": { "const": false },
+        "promotion_route_enabled": { "const": false },
+        "order_route_enabled": { "const": false },
+        "broker_write_allowed": { "const": false },
+        "exchange_write_allowed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "artifact_write_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

@@ -27,6 +27,7 @@ import { runTradingExchangeWriteDisabledFixtures } from "../src/trading-exchange
 import { runTradingSafetyBoundaryFixtures } from "../src/trading-safety-boundary-fixtures.mjs";
 import { runTradingManualResumeDisabledFixtures } from "../src/trading-manual-resume-disabled-fixtures.mjs";
 import { runTradingRiskOverrideDisabledFixtures } from "../src/trading-risk-override-disabled-fixtures.mjs";
+import { runTradingPromotionDisabledFixtures } from "../src/trading-promotion-disabled-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -1703,6 +1704,151 @@ test("trading risk override disabled fixtures --check does not overwrite existin
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingRiskOverrideDisabledFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion disabled fixtures keep promotion paths human gated", async () => {
+  const result = await runTradingPromotionDisabledFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_promotion_disabled_fixtures_status, "ready_for_trading_promotion_disabled_regression");
+  assert.equal(result.summary.phase_slot, "P391");
+  assert.equal(result.summary.previous_phase_slot, "P390");
+  assert.equal(result.summary.next_phase_slot, "P392");
+  assert.equal(result.summary.source_risk_override_disabled_status, "ready_for_trading_risk_override_disabled_regression");
+  assert.equal(result.summary.required_fixture_count, 6);
+  assert.equal(result.summary.evidence_count, 6);
+  assert.equal(result.summary.fixture_count, 6);
+  assert.equal(result.summary.passed_fixture_count, 6);
+  assert.equal(result.summary.failed_fixture_count, 0);
+  assert.equal(result.summary.unsafe_promotion_signal_count, 0);
+  assert.equal(result.summary.promotion_disabled_covered, true);
+  assert.equal(result.summary.human_approval_required_missing, false);
+  assert.equal(result.summary.approval_receipt_present, false);
+  assert.equal(result.summary.promotion_candidate_generated, false);
+  assert.equal(result.summary.auto_live_promotion_allowed, false);
+  assert.equal(result.summary.live_promotion_allowed, false);
+  assert.equal(result.summary.shadow_live_enabled, false);
+  assert.equal(result.summary.limited_live_enabled, false);
+  assert.equal(result.summary.full_auto_enabled, false);
+  assert.equal(result.summary.full_auto_promotion_allowed, false);
+  assert.equal(result.summary.automatic_order_submission_allowed, false);
+  assert.equal(result.summary.live_order_submission_allowed, false);
+  assert.equal(result.summary.promotion_route_enabled, false);
+  assert.equal(result.summary.order_route_enabled, false);
+  assert.equal(result.summary.order_intent_generated, false);
+  assert.equal(result.summary.live_execution_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.ok(result.promotion_disabled_evidence_rows.every((row) => row.evidence_status === "promotion_disabled" && row.unsafe_promotion_signal_detected === false));
+  assert.ok(result.promotion_disabled_fixture_rows.every((row) => row.fixture_status === "passed" && row.fixture_should_fail_when_live_promotion_allowed && row.fixture_should_fail_when_promotion_route_enabled));
+  assert.ok(result.promotion_disabled_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_gate === false));
+});
+
+test("trading promotion disabled fixtures block when promotion route is enabled", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-enabled-"));
+  try {
+    const modelImprovement = JSON.parse(await readFile("examples/trading/model-improvement-layer.json", "utf8"));
+    modelImprovement.promotion_policy_gate.human_approval_required = false;
+    modelImprovement.promotion_policy_gate.auto_live_promotion_allowed = true;
+    modelImprovement.promotion_policy_gate.live_promotion_allowed = true;
+    modelImprovement.promotion_candidates[0].promotion_artifact.live_promotion_allowed = true;
+    const modelImprovementPath = path.join(root, "model-improvement-layer.json");
+    await writeFile(modelImprovementPath, `${JSON.stringify(modelImprovement, null, 2)}\n`, "utf8");
+
+    const backtestValidation = JSON.parse(await readFile("examples/trading/backtest-validation.json", "utf8"));
+    backtestValidation.promotion_boundary.promotion_candidate_generated = true;
+    backtestValidation.promotion_boundary.live_promotion_allowed = true;
+    backtestValidation.dashboard_api_stub.disabled_routes = backtestValidation.dashboard_api_stub.disabled_routes.filter((route) => route.path !== "/api/trading/backtests/promote");
+    const backtestValidationPath = path.join(root, "backtest-validation.json");
+    await writeFile(backtestValidationPath, `${JSON.stringify(backtestValidation, null, 2)}\n`, "utf8");
+
+    const paperShadow = JSON.parse(await readFile("examples/trading/paper-shadow-live.json", "utf8"));
+    paperShadow.promotion_criteria_to_shadow.human_approval_required = false;
+    paperShadow.promotion_criteria_to_shadow.shadow_live_enabled = true;
+    paperShadow.promotion_criteria_to_limited_live.limited_live_enabled = true;
+    paperShadow.dashboard_api_stub.disabled_routes = paperShadow.dashboard_api_stub.disabled_routes.filter((route) => route.path !== "/api/trading/shadow/enable-live");
+    const paperShadowPath = path.join(root, "paper-shadow-live.json");
+    await writeFile(paperShadowPath, `${JSON.stringify(paperShadow, null, 2)}\n`, "utf8");
+
+    const limitedLive = JSON.parse(await readFile("examples/trading/limited-live-governance.json", "utf8"));
+    limitedLive.promotion_criteria_to_full_auto.full_auto_enabled = true;
+    limitedLive.safety_boundary.full_auto_promotion_allowed = true;
+    limitedLive.dashboard_api_stub.disabled_routes = limitedLive.dashboard_api_stub.disabled_routes.filter((route) => route.path !== "/api/trading/limited-live/promote-full-auto");
+    const limitedLivePath = path.join(root, "limited-live-governance.json");
+    await writeFile(limitedLivePath, `${JSON.stringify(limitedLive, null, 2)}\n`, "utf8");
+
+    const result = await runTradingPromotionDisabledFixtures({
+      modelImprovementPath,
+      backtestValidationPath,
+      paperShadowPath,
+      limitedLivePath,
+      write: false,
+    });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_promotion_disabled_fixtures_status, "blocked");
+    assert.ok(result.summary.unsafe_promotion_signal_count > 0);
+    assert.equal(result.summary.human_approval_required_missing, true);
+    assert.equal(result.summary.promotion_candidate_generated, true);
+    assert.equal(result.summary.auto_live_promotion_allowed, true);
+    assert.equal(result.summary.live_promotion_allowed, true);
+    assert.equal(result.summary.shadow_live_enabled, true);
+    assert.equal(result.summary.limited_live_enabled, true);
+    assert.equal(result.summary.full_auto_enabled, true);
+    assert.equal(result.summary.full_auto_promotion_allowed, true);
+    assert.equal(result.summary.promotion_route_enabled, true);
+    assert.ok(result.promotion_disabled_fixture_rows.some((row) => row.row_key === "limited_live_to_full_auto_promotion_blocked" && row.fixture_status === "failed" && row.unsafe_promotion_signal_detected));
+    await assert.rejects(
+      () => runTradingPromotionDisabledFixtures({ modelImprovementPath, backtestValidationPath, paperShadowPath, limitedLivePath, write: false, check: true }),
+      /Trading promotion disabled fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion disabled fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:promotion-disabled-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:promotion-disabled-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingPromotionDisabledFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_promotion_disabled_fixtures_status, "blocked");
+    assert.ok(result.promotion_disabled_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.promotion_disabled_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingPromotionDisabledFixtures({ packagePath, write: false, check: true }),
+      /Trading promotion disabled fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion disabled fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-promotion-disabled-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-promotion-disabled-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingPromotionDisabledFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

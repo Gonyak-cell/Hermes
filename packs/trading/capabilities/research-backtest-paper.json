@@ -220,6 +220,11 @@
       "entrypoint_type": "command",
       "name": "trading:market-order-disabled-fixtures",
       "path": "scripts/trading-market-order-disabled-fixtures.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:leverage-disabled-fixtures",
+      "path": "scripts/trading-leverage-disabled-fixtures.mjs"
     }
   ],
   "dependencies": ["common.workflow.approval", "common.audit.replay", "common.test.gate"],
@@ -378,6 +383,12 @@
       "case_id": "golden.trading.market_order_disabled_fixtures.p394",
       "description": "P394 market-order disabled fixtures prove research policy, strategy constraints, shadow intents, execution order-type whitelist, limited-live routes, and full-auto routes keep market orders disabled.",
       "input_ref": "artifacts/trading-market-order-disabled-fixtures/latest/trading-market-order-disabled-fixtures.json",
+      "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
+    },
+    {
+      "case_id": "golden.trading.leverage_disabled_fixtures.p395",
+      "description": "P395 leverage disabled fixtures prove research policy, asset capability, strategy constraints, backtest position sizing, and risk leverage/margin gates keep leverage and margin disabled.",
+      "input_ref": "artifacts/trading-leverage-disabled-fixtures/latest/trading-leverage-disabled-fixtures.json",
       "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
     }
   ],

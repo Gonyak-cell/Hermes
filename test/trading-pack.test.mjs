@@ -31,6 +31,7 @@ import { runTradingPromotionDisabledFixtures } from "../src/trading-promotion-di
 import { runTradingFirstTradeDisabledFixtures } from "../src/trading-first-trade-disabled-fixtures.mjs";
 import { runTradingOrderIntentDisabledFixtures } from "../src/trading-order-intent-disabled-fixtures.mjs";
 import { runTradingMarketOrderDisabledFixtures } from "../src/trading-market-order-disabled-fixtures.mjs";
+import { runTradingLeverageDisabledFixtures } from "../src/trading-leverage-disabled-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -2278,6 +2279,162 @@ test("trading market order disabled fixtures --check does not overwrite existing
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingMarketOrderDisabledFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading leverage disabled fixtures keep leverage and margin blocked", async () => {
+  const result = await runTradingLeverageDisabledFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_leverage_disabled_fixtures_status, "ready_for_trading_leverage_disabled_regression");
+  assert.equal(result.summary.phase_slot, "P395");
+  assert.equal(result.summary.previous_phase_slot, "P394");
+  assert.equal(result.summary.next_phase_slot, "P396");
+  assert.equal(result.summary.source_market_order_disabled_status, "ready_for_trading_market_order_disabled_regression");
+  assert.equal(result.summary.required_fixture_count, 5);
+  assert.equal(result.summary.evidence_count, 5);
+  assert.equal(result.summary.fixture_count, 5);
+  assert.equal(result.summary.passed_fixture_count, 5);
+  assert.equal(result.summary.failed_fixture_count, 0);
+  assert.equal(result.summary.unsafe_leverage_signal_count, 0);
+  assert.equal(result.summary.leverage_disabled_covered, true);
+  assert.equal(result.summary.leverage_enabled, false);
+  assert.equal(result.summary.derivatives_enabled, false);
+  assert.equal(result.summary.asset_leverage_allowed, false);
+  assert.equal(result.summary.asset_derivatives_allowed, false);
+  assert.equal(result.summary.asset_live_trading_allowed, false);
+  assert.equal(result.summary.strategy_no_leverage_missing, false);
+  assert.equal(result.summary.strategy_live_eligible, false);
+  assert.equal(result.summary.strategy_live_stage_allowed, false);
+  assert.equal(result.summary.backtest_leverage_allowed, false);
+  assert.equal(result.summary.backtest_position_size_unbounded, false);
+  assert.equal(result.summary.risk_leverage_allowed, false);
+  assert.equal(result.summary.risk_margin_allowed, false);
+  assert.equal(result.summary.leverage_margin_gate_not_blocking, false);
+  assert.equal(result.summary.leverage_margin_not_blocking_order_intent, false);
+  assert.equal(result.summary.leverage_risk_check_not_blocking, false);
+  assert.equal(result.summary.market_order_allowed, false);
+  assert.equal(result.summary.order_intent_generated, false);
+  assert.equal(result.summary.real_order_submitted, false);
+  assert.equal(result.summary.live_execution_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.ok(result.leverage_disabled_evidence_rows.every((row) => row.evidence_status === "leverage_disabled" && row.unsafe_leverage_signal_detected === false));
+  assert.ok(result.leverage_disabled_fixture_rows.every((row) => row.fixture_status === "passed" && row.fixture_should_fail_when_leverage_enabled && row.fixture_should_fail_when_margin_enabled));
+  assert.ok(result.leverage_disabled_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_gate === false));
+});
+
+test("trading leverage disabled fixtures block when leverage or margin is enabled", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-leverage-enabled-"));
+  try {
+    const researchBacktestPaper = JSON.parse(await readFile("examples/trading/research-backtest-paper-sample.json", "utf8"));
+    researchBacktestPaper.safety_policy.leverage_enabled = true;
+    researchBacktestPaper.safety_policy.derivatives_enabled = true;
+    researchBacktestPaper.contract_examples["trading-asset"].capability_flags.leverage_allowed = true;
+    researchBacktestPaper.contract_examples["trading-asset"].capability_flags.derivatives_allowed = true;
+    researchBacktestPaper.contract_examples["trading-asset"].capability_flags.live_trading_allowed = true;
+    researchBacktestPaper.contract_examples["trading-asset"].tradability_status = "live_allowed";
+    researchBacktestPaper.contract_examples["trading-strategy"].tradability_constraints = researchBacktestPaper.contract_examples["trading-strategy"].tradability_constraints.filter((constraint) => constraint !== "no_leverage");
+    researchBacktestPaper.contract_examples["trading-strategy"].live_eligible = true;
+    researchBacktestPaper.contract_examples["trading-strategy"].allowed_stages.push("live");
+    const researchBacktestPaperPath = path.join(root, "research-backtest-paper-sample.json");
+    await writeFile(researchBacktestPaperPath, `${JSON.stringify(researchBacktestPaper, null, 2)}\n`, "utf8");
+
+    const backtestValidation = JSON.parse(await readFile("examples/trading/backtest-validation.json", "utf8"));
+    backtestValidation.position_sizing.leverage_allowed = true;
+    backtestValidation.position_sizing.max_position_pct = 1.5;
+    backtestValidation.safety_boundary.live_execution_allowed = true;
+    backtestValidation.safety_boundary.order_intent_generated = true;
+    const backtestValidationPath = path.join(root, "backtest-validation.json");
+    await writeFile(backtestValidationPath, `${JSON.stringify(backtestValidation, null, 2)}\n`, "utf8");
+
+    const riskEngine = JSON.parse(await readFile("examples/trading/risk-engine.json", "utf8"));
+    riskEngine.risk_guards.leverage_margin_gate.leverage_allowed = true;
+    riskEngine.risk_guards.leverage_margin_gate.margin_allowed = true;
+    riskEngine.risk_guards.leverage_margin_gate.result = "pass";
+    riskEngine.risk_guards.leverage_margin_gate.blocks_order_intent = false;
+    riskEngine.risk_check_artifacts[0].checks = riskEngine.risk_check_artifacts[0].checks.map((check) => (
+      check.check_id === "leverage_margin_disabled" ? { ...check, status: "pass" } : check
+    ));
+    const riskEnginePath = path.join(root, "risk-engine.json");
+    await writeFile(riskEnginePath, `${JSON.stringify(riskEngine, null, 2)}\n`, "utf8");
+
+    const result = await runTradingLeverageDisabledFixtures({ researchBacktestPaperPath, backtestValidationPath, riskEnginePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_leverage_disabled_fixtures_status, "blocked");
+    assert.ok(result.summary.unsafe_leverage_signal_count > 0);
+    assert.equal(result.summary.leverage_enabled, true);
+    assert.equal(result.summary.derivatives_enabled, true);
+    assert.equal(result.summary.asset_leverage_allowed, true);
+    assert.equal(result.summary.asset_derivatives_allowed, true);
+    assert.equal(result.summary.asset_live_trading_allowed, true);
+    assert.equal(result.summary.asset_not_paper_allowed, true);
+    assert.equal(result.summary.strategy_no_leverage_missing, true);
+    assert.equal(result.summary.strategy_live_eligible, true);
+    assert.equal(result.summary.strategy_live_stage_allowed, true);
+    assert.equal(result.summary.backtest_leverage_allowed, true);
+    assert.equal(result.summary.backtest_position_size_unbounded, true);
+    assert.equal(result.summary.backtest_live_execution_allowed, true);
+    assert.equal(result.summary.backtest_order_intent_generated, true);
+    assert.equal(result.summary.risk_leverage_allowed, true);
+    assert.equal(result.summary.risk_margin_allowed, true);
+    assert.equal(result.summary.leverage_margin_gate_not_blocking, true);
+    assert.equal(result.summary.leverage_margin_not_blocking_order_intent, true);
+    assert.equal(result.summary.leverage_risk_check_not_blocking, true);
+    assert.equal(result.summary.order_intent_generated, true);
+    assert.equal(result.summary.live_execution_allowed, true);
+    assert.ok(result.leverage_disabled_fixture_rows.some((row) => row.row_key === "risk_leverage_margin_gate_blocks" && row.fixture_status === "failed" && row.unsafe_leverage_signal_detected));
+    await assert.rejects(
+      () => runTradingLeverageDisabledFixtures({ researchBacktestPaperPath, backtestValidationPath, riskEnginePath, write: false, check: true }),
+      /Trading leverage disabled fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading leverage disabled fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-leverage-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:leverage-disabled-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:leverage-disabled-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingLeverageDisabledFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_leverage_disabled_fixtures_status, "blocked");
+    assert.ok(result.leverage_disabled_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.leverage_disabled_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingLeverageDisabledFixtures({ packagePath, write: false, check: true }),
+      /Trading leverage disabled fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading leverage disabled fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-leverage-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-leverage-disabled-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-leverage-disabled-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingLeverageDisabledFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

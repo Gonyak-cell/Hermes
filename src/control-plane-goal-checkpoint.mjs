@@ -4966,11 +4966,13 @@ function evaluateStageAcceptance(item, stage) {
   }
 
   if (item.acceptance_profile === "local_folder_connector_gate") {
+    const localFolderReplayComplete = metrics.ingest_ready_count > 0
+      || metrics.skipped_duplicate_count === metrics.ingest_record_count;
     if (
       metrics.validation_error_count === 0
       && metrics.local_folder_connector_status === "complete"
       && metrics.discovered_file_count > 0
-      && metrics.ingest_ready_count > 0
+      && localFolderReplayComplete
       && metrics.remaining_count === 0
       && metrics.cursor_status === "complete"
       && metrics.cursor_resume_supported === true

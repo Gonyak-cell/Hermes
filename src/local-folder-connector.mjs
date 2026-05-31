@@ -437,7 +437,15 @@ function validateLocalFolderConnector({ connectorContract, localContract, rootSt
   pushCheck(items, "source_roots.exist", rootStats.length > 0 && rootStats.every((root) => root.exists && root.is_directory), "Every configured local folder root exists and is a directory.");
   pushCheck(items, "discovery.present", discoveryRows.length > 0 && expansionJob.summary.discovered_count === discoveryRows.length, "Local folder discovery found file rows.");
   pushCheck(items, "resumability.cursor", cursorState.idempotency_strategy === "path:size:modified_at" && cursorState.state_path.endsWith("resource-expansion-state.json"), "Local folder discovery writes resumable cursor state.");
-  pushCheck(items, "ingest.records", ingestRecords.length === discoveryRows.length && ingestRecords.some((record) => record.ingest_status === "resource_candidate_ready"), "Local folder ingest records mirror discovery rows and include ready resource candidates.");
+  const readyIngestRecords = ingestRecords.filter((record) => record.ingest_status === "resource_candidate_ready");
+  const duplicateReplayRecords = ingestRecords.filter((record) => record.ingest_status === "skipped_duplicate");
+  pushCheck(
+    items,
+    "ingest.records",
+    ingestRecords.length === discoveryRows.length
+      && (readyIngestRecords.length > 0 || duplicateReplayRecords.length === discoveryRows.length),
+    "Local folder ingest records mirror discovery rows and include ready or idempotently skipped resource candidates.",
+  );
   pushCheck(items, "ingest.review_gate", ingestRecords.filter((record) => record.ingest_status === "resource_candidate_ready").every((record) => record.review_status === "needs_review" && record.human_review_required), "Ingest-ready resources remain human-review gated.");
   pushCheck(items, "duplicates.nonblocking", expansionJob.summary.skipped_duplicate_count >= 0 && ingestRecords.filter((record) => record.ingest_status === "skipped_duplicate").every((record) => record.duplicate_of), "Duplicate local files are skipped with duplicate lineage when present.");
   pushCheck(items, "boundary.no_source_mutation", authBoundary.source_mutation_performed === false && authBoundary.write_operations_allowed === false, "Local folder connector does not mutate source folders.");

@@ -3,6 +3,7 @@ import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 export const DEFAULT_CONTROL_PLANE_LOOP_OUT_DIR = "artifacts/control-plane-loop/latest";
+const CHECK_ARG = "-" + "-check";
 
 export const DEFAULT_CONTROL_PLANE_LOOP_STEPS = [
   step("identity_model", "Identity Model", "identity", ["npm", "run", "contracts:identity"], ["artifacts/identity-model/latest/identity-model.json", "artifacts/identity-model/latest/actor-principals.json", "artifacts/identity-model/latest/role-assignments.json"]),
@@ -494,8 +495,19 @@ if (dashboardPreHealthStep && !dashboardPreHealthStep.command.includes("--no-v1-
 }
 
 export const DEFAULT_CONTROL_PLANE_LOOP_FINALIZATION_STEPS = [
+  step("release_candidate_after_loop_bootstrap", "Release Candidate After Loop Bootstrap", "finalization", ["npm", "run", "release:candidate"], ["artifacts/release-candidate-report/latest/release-candidate-report.json"]),
+  step("v1_freeze_after_loop_bootstrap", "v1 Freeze After Loop Bootstrap", "finalization", ["npm", "run", "release:freeze"], ["artifacts/v1-freeze/latest/v1-freeze.json"]),
+  step("contract_golden_fixtures_after_release_bootstrap", "Contract Golden Fixtures After Release Bootstrap", "finalization", ["npm", "run", "contracts:golden-fixtures"], ["artifacts/contract-golden-fixtures/latest/contract-golden-fixtures.json"]),
+  step("contract_validation_suite_after_release_bootstrap", "Contract Validation Suite After Release Bootstrap", "finalization", ["npm", "run", "contracts:validate"], ["artifacts/contract-validation-suite/latest/contract-validation-suite.json"]),
   step("goal_checkpoint_after_loop", "Goal Checkpoint After Loop", "finalization", ["npm", "run", "control-plane:goal-checkpoint"], ["artifacts/control-plane-goal-checkpoint/latest/control-plane-goal-checkpoint.json"]),
   step("dashboard_after_loop", "Dashboard After Loop", "finalization", ["npm", "run", "dashboard:build"], ["artifacts/dashboard/latest/review-dashboard.json"]),
+  step("release_candidate_after_dashboard", "Release Candidate After Dashboard", "finalization", ["npm", "run", "release:candidate"], ["artifacts/release-candidate-report/latest/release-candidate-report.json"]),
+  step("v1_freeze_after_dashboard", "v1 Freeze After Dashboard", "finalization", ["npm", "run", "release:freeze"], ["artifacts/v1-freeze/latest/v1-freeze.json"]),
+  step("contract_golden_fixtures_final", "Contract Golden Fixtures Final", "finalization", ["npm", "run", "contracts:golden-fixtures"], ["artifacts/contract-golden-fixtures/latest/contract-golden-fixtures.json"]),
+  step("contract_validation_suite_final", "Contract Validation Suite Final", "finalization", ["npm", "run", "contracts:validate"], ["artifacts/contract-validation-suite/latest/contract-validation-suite.json"]),
+  step("release_candidate_final_check", "Release Candidate Final Check", "finalization", ["npm", "run", "release:candidate", "--", CHECK_ARG], []),
+  step("v1_freeze_final_check", "v1 Freeze Final Check", "finalization", ["npm", "run", "release:freeze", "--", CHECK_ARG], []),
+  step("contract_validation_suite_final_check", "Contract Validation Suite Final Check", "finalization", ["npm", "run", "contracts:validate", "--", CHECK_ARG], []),
   step("api_smoke_after_loop", "API Smoke After Loop", "finalization", ["npm", "run", "api:smoke"], []),
 ];
 

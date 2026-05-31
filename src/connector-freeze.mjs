@@ -245,9 +245,17 @@ function buildIngestPaths({ artifacts, sourceById, generatedAt }) {
   const vdr = artifacts.vdr_connector?.summary ?? {};
   const plaud = artifacts.plaud_transcript_connector?.summary ?? {};
   const erp = artifacts.erp_draft_connector?.summary ?? {};
+  const localFolderReplayComplete = local.local_folder_connector_status === "complete"
+    && local.discovered_file_count > 0
+    && local.ingest_record_count > 0
+    && (
+      local.ingest_ready_count > 0
+      || local.skipped_duplicate_count === local.ingest_record_count
+    )
+    && local.external_network_access_performed === false;
   const pathRecords = [
     ingestPath("connector_contract_fixture", "Connector contract fixture coverage", "contract", ["connector_contract_v2"], contract.connector_contract_status === "complete" && contract.connector_count === CONNECTOR_CONTRACT_FAMILY_COUNT && contract.contracted_connector_count === CONNECTOR_CONTRACT_FAMILY_COUNT && contract.source_contract_count === CONNECTOR_CONTRACT_FAMILY_COUNT && contract.cursor_contract_count === CONNECTOR_CONTRACT_FAMILY_COUNT && contract.external_id_contract_count === CONNECTOR_CONTRACT_FAMILY_COUNT && contract.auth_boundary_count === CONNECTOR_CONTRACT_FAMILY_COUNT, contract.connector_count ?? 0),
-    ingestPath("local_file_ingest", "Local folder source ingest", "local_file", ["local_folder_connector"], local.local_folder_connector_status === "complete" && local.discovered_file_count > 0 && local.ingest_record_count > 0 && local.ingest_ready_count > 0 && local.external_network_access_performed === false, local.ingest_record_count ?? 0),
+    ingestPath("local_file_ingest", "Local folder source ingest", "local_file", ["local_folder_connector"], localFolderReplayComplete, local.ingest_record_count ?? 0),
     ingestPath("cloud_file_boundary", "OneDrive cloud placeholder boundary", "cloud_file", ["onedrive_connector_boundary"], oneDrive.onedrive_connector_boundary_status === "complete" && oneDrive.sample_item_count > 0 && oneDrive.materialization_deferred_count === oneDrive.sample_item_count && oneDrive.external_network_access_performed === false, oneDrive.sample_item_count ?? 0),
     ingestPath("communication_export_ingest", "Outlook and KakaoTalk export ingest", "communication", ["outlook_email_connector", "kakaotalk_import_boundary"], outlook.outlook_email_connector_status === "complete" && kakao.kakaotalk_import_boundary_status === "complete" && outlook.resource_candidate_count > 0 && kakao.resource_candidate_count > 0 && outlook.external_network_access_performed === false && kakao.external_network_access_performed === false, (outlook.resource_candidate_count ?? 0) + (kakao.resource_candidate_count ?? 0)),
     ingestPath("repository_vdr_ingest", "GitHub and VDR resource ingest", "repository_vdr", ["github_connector", "vdr_connector"], github.github_connector_status === "complete" && vdr.vdr_connector_status === "complete" && github.resource_candidate_count > 0 && vdr.resource_candidate_count > 0 && vdr.permission_boundary_link_count === vdr.document_count && vdr.resource_expansion_seed_link_count === vdr.resource_expansion_seed_count, (github.resource_candidate_count ?? 0) + (vdr.resource_candidate_count ?? 0)),
@@ -349,6 +357,9 @@ function summarizeConnectorFreeze({ artifacts, freezeSources, ingestPaths, freez
   const connectorSummaries = CONNECTOR_SOURCE_IDS.map((sourceId) => artifacts[sourceId]?.summary ?? {});
   const failedCheckpointCount = validation.items.filter((item) => item.status !== "passed").length;
   const representativeIngestPaths = ingestPaths.filter((item) => item.path_kind !== "contract");
+  const localFolderCandidateCount = local.ingest_ready_count > 0
+    ? local.ingest_ready_count
+    : local.skipped_duplicate_count ?? 0;
   return {
     connector_freeze_status: failedCheckpointCount === 0 && validation.errors.length === 0 ? "complete" : "attention",
     connector_freeze_contract_id: CONTRACT_ID,
@@ -374,7 +385,7 @@ function summarizeConnectorFreeze({ artifacts, freezeSources, ingestPaths, freez
     passed_representative_source_ingest_path_count: representativeIngestPaths.filter((item) => item.path_status === "passed").length,
     gate_count: freezeGates.length,
     passed_gate_count: freezeGates.filter((gate) => gate.gate_status === "passed").length,
-    connector_resource_candidate_count: (local.ingest_ready_count ?? 0) + (oneDrive.sample_item_count ?? 0) + (outlook.resource_candidate_count ?? 0) + (kakao.resource_candidate_count ?? 0) + (github.resource_candidate_count ?? 0) + (vdr.resource_candidate_count ?? 0) + (plaud.resource_candidate_count ?? 0) + (erp.resource_candidate_count ?? 0),
+    connector_resource_candidate_count: localFolderCandidateCount + (oneDrive.sample_item_count ?? 0) + (outlook.resource_candidate_count ?? 0) + (kakao.resource_candidate_count ?? 0) + (github.resource_candidate_count ?? 0) + (vdr.resource_candidate_count ?? 0) + (plaud.resource_candidate_count ?? 0) + (erp.resource_candidate_count ?? 0),
     local_ingest_record_count: local.ingest_record_count ?? 0,
     onedrive_sample_item_count: oneDrive.sample_item_count ?? 0,
     communication_resource_candidate_count: (outlook.resource_candidate_count ?? 0) + (kakao.resource_candidate_count ?? 0),

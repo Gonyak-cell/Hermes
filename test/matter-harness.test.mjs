@@ -1937,6 +1937,7 @@ describe("matter harness", () => {
         rollbackPlanArtifactPath: path.join(outDir, "rollback-plan-artifact", "rollback-plan-artifact.json"),
         technicalDebtLedgerPath: path.join(outDir, "technical-debt-ledger", "technical-debt-ledger.json"),
         personalDevDashboardApiPath: path.join(outDir, "personal-dev-dashboard-api", "personal-dev-dashboard-api.json"),
+        personalDevE2eFreezePath: path.join(outDir, "personal-dev-e2e-freeze", "personal-dev-e2e-freeze.json"),
         lawFirmPackManifestPath: path.join(outDir, "law-firm-pack-manifest", "law-firm-pack-manifest.json"),
         matterOsProfilePath: path.join(outDir, "matter-os-profile", "matter-os-profile.json"),
         matterTimelinePath: path.join(outDir, "matter-timeline", "matter-timeline.json"),

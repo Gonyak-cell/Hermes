@@ -8543,3 +8543,25 @@ Changes:
   registration, missing source write guards, and `--check` no-overwrite
   behavior.
 - Updated the P341-P500 ledger so P364 owns release-check no-write evidence.
+
+## Phase 365 - Release-Check Evidence Index
+
+Phase 365 adds a read-only evidence index for the P361-P364 release-check
+bridge commands. It maps each command to its documentation, expected report
+directory, validation-chain policy, and human-review requirement without
+running the commands or mutating artifacts.
+
+Changes:
+
+- Added `src/platform-release-check-evidence-index.mjs`,
+  `scripts/platform-release-check-evidence-index.mjs`,
+  `schemas/platform-release-check-evidence-index.schema.json`, and
+  `docs/platform-release-check-evidence-index.md`.
+- Added `platform:release-check-evidence-index` and registered
+  `platform:release-check-evidence-index -- --check` in the validation chain.
+- Recorded the policy that `platform:release-check` remains outside
+  `npm run validate` while the other P361-P364 evidence commands stay inside it.
+- Added focused tests for ready evidence rows, missing validation-chain
+  registration, missing documentation evidence, and `--check` no-overwrite
+  behavior.
+- Updated the P341-P500 ledger so P365 owns release-check evidence indexing.

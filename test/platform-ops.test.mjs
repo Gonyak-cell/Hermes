@@ -26,6 +26,7 @@ import { runPlatformReproducibilityCloseout } from "../src/platform-reproducibil
 import { runPlatformOpsCheck } from "../src/platform-ops-check.mjs";
 import { runPlatformReleaseCheck } from "../src/platform-release-check.mjs";
 import { runPlatformReleaseCheckNoWriteAudit } from "../src/platform-release-check-no-write-audit.mjs";
+import { runPlatformReleaseCheckEvidenceIndex } from "../src/platform-release-check-evidence-index.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -1703,6 +1704,87 @@ test("platform release-check no-write audit --check does not overwrite existing 
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformReleaseCheckNoWriteAudit({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform release-check evidence index maps P361-P364 command evidence", async () => {
+  const result = await runPlatformReleaseCheckEvidenceIndex({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.evidence_index_status, "ready");
+  assert.equal(result.summary.phase_slot, "P365");
+  assert.equal(result.summary.previous_phase_slot, "P364");
+  assert.equal(result.summary.next_phase_slot, "P366");
+  assert.equal(result.summary.evidence_row_count, 4);
+  assert.equal(result.summary.ready_evidence_row_count, 4);
+  assert.equal(result.summary.evidence_gate_count, 7);
+  assert.equal(result.summary.ready_evidence_gate_count, 7);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.package_command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.release_published, false);
+  assert.equal(result.summary.git_operation_performed, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.ok(result.release_check_evidence_rows.every((row) => row.evidence_status === "ready" && row.doc_references_command && row.doc_references_check_mode && row.check_mode_no_write_expected));
+  assert.ok(result.release_check_evidence_rows.some((row) => row.package_script_name === "platform:release-check" && row.validation_chain_policy === "not_in_validate_recursion_guard" && row.validation_chain_policy_satisfied));
+});
+
+test("platform release-check evidence index blocks when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-release-evidence-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:release-check-evidence-index -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformReleaseCheckEvidenceIndex({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.evidence_index_status, "blocked");
+    assert.ok(result.source_rows.some((row) => row.row_key === "validation_chain_registered" && row.source_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformReleaseCheckEvidenceIndex({ packagePath, write: false, check: true }),
+      /Platform release-check evidence index failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform release-check evidence index blocks when documentation evidence is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-release-evidence-doc-"));
+  try {
+    const docPath = path.join(root, "platform-release-check.md");
+    await writeFile(docPath, "# Missing command evidence\n\nNo check command here.\n", "utf8");
+
+    const result = await runPlatformReleaseCheckEvidenceIndex({ platformReleaseCheckDocPath: docPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.evidence_index_status, "blocked");
+    assert.ok(result.release_check_evidence_rows.some((row) => row.row_key === "platform_release_check" && row.evidence_status === "blocked" && row.doc_references_command === false));
+    await assert.rejects(
+      () => runPlatformReleaseCheckEvidenceIndex({ platformReleaseCheckDocPath: docPath, write: false, check: true }),
+      /Platform release-check evidence index failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform release-check evidence index --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-release-evidence-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-release-check-evidence-index.json");
+    const sentinel = "{ \"sentinel\": \"platform-release-check-evidence-index\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformReleaseCheckEvidenceIndex({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

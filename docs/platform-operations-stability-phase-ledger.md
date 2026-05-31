@@ -58,6 +58,7 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 - P362: `platform:ops-check` verifies runtime baseline, contract validation, control-plane loop runner readiness, dashboard/API smoke readiness, and domain-pack registry health without rebuilding dashboard artifacts, running package commands, or mutating release/trading state.
 - P363: `platform:release-check` composes `platform:ops-check -- --check`, `trading:release-check -- --check`, `npm run validate`, `npm test`, `contracts:validate -- --check`, and `release:freeze -- --check` without registering itself in `npm run validate` or executing release/trading mutations.
 - P364: `platform:release-check-no-write-audit` verifies the P361-P363 release-check bridge commands have `--check` write guards and no-overwrite tests without executing those commands or mutating artifacts.
+- P365: `platform:release-check-evidence-index` maps P361-P364 release-check commands to docs, expected report paths, validation-chain policy, and human-review evidence without executing commands or mutating artifacts.
 - `trading:release-check` runs the complete Trading Pack validation stack, contract validation, release freeze, and trading no-write checks in one command.
 - `platform:ops-check` verifies runtime baseline, contracts, control-plane loop, dashboard/API smoke readiness, and domain-pack registry health.
 - `platform:release-check` composes `platform:ops-check`, `trading:release-check`, `npm run validate`, `npm test`, `contracts:validate -- --check`, and `release:freeze -- --check`.

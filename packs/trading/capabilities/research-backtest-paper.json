@@ -235,6 +235,11 @@
       "entrypoint_type": "command",
       "name": "trading:order-frequency-throttle-fixtures",
       "path": "scripts/trading-order-frequency-throttle-fixtures.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:loss-streak-cooldown-fixtures",
+      "path": "scripts/trading-loss-streak-cooldown-fixtures.mjs"
     }
   ],
   "dependencies": ["common.workflow.approval", "common.audit.replay", "common.test.gate"],
@@ -411,6 +416,12 @@
       "case_id": "golden.trading.order_frequency_throttle_fixtures.p397",
       "description": "P397 order-frequency throttle fixtures prove signal, risk, execution, paper/shadow, limited-live, and full-auto surfaces keep order generation and submission throttled to zero.",
       "input_ref": "artifacts/trading-order-frequency-throttle-fixtures/latest/trading-order-frequency-throttle-fixtures.json",
+      "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
+    },
+    {
+      "case_id": "golden.trading.loss_streak_cooldown_fixtures.p398",
+      "description": "P398 loss-streak cooldown fixtures prove risk cooldown, halt policy, paper loss review, limited-live halt, execution resume, and full-auto disable paths remain human-gated and non-mutating.",
+      "input_ref": "artifacts/trading-loss-streak-cooldown-fixtures/latest/trading-loss-streak-cooldown-fixtures.json",
       "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
     }
   ],

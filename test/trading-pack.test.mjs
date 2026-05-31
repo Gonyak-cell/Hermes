@@ -34,6 +34,7 @@ import { runTradingMarketOrderDisabledFixtures } from "../src/trading-market-ord
 import { runTradingLeverageDisabledFixtures } from "../src/trading-leverage-disabled-fixtures.mjs";
 import { runTradingShortSellingDisabledFixtures } from "../src/trading-short-selling-disabled-fixtures.mjs";
 import { runTradingOrderFrequencyThrottleFixtures } from "../src/trading-order-frequency-throttle-fixtures.mjs";
+import { runTradingLossStreakCooldownFixtures } from "../src/trading-loss-streak-cooldown-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -2769,6 +2770,195 @@ test("trading order frequency throttle fixtures --check does not overwrite exist
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingOrderFrequencyThrottleFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading loss streak cooldown fixtures keep cooldown and halt paths human gated", async () => {
+  const result = await runTradingLossStreakCooldownFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_loss_streak_cooldown_fixtures_status, "ready_for_trading_loss_streak_cooldown_regression");
+  assert.equal(result.summary.phase_slot, "P398");
+  assert.equal(result.summary.previous_phase_slot, "P397");
+  assert.equal(result.summary.next_phase_slot, "P399");
+  assert.equal(result.summary.source_order_frequency_throttle_status, "ready_for_trading_order_frequency_throttle_regression");
+  assert.equal(result.summary.required_fixture_count, 6);
+  assert.equal(result.summary.passed_fixture_count, 6);
+  assert.equal(result.summary.unsafe_loss_streak_signal_count, 0);
+  assert.equal(result.summary.loss_streak_cooldown_covered, true);
+  assert.equal(result.summary.loss_streak_count_nonzero, false);
+  assert.equal(result.summary.cooldown_threshold_missing, false);
+  assert.equal(result.summary.cooldown_active, false);
+  assert.equal(result.summary.loss_streak_result_not_pass, false);
+  assert.equal(result.summary.loss_streak_check_not_pass, false);
+  assert.equal(result.summary.risk_halt_without_human_resume, false);
+  assert.equal(result.summary.risk_block_not_preventing_order_intent, false);
+  assert.equal(result.summary.risk_override_without_human_allowed, false);
+  assert.equal(result.summary.paper_drawdown_outside_fixture, false);
+  assert.equal(result.summary.paper_scorecard_not_blocked, false);
+  assert.equal(result.summary.paper_human_review_missing, false);
+  assert.equal(result.summary.limited_live_daily_loss_halt_not_armed, false);
+  assert.equal(result.summary.limited_live_daily_loss_halt_triggered, false);
+  assert.equal(result.summary.limited_live_order_submission_allowed, false);
+  assert.equal(result.summary.emergency_halt_unavailable, false);
+  assert.equal(result.summary.emergency_halt_not_halted, false);
+  assert.equal(result.summary.emergency_halt_not_manual_resume, false);
+  assert.equal(result.summary.emergency_halt_cancels_live_orders, false);
+  assert.equal(result.summary.full_auto_disable_policy_not_control_plane, false);
+  assert.equal(result.summary.full_auto_live_orders_touched, false);
+  assert.equal(result.summary.full_auto_enabled, false);
+  assert.equal(result.summary.order_intent_generated, false);
+  assert.equal(result.summary.live_execution_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.ok(result.loss_streak_cooldown_evidence_rows.every((row) => row.evidence_status === "loss_streak_cooldown_ready" && row.unsafe_loss_streak_signal_detected === false));
+  assert.ok(result.loss_streak_cooldown_fixture_rows.every((row) => row.fixture_status === "passed" && row.fixture_should_fail_when_loss_streak_bypassed));
+  assert.ok(result.loss_streak_cooldown_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_gate === false));
+});
+
+test("trading loss streak cooldown fixtures block when cooldown is bypassed", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-loss-streak-bypass-"));
+  try {
+    const riskEngine = JSON.parse(await readFile("examples/trading/risk-engine.json", "utf8"));
+    riskEngine.risk_guards.loss_streak_cooldown.loss_streak_count = 4;
+    riskEngine.risk_guards.loss_streak_cooldown.cooldown_required_after_losses = 0;
+    riskEngine.risk_guards.loss_streak_cooldown.cooldown_active = true;
+    riskEngine.risk_guards.loss_streak_cooldown.result = "pass";
+    riskEngine.risk_result_policy.block_prevents_order_intent = false;
+    riskEngine.risk_result_policy.halt_prevents_resume_without_human = false;
+    riskEngine.override_policy.requires_human_approval = false;
+    riskEngine.safety_boundary.risk_override_without_human_allowed = true;
+    riskEngine.risk_check_artifacts[0].checks = riskEngine.risk_check_artifacts[0].checks.map((check) => (
+      check.check_id === "loss_streak_cooldown" ? { ...check, status: "halt" } : check
+    ));
+    const riskEnginePath = path.join(root, "risk-engine.json");
+    await writeFile(riskEnginePath, `${JSON.stringify(riskEngine, null, 2)}\n`, "utf8");
+
+    const paperShadow = JSON.parse(await readFile("examples/trading/paper-shadow-live.json", "utf8"));
+    paperShadow.paper_drawdown.drawdown_pct = -0.25;
+    paperShadow.strategy_paper_scorecards[0].paper_status = "eligible";
+    paperShadow.strategy_paper_scorecards[0].human_review_required = false;
+    paperShadow.safety_boundary.real_order_submitted = true;
+    const paperShadowPath = path.join(root, "paper-shadow-live.json");
+    await writeFile(paperShadowPath, `${JSON.stringify(paperShadow, null, 2)}\n`, "utf8");
+
+    const limitedLive = JSON.parse(await readFile("examples/trading/limited-live-governance.json", "utf8"));
+    limitedLive.halt_gates.daily_loss_halt.enabled = false;
+    limitedLive.halt_gates.daily_loss_halt.triggered = true;
+    limitedLive.halt_gates.daily_loss_halt.halt_on_trigger = false;
+    limitedLive.safety_boundary.live_order_submission_allowed = true;
+    const limitedLivePath = path.join(root, "limited-live-governance.json");
+    await writeFile(limitedLivePath, `${JSON.stringify(limitedLive, null, 2)}\n`, "utf8");
+
+    const executionEngine = JSON.parse(await readFile("examples/trading/execution-engine.json", "utf8"));
+    executionEngine.emergency_halt.available = false;
+    executionEngine.emergency_halt.halt_state = "blocked";
+    executionEngine.emergency_halt.manual_resume_required = false;
+    executionEngine.emergency_halt.cancels_live_orders = true;
+    const executionEnginePath = path.join(root, "execution-engine.json");
+    await writeFile(executionEnginePath, `${JSON.stringify(executionEngine, null, 2)}\n`, "utf8");
+
+    const fullAuto = JSON.parse(await readFile("examples/trading/full-auto-governance.json", "utf8"));
+    fullAuto.automatic_disable_policies.strategy_disable_on_degradation.enabled = false;
+    fullAuto.automatic_disable_policies.strategy_disable_on_degradation.trigger_results = ["warn", "block"];
+    fullAuto.automatic_disable_policies.strategy_disable_on_degradation.control_plane_state_change_only = false;
+    fullAuto.automatic_disable_policies.strategy_disable_on_degradation.live_orders_touched = true;
+    fullAuto.safety_boundary.full_auto_enabled = true;
+    const fullAutoPath = path.join(root, "full-auto-governance.json");
+    await writeFile(fullAutoPath, `${JSON.stringify(fullAuto, null, 2)}\n`, "utf8");
+
+    const result = await runTradingLossStreakCooldownFixtures({
+      riskEnginePath,
+      paperShadowPath,
+      limitedLivePath,
+      executionEnginePath,
+      fullAutoPath,
+      write: false,
+    });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_loss_streak_cooldown_fixtures_status, "blocked");
+    assert.ok(result.summary.unsafe_loss_streak_signal_count > 0);
+    assert.equal(result.summary.loss_streak_count_nonzero, true);
+    assert.equal(result.summary.cooldown_threshold_missing, true);
+    assert.equal(result.summary.cooldown_active, true);
+    assert.equal(result.summary.loss_streak_check_not_pass, true);
+    assert.equal(result.summary.risk_halt_without_human_resume, true);
+    assert.equal(result.summary.risk_block_not_preventing_order_intent, true);
+    assert.equal(result.summary.risk_override_without_human_allowed, true);
+    assert.equal(result.summary.paper_drawdown_outside_fixture, true);
+    assert.equal(result.summary.paper_scorecard_not_blocked, true);
+    assert.equal(result.summary.paper_human_review_missing, true);
+    assert.equal(result.summary.paper_real_order_submitted, true);
+    assert.equal(result.summary.limited_live_daily_loss_halt_not_armed, true);
+    assert.equal(result.summary.limited_live_daily_loss_halt_triggered, true);
+    assert.equal(result.summary.limited_live_order_submission_allowed, true);
+    assert.equal(result.summary.emergency_halt_unavailable, true);
+    assert.equal(result.summary.emergency_halt_not_halted, true);
+    assert.equal(result.summary.emergency_halt_not_manual_resume, true);
+    assert.equal(result.summary.emergency_halt_cancels_live_orders, true);
+    assert.equal(result.summary.full_auto_disable_policy_not_control_plane, true);
+    assert.equal(result.summary.full_auto_live_orders_touched, true);
+    assert.equal(result.summary.full_auto_enabled, true);
+    assert.ok(result.loss_streak_cooldown_fixture_rows.some((row) => row.row_key === "risk_loss_streak_cooldown_declared" && row.fixture_status === "failed" && row.unsafe_loss_streak_signal_detected));
+    await assert.rejects(
+      () => runTradingLossStreakCooldownFixtures({
+        riskEnginePath,
+        paperShadowPath,
+        limitedLivePath,
+        executionEnginePath,
+        fullAutoPath,
+        write: false,
+        check: true,
+      }),
+      /Trading loss streak cooldown fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading loss streak cooldown fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-loss-streak-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:loss-streak-cooldown-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:loss-streak-cooldown-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingLossStreakCooldownFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_loss_streak_cooldown_fixtures_status, "blocked");
+    assert.ok(result.loss_streak_cooldown_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.loss_streak_cooldown_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingLossStreakCooldownFixtures({ packagePath, write: false, check: true }),
+      /Trading loss streak cooldown fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading loss streak cooldown fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-loss-streak-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-loss-streak-cooldown-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-loss-streak-cooldown-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingLossStreakCooldownFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

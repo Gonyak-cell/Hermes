@@ -1,0 +1,235 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/trading/trading-loss-streak-cooldown-fixtures.schema.json",
+  "title": "Trading Loss Streak Cooldown Fixtures",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "trading_loss_streak_cooldown_fixtures_id",
+    "capability_id",
+    "loss_streak_cooldown_anchor",
+    "loss_streak_cooldown_evidence_rows",
+    "loss_streak_cooldown_fixture_rows",
+    "loss_streak_cooldown_gate_rows",
+    "loss_streak_cooldown_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "trading-loss-streak-cooldown-fixtures.v1" },
+    "trading_loss_streak_cooldown_fixtures_id": {
+      "type": "string",
+      "pattern": "^trading-loss-streak-cooldown-fixtures\\.[0-9]{8}$"
+    },
+    "capability_id": { "const": "trading.loss_streak_cooldown_fixtures" },
+    "loss_streak_cooldown_anchor": {
+      "type": "object",
+      "required": ["phase_slot", "previous_phase_slot", "next_phase_slot", "source_order_frequency_throttle_status", "required_fixture_count"],
+      "properties": {
+        "phase_slot": { "const": "P398" },
+        "previous_phase_slot": { "const": "P397" },
+        "next_phase_slot": { "const": "P399" },
+        "source_order_frequency_throttle_status": { "const": "ready_for_trading_order_frequency_throttle_regression" },
+        "required_fixture_count": { "const": 6 }
+      }
+    },
+    "loss_streak_cooldown_evidence_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["phase_slot", "row_key", "observed_conditions", "all_conditions_present", "unsafe_loss_streak_signal_detected", "evidence_status", "human_review_required"],
+        "properties": {
+          "phase_slot": { "const": "P398" },
+          "row_key": {
+            "enum": [
+              "risk_loss_streak_cooldown_declared",
+              "risk_result_policy_human_resume_required",
+              "paper_loss_context_review_gated",
+              "limited_live_halt_gates_armed",
+              "execution_halt_manual_resume_required",
+              "full_auto_disable_policy_control_plane_only"
+            ]
+          },
+          "observed_conditions": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["condition_path", "expected_safe_value", "observed_value", "condition_present", "unsafe_when_not_safe"],
+              "properties": {
+                "condition_present": { "const": true },
+                "unsafe_when_not_safe": { "const": true }
+              }
+            }
+          },
+          "all_conditions_present": { "const": true },
+          "unsafe_loss_streak_signal_detected": { "const": false },
+          "evidence_status": { "const": "loss_streak_cooldown_ready" },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "loss_streak_cooldown_fixture_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["phase_slot", "row_key", "expected_loss_streak_count", "expected_cooldown_active", "unsafe_loss_streak_signal_detected", "fixture_should_fail_when_loss_streak_bypassed", "fixture_should_fail_when_human_resume_not_required", "fixture_should_fail_when_live_order_submission_enabled", "fixture_status", "loss_streak_bypassed_by_fixture", "human_resume_required_by_fixture", "live_execution_allowed_by_fixture", "command_execution_performed_by_fixture", "artifact_write_performed_by_fixture", "protected_action_executed_by_fixture", "human_review_required"],
+        "properties": {
+          "phase_slot": { "const": "P398" },
+          "expected_loss_streak_count": { "const": 0 },
+          "expected_cooldown_active": { "const": false },
+          "unsafe_loss_streak_signal_detected": { "const": false },
+          "fixture_should_fail_when_loss_streak_bypassed": { "const": true },
+          "fixture_should_fail_when_human_resume_not_required": { "const": true },
+          "fixture_should_fail_when_live_order_submission_enabled": { "const": true },
+          "fixture_status": { "const": "passed" },
+          "loss_streak_bypassed_by_fixture": { "const": false },
+          "human_resume_required_by_fixture": { "const": true },
+          "live_execution_allowed_by_fixture": { "const": false },
+          "command_execution_performed_by_fixture": { "const": false },
+          "artifact_write_performed_by_fixture": { "const": false },
+          "protected_action_executed_by_fixture": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "loss_streak_cooldown_gate_rows": {
+      "type": "array",
+      "minItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["phase_slot", "row_key", "gate_status", "loss_streak_bypassed_by_gate", "human_resume_required_by_gate", "live_order_submission_allowed_by_gate", "live_execution_allowed_by_gate", "protected_action_executed_by_gate", "human_review_required"],
+        "properties": {
+          "phase_slot": { "const": "P398" },
+          "gate_status": { "const": "ready" },
+          "loss_streak_bypassed_by_gate": { "const": false },
+          "human_resume_required_by_gate": { "const": true },
+          "live_order_submission_allowed_by_gate": { "const": false },
+          "live_execution_allowed_by_gate": { "const": false },
+          "protected_action_executed_by_gate": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "loss_streak_cooldown_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "phase_slot",
+        "read_only",
+        "report_only",
+        "loss_streak_cooldown_covered",
+        "unsafe_loss_streak_signal_count",
+        "source_order_frequency_throttle_ready",
+        "loss_streak_count_nonzero",
+        "cooldown_threshold_missing",
+        "cooldown_active",
+        "risk_halt_without_human_resume",
+        "paper_drawdown_outside_fixture",
+        "limited_live_daily_loss_halt_not_armed",
+        "emergency_halt_not_manual_resume",
+        "full_auto_disable_policy_not_control_plane",
+        "order_intent_generated",
+        "live_execution_allowed",
+        "broker_write_allowed",
+        "exchange_write_allowed",
+        "command_execution_performed",
+        "artifact_write_performed",
+        "protected_action_executed",
+        "human_review_required"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "phase_slot": { "const": "P398" },
+        "read_only": { "const": true },
+        "report_only": { "const": true },
+        "required_fixture_count": { "const": 6 },
+        "loss_streak_evidence_count": { "const": 6 },
+        "fixture_count": { "const": 6 },
+        "unsafe_loss_streak_signal_count": { "const": 0 },
+        "loss_streak_cooldown_covered": { "const": true },
+        "source_order_frequency_throttle_ready": { "const": true },
+        "loss_streak_count_nonzero": { "const": false },
+        "cooldown_threshold_missing": { "const": false },
+        "cooldown_active": { "const": false },
+        "loss_streak_result_not_pass": { "const": false },
+        "loss_streak_check_not_pass": { "const": false },
+        "risk_halt_without_human_resume": { "const": false },
+        "risk_block_not_preventing_order_intent": { "const": false },
+        "risk_halt_result_missing": { "const": false },
+        "risk_override_without_human_allowed": { "const": false },
+        "paper_drawdown_outside_fixture": { "const": false },
+        "paper_scorecard_not_blocked": { "const": false },
+        "paper_human_review_missing": { "const": false },
+        "paper_real_order_submitted": { "const": false },
+        "limited_live_daily_loss_halt_not_armed": { "const": false },
+        "limited_live_daily_loss_halt_triggered": { "const": false },
+        "limited_live_order_submission_allowed": { "const": false },
+        "emergency_halt_unavailable": { "const": false },
+        "emergency_halt_not_halted": { "const": false },
+        "emergency_halt_not_manual_resume": { "const": false },
+        "emergency_halt_cancels_live_orders": { "const": false },
+        "full_auto_disable_policy_not_control_plane": { "const": false },
+        "full_auto_live_orders_touched": { "const": false },
+        "full_auto_enabled": { "const": false },
+        "order_intent_generated": { "const": false },
+        "real_order_submitted": { "const": false },
+        "live_execution_allowed": { "const": false },
+        "automatic_order_submission_allowed": { "const": false },
+        "live_order_submission_allowed": { "const": false },
+        "broker_write_allowed": { "const": false },
+        "exchange_write_allowed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "artifact_write_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "human_review_required": { "const": true }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["trading_loss_streak_cooldown_fixtures_status", "phase_slot", "previous_phase_slot", "next_phase_slot", "source_order_frequency_throttle_status", "required_fixture_count", "evidence_count", "fixture_count", "passed_fixture_count", "unsafe_loss_streak_signal_count", "loss_streak_cooldown_covered", "loss_streak_count_nonzero", "cooldown_active", "risk_halt_without_human_resume", "paper_drawdown_outside_fixture", "limited_live_daily_loss_halt_not_armed", "emergency_halt_not_manual_resume", "full_auto_disable_policy_not_control_plane", "order_intent_generated", "live_execution_allowed", "broker_write_allowed", "exchange_write_allowed", "command_execution_performed", "artifact_write_performed", "protected_action_executed", "validation_error_count"],
+      "properties": {
+        "trading_loss_streak_cooldown_fixtures_status": { "const": "ready_for_trading_loss_streak_cooldown_regression" },
+        "phase_slot": { "const": "P398" },
+        "previous_phase_slot": { "const": "P397" },
+        "next_phase_slot": { "const": "P399" },
+        "source_order_frequency_throttle_status": { "const": "ready_for_trading_order_frequency_throttle_regression" },
+        "required_fixture_count": { "const": 6 },
+        "evidence_count": { "const": 6 },
+        "fixture_count": { "const": 6 },
+        "passed_fixture_count": { "const": 6 },
+        "unsafe_loss_streak_signal_count": { "const": 0 },
+        "loss_streak_cooldown_covered": { "const": true },
+        "loss_streak_count_nonzero": { "const": false },
+        "cooldown_active": { "const": false },
+        "risk_halt_without_human_resume": { "const": false },
+        "paper_drawdown_outside_fixture": { "const": false },
+        "limited_live_daily_loss_halt_not_armed": { "const": false },
+        "emergency_halt_not_manual_resume": { "const": false },
+        "full_auto_disable_policy_not_control_plane": { "const": false },
+        "full_auto_enabled": { "const": false },
+        "order_intent_generated": { "const": false },
+        "live_execution_allowed": { "const": false },
+        "broker_write_allowed": { "const": false },
+        "exchange_write_allowed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "artifact_write_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "errors": { "type": "array", "maxItems": 0 }
+      }
+    }
+  }
+}

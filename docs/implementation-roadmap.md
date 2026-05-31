@@ -8043,3 +8043,25 @@ Changes:
   replay windows, and `--check` no-overwrite behavior.
 - Updated the P341-P500 ledger so P343 owns replay-window mapping and P344-P345
   remain reserved for deeper operator handoff detail.
+
+## Phase 344 - Platform Operator Handoff
+
+Phase 344 adds structured operator handoff packets for the runtime/dependency
+stability program. It consumes the P343 replay-window artifact in memory and
+maps each replay window to required evidence, required decisions, owner role,
+and next operator action while preserving human review gates and the read-only
+platform boundary.
+
+Changes:
+
+- Added `src/platform-operator-handoff.mjs`,
+  `scripts/platform-operator-handoff.mjs`,
+  `schemas/platform-operator-handoff.schema.json`, and
+  `docs/platform-operator-handoff.md`.
+- Added `platform:operator-handoff` and registered
+  `platform:operator-handoff -- --check` after `platform:replay-window` in the
+  validation chain.
+- Added focused platform operations tests for ready handoff packets,
+  replay-window-blocked handoff, and `--check` no-overwrite behavior.
+- Updated the P341-P500 ledger so P344 owns operator handoff packets and P345 is
+  reserved for final read-only artifact guard detail before provenance phases.

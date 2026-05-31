@@ -42,6 +42,7 @@ import { runTradingPromotionCompletionGateFixtures } from "../src/trading-promot
 import { runTradingPromotionGovernanceReadonlyFixtures } from "../src/trading-promotion-governance-readonly-fixtures.mjs";
 import { runTradingPromotionReceiptIntakeQueueFixtures } from "../src/trading-promotion-receipt-intake-queue-fixtures.mjs";
 import { runTradingPromotionReceiptValidationRulesFixtures } from "../src/trading-promotion-receipt-validation-rules-fixtures.mjs";
+import { runTradingPromotionReceiptWorkspaceFixtures } from "../src/trading-promotion-receipt-workspace-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -4151,6 +4152,114 @@ test("trading promotion receipt validation rules fixtures --check does not overw
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingPromotionReceiptValidationRulesFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion receipt workspace fixtures expose human rows without materializing inputs", async () => {
+  const result = await runTradingPromotionReceiptWorkspaceFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_promotion_receipt_workspace_fixtures_status, "ready_for_trading_promotion_receipt_workspace_regression");
+  assert.equal(result.summary.phase_slot, "P406");
+  assert.equal(result.summary.previous_phase_slot, "P405");
+  assert.equal(result.summary.next_phase_slot, "P407");
+  assert.equal(result.summary.source_promotion_receipt_validation_rules_status, "ready_for_trading_promotion_receipt_validation_rules_regression");
+  assert.equal(result.summary.source_promotion_receipt_validation_rules_ready, true);
+  assert.equal(result.summary.workspace_row_count, 6);
+  assert.equal(result.summary.ready_workspace_row_count, 6);
+  assert.equal(result.summary.validation_rules_consumed_in_memory, true);
+  assert.equal(result.summary.validation_rules_artifact_read_performed, false);
+  assert.equal(result.summary.workspace_rows_declared, true);
+  assert.equal(result.summary.editable_receipt_fields_declared, true);
+  assert.equal(result.summary.receipt_input_file_materialized, false);
+  assert.equal(result.summary.receipt_payload_present, false);
+  assert.equal(result.summary.ready_for_validation, false);
+  assert.equal(result.summary.receipt_received, false);
+  assert.equal(result.summary.receipt_validated, false);
+  assert.equal(result.summary.receipt_application_performed, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.source_receipt_present, false);
+  assert.equal(result.summary.source_approval_applied, false);
+  assert.equal(result.summary.real_enablement_count, 0);
+  assert.equal(result.summary.shadow_live_enabled, false);
+  assert.equal(result.summary.limited_live_enabled, false);
+  assert.equal(result.summary.full_auto_enabled, false);
+  assert.equal(result.summary.automatic_order_submission_allowed, false);
+  assert.equal(result.summary.live_order_submission_allowed, false);
+  assert.equal(result.summary.live_execution_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_read_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.ok(result.promotion_receipt_workspace_rows.every((row) => row.workspace_status === "ready_for_human_receipt_input" && row.source_receipt_validation_rule_status === "ready_for_future_receipt_validation" && row.editable_receipt_fields_declared && row.receipt_input_file_materialized === false && row.receipt_payload_present === false && row.ready_for_validation === false && row.receipt_validated_by_workspace === false));
+  assert.ok(result.promotion_receipt_workspace_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_workspace === false));
+});
+
+test("trading promotion receipt workspace fixtures block when source validation rules are blocked", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-workspace-source-"));
+  try {
+    const limitedLive = JSON.parse(await readFile("examples/trading/limited-live-governance.json", "utf8"));
+    limitedLive.safety_boundary.approval_receipt_present = true;
+    const limitedLivePath = path.join(root, "limited-live-governance.json");
+    await writeFile(limitedLivePath, `${JSON.stringify(limitedLive, null, 2)}\n`, "utf8");
+
+    const result = await runTradingPromotionReceiptWorkspaceFixtures({ limitedLivePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_promotion_receipt_workspace_fixtures_status, "blocked");
+    assert.equal(result.summary.source_promotion_receipt_validation_rules_ready, false);
+    assert.equal(result.summary.source_receipt_present, true);
+    assert.equal(result.summary.ready_workspace_row_count, 0);
+    assert.ok(result.promotion_receipt_workspace_rows.every((row) => row.workspace_status === "blocked"));
+    await assert.rejects(
+      () => runTradingPromotionReceiptWorkspaceFixtures({ limitedLivePath, write: false, check: true }),
+      /Trading promotion receipt workspace fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion receipt workspace fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-workspace-registration-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:promotion-receipt-workspace-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:promotion-receipt-workspace-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingPromotionReceiptWorkspaceFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_promotion_receipt_workspace_fixtures_status, "blocked");
+    assert.ok(result.promotion_receipt_workspace_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.promotion_receipt_workspace_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingPromotionReceiptWorkspaceFixtures({ packagePath, write: false, check: true }),
+      /Trading promotion receipt workspace fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion receipt workspace fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-workspace-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-promotion-receipt-workspace-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-promotion-receipt-workspace-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingPromotionReceiptWorkspaceFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

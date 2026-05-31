@@ -30,6 +30,7 @@ import { runTradingRiskOverrideDisabledFixtures } from "../src/trading-risk-over
 import { runTradingPromotionDisabledFixtures } from "../src/trading-promotion-disabled-fixtures.mjs";
 import { runTradingFirstTradeDisabledFixtures } from "../src/trading-first-trade-disabled-fixtures.mjs";
 import { runTradingOrderIntentDisabledFixtures } from "../src/trading-order-intent-disabled-fixtures.mjs";
+import { runTradingMarketOrderDisabledFixtures } from "../src/trading-market-order-disabled-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -2114,6 +2115,169 @@ test("trading order intent disabled fixtures --check does not overwrite existing
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingOrderIntentDisabledFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading market order disabled fixtures keep market orders blocked", async () => {
+  const result = await runTradingMarketOrderDisabledFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_market_order_disabled_fixtures_status, "ready_for_trading_market_order_disabled_regression");
+  assert.equal(result.summary.phase_slot, "P394");
+  assert.equal(result.summary.previous_phase_slot, "P393");
+  assert.equal(result.summary.next_phase_slot, "P395");
+  assert.equal(result.summary.source_order_intent_disabled_status, "ready_for_trading_order_intent_disabled_regression");
+  assert.equal(result.summary.required_fixture_count, 5);
+  assert.equal(result.summary.evidence_count, 5);
+  assert.equal(result.summary.fixture_count, 5);
+  assert.equal(result.summary.passed_fixture_count, 5);
+  assert.equal(result.summary.failed_fixture_count, 0);
+  assert.equal(result.summary.unsafe_market_order_signal_count, 0);
+  assert.equal(result.summary.market_order_disabled_covered, true);
+  assert.equal(result.summary.market_orders_enabled, false);
+  assert.equal(result.summary.research_market_order_allowed, false);
+  assert.equal(result.summary.research_order_type_not_none, false);
+  assert.equal(result.summary.strategy_no_market_order_missing, false);
+  assert.equal(result.summary.shadow_market_order_allowed, false);
+  assert.equal(result.summary.shadow_order_type_not_none, false);
+  assert.equal(result.summary.shadow_order_intent_executable, false);
+  assert.equal(result.summary.execution_order_type_whitelist_invalid, false);
+  assert.equal(result.summary.execution_market_order_allowed, false);
+  assert.equal(result.summary.order_throttle_missing, false);
+  assert.equal(result.summary.order_submit_route_enabled, false);
+  assert.equal(result.summary.limited_live_order_submission_allowed, false);
+  assert.equal(result.summary.limited_live_order_route_enabled, false);
+  assert.equal(result.summary.full_auto_order_submission_allowed, false);
+  assert.equal(result.summary.full_auto_order_route_enabled, false);
+  assert.equal(result.summary.market_order_allowed, false);
+  assert.equal(result.summary.order_intent_generated, false);
+  assert.equal(result.summary.real_order_submitted, false);
+  assert.equal(result.summary.live_execution_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.ok(result.market_order_disabled_evidence_rows.every((row) => row.evidence_status === "market_order_disabled" && row.unsafe_market_order_signal_detected === false));
+  assert.ok(result.market_order_disabled_fixture_rows.every((row) => row.fixture_status === "passed" && row.fixture_should_fail_when_market_orders_enabled && row.fixture_should_fail_when_market_order_allowed));
+  assert.ok(result.market_order_disabled_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_gate === false));
+});
+
+test("trading market order disabled fixtures block when market order paths are enabled", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-market-order-enabled-"));
+  try {
+    const researchBacktestPaper = JSON.parse(await readFile("examples/trading/research-backtest-paper-sample.json", "utf8"));
+    researchBacktestPaper.safety_policy.market_orders_enabled = true;
+    researchBacktestPaper.contract_examples["trading-order-intent"].market_order_allowed = true;
+    researchBacktestPaper.contract_examples["trading-order-intent"].order_type = "market";
+    researchBacktestPaper.contract_examples["trading-strategy"].tradability_constraints = researchBacktestPaper.contract_examples["trading-strategy"].tradability_constraints.filter((constraint) => constraint !== "no_market_order");
+    const researchBacktestPaperPath = path.join(root, "research-backtest-paper-sample.json");
+    await writeFile(researchBacktestPaperPath, `${JSON.stringify(researchBacktestPaper, null, 2)}\n`, "utf8");
+
+    const paperShadow = JSON.parse(await readFile("examples/trading/paper-shadow-live.json", "utf8"));
+    paperShadow.shadow_order_intents[0].market_order_allowed = true;
+    paperShadow.shadow_order_intents[0].order_type = "market";
+    paperShadow.shadow_order_intents[0].non_executable = false;
+    paperShadow.no_order_shadow_mode.real_order_count = 1;
+    const paperShadowPath = path.join(root, "paper-shadow-live.json");
+    await writeFile(paperShadowPath, `${JSON.stringify(paperShadow, null, 2)}\n`, "utf8");
+
+    const executionEngine = JSON.parse(await readFile("examples/trading/execution-engine.json", "utf8"));
+    executionEngine.order_type_whitelist.allowed_order_types.push("market");
+    executionEngine.order_type_whitelist.market_order_allowed = true;
+    executionEngine.order_controls.order_throttle.max_orders_per_day = 1;
+    executionEngine.order_controls.order_throttle.blocks_order_submission = false;
+    executionEngine.safety_boundary.real_order_submitted = true;
+    executionEngine.dashboard_api_stub.disabled_routes = executionEngine.dashboard_api_stub.disabled_routes.filter((route) => route.path !== "/api/trading/orders/submit");
+    const executionEnginePath = path.join(root, "execution-engine.json");
+    await writeFile(executionEnginePath, `${JSON.stringify(executionEngine, null, 2)}\n`, "utf8");
+
+    const limitedLive = JSON.parse(await readFile("examples/trading/limited-live-governance.json", "utf8"));
+    limitedLive.safety_boundary.live_order_submission_allowed = true;
+    limitedLive.order_caps.order_submission_allowed = true;
+    limitedLive.dashboard_api_stub.disabled_routes = limitedLive.dashboard_api_stub.disabled_routes.filter((route) => !["/api/trading/orders", "/api/trading/limited-live/orders"].includes(route.path));
+    const limitedLivePath = path.join(root, "limited-live-governance.json");
+    await writeFile(limitedLivePath, `${JSON.stringify(limitedLive, null, 2)}\n`, "utf8");
+
+    const fullAuto = JSON.parse(await readFile("examples/trading/full-auto-governance.json", "utf8"));
+    fullAuto.safety_boundary.full_auto_enabled = true;
+    fullAuto.safety_boundary.automatic_order_submission_allowed = true;
+    fullAuto.safety_boundary.live_order_submission_allowed = true;
+    fullAuto.dashboard_api_stub.disabled_routes = fullAuto.dashboard_api_stub.disabled_routes.filter((route) => !["/api/trading/orders", "/api/trading/full-auto/orders"].includes(route.path));
+    const fullAutoPath = path.join(root, "full-auto-governance.json");
+    await writeFile(fullAutoPath, `${JSON.stringify(fullAuto, null, 2)}\n`, "utf8");
+
+    const result = await runTradingMarketOrderDisabledFixtures({ researchBacktestPaperPath, paperShadowPath, executionEnginePath, limitedLivePath, fullAutoPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_market_order_disabled_fixtures_status, "blocked");
+    assert.ok(result.summary.unsafe_market_order_signal_count > 0);
+    assert.equal(result.summary.market_orders_enabled, true);
+    assert.equal(result.summary.research_market_order_allowed, true);
+    assert.equal(result.summary.research_order_type_not_none, true);
+    assert.equal(result.summary.strategy_no_market_order_missing, true);
+    assert.equal(result.summary.shadow_market_order_allowed, true);
+    assert.equal(result.summary.shadow_order_type_not_none, true);
+    assert.equal(result.summary.shadow_order_intent_executable, true);
+    assert.equal(result.summary.execution_order_type_whitelist_invalid, true);
+    assert.equal(result.summary.execution_market_order_allowed, true);
+    assert.equal(result.summary.order_throttle_missing, true);
+    assert.equal(result.summary.order_submit_route_enabled, true);
+    assert.equal(result.summary.limited_live_order_submission_allowed, true);
+    assert.equal(result.summary.limited_live_order_route_enabled, true);
+    assert.equal(result.summary.full_auto_order_submission_allowed, true);
+    assert.equal(result.summary.full_auto_order_route_enabled, true);
+    assert.equal(result.summary.full_auto_enabled, true);
+    assert.equal(result.summary.market_order_allowed, true);
+    assert.equal(result.summary.real_order_submitted, true);
+    assert.ok(result.market_order_disabled_fixture_rows.some((row) => row.row_key === "research_market_order_policy_disabled" && row.fixture_status === "failed" && row.unsafe_market_order_signal_detected));
+    await assert.rejects(
+      () => runTradingMarketOrderDisabledFixtures({ researchBacktestPaperPath, paperShadowPath, executionEnginePath, limitedLivePath, fullAutoPath, write: false, check: true }),
+      /Trading market order disabled fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading market order disabled fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-market-order-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:market-order-disabled-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:market-order-disabled-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingMarketOrderDisabledFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_market_order_disabled_fixtures_status, "blocked");
+    assert.ok(result.market_order_disabled_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.market_order_disabled_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingMarketOrderDisabledFixtures({ packagePath, write: false, check: true }),
+      /Trading market order disabled fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading market order disabled fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-market-order-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-market-order-disabled-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-market-order-disabled-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingMarketOrderDisabledFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

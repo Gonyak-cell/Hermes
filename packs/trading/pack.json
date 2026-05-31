@@ -72,7 +72,8 @@
     "schemas/trading/trading-risk-override-disabled-fixtures.schema.json",
     "schemas/trading/trading-promotion-disabled-fixtures.schema.json",
     "schemas/trading/trading-first-trade-disabled-fixtures.schema.json",
-    "schemas/trading/trading-order-intent-disabled-fixtures.schema.json"
+    "schemas/trading/trading-order-intent-disabled-fixtures.schema.json",
+    "schemas/trading/trading-market-order-disabled-fixtures.schema.json"
   ],
   "workflows": [
     "workflow.trading.research_intake.v1",
@@ -120,7 +121,8 @@
     "workflow.trading.risk_override_disabled_fixtures.v1",
     "workflow.trading.promotion_disabled_fixtures.v1",
     "workflow.trading.first_trade_disabled_fixtures.v1",
-    "workflow.trading.order_intent_disabled_fixtures.v1"
+    "workflow.trading.order_intent_disabled_fixtures.v1",
+    "workflow.trading.market_order_disabled_fixtures.v1"
   ],
   "gates": [
     "classification_gate",

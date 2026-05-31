@@ -24,6 +24,7 @@ import { runTradingLiveAdapterDisabledFixtures } from "../src/trading-live-adapt
 import { runTradingCredentialLookupDisabledFixtures } from "../src/trading-credential-lookup-disabled-fixtures.mjs";
 import { runTradingBrokerWriteDisabledFixtures } from "../src/trading-broker-write-disabled-fixtures.mjs";
 import { runTradingExchangeWriteDisabledFixtures } from "../src/trading-exchange-write-disabled-fixtures.mjs";
+import { runTradingSafetyBoundaryFixtures } from "../src/trading-safety-boundary-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -1370,6 +1371,119 @@ test("trading exchange write disabled fixtures --check does not overwrite existi
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingExchangeWriteDisabledFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading safety boundary fixtures consolidate P381-P387 safety layers", async () => {
+  const result = await runTradingSafetyBoundaryFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_safety_boundary_fixtures_status, "ready_for_trading_safety_boundary_regression");
+  assert.equal(result.summary.phase_slot, "P388");
+  assert.equal(result.summary.previous_phase_slot, "P387");
+  assert.equal(result.summary.next_phase_slot, "P389");
+  assert.equal(result.summary.source_exchange_write_disabled_status, "ready_for_trading_exchange_write_disabled_regression");
+  assert.equal(result.summary.required_layer_count, 7);
+  assert.equal(result.summary.layer_count, 7);
+  assert.equal(result.summary.ready_layer_count, 7);
+  assert.equal(result.summary.blocked_layer_count, 0);
+  assert.equal(result.summary.required_boundary_fixture_count, 11);
+  assert.equal(result.summary.fixture_count, 11);
+  assert.equal(result.summary.passed_fixture_count, 11);
+  assert.equal(result.summary.failed_fixture_count, 0);
+  assert.equal(result.summary.unsafe_signal_count, 0);
+  assert.equal(result.summary.safety_regression_covered, true);
+  assert.equal(result.summary.disabled_routes_covered, true);
+  assert.equal(result.summary.approval_absence_covered, true);
+  assert.equal(result.summary.live_adapter_disabled_covered, true);
+  assert.equal(result.summary.credential_lookup_disabled_covered, true);
+  assert.equal(result.summary.broker_write_disabled_covered, true);
+  assert.equal(result.summary.exchange_write_disabled_covered, true);
+  assert.equal(result.summary.limited_live_enabled, false);
+  assert.equal(result.summary.full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.equal(result.summary.automatic_order_submission_allowed, false);
+  assert.equal(result.summary.live_order_submission_allowed, false);
+  assert.equal(result.summary.real_order_submitted, false);
+  assert.equal(result.summary.live_adapter_enabled, false);
+  assert.equal(result.summary.credential_lookup_enabled, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.ok(result.safety_boundary_layer_rows.every((row) => row.layer_status === "ready" && row.source_validation_valid && row.unsafe_signal_count === 0));
+  assert.ok(result.safety_boundary_fixture_rows.every((row) => row.fixture_status === "passed" && row.unsafe_signal_detected === false && row.protected_action_executed_by_fixture === false));
+  assert.ok(result.safety_boundary_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_gate === false));
+});
+
+test("trading safety boundary fixtures block when limited live enablement appears", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-safety-boundary-limited-live-"));
+  try {
+    const limitedLive = JSON.parse(await readFile("examples/trading/limited-live-governance.json", "utf8"));
+    limitedLive.safety_boundary.limited_live_enabled = true;
+    limitedLive.safety_boundary.live_order_submission_allowed = true;
+    limitedLive.order_caps.order_submission_allowed = true;
+    const limitedLivePath = path.join(root, "limited-live-governance.json");
+    await writeFile(limitedLivePath, `${JSON.stringify(limitedLive, null, 2)}\n`, "utf8");
+
+    const result = await runTradingSafetyBoundaryFixtures({ limitedLivePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_safety_boundary_fixtures_status, "blocked");
+    assert.ok(result.summary.unsafe_signal_count > 0);
+    assert.equal(result.summary.limited_live_enabled, true);
+    assert.equal(result.summary.live_order_submission_allowed, true);
+    assert.equal(result.summary.trading_order_submission_allowed, true);
+    assert.ok(result.safety_boundary_layer_rows.some((row) => row.row_key === "safety_regression" && row.layer_status === "blocked"));
+    assert.ok(result.safety_boundary_fixture_rows.some((row) => row.row_key === "limited_live_disabled" && row.fixture_status === "failed" && row.unsafe_signal_detected));
+    await assert.rejects(
+      () => runTradingSafetyBoundaryFixtures({ limitedLivePath, write: false, check: true }),
+      /Trading safety boundary fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading safety boundary fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-safety-boundary-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:safety-boundary-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:safety-boundary-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingSafetyBoundaryFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_safety_boundary_fixtures_status, "blocked");
+    assert.ok(result.safety_boundary_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.safety_boundary_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingSafetyBoundaryFixtures({ packagePath, write: false, check: true }),
+      /Trading safety boundary fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading safety boundary fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-safety-boundary-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-safety-boundary-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-safety-boundary-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingSafetyBoundaryFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

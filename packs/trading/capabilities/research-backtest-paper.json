@@ -185,6 +185,11 @@
       "entrypoint_type": "command",
       "name": "trading:exchange-write-disabled-fixtures",
       "path": "scripts/trading-exchange-write-disabled-fixtures.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:safety-boundary-fixtures",
+      "path": "scripts/trading-safety-boundary-fixtures.mjs"
     }
   ],
   "dependencies": ["common.workflow.approval", "common.audit.replay", "common.test.gate"],
@@ -301,6 +306,12 @@
       "case_id": "golden.trading.exchange_write_disabled_fixtures.p387",
       "description": "P387 exchange write disabled fixtures prove exchange adapter writes, live order submission, live cancel, real order side effects, and broker/exchange failover writes remain blocked.",
       "input_ref": "artifacts/trading-exchange-write-disabled-fixtures/latest/trading-exchange-write-disabled-fixtures.json",
+      "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
+    },
+    {
+      "case_id": "golden.trading.safety_boundary_fixtures.p388",
+      "description": "P388 safety boundary fixtures consolidate P381-P387 safety layers and prove live trading, full-auto, order submission, broker writes, and exchange writes remain blocked.",
+      "input_ref": "artifacts/trading-safety-boundary-fixtures/latest/trading-safety-boundary-fixtures.json",
       "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
     }
   ],

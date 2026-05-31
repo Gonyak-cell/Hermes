@@ -8845,3 +8845,30 @@ Changes:
   registration, blocked source merges, and `--check` no-overwrite behavior.
 - Updated the P341-P500 ledger so P376 owns release-check receipt merge
   validation preflight.
+
+## Phase 377 - Release-Check Receipt Validation Packet
+
+Phase 377 declares future validation packet rows for the P376 release-check
+receipt merge preflight. It records packet-level validation checks for each
+reviewer row without reading actor workspace files, materializing merged receipt
+input, receiving receipt payloads, validating receipts, marking rows ready for
+application, completing signoff, applying approvals, running release checks,
+reading or writing artifacts, publishing releases, or mutating release/trading
+state.
+
+Changes:
+
+- Added `src/platform-release-check-receipt-validation-packet.mjs`,
+  `scripts/platform-release-check-receipt-validation-packet.mjs`,
+  `schemas/platform-release-check-receipt-validation-packet.schema.json`, and
+  `docs/platform-release-check-receipt-validation-packet.md`.
+- Added `platform:release-check-receipt-validation-packet` and registered
+  `platform:release-check-receipt-validation-packet -- --check` in the
+  validation chain.
+- The command consumes the P376 receipt merge preflight in memory and produces
+  validation packet rows, gate rows, a boundary report, validation output, and a
+  Markdown summary when not in `--check` mode.
+- Added focused tests for packet rows, missing validation-chain registration,
+  blocked source preflights, and `--check` no-overwrite behavior.
+- Updated the P341-P500 ledger so P377 owns release-check receipt validation
+  packet preparation.

@@ -8475,3 +8475,25 @@ Changes:
   no-overwrite behavior.
 - Updated the P341-P500 ledger so P341-P360 is complete, P361-P380 is active,
   and P361 owns the Trading release-check bridge.
+
+## Phase 362 - Platform Ops Check
+
+Phase 362 adds the platform-side unified ops check for the P361-P380 stability
+tranche. It verifies runtime baseline health, contract golden fixtures,
+contract validation, domain-pack registry health, control-plane loop runner
+readiness, and dashboard/API smoke readiness without rebuilding dashboard
+artifacts, running package commands, installing dependencies, mutating packages
+or lockfiles, publishing releases, running git operations, executing protected
+actions, enabling live trading, or submitting orders.
+
+Changes:
+
+- Added `src/platform-ops-check.mjs`, `scripts/platform-ops-check.mjs`,
+  `schemas/platform-ops-check.schema.json`, and `docs/platform-ops-check.md`.
+- Added `platform:ops-check` and registered
+  `platform:ops-check -- --check` after P360 reproducibility closeout in the
+  validation chain.
+- Added focused platform operations tests for P362 readiness, missing
+  package-script/validation-chain registration, source-route blocking, and
+  `--check` no-overwrite behavior.
+- Updated the P341-P500 ledger so P362 owns the platform ops-check bridge.

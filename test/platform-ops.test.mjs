@@ -23,6 +23,7 @@ import { runPlatformReproducibilityEvidenceMatrix } from "../src/platform-reprod
 import { runPlatformReproducibilityProofIndex } from "../src/platform-reproducibility-proof-index.mjs";
 import { runPlatformReproducibilityOperatorReview } from "../src/platform-reproducibility-operator-review.mjs";
 import { runPlatformReproducibilityCloseout } from "../src/platform-reproducibility-closeout.mjs";
+import { runPlatformOpsCheck } from "../src/platform-ops-check.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -1361,6 +1362,120 @@ test("platform reproducibility closeout --check does not overwrite existing arti
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformReproducibilityCloseout({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+function platformOpsReadyCheckOverrides() {
+  return {
+    contractGoldenFixtures: {
+      result: {
+        validation: { valid: true, errors: [] },
+        summary: { golden_fixture_status: "complete" },
+      },
+    },
+    contractValidationSuite: {
+      result: {
+        validation: { valid: true, errors: [] },
+        summary: { validation_suite_status: "complete" },
+      },
+    },
+  };
+}
+
+test("platform ops check verifies P362 platform readiness without package mutation", async () => {
+  const result = await runPlatformOpsCheck({ write: false, check: true, checkOverrides: platformOpsReadyCheckOverrides() });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_ops_check_status, "ready");
+  assert.equal(result.summary.phase_slot, "P362");
+  assert.equal(result.summary.previous_phase_slot, "P361");
+  assert.equal(result.summary.next_phase_slot, "P363");
+  assert.equal(result.summary.ops_check_row_count, 6);
+  assert.equal(result.summary.ready_ops_check_row_count, 6);
+  assert.equal(result.summary.api_smoke_row_count, 6);
+  assert.equal(result.summary.ready_api_smoke_row_count, 6);
+  assert.equal(result.summary.ops_check_gate_count, 7);
+  assert.equal(result.summary.ready_ops_check_gate_count, 7);
+  assert.equal(result.summary.default_control_plane_loop_step_count >= 280, true);
+  assert.equal(result.summary.command_execution_performed, true);
+  assert.equal(result.summary.package_command_execution_performed, false);
+  assert.equal(result.summary.control_plane_loop_probe_executed, true);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.dependency_install_performed, false);
+  assert.equal(result.summary.package_mutation_performed, false);
+  assert.equal(result.summary.lockfile_mutation_performed, false);
+  assert.equal(result.summary.release_published, false);
+  assert.equal(result.summary.git_operation_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.dashboard_mutation_performed, false);
+  assert.equal(result.summary.api_mutation_performed, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.ok(result.ops_check_rows.every((row) => row.ops_check_status === "ready" && row.artifact_write_performed_by_ops_check === false));
+  assert.ok(result.api_smoke_rows.every((row) => row.api_smoke_status === "ready" && row.mutating_route_required === false));
+});
+
+test("platform ops check blocks when package registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-ops-check-registration-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:ops-check"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:ops-check -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformOpsCheck({ packagePath, write: false, checkOverrides: platformOpsReadyCheckOverrides() });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_ops_check_status, "blocked");
+    assert.ok(result.ops_check_source_rows.some((row) => row.row_key === "platform_ops_check_script_registered" && row.source_status === "blocked"));
+    assert.ok(result.ops_check_source_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.source_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformOpsCheck({ packagePath, write: false, check: true, checkOverrides: platformOpsReadyCheckOverrides() }),
+      /Platform ops check failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform ops check blocks when API smoke source routes are missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-ops-check-api-block-"));
+  try {
+    const smokePath = path.join(root, "review-api-smoke.mjs");
+    await writeFile(smokePath, "console.log('/health only');\n", "utf8");
+
+    const result = await runPlatformOpsCheck({ reviewApiSmokeScriptPath: smokePath, write: false, checkOverrides: platformOpsReadyCheckOverrides() });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_ops_check_status, "blocked");
+    assert.ok(result.ops_check_source_rows.some((row) => row.row_key === "review_api_smoke_source_ready" && row.source_status === "blocked"));
+    assert.ok(result.api_smoke_rows.some((row) => row.row_key === "api_smoke_script_routes" && row.api_smoke_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformOpsCheck({ reviewApiSmokeScriptPath: smokePath, write: false, check: true, checkOverrides: platformOpsReadyCheckOverrides() }),
+      /Platform ops check failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform ops check --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-ops-check-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-ops-check.json");
+    const sentinel = "{ \"sentinel\": \"platform-ops-check\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformOpsCheck({ outDir, write: false, check: true, checkOverrides: platformOpsReadyCheckOverrides() });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

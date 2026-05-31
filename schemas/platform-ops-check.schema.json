@@ -1,0 +1,234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-ops-check.schema.json",
+  "title": "Platform Ops Check",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_ops_check_id",
+    "capability_id",
+    "ops_check_anchor",
+    "ops_check_source_rows",
+    "ops_check_rows",
+    "api_smoke_rows",
+    "ops_check_gate_rows",
+    "ops_check_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-ops-check.v1" },
+    "platform_ops_check_id": {
+      "type": "string",
+      "pattern": "^platform-ops-check\\.[0-9]{8}$"
+    },
+    "capability_id": { "const": "platform.ops_check" },
+    "ops_check_anchor": {
+      "type": "object",
+      "required": ["phase_slot", "previous_phase_slot", "next_phase_slot", "default_control_plane_loop_step_count"],
+      "properties": {
+        "phase_slot": { "const": "P362" },
+        "previous_phase_slot": { "const": "P361" },
+        "next_phase_slot": { "const": "P363" },
+        "default_control_plane_loop_step_count": { "minimum": 280 }
+      }
+    },
+    "ops_check_source_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["phase_slot", "source_status", "human_review_required"],
+        "properties": {
+          "phase_slot": { "const": "P362" },
+          "source_status": { "const": "ready" },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "ops_check_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "ops_check_status",
+          "package_command_execution_performed_by_ops_check",
+          "artifact_write_performed_by_ops_check",
+          "protected_action_executed_by_ops_check",
+          "human_review_required"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P362" },
+          "ops_check_status": { "const": "ready" },
+          "package_command_execution_performed_by_ops_check": { "const": false },
+          "artifact_write_performed_by_ops_check": { "const": false },
+          "protected_action_executed_by_ops_check": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "api_smoke_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "api_smoke_status",
+          "mutating_route_required",
+          "protected_action_executed_by_ops_check",
+          "human_review_required"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P362" },
+          "api_smoke_status": { "const": "ready" },
+          "mutating_route_required": { "const": false },
+          "protected_action_executed_by_ops_check": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "ops_check_gate_rows": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "gate_status",
+          "artifact_write_performed_by_ops_check",
+          "protected_action_executed_by_ops_check",
+          "trading_order_submission_performed_by_ops_check",
+          "human_review_required"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P362" },
+          "gate_status": { "const": "ready" },
+          "artifact_write_performed_by_ops_check": { "const": false },
+          "protected_action_executed_by_ops_check": { "const": false },
+          "trading_order_submission_performed_by_ops_check": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "ops_check_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "phase_slot",
+        "control_plane_only",
+        "check_mode",
+        "package_command_execution_performed",
+        "control_plane_loop_probe_executed",
+        "artifact_write_performed",
+        "dependency_install_performed",
+        "package_mutation_performed",
+        "lockfile_mutation_performed",
+        "release_published",
+        "git_operation_performed",
+        "protected_action_executed",
+        "dashboard_mutation_performed",
+        "api_mutation_performed",
+        "trading_live_enabled",
+        "trading_full_auto_enabled",
+        "trading_order_submission_allowed",
+        "broker_write_allowed",
+        "desktop_source_of_truth",
+        "human_review_required"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "phase_slot": { "const": "P362" },
+        "control_plane_only": { "const": true },
+        "check_mode": { "const": true },
+        "package_command_execution_performed": { "const": false },
+        "control_plane_loop_probe_executed": { "const": true },
+        "artifact_write_performed": { "const": false },
+        "dependency_install_performed": { "const": false },
+        "package_mutation_performed": { "const": false },
+        "lockfile_mutation_performed": { "const": false },
+        "release_published": { "const": false },
+        "git_operation_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "dashboard_mutation_performed": { "const": false },
+        "api_mutation_performed": { "const": false },
+        "trading_live_enabled": { "const": false },
+        "trading_full_auto_enabled": { "const": false },
+        "trading_order_submission_allowed": { "const": false },
+        "broker_write_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "human_review_required": { "const": true }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "platform_ops_check_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "ops_check_row_count",
+        "ready_ops_check_row_count",
+        "api_smoke_row_count",
+        "ready_api_smoke_row_count",
+        "ops_check_gate_count",
+        "ready_ops_check_gate_count",
+        "default_control_plane_loop_step_count",
+        "package_command_execution_performed",
+        "control_plane_loop_probe_executed",
+        "artifact_write_performed",
+        "dependency_install_performed",
+        "package_mutation_performed",
+        "lockfile_mutation_performed",
+        "release_published",
+        "git_operation_performed",
+        "protected_action_executed",
+        "dashboard_mutation_performed",
+        "api_mutation_performed",
+        "trading_live_enabled",
+        "trading_full_auto_enabled",
+        "trading_order_submission_allowed",
+        "broker_write_allowed",
+        "desktop_source_of_truth",
+        "human_review_required",
+        "validation_error_count"
+      ],
+      "properties": {
+        "platform_ops_check_status": { "const": "ready" },
+        "phase_slot": { "const": "P362" },
+        "previous_phase_slot": { "const": "P361" },
+        "next_phase_slot": { "const": "P363" },
+        "ops_check_row_count": { "minimum": 6 },
+        "ready_ops_check_row_count": { "minimum": 6 },
+        "api_smoke_row_count": { "minimum": 6 },
+        "ready_api_smoke_row_count": { "minimum": 6 },
+        "ops_check_gate_count": { "minimum": 7 },
+        "ready_ops_check_gate_count": { "minimum": 7 },
+        "default_control_plane_loop_step_count": { "minimum": 280 },
+        "package_command_execution_performed": { "const": false },
+        "control_plane_loop_probe_executed": { "const": true },
+        "artifact_write_performed": { "const": false },
+        "dependency_install_performed": { "const": false },
+        "package_mutation_performed": { "const": false },
+        "lockfile_mutation_performed": { "const": false },
+        "release_published": { "const": false },
+        "git_operation_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "dashboard_mutation_performed": { "const": false },
+        "api_mutation_performed": { "const": false },
+        "trading_live_enabled": { "const": false },
+        "trading_full_auto_enabled": { "const": false },
+        "trading_order_submission_allowed": { "const": false },
+        "broker_write_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "human_review_required": { "const": true },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

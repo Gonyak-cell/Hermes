@@ -61,7 +61,8 @@
     "schemas/trading/trading-full-auto-governance.schema.json",
     "schemas/trading/trading-release-check.schema.json",
     "schemas/trading/trading-safety-regression-fixtures.schema.json",
-    "schemas/trading/trading-route-inventory-fixtures.schema.json"
+    "schemas/trading/trading-route-inventory-fixtures.schema.json",
+    "schemas/trading/trading-approval-absence-fixtures.schema.json"
   ],
   "workflows": [
     "workflow.trading.research_intake.v1",
@@ -98,7 +99,8 @@
     "workflow.trading.trading_pack_v1_freeze.v1",
     "workflow.trading.release_check.v1",
     "workflow.trading.safety_regression_fixtures.v1",
-    "workflow.trading.route_inventory_fixtures.v1"
+    "workflow.trading.route_inventory_fixtures.v1",
+    "workflow.trading.approval_absence_fixtures.v1"
   ],
   "gates": [
     "classification_gate",
@@ -136,7 +138,8 @@
     "golden.trading.full_auto_governance.p311_p340",
     "golden.trading.release_check.p361",
     "golden.trading.safety_regression_fixtures.p381",
-    "golden.trading.route_inventory_fixtures.p382"
+    "golden.trading.route_inventory_fixtures.p382",
+    "golden.trading.approval_absence_fixtures.p383"
   ],
   "dependencies": [
     {

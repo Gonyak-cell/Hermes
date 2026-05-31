@@ -19,6 +19,7 @@ import {
   DEFAULT_TRADING_ROUTE_INVENTORY_FIXTURE_SOURCE_PATHS,
   runTradingRouteInventoryFixtures,
 } from "../src/trading-route-inventory-fixtures.mjs";
+import { runTradingApprovalAbsenceFixtures } from "../src/trading-approval-absence-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -843,6 +844,112 @@ test("trading route inventory fixtures --check does not overwrite existing artif
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingRouteInventoryFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading approval absence fixtures keep missing approvals blocking enablement", async () => {
+  const result = await runTradingApprovalAbsenceFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_approval_absence_fixtures_status, "ready_for_trading_approval_absence_regression");
+  assert.equal(result.summary.phase_slot, "P383");
+  assert.equal(result.summary.previous_phase_slot, "P382");
+  assert.equal(result.summary.next_phase_slot, "P384");
+  assert.equal(result.summary.source_route_inventory_status, "ready_for_trading_route_inventory_regression");
+  assert.equal(result.summary.required_fixture_count, 5);
+  assert.equal(result.summary.evidence_count, 5);
+  assert.equal(result.summary.fixture_count, 5);
+  assert.equal(result.summary.passed_fixture_count, 5);
+  assert.equal(result.summary.failed_fixture_count, 0);
+  assert.equal(result.summary.approval_receipt_present_count, 0);
+  assert.equal(result.summary.unsafe_enablement_detected_count, 0);
+  assert.equal(result.summary.missing_approval_block_count, 5);
+  assert.equal(result.summary.approval_absence_covered, true);
+  assert.equal(result.summary.approval_application_allowed, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.limited_live_enabled, false);
+  assert.equal(result.summary.full_auto_enabled, false);
+  assert.equal(result.summary.automatic_order_submission_allowed, false);
+  assert.equal(result.summary.live_order_submission_allowed, false);
+  assert.equal(result.summary.live_adapter_enabled, false);
+  assert.equal(result.summary.credential_lookup_enabled, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.ok(result.approval_absence_evidence_rows.every((row) => row.evidence_status === "blocked_by_missing_approval" && row.approval_missing && row.approval_receipt_present === false && row.unsafe_enablement_detected === false));
+  assert.ok(result.approval_absence_fixture_rows.every((row) => row.fixture_status === "passed" && row.fixture_should_fail_when_receipt_present && row.fixture_should_fail_when_enablement_unblocked));
+  assert.ok(result.approval_absence_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_gate === false));
+});
+
+test("trading approval absence fixtures block when approval receipt and enablement appear", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-approval-absence-receipt-"));
+  try {
+    const limitedLive = JSON.parse(await readFile("examples/trading/limited-live-governance.json", "utf8"));
+    limitedLive.approval_gate.approval_receipt_present = true;
+    limitedLive.safety_boundary.approval_receipt_present = true;
+    limitedLive.safety_boundary.limited_live_enabled = true;
+    limitedLive.safety_boundary.live_order_submission_allowed = true;
+    const limitedLivePath = path.join(root, "limited-live-governance.json");
+    await writeFile(limitedLivePath, `${JSON.stringify(limitedLive, null, 2)}\n`, "utf8");
+
+    const result = await runTradingApprovalAbsenceFixtures({ limitedLivePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_approval_absence_fixtures_status, "blocked");
+    assert.equal(result.summary.approval_receipt_present_count, 1);
+    assert.ok(result.summary.unsafe_enablement_detected_count > 0);
+    assert.equal(result.summary.limited_live_enabled, true);
+    assert.equal(result.summary.live_order_submission_allowed, true);
+    assert.ok(result.approval_absence_fixture_rows.some((row) => row.row_key === "limited_live_approval_absence" && row.fixture_status === "failed" && row.approval_receipt_present));
+    await assert.rejects(
+      () => runTradingApprovalAbsenceFixtures({ limitedLivePath, write: false, check: true }),
+      /Trading approval absence fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading approval absence fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-approval-absence-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:approval-absence-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:approval-absence-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingApprovalAbsenceFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_approval_absence_fixtures_status, "blocked");
+    assert.ok(result.approval_absence_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.approval_absence_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingApprovalAbsenceFixtures({ packagePath, write: false, check: true }),
+      /Trading approval absence fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading approval absence fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-approval-absence-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-approval-absence-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-approval-absence-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingApprovalAbsenceFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

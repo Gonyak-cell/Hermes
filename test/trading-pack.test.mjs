@@ -39,6 +39,7 @@ import { runTradingModelDegradationHaltFixtures } from "../src/trading-model-deg
 import { runTradingDataOutageHaltFixtures } from "../src/trading-data-outage-halt-fixtures.mjs";
 import { runTradingPromotionReceiptContractFixtures } from "../src/trading-promotion-receipt-contract-fixtures.mjs";
 import { runTradingPromotionCompletionGateFixtures } from "../src/trading-promotion-completion-gate-fixtures.mjs";
+import { runTradingPromotionGovernanceReadonlyFixtures } from "../src/trading-promotion-governance-readonly-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -3759,6 +3760,149 @@ test("trading promotion completion gate fixtures --check does not overwrite exis
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingPromotionCompletionGateFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion governance readonly fixtures keep complete governance evidence non-enabling", async () => {
+  const result = await runTradingPromotionGovernanceReadonlyFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_promotion_governance_readonly_fixtures_status, "ready_for_trading_promotion_governance_readonly_regression");
+  assert.equal(result.summary.phase_slot, "P403");
+  assert.equal(result.summary.previous_phase_slot, "P402");
+  assert.equal(result.summary.next_phase_slot, "P404");
+  assert.equal(result.summary.source_promotion_completion_gate_status, "ready_for_trading_promotion_completion_gate_regression");
+  assert.equal(result.summary.source_promotion_completion_gate_ready, true);
+  assert.equal(result.summary.required_governance_row_count, 6);
+  assert.equal(result.summary.governance_row_count, 6);
+  assert.equal(result.summary.ready_governance_row_count, 6);
+  assert.equal(result.summary.promotion_governance_rows_covered, true);
+  assert.equal(result.summary.governance_reports_readonly, true);
+  assert.equal(result.summary.governance_reports_may_be_complete, true);
+  assert.equal(result.summary.governance_reports_complete_with_real_enablement_false, true);
+  assert.equal(result.summary.completion_gates_block_without_receipts, true);
+  assert.equal(result.summary.real_enablement_count, 0);
+  assert.equal(result.summary.completion_claim_count, 0);
+  assert.equal(result.summary.completion_claim_without_receipt_count, 0);
+  assert.equal(result.summary.source_receipt_present, false);
+  assert.equal(result.summary.source_approval_applied, false);
+  assert.equal(result.summary.receipt_materialized, false);
+  assert.equal(result.summary.receipt_validation_performed, false);
+  assert.equal(result.summary.receipt_application_performed, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.shadow_live_enabled, false);
+  assert.equal(result.summary.limited_live_enabled, false);
+  assert.equal(result.summary.full_auto_enabled, false);
+  assert.equal(result.summary.automatic_order_submission_allowed, false);
+  assert.equal(result.summary.live_order_submission_allowed, false);
+  assert.equal(result.summary.live_execution_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.deepEqual(
+    result.promotion_governance_readonly_rows.map((row) => row.row_key),
+    [
+      "research_to_backtest_governance_readonly",
+      "backtest_to_paper_governance_readonly",
+      "paper_to_shadow_governance_readonly",
+      "shadow_to_limited_live_governance_readonly",
+      "limited_live_to_full_auto_governance_readonly",
+      "full_auto_activation_governance_readonly",
+    ],
+  );
+  assert.ok(result.promotion_governance_readonly_rows.every((row) => row.readonly_governance_status === "ready_readonly_governance" && row.governance_completion_readonly && row.real_enablement_allowed === false));
+  assert.ok(result.promotion_governance_readonly_summary_rows.every((row) => row.summary_status === "readonly_governance_ready" && row.governance_complete_with_real_enablement_false));
+  assert.ok(result.promotion_governance_readonly_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_gate === false));
+});
+
+test("trading promotion governance readonly fixtures block when governance implies real enablement", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-governance-enable-"));
+  try {
+    const paperShadow = JSON.parse(await readFile("examples/trading/paper-shadow-live.json", "utf8"));
+    paperShadow.promotion_criteria_to_shadow.shadow_live_enabled = true;
+    paperShadow.promotion_criteria_to_limited_live.limited_live_enabled = true;
+    const paperShadowPath = path.join(root, "paper-shadow-live.json");
+    await writeFile(paperShadowPath, `${JSON.stringify(paperShadow, null, 2)}\n`, "utf8");
+
+    const fullAuto = JSON.parse(await readFile("examples/trading/full-auto-governance.json", "utf8"));
+    fullAuto.safety_boundary.full_auto_enabled = true;
+    fullAuto.safety_boundary.automatic_order_submission_allowed = true;
+    fullAuto.safety_boundary.live_execution_allowed = true;
+    const fullAutoPath = path.join(root, "full-auto-governance.json");
+    await writeFile(fullAutoPath, `${JSON.stringify(fullAuto, null, 2)}\n`, "utf8");
+
+    const result = await runTradingPromotionGovernanceReadonlyFixtures({
+      paperShadowPath,
+      fullAutoPath,
+      write: false,
+    });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_promotion_governance_readonly_fixtures_status, "blocked");
+    assert.equal(result.summary.source_promotion_completion_gate_ready, false);
+    assert.ok(result.summary.real_enablement_count > 0);
+    assert.ok(result.summary.completion_claim_count > 0);
+    assert.equal(result.summary.governance_reports_complete_with_real_enablement_false, false);
+    assert.equal(result.summary.shadow_live_enabled, true);
+    assert.equal(result.summary.limited_live_enabled, true);
+    assert.equal(result.summary.full_auto_enabled, true);
+    assert.equal(result.summary.automatic_order_submission_allowed, true);
+    assert.equal(result.summary.live_execution_allowed, true);
+    assert.ok(result.promotion_governance_readonly_rows.some((row) => row.row_key === "paper_to_shadow_governance_readonly" && row.readonly_governance_status === "blocked" && row.real_enablement_detected));
+    await assert.rejects(
+      () => runTradingPromotionGovernanceReadonlyFixtures({
+        paperShadowPath,
+        fullAutoPath,
+        write: false,
+        check: true,
+      }),
+      /Trading promotion governance readonly fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion governance readonly fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-governance-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:promotion-governance-readonly-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:promotion-governance-readonly-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingPromotionGovernanceReadonlyFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_promotion_governance_readonly_fixtures_status, "blocked");
+    assert.ok(result.promotion_governance_readonly_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.promotion_governance_readonly_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingPromotionGovernanceReadonlyFixtures({ packagePath, write: false, check: true }),
+      /Trading promotion governance readonly fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion governance readonly fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-governance-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-promotion-governance-readonly-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-promotion-governance-readonly-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingPromotionGovernanceReadonlyFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

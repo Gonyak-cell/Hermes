@@ -314,6 +314,7 @@ function buildPromotionReceiptContractRows({ tradingSample, modelImprovement, ba
         observedCondition("full_auto.safety_boundary.full_auto_enabled", valueAt(fullAuto, ["safety_boundary", "full_auto_enabled"]), false),
         observedCondition("full_auto.safety_boundary.automatic_order_submission_allowed", valueAt(fullAuto, ["safety_boundary", "automatic_order_submission_allowed"]), false),
         observedCondition("full_auto.safety_boundary.live_order_submission_allowed", valueAt(fullAuto, ["safety_boundary", "live_order_submission_allowed"]), false),
+        observedCondition("full_auto.safety_boundary.live_execution_allowed", valueAt(fullAuto, ["safety_boundary", "live_execution_allowed"]) ?? false, false),
         observedCondition("full_auto.safety_boundary.broker_write_allowed", valueAt(fullAuto, ["safety_boundary", "broker_write_allowed"]), false),
         observedCondition("full_auto.safety_boundary.exchange_write_allowed", valueAt(fullAuto, ["safety_boundary", "exchange_write_allowed"]), false),
       ],

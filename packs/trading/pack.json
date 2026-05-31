@@ -74,7 +74,8 @@
     "schemas/trading/trading-first-trade-disabled-fixtures.schema.json",
     "schemas/trading/trading-order-intent-disabled-fixtures.schema.json",
     "schemas/trading/trading-market-order-disabled-fixtures.schema.json",
-    "schemas/trading/trading-leverage-disabled-fixtures.schema.json"
+    "schemas/trading/trading-leverage-disabled-fixtures.schema.json",
+    "schemas/trading/trading-short-selling-disabled-fixtures.schema.json"
   ],
   "workflows": [
     "workflow.trading.research_intake.v1",
@@ -124,7 +125,8 @@
     "workflow.trading.first_trade_disabled_fixtures.v1",
     "workflow.trading.order_intent_disabled_fixtures.v1",
     "workflow.trading.market_order_disabled_fixtures.v1",
-    "workflow.trading.leverage_disabled_fixtures.v1"
+    "workflow.trading.leverage_disabled_fixtures.v1",
+    "workflow.trading.short_selling_disabled_fixtures.v1"
   ],
   "gates": [
     "classification_gate",

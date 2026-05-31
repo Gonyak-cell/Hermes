@@ -1,0 +1,223 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/trading/trading-short-selling-disabled-fixtures.schema.json",
+  "title": "Trading Short Selling Disabled Fixtures",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "trading_short_selling_disabled_fixtures_id",
+    "capability_id",
+    "short_selling_disabled_anchor",
+    "short_selling_disabled_evidence_rows",
+    "short_selling_disabled_fixture_rows",
+    "short_selling_disabled_gate_rows",
+    "short_selling_disabled_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "trading-short-selling-disabled-fixtures.v1" },
+    "trading_short_selling_disabled_fixtures_id": {
+      "type": "string",
+      "pattern": "^trading-short-selling-disabled-fixtures\\.[0-9]{8}$"
+    },
+    "capability_id": { "const": "trading.short_selling_disabled_fixtures" },
+    "short_selling_disabled_anchor": {
+      "type": "object",
+      "required": ["phase_slot", "previous_phase_slot", "next_phase_slot", "source_leverage_disabled_status", "required_fixture_count"],
+      "properties": {
+        "phase_slot": { "const": "P396" },
+        "previous_phase_slot": { "const": "P395" },
+        "next_phase_slot": { "const": "P397" },
+        "source_leverage_disabled_status": { "const": "ready_for_trading_leverage_disabled_regression" },
+        "required_fixture_count": { "const": 5 }
+      }
+    },
+    "short_selling_disabled_evidence_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["phase_slot", "row_key", "observed_conditions", "all_conditions_present", "unsafe_short_selling_signal_detected", "evidence_status", "human_review_required"],
+        "properties": {
+          "phase_slot": { "const": "P396" },
+          "row_key": {
+            "enum": [
+              "research_short_selling_policy_disabled",
+              "asset_short_selling_capability_disabled",
+              "strategy_no_short_constraint_declared",
+              "paper_short_order_absent",
+              "risk_short_selling_capability_gate_blocks"
+            ]
+          },
+          "observed_conditions": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["condition_path", "expected_safe_value", "observed_value", "condition_present", "unsafe_when_not_safe"],
+              "properties": {
+                "condition_present": { "const": true },
+                "unsafe_when_not_safe": { "const": true }
+              }
+            }
+          },
+          "all_conditions_present": { "const": true },
+          "unsafe_short_selling_signal_detected": { "const": false },
+          "evidence_status": { "const": "short_selling_disabled" },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "short_selling_disabled_fixture_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["phase_slot", "row_key", "expected_short_selling_allowed", "unsafe_short_selling_signal_detected", "fixture_should_fail_when_short_selling_enabled", "fixture_should_fail_when_order_submit_enabled", "fixture_status", "short_selling_allowed_by_fixture", "order_submit_enabled_by_fixture", "live_execution_allowed_by_fixture", "command_execution_performed_by_fixture", "artifact_write_performed_by_fixture", "protected_action_executed_by_fixture", "human_review_required"],
+        "properties": {
+          "phase_slot": { "const": "P396" },
+          "expected_short_selling_allowed": { "const": false },
+          "unsafe_short_selling_signal_detected": { "const": false },
+          "fixture_should_fail_when_short_selling_enabled": { "const": true },
+          "fixture_should_fail_when_order_submit_enabled": { "const": true },
+          "fixture_status": { "const": "passed" },
+          "short_selling_allowed_by_fixture": { "const": false },
+          "order_submit_enabled_by_fixture": { "const": false },
+          "live_execution_allowed_by_fixture": { "const": false },
+          "command_execution_performed_by_fixture": { "const": false },
+          "artifact_write_performed_by_fixture": { "const": false },
+          "protected_action_executed_by_fixture": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "short_selling_disabled_gate_rows": {
+      "type": "array",
+      "minItems": 11,
+      "items": {
+        "type": "object",
+        "required": ["phase_slot", "row_key", "gate_status", "short_selling_allowed_by_gate", "order_submit_enabled_by_gate", "live_execution_allowed_by_gate", "protected_action_executed_by_gate", "human_review_required"],
+        "properties": {
+          "phase_slot": { "const": "P396" },
+          "gate_status": { "const": "ready" },
+          "short_selling_allowed_by_gate": { "const": false },
+          "order_submit_enabled_by_gate": { "const": false },
+          "live_execution_allowed_by_gate": { "const": false },
+          "protected_action_executed_by_gate": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "short_selling_disabled_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "phase_slot",
+        "read_only",
+        "report_only",
+        "short_selling_disabled_covered",
+        "unsafe_short_selling_signal_count",
+        "source_leverage_disabled_ready",
+        "short_selling_enabled",
+        "asset_short_allowed",
+        "strategy_no_short_missing",
+        "paper_short_order_present",
+        "risk_short_selling_allowed",
+        "risk_korea_short_check_missing",
+        "short_selling_gate_not_blocking",
+        "short_selling_not_blocking_order_intent",
+        "short_selling_risk_check_not_blocking",
+        "order_intent_generated",
+        "live_execution_allowed",
+        "broker_write_allowed",
+        "exchange_write_allowed",
+        "command_execution_performed",
+        "artifact_write_performed",
+        "protected_action_executed",
+        "human_review_required"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "phase_slot": { "const": "P396" },
+        "read_only": { "const": true },
+        "report_only": { "const": true },
+        "required_fixture_count": { "const": 5 },
+        "short_selling_evidence_count": { "const": 5 },
+        "fixture_count": { "const": 5 },
+        "unsafe_short_selling_signal_count": { "const": 0 },
+        "short_selling_disabled_covered": { "const": true },
+        "source_leverage_disabled_ready": { "const": true },
+        "short_selling_enabled": { "const": false },
+        "derivatives_enabled": { "const": false },
+        "research_live_trading_enabled": { "const": false },
+        "research_real_broker_adapters_enabled": { "const": false },
+        "asset_short_allowed": { "const": false },
+        "asset_derivatives_allowed": { "const": false },
+        "asset_live_trading_allowed": { "const": false },
+        "asset_not_paper_allowed": { "const": false },
+        "strategy_no_short_missing": { "const": false },
+        "strategy_live_eligible": { "const": false },
+        "strategy_live_stage_allowed": { "const": false },
+        "paper_short_order_present": { "const": false },
+        "paper_promotion_eligible": { "const": false },
+        "order_intent_short_side_present": { "const": false },
+        "order_intent_live_execution_allowed": { "const": false },
+        "risk_short_selling_allowed": { "const": false },
+        "risk_korea_short_check_missing": { "const": false },
+        "short_selling_gate_not_blocking": { "const": false },
+        "short_selling_not_blocking_order_intent": { "const": false },
+        "short_selling_risk_check_not_blocking": { "const": false },
+        "market_orders_enabled": { "const": false },
+        "market_order_allowed": { "const": false },
+        "order_submit_route_enabled": { "const": false },
+        "order_intent_generated": { "const": false },
+        "real_order_submitted": { "const": false },
+        "live_execution_allowed": { "const": false },
+        "broker_write_allowed": { "const": false },
+        "exchange_write_allowed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "artifact_write_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "human_review_required": { "const": true }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["trading_short_selling_disabled_fixtures_status", "phase_slot", "previous_phase_slot", "next_phase_slot", "source_leverage_disabled_status", "required_fixture_count", "evidence_count", "fixture_count", "passed_fixture_count", "unsafe_short_selling_signal_count", "short_selling_disabled_covered", "short_selling_enabled", "asset_short_allowed", "strategy_no_short_missing", "paper_short_order_present", "risk_short_selling_allowed", "order_intent_generated", "live_execution_allowed", "broker_write_allowed", "exchange_write_allowed", "command_execution_performed", "artifact_write_performed", "protected_action_executed", "validation_error_count"],
+      "properties": {
+        "trading_short_selling_disabled_fixtures_status": { "const": "ready_for_trading_short_selling_disabled_regression" },
+        "phase_slot": { "const": "P396" },
+        "previous_phase_slot": { "const": "P395" },
+        "next_phase_slot": { "const": "P397" },
+        "source_leverage_disabled_status": { "const": "ready_for_trading_leverage_disabled_regression" },
+        "required_fixture_count": { "const": 5 },
+        "evidence_count": { "const": 5 },
+        "fixture_count": { "const": 5 },
+        "passed_fixture_count": { "const": 5 },
+        "unsafe_short_selling_signal_count": { "const": 0 },
+        "short_selling_disabled_covered": { "const": true },
+        "short_selling_enabled": { "const": false },
+        "asset_short_allowed": { "const": false },
+        "strategy_no_short_missing": { "const": false },
+        "paper_short_order_present": { "const": false },
+        "risk_short_selling_allowed": { "const": false },
+        "risk_korea_short_check_missing": { "const": false },
+        "short_selling_gate_not_blocking": { "const": false },
+        "short_selling_not_blocking_order_intent": { "const": false },
+        "short_selling_risk_check_not_blocking": { "const": false },
+        "order_intent_generated": { "const": false },
+        "live_execution_allowed": { "const": false },
+        "broker_write_allowed": { "const": false },
+        "exchange_write_allowed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "artifact_write_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

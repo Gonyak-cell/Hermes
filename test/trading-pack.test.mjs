@@ -32,6 +32,7 @@ import { runTradingFirstTradeDisabledFixtures } from "../src/trading-first-trade
 import { runTradingOrderIntentDisabledFixtures } from "../src/trading-order-intent-disabled-fixtures.mjs";
 import { runTradingMarketOrderDisabledFixtures } from "../src/trading-market-order-disabled-fixtures.mjs";
 import { runTradingLeverageDisabledFixtures } from "../src/trading-leverage-disabled-fixtures.mjs";
+import { runTradingShortSellingDisabledFixtures } from "../src/trading-short-selling-disabled-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -2435,6 +2436,139 @@ test("trading leverage disabled fixtures --check does not overwrite existing art
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingLeverageDisabledFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading short selling disabled fixtures keep short selling blocked", async () => {
+  const result = await runTradingShortSellingDisabledFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_short_selling_disabled_fixtures_status, "ready_for_trading_short_selling_disabled_regression");
+  assert.equal(result.summary.phase_slot, "P396");
+  assert.equal(result.summary.previous_phase_slot, "P395");
+  assert.equal(result.summary.next_phase_slot, "P397");
+  assert.equal(result.summary.source_leverage_disabled_status, "ready_for_trading_leverage_disabled_regression");
+  assert.equal(result.summary.required_fixture_count, 5);
+  assert.equal(result.summary.passed_fixture_count, 5);
+  assert.equal(result.summary.unsafe_short_selling_signal_count, 0);
+  assert.equal(result.summary.short_selling_disabled_covered, true);
+  assert.equal(result.summary.short_selling_enabled, false);
+  assert.equal(result.summary.asset_short_allowed, false);
+  assert.equal(result.summary.strategy_no_short_missing, false);
+  assert.equal(result.summary.paper_short_order_present, false);
+  assert.equal(result.summary.risk_short_selling_allowed, false);
+  assert.equal(result.summary.risk_korea_short_check_missing, false);
+  assert.equal(result.summary.short_selling_gate_not_blocking, false);
+  assert.equal(result.summary.short_selling_not_blocking_order_intent, false);
+  assert.equal(result.summary.short_selling_risk_check_not_blocking, false);
+  assert.equal(result.summary.order_intent_generated, false);
+  assert.equal(result.summary.live_execution_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.ok(result.short_selling_disabled_evidence_rows.every((row) => row.evidence_status === "short_selling_disabled" && row.unsafe_short_selling_signal_detected === false));
+  assert.ok(result.short_selling_disabled_fixture_rows.every((row) => row.fixture_status === "passed" && row.fixture_should_fail_when_short_selling_enabled));
+  assert.ok(result.short_selling_disabled_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_gate === false));
+});
+
+test("trading short selling disabled fixtures block when short selling is enabled", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-short-selling-enabled-"));
+  try {
+    const researchBacktestPaper = JSON.parse(await readFile("examples/trading/research-backtest-paper-sample.json", "utf8"));
+    researchBacktestPaper.safety_policy.short_selling_enabled = true;
+    researchBacktestPaper.contract_examples["trading-asset"].capability_flags.short_allowed = true;
+    researchBacktestPaper.contract_examples["trading-strategy"].tradability_constraints = researchBacktestPaper.contract_examples["trading-strategy"].tradability_constraints.filter((constraint) => constraint !== "no_short");
+    researchBacktestPaper.contract_examples["trading-strategy"].live_eligible = true;
+    researchBacktestPaper.contract_examples["trading-strategy"].allowed_stages.push("live");
+    researchBacktestPaper.contract_examples["trading-paper-trade"].orders[0].side = "sell_short";
+    researchBacktestPaper.contract_examples["trading-paper-trade"].promotion_status = "eligible";
+    researchBacktestPaper.contract_examples["trading-order-intent"].order_side = "short";
+    researchBacktestPaper.contract_examples["trading-order-intent"].live_execution_allowed = true;
+    const researchBacktestPaperPath = path.join(root, "research-backtest-paper-sample.json");
+    await writeFile(researchBacktestPaperPath, `${JSON.stringify(researchBacktestPaper, null, 2)}\n`, "utf8");
+
+    const riskEngine = JSON.parse(await readFile("examples/trading/risk-engine.json", "utf8"));
+    riskEngine.risk_guards.short_selling_capability_gate.short_selling_allowed = true;
+    riskEngine.risk_guards.short_selling_capability_gate.korea_short_check_required = false;
+    riskEngine.risk_guards.short_selling_capability_gate.result = "pass";
+    riskEngine.risk_guards.short_selling_capability_gate.blocks_order_intent = false;
+    riskEngine.risk_check_artifacts[0].checks = riskEngine.risk_check_artifacts[0].checks.map((check) => (
+      check.check_id === "short_selling_capability_gate" ? { ...check, status: "pass" } : check
+    ));
+    const riskEnginePath = path.join(root, "risk-engine.json");
+    await writeFile(riskEnginePath, `${JSON.stringify(riskEngine, null, 2)}\n`, "utf8");
+
+    const result = await runTradingShortSellingDisabledFixtures({ researchBacktestPaperPath, riskEnginePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_short_selling_disabled_fixtures_status, "blocked");
+    assert.ok(result.summary.unsafe_short_selling_signal_count > 0);
+    assert.equal(result.summary.short_selling_enabled, true);
+    assert.equal(result.summary.asset_short_allowed, true);
+    assert.equal(result.summary.strategy_no_short_missing, true);
+    assert.equal(result.summary.strategy_live_eligible, true);
+    assert.equal(result.summary.strategy_live_stage_allowed, true);
+    assert.equal(result.summary.paper_short_order_present, true);
+    assert.equal(result.summary.paper_promotion_eligible, true);
+    assert.equal(result.summary.order_intent_short_side_present, true);
+    assert.equal(result.summary.order_intent_live_execution_allowed, true);
+    assert.equal(result.summary.risk_short_selling_allowed, true);
+    assert.equal(result.summary.risk_korea_short_check_missing, true);
+    assert.equal(result.summary.short_selling_gate_not_blocking, true);
+    assert.equal(result.summary.short_selling_not_blocking_order_intent, true);
+    assert.equal(result.summary.short_selling_risk_check_not_blocking, true);
+    assert.equal(result.summary.order_intent_generated, true);
+    assert.equal(result.summary.live_execution_allowed, true);
+    assert.ok(result.short_selling_disabled_fixture_rows.some((row) => row.row_key === "risk_short_selling_capability_gate_blocks" && row.fixture_status === "failed" && row.unsafe_short_selling_signal_detected));
+    await assert.rejects(
+      () => runTradingShortSellingDisabledFixtures({ researchBacktestPaperPath, riskEnginePath, write: false, check: true }),
+      /Trading short selling disabled fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading short selling disabled fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-short-selling-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:short-selling-disabled-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:short-selling-disabled-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingShortSellingDisabledFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_short_selling_disabled_fixtures_status, "blocked");
+    assert.ok(result.short_selling_disabled_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.short_selling_disabled_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingShortSellingDisabledFixtures({ packagePath, write: false, check: true }),
+      /Trading short selling disabled fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading short selling disabled fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-short-selling-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-short-selling-disabled-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-short-selling-disabled-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingShortSellingDisabledFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

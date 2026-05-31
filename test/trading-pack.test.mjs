@@ -14,6 +14,7 @@ import { runTradingExecutionReport } from "../src/trading-execution-engine.mjs";
 import { runTradingFullAutoReport } from "../src/trading-full-auto-governance.mjs";
 import { runTradingLimitedLiveReport } from "../src/trading-limited-live-governance.mjs";
 import { runTradingReleaseCheck } from "../src/trading-release-check.mjs";
+import { runTradingSafetyRegressionFixtures } from "../src/trading-safety-regression-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -637,6 +638,101 @@ test("trading release check --check does not overwrite existing artifacts", asyn
       check: true,
       runner: async () => ({ exitCode: 0, stdout: "", stderr: "", durationMs: 1 }),
     });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading safety regression fixtures fail fast on unsafe enablement flags", async () => {
+  const result = await runTradingSafetyRegressionFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_safety_regression_fixtures_status, "ready_for_trading_safety_regression");
+  assert.equal(result.summary.phase_slot, "P381");
+  assert.equal(result.summary.previous_phase_slot, "P380");
+  assert.equal(result.summary.next_phase_slot, "P382");
+  assert.equal(result.summary.source_release_check_receipt_closeout_status, "ready_for_release_check_receipt_chain_closeout");
+  assert.equal(result.summary.fixture_count, 4);
+  assert.equal(result.summary.passed_fixture_count, 4);
+  assert.equal(result.summary.failed_fixture_count, 0);
+  assert.equal(result.summary.unsafe_flag_detected_count, 0);
+  assert.equal(result.summary.limited_live_enabled, false);
+  assert.equal(result.summary.full_auto_enabled, false);
+  assert.equal(result.summary.automatic_order_submission_allowed, false);
+  assert.equal(result.summary.live_order_submission_allowed, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.release_check_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.ok(result.safety_regression_fixture_rows.every((row) => row.fixture_status === "passed" && row.fixture_should_fail_when_true && row.expected_safe_value === false && row.unsafe_value === true && row.unsafe_value_detected === false && row.protected_action_executed_by_fixture === false));
+  assert.ok(result.safety_regression_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_gate === false));
+});
+
+test("trading safety regression fixtures block when full auto is enabled", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-safety-regression-full-auto-"));
+  try {
+    const fullAuto = JSON.parse(await readFile("examples/trading/full-auto-governance.json", "utf8"));
+    fullAuto.safety_boundary.full_auto_enabled = true;
+    const fullAutoPath = path.join(root, "full-auto-governance.json");
+    await writeFile(fullAutoPath, `${JSON.stringify(fullAuto, null, 2)}\n`, "utf8");
+
+    const result = await runTradingSafetyRegressionFixtures({ fullAutoPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_safety_regression_fixtures_status, "blocked");
+    assert.equal(result.summary.full_auto_enabled, true);
+    assert.equal(result.summary.unsafe_flag_detected_count, 1);
+    assert.ok(result.safety_regression_fixture_rows.some((row) => row.flag_name === "full_auto_enabled" && row.fixture_status === "failed" && row.unsafe_value_detected));
+    await assert.rejects(
+      () => runTradingSafetyRegressionFixtures({ fullAutoPath, write: false, check: true }),
+      /Trading safety regression fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading safety regression fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-safety-regression-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:safety-regression-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:safety-regression-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingSafetyRegressionFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_safety_regression_fixtures_status, "blocked");
+    assert.ok(result.safety_regression_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.safety_regression_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingSafetyRegressionFixtures({ packagePath, write: false, check: true }),
+      /Trading safety regression fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading safety regression fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-safety-regression-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-safety-regression-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-safety-regression-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingSafetyRegressionFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

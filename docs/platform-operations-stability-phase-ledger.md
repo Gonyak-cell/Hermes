@@ -22,7 +22,7 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 | --- | --- | --- | --- |
 | P341-P360 | Reproducibility baseline | complete | Pin Node/npm policy, lockfile policy, P340 provenance, deterministic runtime baseline artifact, and `platform:runtime-baseline`. |
 | P361-P380 | Unified platform and trading checks | complete | Add `trading:release-check`, `platform:ops-check`, `platform:release-check`, and receipt-readiness closeout so operators do not rely on remembered command order. |
-| P381-P400 | Trading safety regression | planned | Fail immediately if live, full-auto, automatic order submission, broker credential, generic order, or mutating trading routes become enabled. |
+| P381-P400 | Trading safety regression | active | Fail immediately if live, full-auto, automatic order submission, broker credential, generic order, or mutating trading routes become enabled. |
 | P401-P420 | Promotion receipt gates | planned | Require independent human approval receipts for research -> backtest -> paper -> shadow -> limited-live -> full-auto promotion claims. |
 | P421-P440 | Execution and secret isolation | planned | Keep simulated and live broker adapters schema/API separated; live credentials are external secret handles only. |
 | P441-P460 | Recovery drills | planned | Cover stale data, exchange outage, failed fill, partial fill, duplicate order intent, kill switch, and rollback-to-paper as dry-run receipt drafts. |
@@ -81,6 +81,7 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 
 ## P381-P400 Acceptance Criteria
 
+- P381: `trading:safety-regression-fixtures` declares fail-fast regression fixtures that block when `limited_live_enabled`, `full_auto_enabled`, `automatic_order_submission_allowed`, or `live_order_submission_allowed` is true without enabling live trading, full-auto, order submission, broker writes, exchange writes, command execution, artifact mutation, or protected actions.
 - Regression fixtures fail when `limited_live_enabled`, `full_auto_enabled`, `automatic_order_submission_allowed`, or `live_order_submission_allowed` is true.
 - Route inventory fixtures fail when mutating trading routes, broker credential routes, live broker write routes, or generic order submission routes are present.
 - Safety checks cover disabled routes, approval absence, live adapter disabled state, credential lookup disabled state, no broker writes, and no exchange writes.

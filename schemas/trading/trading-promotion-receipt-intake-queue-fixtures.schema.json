@@ -1,0 +1,276 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/trading/trading-promotion-receipt-intake-queue-fixtures.schema.json",
+  "title": "Trading Promotion Receipt Intake Queue Fixtures",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "trading_promotion_receipt_intake_queue_fixtures_id",
+    "capability_id",
+    "promotion_receipt_intake_queue_anchor",
+    "promotion_receipt_intake_queue_rows",
+    "promotion_receipt_intake_queue_summary_rows",
+    "promotion_receipt_intake_queue_gate_rows",
+    "promotion_receipt_intake_queue_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "trading-promotion-receipt-intake-queue-fixtures.v1" },
+    "trading_promotion_receipt_intake_queue_fixtures_id": {
+      "type": "string",
+      "pattern": "^trading-promotion-receipt-intake-queue-fixtures\\.[0-9]{8}$"
+    },
+    "capability_id": { "const": "trading.promotion_receipt_intake_queue_fixtures" },
+    "promotion_receipt_intake_queue_anchor": {
+      "type": "object",
+      "required": [
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "source_promotion_governance_readonly_status",
+        "required_receipt_intake_queue_row_count"
+      ],
+      "properties": {
+        "phase_slot": { "const": "P404" },
+        "previous_phase_slot": { "const": "P403" },
+        "next_phase_slot": { "const": "P405" },
+        "source_promotion_governance_readonly_status": { "const": "ready_for_trading_promotion_governance_readonly_regression" },
+        "required_receipt_intake_queue_row_count": { "const": 6 }
+      }
+    },
+    "promotion_receipt_intake_queue_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "row_key",
+          "source_readonly_governance_status",
+          "source_governance_report_is_evidence_only",
+          "source_governance_complete_with_real_enablement_false",
+          "receipt_required",
+          "receipt_intake_queue_status",
+          "receipt_payload_present",
+          "receipt_input_materialized",
+          "receipt_input_read_performed",
+          "receipt_validation_performed",
+          "receipt_application_performed",
+          "approval_applied",
+          "promotion_enablement_allowed",
+          "live_order_submission_allowed",
+          "live_execution_allowed",
+          "command_execution_performed_by_intake",
+          "artifact_write_performed_by_intake",
+          "protected_action_executed_by_intake",
+          "human_review_required"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P404" },
+          "row_key": {
+            "enum": [
+              "research_to_backtest_receipt_intake_queue",
+              "backtest_to_paper_receipt_intake_queue",
+              "paper_to_shadow_receipt_intake_queue",
+              "shadow_to_limited_live_receipt_intake_queue",
+              "limited_live_to_full_auto_receipt_intake_queue",
+              "full_auto_activation_receipt_intake_queue"
+            ]
+          },
+          "source_readonly_governance_status": { "const": "ready_readonly_governance" },
+          "source_governance_report_is_evidence_only": { "const": true },
+          "source_governance_complete_with_real_enablement_false": { "const": true },
+          "receipt_required": { "const": true },
+          "receipt_intake_queue_status": { "const": "queued_pending_human_receipt" },
+          "receipt_payload_present": { "const": false },
+          "receipt_input_materialized": { "const": false },
+          "receipt_input_read_performed": { "const": false },
+          "receipt_validation_performed": { "const": false },
+          "receipt_application_performed": { "const": false },
+          "approval_applied": { "const": false },
+          "promotion_enablement_allowed": { "const": false },
+          "live_order_submission_allowed": { "const": false },
+          "live_execution_allowed": { "const": false },
+          "command_execution_performed_by_intake": { "const": false },
+          "artifact_write_performed_by_intake": { "const": false },
+          "protected_action_executed_by_intake": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "promotion_receipt_intake_queue_summary_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "row_key",
+          "receipt_required",
+          "receipt_payload_present",
+          "receipt_validation_performed",
+          "receipt_application_performed",
+          "promotion_enablement_allowed",
+          "live_execution_allowed",
+          "summary_status",
+          "human_review_required"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P404" },
+          "receipt_required": { "const": true },
+          "receipt_payload_present": { "const": false },
+          "receipt_validation_performed": { "const": false },
+          "receipt_application_performed": { "const": false },
+          "promotion_enablement_allowed": { "const": false },
+          "live_execution_allowed": { "const": false },
+          "summary_status": { "const": "pending_human_receipt_intake" },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "promotion_receipt_intake_queue_gate_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "row_key",
+          "gate_status",
+          "receipt_materialized_by_gate",
+          "receipt_validation_performed_by_gate",
+          "receipt_application_performed_by_gate",
+          "promotion_enablement_allowed_by_gate",
+          "live_order_submission_allowed_by_gate",
+          "live_execution_allowed_by_gate",
+          "protected_action_executed_by_gate",
+          "human_review_required"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P404" },
+          "gate_status": { "const": "ready" },
+          "receipt_materialized_by_gate": { "const": false },
+          "receipt_validation_performed_by_gate": { "const": false },
+          "receipt_application_performed_by_gate": { "const": false },
+          "promotion_enablement_allowed_by_gate": { "const": false },
+          "live_order_submission_allowed_by_gate": { "const": false },
+          "live_execution_allowed_by_gate": { "const": false },
+          "protected_action_executed_by_gate": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "promotion_receipt_intake_queue_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "phase_slot",
+        "read_only",
+        "report_only",
+        "required_receipt_intake_queue_row_count",
+        "receipt_intake_queue_row_count",
+        "ready_receipt_intake_queue_row_count",
+        "source_promotion_governance_readonly_ready",
+        "receipt_intake_queue_rows_covered",
+        "receipt_intake_queue_pending",
+        "governance_reports_readonly",
+        "governance_reports_complete_with_real_enablement_false",
+        "receipt_payload_present_count",
+        "source_receipt_present",
+        "source_approval_applied",
+        "receipt_materialized",
+        "receipt_input_read_performed",
+        "receipt_validation_performed",
+        "receipt_application_performed",
+        "approval_applied",
+        "shadow_live_enabled",
+        "limited_live_enabled",
+        "full_auto_enabled",
+        "automatic_order_submission_allowed",
+        "live_order_submission_allowed",
+        "live_execution_allowed",
+        "broker_write_allowed",
+        "exchange_write_allowed",
+        "command_execution_performed",
+        "artifact_write_performed",
+        "protected_action_executed",
+        "human_review_required"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "phase_slot": { "const": "P404" },
+        "read_only": { "const": true },
+        "report_only": { "const": true },
+        "required_receipt_intake_queue_row_count": { "const": 6 },
+        "receipt_intake_queue_row_count": { "const": 6 },
+        "summary_row_count": { "const": 6 },
+        "ready_receipt_intake_queue_row_count": { "const": 6 },
+        "source_promotion_governance_readonly_status": { "const": "ready_for_trading_promotion_governance_readonly_regression" },
+        "source_promotion_governance_readonly_ready": { "const": true },
+        "receipt_intake_queue_rows_covered": { "const": true },
+        "receipt_intake_queue_pending": { "const": true },
+        "governance_reports_readonly": { "const": true },
+        "governance_reports_complete_with_real_enablement_false": { "const": true },
+        "completion_gates_block_without_receipts": { "const": true },
+        "real_enablement_count": { "const": 0 },
+        "receipt_payload_present_count": { "const": 0 },
+        "source_receipt_present": { "const": false },
+        "source_approval_applied": { "const": false },
+        "receipt_materialized": { "const": false },
+        "receipt_input_read_performed": { "const": false },
+        "receipt_validation_performed": { "const": false },
+        "receipt_application_performed": { "const": false },
+        "approval_applied": { "const": false },
+        "shadow_live_enabled": { "const": false },
+        "limited_live_enabled": { "const": false },
+        "full_auto_enabled": { "const": false },
+        "automatic_order_submission_allowed": { "const": false },
+        "live_order_submission_allowed": { "const": false },
+        "live_promotion_allowed": { "const": false },
+        "live_execution_allowed": { "const": false },
+        "broker_write_allowed": { "const": false },
+        "exchange_write_allowed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "artifact_write_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "human_review_required": { "const": true }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "trading_promotion_receipt_intake_queue_fixtures_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "source_promotion_governance_readonly_ready",
+        "receipt_intake_queue_pending",
+        "receipt_payload_present_count",
+        "receipt_validation_performed",
+        "receipt_application_performed",
+        "approval_applied",
+        "live_execution_allowed",
+        "protected_action_executed"
+      ],
+      "properties": {
+        "trading_promotion_receipt_intake_queue_fixtures_status": { "const": "ready_for_trading_promotion_receipt_intake_queue_regression" },
+        "phase_slot": { "const": "P404" },
+        "previous_phase_slot": { "const": "P403" },
+        "next_phase_slot": { "const": "P405" },
+        "source_promotion_governance_readonly_ready": { "const": true },
+        "receipt_intake_queue_pending": { "const": true },
+        "receipt_payload_present_count": { "const": 0 },
+        "receipt_validation_performed": { "const": false },
+        "receipt_application_performed": { "const": false },
+        "approval_applied": { "const": false },
+        "live_execution_allowed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

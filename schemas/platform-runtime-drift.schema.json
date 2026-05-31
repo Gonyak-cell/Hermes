@@ -1,0 +1,201 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-runtime-drift.schema.json",
+  "title": "Platform Runtime Drift Check",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_runtime_drift_check_id",
+    "capability_id",
+    "baseline_reference",
+    "source_fingerprints",
+    "runtime_drift_rows",
+    "dependency_drift_rows",
+    "provenance_drift_rows",
+    "runtime_drift_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-runtime-drift.v1" },
+    "platform_runtime_drift_check_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "platform.runtime_drift_check" },
+    "baseline_reference": {
+      "type": "object",
+      "required": [
+        "baseline_phase_slot",
+        "baseline_command",
+        "baseline_status",
+        "pinned_node_version",
+        "pinned_package_manager",
+        "package_lock_required",
+        "p340_verified_bundle_sha256"
+      ],
+      "properties": {
+        "baseline_phase_slot": { "const": "P341" },
+        "baseline_command": { "const": "platform:runtime-baseline -- --check" },
+        "baseline_status": { "const": "complete" },
+        "pinned_node_version": { "const": "26.0.0" },
+        "pinned_package_manager": { "const": "npm@11.12.1" },
+        "package_lock_required": { "const": true },
+        "p340_verified_bundle_sha256": { "const": "1a1563a47e2f6704e0f25be56a4c74069863e97c6312e0b0348088ccd231051d" }
+      }
+    },
+    "source_fingerprints": {
+      "type": "array",
+      "minItems": 9,
+      "items": {
+        "type": "object",
+        "required": ["source_key", "source_status", "read_only", "content_read_for_hash_only"],
+        "properties": {
+          "source_status": { "const": "available" },
+          "read_only": { "const": true },
+          "content_read_for_hash_only": { "const": true }
+        }
+      }
+    },
+    "runtime_drift_rows": {
+      "type": "array",
+      "minItems": 7,
+      "items": { "$ref": "#/$defs/drift_row" }
+    },
+    "dependency_drift_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/drift_row" }
+    },
+    "provenance_drift_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/$defs/drift_row" }
+    },
+    "runtime_drift_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "phase_slot",
+        "baseline_phase_slot",
+        "read_only",
+        "report_only",
+        "dependency_install_performed",
+        "package_mutation_performed",
+        "lockfile_mutation_performed",
+        "runtime_policy_mutation_performed",
+        "command_execution_performed",
+        "git_tag_created",
+        "release_published",
+        "desktop_source_of_truth",
+        "desktop_mutation_allowed",
+        "trading_live_enabled",
+        "trading_full_auto_enabled",
+        "trading_order_submission_allowed",
+        "broker_write_allowed",
+        "protected_recovery_execution_allowed",
+        "human_review_required_for_drift"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "phase_slot": { "const": "P342" },
+        "baseline_phase_slot": { "const": "P341" },
+        "read_only": { "const": true },
+        "report_only": { "const": true },
+        "dependency_install_performed": { "const": false },
+        "package_mutation_performed": { "const": false },
+        "lockfile_mutation_performed": { "const": false },
+        "runtime_policy_mutation_performed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "git_tag_created": { "const": false },
+        "release_published": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "desktop_mutation_allowed": { "const": false },
+        "trading_live_enabled": { "const": false },
+        "trading_full_auto_enabled": { "const": false },
+        "trading_order_submission_allowed": { "const": false },
+        "broker_write_allowed": { "const": false },
+        "protected_recovery_execution_allowed": { "const": false },
+        "human_review_required_for_drift": { "const": true }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "platform_runtime_drift_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "baseline_phase_slot",
+        "baseline_status",
+        "baseline_command",
+        "runtime_drift_row_count",
+        "stable_runtime_drift_row_count",
+        "dependency_drift_row_count",
+        "stable_dependency_drift_row_count",
+        "provenance_drift_row_count",
+        "stable_provenance_drift_row_count",
+        "total_drift_row_count",
+        "stable_drift_row_count",
+        "drifted_row_count",
+        "read_only",
+        "report_only",
+        "dependency_install_performed",
+        "package_mutation_performed",
+        "lockfile_mutation_performed",
+        "release_published",
+        "desktop_source_of_truth",
+        "desktop_mutation_allowed",
+        "trading_live_enabled",
+        "trading_full_auto_enabled",
+        "trading_order_submission_allowed",
+        "broker_write_allowed",
+        "validation_error_count"
+      ],
+      "properties": {
+        "platform_runtime_drift_status": { "const": "stable" },
+        "phase_slot": { "const": "P342" },
+        "previous_phase_slot": { "const": "P341" },
+        "next_phase_slot": { "const": "P343" },
+        "baseline_phase_slot": { "const": "P341" },
+        "baseline_status": { "const": "complete" },
+        "baseline_command": { "const": "platform:runtime-baseline -- --check" },
+        "drifted_row_count": { "const": 0 },
+        "read_only": { "const": true },
+        "report_only": { "const": true },
+        "dependency_install_performed": { "const": false },
+        "package_mutation_performed": { "const": false },
+        "lockfile_mutation_performed": { "const": false },
+        "release_published": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "desktop_mutation_allowed": { "const": false },
+        "trading_live_enabled": { "const": false },
+        "trading_full_auto_enabled": { "const": false },
+        "trading_order_submission_allowed": { "const": false },
+        "broker_write_allowed": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "drift_row": {
+      "type": "object",
+      "required": [
+        "phase_slot",
+        "baseline_phase_slot",
+        "row_kind",
+        "source_row_id",
+        "source_row_status",
+        "drift_status",
+        "human_review_required"
+      ],
+      "properties": {
+        "phase_slot": { "const": "P342" },
+        "baseline_phase_slot": { "const": "P341" },
+        "source_row_status": { "const": "passed" },
+        "drift_status": { "const": "stable" },
+        "human_review_required": { "const": false }
+      }
+    }
+  }
+}

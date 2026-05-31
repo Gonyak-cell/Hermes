@@ -7998,3 +7998,26 @@ Changes:
 - Registered `platform:runtime-baseline -- --check` in the `npm run validate` chain.
 - The baseline emits `platform-runtime-baseline.json`, runtime rows, dependency rows, provenance rows, boundary, validation report, and summary markdown under `artifacts/platform-runtime-baseline/latest`.
 - The P340 verified transfer bundle hash is recorded as the provenance anchor while Trading live/full-auto/order submission and Desktop mutation/source-of-truth remain false.
+
+## Phase 342 - Platform Runtime Drift Check
+
+Phase 342 adds a deterministic runtime/dependency drift report against the P341
+baseline. It builds `platform:runtime-baseline` in memory, compares current
+runtime, dependency, and provenance rows to the P341 expected values, records
+source fingerprints, and preserves the read-only/default-disabled safety
+boundary without installing dependencies, mutating package files, creating tags,
+publishing releases, executing recovery, enabling Desktop mutation, or enabling
+Trading live/full-auto/order submission.
+
+Changes:
+
+- Added `src/platform-runtime-drift.mjs`, `scripts/platform-runtime-drift.mjs`,
+  `schemas/platform-runtime-drift.schema.json`, and
+  `docs/platform-runtime-drift.md`.
+- Added `platform:drift-check` and registered
+  `platform:drift-check -- --check` in the validation chain.
+- Added focused platform operations tests for stable drift checks, dependency
+  drift detection, and `--check` no-overwrite behavior.
+- Updated the P341-P500 ledger so P342 owns the first runtime/dependency drift
+  comparison and P343-P345 remain reserved for replay-window and operator
+  handoff detail.

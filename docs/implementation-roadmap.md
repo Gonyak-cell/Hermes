@@ -8792,3 +8792,29 @@ Changes:
   blocked source validation rules, and `--check` no-overwrite behavior.
 - Updated the P341-P500 ledger so P374 owns release-check receipt workspace
   preparation.
+
+## Phase 375 - Release-Check Receipt Workspace Merge
+
+Phase 375 declares future merge rows for the P374 release-check receipt
+workspace. It records actor-workspace expectations for each reviewer row without
+reading actor workspace files, materializing merged receipt input, receiving
+receipt payloads, validating receipts, marking rows ready for validation,
+completing signoff, applying approvals, running release checks, reading or
+writing artifacts, publishing releases, or mutating release/trading state.
+
+Changes:
+
+- Added `src/platform-release-check-receipt-workspace-merge.mjs`,
+  `scripts/platform-release-check-receipt-workspace-merge.mjs`,
+  `schemas/platform-release-check-receipt-workspace-merge.schema.json`, and
+  `docs/platform-release-check-receipt-workspace-merge.md`.
+- Added `platform:release-check-receipt-workspace-merge` and registered
+  `platform:release-check-receipt-workspace-merge -- --check` in the validation
+  chain.
+- The command consumes the P374 receipt workspace in memory and produces merge
+  rows, gate rows, a boundary report, validation output, and a Markdown summary
+  when not in `--check` mode.
+- Added focused tests for merge rows, missing validation-chain registration,
+  blocked source workspaces, and `--check` no-overwrite behavior.
+- Updated the P341-P500 ledger so P375 owns release-check receipt workspace
+  merge preparation.

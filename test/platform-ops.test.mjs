@@ -7,6 +7,7 @@ import { runPlatformRuntimeDriftCheck } from "../src/platform-runtime-drift.mjs"
 import { runPlatformRuntimeBaseline } from "../src/platform-runtime-baseline.mjs";
 import { runPlatformRuntimeReplayWindow } from "../src/platform-runtime-replay-window.mjs";
 import { runPlatformOperatorHandoff } from "../src/platform-operator-handoff.mjs";
+import { runPlatformArtifactGuard } from "../src/platform-artifact-guard.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -250,6 +251,78 @@ test("platform operator handoff --check does not overwrite existing artifacts", 
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformOperatorHandoff({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform artifact guard closes P345 read-only artifact policy", async () => {
+  const result = await runPlatformArtifactGuard({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_artifact_guard_status, "guarded");
+  assert.equal(result.summary.phase_slot, "P345");
+  assert.equal(result.summary.previous_phase_slot, "P344");
+  assert.equal(result.summary.next_phase_slot, "P346");
+  assert.equal(result.summary.source_operator_handoff_status, "ready");
+  assert.equal(result.summary.artifact_guard_row_count, 5);
+  assert.equal(result.summary.guarded_artifact_row_count, 5);
+  assert.equal(result.summary.check_mode_row_count, 5);
+  assert.equal(result.summary.check_mode_ready_count, 5);
+  assert.equal(result.summary.source_policy_row_count, 5);
+  assert.equal(result.summary.source_policy_ready_count, 5);
+  assert.equal(result.summary.read_only, true);
+  assert.equal(result.summary.report_only, true);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.package_mutation_performed, false);
+  assert.equal(result.summary.artifact_overwrite_performed, false);
+  assert.equal(result.summary.artifact_regeneration_performed, false);
+  assert.equal(result.summary.git_operation_performed, false);
+  assert.equal(result.summary.release_published, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.ok(result.artifact_guard_rows.every((row) => row.artifact_guard_status === "guarded" && row.artifact_tree_ignored_by_git));
+  assert.ok(result.check_mode_rows.every((row) => row.check_mode_status === "ready" && row.check_overwrite_allowed === false));
+});
+
+test("platform artifact guard blocks when a platform script is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-artifact-guard-block-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:artifact-guard"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:artifact-guard -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformArtifactGuard({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_artifact_guard_status, "blocked");
+    assert.ok(result.check_mode_rows.some((row) => row.package_script_name === "platform:artifact-guard" && row.check_mode_status === "blocked"));
+    assert.ok(result.source_policy_rows.some((row) => row.row_key === "platform_validate_chain_registered" && row.source_policy_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformArtifactGuard({ packagePath, write: false, check: true }),
+      /Platform artifact guard failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform artifact guard --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-artifact-guard-check-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-artifact-guard.json");
+    const sentinel = "{ \"sentinel\": \"artifact-guard\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformArtifactGuard({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

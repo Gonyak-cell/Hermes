@@ -8065,3 +8065,25 @@ Changes:
   replay-window-blocked handoff, and `--check` no-overwrite behavior.
 - Updated the P341-P500 ledger so P344 owns operator handoff packets and P345 is
   reserved for final read-only artifact guard detail before provenance phases.
+
+## Phase 345 - Platform Artifact Guard
+
+Phase 345 closes the runtime/dependency drift-report sequence with a read-only
+artifact guard. It consumes the P344 operator handoff in memory, verifies that
+P341-P345 generated outputs remain under ignored `artifacts/`, checks that the
+platform reproducibility scripts are registered in `package.json`, and proves
+the validation chain includes those platform checks.
+
+Changes:
+
+- Added `src/platform-artifact-guard.mjs`,
+  `scripts/platform-artifact-guard.mjs`,
+  `schemas/platform-artifact-guard.schema.json`, and
+  `docs/platform-artifact-guard.md`.
+- Added `platform:artifact-guard` and registered
+  `platform:artifact-guard -- --check` after `platform:operator-handoff` in the
+  validation chain.
+- Added focused platform operations tests for guarded artifact policy,
+  missing-script blocking, and `--check` no-overwrite behavior.
+- Updated the P341-P500 ledger so P345 closes the runtime/dependency
+  drift-report sequence before the P346-P350 provenance phases begin.

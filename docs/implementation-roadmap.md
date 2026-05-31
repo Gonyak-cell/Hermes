@@ -8202,3 +8202,27 @@ Changes:
   no-overwrite behavior.
 - Updated the P341-P500 ledger so P350 owns final provenance freeze closeout and
   P351-P355 remain reserved for Mac/Windows replay notes and lockfile policy.
+
+## Phase 351 - Platform Mac/Windows Replay Notes
+
+Phase 351 starts the P351-P355 operator handoff sequence for cross-OS replay
+context. It consumes P350 provenance freeze in memory, records Mac snapshot and
+Windows history replay notes, and verifies that history import, checkout
+mutation, artifact regeneration, and lockfile mutation remain outside this
+report.
+
+Changes:
+
+- Added `src/platform-mac-windows-replay-notes.mjs`,
+  `scripts/platform-mac-windows-replay-notes.mjs`,
+  `schemas/platform-mac-windows-replay-notes.schema.json`, and
+  `docs/platform-mac-windows-replay-notes.md`.
+- Added `platform:mac-windows-replay-notes` and registered
+  `platform:mac-windows-replay-notes -- --check` after
+  `platform:provenance-freeze` in the validation chain.
+- Added focused platform operations tests for Mac/Windows replay note readiness,
+  missing package-script or validation-chain registration, and `--check`
+  no-overwrite behavior.
+- Updated the P341-P500 ledger so P351 owns Mac/Windows replay notes and
+  P352-P355 remain reserved for lockfile policy detail and replay handoff
+  refinements.

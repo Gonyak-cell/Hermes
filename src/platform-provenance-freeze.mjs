@@ -209,7 +209,7 @@ function buildFreezeGateRows({ freezeClosureRows, packageJson, platformOpsLedger
     gateRow("p350_ledger_acceptance_declared", "P350 acceptance row is declared in the platform operations ledger.", ledgerText.includes("P350: `platform:provenance-freeze`")),
     gateRow("provenance_freeze_closes_p346_p350", "P346-P350 provenance rows are closed by the final freeze record.", freezeClosureRows.length === 5 && freezeClosureRows.every((row) => row.freeze_closure_status === "ready" && row.final_freeze_recorded)),
     gateRow("no_git_tag_release_execution", "Freeze closeout performs no git tag or release operation.", true),
-    gateRow("p351_next_phase_reserved", "P351-P355 remains reserved for Mac/Windows replay notes and lockfile policy.", ledgerText.includes("P351-P355") && ledgerText.includes("Mac/Windows replay notes")),
+    gateRow("p351_next_phase_reserved", "P351 starts Mac/Windows replay notes and P352-P355 remains reserved for lockfile policy.", ledgerText.includes("P351: `platform:mac-windows-replay-notes`") && ledgerText.includes("P352-P355") && ledgerText.includes("lockfile policy")),
   ];
   return rows.map((row, index) => withOrdinalAndHash(row, index, "freeze_gate_hash"));
 }

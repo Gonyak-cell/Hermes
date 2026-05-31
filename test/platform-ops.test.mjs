@@ -13,6 +13,7 @@ import { runPlatformReleaseBundleProvenance } from "../src/platform-release-bund
 import { runPlatformSignedTagProvenance } from "../src/platform-signed-tag-provenance.mjs";
 import { runPlatformProvenanceFreezePreflight } from "../src/platform-provenance-freeze-preflight.mjs";
 import { runPlatformProvenanceFreeze } from "../src/platform-provenance-freeze.mjs";
+import { runPlatformMacWindowsReplayNotes } from "../src/platform-mac-windows-replay-notes.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -663,6 +664,73 @@ test("platform provenance freeze --check does not overwrite existing artifacts",
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformProvenanceFreeze({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform Mac/Windows replay notes document P351 without cross-OS mutation", async () => {
+  const result = await runPlatformMacWindowsReplayNotes({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_mac_windows_replay_notes_status, "ready");
+  assert.equal(result.summary.phase_slot, "P351");
+  assert.equal(result.summary.previous_phase_slot, "P350");
+  assert.equal(result.summary.next_phase_slot, "P352");
+  assert.equal(result.summary.source_provenance_freeze_status, "ready");
+  assert.equal(result.summary.replay_note_count, 6);
+  assert.equal(result.summary.ready_replay_note_count, 6);
+  assert.equal(result.summary.replay_gate_count, 7);
+  assert.equal(result.summary.ready_replay_gate_count, 7);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.history_import_performed, false);
+  assert.equal(result.summary.repository_checkout_changed, false);
+  assert.equal(result.summary.lockfile_mutation_performed, false);
+  assert.equal(result.summary.artifact_regeneration_performed, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.ok(result.replay_note_rows.every((row) => row.replay_note_status === "ready" && row.note_only));
+  assert.ok(result.replay_gate_rows.every((row) => row.gate_status === "ready" && row.history_import_performed_by_report === false));
+});
+
+test("platform Mac/Windows replay notes block when validation chain is missing P351", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-mac-windows-replay-block-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:mac-windows-replay-notes"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:mac-windows-replay-notes -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformMacWindowsReplayNotes({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_mac_windows_replay_notes_status, "blocked");
+    assert.ok(result.replay_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.replay_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformMacWindowsReplayNotes({ packagePath, write: false, check: true }),
+      /Platform Mac\/Windows replay notes failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform Mac/Windows replay notes --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-mac-windows-replay-check-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-mac-windows-replay-notes.json");
+    const sentinel = "{ \"sentinel\": \"mac-windows-replay-notes\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformMacWindowsReplayNotes({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

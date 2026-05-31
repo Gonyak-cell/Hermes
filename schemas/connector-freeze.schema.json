@@ -160,7 +160,7 @@
         "passed_representative_source_ingest_path_count": { "const": 6 },
         "gate_count": { "type": "integer", "minimum": 7 },
         "passed_gate_count": { "type": "integer", "minimum": 7 },
-        "connector_contract_count": { "const": 8 },
+        "connector_contract_count": { "const": 9 },
         "failed_checkpoint_count": { "const": 0 },
         "validation_error_count": { "const": 0 },
         "legal_advice_generated": { "const": false },

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/trading/trading-signal.schema.json",
+  "title": "Trading Signal",
+  "type": "object",
+  "required": ["schema_version", "signal_id", "strategy_id", "asset_id", "signal_side", "confidence", "rationale", "freshness_status", "execution_boundary", "human_review_required"],
+  "properties": {
+    "schema_version": {
+      "const": "trading-signal.v1"
+    },
+    "signal_id": {
+      "type": "string",
+      "pattern": "^signal\\.[a-z0-9_\\.:-]+$"
+    },
+    "strategy_id": {
+      "type": "string"
+    },
+    "asset_id": {
+      "type": "string"
+    },
+    "signal_side": {
+      "enum": ["buy", "sell", "hold", "reduce", "increase"]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "rationale": {
+      "type": "string"
+    },
+    "freshness_status": {
+      "enum": ["fresh", "stale", "blocked"]
+    },
+    "execution_boundary": {
+      "enum": ["signal_only", "order_intent_candidate"]
+    },
+    "human_review_required": {
+      "const": true
+    }
+  }
+}

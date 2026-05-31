@@ -1,0 +1,27 @@
+{
+  "schema_version": "trading-limited-live-golden-fixtures.v1",
+  "fixture_set_id": "trading.limited-live-governance.p281_p310",
+  "generated_at": "2026-05-31T00:00:00.000Z",
+  "fixtures": [
+    {
+      "fixture_id": "golden.trading.limited_live_governance.p281_p310",
+      "input_ref": "examples/trading/limited-live-governance.json",
+      "expected_status": "complete",
+      "expected_phase_range": "P281-P310",
+      "expected_phase_count": 30,
+      "expected_approval_required": true,
+      "expected_approval_receipt_present": false,
+      "expected_capital_cap_enforced": true,
+      "expected_asset_whitelist_count": 3,
+      "expected_strategy_whitelist_count": 1,
+      "expected_model_whitelist_count": 1,
+      "expected_daily_order_cap": 0,
+      "expected_limited_live_enabled": false,
+      "expected_live_order_submission_allowed": false,
+      "expected_real_order_submitted": false,
+      "expected_full_auto_promotion_allowed": false,
+      "expected_regression_case_count": 10,
+      "expected_dashboard_read_only": true
+    }
+  ]
+}

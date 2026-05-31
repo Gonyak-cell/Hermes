@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/trading/trading-risk.schema.json",
+  "title": "Trading Risk",
+  "type": "object",
+  "required": ["schema_version", "risk_check_id", "portfolio_id", "result", "checks", "live_trade_allowed", "override_requires_human_approval", "kill_switch_status"],
+  "properties": {
+    "schema_version": {
+      "const": "trading-risk.v1"
+    },
+    "risk_check_id": {
+      "type": "string",
+      "pattern": "^risk\\.[a-z0-9_\\.:-]+$"
+    },
+    "portfolio_id": {
+      "type": "string"
+    },
+    "result": {
+      "enum": ["pass", "warn", "block", "halt"]
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["check_id", "status", "message"],
+        "properties": {
+          "check_id": {
+            "type": "string"
+          },
+          "status": {
+            "enum": ["pass", "warn", "block", "halt"]
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "live_trade_allowed": {
+      "const": false
+    },
+    "override_requires_human_approval": {
+      "const": true
+    },
+    "kill_switch_status": {
+      "enum": ["armed", "engaged", "not_configured"]
+    }
+  }
+}

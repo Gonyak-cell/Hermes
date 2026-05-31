@@ -97,6 +97,14 @@ function buildResourceEvidenceSection(items, context) {
     const evidenceId = `evidence.${suffix(resourceId)}.document_text`;
     const textPreview = item.extraction?.text_preview ?? "";
     const textHash = item.text_hash_sha256 ?? sha256(textPreview);
+    const extractionMetadata = item.extraction?.metadata ?? {};
+    const extractedSourceSpans = normalizeExtractionSourceSpans(extractionMetadata.source_spans, {
+      resourceId,
+      resourceVersionId,
+      sourceExpansionItemId: item.item_id,
+      relativePath: item.relative_path,
+    });
+    const sourceSpanIds = [sourceSpanId, ...extractedSourceSpans.map((span) => span.id)];
 
     resources.push({
       schema_version: "resource-core.v1",
@@ -118,6 +126,12 @@ function buildResourceEvidenceSection(items, context) {
         extension: item.extension,
         candidate_domain: item.candidate_domain,
         extractor_family: item.extractor_family,
+        source_url: extractionMetadata.source_url ?? item.source_url ?? null,
+        canonical_url: extractionMetadata.canonical_url ?? null,
+        adapter_chain: extractionMetadata.adapter_chain ?? null,
+        parser_chain: extractionMetadata.parser_chain ?? null,
+        human_review_required: extractionMetadata.human_review_required ?? null,
+        output_status: extractionMetadata.output_status ?? null,
       },
     });
 
@@ -131,6 +145,8 @@ function buildResourceEvidenceSection(items, context) {
       metadata: {
         modified_at: item.modified_at,
         size_bytes: item.size_bytes,
+        source_hash: item.raw_hash_sha256,
+        source_url: extractionMetadata.source_url ?? item.source_url ?? null,
       },
     });
 
@@ -140,7 +156,7 @@ function buildResourceEvidenceSection(items, context) {
       resource_id: resourceId,
       resource_version_id: resourceVersionId,
       text_hash: textHash,
-      language: inferLanguage(textPreview),
+      language: extractionMetadata.language ?? inferLanguage(textPreview),
       extractor_id: normalizeExtractorId(item.extraction?.extractor ?? item.extractor_family ?? "unknown"),
       quality: inferQuality(item),
       text_preview: textPreview,
@@ -149,6 +165,14 @@ function buildResourceEvidenceSection(items, context) {
         text_truncated: Boolean(item.extraction?.text_truncated),
         headings: item.extraction?.headings ?? [],
         signals: item.extraction?.signals ?? {},
+        adapter_chain: extractionMetadata.adapter_chain ?? null,
+        parser_chain: extractionMetadata.parser_chain ?? null,
+        page_count: extractionMetadata.page_count ?? null,
+        bbox_count: extractionMetadata.bbox_count ?? null,
+        mean_confidence: extractionMetadata.mean_confidence ?? null,
+        source_span_count: extractedSourceSpans.length,
+        human_review_required: extractionMetadata.human_review_required ?? null,
+        output_status: extractionMetadata.output_status ?? null,
       },
     });
 
@@ -166,14 +190,16 @@ function buildResourceEvidenceSection(items, context) {
       hash: sha256(textPreview),
       metadata: {
         source_expansion_item_id: item.item_id,
+        adapter_chain: extractionMetadata.adapter_chain ?? null,
       },
     });
+    sourceSpans.push(...extractedSourceSpans);
 
     evidenceItems.push({
       schema_version: "evidence-item.v1",
       id: evidenceId,
       matter_id: matterId,
-      source_span_ids: [sourceSpanId],
+      source_span_ids: sourceSpanIds,
       evidence_type: "document_text",
       summary: summarizeEvidence(item, textPreview),
       reliability: "machine_extracted",
@@ -181,6 +207,9 @@ function buildResourceEvidenceSection(items, context) {
       metadata: {
         source_expansion_item_id: item.item_id,
         capability_ids: item.extraction?.signals?.capability_ids ?? [],
+        source_url: extractionMetadata.source_url ?? item.source_url ?? null,
+        adapter_chain: extractionMetadata.adapter_chain ?? null,
+        human_review_required: extractionMetadata.human_review_required ?? true,
       },
     });
   }
@@ -293,7 +322,35 @@ function inferQuality(item) {
 }
 
 function inferLanguage(text) {
-  return /[가-힣]/.test(text) ? "ko" : "unknown";
+  return /[\uac00-\ud7a3]/u.test(text) ? "ko" : "unknown";
+}
+
+function normalizeExtractionSourceSpans(sourceSpans, context) {
+  if (!Array.isArray(sourceSpans)) return [];
+  return sourceSpans.slice(0, 200).map((span, index) => {
+    const text = String(span.text ?? "");
+    const id = `span.${suffix(context.resourceId)}.bbox.${index + 1}`;
+    return {
+      schema_version: "source-span.v1",
+      id,
+      resource_id: context.resourceId,
+      resource_version_id: context.resourceVersionId,
+      location_type: "bbox",
+      locator: {
+        relative_path: context.relativePath,
+        page_number: span.page_number ?? null,
+        bbox: Array.isArray(span.bbox) ? span.bbox : null,
+        preview_only: true,
+      },
+      text,
+      hash: sha256(`${id}:${text}:${JSON.stringify(span.bbox ?? null)}`),
+      metadata: {
+        source_expansion_item_id: context.sourceExpansionItemId,
+        confidence: span.confidence ?? null,
+        parser: span.parser ?? null,
+      },
+    };
+  });
 }
 
 function normalizeExtractorId(extractor) {

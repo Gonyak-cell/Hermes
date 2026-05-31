@@ -1,0 +1,305 @@
+{
+  "schema_version": "trading-execution-engine.v1",
+  "execution_engine_id": "trading.execution_engine.p246_p280",
+  "phase_range": "P246-P280",
+  "execution_engine_status": "complete",
+  "generated_at": "2026-05-31T00:00:00.000Z",
+  "safety_boundary": {
+    "interface_only": true,
+    "simulation_only": true,
+    "real_order_submitted": false,
+    "live_execution_allowed": false,
+    "live_adapter_enabled": false,
+    "broker_write_allowed": false,
+    "exchange_write_allowed": false,
+    "secret_logged": false,
+    "manual_resume_required": true
+  },
+  "phase_coverage": [
+    { "phase_id": "P246", "status": "complete", "artifact_ref": "order_intent_schema_freeze" },
+    { "phase_id": "P247", "status": "complete", "artifact_ref": "pre_trade_risk_gate" },
+    { "phase_id": "P248", "status": "complete", "artifact_ref": "order_type_whitelist" },
+    { "phase_id": "P249", "status": "complete", "artifact_ref": "order_type_whitelist.market_order_allowed" },
+    { "phase_id": "P250", "status": "complete", "artifact_ref": "order_controls.limit_order_support" },
+    { "phase_id": "P251", "status": "complete", "artifact_ref": "order_controls.cancel_order_support" },
+    { "phase_id": "P252", "status": "complete", "artifact_ref": "order_controls.order_throttle" },
+    { "phase_id": "P253", "status": "complete", "artifact_ref": "order_controls.duplicate_order_prevention" },
+    { "phase_id": "P254", "status": "complete", "artifact_ref": "order_controls.idempotency" },
+    { "phase_id": "P255", "status": "complete", "artifact_ref": "execution_state_machine" },
+    { "phase_id": "P256", "status": "complete", "artifact_ref": "broker_adapter_interface" },
+    { "phase_id": "P257", "status": "complete", "artifact_ref": "crypto_exchange_adapter_interface" },
+    { "phase_id": "P258", "status": "complete", "artifact_ref": "credential_broker_contract" },
+    { "phase_id": "P259", "status": "complete", "artifact_ref": "secret_handling" },
+    { "phase_id": "P260", "status": "complete", "artifact_ref": "adapters.sandbox" },
+    { "phase_id": "P261", "status": "complete", "artifact_ref": "adapters.simulated_broker" },
+    { "phase_id": "P262", "status": "complete", "artifact_ref": "adapters.live_adapter" },
+    { "phase_id": "P263", "status": "complete", "artifact_ref": "execution_audit_trail" },
+    { "phase_id": "P264", "status": "complete", "artifact_ref": "fill_reconciliation" },
+    { "phase_id": "P265", "status": "complete", "artifact_ref": "failed_order_handling" },
+    { "phase_id": "P266", "status": "complete", "artifact_ref": "emergency_halt" },
+    { "phase_id": "P267", "status": "complete", "artifact_ref": "manual_resume_policy" },
+    { "phase_id": "P268", "status": "complete", "artifact_ref": "dashboard_api_stub.dashboard" },
+    { "phase_id": "P269", "status": "complete", "artifact_ref": "dashboard_api_stub.api" },
+    { "phase_id": "P270", "status": "complete", "artifact_ref": "trading:execution-report" },
+    { "phase_id": "P271", "status": "complete", "artifact_ref": "regression_suite.schema_validation" },
+    { "phase_id": "P272", "status": "complete", "artifact_ref": "regression_suite.order_whitelist" },
+    { "phase_id": "P273", "status": "complete", "artifact_ref": "regression_suite.market_order_disabled" },
+    { "phase_id": "P274", "status": "complete", "artifact_ref": "regression_suite.idempotency" },
+    { "phase_id": "P275", "status": "complete", "artifact_ref": "regression_suite.adapter_boundaries" },
+    { "phase_id": "P276", "status": "complete", "artifact_ref": "regression_suite.secret_boundary" },
+    { "phase_id": "P277", "status": "complete", "artifact_ref": "regression_suite.fill_reconciliation" },
+    { "phase_id": "P278", "status": "complete", "artifact_ref": "regression_suite.emergency_halt" },
+    { "phase_id": "P279", "status": "complete", "artifact_ref": "regression_suite.no_write_check" },
+    { "phase_id": "P280", "status": "complete", "artifact_ref": "docs.trading_pack_phase_ledger" }
+  ],
+  "order_intent_schema_freeze": {
+    "freeze_id": "order_intent_schema_freeze.p246",
+    "schema_ref": "schemas/trading/trading-order-intent.schema.json",
+    "frozen": true,
+    "allowed_execution_modes": ["paper", "shadow", "blocked_live"],
+    "source_order_intent_ref": "order_intent.shadow.p221_p245.aapl.review_only"
+  },
+  "pre_trade_risk_gate": {
+    "gate_id": "pre_trade_risk_gate.p247",
+    "risk_check_ref": "risk.trading.p196_p220.pre_order",
+    "required_before_execution": true,
+    "current_result": "block",
+    "blocks_live_execution": true
+  },
+  "order_type_whitelist": {
+    "allowed_order_types": ["limit", "cancel"],
+    "market_order_allowed": false
+  },
+  "order_controls": {
+    "limit_order_support": {
+      "enabled": true,
+      "simulation_only": true,
+      "requires_risk_pass": true
+    },
+    "cancel_order_support": {
+      "enabled": true,
+      "simulation_only": true,
+      "requires_existing_simulated_order": true
+    },
+    "order_throttle": {
+      "throttle_id": "execution_order_throttle.p252",
+      "max_orders_per_day": 0,
+      "current_orders_today": 0,
+      "blocks_order_submission": true
+    },
+    "duplicate_order_prevention": {
+      "dedupe_id": "duplicate_order_prevention.p253",
+      "enabled": true,
+      "dedupe_keys": ["portfolio_id", "strategy_id", "asset_id", "client_order_id", "idempotency_key"]
+    },
+    "idempotency": {
+      "idempotency_policy_id": "execution_idempotency.p254",
+      "required": true,
+      "key_fields": ["tenant_id", "portfolio_id", "strategy_id", "order_intent_id", "client_order_id"],
+      "sample_key": "tenant.demo:portfolio.demo.paper:strategy.fixture.momentum_paper:order_intent.shadow.p221_p245.aapl.review_only:client_order.demo.001"
+    }
+  },
+  "execution_state_machine": {
+    "state_machine_id": "execution_state_machine.p255",
+    "states": ["created", "risk_checked", "simulated", "cancelled", "halted", "blocked"],
+    "terminal_states": ["simulated", "cancelled", "halted", "blocked"],
+    "live_submit_state_enabled": false,
+    "transitions": [
+      { "from": "created", "to": "risk_checked", "requires": "pre_trade_risk_gate" },
+      { "from": "risk_checked", "to": "blocked", "when": "risk_gate_block_or_halt" },
+      { "from": "risk_checked", "to": "simulated", "when": "simulation_only_and_no_live_write" },
+      { "from": "simulated", "to": "cancelled", "when": "cancel_fixture" },
+      { "from": "created", "to": "halted", "when": "emergency_halt" }
+    ]
+  },
+  "broker_adapter_interface": {
+    "interface_id": "broker_adapter_interface.p256",
+    "adapter_type": "broker",
+    "supported_modes": ["sandbox", "simulated_broker", "live_disabled"],
+    "write_methods_enabled": false,
+    "cancel_supported_in_simulation": true,
+    "requires_credential_broker": true
+  },
+  "crypto_exchange_adapter_interface": {
+    "interface_id": "crypto_exchange_adapter_interface.p257",
+    "adapter_type": "crypto_exchange",
+    "supported_modes": ["sandbox", "simulated_broker", "live_disabled"],
+    "write_methods_enabled": false,
+    "cancel_supported_in_simulation": true,
+    "requires_credential_broker": true
+  },
+  "credential_broker_contract": {
+    "contract_id": "credential_broker_contract.p258",
+    "plaintext_secret_allowed": false,
+    "model_context_secret_allowed": false,
+    "credential_lookup_allowed": false,
+    "credential_reference_format": "credential_ref.disabled"
+  },
+  "secret_handling": {
+    "secret_never_logged": true,
+    "redaction_required": true,
+    "log_fields": ["execution_id", "order_intent_id", "adapter_id", "state", "timestamp"],
+    "forbidden_log_fields": ["api_key", "secret", "token", "credential_value"]
+  },
+  "adapters": {
+    "sandbox": {
+      "adapter_id": "sandbox",
+      "enabled": true,
+      "simulation_only": true,
+      "external_network_allowed": false,
+      "live_write_allowed": false
+    },
+    "simulated_broker": {
+      "adapter_id": "simulated_broker",
+      "enabled": true,
+      "simulation_only": true,
+      "external_network_allowed": false,
+      "live_write_allowed": false
+    },
+    "live_adapter": {
+      "adapter_id": "live_disabled",
+      "enabled": false,
+      "simulation_only": false,
+      "external_network_allowed": false,
+      "live_write_allowed": false,
+      "disabled_by_default": true
+    }
+  },
+  "execution_artifacts": [
+    {
+      "schema_version": "trading-execution.v1",
+      "execution_id": "execution.sandbox.p260.simulated",
+      "order_intent_id": "order_intent.shadow.p221_p245.aapl.review_only",
+      "execution_mode": "simulated",
+      "state": "simulated",
+      "adapter_id": "sandbox",
+      "live_adapter_enabled": false,
+      "secret_logged": false,
+      "emergency_halt_available": true
+    },
+    {
+      "schema_version": "trading-execution.v1",
+      "execution_id": "execution.simulated_broker.p261.cancelled",
+      "order_intent_id": "order_intent.shadow.p221_p245.aapl.review_only",
+      "execution_mode": "simulated",
+      "state": "cancelled",
+      "adapter_id": "simulated_broker",
+      "live_adapter_enabled": false,
+      "secret_logged": false,
+      "emergency_halt_available": true
+    },
+    {
+      "schema_version": "trading-execution.v1",
+      "execution_id": "execution.live_disabled.p262.blocked",
+      "order_intent_id": "order_intent.shadow.p221_p245.aapl.review_only",
+      "execution_mode": "disabled_live",
+      "state": "blocked",
+      "adapter_id": "live_disabled",
+      "live_adapter_enabled": false,
+      "secret_logged": false,
+      "emergency_halt_available": true
+    }
+  ],
+  "execution_audit_trail": {
+    "audit_id": "execution_audit_trail.p263",
+    "source_lineage_required": true,
+    "replayable": true,
+    "human_review_required": true,
+    "events": [
+      { "event_id": "execution_event.created", "state": "created", "source_ref": "order_intent.shadow.p221_p245.aapl.review_only" },
+      { "event_id": "execution_event.risk_checked", "state": "risk_checked", "source_ref": "risk.trading.p196_p220.pre_order" },
+      { "event_id": "execution_event.blocked_live", "state": "blocked", "source_ref": "execution.live_disabled.p262.blocked" }
+    ]
+  },
+  "fill_reconciliation": {
+    "schema_version": "trading-fill-reconciliation.v1",
+    "reconciliation_id": "reconciliation.execution.p264.simulated",
+    "execution_id": "execution.sandbox.p260.simulated",
+    "status": "matched",
+    "expected_fills": [
+      { "asset_id": "asset.us_equity.aapl", "quantity": 0, "source": "simulation_only" }
+    ],
+    "observed_fills": [
+      { "asset_id": "asset.us_equity.aapl", "quantity": 0, "source": "simulation_only" }
+    ],
+    "discrepancies": []
+  },
+  "failed_order_handling": {
+    "handler_id": "failed_order_handling.p265",
+    "enabled": true,
+    "failed_order_state": "blocked",
+    "incident_artifact": {
+      "schema_version": "trading-incident.v1",
+      "incident_id": "incident.execution.p265.blocked_live_attempt",
+      "severity": "warn",
+      "trigger": "Live adapter submission is disabled by the execution engine boundary.",
+      "affected_stage": "paper",
+      "status": "triaged",
+      "rollback_stage": "paper",
+      "kill_switch_engaged": true,
+      "human_owner_required": true
+    }
+  },
+  "emergency_halt": {
+    "available": true,
+    "halt_state": "halted",
+    "cancels_live_orders": false,
+    "manual_resume_required": true
+  },
+  "manual_resume_policy": {
+    "manual_resume_only": true,
+    "human_approval_required": true,
+    "resume_route_enabled": false
+  },
+  "dashboard_api_stub": {
+    "read_only": true,
+    "mutating_routes_enabled": false,
+    "routes": [
+      { "method": "GET", "path": "/api/trading/execution/report" },
+      { "method": "GET", "path": "/api/trading/execution/state-machine" },
+      { "method": "GET", "path": "/api/trading/execution/adapters" },
+      { "method": "GET", "path": "/api/trading/execution/audit" },
+      { "method": "GET", "path": "/api/trading/execution/fill-reconciliation" }
+    ],
+    "disabled_routes": [
+      {
+        "method": "POST",
+        "path": "/api/trading/orders/submit",
+        "reason": "Real order submission is outside P246-P280 and live adapter is disabled."
+      },
+      {
+        "method": "POST",
+        "path": "/api/trading/orders/cancel-live",
+        "reason": "Live cancellation requires future live adapter gates."
+      },
+      {
+        "method": "POST",
+        "path": "/api/trading/execution/resume",
+        "reason": "Manual resume requires future human approval receipt."
+      },
+      {
+        "method": "POST",
+        "path": "/api/trading/credentials",
+        "reason": "Credential storage and lookup are disabled in this phase."
+      }
+    ]
+  },
+  "regression_suite": {
+    "suite_id": "execution_regression_suite.p271_p280",
+    "case_count": 10,
+    "golden_fixture_ref": "examples/trading/execution-engine-golden-fixtures.json",
+    "all_cases_passed": true,
+    "cases": [
+      "schema_validation",
+      "order_whitelist",
+      "market_order_disabled",
+      "idempotency_required",
+      "adapter_boundaries",
+      "secret_never_logged",
+      "fill_reconciliation",
+      "emergency_halt",
+      "manual_resume_only",
+      "no_write_check"
+    ]
+  }
+}

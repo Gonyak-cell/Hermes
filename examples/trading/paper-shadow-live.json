@@ -1,0 +1,256 @@
+{
+  "schema_version": "trading-paper-shadow-live.v1",
+  "paper_shadow_id": "trading.paper_shadow.p221_p245",
+  "phase_range": "P221-P245",
+  "paper_shadow_status": "complete",
+  "generated_at": "2026-05-31T00:00:00.000Z",
+  "safety_boundary": {
+    "paper_simulation_only": true,
+    "shadow_read_only": true,
+    "shadow_order_intent_non_executable": true,
+    "real_order_submitted": false,
+    "live_execution_allowed": false,
+    "broker_adapter_enabled": false,
+    "exchange_adapter_enabled": false,
+    "credential_required": false,
+    "human_review_required": true
+  },
+  "phase_coverage": [
+    { "phase_id": "P221", "status": "complete", "artifact_ref": "paper_order_ledger" },
+    { "phase_id": "P222", "status": "complete", "artifact_ref": "paper_fill_simulator" },
+    { "phase_id": "P223", "status": "complete", "artifact_ref": "paper_fill_models" },
+    { "phase_id": "P224", "status": "complete", "artifact_ref": "paper_pnl" },
+    { "phase_id": "P225", "status": "complete", "artifact_ref": "paper_drawdown" },
+    { "phase_id": "P226", "status": "complete", "artifact_ref": "strategy_paper_scorecards" },
+    { "phase_id": "P227", "status": "complete", "artifact_ref": "model_paper_scorecards" },
+    { "phase_id": "P228", "status": "complete", "artifact_ref": "paper_live_parity_contract" },
+    { "phase_id": "P229", "status": "complete", "artifact_ref": "promotion_criteria_to_shadow" },
+    { "phase_id": "P230", "status": "complete", "artifact_ref": "read_only_live_data_adapter" },
+    { "phase_id": "P231", "status": "complete", "artifact_ref": "shadow_signal_generation" },
+    { "phase_id": "P232", "status": "complete", "artifact_ref": "shadow_order_intents" },
+    { "phase_id": "P233", "status": "complete", "artifact_ref": "no_order_shadow_mode" },
+    { "phase_id": "P234", "status": "complete", "artifact_ref": "intended_fill_vs_market" },
+    { "phase_id": "P235", "status": "complete", "artifact_ref": "latency_measurement" },
+    { "phase_id": "P236", "status": "complete", "artifact_ref": "data_outage_detection" },
+    { "phase_id": "P237", "status": "complete", "artifact_ref": "shadow_pnl_estimate" },
+    { "phase_id": "P238", "status": "complete", "artifact_ref": "shadow_live_drift_report" },
+    { "phase_id": "P239", "status": "complete", "artifact_ref": "kill_switch_dry_run" },
+    { "phase_id": "P240", "status": "complete", "artifact_ref": "promotion_criteria_to_limited_live" },
+    { "phase_id": "P241", "status": "complete", "artifact_ref": "trading:paper-report" },
+    { "phase_id": "P242", "status": "complete", "artifact_ref": "trading:shadow-report" },
+    { "phase_id": "P243", "status": "complete", "artifact_ref": "dashboard_api_stub" },
+    { "phase_id": "P244", "status": "complete", "artifact_ref": "operator_integration" },
+    { "phase_id": "P245", "status": "complete", "artifact_ref": "docs.trading_pack_phase_ledger" }
+  ],
+  "paper_order_ledger": {
+    "schema_version": "trading-paper-trade.v1",
+    "paper_ledger_id": "paper.trading.p221_p245.demo",
+    "strategy_id": "strategy.fixture.momentum_paper",
+    "orders": [
+      {
+        "order_id": "paper_order.p221_p245.001",
+        "asset_id": "asset.us_equity.aapl",
+        "side": "buy",
+        "quantity": 1,
+        "status": "filled"
+      },
+      {
+        "order_id": "paper_order.p221_p245.002",
+        "asset_id": "asset.crypto.btc",
+        "side": "buy",
+        "quantity": 0.01,
+        "status": "partial"
+      },
+      {
+        "order_id": "paper_order.p221_p245.003",
+        "asset_id": "asset.kr_equity.005930",
+        "side": "sell",
+        "quantity": 1,
+        "status": "rejected"
+      }
+    ],
+    "pnl": 42.5,
+    "drawdown_pct": -0.01,
+    "promotion_status": "blocked"
+  },
+  "paper_fill_simulator": {
+    "simulator_id": "paper_fill_simulator.deterministic.p221_p245",
+    "deterministic": true,
+    "live_fill_source_allowed": false,
+    "source_ref": "backtest.fixture.momentum_paper.p166_p195"
+  },
+  "paper_fill_models": {
+    "partial_fill_model": {
+      "model_id": "paper_fill.partial.v1",
+      "enabled": true,
+      "partial_fill_supported": true,
+      "max_partial_pct": 0.5
+    },
+    "rejected_fill_model": {
+      "model_id": "paper_fill.rejected.v1",
+      "enabled": true,
+      "rejection_supported": true,
+      "rejection_reasons": ["risk_block", "stale_data", "manual_fixture_reject"]
+    }
+  },
+  "paper_pnl": {
+    "pnl": 42.5,
+    "currency": "USD",
+    "source_ref": "paper.trading.p221_p245.demo"
+  },
+  "paper_drawdown": {
+    "drawdown_pct": -0.01,
+    "source_ref": "paper.trading.p221_p245.demo"
+  },
+  "strategy_paper_scorecards": [
+    {
+      "scorecard_id": "scorecard.strategy.paper.momentum_p221_p245",
+      "strategy_id": "strategy.fixture.momentum_paper",
+      "paper_status": "blocked",
+      "pnl": 42.5,
+      "drawdown_pct": -0.01,
+      "human_review_required": true
+    }
+  ],
+  "model_paper_scorecards": [
+    {
+      "scorecard_id": "scorecard.model.paper.baseline_rule_p221_p245",
+      "model_id": "model.fixture.baseline_rule",
+      "paper_status": "pending_review",
+      "shadow_ready": false,
+      "human_review_required": true
+    }
+  ],
+  "paper_live_parity_contract": {
+    "contract_id": "paper_live_parity.trading.v1",
+    "paper_live_parity_required": true,
+    "max_drift_pct": 0.02,
+    "human_review_required": true
+  },
+  "promotion_criteria_to_shadow": {
+    "criteria_id": "promotion_criteria.paper_to_shadow.p229",
+    "decision": "pending_human_review",
+    "human_approval_required": true,
+    "shadow_live_enabled": false,
+    "required_evidence": ["paper_scorecard", "risk_check", "parity_contract"]
+  },
+  "read_only_live_data_adapter": {
+    "adapter_id": "adapter.trading.shadow_live.read_only_fixture",
+    "adapter_mode": "fixture_replay",
+    "read_only": true,
+    "credentials_required": false,
+    "external_network_required": false,
+    "order_routes_enabled": false,
+    "source_ref": "dataset.fixture.us_equity.aapl.daily"
+  },
+  "shadow_signal_generation": {
+    "enabled": true,
+    "source_signal_refs": ["signal.technical_indicator.aapl.increase"],
+    "live_execution_allowed": false,
+    "human_review_required": true
+  },
+  "shadow_order_intents": [
+    {
+      "schema_version": "trading-order-intent.v1",
+      "order_intent_id": "order_intent.shadow.p221_p245.aapl.review_only",
+      "strategy_id": "strategy.fixture.momentum_paper",
+      "asset_id": "asset.us_equity.aapl",
+      "order_side": "none",
+      "order_type": "none",
+      "execution_mode": "shadow",
+      "live_execution_allowed": false,
+      "market_order_allowed": false,
+      "risk_gate_status": "block",
+      "non_executable": true,
+      "review_only": true
+    }
+  ],
+  "no_order_shadow_mode": {
+    "enabled": true,
+    "real_order_count": 0,
+    "broker_write_allowed": false,
+    "exchange_write_allowed": false
+  },
+  "intended_fill_vs_market": {
+    "comparison_id": "intended_fill_vs_market.shadow.p234",
+    "reconciliation_artifact": {
+      "schema_version": "trading-fill-reconciliation.v1",
+      "reconciliation_id": "reconciliation.shadow.p221_p245.no_live_fill",
+      "execution_id": "execution.shadow.not_submitted",
+      "status": "not_applicable",
+      "expected_fills": [],
+      "observed_fills": [],
+      "discrepancies": []
+    },
+    "market_source_ref": "dataset.fixture.us_equity.aapl.daily",
+    "status": "not_applicable"
+  },
+  "latency_measurement": {
+    "measurement_id": "latency.shadow.fixture.p235",
+    "p50_ms": 12,
+    "p95_ms": 25,
+    "source_ref": "adapter.trading.shadow_live.read_only_fixture"
+  },
+  "data_outage_detection": {
+    "detector_id": "data_outage.shadow.p236",
+    "outage_detected": false,
+    "halt_shadow_generation_on_outage": true
+  },
+  "shadow_pnl_estimate": {
+    "estimate_id": "shadow_pnl.estimate.p237",
+    "pnl": 40.1,
+    "currency": "USD",
+    "informational_only": true
+  },
+  "shadow_live_drift_report": {
+    "report_id": "shadow_live_drift.p238",
+    "drift_pct": 0.006,
+    "result": "pass",
+    "human_review_required": true
+  },
+  "kill_switch_dry_run": {
+    "dry_run_id": "kill_switch.shadow.dry_run.p239",
+    "executed": true,
+    "manual_resume_required": true,
+    "live_orders_cancelled": 0
+  },
+  "promotion_criteria_to_limited_live": {
+    "criteria_id": "promotion_criteria.shadow_to_limited_live.p240",
+    "decision": "blocked",
+    "human_approval_required": true,
+    "limited_live_enabled": false
+  },
+  "dashboard_api_stub": {
+    "read_only": true,
+    "mutating_routes_enabled": false,
+    "routes": [
+      { "method": "GET", "path": "/api/trading/paper/report" },
+      { "method": "GET", "path": "/api/trading/paper/orders" },
+      { "method": "GET", "path": "/api/trading/shadow/report" },
+      { "method": "GET", "path": "/api/trading/shadow/drift" },
+      { "method": "GET", "path": "/api/trading/shadow/latency" }
+    ],
+    "disabled_routes": [
+      {
+        "method": "POST",
+        "path": "/api/trading/shadow/enable-live",
+        "reason": "Shadow live remains read-only and disabled until future approval gates exist."
+      },
+      {
+        "method": "POST",
+        "path": "/api/trading/shadow/orders",
+        "reason": "No-order shadow mode blocks broker and exchange writes."
+      },
+      {
+        "method": "POST",
+        "path": "/api/trading/orders",
+        "reason": "Real order placement is outside P221-P245."
+      }
+    ]
+  },
+  "operator_integration": {
+    "operator_handbook_note_required": true,
+    "human_review_queue_required": true,
+    "protected_action_routes_disabled": true
+  }
+}

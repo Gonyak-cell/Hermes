@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/trading/trading-paper-trade.schema.json",
+  "title": "Trading Paper Trade",
+  "type": "object",
+  "required": ["schema_version", "paper_ledger_id", "strategy_id", "orders", "pnl", "drawdown_pct", "promotion_status"],
+  "properties": {
+    "schema_version": {
+      "const": "trading-paper-trade.v1"
+    },
+    "paper_ledger_id": {
+      "type": "string",
+      "pattern": "^paper\\.[a-z0-9_\\.:-]+$"
+    },
+    "strategy_id": {
+      "type": "string"
+    },
+    "orders": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["order_id", "asset_id", "side", "quantity", "status"],
+        "properties": {
+          "order_id": {
+            "type": "string"
+          },
+          "asset_id": {
+            "type": "string"
+          },
+          "side": {
+            "enum": ["buy", "sell"]
+          },
+          "quantity": {
+            "type": "number",
+            "minimum": 0
+          },
+          "status": {
+            "enum": ["simulated", "filled", "partial", "rejected", "cancelled"]
+          }
+        }
+      }
+    },
+    "pnl": {
+      "type": "number"
+    },
+    "drawdown_pct": {
+      "type": "number"
+    },
+    "promotion_status": {
+      "enum": ["not_eligible", "candidate", "pending_human_review", "blocked"]
+    }
+  }
+}

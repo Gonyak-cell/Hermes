@@ -1,0 +1,255 @@
+{
+  "schema_version": "trading-backtest-validation.v1",
+  "validation_id": "trading.backtest_validation.p166_p195",
+  "phase_range": "P166-P195",
+  "backtest_validation_status": "complete",
+  "generated_at": "2026-05-31T00:00:00.000Z",
+  "safety_boundary": {
+    "deterministic_only": true,
+    "simulation_only": true,
+    "investment_advice_generated": false,
+    "trade_recommendation_generated": false,
+    "order_intent_generated": false,
+    "paper_order_generated": false,
+    "live_execution_allowed": false,
+    "promotion_candidate_generated": false,
+    "human_review_required": true
+  },
+  "phase_coverage": [
+    { "phase_id": "P166", "status": "complete", "artifact_ref": "runner" },
+    { "phase_id": "P167", "status": "complete", "artifact_ref": "version_bindings.strategy_versions" },
+    { "phase_id": "P168", "status": "complete", "artifact_ref": "version_bindings.model_versions" },
+    { "phase_id": "P169", "status": "complete", "artifact_ref": "cost_models.transaction_cost" },
+    { "phase_id": "P170", "status": "complete", "artifact_ref": "cost_models.slippage" },
+    { "phase_id": "P171", "status": "complete", "artifact_ref": "cost_models.fx_conversion" },
+    { "phase_id": "P172", "status": "complete", "artifact_ref": "cost_models.crypto_fee" },
+    { "phase_id": "P173", "status": "complete", "artifact_ref": "position_sizing" },
+    { "phase_id": "P174", "status": "complete", "artifact_ref": "portfolio_backtest" },
+    { "phase_id": "P175", "status": "complete", "artifact_ref": "multi_strategy_backtest" },
+    { "phase_id": "P176", "status": "complete", "artifact_ref": "benchmark_comparison" },
+    { "phase_id": "P177", "status": "complete", "artifact_ref": "metric_suite.return_drawdown_win_payoff" },
+    { "phase_id": "P178", "status": "complete", "artifact_ref": "metric_suite.risk_adjusted_score" },
+    { "phase_id": "P179", "status": "complete", "artifact_ref": "exposure_turnover_capacity.exposure_time_pct" },
+    { "phase_id": "P180", "status": "complete", "artifact_ref": "exposure_turnover_capacity.turnover_pct" },
+    { "phase_id": "P181", "status": "complete", "artifact_ref": "exposure_turnover_capacity.capacity_estimate" },
+    { "phase_id": "P182", "status": "complete", "artifact_ref": "bias_checks.lookahead_bias" },
+    { "phase_id": "P183", "status": "complete", "artifact_ref": "bias_checks.survivorship_bias" },
+    { "phase_id": "P184", "status": "complete", "artifact_ref": "bias_checks.overfitting" },
+    { "phase_id": "P185", "status": "complete", "artifact_ref": "walk_forward_validation" },
+    { "phase_id": "P186", "status": "complete", "artifact_ref": "stress_scenarios" },
+    { "phase_id": "P187", "status": "complete", "artifact_ref": "replay_modes.crash_regime_replay" },
+    { "phase_id": "P188", "status": "complete", "artifact_ref": "replay_modes.crypto_weekend_gap_replay" },
+    { "phase_id": "P189", "status": "complete", "artifact_ref": "trading:backtest-report" },
+    { "phase_id": "P190", "status": "complete", "artifact_ref": "dashboard_api_stub" },
+    { "phase_id": "P191", "status": "complete", "artifact_ref": "tests.backtest_validation_schema" },
+    { "phase_id": "P192", "status": "complete", "artifact_ref": "tests.backtest_contract_validation" },
+    { "phase_id": "P193", "status": "complete", "artifact_ref": "fixtures.backtest_validation" },
+    { "phase_id": "P194", "status": "complete", "artifact_ref": "fixtures.backtest_validation_golden" },
+    { "phase_id": "P195", "status": "complete", "artifact_ref": "docs.trading_pack_phase_ledger" }
+  ],
+  "runner": {
+    "runner_id": "backtest_runner.deterministic.p166_p195",
+    "run_mode": "deterministic_backtest",
+    "seed": 166195,
+    "replay_clock": "2026-05-31T00:00:00.000Z",
+    "data_replay_required": true,
+    "mutation_allowed": false
+  },
+  "version_bindings": {
+    "strategy_versions": [
+      { "strategy_id": "strategy.fixture.momentum_paper", "version_ref": "strategy.fixture.momentum_paper@p166_p195" },
+      { "strategy_id": "strategy.fixture.factor_paper", "version_ref": "strategy.fixture.factor_paper@p166_p195" }
+    ],
+    "model_versions": [
+      { "model_id": "model.fixture.baseline_rule", "version_ref": "model.fixture.baseline_rule@p126_p165" },
+      { "model_id": "model.fixture.sequence_placeholder", "version_ref": "model.fixture.sequence_placeholder@p126_p165" }
+    ]
+  },
+  "cost_models": {
+    "transaction_cost": {
+      "model_id": "cost_model.transaction.bps.v1",
+      "enabled": true,
+      "basis_points": 5
+    },
+    "slippage": {
+      "model_id": "cost_model.slippage.bps.v1",
+      "enabled": true,
+      "basis_points": 10
+    },
+    "fx_conversion": {
+      "model_id": "cost_model.fx.manual_snapshot.v1",
+      "enabled": true,
+      "source_ref": "fx.manual.usdkrw.20260530"
+    },
+    "crypto_fee": {
+      "model_id": "cost_model.crypto_fee.bps.v1",
+      "enabled": true,
+      "basis_points": 8
+    }
+  },
+  "position_sizing": {
+    "model_id": "position_sizing.fixed_fractional.p166_p195",
+    "method": "fixed_fractional",
+    "max_position_pct": 0.05,
+    "leverage_allowed": false
+  },
+  "backtest_artifacts": [
+    {
+      "schema_version": "trading-backtest.v1",
+      "backtest_id": "backtest.fixture.momentum_paper.p166_p195",
+      "strategy_id": "strategy.fixture.momentum_paper",
+      "dataset_id": "dataset.fixture.us_equity.aapl.daily",
+      "run_mode": "deterministic_backtest",
+      "metrics": {
+        "return_pct": 0.7,
+        "max_drawdown_pct": -0.25,
+        "win_rate": 0.54,
+        "risk_adjusted_score": 0.18
+      },
+      "bias_checks": {
+        "lookahead_bias_check": "passed",
+        "survivorship_bias_note": "Fixture universe is explicit and not production-complete.",
+        "overfitting_warning": "warn"
+      },
+      "promotion_candidate": false
+    },
+    {
+      "schema_version": "trading-backtest.v1",
+      "backtest_id": "backtest.fixture.crypto_btc.p166_p195",
+      "strategy_id": "strategy.fixture.momentum_paper",
+      "dataset_id": "dataset.fixture.crypto.btc_usd.hourly",
+      "run_mode": "deterministic_backtest",
+      "metrics": {
+        "return_pct": 0.3,
+        "max_drawdown_pct": -0.4,
+        "win_rate": 0.51,
+        "risk_adjusted_score": 0.08
+      },
+      "bias_checks": {
+        "lookahead_bias_check": "passed",
+        "survivorship_bias_note": "Crypto fixture is a replay snapshot and not a full exchange universe.",
+        "overfitting_warning": "warn"
+      },
+      "promotion_candidate": false
+    }
+  ],
+  "portfolio_backtest": {
+    "portfolio_id": "portfolio.demo.backtest",
+    "enabled": true,
+    "strategy_count": 2,
+    "dataset_refs": ["dataset.fixture.us_equity.aapl.daily", "dataset.fixture.crypto.btc_usd.hourly"],
+    "live_trading_enabled": false
+  },
+  "multi_strategy_backtest": {
+    "enabled": true,
+    "strategy_ids": ["strategy.fixture.momentum_paper", "strategy.fixture.factor_paper"],
+    "correlation_penalty_applied": true
+  },
+  "benchmark_comparison": {
+    "benchmark_id": "benchmark.fixture.equal_weight_cash",
+    "enabled": true,
+    "result": "informational",
+    "benchmark_return_pct": 0.2
+  },
+  "metric_suite": {
+    "cagr_pct": 0.65,
+    "return_pct": 0.5,
+    "max_drawdown_pct": -0.32,
+    "win_rate": 0.525,
+    "payoff_ratio": 1.08,
+    "risk_adjusted_score": 0.13
+  },
+  "exposure_turnover_capacity": {
+    "exposure_time_pct": 0.62,
+    "turnover_pct": 0.18,
+    "capacity_estimate": {
+      "status": "informational",
+      "notional_limit": 100000,
+      "liquidity_source_ref": "feature_snapshot.p061_p090.demo.v1"
+    }
+  },
+  "bias_checks": {
+    "lookahead_bias": {
+      "result": "pass",
+      "blocks_promotion": true
+    },
+    "survivorship_bias": {
+      "note": "Fixture data is explicit and replayable; production universe survivorship checks are required before any live stage.",
+      "requires_human_review": true
+    },
+    "overfitting": {
+      "result": "warn",
+      "blocks_promotion": true
+    }
+  },
+  "walk_forward_validation": {
+    "enabled": true,
+    "window_count": 1,
+    "all_windows_after_training": true,
+    "result": "pass",
+    "source_split_ref": "split.walk_forward.p126_p165"
+  },
+  "stress_scenarios": [
+    {
+      "scenario_id": "stress.liquidity.tight_spread_to_wide",
+      "scenario_type": "liquidity_stress",
+      "result": "warn",
+      "blocks_promotion": true
+    },
+    {
+      "scenario_id": "stress.crash_regime.replay_2020_like",
+      "scenario_type": "crash_regime",
+      "result": "warn",
+      "blocks_promotion": true
+    },
+    {
+      "scenario_id": "stress.crypto.weekend_gap_24_7",
+      "scenario_type": "crypto_24_7_gap",
+      "result": "warn",
+      "blocks_promotion": true
+    }
+  ],
+  "replay_modes": {
+    "crash_regime_replay": {
+      "enabled": true,
+      "scenario_ref": "stress.crash_regime.replay_2020_like"
+    },
+    "crypto_weekend_gap_replay": {
+      "enabled": true,
+      "scenario_ref": "stress.crypto.weekend_gap_24_7"
+    }
+  },
+  "promotion_boundary": {
+    "promotion_candidate_generated": false,
+    "promotion_requires_future_risk_gate": true,
+    "live_promotion_allowed": false
+  },
+  "dashboard_api_stub": {
+    "read_only": true,
+    "mutating_routes_enabled": false,
+    "routes": [
+      { "method": "GET", "path": "/api/trading/backtests/report" },
+      { "method": "GET", "path": "/api/trading/backtests/artifacts" },
+      { "method": "GET", "path": "/api/trading/backtests/metrics" },
+      { "method": "GET", "path": "/api/trading/backtests/bias-checks" },
+      { "method": "GET", "path": "/api/trading/backtests/stress-scenarios" }
+    ],
+    "disabled_routes": [
+      {
+        "method": "POST",
+        "path": "/api/trading/backtests/promote",
+        "reason": "Backtest results cannot promote strategies without future risk and human approval gates."
+      },
+      {
+        "method": "POST",
+        "path": "/api/trading/backtests/to-order-intent",
+        "reason": "Backtests cannot generate order intent in P166-P195."
+      },
+      {
+        "method": "POST",
+        "path": "/api/trading/orders",
+        "reason": "Order placement remains blocked for the research/backtest/paper boundary."
+      }
+    ]
+  }
+}

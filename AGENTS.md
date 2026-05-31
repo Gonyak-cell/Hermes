@@ -1,41 +1,68 @@
 # Project Context
 
-This repository is a Hermes Agent starter harness for law-firm matter operations.
+This repository is a Hermes Agent control-plane harness for managing development
+projects and domain-specific operating workflows. Law-firm matter operations are
+one domain pack on top of the platform, not the whole product.
 
 ## Mission
 
-Build a matter operating layer for a law firm. The harness should preserve matter context, extract tasks and deadlines, organize documents and communications, and produce attorney-reviewable operational briefs.
+Build a deterministic project operating layer that preserves context, extracts
+tasks and blockers, tracks review gates, organizes resources and communications,
+and produces human-reviewable operational briefs across multiple domains.
 
-The harness must not present itself as a substitute for a lawyer. Treat legal analysis, filing decisions, client advice, and final work product as human-approved outputs.
+The default product identity is a project/workflow management platform for
+Hermes. The current domain packs include:
+
+- `personal-dev`: development projects, issue intake, planning, worktree lanes,
+  diff review, tests, PR drafts, release notes, rollback plans, and technical debt.
+- `law-firm`: matter operations, LDD, litigation, contract workflows, evidence,
+  citation, and attorney approval gates.
+- `creative-document`: template, style, asset, DOCX/PPTX/PDF/HTML, layout, and
+  output artifact workflows.
+- `connectors` and `resource`: read-only ingestion, resource expansion,
+  extraction, classification, quarantine, and evidence surfaces.
+
+For legal-domain outputs, the harness must not present itself as a substitute for
+a lawyer. Treat legal analysis, filing decisions, client advice, and final work
+product as human-approved outputs.
 
 ## Architecture
 
-- `docs/` contains the law-firm architecture, rollout plan, and governance model.
+- `docs/` contains the platform architecture, user manual, rollout plan, and
+  governance model.
 - `configs/hermes/` contains example Hermes configuration snippets.
-- `skills/law-firm/` contains Hermes-compatible skill packs.
-- `schemas/` defines the stable matter data contract.
-- `examples/` contains safe demo matter data.
-- `src/` contains the deterministic matter operations library.
+- `skills/personal-dev/` contains the default development project management skill.
+- `skills/law-firm/` contains legal-domain Hermes-compatible skill packs.
+- `schemas/` defines stable data contracts for the platform and domain packs.
+- `examples/` contains safe demo project and matter data.
+- `src/` contains the deterministic project operations library.
 - `scripts/` contains CLI entry points that Hermes skills can call.
 - `test/` contains Node test files.
 
 ## Operating Rules
 
-- Keep matter data structured by `matter_id`.
-- Never mix client-confidential, privileged, or restricted data across matters.
-- Every generated legal or client-facing output needs an explicit human review note.
+- Keep project and domain data structured by stable IDs such as `project_id`,
+  `matter_id`, `resource_id`, `workflow_run_id`, and `artifact_id`.
+- Never mix confidential, privileged, restricted, or domain-scoped data across
+  project or matter boundaries.
+- Every generated legal, client-facing, release-facing, or protected output needs
+  an explicit human review note.
 - Prefer deterministic scripts for extraction, validation, and brief assembly before asking an LLM to draft prose.
 - Keep audit trails: source, timestamp, confidence, responsible owner, and review status.
 - Use `node --test` for the local harness tests.
 
 ## Commands
 
-- `npm run brief` creates a demo daily matter brief.
-- `npm run validate` checks the demo matter data contract.
+- `npm run dev:brief` creates a personal development project operating brief.
+- `npm run dev:validate` checks the personal development project data contract.
+- `npm run brief` creates a demo law-firm matter brief.
+- `npm run validate` checks the core contracts, domain packs, and demo matter data.
+- `npm run operator:handbook -- --check` validates the read-only operator handbook.
+- `npm run api:serve` starts the read-only Review API.
 - `npm test` runs local tests.
 
 ## Style
 
-- Use clear Korean-facing documentation for the law-firm workflow.
+- Use clear Korean-facing documentation for platform and domain workflows.
 - Keep code dependency-light and boring.
 - Do not add external services or API keys to this repository.

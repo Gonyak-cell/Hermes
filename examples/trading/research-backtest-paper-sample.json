@@ -1,0 +1,289 @@
+{
+  "schema_version": "trading-sample-pack.v1",
+  "sample_id": "trading.sample.research_backtest_paper.safe",
+  "generated_at": "2026-05-30T00:00:00.000Z",
+  "financial_advice_notice": "Research fixture only. Not investment advice, not a recommendation, and not an execution instruction.",
+  "stage_policy": {
+    "research": "active",
+    "backtest": "active",
+    "paper": "active",
+    "shadow_live": "blocked",
+    "limited_live": "blocked",
+    "full_auto": "blocked"
+  },
+  "safety_policy": {
+    "live_trading_enabled": false,
+    "real_broker_adapters_enabled": false,
+    "credential_storage_policy": "forbidden_plaintext",
+    "api_keys_in_model_context_allowed": false,
+    "market_orders_enabled": false,
+    "leverage_enabled": false,
+    "derivatives_enabled": false,
+    "short_selling_enabled": false,
+    "human_approval_required_for_promotion": true,
+    "rollback_default_stage": "paper",
+    "kill_switch_manual_resume_only": true,
+    "audit_replay_required": true
+  },
+  "contract_examples": {
+    "trading-asset": {
+      "schema_version": "trading-asset.v1",
+      "asset_id": "asset.us_equity.aapl",
+      "asset_class": "us_equity",
+      "symbol": "AAPL",
+      "display_name": "Apple Inc.",
+      "currency": "USD",
+      "venue": "NASDAQ",
+      "tradability_status": "paper_allowed",
+      "capability_flags": {
+        "short_allowed": false,
+        "derivatives_allowed": false,
+        "leverage_allowed": false,
+        "live_trading_allowed": false
+      },
+      "risk_notes": ["Fixture asset for research, backtest, and paper mode only."]
+    },
+    "trading-portfolio": {
+      "schema_version": "trading-portfolio.v1",
+      "portfolio_id": "portfolio.demo.paper",
+      "base_currency": "USD",
+      "stage": "paper",
+      "asset_ids": ["asset.us_equity.aapl"],
+      "cash_balances": [
+        {
+          "currency": "USD",
+          "amount": 100000
+        }
+      ],
+      "live_trading_enabled": false,
+      "human_review_required": true
+    },
+    "trading-market-data": {
+      "schema_version": "trading-market-data.v1",
+      "dataset_id": "dataset.fixture.aapl.daily",
+      "source_type": "fixture",
+      "asset_ids": ["asset.us_equity.aapl"],
+      "timeframe": "1d",
+      "bars": [
+        {
+          "timestamp": "2026-05-27T20:00:00.000Z",
+          "open": 100,
+          "high": 102,
+          "low": 99,
+          "close": 101,
+          "volume": 1000000
+        },
+        {
+          "timestamp": "2026-05-28T20:00:00.000Z",
+          "open": 101,
+          "high": 103,
+          "low": 100,
+          "close": 102,
+          "volume": 1100000
+        }
+      ],
+      "quality_checks": {
+        "stale_data_detected": false,
+        "missing_data_detected": false,
+        "duplicate_candle_detected": false,
+        "abnormal_price_detected": false
+      }
+    },
+    "trading-feature": {
+      "schema_version": "trading-feature.v1",
+      "feature_set_id": "features.fixture.aapl.daily",
+      "dataset_id": "dataset.fixture.aapl.daily",
+      "generated_at": "2026-05-30T00:00:00.000Z",
+      "leakage_check_status": "passed",
+      "quality_score": 0.98,
+      "features": [
+        {
+          "feature_id": "feature.momentum.2d",
+          "category": "momentum",
+          "value": 0.02
+        },
+        {
+          "feature_id": "feature.volatility.fixture",
+          "category": "volatility",
+          "value": 0.01
+        }
+      ],
+      "lineage_refs": ["dataset.fixture.aapl.daily"]
+    },
+    "trading-strategy": {
+      "schema_version": "trading-strategy.v1",
+      "strategy_id": "strategy.fixture.momentum_paper",
+      "archetype": "equity_market_neutral",
+      "lifecycle_status": "draft",
+      "allowed_stages": ["research", "backtest", "paper"],
+      "live_eligible": false,
+      "required_data": ["ohlcv", "liquidity", "volatility"],
+      "tradability_constraints": ["paper_only", "no_short", "no_leverage", "no_market_order"],
+      "risk_model_id": "risk.fixture.paper_guard"
+    },
+    "trading-model": {
+      "schema_version": "trading-model.v1",
+      "model_id": "model.fixture.baseline_rule",
+      "model_type": "baseline_rule",
+      "lifecycle_status": "candidate",
+      "research_only": true,
+      "deployment_stage": "paper",
+      "leakage_guard_status": "passed",
+      "scorecard": {
+        "validation_status": "passed",
+        "degradation_status": "none",
+        "drift_status": "none"
+      }
+    },
+    "trading-signal": {
+      "schema_version": "trading-signal.v1",
+      "signal_id": "signal.fixture.aapl.hold",
+      "strategy_id": "strategy.fixture.momentum_paper",
+      "asset_id": "asset.us_equity.aapl",
+      "signal_side": "hold",
+      "confidence": 0.62,
+      "rationale": "Fixture signal remains informational and does not authorize an order.",
+      "freshness_status": "fresh",
+      "execution_boundary": "signal_only",
+      "human_review_required": true
+    },
+    "trading-risk": {
+      "schema_version": "trading-risk.v1",
+      "risk_check_id": "risk.fixture.paper_guard",
+      "portfolio_id": "portfolio.demo.paper",
+      "result": "block",
+      "checks": [
+        {
+          "check_id": "risk.live_trade_block",
+          "status": "block",
+          "message": "Live trading is disabled for the initial Trading Pack."
+        },
+        {
+          "check_id": "risk.paper_budget",
+          "status": "pass",
+          "message": "Paper budget is available."
+        }
+      ],
+      "live_trade_allowed": false,
+      "override_requires_human_approval": true,
+      "kill_switch_status": "armed"
+    },
+    "trading-backtest": {
+      "schema_version": "trading-backtest.v1",
+      "backtest_id": "backtest.fixture.momentum_paper",
+      "strategy_id": "strategy.fixture.momentum_paper",
+      "dataset_id": "dataset.fixture.aapl.daily",
+      "run_mode": "deterministic_backtest",
+      "metrics": {
+        "return_pct": 0.4,
+        "max_drawdown_pct": -0.2,
+        "win_rate": 0.5,
+        "risk_adjusted_score": 0.1
+      },
+      "bias_checks": {
+        "lookahead_bias_check": "passed",
+        "survivorship_bias_note": "Single-symbol fixture; not a production universe.",
+        "overfitting_warning": "warn"
+      },
+      "promotion_candidate": false
+    },
+    "trading-paper-trade": {
+      "schema_version": "trading-paper-trade.v1",
+      "paper_ledger_id": "paper.fixture.demo",
+      "strategy_id": "strategy.fixture.momentum_paper",
+      "orders": [
+        {
+          "order_id": "paper_order.fixture.001",
+          "asset_id": "asset.us_equity.aapl",
+          "side": "buy",
+          "quantity": 1,
+          "status": "simulated"
+        }
+      ],
+      "pnl": 0,
+      "drawdown_pct": 0,
+      "promotion_status": "not_eligible"
+    },
+    "trading-order-intent": {
+      "schema_version": "trading-order-intent.v1",
+      "order_intent_id": "order_intent.fixture.blocked_live",
+      "strategy_id": "strategy.fixture.momentum_paper",
+      "asset_id": "asset.us_equity.aapl",
+      "order_side": "none",
+      "order_type": "none",
+      "execution_mode": "blocked_live",
+      "live_execution_allowed": false,
+      "market_order_allowed": false,
+      "risk_gate_status": "block"
+    },
+    "trading-execution": {
+      "schema_version": "trading-execution.v1",
+      "execution_id": "execution.fixture.disabled_live",
+      "order_intent_id": "order_intent.fixture.blocked_live",
+      "execution_mode": "disabled_live",
+      "state": "blocked",
+      "adapter_id": "live_disabled",
+      "live_adapter_enabled": false,
+      "secret_logged": false,
+      "emergency_halt_available": true
+    },
+    "trading-fill-reconciliation": {
+      "schema_version": "trading-fill-reconciliation.v1",
+      "reconciliation_id": "reconciliation.fixture.no_live_fill",
+      "execution_id": "execution.fixture.disabled_live",
+      "status": "not_applicable",
+      "expected_fills": [],
+      "observed_fills": [],
+      "discrepancies": []
+    },
+    "trading-incident": {
+      "schema_version": "trading-incident.v1",
+      "incident_id": "incident.fixture.live_path_attempt",
+      "severity": "warn",
+      "trigger": "A live execution path was requested during the paper-only phase.",
+      "affected_stage": "paper",
+      "status": "triaged",
+      "rollback_stage": "paper",
+      "kill_switch_engaged": true,
+      "human_owner_required": true
+    },
+    "trading-promotion": {
+      "schema_version": "trading-promotion.v1",
+      "promotion_id": "promotion.fixture.paper_to_shadow_blocked",
+      "from_stage": "paper",
+      "to_stage": "shadow_live",
+      "decision": "blocked",
+      "criteria_results": [
+        {
+          "criterion_id": "promotion.live_stage_currently_blocked",
+          "status": "block",
+          "message": "shadow_live is outside the initial implementation boundary."
+        }
+      ],
+      "human_approval_required": true,
+      "live_promotion_allowed": false
+    }
+  },
+  "dashboard_api_stub": {
+    "read_only": true,
+    "routes": [
+      {
+        "method": "GET",
+        "path": "/api/trading/pack/status"
+      },
+      {
+        "method": "GET",
+        "path": "/api/trading/safety"
+      },
+      {
+        "method": "GET",
+        "path": "/api/trading/phase-ledger"
+      },
+      {
+        "method": "GET",
+        "path": "/api/trading/contracts"
+      }
+    ],
+    "mutating_routes_enabled": false
+  }
+}

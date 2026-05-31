@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/trading/trading-strategy.schema.json",
+  "title": "Trading Strategy",
+  "type": "object",
+  "required": ["schema_version", "strategy_id", "archetype", "lifecycle_status", "allowed_stages", "live_eligible", "required_data", "tradability_constraints", "risk_model_id"],
+  "properties": {
+    "schema_version": {
+      "const": "trading-strategy.v1"
+    },
+    "strategy_id": {
+      "type": "string",
+      "pattern": "^strategy\\.[a-z0-9_\\.:-]+$"
+    },
+    "archetype": {
+      "enum": ["equity_long_short", "equity_market_neutral", "statistical_arbitrage", "short_bias", "relative_value", "pairs_trading", "convertible_fixed_income_arbitrage", "event_driven", "global_macro", "managed_futures_cta", "volatility_tail_risk", "multi_strategy_allocator", "research_placeholder"]
+    },
+    "lifecycle_status": {
+      "enum": ["draft", "active", "disabled", "retired"]
+    },
+    "allowed_stages": {
+      "type": "array",
+      "items": {
+        "enum": ["research", "backtest", "paper"]
+      }
+    },
+    "live_eligible": {
+      "const": false
+    },
+    "required_data": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tradability_constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "risk_model_id": {
+      "type": "string"
+    }
+  }
+}

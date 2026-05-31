@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/trading/trading-model.schema.json",
+  "title": "Trading Model",
+  "type": "object",
+  "required": ["schema_version", "model_id", "model_type", "lifecycle_status", "research_only", "deployment_stage", "leakage_guard_status", "scorecard"],
+  "properties": {
+    "schema_version": {
+      "const": "trading-model.v1"
+    },
+    "model_id": {
+      "type": "string",
+      "pattern": "^model\\.[a-z0-9_\\.:-]+$"
+    },
+    "model_type": {
+      "enum": ["baseline_rule", "statistical", "deep_learning_placeholder", "reinforcement_learning_placeholder"]
+    },
+    "lifecycle_status": {
+      "enum": ["draft", "candidate", "champion", "challenger", "disabled", "retired"]
+    },
+    "research_only": {
+      "type": "boolean"
+    },
+    "deployment_stage": {
+      "enum": ["research", "backtest", "paper", "blocked_live"]
+    },
+    "leakage_guard_status": {
+      "enum": ["passed", "blocked", "not_applicable"]
+    },
+    "scorecard": {
+      "type": "object",
+      "required": ["validation_status", "degradation_status", "drift_status"],
+      "properties": {
+        "validation_status": {
+          "enum": ["passed", "warn", "blocked"]
+        },
+        "degradation_status": {
+          "enum": ["none", "warn", "halt"]
+        },
+        "drift_status": {
+          "enum": ["none", "warn", "halt"]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": "trading-market-data-feature-store-golden-fixtures.v1",
+  "fixture_set_id": "trading.market-data-feature-store.p061_p090",
+  "generated_at": "2026-05-30T00:00:00.000Z",
+  "fixtures": [
+    {
+      "fixture_id": "golden.trading.market_data_feature_store.p061_p090",
+      "input_ref": "examples/trading/market-data-feature-store.json",
+      "expected_status": "complete",
+      "expected_phase_range": "P061-P090",
+      "expected_phase_count": 30,
+      "expected_dataset_count": 3,
+      "expected_market_session_count": 3,
+      "expected_fx_snapshot_count": 1,
+      "expected_quality_check_count": 4,
+      "expected_feature_category_count": 10,
+      "expected_feature_snapshot_count": 1,
+      "expected_live_vendor_feeds_enabled": false,
+      "expected_dashboard_read_only": true
+    }
+  ]
+}

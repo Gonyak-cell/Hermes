@@ -1,0 +1,23 @@
+{
+  "schema_version": "trading-execution-engine-golden-fixtures.v1",
+  "fixture_set_id": "trading.execution-engine.p246_p280",
+  "generated_at": "2026-05-31T00:00:00.000Z",
+  "fixtures": [
+    {
+      "fixture_id": "golden.trading.execution_engine.p246_p280",
+      "input_ref": "examples/trading/execution-engine.json",
+      "expected_status": "complete",
+      "expected_phase_range": "P246-P280",
+      "expected_phase_count": 35,
+      "expected_execution_artifact_count": 3,
+      "expected_allowed_order_types": ["limit", "cancel"],
+      "expected_market_order_allowed": false,
+      "expected_real_order_submitted": false,
+      "expected_live_execution_allowed": false,
+      "expected_live_adapter_enabled": false,
+      "expected_secret_logged": false,
+      "expected_regression_case_count": 10,
+      "expected_dashboard_read_only": true
+    }
+  ]
+}

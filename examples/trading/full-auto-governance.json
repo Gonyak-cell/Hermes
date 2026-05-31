@@ -1,0 +1,299 @@
+{
+  "schema_version": "trading-full-auto-governance.v1",
+  "full_auto_governance_id": "trading.full_auto_governance.p311_p340",
+  "phase_range": "P311-P340",
+  "full_auto_status": "complete",
+  "generated_at": "2026-05-31T00:00:00.000Z",
+  "safety_boundary": {
+    "control_plane_only": true,
+    "full_auto_enabled": false,
+    "limited_live_enabled": false,
+    "automatic_order_submission_allowed": false,
+    "live_order_submission_allowed": false,
+    "real_order_submitted": false,
+    "broker_write_allowed": false,
+    "exchange_write_allowed": false,
+    "external_service_allowed": false,
+    "human_approval_required": true,
+    "rollback_to_paper_required": true
+  },
+  "phase_coverage": [
+    { "phase_id": "P311", "status": "complete", "artifact_ref": "full_auto_approval_checklist" },
+    { "phase_id": "P312", "status": "complete", "artifact_ref": "strategy_health_scoring" },
+    { "phase_id": "P313", "status": "complete", "artifact_ref": "model_health_scoring" },
+    { "phase_id": "P314", "status": "complete", "artifact_ref": "automatic_disable_policies.strategy_disable_on_degradation" },
+    { "phase_id": "P315", "status": "complete", "artifact_ref": "automatic_disable_policies.model_disable_on_drift" },
+    { "phase_id": "P316", "status": "complete", "artifact_ref": "allocators.portfolio_capital_allocator" },
+    { "phase_id": "P317", "status": "complete", "artifact_ref": "allocators.multi_strategy_conflict_resolver" },
+    { "phase_id": "P318", "status": "complete", "artifact_ref": "allocators.risk_budget_allocator" },
+    { "phase_id": "P319", "status": "complete", "artifact_ref": "allocators.regime_detection_allocator" },
+    { "phase_id": "P320", "status": "complete", "artifact_ref": "allocators.market_stress_allocator" },
+    { "phase_id": "P321", "status": "complete", "artifact_ref": "failover_policies.data_vendor_failover" },
+    { "phase_id": "P322", "status": "complete", "artifact_ref": "failover_policies.broker_exchange_failover" },
+    { "phase_id": "P323", "status": "complete", "artifact_ref": "monthly_strategy_review" },
+    { "phase_id": "P324", "status": "complete", "artifact_ref": "audit_replay" },
+    { "phase_id": "P325", "status": "complete", "artifact_ref": "disaster_recovery" },
+    { "phase_id": "P326", "status": "complete", "artifact_ref": "tax_export_placeholder" },
+    { "phase_id": "P327", "status": "complete", "artifact_ref": "operator_handbook" },
+    { "phase_id": "P328", "status": "complete", "artifact_ref": "dashboard_api_stub.dashboard" },
+    { "phase_id": "P329", "status": "complete", "artifact_ref": "dashboard_api_stub.api" },
+    { "phase_id": "P330", "status": "complete", "artifact_ref": "final_safety_regression_suite" },
+    { "phase_id": "P331", "status": "complete", "artifact_ref": "trading_pack_v1_freeze.freeze_checklist" },
+    { "phase_id": "P332", "status": "complete", "artifact_ref": "trading_pack_v1_freeze.schema_manifest_registration" },
+    { "phase_id": "P333", "status": "complete", "artifact_ref": "trading_pack_v1_freeze.golden_fixture_lock" },
+    { "phase_id": "P334", "status": "complete", "artifact_ref": "trading_pack_v1_freeze.check_mode_no_write" },
+    { "phase_id": "P335", "status": "complete", "artifact_ref": "trading_pack_v1_freeze.validate_chain" },
+    { "phase_id": "P336", "status": "complete", "artifact_ref": "trading_pack_v1_freeze.contract_validation_gate" },
+    { "phase_id": "P337", "status": "complete", "artifact_ref": "trading_pack_v1_freeze.release_freeze_gate" },
+    { "phase_id": "P338", "status": "complete", "artifact_ref": "trading_pack_v1_freeze.freeze_artifact" },
+    { "phase_id": "P339", "status": "complete", "artifact_ref": "docs.trading_pack_phase_ledger" },
+    { "phase_id": "P340", "status": "complete", "artifact_ref": "trading:full-auto-report" }
+  ],
+  "full_auto_approval_checklist": {
+    "checklist_id": "full_auto_approval_checklist.p311",
+    "approval_required": true,
+    "approval_receipt_present": false,
+    "decision": "blocked",
+    "checks": [
+      { "check_id": "human_approval_receipt", "status": "block", "source_ref": "human_approval_receipt.missing" },
+      { "check_id": "limited_live_freeze", "status": "pass", "source_ref": "limited_live_freeze.p301" },
+      { "check_id": "final_safety_regression_suite", "status": "pass", "source_ref": "final_safety_regression_suite.p330" },
+      { "check_id": "trading_pack_v1_freeze", "status": "pass", "source_ref": "trading_pack_v1_freeze.p331_p340" }
+    ]
+  },
+  "strategy_health_scoring": {
+    "scoring_id": "strategy_health_scoring.p312",
+    "score_threshold": 0.75,
+    "human_review_required": true,
+    "scores": [
+      {
+        "strategy_id": "strategy.fixture.momentum_paper",
+        "score": 0.82,
+        "health_status": "pass",
+        "source_refs": ["scorecard.strategy.paper.momentum_p221_p245", "shadow_live_drift.p238"],
+        "full_auto_eligible": false
+      }
+    ]
+  },
+  "model_health_scoring": {
+    "scoring_id": "model_health_scoring.p313",
+    "score_threshold": 0.8,
+    "human_review_required": true,
+    "scores": [
+      {
+        "model_id": "model.fixture.baseline_rule",
+        "score": 0.88,
+        "health_status": "pass",
+        "source_refs": ["scorecard.model.fixture.baseline_rule", "degradation.baseline_rule.validation_delta", "drift.baseline_rule.feature_distribution"],
+        "full_auto_eligible": false
+      }
+    ]
+  },
+  "automatic_disable_policies": {
+    "strategy_disable_on_degradation": {
+      "policy_id": "strategy_disable_on_degradation.p314",
+      "enabled": true,
+      "trigger_results": ["warn", "block", "halt"],
+      "control_plane_state_change_only": true,
+      "disabled_strategy_ids": [],
+      "live_orders_touched": false,
+      "human_review_required": true
+    },
+    "model_disable_on_drift": {
+      "policy_id": "model_disable_on_drift.p315",
+      "enabled": true,
+      "trigger_results": ["warn", "block", "halt"],
+      "control_plane_state_change_only": true,
+      "disabled_model_ids": [],
+      "live_orders_touched": false,
+      "human_review_required": true
+    }
+  },
+  "allocators": {
+    "portfolio_capital_allocator": {
+      "allocator_id": "portfolio_capital_allocator.p316",
+      "dry_run_only": true,
+      "source_ref": "limited_live_capital_cap.p282",
+      "proposed_capital": 1000,
+      "applied_capital": 0,
+      "full_auto_allocation_allowed": false
+    },
+    "multi_strategy_conflict_resolver": {
+      "resolver_id": "multi_strategy_conflict_resolver.p317",
+      "dry_run_only": true,
+      "source_ref": "strategy_conflict_model.trading.v1",
+      "conflicts_detected": 0,
+      "order_generation_allowed": false
+    },
+    "risk_budget_allocator": {
+      "allocator_id": "risk_budget_allocator.p318",
+      "dry_run_only": true,
+      "source_ref": "risk_freeze.trading.p196_p220",
+      "proposed_risk_budget_pct": 0.02,
+      "live_risk_budget_applied": false
+    },
+    "regime_detection_allocator": {
+      "allocator_id": "regime_detection_allocator.p319",
+      "dry_run_only": true,
+      "source_ref": "feature.regime.volatility_bucket",
+      "detected_regime": "normal_volatility_fixture",
+      "allocation_change_allowed": false
+    },
+    "market_stress_allocator": {
+      "allocator_id": "market_stress_allocator.p320",
+      "dry_run_only": true,
+      "source_ref": "stress.crash_replay.p187",
+      "stress_state": "none_detected",
+      "allocation_reduce_only": true,
+      "live_allocation_change_allowed": false
+    }
+  },
+  "failover_policies": {
+    "data_vendor_failover": {
+      "policy_id": "data_vendor_failover.p321",
+      "enabled": true,
+      "read_only": true,
+      "external_network_allowed": false,
+      "primary_source_ref": "adapter.trading.vendor_stub",
+      "fallback_source_refs": ["adapter.trading.csv_manual_ohlcv", "adapter.trading.manual_fx_snapshot"],
+      "order_generation_allowed_during_failover": false
+    },
+    "broker_exchange_failover": {
+      "policy_id": "broker_exchange_failover.p322",
+      "enabled": true,
+      "broker_write_allowed": false,
+      "exchange_write_allowed": false,
+      "live_adapter_required": false,
+      "failover_target": "paper",
+      "manual_resume_required": true
+    }
+  },
+  "monthly_strategy_review": {
+    "review_id": "monthly_strategy_review.p323",
+    "required": true,
+    "cadence": "monthly",
+    "next_review_due": "2026-06-30",
+    "review_items": ["strategy_health", "model_health", "risk_budget", "allocator_drift", "incident_log"],
+    "human_owner_required": true
+  },
+  "audit_replay": {
+    "audit_id": "full_auto_audit_replay.p324",
+    "replayable": true,
+    "source_lineage_required": true,
+    "source_refs": [
+      "trading.model_improvement.p126_p165",
+      "trading.risk_engine.p196_p220",
+      "trading.paper_shadow.p221_p245",
+      "trading.execution_engine.p246_p280",
+      "trading.limited_live_governance.p281_p310"
+    ],
+    "review_status_required": true
+  },
+  "disaster_recovery": {
+    "plan_id": "full_auto_disaster_recovery.p325",
+    "rollback_stage": "paper",
+    "manual_resume_required": true,
+    "restore_from_artifacts_only": true,
+    "external_broker_recovery_allowed": false,
+    "dry_run_ref": "kill_switch.shadow.dry_run.p239"
+  },
+  "tax_export_placeholder": {
+    "placeholder_id": "tax_export_placeholder.p326",
+    "export_enabled": false,
+    "jurisdiction": "placeholder",
+    "data_minimization_required": true,
+    "human_review_required": true
+  },
+  "operator_handbook": {
+    "handbook_id": "full_auto_operator_handbook.p327",
+    "required": true,
+    "human_review_queue_required": true,
+    "protected_action_routes_disabled": true,
+    "manual_resume_only": true
+  },
+  "dashboard_api_stub": {
+    "read_only": true,
+    "mutating_routes_enabled": false,
+    "routes": [
+      { "method": "GET", "path": "/api/trading/full-auto/report" },
+      { "method": "GET", "path": "/api/trading/full-auto/approval-checklist" },
+      { "method": "GET", "path": "/api/trading/full-auto/health" },
+      { "method": "GET", "path": "/api/trading/full-auto/allocators" },
+      { "method": "GET", "path": "/api/trading/full-auto/failover" },
+      { "method": "GET", "path": "/api/trading/full-auto/v1-freeze" }
+    ],
+    "disabled_routes": [
+      {
+        "method": "POST",
+        "path": "/api/trading/full-auto/approve",
+        "reason": "Full-auto approval requires a future protected human approval receipt."
+      },
+      {
+        "method": "POST",
+        "path": "/api/trading/full-auto/orders",
+        "reason": "Automatic order submission remains disabled."
+      },
+      {
+        "method": "POST",
+        "path": "/api/trading/full-auto/allocator/apply",
+        "reason": "Allocators are dry-run only in P311-P340."
+      },
+      {
+        "method": "POST",
+        "path": "/api/trading/full-auto/failover/broker",
+        "reason": "Broker/exchange failover cannot enable live writes."
+      },
+      {
+        "method": "POST",
+        "path": "/api/trading/orders",
+        "reason": "Real order placement remains blocked by default."
+      }
+    ]
+  },
+  "final_safety_regression_suite": {
+    "suite_id": "full_auto_final_safety_regression_suite.p330",
+    "case_count": 12,
+    "golden_fixture_ref": "examples/trading/full-auto-governance-golden-fixtures.json",
+    "all_cases_passed": true,
+    "cases": [
+      "schema_validation",
+      "approval_checklist_blocked_without_receipt",
+      "full_auto_disabled",
+      "strategy_health_scoring",
+      "model_health_scoring",
+      "automatic_disable_control_plane_only",
+      "allocators_dry_run_only",
+      "failover_no_write",
+      "audit_replay",
+      "disaster_recovery_to_paper",
+      "dashboard_api_read_only",
+      "check_mode_no_write"
+    ]
+  },
+  "trading_pack_v1_freeze": {
+    "freeze_id": "trading_pack_v1_freeze.p331_p340",
+    "phase_range": "P331-P340",
+    "status": "complete",
+    "frozen": true,
+    "fixture_ref": "examples/trading/full-auto-governance.json",
+    "golden_fixture_ref": "examples/trading/full-auto-governance-golden-fixtures.json",
+    "schema_ref": "schemas/trading/trading-full-auto-governance.schema.json",
+    "check_mode_no_write_required": true,
+    "contract_validation_required": true,
+    "release_freeze_required": true,
+    "live_enablement_allowed": false,
+    "completion_baseline_phase": "P340",
+    "checklist": [
+      { "phase_id": "P331", "status": "complete", "evidence_ref": "trading_pack_v1_freeze.freeze_checklist" },
+      { "phase_id": "P332", "status": "complete", "evidence_ref": "packs/trading/pack.json" },
+      { "phase_id": "P333", "status": "complete", "evidence_ref": "examples/trading/full-auto-governance-golden-fixtures.json" },
+      { "phase_id": "P334", "status": "complete", "evidence_ref": "test/trading-pack.test.mjs.no_write" },
+      { "phase_id": "P335", "status": "complete", "evidence_ref": "package.json.validate" },
+      { "phase_id": "P336", "status": "complete", "evidence_ref": "npm.cmd run contracts:validate -- --check" },
+      { "phase_id": "P337", "status": "complete", "evidence_ref": "npm.cmd run release:freeze -- --check" },
+      { "phase_id": "P338", "status": "complete", "evidence_ref": "artifacts/trading-full-auto-report/latest" },
+      { "phase_id": "P339", "status": "complete", "evidence_ref": "docs/trading-pack-phase-ledger.md" },
+      { "phase_id": "P340", "status": "complete", "evidence_ref": "trading:full-auto-report" }
+    ]
+  }
+}

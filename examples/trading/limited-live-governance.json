@@ -1,0 +1,287 @@
+{
+  "schema_version": "trading-limited-live-governance.v1",
+  "limited_live_governance_id": "trading.limited_live_governance.p281_p310",
+  "phase_range": "P281-P310",
+  "limited_live_status": "complete",
+  "generated_at": "2026-05-31T00:00:00.000Z",
+  "safety_boundary": {
+    "control_plane_only": true,
+    "explicit_human_approval_required": true,
+    "approval_receipt_present": false,
+    "limited_live_enabled": false,
+    "live_order_submission_allowed": false,
+    "real_order_submitted": false,
+    "broker_write_allowed": false,
+    "exchange_write_allowed": false,
+    "credential_required": false,
+    "human_review_required": true,
+    "full_auto_promotion_allowed": false
+  },
+  "phase_coverage": [
+    { "phase_id": "P281", "status": "complete", "artifact_ref": "approval_gate" },
+    { "phase_id": "P282", "status": "complete", "artifact_ref": "capital_cap" },
+    { "phase_id": "P283", "status": "complete", "artifact_ref": "whitelists.asset_whitelist" },
+    { "phase_id": "P284", "status": "complete", "artifact_ref": "whitelists.strategy_whitelist" },
+    { "phase_id": "P285", "status": "complete", "artifact_ref": "whitelists.model_whitelist" },
+    { "phase_id": "P286", "status": "complete", "artifact_ref": "order_caps.order_size_cap" },
+    { "phase_id": "P287", "status": "complete", "artifact_ref": "order_caps.daily_order_count_cap" },
+    { "phase_id": "P288", "status": "complete", "artifact_ref": "halt_gates.daily_loss_halt" },
+    { "phase_id": "P289", "status": "complete", "artifact_ref": "halt_gates.exchange_broker_outage_halt" },
+    { "phase_id": "P290", "status": "complete", "artifact_ref": "halt_gates.stale_data_halt" },
+    { "phase_id": "P291", "status": "complete", "artifact_ref": "halt_gates.abnormal_spread_halt" },
+    { "phase_id": "P292", "status": "complete", "artifact_ref": "first_trade_confirmation" },
+    { "phase_id": "P293", "status": "complete", "artifact_ref": "auto_cancel_stale_orders" },
+    { "phase_id": "P294", "status": "complete", "artifact_ref": "post_trade_reconciliation" },
+    { "phase_id": "P295", "status": "complete", "artifact_ref": "daily_live_report" },
+    { "phase_id": "P296", "status": "complete", "artifact_ref": "incident_notification" },
+    { "phase_id": "P297", "status": "complete", "artifact_ref": "rollback_policy" },
+    { "phase_id": "P298", "status": "complete", "artifact_ref": "live_vs_paper_comparison" },
+    { "phase_id": "P299", "status": "complete", "artifact_ref": "model_live_degradation_check" },
+    { "phase_id": "P300", "status": "complete", "artifact_ref": "promotion_criteria_to_full_auto" },
+    { "phase_id": "P301", "status": "complete", "artifact_ref": "limited_live_freeze_report" },
+    { "phase_id": "P302", "status": "complete", "artifact_ref": "regression_suite.schema_validation" },
+    { "phase_id": "P303", "status": "complete", "artifact_ref": "regression_suite.golden_fixture" },
+    { "phase_id": "P304", "status": "complete", "artifact_ref": "dashboard_api_stub.dashboard" },
+    { "phase_id": "P305", "status": "complete", "artifact_ref": "dashboard_api_stub.api" },
+    { "phase_id": "P306", "status": "complete", "artifact_ref": "operator_runbook.runbook_required" },
+    { "phase_id": "P307", "status": "complete", "artifact_ref": "operator_runbook.operator_handbook_required" },
+    { "phase_id": "P308", "status": "complete", "artifact_ref": "regression_suite.no_write_check" },
+    { "phase_id": "P309", "status": "complete", "artifact_ref": "contracts.release_gate" },
+    { "phase_id": "P310", "status": "complete", "artifact_ref": "docs.trading_pack_phase_ledger" }
+  ],
+  "approval_gate": {
+    "gate_id": "limited_live_explicit_approval.p281",
+    "approval_required": true,
+    "approval_receipt_present": false,
+    "decision": "blocked",
+    "protected_action_gate_required": true,
+    "required_receipt_contract": "human_approval_receipt.v1"
+  },
+  "capital_cap": {
+    "cap_id": "limited_live_capital_cap.p282",
+    "currency": "USD",
+    "cap_amount": 1000,
+    "current_allocated": 0,
+    "enforced": true,
+    "blocks_when_missing_approval": true,
+    "source_ref": "portfolio.demo.paper"
+  },
+  "whitelists": {
+    "asset_whitelist": {
+      "enabled": true,
+      "asset_ids": ["asset.us_equity.aapl", "asset.crypto.btc", "asset.kr_equity.005930"],
+      "source_ref": "risk_engine.portfolio_context.asset_ids",
+      "blocks_unlisted_assets": true
+    },
+    "strategy_whitelist": {
+      "enabled": true,
+      "strategy_ids": ["strategy.fixture.momentum_paper"],
+      "source_ref": "paper_shadow.strategy_paper_scorecards",
+      "blocks_unlisted_strategies": true
+    },
+    "model_whitelist": {
+      "enabled": true,
+      "model_ids": ["model.fixture.baseline_rule"],
+      "source_ref": "model_improvement.model_registry",
+      "blocks_unlisted_models": true
+    },
+    "all_whitelists_require_review": true
+  },
+  "order_caps": {
+    "order_size_cap": {
+      "cap_id": "limited_live_order_size_cap.p286",
+      "currency": "USD",
+      "max_notional": 100,
+      "current_requested_notional": 0,
+      "enforced": true,
+      "blocks_submission": true
+    },
+    "daily_order_count_cap": {
+      "cap_id": "limited_live_daily_order_count_cap.p287",
+      "max_orders_per_day": 0,
+      "current_orders_today": 0,
+      "enforced": true,
+      "blocks_submission": true
+    },
+    "order_submission_allowed": false
+  },
+  "halt_gates": {
+    "daily_loss_halt": {
+      "gate_id": "limited_live_daily_loss_halt.p288",
+      "source_ref": "risk_limits.daily_loss_limit",
+      "current_pct": -0.004,
+      "halt_pct": -0.03,
+      "triggered": false,
+      "enabled": true,
+      "halt_on_trigger": true
+    },
+    "exchange_broker_outage_halt": {
+      "gate_id": "limited_live_exchange_broker_outage_halt.p289",
+      "source_ref": "execution.adapters.live_adapter",
+      "outage_detected": false,
+      "enabled": true,
+      "halt_on_trigger": true
+    },
+    "stale_data_halt": {
+      "gate_id": "limited_live_stale_data_halt.p290",
+      "source_ref": "risk_guards.stale_data_trade_block",
+      "stale_data_detected": false,
+      "enabled": true,
+      "halt_on_trigger": true
+    },
+    "abnormal_spread_halt": {
+      "gate_id": "limited_live_abnormal_spread_halt.p291",
+      "source_ref": "risk_guards.abnormal_spread_block",
+      "abnormal_spread_detected": false,
+      "enabled": true,
+      "halt_on_trigger": true
+    }
+  },
+  "first_trade_confirmation": {
+    "required": true,
+    "confirmation_present": false,
+    "blocks_first_trade": true,
+    "first_trade_submitted": false,
+    "confirmation_receipt_ref": "human_approval_receipt.missing"
+  },
+  "auto_cancel_stale_orders": {
+    "enabled": true,
+    "stale_after_seconds": 60,
+    "stale_order_count": 0,
+    "simulated_cancel_count": 0,
+    "live_cancel_allowed": false
+  },
+  "post_trade_reconciliation": {
+    "required": true,
+    "live_fill_count": 0,
+    "reconciliation_artifact": {
+      "schema_version": "trading-fill-reconciliation.v1",
+      "reconciliation_id": "reconciliation.limited_live.p294.no_live_fill",
+      "execution_id": "execution.live_disabled.p262.blocked",
+      "status": "not_applicable",
+      "expected_fills": [],
+      "observed_fills": [],
+      "discrepancies": []
+    },
+    "human_review_required": true
+  },
+  "daily_live_report": {
+    "report_id": "limited_live_daily_report.p295.2026-05-31",
+    "report_date": "2026-05-31",
+    "status": "blocked_no_live_activity",
+    "real_order_count": 0,
+    "pnl_source": "paper_shadow.shadow_pnl_estimate",
+    "human_review_required": true
+  },
+  "incident_notification": {
+    "enabled": true,
+    "delivery_mode": "local_artifact_only",
+    "external_notification_sent": false,
+    "incident_artifact": {
+      "schema_version": "trading-incident.v1",
+      "incident_id": "incident.limited_live.p296.activation_blocked",
+      "severity": "info",
+      "trigger": "Limited live activation is blocked until explicit human approval and protected-action receipts exist.",
+      "affected_stage": "limited_live",
+      "status": "triaged",
+      "rollback_stage": "paper",
+      "kill_switch_engaged": true,
+      "human_owner_required": true
+    }
+  },
+  "rollback_policy": {
+    "rollback_to_paper_mode": true,
+    "rollback_stage": "paper",
+    "manual_resume_required": true,
+    "rollback_tested_by": "kill_switch.shadow.dry_run.p239"
+  },
+  "live_vs_paper_comparison": {
+    "comparison_id": "live_vs_paper.p298.no_live_activity",
+    "paper_source_ref": "paper.trading.p221_p245.demo",
+    "live_source_ref": "execution.live_disabled.p262.blocked",
+    "status": "not_applicable",
+    "max_allowed_drift_pct": 0.02,
+    "observed_drift_pct": 0,
+    "human_review_required": true
+  },
+  "model_live_degradation_check": {
+    "check_id": "limited_live_model_degradation.p299",
+    "source_ref": "degradation.baseline_rule.validation_delta",
+    "model_id": "model.fixture.baseline_rule",
+    "result": "pass",
+    "halt_on_degradation": true,
+    "live_model_enabled": false
+  },
+  "promotion_criteria_to_full_auto": {
+    "criteria_id": "promotion_criteria.limited_live_to_full_auto.p300",
+    "decision": "blocked",
+    "human_approval_required": true,
+    "full_auto_enabled": false,
+    "required_evidence": ["limited_live_daily_report", "incident_notification", "post_trade_reconciliation", "model_live_degradation_check"]
+  },
+  "limited_live_freeze_report": {
+    "freeze_id": "limited_live_freeze.p301",
+    "frozen": true,
+    "fixture_ref": "examples/trading/limited-live-governance.json",
+    "regression_hash_locked": true,
+    "limited_live_enablement_allowed": false
+  },
+  "operator_runbook": {
+    "runbook_required": true,
+    "operator_handbook_required": true,
+    "human_review_queue_required": true,
+    "protected_action_routes_disabled": true
+  },
+  "dashboard_api_stub": {
+    "read_only": true,
+    "mutating_routes_enabled": false,
+    "routes": [
+      { "method": "GET", "path": "/api/trading/limited-live/report" },
+      { "method": "GET", "path": "/api/trading/limited-live/approval-gate" },
+      { "method": "GET", "path": "/api/trading/limited-live/caps" },
+      { "method": "GET", "path": "/api/trading/limited-live/whitelists" },
+      { "method": "GET", "path": "/api/trading/limited-live/halt-gates" },
+      { "method": "GET", "path": "/api/trading/limited-live/freeze" }
+    ],
+    "disabled_routes": [
+      {
+        "method": "POST",
+        "path": "/api/trading/limited-live/approve",
+        "reason": "Limited live approval requires a future protected human approval receipt."
+      },
+      {
+        "method": "POST",
+        "path": "/api/trading/limited-live/orders",
+        "reason": "Live order submission remains disabled in P281-P310."
+      },
+      {
+        "method": "POST",
+        "path": "/api/trading/limited-live/promote-full-auto",
+        "reason": "Full-auto promotion is blocked until P311-P340 governance exists."
+      },
+      {
+        "method": "POST",
+        "path": "/api/trading/orders",
+        "reason": "Real order placement remains blocked by default."
+      }
+    ]
+  },
+  "regression_suite": {
+    "suite_id": "limited_live_regression_suite.p302_p310",
+    "case_count": 10,
+    "golden_fixture_ref": "examples/trading/limited-live-golden-fixtures.json",
+    "all_cases_passed": true,
+    "cases": [
+      "schema_validation",
+      "approval_required",
+      "capital_cap_enforced",
+      "whitelists_enforced",
+      "order_caps_block",
+      "halt_gates_armed",
+      "first_trade_manual_confirmation",
+      "post_trade_reconciliation",
+      "rollback_to_paper",
+      "no_write_check"
+    ]
+  }
+}

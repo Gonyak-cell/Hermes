@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/trading/trading-order-intent.schema.json",
+  "title": "Trading Order Intent",
+  "type": "object",
+  "required": ["schema_version", "order_intent_id", "strategy_id", "asset_id", "order_side", "order_type", "execution_mode", "live_execution_allowed", "market_order_allowed", "risk_gate_status"],
+  "properties": {
+    "schema_version": {
+      "const": "trading-order-intent.v1"
+    },
+    "order_intent_id": {
+      "type": "string",
+      "pattern": "^order_intent\\.[a-z0-9_\\.:-]+$"
+    },
+    "strategy_id": {
+      "type": "string"
+    },
+    "asset_id": {
+      "type": "string"
+    },
+    "order_side": {
+      "enum": ["buy", "sell", "cancel", "none"]
+    },
+    "order_type": {
+      "enum": ["limit", "cancel", "none"]
+    },
+    "execution_mode": {
+      "enum": ["paper", "shadow", "blocked_live"]
+    },
+    "live_execution_allowed": {
+      "const": false
+    },
+    "market_order_allowed": {
+      "const": false
+    },
+    "risk_gate_status": {
+      "enum": ["pass", "warn", "block", "halt"]
+    }
+  }
+}

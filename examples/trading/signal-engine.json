@@ -1,0 +1,327 @@
+{
+  "schema_version": "trading-signal-engine.v1",
+  "engine_id": "trading.signal_engine.p091_p125",
+  "phase_range": "P091-P125",
+  "signal_engine_status": "complete",
+  "generated_at": "2026-05-30T00:00:00.000Z",
+  "safety_boundary": {
+    "signal_only": true,
+    "investment_advice_generated": false,
+    "trade_recommendation_generated": false,
+    "order_intent_generated": false,
+    "live_execution_allowed": false,
+    "human_review_required": true
+  },
+  "phase_coverage": [
+    { "phase_id": "P091", "status": "complete", "artifact_ref": "adapter_interface" },
+    { "phase_id": "P092", "status": "complete", "artifact_ref": "strategy_adapters.rule_based" },
+    { "phase_id": "P093", "status": "complete", "artifact_ref": "strategy_adapters.technical_indicator" },
+    { "phase_id": "P094", "status": "complete", "artifact_ref": "strategy_adapters.factor" },
+    { "phase_id": "P095", "status": "complete", "artifact_ref": "strategy_adapters.macro" },
+    { "phase_id": "P096", "status": "complete", "artifact_ref": "strategy_adapters.event_driven" },
+    { "phase_id": "P097", "status": "complete", "artifact_ref": "strategy_adapters.crypto_on_chain_placeholder" },
+    { "phase_id": "P098", "status": "complete", "artifact_ref": "strategy_adapters.sentiment_placeholder" },
+    { "phase_id": "P099", "status": "complete", "artifact_ref": "strategy_adapters.dl_model" },
+    { "phase_id": "P100", "status": "complete", "artifact_ref": "signal_candidates" },
+    { "phase_id": "P101", "status": "complete", "artifact_ref": "signal_candidates.confidence" },
+    { "phase_id": "P102", "status": "complete", "artifact_ref": "signal_candidates.rationale" },
+    { "phase_id": "P103", "status": "complete", "artifact_ref": "signal_candidates.source_bindings" },
+    { "phase_id": "P104", "status": "complete", "artifact_ref": "freshness_gate" },
+    { "phase_id": "P105", "status": "complete", "artifact_ref": "conflict_detection" },
+    { "phase_id": "P106", "status": "complete", "artifact_ref": "aggregation_model" },
+    { "phase_id": "P107", "status": "complete", "artifact_ref": "aggregation_model.strategy_weights" },
+    { "phase_id": "P108", "status": "complete", "artifact_ref": "aggregation_model.correlation_penalty" },
+    { "phase_id": "P109", "status": "complete", "artifact_ref": "aggregation_model.risk_adjusted_signal_score" },
+    { "phase_id": "P110", "status": "complete", "artifact_ref": "review_queue" },
+    { "phase_id": "P111", "status": "complete", "artifact_ref": "order_intent_boundary" },
+    { "phase_id": "P112", "status": "complete", "artifact_ref": "drift_detection" },
+    { "phase_id": "P113", "status": "complete", "artifact_ref": "decay_tracking" },
+    { "phase_id": "P114", "status": "complete", "artifact_ref": "attribution_model" },
+    { "phase_id": "P115", "status": "complete", "artifact_ref": "trading:signal-report" },
+    { "phase_id": "P116", "status": "complete", "artifact_ref": "tests.signal_engine_schema" },
+    { "phase_id": "P117", "status": "complete", "artifact_ref": "tests.signal_contract_validation" },
+    { "phase_id": "P118", "status": "complete", "artifact_ref": "tests.signal_no_write_check" },
+    { "phase_id": "P119", "status": "complete", "artifact_ref": "fixtures.signal_engine" },
+    { "phase_id": "P120", "status": "complete", "artifact_ref": "fixtures.signal_golden" },
+    { "phase_id": "P121", "status": "complete", "artifact_ref": "pack.workflow.signal_report" },
+    { "phase_id": "P122", "status": "complete", "artifact_ref": "capability.entrypoint.signal_report" },
+    { "phase_id": "P123", "status": "complete", "artifact_ref": "dashboard_api_stub" },
+    { "phase_id": "P124", "status": "complete", "artifact_ref": "contracts.release_gate" },
+    { "phase_id": "P125", "status": "complete", "artifact_ref": "docs.trading_pack_phase_ledger" }
+  ],
+  "adapter_interface": {
+    "interface_id": "strategy_adapter_interface.trading.v1",
+    "input_contracts": ["trading-feature.v1", "trading-strategy-archetype-registry.v1", "trading-market-data.v1"],
+    "output_contract": "trading-signal.v1",
+    "allowed_stages": ["research", "backtest", "paper"],
+    "order_intent_generation_allowed": false,
+    "live_execution_allowed": false,
+    "human_review_required": true
+  },
+  "strategy_adapters": [
+    {
+      "adapter_id": "adapter.signal.rule_based",
+      "adapter_type": "rule_based",
+      "status": "complete",
+      "enabled": true,
+      "allowed_stages": ["research", "backtest", "paper"],
+      "output_contract": "trading-signal.v1",
+      "order_intent_generation_allowed": false,
+      "live_execution_allowed": false
+    },
+    {
+      "adapter_id": "adapter.signal.technical_indicator",
+      "adapter_type": "technical_indicator",
+      "status": "complete",
+      "enabled": true,
+      "allowed_stages": ["research", "backtest", "paper"],
+      "output_contract": "trading-signal.v1",
+      "order_intent_generation_allowed": false,
+      "live_execution_allowed": false
+    },
+    {
+      "adapter_id": "adapter.signal.factor",
+      "adapter_type": "factor",
+      "status": "complete",
+      "enabled": true,
+      "allowed_stages": ["research", "backtest", "paper"],
+      "output_contract": "trading-signal.v1",
+      "order_intent_generation_allowed": false,
+      "live_execution_allowed": false
+    },
+    {
+      "adapter_id": "adapter.signal.macro",
+      "adapter_type": "macro",
+      "status": "complete",
+      "enabled": true,
+      "allowed_stages": ["research", "backtest", "paper"],
+      "output_contract": "trading-signal.v1",
+      "order_intent_generation_allowed": false,
+      "live_execution_allowed": false
+    },
+    {
+      "adapter_id": "adapter.signal.event_driven",
+      "adapter_type": "event_driven",
+      "status": "complete",
+      "enabled": true,
+      "allowed_stages": ["research", "backtest", "paper"],
+      "output_contract": "trading-signal.v1",
+      "order_intent_generation_allowed": false,
+      "live_execution_allowed": false
+    },
+    {
+      "adapter_id": "adapter.signal.crypto_on_chain_placeholder",
+      "adapter_type": "crypto_on_chain_placeholder",
+      "status": "placeholder",
+      "enabled": false,
+      "allowed_stages": ["research"],
+      "output_contract": "trading-signal.v1",
+      "order_intent_generation_allowed": false,
+      "live_execution_allowed": false
+    },
+    {
+      "adapter_id": "adapter.signal.sentiment_placeholder",
+      "adapter_type": "sentiment_placeholder",
+      "status": "placeholder",
+      "enabled": false,
+      "allowed_stages": ["research"],
+      "output_contract": "trading-signal.v1",
+      "order_intent_generation_allowed": false,
+      "live_execution_allowed": false
+    },
+    {
+      "adapter_id": "adapter.signal.dl_model",
+      "adapter_type": "dl_model",
+      "status": "complete",
+      "enabled": true,
+      "allowed_stages": ["research", "backtest", "paper"],
+      "output_contract": "trading-signal.v1",
+      "order_intent_generation_allowed": false,
+      "live_execution_allowed": false
+    }
+  ],
+  "signal_candidates": [
+    {
+      "candidate_id": "signal_candidate.rule_based.005930.hold",
+      "adapter_id": "adapter.signal.rule_based",
+      "strategy_id": "strategy.fixture.momentum_paper",
+      "asset_id": "asset.kr_equity.005930",
+      "confidence": 0.66,
+      "rationale": "Rule-based fixture observes clean data quality and keeps the output informational only.",
+      "source_bindings": [
+        { "source_type": "strategy_archetype", "source_ref": "equity_market_neutral" },
+        { "source_type": "feature_snapshot", "source_ref": "feature_snapshot.p061_p090.demo.v1" },
+        { "source_type": "market_data_dataset", "source_ref": "dataset.csv_manual.kr_stock.005930.daily" }
+      ],
+      "freshness_status": "fresh",
+      "review_status": "pending_review",
+      "signal_artifact": {
+        "schema_version": "trading-signal.v1",
+        "signal_id": "signal.rule_based.005930.hold",
+        "strategy_id": "strategy.fixture.momentum_paper",
+        "asset_id": "asset.kr_equity.005930",
+        "signal_side": "hold",
+        "confidence": 0.66,
+        "rationale": "Fixture signal is informational and does not authorize an order.",
+        "freshness_status": "fresh",
+        "execution_boundary": "signal_only",
+        "human_review_required": true
+      }
+    },
+    {
+      "candidate_id": "signal_candidate.technical_indicator.aapl.increase",
+      "adapter_id": "adapter.signal.technical_indicator",
+      "strategy_id": "strategy.fixture.momentum_paper",
+      "asset_id": "asset.us_equity.aapl",
+      "confidence": 0.61,
+      "rationale": "Technical indicator fixture records positive short-horizon momentum but remains separated from execution.",
+      "source_bindings": [
+        { "source_type": "strategy_archetype", "source_ref": "equity_market_neutral" },
+        { "source_type": "feature_snapshot", "source_ref": "feature_snapshot.p061_p090.demo.v1" },
+        { "source_type": "market_data_dataset", "source_ref": "dataset.fixture.us_equity.aapl.daily" }
+      ],
+      "freshness_status": "fresh",
+      "review_status": "pending_review",
+      "signal_artifact": {
+        "schema_version": "trading-signal.v1",
+        "signal_id": "signal.technical_indicator.aapl.increase",
+        "strategy_id": "strategy.fixture.momentum_paper",
+        "asset_id": "asset.us_equity.aapl",
+        "signal_side": "increase",
+        "confidence": 0.61,
+        "rationale": "Fixture signal is informational and does not authorize an order.",
+        "freshness_status": "fresh",
+        "execution_boundary": "signal_only",
+        "human_review_required": true
+      }
+    },
+    {
+      "candidate_id": "signal_candidate.dl_model.btc.hold",
+      "adapter_id": "adapter.signal.dl_model",
+      "strategy_id": "strategy.fixture.momentum_paper",
+      "asset_id": "asset.crypto.btc",
+      "confidence": 0.58,
+      "rationale": "DL model adapter fixture emits a low-conviction signal candidate for review only.",
+      "source_bindings": [
+        { "source_type": "strategy_archetype", "source_ref": "global_macro" },
+        { "source_type": "feature_snapshot", "source_ref": "feature_snapshot.p061_p090.demo.v1" },
+        { "source_type": "market_data_dataset", "source_ref": "dataset.fixture.crypto.btc_usd.hourly" },
+        { "source_type": "model_placeholder", "source_ref": "model.fixture.baseline_rule" }
+      ],
+      "freshness_status": "fresh",
+      "review_status": "pending_review",
+      "signal_artifact": {
+        "schema_version": "trading-signal.v1",
+        "signal_id": "signal.dl_model.btc.hold",
+        "strategy_id": "strategy.fixture.momentum_paper",
+        "asset_id": "asset.crypto.btc",
+        "signal_side": "hold",
+        "confidence": 0.58,
+        "rationale": "Fixture signal is informational and does not authorize an order.",
+        "freshness_status": "fresh",
+        "execution_boundary": "signal_only",
+        "human_review_required": true
+      }
+    }
+  ],
+  "freshness_gate": {
+    "gate_id": "signal_freshness_gate.trading.v1",
+    "default_result": "pass",
+    "stale_blocks_aggregation": true,
+    "checks": [
+      { "check_id": "source_dataset_freshness", "status": "pass", "blocks_usage": true },
+      { "check_id": "feature_snapshot_freshness", "status": "pass", "blocks_usage": true },
+      { "check_id": "signal_generated_at_replay_clock", "status": "pass", "blocks_usage": true }
+    ]
+  },
+  "conflict_detection": {
+    "conflict_model_id": "signal_conflict_detection.trading.v1",
+    "auto_resolution_allowed": false,
+    "human_review_required": true,
+    "detected_conflicts": [
+      {
+        "conflict_id": "conflict.demo.same_asset_none",
+        "conflict_type": "none_detected",
+        "status": "passed",
+        "resolution": "no_conflict"
+      }
+    ]
+  },
+  "aggregation_model": {
+    "aggregation_id": "signal_aggregation.trading.v1",
+    "vote_model": "weighted_vote",
+    "strategy_weights": [
+      { "strategy_id": "strategy.fixture.momentum_paper", "weight": 0.5 },
+      { "strategy_id": "strategy.fixture.factor_paper", "weight": 0.3 },
+      { "strategy_id": "strategy.fixture.macro_paper", "weight": 0.2 }
+    ],
+    "correlation_penalty": {
+      "model_id": "correlation_penalty.trading.v1",
+      "enabled": true,
+      "max_penalty": 0.25,
+      "source_model_ref": "strategy_correlation_model.trading.v1"
+    },
+    "risk_adjusted_signal_score": {
+      "score_id": "risk_adjusted_signal_score.trading.v1",
+      "score": 0.52,
+      "risk_model_ref": "risk.fixture.paper_guard",
+      "result": "review_only"
+    },
+    "order_intent_generation_allowed": false
+  },
+  "review_queue": {
+    "queue_id": "signal_review_queue.trading.v1",
+    "human_review_required": true,
+    "items": [
+      { "candidate_id": "signal_candidate.rule_based.005930.hold", "review_status": "pending_review", "protected_output": true },
+      { "candidate_id": "signal_candidate.technical_indicator.aapl.increase", "review_status": "pending_review", "protected_output": true },
+      { "candidate_id": "signal_candidate.dl_model.btc.hold", "review_status": "pending_review", "protected_output": true }
+    ]
+  },
+  "order_intent_boundary": {
+    "boundary_id": "signal_to_order_intent_boundary.trading.v1",
+    "signal_to_order_intent_allowed": false,
+    "generated_order_intent_count": 0,
+    "live_execution_allowed": false,
+    "requires_future_risk_gate": true
+  },
+  "drift_detection": {
+    "detector_id": "signal_drift_detection.trading.v1",
+    "enabled": true,
+    "default_result": "pass",
+    "live_disable_allowed": false
+  },
+  "decay_tracking": {
+    "tracker_id": "signal_decay_tracking.trading.v1",
+    "enabled": true,
+    "decay_blocks_stale_signals": true
+  },
+  "attribution_model": {
+    "attribution_id": "signal_attribution.trading.v1",
+    "source_binding_required": true,
+    "feature_attribution_required": true,
+    "human_review_required": true
+  },
+  "dashboard_api_stub": {
+    "read_only": true,
+    "mutating_routes_enabled": false,
+    "routes": [
+      { "method": "GET", "path": "/api/trading/signals/report" },
+      { "method": "GET", "path": "/api/trading/signals/candidates" },
+      { "method": "GET", "path": "/api/trading/signals/review-queue" },
+      { "method": "GET", "path": "/api/trading/signals/attribution" }
+    ],
+    "disabled_routes": [
+      {
+        "method": "POST",
+        "path": "/api/trading/signals/to-order-intent",
+        "reason": "Signal-to-order-intent conversion is outside P091-P125 and requires future risk gates."
+      },
+      {
+        "method": "POST",
+        "path": "/api/trading/orders",
+        "reason": "Order placement is blocked for the current research/backtest/paper boundary."
+      }
+    ]
+  }
+}

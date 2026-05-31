@@ -1,0 +1,262 @@
+{
+  "schema_version": "trading-risk-engine.v1",
+  "risk_engine_id": "trading.risk_engine.p196_p220",
+  "phase_range": "P196-P220",
+  "risk_engine_status": "complete",
+  "generated_at": "2026-05-31T00:00:00.000Z",
+  "safety_boundary": {
+    "pre_order_gate_only": true,
+    "investment_advice_generated": false,
+    "trade_recommendation_generated": false,
+    "order_intent_generated": false,
+    "live_execution_allowed": false,
+    "risk_override_without_human_allowed": false,
+    "human_review_required": true
+  },
+  "phase_coverage": [
+    { "phase_id": "P196", "status": "complete", "artifact_ref": "risk_limits.portfolio_exposure_limit" },
+    { "phase_id": "P197", "status": "complete", "artifact_ref": "risk_limits.asset_class_exposure_limits" },
+    { "phase_id": "P198", "status": "complete", "artifact_ref": "risk_limits.single_name_concentration" },
+    { "phase_id": "P199", "status": "complete", "artifact_ref": "risk_limits.altcoin_max_allocation" },
+    { "phase_id": "P200", "status": "complete", "artifact_ref": "risk_limits.daily_loss_limit" },
+    { "phase_id": "P201", "status": "complete", "artifact_ref": "risk_limits.weekly_loss_limit" },
+    { "phase_id": "P202", "status": "complete", "artifact_ref": "risk_limits.max_drawdown_halt" },
+    { "phase_id": "P203", "status": "complete", "artifact_ref": "risk_guards.volatility_guard" },
+    { "phase_id": "P204", "status": "complete", "artifact_ref": "risk_guards.liquidity_guard" },
+    { "phase_id": "P205", "status": "complete", "artifact_ref": "risk_guards.stale_data_trade_block" },
+    { "phase_id": "P206", "status": "complete", "artifact_ref": "risk_guards.abnormal_spread_block" },
+    { "phase_id": "P207", "status": "complete", "artifact_ref": "risk_guards.correlated_exposure_warning" },
+    { "phase_id": "P208", "status": "complete", "artifact_ref": "risk_guards.fx_exposure_warning" },
+    { "phase_id": "P209", "status": "complete", "artifact_ref": "risk_guards.leverage_margin_gate" },
+    { "phase_id": "P210", "status": "complete", "artifact_ref": "risk_guards.short_selling_capability_gate" },
+    { "phase_id": "P211", "status": "complete", "artifact_ref": "risk_guards.order_frequency_throttle" },
+    { "phase_id": "P212", "status": "complete", "artifact_ref": "risk_guards.loss_streak_cooldown" },
+    { "phase_id": "P213", "status": "complete", "artifact_ref": "risk_guards.model_degradation_halt" },
+    { "phase_id": "P214", "status": "complete", "artifact_ref": "risk_guards.data_outage_halt" },
+    { "phase_id": "P215", "status": "complete", "artifact_ref": "risk_result_policy" },
+    { "phase_id": "P216", "status": "complete", "artifact_ref": "override_policy" },
+    { "phase_id": "P217", "status": "complete", "artifact_ref": "risk_audit_event" },
+    { "phase_id": "P218", "status": "complete", "artifact_ref": "trading:risk-check" },
+    { "phase_id": "P219", "status": "complete", "artifact_ref": "dashboard_api_stub" },
+    { "phase_id": "P220", "status": "complete", "artifact_ref": "risk_freeze" }
+  ],
+  "portfolio_context": {
+    "portfolio_id": "portfolio.demo.paper",
+    "stage": "paper",
+    "base_currency": "USD",
+    "asset_ids": ["asset.us_equity.aapl", "asset.crypto.btc", "asset.kr_equity.005930"],
+    "live_trading_enabled": false
+  },
+  "risk_limits": {
+    "portfolio_exposure_limit": {
+      "limit_pct": 0.8,
+      "current_pct": 0.32,
+      "result": "pass"
+    },
+    "asset_class_exposure_limits": [
+      { "asset_class": "us_equity", "limit_pct": 0.5, "current_pct": 0.18, "result": "pass" },
+      { "asset_class": "kr_equity", "limit_pct": 0.4, "current_pct": 0.08, "result": "pass" },
+      { "asset_class": "crypto", "limit_pct": 0.2, "current_pct": 0.06, "result": "pass" }
+    ],
+    "single_name_concentration": {
+      "limit_pct": 0.12,
+      "largest_name_pct": 0.08,
+      "result": "pass"
+    },
+    "altcoin_max_allocation": {
+      "limit_pct": 0.02,
+      "current_pct": 0,
+      "result": "pass"
+    },
+    "daily_loss_limit": {
+      "limit_pct": -0.03,
+      "current_pct": -0.004,
+      "result": "pass"
+    },
+    "weekly_loss_limit": {
+      "limit_pct": -0.08,
+      "current_pct": -0.012,
+      "result": "pass"
+    },
+    "max_drawdown_halt": {
+      "halt_pct": -0.12,
+      "current_drawdown_pct": -0.032,
+      "result": "pass"
+    }
+  },
+  "risk_guards": {
+    "volatility_guard": {
+      "guard_id": "risk_guard.volatility.p203",
+      "source_ref": "feature_snapshot.p061_p090.demo.v1",
+      "threshold": 0.35,
+      "current": 0.18,
+      "result": "pass",
+      "blocks_order_intent": true
+    },
+    "liquidity_guard": {
+      "guard_id": "risk_guard.liquidity.p204",
+      "source_ref": "feature_snapshot.p061_p090.demo.v1",
+      "minimum_score": 0.7,
+      "current_score": 0.91,
+      "result": "pass",
+      "blocks_order_intent": true
+    },
+    "stale_data_trade_block": {
+      "guard_id": "risk_guard.stale_data.p205",
+      "source_ref": "quality_checks.stale_data",
+      "stale_data_detected": false,
+      "result": "pass",
+      "blocks_order_intent": true
+    },
+    "abnormal_spread_block": {
+      "guard_id": "risk_guard.abnormal_spread.p206",
+      "source_ref": "quality_checks.abnormal_price_spread",
+      "abnormal_spread_detected": false,
+      "result": "pass",
+      "blocks_order_intent": true
+    },
+    "correlated_exposure_warning": {
+      "guard_id": "risk_guard.correlated_exposure.p207",
+      "source_ref": "strategy_correlation_model.trading.v1",
+      "correlation": 0.42,
+      "warning_threshold": 0.7,
+      "result": "pass",
+      "warning_requires_review": true
+    },
+    "fx_exposure_warning": {
+      "guard_id": "risk_guard.fx_exposure.p208",
+      "source_ref": "fx.manual.usdkrw.20260530",
+      "fx_exposure_pct": 0.08,
+      "warning_threshold": 0.25,
+      "result": "pass",
+      "warning_requires_review": true
+    },
+    "leverage_margin_gate": {
+      "guard_id": "risk_guard.leverage_margin.p209",
+      "leverage_allowed": false,
+      "margin_allowed": false,
+      "result": "block",
+      "blocks_order_intent": true
+    },
+    "short_selling_capability_gate": {
+      "guard_id": "risk_guard.short_selling.p210",
+      "short_selling_allowed": false,
+      "korea_short_check_required": true,
+      "result": "block",
+      "blocks_order_intent": true
+    },
+    "order_frequency_throttle": {
+      "guard_id": "risk_guard.order_frequency.p211",
+      "max_orders_per_day": 0,
+      "current_orders_today": 0,
+      "result": "block",
+      "blocks_order_intent": true
+    },
+    "loss_streak_cooldown": {
+      "guard_id": "risk_guard.loss_streak_cooldown.p212",
+      "loss_streak_count": 0,
+      "cooldown_required_after_losses": 3,
+      "cooldown_active": false,
+      "result": "pass"
+    },
+    "model_degradation_halt": {
+      "guard_id": "risk_guard.model_degradation.p213",
+      "source_ref": "degradation.baseline_rule.validation_delta",
+      "degradation_result": "pass",
+      "halt_on_degradation": true,
+      "result": "pass"
+    },
+    "data_outage_halt": {
+      "guard_id": "risk_guard.data_outage.p214",
+      "source_ref": "market_data_quality_report.p061_p090",
+      "data_outage_detected": false,
+      "halt_on_outage": true,
+      "result": "pass"
+    }
+  },
+  "risk_check_artifacts": [
+    {
+      "schema_version": "trading-risk.v1",
+      "risk_check_id": "risk.trading.p196_p220.pre_order",
+      "portfolio_id": "portfolio.demo.paper",
+      "result": "block",
+      "checks": [
+        { "check_id": "portfolio_exposure_limit", "status": "pass", "message": "Portfolio exposure is inside fixture limit." },
+        { "check_id": "asset_class_exposure_limit", "status": "pass", "message": "Asset-class exposure is inside fixture limits." },
+        { "check_id": "single_name_concentration", "status": "pass", "message": "Single-name concentration is inside fixture limit." },
+        { "check_id": "altcoin_max_allocation", "status": "pass", "message": "Altcoin allocation is zero in this fixture." },
+        { "check_id": "daily_loss_limit", "status": "pass", "message": "Daily loss is inside fixture limit." },
+        { "check_id": "weekly_loss_limit", "status": "pass", "message": "Weekly loss is inside fixture limit." },
+        { "check_id": "max_drawdown_halt", "status": "pass", "message": "Drawdown halt is not triggered." },
+        { "check_id": "volatility_guard", "status": "pass", "message": "Volatility guard passes." },
+        { "check_id": "liquidity_guard", "status": "pass", "message": "Liquidity guard passes." },
+        { "check_id": "stale_data_trade_block", "status": "pass", "message": "Stale data is not detected." },
+        { "check_id": "abnormal_spread_block", "status": "pass", "message": "Abnormal spread is not detected." },
+        { "check_id": "correlated_exposure_warning", "status": "pass", "message": "Correlation warning threshold is not reached." },
+        { "check_id": "fx_exposure_warning", "status": "pass", "message": "FX exposure warning threshold is not reached." },
+        { "check_id": "leverage_margin_disabled", "status": "block", "message": "Leverage and margin are disabled by default." },
+        { "check_id": "short_selling_capability_gate", "status": "block", "message": "Short selling is disabled by default." },
+        { "check_id": "order_frequency_throttle", "status": "block", "message": "Order generation is not enabled in P196-P220." },
+        { "check_id": "loss_streak_cooldown", "status": "pass", "message": "No cooldown is active." },
+        { "check_id": "model_degradation_halt", "status": "pass", "message": "Model degradation halt is not triggered." },
+        { "check_id": "data_outage_halt", "status": "pass", "message": "Data outage halt is not triggered." }
+      ],
+      "live_trade_allowed": false,
+      "override_requires_human_approval": true,
+      "kill_switch_status": "armed"
+    }
+  ],
+  "risk_result_policy": {
+    "allowed_results": ["pass", "warn", "block", "halt"],
+    "default_result": "block",
+    "block_prevents_order_intent": true,
+    "halt_prevents_resume_without_human": true
+  },
+  "override_policy": {
+    "override_allowed": true,
+    "requires_human_approval": true,
+    "protected_action_gate_required": true,
+    "override_receipt_required": true
+  },
+  "risk_audit_event": {
+    "audit_event_id": "audit.trading.risk.p196_p220",
+    "source_lineage_required": true,
+    "replayable": true,
+    "responsible_owner_required": true,
+    "review_status": "pending_review"
+  },
+  "risk_freeze": {
+    "freeze_id": "risk_freeze.trading.p196_p220",
+    "frozen": true,
+    "fixture_ref": "examples/trading/risk-engine.json",
+    "regression_hash_locked": true
+  },
+  "dashboard_api_stub": {
+    "read_only": true,
+    "mutating_routes_enabled": false,
+    "routes": [
+      { "method": "GET", "path": "/api/trading/risk/check" },
+      { "method": "GET", "path": "/api/trading/risk/limits" },
+      { "method": "GET", "path": "/api/trading/risk/guards" },
+      { "method": "GET", "path": "/api/trading/risk/audit" },
+      { "method": "GET", "path": "/api/trading/risk/freeze" }
+    ],
+    "disabled_routes": [
+      {
+        "method": "POST",
+        "path": "/api/trading/risk/override",
+        "reason": "Risk override is a protected action and requires a future human approval receipt."
+      },
+      {
+        "method": "POST",
+        "path": "/api/trading/signals/to-order-intent",
+        "reason": "Risk engine is pre-order only and does not authorize order intent generation."
+      },
+      {
+        "method": "POST",
+        "path": "/api/trading/orders",
+        "reason": "Order placement remains blocked for the research/backtest/paper boundary."
+      }
+    ]
+  }
+}

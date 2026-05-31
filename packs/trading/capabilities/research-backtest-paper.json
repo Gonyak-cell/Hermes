@@ -1,0 +1,226 @@
+{
+  "schema_version": "capability-manifest.v1",
+  "capability_id": "trading.research_backtest_paper",
+  "version": "0.1.0",
+  "domain_pack": "trading",
+  "display_name": "Trading Research Backtest Paper",
+  "description": "Validate trading research, deterministic backtests, and paper-trade artifacts while blocking live execution paths.",
+  "input_contract": "trading-research-input.v1",
+  "output_contract": "trading-validation-output.v1",
+  "required_resources": [
+    {
+      "resource_role": "resource",
+      "required": true,
+      "description": "Market data fixtures, CSV imports, strategy notes, or paper-trade ledgers."
+    },
+    {
+      "resource_role": "test_result",
+      "required": true,
+      "description": "Deterministic validation, backtest, safety, and fixture results."
+    }
+  ],
+  "allowed_runtimes": ["harness", "local_script", "manual"],
+  "required_tools": ["filesystem.read", "filesystem.write", "terminal.exec"],
+  "required_gates": {
+    "pre_run": ["classification_gate", "tool_permission_gate", "secrets_gate", "cost_budget_gate"],
+    "in_run": ["test_gate"],
+    "post_run": ["human_approval_gate"]
+  },
+  "data_policy": {
+    "max_input_classification": "P1_INTERNAL",
+    "external_model_policy": "forbidden",
+    "redaction_required": false,
+    "allowed_context_types": ["resource_metadata", "normalized_text", "fact", "output_artifact", "test_result"],
+    "retrieval_filters_required": ["tenant_id", "classification", "resource_type"]
+  },
+  "approval_policy": {
+    "required": true,
+    "approval_type": "human_review",
+    "default_output_status": "pending_review"
+  },
+  "idempotency_policy": {
+    "key_fields": ["tenant_id", "portfolio_id", "strategy_id", "dataset_id", "capability_id", "version"]
+  },
+  "retry_policy": {
+    "max_attempts": 1,
+    "retryable_failures": ["temporary_io_error"]
+  },
+  "timeout_policy": {
+    "max_seconds": 900
+  },
+  "cost_policy": {
+    "max_usd": 0,
+    "track_tokens": true
+  },
+  "observability_policy": {
+    "record_trace": true,
+    "record_prompt_hash": true,
+    "record_output_hash": true,
+    "record_cost": true
+  },
+  "output_artifacts": [
+    {
+      "artifact_type": "json",
+      "default_status": "draft",
+      "delivery_policy": "internal_only"
+    },
+    {
+      "artifact_type": "markdown",
+      "default_status": "pending_review",
+      "delivery_policy": "internal_only"
+    }
+  ],
+  "entrypoints": [
+    {
+      "entrypoint_type": "command",
+      "name": "trading:validate",
+      "path": "scripts/trading-validate.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:safety-check",
+      "path": "scripts/trading-safety-check.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:strategy-taxonomy",
+      "path": "scripts/trading-strategy-taxonomy.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:market-data-report",
+      "path": "scripts/trading-market-data-report.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:feature-report",
+      "path": "scripts/trading-feature-report.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:signal-report",
+      "path": "scripts/trading-signal-report.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:model-train-report",
+      "path": "scripts/trading-model-train-report.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:model-eval-report",
+      "path": "scripts/trading-model-eval-report.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:backtest-report",
+      "path": "scripts/trading-backtest-report.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:risk-check",
+      "path": "scripts/trading-risk-check.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:paper-report",
+      "path": "scripts/trading-paper-report.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:shadow-report",
+      "path": "scripts/trading-shadow-report.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:execution-report",
+      "path": "scripts/trading-execution-report.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:limited-live-report",
+      "path": "scripts/trading-limited-live-report.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:full-auto-report",
+      "path": "scripts/trading-full-auto-report.mjs"
+    }
+  ],
+  "dependencies": ["common.workflow.approval", "common.audit.replay", "common.test.gate"],
+  "golden_cases": [
+    {
+      "case_id": "golden.trading.research_backtest_paper.safe_fixture",
+      "description": "Research, backtest, and paper artifacts validate while live trading, live adapters, plaintext secrets, market orders, leverage, and shorting remain blocked.",
+      "input_ref": "examples/trading/research-backtest-paper-sample.json",
+      "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
+    },
+    {
+      "case_id": "golden.trading.strategy_taxonomy.p036_p060",
+      "description": "P036-P060 strategy taxonomy registers archetypes, event models, risk, signal, conflict, correlation, capacity, and lifecycle contracts without generating live recommendations or orders.",
+      "input_ref": "examples/trading/strategy-archetype-registry.json",
+      "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
+    },
+    {
+      "case_id": "golden.trading.market_data_feature_store.p061_p090",
+      "description": "P061-P090 market data and feature store validates manual/fixture ingestion, normalized OHLCV, sessions, quality gates, features, lineage, replay, and read-only dashboard/API without live vendor feeds or orders.",
+      "input_ref": "examples/trading/market-data-feature-store.json",
+      "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
+    },
+    {
+      "case_id": "golden.trading.signal_engine.p091_p125",
+      "description": "P091-P125 signal engine validates strategy adapters, signal candidates, freshness, conflict detection, aggregation, review queue, attribution, and signal-only order-intent boundary.",
+      "input_ref": "examples/trading/signal-engine.json",
+      "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
+    },
+    {
+      "case_id": "golden.trading.model_improvement.p126_p165",
+      "description": "P126-P165 model improvement layer validates model and dataset registries, leakage guards, scorecards, drift/degradation checks, promotion and rollback controls, and live-deployment blocking.",
+      "input_ref": "examples/trading/model-improvement-layer.json",
+      "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
+    },
+    {
+      "case_id": "golden.trading.backtest_validation.p166_p195",
+      "description": "P166-P195 backtest validation layer validates deterministic backtest artifacts, cost models, bias checks, walk-forward validation, stress replay, and read-only dashboard/API without generating orders or promotion candidates.",
+      "input_ref": "examples/trading/backtest-validation.json",
+      "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
+    },
+    {
+      "case_id": "golden.trading.risk_engine.p196_p220",
+      "description": "P196-P220 risk engine validates exposure, loss, drawdown, volatility, liquidity, data, leverage, short-selling, throttle, cooldown, model, outage, override, audit, and freeze gates before any order-intent boundary.",
+      "input_ref": "examples/trading/risk-engine.json",
+      "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
+    },
+    {
+      "case_id": "golden.trading.paper_shadow_live.p221_p245",
+      "description": "P221-P245 paper and shadow layer validates paper order ledger, simulated fills, paper scorecards, read-only shadow data, non-executable shadow intents, no-order shadow mode, drift, kill-switch dry run, and operator integration.",
+      "input_ref": "examples/trading/paper-shadow-live.json",
+      "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
+    },
+    {
+      "case_id": "golden.trading.execution_engine.p246_p280",
+      "description": "P246-P280 execution engine validates frozen order intent, pre-trade risk gate, order whitelist, idempotency, state machine, adapter interfaces, credential/secret boundaries, simulated execution artifacts, fill reconciliation, halt, manual resume, and read-only execution dashboard/API.",
+      "input_ref": "examples/trading/execution-engine.json",
+      "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
+    },
+    {
+      "case_id": "golden.trading.limited_live_governance.p281_p310",
+      "description": "P281-P310 limited live governance validates explicit approval, capital caps, whitelists, order caps, halt gates, first-trade confirmation, reconciliation, incident notification, rollback, daily report, full-auto promotion blocking, and read-only dashboard/API without enabling live order submission.",
+      "input_ref": "examples/trading/limited-live-governance.json",
+      "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
+    },
+    {
+      "case_id": "golden.trading.full_auto_governance.p311_p340",
+      "description": "P311-P340 full-auto governance validates approval checklist, strategy/model health scoring, automatic disable controls, allocators, failover policies, monthly review, audit replay, disaster recovery, tax/export placeholder, operator handbook, read-only dashboard/API, final safety regression suite, and Trading Pack v1 freeze while keeping full-auto and automatic order submission disabled.",
+      "input_ref": "examples/trading/full-auto-governance.json",
+      "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
+    }
+  ],
+  "metadata": {
+    "financial_advice_disclaimer_required": true,
+    "research_only_until_promoted": true,
+    "paper_allowed": true,
+    "live_trading_enabled": false,
+    "real_execution_blocked": true
+  }
+}

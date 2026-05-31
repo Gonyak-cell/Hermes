@@ -38,7 +38,7 @@
       "type": "string"
     },
     "domain_pack": {
-      "enum": ["law-firm", "personal-dev", "creative-document", "common", "platform"]
+      "enum": ["law-firm", "personal-dev", "creative-document", "trading", "common", "platform"]
     },
     "display_name": {
       "type": "string"

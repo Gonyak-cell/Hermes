@@ -1,0 +1,431 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/trading/trading-risk-engine.schema.json",
+  "title": "Trading Risk Engine",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "risk_engine_id",
+    "phase_range",
+    "risk_engine_status",
+    "generated_at",
+    "safety_boundary",
+    "phase_coverage",
+    "portfolio_context",
+    "risk_limits",
+    "risk_guards",
+    "risk_check_artifacts",
+    "risk_result_policy",
+    "override_policy",
+    "risk_audit_event",
+    "risk_freeze",
+    "dashboard_api_stub"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "trading-risk-engine.v1"
+    },
+    "risk_engine_id": {
+      "type": "string",
+      "pattern": "^trading\\.risk_engine\\.[a-z0-9_\\.:-]+$"
+    },
+    "phase_range": {
+      "const": "P196-P220"
+    },
+    "risk_engine_status": {
+      "enum": ["complete", "blocked"]
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "safety_boundary": {
+      "type": "object",
+      "required": [
+        "pre_order_gate_only",
+        "investment_advice_generated",
+        "trade_recommendation_generated",
+        "order_intent_generated",
+        "live_execution_allowed",
+        "risk_override_without_human_allowed",
+        "human_review_required"
+      ],
+      "properties": {
+        "pre_order_gate_only": {
+          "type": "boolean"
+        },
+        "investment_advice_generated": {
+          "type": "boolean"
+        },
+        "trade_recommendation_generated": {
+          "type": "boolean"
+        },
+        "order_intent_generated": {
+          "type": "boolean"
+        },
+        "live_execution_allowed": {
+          "type": "boolean"
+        },
+        "risk_override_without_human_allowed": {
+          "type": "boolean"
+        },
+        "human_review_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "phase_coverage": {
+      "type": "array",
+      "minItems": 25,
+      "items": {
+        "type": "object",
+        "required": ["phase_id", "status", "artifact_ref"],
+        "properties": {
+          "phase_id": {
+            "type": "string",
+            "pattern": "^P[0-9]{3}$"
+          },
+          "status": {
+            "enum": ["complete", "planned", "blocked"]
+          },
+          "artifact_ref": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "portfolio_context": {
+      "type": "object",
+      "required": ["portfolio_id", "stage", "base_currency", "asset_ids", "live_trading_enabled"],
+      "properties": {
+        "portfolio_id": {
+          "type": "string"
+        },
+        "stage": {
+          "enum": ["research", "backtest", "paper"]
+        },
+        "base_currency": {
+          "type": "string"
+        },
+        "asset_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "live_trading_enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "risk_limits": {
+      "type": "object",
+      "required": [
+        "portfolio_exposure_limit",
+        "asset_class_exposure_limits",
+        "single_name_concentration",
+        "altcoin_max_allocation",
+        "daily_loss_limit",
+        "weekly_loss_limit",
+        "max_drawdown_halt"
+      ],
+      "properties": {
+        "portfolio_exposure_limit": {
+          "type": "object",
+          "required": ["limit_pct", "current_pct", "result"],
+          "properties": {
+            "limit_pct": {
+              "type": "number"
+            },
+            "current_pct": {
+              "type": "number"
+            },
+            "result": {
+              "enum": ["pass", "warn", "block", "halt"]
+            }
+          }
+        },
+        "asset_class_exposure_limits": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["asset_class", "limit_pct", "current_pct", "result"],
+            "properties": {
+              "asset_class": {
+                "type": "string"
+              },
+              "limit_pct": {
+                "type": "number"
+              },
+              "current_pct": {
+                "type": "number"
+              },
+              "result": {
+                "enum": ["pass", "warn", "block", "halt"]
+              }
+            }
+          }
+        },
+        "single_name_concentration": {
+          "type": "object",
+          "required": ["limit_pct", "largest_name_pct", "result"],
+          "properties": {
+            "limit_pct": {
+              "type": "number"
+            },
+            "largest_name_pct": {
+              "type": "number"
+            },
+            "result": {
+              "enum": ["pass", "warn", "block", "halt"]
+            }
+          }
+        },
+        "altcoin_max_allocation": {
+          "type": "object",
+          "required": ["limit_pct", "current_pct", "result"],
+          "properties": {
+            "limit_pct": {
+              "type": "number"
+            },
+            "current_pct": {
+              "type": "number"
+            },
+            "result": {
+              "enum": ["pass", "warn", "block", "halt"]
+            }
+          }
+        },
+        "daily_loss_limit": {
+          "type": "object",
+          "required": ["limit_pct", "current_pct", "result"],
+          "properties": {
+            "limit_pct": {
+              "type": "number"
+            },
+            "current_pct": {
+              "type": "number"
+            },
+            "result": {
+              "enum": ["pass", "warn", "block", "halt"]
+            }
+          }
+        },
+        "weekly_loss_limit": {
+          "type": "object",
+          "required": ["limit_pct", "current_pct", "result"],
+          "properties": {
+            "limit_pct": {
+              "type": "number"
+            },
+            "current_pct": {
+              "type": "number"
+            },
+            "result": {
+              "enum": ["pass", "warn", "block", "halt"]
+            }
+          }
+        },
+        "max_drawdown_halt": {
+          "type": "object",
+          "required": ["halt_pct", "current_drawdown_pct", "result"],
+          "properties": {
+            "halt_pct": {
+              "type": "number"
+            },
+            "current_drawdown_pct": {
+              "type": "number"
+            },
+            "result": {
+              "enum": ["pass", "warn", "block", "halt"]
+            }
+          }
+        }
+      }
+    },
+    "risk_guards": {
+      "type": "object",
+      "required": [
+        "volatility_guard",
+        "liquidity_guard",
+        "stale_data_trade_block",
+        "abnormal_spread_block",
+        "correlated_exposure_warning",
+        "fx_exposure_warning",
+        "leverage_margin_gate",
+        "short_selling_capability_gate",
+        "order_frequency_throttle",
+        "loss_streak_cooldown",
+        "model_degradation_halt",
+        "data_outage_halt"
+      ],
+      "properties": {
+        "volatility_guard": {
+          "type": "object"
+        },
+        "liquidity_guard": {
+          "type": "object"
+        },
+        "stale_data_trade_block": {
+          "type": "object"
+        },
+        "abnormal_spread_block": {
+          "type": "object"
+        },
+        "correlated_exposure_warning": {
+          "type": "object"
+        },
+        "fx_exposure_warning": {
+          "type": "object"
+        },
+        "leverage_margin_gate": {
+          "type": "object"
+        },
+        "short_selling_capability_gate": {
+          "type": "object"
+        },
+        "order_frequency_throttle": {
+          "type": "object"
+        },
+        "loss_streak_cooldown": {
+          "type": "object"
+        },
+        "model_degradation_halt": {
+          "type": "object"
+        },
+        "data_outage_halt": {
+          "type": "object"
+        }
+      }
+    },
+    "risk_check_artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object"
+      }
+    },
+    "risk_result_policy": {
+      "type": "object",
+      "required": ["allowed_results", "default_result", "block_prevents_order_intent", "halt_prevents_resume_without_human"],
+      "properties": {
+        "allowed_results": {
+          "type": "array",
+          "items": {
+            "enum": ["pass", "warn", "block", "halt"]
+          }
+        },
+        "default_result": {
+          "enum": ["pass", "warn", "block", "halt"]
+        },
+        "block_prevents_order_intent": {
+          "type": "boolean"
+        },
+        "halt_prevents_resume_without_human": {
+          "type": "boolean"
+        }
+      }
+    },
+    "override_policy": {
+      "type": "object",
+      "required": ["override_allowed", "requires_human_approval", "protected_action_gate_required"],
+      "properties": {
+        "override_allowed": {
+          "type": "boolean"
+        },
+        "requires_human_approval": {
+          "type": "boolean"
+        },
+        "protected_action_gate_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "risk_audit_event": {
+      "type": "object",
+      "required": ["audit_event_id", "source_lineage_required", "replayable", "responsible_owner_required", "review_status"],
+      "properties": {
+        "audit_event_id": {
+          "type": "string"
+        },
+        "source_lineage_required": {
+          "type": "boolean"
+        },
+        "replayable": {
+          "type": "boolean"
+        },
+        "responsible_owner_required": {
+          "type": "boolean"
+        },
+        "review_status": {
+          "enum": ["pending_review", "approved", "blocked"]
+        }
+      }
+    },
+    "risk_freeze": {
+      "type": "object",
+      "required": ["freeze_id", "frozen", "fixture_ref", "regression_hash_locked"],
+      "properties": {
+        "freeze_id": {
+          "type": "string"
+        },
+        "frozen": {
+          "type": "boolean"
+        },
+        "fixture_ref": {
+          "type": "string"
+        },
+        "regression_hash_locked": {
+          "type": "boolean"
+        }
+      }
+    },
+    "dashboard_api_stub": {
+      "type": "object",
+      "required": ["read_only", "mutating_routes_enabled", "routes", "disabled_routes"],
+      "properties": {
+        "read_only": {
+          "type": "boolean"
+        },
+        "mutating_routes_enabled": {
+          "type": "boolean"
+        },
+        "routes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["method", "path"],
+            "properties": {
+              "method": {
+                "enum": ["GET"]
+              },
+              "path": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "disabled_routes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["method", "path", "reason"],
+            "properties": {
+              "method": {
+                "enum": ["POST", "PUT", "PATCH", "DELETE"]
+              },
+              "path": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

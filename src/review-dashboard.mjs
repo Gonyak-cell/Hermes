@@ -12895,21 +12895,22 @@ function buildV1FreezeStage(artifact, source) {
 function buildConnectorContractV2Stage(artifact, source) {
   if (!artifact) return missingStage("connector_contract_v2", "Connector Contract v2", source);
   const summary = artifact.summary ?? {};
+  const connectorCount = summary.connector_count ?? 0;
   const status = artifact.validation?.valid === false
     || summary.connector_contract_status !== "complete"
-    || summary.connector_count !== 8
-    || summary.contracted_connector_count !== summary.connector_count
-    || summary.source_contract_count !== summary.connector_count
-    || summary.cursor_contract_count !== summary.connector_count
-    || summary.external_id_contract_count !== summary.connector_count
-    || summary.auth_boundary_count !== summary.connector_count
-    || summary.unique_source_id_count !== summary.connector_count
-    || summary.unique_external_id_namespace_count !== summary.connector_count
-    || summary.unique_auth_boundary_count !== summary.connector_count
-    || summary.resumable_cursor_count !== summary.connector_count
-    || summary.matter_boundary_required_count !== summary.connector_count
-    || summary.classification_required_count !== summary.connector_count
-    || summary.policy_snapshot_required_count !== summary.connector_count
+    || connectorCount <= 0
+    || summary.contracted_connector_count !== connectorCount
+    || summary.source_contract_count !== connectorCount
+    || summary.cursor_contract_count !== connectorCount
+    || summary.external_id_contract_count !== connectorCount
+    || summary.auth_boundary_count !== connectorCount
+    || summary.unique_source_id_count !== connectorCount
+    || summary.unique_external_id_namespace_count !== connectorCount
+    || summary.unique_auth_boundary_count !== connectorCount
+    || summary.resumable_cursor_count !== connectorCount
+    || summary.matter_boundary_required_count !== connectorCount
+    || summary.classification_required_count !== connectorCount
+    || summary.policy_snapshot_required_count !== connectorCount
     || summary.raw_secret_material_allowed_count !== 0
     || summary.mutation_allowed_count !== 0
     || summary.connector_execution_performed === true
@@ -13839,26 +13840,32 @@ function buildErpDraftConnectorStage(artifact, source) {
 function buildConnectorFreezeStage(artifact, source) {
   if (!artifact) return missingStage("connector_freeze", "Connector Freeze", source);
   const summary = artifact.summary ?? {};
+  const sourceCount = summary.source_count ?? 0;
+  const connectorArtifactCount = summary.connector_artifact_count ?? 0;
+  const connectorContractCount = summary.connector_contract_count ?? 0;
+  const pathCount = summary.path_count ?? 0;
+  const representativePathCount = summary.representative_source_ingest_path_count ?? 0;
+  const gateCount = summary.gate_count ?? 0;
   const status = artifact.validation?.valid === false
     || summary.connector_freeze_status !== "complete"
-    || summary.source_count !== 9
-    || summary.passed_source_count !== summary.source_count
-    || summary.connector_artifact_count !== 8
-    || summary.connector_contract_count !== 8
-    || summary.contracted_connector_count !== 8
-    || summary.source_contract_count !== 8
-    || summary.cursor_contract_count !== 8
-    || summary.external_id_contract_count !== 8
-    || summary.auth_boundary_count !== 8
-    || summary.path_count !== 7
-    || summary.passed_path_count !== summary.path_count
-    || summary.representative_source_ingest_path_count !== 6
-    || summary.passed_representative_source_ingest_path_count !== summary.representative_source_ingest_path_count
-    || summary.gate_count < 7
-    || summary.passed_gate_count !== summary.gate_count
-    || summary.cursor_resume_supported_count !== 8
+    || sourceCount <= 0
+    || summary.passed_source_count !== sourceCount
+    || connectorArtifactCount <= 0
+    || connectorContractCount < connectorArtifactCount
+    || summary.contracted_connector_count !== connectorContractCount
+    || summary.source_contract_count !== connectorContractCount
+    || summary.cursor_contract_count !== connectorContractCount
+    || summary.external_id_contract_count !== connectorContractCount
+    || summary.auth_boundary_count !== connectorContractCount
+    || pathCount <= 0
+    || summary.passed_path_count !== pathCount
+    || representativePathCount <= 0
+    || summary.passed_representative_source_ingest_path_count !== representativePathCount
+    || gateCount < 7
+    || summary.passed_gate_count !== gateCount
+    || summary.cursor_resume_supported_count !== connectorArtifactCount
     || summary.raw_cursor_material_allowed_count !== 0
-    || summary.credential_reference_only_connector_count !== 8
+    || summary.credential_reference_only_connector_count !== connectorArtifactCount
     || summary.credential_material_read_count !== 0
     || summary.raw_secret_material_allowed_count !== 0
     || summary.external_network_access_performed_count !== 0

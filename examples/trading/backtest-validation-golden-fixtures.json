@@ -1,0 +1,22 @@
+{
+  "schema_version": "trading-backtest-validation-golden-fixtures.v1",
+  "fixture_set_id": "trading.backtest-validation.p166_p195",
+  "generated_at": "2026-05-31T00:00:00.000Z",
+  "fixtures": [
+    {
+      "fixture_id": "golden.trading.backtest_validation.p166_p195",
+      "input_ref": "examples/trading/backtest-validation.json",
+      "expected_status": "complete",
+      "expected_phase_range": "P166-P195",
+      "expected_phase_count": 30,
+      "expected_backtest_artifact_count": 2,
+      "expected_strategy_binding_count": 2,
+      "expected_model_binding_count": 2,
+      "expected_stress_scenario_count": 3,
+      "expected_generated_order_intent_count": 0,
+      "expected_promotion_candidate_generated": false,
+      "expected_live_execution_allowed": false,
+      "expected_dashboard_read_only": true
+    }
+  ]
+}

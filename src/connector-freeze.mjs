@@ -27,6 +27,7 @@ const CAPABILITY_ID = "connectors.freeze";
 const FREEZE_AUTHORITY = "harness_control_plane";
 const SOURCE_OF_TRUTH = "connector_phase_artifacts_freeze_report";
 const HUMAN_REVIEW_NOTE = "Connector freeze is a read-only operational freeze report. It is not legal advice, not client-facing, and not approved for delivery.";
+const CONNECTOR_CONTRACT_FAMILY_COUNT = 9;
 
 const SOURCE_DEFINITIONS = [
   sourceDefinition("connector_contract_v2", "Connector Contract v2", "P267", "connectorContractV2Path", "connectors:contract-v2", "connector_contract_status"),
@@ -245,7 +246,7 @@ function buildIngestPaths({ artifacts, sourceById, generatedAt }) {
   const plaud = artifacts.plaud_transcript_connector?.summary ?? {};
   const erp = artifacts.erp_draft_connector?.summary ?? {};
   const pathRecords = [
-    ingestPath("connector_contract_fixture", "Connector contract fixture coverage", "contract", ["connector_contract_v2"], contract.connector_contract_status === "complete" && contract.connector_count === 8 && contract.contracted_connector_count === 8 && contract.source_contract_count === 8 && contract.cursor_contract_count === 8 && contract.external_id_contract_count === 8 && contract.auth_boundary_count === 8, contract.connector_count ?? 0),
+    ingestPath("connector_contract_fixture", "Connector contract fixture coverage", "contract", ["connector_contract_v2"], contract.connector_contract_status === "complete" && contract.connector_count === CONNECTOR_CONTRACT_FAMILY_COUNT && contract.contracted_connector_count === CONNECTOR_CONTRACT_FAMILY_COUNT && contract.source_contract_count === CONNECTOR_CONTRACT_FAMILY_COUNT && contract.cursor_contract_count === CONNECTOR_CONTRACT_FAMILY_COUNT && contract.external_id_contract_count === CONNECTOR_CONTRACT_FAMILY_COUNT && contract.auth_boundary_count === CONNECTOR_CONTRACT_FAMILY_COUNT, contract.connector_count ?? 0),
     ingestPath("local_file_ingest", "Local folder source ingest", "local_file", ["local_folder_connector"], local.local_folder_connector_status === "complete" && local.discovered_file_count > 0 && local.ingest_record_count > 0 && local.ingest_ready_count > 0 && local.external_network_access_performed === false, local.ingest_record_count ?? 0),
     ingestPath("cloud_file_boundary", "OneDrive cloud placeholder boundary", "cloud_file", ["onedrive_connector_boundary"], oneDrive.onedrive_connector_boundary_status === "complete" && oneDrive.sample_item_count > 0 && oneDrive.materialization_deferred_count === oneDrive.sample_item_count && oneDrive.external_network_access_performed === false, oneDrive.sample_item_count ?? 0),
     ingestPath("communication_export_ingest", "Outlook and KakaoTalk export ingest", "communication", ["outlook_email_connector", "kakaotalk_import_boundary"], outlook.outlook_email_connector_status === "complete" && kakao.kakaotalk_import_boundary_status === "complete" && outlook.resource_candidate_count > 0 && kakao.resource_candidate_count > 0 && outlook.external_network_access_performed === false && kakao.external_network_access_performed === false, (outlook.resource_candidate_count ?? 0) + (kakao.resource_candidate_count ?? 0)),
@@ -273,7 +274,7 @@ function buildFreezeGates({ artifacts, freezeSources, ingestPaths, freezeBoundar
   const contract = artifacts.connector_contract_v2?.summary ?? {};
   const connectorSummaries = CONNECTOR_SOURCE_IDS.map((sourceId) => artifacts[sourceId]?.summary ?? {});
   const gateRecords = [
-    gateRecord("contract_coverage", "Connector contract coverage", contract.connector_contract_status === "complete" && contract.connector_count === 8 && contract.contracted_connector_count === 8 && contract.read_only_connector_count === 8 && contract.mutation_allowed_count === 0, "Connector Contract v2 covers all 8 P268-P275 connector families with read-only/no-mutation contracts."),
+    gateRecord("contract_coverage", "Connector contract coverage", contract.connector_contract_status === "complete" && contract.connector_count === CONNECTOR_CONTRACT_FAMILY_COUNT && contract.contracted_connector_count === CONNECTOR_CONTRACT_FAMILY_COUNT && contract.read_only_connector_count === CONNECTOR_CONTRACT_FAMILY_COUNT && contract.mutation_allowed_count === 0, "Connector Contract v2 covers all 9 P268-P276 connector families with read-only/no-mutation contracts."),
     gateRecord("source_integrity", "Connector source integrity", freezeSources.every((source) => source.source_status === "complete"), `${freezeSources.filter((source) => source.source_status === "complete").length}/${freezeSources.length} connector source artifact(s) are complete.`),
     gateRecord("representative_ingest", "Representative source ingest", ingestPaths.every((item) => item.path_status === "passed"), `${ingestPaths.filter((item) => item.path_status === "passed").length}/${ingestPaths.length} representative connector ingest path(s) passed.`),
     gateRecord("cursor_resumability", "Cursor resumability", connectorSummaries.every((summary) => summary.cursor_resume_supported === true) && rawCursorMaterialAllowedCount(connectorSummaries) === 0, "All connector runtime artifacts expose resumable cursor state without raw cursor material."),
@@ -320,7 +321,7 @@ function buildCheckpoints({ artifacts, freezeSources, ingestPaths, freezeGates, 
   const connectorSummaries = CONNECTOR_SOURCE_IDS.map((sourceId) => artifacts[sourceId]?.summary ?? {});
   return [
     checkpoint("sources.complete", freezeSources.every((source) => source.source_status === "complete"), `${freezeSources.filter((source) => source.source_status === "complete").length}/${freezeSources.length} connector source artifact(s) are complete.`),
-    checkpoint("contract.fixture", contract.connector_contract_status === "complete" && contract.connector_count === 8 && contract.contracted_connector_count === 8, "Connector Contract v2 fixture covers all 8 connector family contracts."),
+    checkpoint("contract.fixture", contract.connector_contract_status === "complete" && contract.connector_count === CONNECTOR_CONTRACT_FAMILY_COUNT && contract.contracted_connector_count === CONNECTOR_CONTRACT_FAMILY_COUNT, "Connector Contract v2 fixture covers all 9 connector family contracts."),
     checkpoint("paths.passed", ingestPaths.length === 7 && ingestPaths.every((item) => item.path_status === "passed"), `${ingestPaths.filter((item) => item.path_status === "passed").length}/${ingestPaths.length} representative connector path(s) passed.`),
     checkpoint("gates.passed", freezeGates.length >= 7 && freezeGates.every((gate) => gate.gate_status === "passed"), `${freezeGates.filter((gate) => gate.gate_status === "passed").length}/${freezeGates.length} connector freeze gate(s) passed.`),
     checkpoint("cursor.boundary", connectorSummaries.every((summary) => summary.cursor_resume_supported === true) && rawCursorMaterialAllowedCount(connectorSummaries) === 0, "All connectors support resumable hash-only cursor state."),
@@ -462,7 +463,7 @@ function buildContract(generatedAt) {
     source_of_truth: SOURCE_OF_TRUTH,
     source_phase_range: "P267-P275",
     freeze_phase: "P276",
-    connector_family_count: 8,
+    connector_family_count: CONNECTOR_CONTRACT_FAMILY_COUNT,
     required_gate_ids: ["contract_coverage", "source_integrity", "representative_ingest", "cursor_resumability", "auth_credential_boundary", "mutation_delivery_boundary", "surface_binding"],
     human_review_required: true,
     client_facing_ready: false,

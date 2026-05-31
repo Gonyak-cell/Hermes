@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/trading/trading-promotion.schema.json",
+  "title": "Trading Promotion",
+  "type": "object",
+  "required": ["schema_version", "promotion_id", "from_stage", "to_stage", "decision", "criteria_results", "human_approval_required", "live_promotion_allowed"],
+  "properties": {
+    "schema_version": {
+      "const": "trading-promotion.v1"
+    },
+    "promotion_id": {
+      "type": "string",
+      "pattern": "^promotion\\.[a-z0-9_\\.:-]+$"
+    },
+    "from_stage": {
+      "enum": ["research", "backtest", "paper", "shadow_live", "limited_live"]
+    },
+    "to_stage": {
+      "enum": ["backtest", "paper", "shadow_live", "limited_live", "full_auto"]
+    },
+    "decision": {
+      "enum": ["blocked", "pending_human_review", "approved_for_paper", "rollback"]
+    },
+    "criteria_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["criterion_id", "status", "message"],
+        "properties": {
+          "criterion_id": {
+            "type": "string"
+          },
+          "status": {
+            "enum": ["pass", "warn", "block"]
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "human_approval_required": {
+      "const": true
+    },
+    "live_promotion_allowed": {
+      "const": false
+    }
+  }
+}

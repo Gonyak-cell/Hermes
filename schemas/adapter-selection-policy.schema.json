@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/adapter-selection-policy.schema.json",
+  "title": "Hermes Adapter Selection Policy",
+  "type": "object",
+  "required": ["schema_version", "adapter_selection_policy", "validation", "summary"],
+  "properties": {
+    "schema_version": { "const": "adapter-selection-policy-report.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "adapter_selection_policy": {
+      "type": "object",
+      "required": ["schema_version", "policy_id", "invariants", "document_chains", "public_web_policy"],
+      "properties": {
+        "schema_version": { "const": "adapter-selection-policy.v1" },
+        "policy_id": { "const": "adapter-selection-policy.safe-local-first.v1" },
+        "invariants": {
+          "type": "object",
+          "required": [
+            "trading_pack_untouched",
+            "external_service_default_allowed",
+            "network_default_allowed",
+            "client_facing_output_allowed",
+            "human_review_required",
+            "preserve_existing_deterministic_fallbacks"
+          ],
+          "properties": {
+            "trading_pack_untouched": { "const": true },
+            "external_service_default_allowed": { "const": false },
+            "network_default_allowed": { "const": false },
+            "client_facing_output_allowed": { "const": false },
+            "human_review_required": { "const": true },
+            "preserve_existing_deterministic_fallbacks": { "const": true }
+          }
+        },
+        "document_chains": {
+          "type": "array",
+          "minItems": 8,
+          "items": { "$ref": "#/$defs/document_chain" }
+        },
+        "public_web_policy": {
+          "type": "object",
+          "required": [
+            "connector_id",
+            "allowed_classifications",
+            "url_allowlist_required",
+            "query_based_crawling_allowed",
+            "private_network_targets_allowed",
+            "external_service_allowed",
+            "output_status"
+          ],
+          "properties": {
+            "connector_id": { "const": "connector.public_web.v2" },
+            "allowed_classifications": {
+              "type": "array",
+              "prefixItems": [{ "const": "P0_PUBLIC" }, { "const": "P1_INTERNAL" }],
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "url_allowlist_required": { "const": true },
+            "query_based_crawling_allowed": { "const": false },
+            "private_network_targets_allowed": { "const": false },
+            "external_service_allowed": { "const": false },
+            "output_status": { "const": "pending_review" }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": {
+      "type": "object",
+      "required": ["adapter_selection_policy_status", "chain_count", "trading_pack_untouched"],
+      "properties": {
+        "adapter_selection_policy_status": { "enum": ["complete", "blocked"] },
+        "chain_count": { "type": "integer", "minimum": 8 },
+        "trading_pack_untouched": { "const": true },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "document_chain": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "extension",
+        "primary_adapter_id",
+        "sidecar_adapter_ids",
+        "fallback_adapter_ids",
+        "classification_limit",
+        "network_access_allowed",
+        "external_service_allowed",
+        "model_download_allowed",
+        "fallback_on_missing_command",
+        "human_review_required",
+        "output_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "adapter-selection-chain.v1" },
+        "extension": { "type": "string" },
+        "primary_adapter_id": { "type": "string" },
+        "sidecar_adapter_ids": { "type": "array", "items": { "type": "string" } },
+        "fallback_adapter_ids": { "type": "array", "items": { "type": "string" } },
+        "classification_limit": {
+          "type": "array",
+          "items": { "enum": ["P0_PUBLIC", "P1_INTERNAL", "P2_CLIENT_CONFIDENTIAL", "P3_PRIVILEGED"] }
+        },
+        "network_access_allowed": { "const": false },
+        "external_service_allowed": { "const": false },
+        "model_download_allowed": { "const": false },
+        "fallback_on_missing_command": { "const": true },
+        "human_review_required": { "const": true },
+        "output_status": { "const": "pending_review" }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

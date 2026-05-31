@@ -1,0 +1,22 @@
+{
+  "schema_version": "trading-model-improvement-golden-fixtures.v1",
+  "fixture_set_id": "trading.model-improvement.p126_p165",
+  "generated_at": "2026-05-31T00:00:00.000Z",
+  "fixtures": [
+    {
+      "fixture_id": "golden.trading.model_improvement.p126_p165",
+      "input_ref": "examples/trading/model-improvement-layer.json",
+      "expected_status": "complete",
+      "expected_phase_range": "P126-P165",
+      "expected_phase_count": 40,
+      "expected_model_count": 5,
+      "expected_dataset_count": 3,
+      "expected_scorecard_count": 5,
+      "expected_promotion_candidate_count": 1,
+      "expected_generated_live_deployment_count": 0,
+      "expected_live_deployment_allowed": false,
+      "expected_order_intent_generated": false,
+      "expected_dashboard_read_only": true
+    }
+  ]
+}

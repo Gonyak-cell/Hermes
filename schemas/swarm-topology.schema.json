@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/swarm-topology.schema.json",
+  "title": "Hermes Kanban Swarm Topology Contract",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "topology_policy",
+    "swarm_topologies",
+    "hermes_swarm_command_projections",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "swarm-topology-contract.v1" },
+    "topology_policy": {
+      "type": "object",
+      "required": [
+        "protected_action_execution_allowed",
+        "runtime_execution_default_mode",
+        "worker_execution_performed",
+        "verifier_required",
+        "synthesizer_required",
+        "human_review_gate_required",
+        "gate_engine_replaced",
+        "workflow_runner_replaced"
+      ],
+      "properties": {
+        "protected_action_execution_allowed": { "const": false },
+        "runtime_execution_default_mode": { "const": "dry-run" },
+        "worker_execution_performed": { "const": false },
+        "verifier_required": { "const": true },
+        "synthesizer_required": { "const": true },
+        "human_review_gate_required": { "const": true },
+        "gate_engine_replaced": { "const": false },
+        "workflow_runner_replaced": { "const": false }
+      }
+    },
+    "swarm_topologies": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/topology" }
+    },
+    "hermes_swarm_command_projections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "mode", "command", "worker_execution_performed", "protected_action_execution_allowed", "human_review_required"],
+        "properties": {
+          "schema_version": { "const": "hermes-swarm-command-projection.v1" },
+          "mode": { "const": "dry-run" },
+          "command": { "type": "object" },
+          "worker_execution_performed": { "const": false },
+          "protected_action_execution_allowed": { "const": false },
+          "human_review_required": { "const": true }
+        },
+        "additionalProperties": true
+      }
+    },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": {
+      "type": "object",
+      "required": ["swarm_topology_status", "topology_count", "worker_execution_performed_count", "protected_action_execution_allowed_count"],
+      "properties": {
+        "swarm_topology_status": { "enum": ["complete", "blocked"] },
+        "topology_count": { "type": "integer", "minimum": 0 },
+        "worker_execution_performed_count": { "const": 0 },
+        "protected_action_execution_allowed_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "topology": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "swarm_topology_id",
+        "workers",
+        "verifier",
+        "synthesizer",
+        "shared_blackboard_path",
+        "human_review_gate",
+        "protected_action_execution_allowed",
+        "worker_execution_performed",
+        "runtime_projection_only"
+      ],
+      "properties": {
+        "schema_version": { "const": "swarm-topology.v1" },
+        "swarm_topology_id": { "type": "string" },
+        "workers": { "type": "array", "minItems": 1 },
+        "verifier": { "type": "object", "required": ["required"], "properties": { "required": { "const": true } }, "additionalProperties": true },
+        "synthesizer": { "type": "object", "required": ["required"], "properties": { "required": { "const": true } }, "additionalProperties": true },
+        "shared_blackboard_path": { "type": "string" },
+        "human_review_gate": { "type": "object", "required": ["required"], "properties": { "required": { "const": true } }, "additionalProperties": true },
+        "protected_action_execution_allowed": { "const": false },
+        "worker_execution_performed": { "const": false },
+        "runtime_projection_only": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

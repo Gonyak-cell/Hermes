@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/trading/trading-feature.schema.json",
+  "title": "Trading Feature",
+  "type": "object",
+  "required": ["schema_version", "feature_set_id", "dataset_id", "generated_at", "leakage_check_status", "quality_score", "features", "lineage_refs"],
+  "properties": {
+    "schema_version": {
+      "const": "trading-feature.v1"
+    },
+    "feature_set_id": {
+      "type": "string",
+      "pattern": "^features\\.[a-z0-9_\\.:-]+$"
+    },
+    "dataset_id": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "leakage_check_status": {
+      "enum": ["passed", "blocked"]
+    },
+    "quality_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["feature_id", "category", "value"],
+        "properties": {
+          "feature_id": {
+            "type": "string"
+          },
+          "category": {
+            "enum": ["liquidity", "volatility", "momentum", "mean_reversion", "correlation", "regime", "macro_placeholder", "event_placeholder", "on_chain_placeholder", "sentiment_placeholder"]
+          },
+          "value": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "lineage_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

@@ -1,0 +1,406 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/trading/trading-market-data-feature-store.schema.json",
+  "title": "Trading Market Data Feature Store",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "store_id",
+    "phase_range",
+    "feature_store_status",
+    "generated_at",
+    "safety_boundary",
+    "phase_coverage",
+    "import_adapters",
+    "market_data_artifacts",
+    "market_sessions",
+    "fx_snapshots",
+    "corporate_action_placeholders",
+    "quality_gate_model",
+    "feature_definitions",
+    "feature_snapshots",
+    "vendor_abstraction",
+    "replay_mode",
+    "dashboard_api_stub"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "trading-market-data-feature-store.v1"
+    },
+    "store_id": {
+      "type": "string",
+      "pattern": "^trading\\.market_data_feature_store\\.[a-z0-9_\\.:-]+$"
+    },
+    "phase_range": {
+      "const": "P061-P090"
+    },
+    "feature_store_status": {
+      "enum": ["complete", "blocked"]
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "safety_boundary": {
+      "type": "object",
+      "required": [
+        "manual_or_fixture_only",
+        "live_vendor_feeds_enabled",
+        "real_time_trading_feed_enabled",
+        "external_api_keys_required",
+        "investment_advice_generated",
+        "trade_recommendation_generated",
+        "order_intent_generated"
+      ],
+      "properties": {
+        "manual_or_fixture_only": {
+          "type": "boolean"
+        },
+        "live_vendor_feeds_enabled": {
+          "type": "boolean"
+        },
+        "real_time_trading_feed_enabled": {
+          "type": "boolean"
+        },
+        "external_api_keys_required": {
+          "type": "boolean"
+        },
+        "investment_advice_generated": {
+          "type": "boolean"
+        },
+        "trade_recommendation_generated": {
+          "type": "boolean"
+        },
+        "order_intent_generated": {
+          "type": "boolean"
+        }
+      }
+    },
+    "phase_coverage": {
+      "type": "array",
+      "minItems": 30,
+      "items": {
+        "type": "object",
+        "required": ["phase_id", "status", "artifact_ref"],
+        "properties": {
+          "phase_id": {
+            "type": "string",
+            "pattern": "^P[0-9]{3}$"
+          },
+          "status": {
+            "enum": ["complete", "planned", "blocked"]
+          },
+          "artifact_ref": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "import_adapters": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["adapter_id", "source_type", "enabled", "credential_required", "write_mode"],
+        "properties": {
+          "adapter_id": {
+            "type": "string"
+          },
+          "source_type": {
+            "enum": ["csv_manual", "manual_entry", "fixture", "vendor_stub"]
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "credential_required": {
+            "type": "boolean"
+          },
+          "write_mode": {
+            "enum": ["read_only", "disabled"]
+          }
+        }
+      }
+    },
+    "market_data_artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object"
+      }
+    },
+    "market_sessions": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["session_id", "asset_scope", "calendar_type", "timezone", "status"],
+        "properties": {
+          "session_id": {
+            "type": "string"
+          },
+          "asset_scope": {
+            "enum": ["kr_stock", "us_stock", "crypto_24_7", "fx_snapshot"]
+          },
+          "calendar_type": {
+            "enum": ["exchange_hours", "twenty_four_seven", "snapshot"]
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "status": {
+            "enum": ["complete", "placeholder"]
+          }
+        }
+      }
+    },
+    "fx_snapshots": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["snapshot_id", "pair", "as_of", "rate", "source_type"],
+        "properties": {
+          "snapshot_id": {
+            "type": "string"
+          },
+          "pair": {
+            "type": "string"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "rate": {
+            "type": "number"
+          },
+          "source_type": {
+            "enum": ["manual_entry", "fixture"]
+          }
+        }
+      }
+    },
+    "corporate_action_placeholders": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["placeholder_id", "event_type", "status", "live_action_allowed"],
+        "properties": {
+          "placeholder_id": {
+            "type": "string"
+          },
+          "event_type": {
+            "enum": ["dividend", "split", "merger", "delisting", "listing"]
+          },
+          "status": {
+            "enum": ["placeholder", "blocked"]
+          },
+          "live_action_allowed": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "quality_gate_model": {
+      "type": "object",
+      "required": ["checks", "default_result", "blocks_feature_generation_on_failure"],
+      "properties": {
+        "checks": {
+          "type": "array",
+          "minItems": 4,
+          "items": {
+            "type": "object",
+            "required": ["check_id", "status", "blocks_usage"],
+            "properties": {
+              "check_id": {
+                "enum": ["stale_data", "missing_data", "duplicate_candle", "abnormal_price_spread"]
+              },
+              "status": {
+                "enum": ["pass", "warn", "block"]
+              },
+              "blocks_usage": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "default_result": {
+          "enum": ["pass", "warn", "block"]
+        },
+        "blocks_feature_generation_on_failure": {
+          "type": "boolean"
+        }
+      }
+    },
+    "feature_definitions": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["feature_id", "category", "status", "lookahead_safe"],
+        "properties": {
+          "feature_id": {
+            "type": "string"
+          },
+          "category": {
+            "enum": [
+              "liquidity",
+              "volatility",
+              "momentum",
+              "mean_reversion",
+              "correlation",
+              "regime",
+              "macro_placeholder",
+              "event_placeholder",
+              "on_chain_placeholder",
+              "sentiment_placeholder"
+            ]
+          },
+          "status": {
+            "enum": ["complete", "placeholder"]
+          },
+          "lookahead_safe": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "feature_snapshots": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "snapshot_id",
+          "snapshot_version",
+          "generated_at",
+          "source_dataset_ids",
+          "lineage_refs",
+          "leakage_check_status",
+          "quality_score",
+          "feature_artifact"
+        ],
+        "properties": {
+          "snapshot_id": {
+            "type": "string"
+          },
+          "snapshot_version": {
+            "type": "string"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source_dataset_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "lineage_refs": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "leakage_check_status": {
+            "enum": ["passed", "blocked"]
+          },
+          "quality_score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "feature_artifact": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "vendor_abstraction": {
+      "type": "object",
+      "required": ["adapter_state", "allowed_source_types", "live_vendor_calls_allowed", "credentials_required"],
+      "properties": {
+        "adapter_state": {
+          "enum": ["stub_only", "disabled"]
+        },
+        "allowed_source_types": {
+          "type": "array",
+          "items": {
+            "enum": ["csv_manual", "manual_entry", "fixture", "vendor_stub"]
+          }
+        },
+        "live_vendor_calls_allowed": {
+          "type": "boolean"
+        },
+        "credentials_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "replay_mode": {
+      "type": "object",
+      "required": ["enabled", "deterministic_clock", "source_snapshot_required"],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "deterministic_clock": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source_snapshot_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "dashboard_api_stub": {
+      "type": "object",
+      "required": ["read_only", "mutating_routes_enabled", "routes", "disabled_routes"],
+      "properties": {
+        "read_only": {
+          "type": "boolean"
+        },
+        "mutating_routes_enabled": {
+          "type": "boolean"
+        },
+        "routes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["method", "path"],
+            "properties": {
+              "method": {
+                "enum": ["GET"]
+              },
+              "path": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "disabled_routes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["method", "path", "reason"],
+            "properties": {
+              "method": {
+                "enum": ["POST", "PUT", "PATCH", "DELETE"]
+              },
+              "path": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

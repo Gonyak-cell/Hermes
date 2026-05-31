@@ -1,0 +1,22 @@
+{
+  "schema_version": "trading-paper-shadow-live-golden-fixtures.v1",
+  "fixture_set_id": "trading.paper-shadow-live.p221_p245",
+  "generated_at": "2026-05-31T00:00:00.000Z",
+  "fixtures": [
+    {
+      "fixture_id": "golden.trading.paper_shadow_live.p221_p245",
+      "input_ref": "examples/trading/paper-shadow-live.json",
+      "expected_status": "complete",
+      "expected_phase_range": "P221-P245",
+      "expected_phase_count": 25,
+      "expected_paper_order_count": 3,
+      "expected_shadow_order_intent_count": 1,
+      "expected_real_order_count": 0,
+      "expected_live_execution_allowed": false,
+      "expected_shadow_read_only": true,
+      "expected_broker_adapter_enabled": false,
+      "expected_exchange_adapter_enabled": false,
+      "expected_dashboard_read_only": true
+    }
+  ]
+}

@@ -1,0 +1,249 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/trading/trading-strategy-archetype-registry.schema.json",
+  "title": "Trading Strategy Archetype Registry",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "registry_id",
+    "generated_at",
+    "phase_range",
+    "taxonomy_status",
+    "safety_boundary",
+    "phase_coverage",
+    "strategy_archetypes",
+    "event_models",
+    "signal_output_standard",
+    "strategy_conflict_model",
+    "strategy_correlation_model",
+    "capacity_liquidity_model",
+    "lifecycle_model"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "trading-strategy-archetype-registry.v1"
+    },
+    "registry_id": {
+      "type": "string",
+      "pattern": "^strategy_archetype_registry\\.[a-z0-9_\\.:-]+$"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "phase_range": {
+      "const": "P036-P060"
+    },
+    "taxonomy_status": {
+      "enum": ["complete", "blocked"]
+    },
+    "safety_boundary": {
+      "type": "object",
+      "required": ["research_taxonomy_only", "financial_advice_generated", "trade_recommendation_generated", "order_intent_generated", "live_execution_allowed", "human_review_required"],
+      "properties": {
+        "research_taxonomy_only": {
+          "const": true
+        },
+        "financial_advice_generated": {
+          "const": false
+        },
+        "trade_recommendation_generated": {
+          "const": false
+        },
+        "order_intent_generated": {
+          "const": false
+        },
+        "live_execution_allowed": {
+          "const": false
+        },
+        "human_review_required": {
+          "const": true
+        }
+      }
+    },
+    "phase_coverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["phase_id", "title", "status", "evidence_ref"],
+        "properties": {
+          "phase_id": {
+            "type": "string",
+            "pattern": "^P0[3-6][0-9]$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "enum": ["complete", "planned", "blocked"]
+          },
+          "evidence_ref": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "strategy_archetypes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["archetype_id", "display_name", "phase_id", "category", "research_only", "tradability_status", "allowed_stages", "live_eligible", "required_data", "tradability_constraints", "risk_model", "signal_output_standard", "lifecycle_statuses", "capacity_liquidity_model"],
+        "properties": {
+          "archetype_id": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "phase_id": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "research_only": {
+            "type": "boolean"
+          },
+          "tradability_status": {
+            "enum": ["research_only", "paper_allowed", "live_blocked"]
+          },
+          "allowed_stages": {
+            "type": "array",
+            "items": {
+              "enum": ["research", "backtest", "paper"]
+            }
+          },
+          "live_eligible": {
+            "const": false
+          },
+          "short_capability_gate_required": {
+            "type": "boolean"
+          },
+          "korea_short_selling_check_required": {
+            "type": "boolean"
+          },
+          "required_data": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tradability_constraints": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "risk_model": {
+            "type": "object",
+            "required": ["risk_model_id", "risk_factors", "default_risk_result", "live_trade_allowed"],
+            "properties": {
+              "risk_model_id": {
+                "type": "string"
+              },
+              "risk_factors": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "default_risk_result": {
+                "enum": ["pass", "warn", "block", "halt"]
+              },
+              "live_trade_allowed": {
+                "const": false
+              }
+            }
+          },
+          "signal_output_standard": {
+            "type": "object",
+            "required": ["signal_contract", "allowed_signal_sides", "order_intent_boundary", "human_review_required"],
+            "properties": {
+              "signal_contract": {
+                "const": "trading-signal.v1"
+              },
+              "allowed_signal_sides": {
+                "type": "array",
+                "items": {
+                  "enum": ["buy", "sell", "hold", "reduce", "increase"]
+                }
+              },
+              "order_intent_boundary": {
+                "enum": ["signal_only_by_default", "paper_order_intent_candidate"]
+              },
+              "human_review_required": {
+                "const": true
+              }
+            }
+          },
+          "lifecycle_statuses": {
+            "type": "array",
+            "items": {
+              "enum": ["draft", "active", "disabled", "retired"]
+            }
+          },
+          "capacity_liquidity_model": {
+            "type": "object",
+            "required": ["capacity_model_id", "capacity_required", "liquidity_required"],
+            "properties": {
+              "capacity_model_id": {
+                "type": "string"
+              },
+              "capacity_required": {
+                "type": "boolean"
+              },
+              "liquidity_required": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "event_models": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["event_model_id", "event_family", "event_types", "required_data", "live_execution_allowed"],
+        "properties": {
+          "event_model_id": {
+            "type": "string"
+          },
+          "event_family": {
+            "enum": ["corporate_action", "crypto"]
+          },
+          "event_types": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "required_data": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "live_execution_allowed": {
+            "const": false
+          }
+        }
+      }
+    },
+    "signal_output_standard": {
+      "type": "object"
+    },
+    "strategy_conflict_model": {
+      "type": "object"
+    },
+    "strategy_correlation_model": {
+      "type": "object"
+    },
+    "capacity_liquidity_model": {
+      "type": "object"
+    },
+    "lifecycle_model": {
+      "type": "object"
+    }
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/public-web-resource-connector.schema.json",
+  "title": "Hermes Public Web Resource Connector",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "connector_id",
+    "connector_policy",
+    "summary",
+    "public_web_resource_items",
+    "blocked_url_attempts",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "public-web-connector.v1" },
+    "connector_id": { "const": "connector.public_web.v2" },
+    "connector_policy": {
+      "type": "object",
+      "required": [
+        "allowed_classifications",
+        "url_allowlist_required",
+        "query_based_crawling_allowed",
+        "private_network_targets_allowed",
+        "external_service_allowed",
+        "human_review_required",
+        "output_status"
+      ],
+      "properties": {
+        "allowed_classifications": {
+          "type": "array",
+          "items": { "enum": ["P0_PUBLIC", "P1_INTERNAL"] },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "url_allowlist_required": { "const": true },
+        "query_based_crawling_allowed": { "const": false },
+        "private_network_targets_allowed": { "const": false },
+        "external_service_allowed": { "const": false },
+        "human_review_required": { "const": true },
+        "output_status": { "const": "pending_review" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": ["connector_status", "requested_page_count", "materialized_page_count", "blocked_page_count"],
+      "properties": {
+        "connector_status": { "enum": ["complete", "blocked"] },
+        "requested_page_count": { "type": "integer", "minimum": 0 },
+        "materialized_page_count": { "type": "integer", "minimum": 0 },
+        "blocked_page_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    },
+    "public_web_resource_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/public_web_item" }
+    },
+    "blocked_url_attempts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["url", "reason", "blocked"],
+        "properties": {
+          "url": { "type": ["string", "null"] },
+          "reason": { "type": "string" },
+          "blocked": { "const": true }
+        },
+        "additionalProperties": true
+      }
+    },
+    "validation": { "$ref": "#/$defs/validation" }
+  },
+  "$defs": {
+    "public_web_item": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "item_id",
+        "connector_id",
+        "source_url",
+        "allowed_domain",
+        "matter_id",
+        "classification",
+        "purpose",
+        "content_hash_sha256",
+        "resource_expansion_candidate",
+        "external_service_allowed",
+        "human_review_required",
+        "output_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "public-web-resource-item.v1" },
+        "connector_id": { "const": "connector.public_web.v2" },
+        "source_url": { "type": "string", "format": "uri" },
+        "allowed_domain": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "classification": { "enum": ["P0_PUBLIC", "P1_INTERNAL"] },
+        "purpose": { "type": "string" },
+        "content_hash_sha256": { "type": "string" },
+        "resource_expansion_candidate": { "type": "object" },
+        "external_service_allowed": { "const": false },
+        "human_review_required": { "const": true },
+        "output_status": { "const": "pending_review" }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

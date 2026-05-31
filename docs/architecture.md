@@ -1,11 +1,16 @@
-# 로펌용 Hermes Harness 아키텍처
+# Hermes Project Operations Harness 아키텍처
 
 ## 목표
 
-로펌용 Hermes Harness는 사건별 기억과 운영 흐름을 보존하는 계층입니다. AI가 결론을 내리는 시스템이 아니라, 사람이 놓치기 쉬운 업무 흐름을 계속 정리하고 경고하는 시스템입니다.
+Hermes Project Operations Harness는 개발 프로젝트와 domain-specific 업무를 같은 control plane 위에서 관리하는 플랫폼입니다. 로펌 matter 운영은 이 플랫폼 위에 올라가는 domain pack 중 하나이며, 플랫폼의 기본 중심은 project context, 다음 액션, blocker, review gate, release readiness, audit trail을 안정적으로 관리하는 것입니다.
+
+이 시스템은 AI가 최종 결론을 내리는 제품이 아니라, 사람이 놓치기 쉬운 업무 흐름을 계속 정리하고 경고하며 검토 가능한 산출물을 만드는 운영 계층입니다.
 
 핵심 산출물은 다음입니다.
 
+- development daily brief
+- issue, blocker, review queue, release readiness summary
+- worktree, diff review, test, PR draft, rollback plan
 - matter daily brief
 - task and deadline register
 - evidence and document matrix
@@ -15,7 +20,7 @@
 
 ## 계층 구조
 
-`02_Template`와 `플러그인` 본문 추출 결과, 하네스의 중심은 단순 matter store가 아니라 resource/capability control plane이어야 한다.
+`02_Template`와 `플러그인` 본문 추출 결과, 하네스의 중심은 단일 domain store가 아니라 resource/capability control plane이어야 한다.
 
 ```mermaid
 flowchart TD
@@ -35,11 +40,23 @@ Domain pack은 다음처럼 분리한다.
 - `creative-content`: 웹소설, 동영상, PPTX 보고자료, agent UI 실험
 - `document`: DOCX/PPTX/XLSX/PDF 추출, 서식 품질검사, 디자인 시스템
 
-## Matter Operating Store
+## Domain Operating Stores
 
-초기 버전은 JSON 파일로 시작합니다. 실제 배포에서는 Postgres 또는 기존 DMS/ERP의 matter ID를 기준으로 연결합니다.
+초기 버전은 JSON 파일로 시작합니다. 실제 배포에서는 Postgres 또는 기존 DMS/ERP/GitHub/issue tracker의 stable ID를 기준으로 연결합니다.
 
-최소 데이터 모델은 다음입니다.
+Personal-dev domain의 최소 데이터 모델은 다음입니다.
+
+- `project_id`: 내부 프로젝트 번호 또는 저장소 식별자
+- `repository`: repo path, language, framework, test/build command
+- `issues`: source system, issue id, priority, status, owner
+- `tasks`: 다음 액션, blocker, due date, review status
+- `plans`: Claude Code/Codex/shared plan candidate와 reconciliation 상태
+- `worktrees`: lane, branch, touched files, cleanup state
+- `diffs`: captured diff, protected file scan, review findings
+- `tests`: canonical test matrix와 pass/fail evidence
+- `release`: PR draft, release note, rollback plan, technical debt
+
+Law-firm domain의 최소 데이터 모델은 다음입니다.
 
 - `matter_id`: 내부 사건 번호
 - `client`: 의뢰인

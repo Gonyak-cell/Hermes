@@ -4933,7 +4933,7 @@ function evaluateStageAcceptance(item, stage) {
     if (
       metrics.validation_error_count === 0
       && metrics.connector_contract_status === "complete"
-      && metrics.connector_count === 8
+      && metrics.connector_count === 9
       && metrics.contracted_connector_count === metrics.connector_count
       && metrics.source_contract_count === metrics.connector_count
       && metrics.cursor_contract_count === metrics.connector_count
@@ -5349,12 +5349,12 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.source_count === 9
       && metrics.passed_source_count === metrics.source_count
       && metrics.connector_artifact_count === 8
-      && metrics.connector_contract_count === 8
-      && metrics.contracted_connector_count === 8
-      && metrics.source_contract_count === 8
-      && metrics.cursor_contract_count === 8
-      && metrics.external_id_contract_count === 8
-      && metrics.auth_boundary_count === 8
+      && metrics.connector_contract_count === 9
+      && metrics.contracted_connector_count === 9
+      && metrics.source_contract_count === 9
+      && metrics.cursor_contract_count === 9
+      && metrics.external_id_contract_count === 9
+      && metrics.auth_boundary_count === 9
       && metrics.path_count === 7
       && metrics.passed_path_count === metrics.path_count
       && metrics.representative_source_ingest_path_count === 6

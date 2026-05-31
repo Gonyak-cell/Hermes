@@ -1,0 +1,477 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/trading/trading-paper-shadow-live.schema.json",
+  "title": "Trading Paper And Shadow Live",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "paper_shadow_id",
+    "phase_range",
+    "paper_shadow_status",
+    "generated_at",
+    "safety_boundary",
+    "phase_coverage",
+    "paper_order_ledger",
+    "paper_fill_simulator",
+    "paper_fill_models",
+    "paper_pnl",
+    "paper_drawdown",
+    "strategy_paper_scorecards",
+    "model_paper_scorecards",
+    "paper_live_parity_contract",
+    "promotion_criteria_to_shadow",
+    "read_only_live_data_adapter",
+    "shadow_signal_generation",
+    "shadow_order_intents",
+    "no_order_shadow_mode",
+    "intended_fill_vs_market",
+    "latency_measurement",
+    "data_outage_detection",
+    "shadow_pnl_estimate",
+    "shadow_live_drift_report",
+    "kill_switch_dry_run",
+    "promotion_criteria_to_limited_live",
+    "dashboard_api_stub",
+    "operator_integration"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "trading-paper-shadow-live.v1"
+    },
+    "paper_shadow_id": {
+      "type": "string",
+      "pattern": "^trading\\.paper_shadow\\.[a-z0-9_\\.:-]+$"
+    },
+    "phase_range": {
+      "const": "P221-P245"
+    },
+    "paper_shadow_status": {
+      "enum": ["complete", "blocked"]
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "safety_boundary": {
+      "type": "object",
+      "required": [
+        "paper_simulation_only",
+        "shadow_read_only",
+        "shadow_order_intent_non_executable",
+        "real_order_submitted",
+        "live_execution_allowed",
+        "broker_adapter_enabled",
+        "exchange_adapter_enabled",
+        "credential_required",
+        "human_review_required"
+      ],
+      "properties": {
+        "paper_simulation_only": {
+          "type": "boolean"
+        },
+        "shadow_read_only": {
+          "type": "boolean"
+        },
+        "shadow_order_intent_non_executable": {
+          "type": "boolean"
+        },
+        "real_order_submitted": {
+          "type": "boolean"
+        },
+        "live_execution_allowed": {
+          "type": "boolean"
+        },
+        "broker_adapter_enabled": {
+          "type": "boolean"
+        },
+        "exchange_adapter_enabled": {
+          "type": "boolean"
+        },
+        "credential_required": {
+          "type": "boolean"
+        },
+        "human_review_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "phase_coverage": {
+      "type": "array",
+      "minItems": 25,
+      "items": {
+        "type": "object",
+        "required": ["phase_id", "status", "artifact_ref"],
+        "properties": {
+          "phase_id": {
+            "type": "string",
+            "pattern": "^P[0-9]{3}$"
+          },
+          "status": {
+            "enum": ["complete", "planned", "blocked"]
+          },
+          "artifact_ref": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "paper_order_ledger": {
+      "type": "object"
+    },
+    "paper_fill_simulator": {
+      "type": "object",
+      "required": ["simulator_id", "deterministic", "live_fill_source_allowed"],
+      "properties": {
+        "simulator_id": {
+          "type": "string"
+        },
+        "deterministic": {
+          "type": "boolean"
+        },
+        "live_fill_source_allowed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "paper_fill_models": {
+      "type": "object",
+      "required": ["partial_fill_model", "rejected_fill_model"],
+      "properties": {
+        "partial_fill_model": {
+          "type": "object"
+        },
+        "rejected_fill_model": {
+          "type": "object"
+        }
+      }
+    },
+    "paper_pnl": {
+      "type": "object",
+      "required": ["pnl", "currency", "source_ref"],
+      "properties": {
+        "pnl": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "source_ref": {
+          "type": "string"
+        }
+      }
+    },
+    "paper_drawdown": {
+      "type": "object",
+      "required": ["drawdown_pct", "source_ref"],
+      "properties": {
+        "drawdown_pct": {
+          "type": "number"
+        },
+        "source_ref": {
+          "type": "string"
+        }
+      }
+    },
+    "strategy_paper_scorecards": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object"
+      }
+    },
+    "model_paper_scorecards": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object"
+      }
+    },
+    "paper_live_parity_contract": {
+      "type": "object",
+      "required": ["contract_id", "paper_live_parity_required", "max_drift_pct", "human_review_required"],
+      "properties": {
+        "contract_id": {
+          "type": "string"
+        },
+        "paper_live_parity_required": {
+          "type": "boolean"
+        },
+        "max_drift_pct": {
+          "type": "number"
+        },
+        "human_review_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "promotion_criteria_to_shadow": {
+      "type": "object",
+      "required": ["criteria_id", "decision", "human_approval_required", "shadow_live_enabled"],
+      "properties": {
+        "criteria_id": {
+          "type": "string"
+        },
+        "decision": {
+          "enum": ["blocked", "pending_human_review", "approved_read_only_shadow"]
+        },
+        "human_approval_required": {
+          "type": "boolean"
+        },
+        "shadow_live_enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "read_only_live_data_adapter": {
+      "type": "object",
+      "required": ["adapter_id", "adapter_mode", "read_only", "credentials_required", "external_network_required", "order_routes_enabled"],
+      "properties": {
+        "adapter_id": {
+          "type": "string"
+        },
+        "adapter_mode": {
+          "enum": ["fixture_replay", "read_only_stub"]
+        },
+        "read_only": {
+          "type": "boolean"
+        },
+        "credentials_required": {
+          "type": "boolean"
+        },
+        "external_network_required": {
+          "type": "boolean"
+        },
+        "order_routes_enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "shadow_signal_generation": {
+      "type": "object",
+      "required": ["enabled", "source_signal_refs", "live_execution_allowed"],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "source_signal_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "live_execution_allowed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "shadow_order_intents": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object"
+      }
+    },
+    "no_order_shadow_mode": {
+      "type": "object",
+      "required": ["enabled", "real_order_count", "broker_write_allowed", "exchange_write_allowed"],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "real_order_count": {
+          "type": "number"
+        },
+        "broker_write_allowed": {
+          "type": "boolean"
+        },
+        "exchange_write_allowed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "intended_fill_vs_market": {
+      "type": "object",
+      "required": ["comparison_id", "reconciliation_artifact", "market_source_ref", "status"],
+      "properties": {
+        "comparison_id": {
+          "type": "string"
+        },
+        "reconciliation_artifact": {
+          "type": "object"
+        },
+        "market_source_ref": {
+          "type": "string"
+        },
+        "status": {
+          "enum": ["matched", "mismatch", "not_applicable"]
+        }
+      }
+    },
+    "latency_measurement": {
+      "type": "object",
+      "required": ["measurement_id", "p50_ms", "p95_ms", "source_ref"],
+      "properties": {
+        "measurement_id": {
+          "type": "string"
+        },
+        "p50_ms": {
+          "type": "number"
+        },
+        "p95_ms": {
+          "type": "number"
+        },
+        "source_ref": {
+          "type": "string"
+        }
+      }
+    },
+    "data_outage_detection": {
+      "type": "object",
+      "required": ["detector_id", "outage_detected", "halt_shadow_generation_on_outage"],
+      "properties": {
+        "detector_id": {
+          "type": "string"
+        },
+        "outage_detected": {
+          "type": "boolean"
+        },
+        "halt_shadow_generation_on_outage": {
+          "type": "boolean"
+        }
+      }
+    },
+    "shadow_pnl_estimate": {
+      "type": "object",
+      "required": ["estimate_id", "pnl", "currency", "informational_only"],
+      "properties": {
+        "estimate_id": {
+          "type": "string"
+        },
+        "pnl": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "informational_only": {
+          "type": "boolean"
+        }
+      }
+    },
+    "shadow_live_drift_report": {
+      "type": "object",
+      "required": ["report_id", "drift_pct", "result", "human_review_required"],
+      "properties": {
+        "report_id": {
+          "type": "string"
+        },
+        "drift_pct": {
+          "type": "number"
+        },
+        "result": {
+          "enum": ["pass", "warn", "block"]
+        },
+        "human_review_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "kill_switch_dry_run": {
+      "type": "object",
+      "required": ["dry_run_id", "executed", "manual_resume_required", "live_orders_cancelled"],
+      "properties": {
+        "dry_run_id": {
+          "type": "string"
+        },
+        "executed": {
+          "type": "boolean"
+        },
+        "manual_resume_required": {
+          "type": "boolean"
+        },
+        "live_orders_cancelled": {
+          "type": "number"
+        }
+      }
+    },
+    "promotion_criteria_to_limited_live": {
+      "type": "object",
+      "required": ["criteria_id", "decision", "human_approval_required", "limited_live_enabled"],
+      "properties": {
+        "criteria_id": {
+          "type": "string"
+        },
+        "decision": {
+          "enum": ["blocked", "pending_human_review"]
+        },
+        "human_approval_required": {
+          "type": "boolean"
+        },
+        "limited_live_enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "dashboard_api_stub": {
+      "type": "object",
+      "required": ["read_only", "mutating_routes_enabled", "routes", "disabled_routes"],
+      "properties": {
+        "read_only": {
+          "type": "boolean"
+        },
+        "mutating_routes_enabled": {
+          "type": "boolean"
+        },
+        "routes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["method", "path"],
+            "properties": {
+              "method": {
+                "enum": ["GET"]
+              },
+              "path": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "disabled_routes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["method", "path", "reason"],
+            "properties": {
+              "method": {
+                "enum": ["POST", "PUT", "PATCH", "DELETE"]
+              },
+              "path": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "operator_integration": {
+      "type": "object",
+      "required": ["operator_handbook_note_required", "human_review_queue_required", "protected_action_routes_disabled"],
+      "properties": {
+        "operator_handbook_note_required": {
+          "type": "boolean"
+        },
+        "human_review_queue_required": {
+          "type": "boolean"
+        },
+        "protected_action_routes_disabled": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,439 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/trading/trading-signal-engine.schema.json",
+  "title": "Trading Signal Engine",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "engine_id",
+    "phase_range",
+    "signal_engine_status",
+    "generated_at",
+    "safety_boundary",
+    "phase_coverage",
+    "adapter_interface",
+    "strategy_adapters",
+    "signal_candidates",
+    "freshness_gate",
+    "conflict_detection",
+    "aggregation_model",
+    "review_queue",
+    "order_intent_boundary",
+    "drift_detection",
+    "decay_tracking",
+    "attribution_model",
+    "dashboard_api_stub"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "trading-signal-engine.v1"
+    },
+    "engine_id": {
+      "type": "string",
+      "pattern": "^trading\\.signal_engine\\.[a-z0-9_\\.:-]+$"
+    },
+    "phase_range": {
+      "const": "P091-P125"
+    },
+    "signal_engine_status": {
+      "enum": ["complete", "blocked"]
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "safety_boundary": {
+      "type": "object",
+      "required": [
+        "signal_only",
+        "investment_advice_generated",
+        "trade_recommendation_generated",
+        "order_intent_generated",
+        "live_execution_allowed",
+        "human_review_required"
+      ],
+      "properties": {
+        "signal_only": {
+          "type": "boolean"
+        },
+        "investment_advice_generated": {
+          "type": "boolean"
+        },
+        "trade_recommendation_generated": {
+          "type": "boolean"
+        },
+        "order_intent_generated": {
+          "type": "boolean"
+        },
+        "live_execution_allowed": {
+          "type": "boolean"
+        },
+        "human_review_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "phase_coverage": {
+      "type": "array",
+      "minItems": 35,
+      "items": {
+        "type": "object",
+        "required": ["phase_id", "status", "artifact_ref"],
+        "properties": {
+          "phase_id": {
+            "type": "string",
+            "pattern": "^P[0-9]{3}$"
+          },
+          "status": {
+            "enum": ["complete", "planned", "blocked"]
+          },
+          "artifact_ref": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "adapter_interface": {
+      "type": "object",
+      "required": ["interface_id", "input_contracts", "output_contract", "allowed_stages", "order_intent_generation_allowed", "live_execution_allowed"],
+      "properties": {
+        "interface_id": {
+          "type": "string"
+        },
+        "input_contracts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "output_contract": {
+          "const": "trading-signal.v1"
+        },
+        "allowed_stages": {
+          "type": "array",
+          "items": {
+            "enum": ["research", "backtest", "paper"]
+          }
+        },
+        "order_intent_generation_allowed": {
+          "type": "boolean"
+        },
+        "live_execution_allowed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "strategy_adapters": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["adapter_id", "adapter_type", "status", "enabled", "allowed_stages", "output_contract", "order_intent_generation_allowed", "live_execution_allowed"],
+        "properties": {
+          "adapter_id": {
+            "type": "string"
+          },
+          "adapter_type": {
+            "enum": ["rule_based", "technical_indicator", "factor", "macro", "event_driven", "crypto_on_chain_placeholder", "sentiment_placeholder", "dl_model"]
+          },
+          "status": {
+            "enum": ["complete", "placeholder"]
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "allowed_stages": {
+            "type": "array",
+            "items": {
+              "enum": ["research", "backtest", "paper"]
+            }
+          },
+          "output_contract": {
+            "const": "trading-signal.v1"
+          },
+          "order_intent_generation_allowed": {
+            "type": "boolean"
+          },
+          "live_execution_allowed": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "signal_candidates": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": [
+          "candidate_id",
+          "adapter_id",
+          "strategy_id",
+          "asset_id",
+          "confidence",
+          "rationale",
+          "source_bindings",
+          "freshness_status",
+          "review_status",
+          "signal_artifact"
+        ],
+        "properties": {
+          "candidate_id": {
+            "type": "string"
+          },
+          "adapter_id": {
+            "type": "string"
+          },
+          "strategy_id": {
+            "type": "string"
+          },
+          "asset_id": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "rationale": {
+            "type": "string"
+          },
+          "source_bindings": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["source_type", "source_ref"],
+              "properties": {
+                "source_type": {
+                  "enum": ["strategy_archetype", "feature_snapshot", "market_data_dataset", "event_model", "model_placeholder"]
+                },
+                "source_ref": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "freshness_status": {
+            "enum": ["fresh", "stale", "blocked"]
+          },
+          "review_status": {
+            "enum": ["pending_review", "blocked"]
+          },
+          "signal_artifact": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "freshness_gate": {
+      "type": "object",
+      "required": ["gate_id", "default_result", "stale_blocks_aggregation", "checks"],
+      "properties": {
+        "gate_id": {
+          "type": "string"
+        },
+        "default_result": {
+          "enum": ["pass", "warn", "block"]
+        },
+        "stale_blocks_aggregation": {
+          "type": "boolean"
+        },
+        "checks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "conflict_detection": {
+      "type": "object",
+      "required": ["conflict_model_id", "auto_resolution_allowed", "human_review_required", "detected_conflicts"],
+      "properties": {
+        "conflict_model_id": {
+          "type": "string"
+        },
+        "auto_resolution_allowed": {
+          "type": "boolean"
+        },
+        "human_review_required": {
+          "type": "boolean"
+        },
+        "detected_conflicts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "aggregation_model": {
+      "type": "object",
+      "required": ["aggregation_id", "vote_model", "strategy_weights", "correlation_penalty", "risk_adjusted_signal_score", "order_intent_generation_allowed"],
+      "properties": {
+        "aggregation_id": {
+          "type": "string"
+        },
+        "vote_model": {
+          "enum": ["weighted_vote"]
+        },
+        "strategy_weights": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object"
+          }
+        },
+        "correlation_penalty": {
+          "type": "object"
+        },
+        "risk_adjusted_signal_score": {
+          "type": "object"
+        },
+        "order_intent_generation_allowed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "review_queue": {
+      "type": "object",
+      "required": ["queue_id", "human_review_required", "items"],
+      "properties": {
+        "queue_id": {
+          "type": "string"
+        },
+        "human_review_required": {
+          "type": "boolean"
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "order_intent_boundary": {
+      "type": "object",
+      "required": ["boundary_id", "signal_to_order_intent_allowed", "generated_order_intent_count", "live_execution_allowed", "requires_future_risk_gate"],
+      "properties": {
+        "boundary_id": {
+          "type": "string"
+        },
+        "signal_to_order_intent_allowed": {
+          "type": "boolean"
+        },
+        "generated_order_intent_count": {
+          "type": "number"
+        },
+        "live_execution_allowed": {
+          "type": "boolean"
+        },
+        "requires_future_risk_gate": {
+          "type": "boolean"
+        }
+      }
+    },
+    "drift_detection": {
+      "type": "object",
+      "required": ["detector_id", "enabled", "default_result", "live_disable_allowed"],
+      "properties": {
+        "detector_id": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "default_result": {
+          "enum": ["pass", "warn", "block"]
+        },
+        "live_disable_allowed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "decay_tracking": {
+      "type": "object",
+      "required": ["tracker_id", "enabled", "decay_blocks_stale_signals"],
+      "properties": {
+        "tracker_id": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "decay_blocks_stale_signals": {
+          "type": "boolean"
+        }
+      }
+    },
+    "attribution_model": {
+      "type": "object",
+      "required": ["attribution_id", "source_binding_required", "feature_attribution_required", "human_review_required"],
+      "properties": {
+        "attribution_id": {
+          "type": "string"
+        },
+        "source_binding_required": {
+          "type": "boolean"
+        },
+        "feature_attribution_required": {
+          "type": "boolean"
+        },
+        "human_review_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "dashboard_api_stub": {
+      "type": "object",
+      "required": ["read_only", "mutating_routes_enabled", "routes", "disabled_routes"],
+      "properties": {
+        "read_only": {
+          "type": "boolean"
+        },
+        "mutating_routes_enabled": {
+          "type": "boolean"
+        },
+        "routes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["method", "path"],
+            "properties": {
+              "method": {
+                "enum": ["GET"]
+              },
+              "path": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "disabled_routes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["method", "path", "reason"],
+            "properties": {
+              "method": {
+                "enum": ["POST", "PUT", "PATCH", "DELETE"]
+              },
+              "path": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

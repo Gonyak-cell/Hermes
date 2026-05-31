@@ -35,7 +35,7 @@
     },
     "connector_definitions": {
       "type": "array",
-      "minItems": 8,
+      "minItems": 9,
       "items": {
         "type": "object",
         "required": [
@@ -82,7 +82,7 @@
     },
     "connector_source_contracts": {
       "type": "array",
-      "minItems": 8,
+      "minItems": 9,
       "items": {
         "type": "object",
         "required": ["schema_version", "source_id", "source_contract_status", "tenant_id_required", "matter_id_required", "classification_required", "policy_snapshot_required"],
@@ -99,7 +99,7 @@
     },
     "connector_cursor_contracts": {
       "type": "array",
-      "minItems": 8,
+      "minItems": 9,
       "items": {
         "type": "object",
         "required": ["schema_version", "cursor_id", "cursor_contract_status", "cursor_state_fields", "resume_supported", "raw_token_material_allowed", "cross_matter_cursor_reuse_allowed"],
@@ -119,7 +119,7 @@
     },
     "connector_external_id_contracts": {
       "type": "array",
-      "minItems": 8,
+      "minItems": 9,
       "items": {
         "type": "object",
         "required": ["schema_version", "external_id_contract_status", "external_id_namespace", "external_id_fields", "resource_v2_field", "resource_version_v2_field", "stable_hash_required"],
@@ -136,7 +136,7 @@
     },
     "connector_auth_boundaries": {
       "type": "array",
-      "minItems": 8,
+      "minItems": 9,
       "items": {
         "type": "object",
         "required": ["schema_version", "auth_boundary_id", "auth_boundary_status", "credential_reference_only", "raw_secret_material_allowed", "least_privilege_scopes", "connector_execution_performed", "write_operations_allowed", "delivery_execution_allowed", "protected_action_allowed"],
@@ -235,18 +235,18 @@
       ],
       "properties": {
         "connector_contract_status": { "const": "complete" },
-        "connector_count": { "const": 8 },
-        "source_contract_count": { "const": 8 },
-        "cursor_contract_count": { "const": 8 },
-        "external_id_contract_count": { "const": 8 },
-        "auth_boundary_count": { "const": 8 },
-        "unique_source_id_count": { "const": 8 },
-        "unique_external_id_namespace_count": { "const": 8 },
-        "unique_auth_boundary_count": { "const": 8 },
-        "resumable_cursor_count": { "const": 8 },
-        "matter_boundary_required_count": { "const": 8 },
-        "classification_required_count": { "const": 8 },
-        "policy_snapshot_required_count": { "const": 8 },
+        "connector_count": { "const": 9 },
+        "source_contract_count": { "const": 9 },
+        "cursor_contract_count": { "const": 9 },
+        "external_id_contract_count": { "const": 9 },
+        "auth_boundary_count": { "const": 9 },
+        "unique_source_id_count": { "const": 9 },
+        "unique_external_id_namespace_count": { "const": 9 },
+        "unique_auth_boundary_count": { "const": 9 },
+        "resumable_cursor_count": { "const": 9 },
+        "matter_boundary_required_count": { "const": 9 },
+        "classification_required_count": { "const": 9 },
+        "policy_snapshot_required_count": { "const": 9 },
         "raw_secret_material_allowed_count": { "const": 0 },
         "connector_execution_performed": { "const": false },
         "protected_action_executed": { "const": false },

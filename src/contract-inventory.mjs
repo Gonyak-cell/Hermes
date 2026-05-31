@@ -475,6 +475,7 @@ function classifyOwner(name, sourceRef = "") {
   if (value.includes("law-firm") || value.includes("ldd") || value.includes("litigation")) return owner("law_firm", "law_firm", "law-firm", "domain");
   if (value.includes("personal-dev") || value.includes("worktree") || value.includes("dev-project")) return owner("personal_dev", "personal_dev", "personal-dev", "domain");
   if (value.includes("creative-document")) return owner("creative_document", "creative_document", "creative-document", "domain");
+  if (value.includes("trading")) return owner("trading", "trading", "trading", "domain");
   if (value.includes("human-review") || value.includes("approval") || value.includes("human-gate") || value.includes("gate")) return owner("gate_approval", "gate_approval", null, "operational");
   if (value.includes("control-plane")) return owner("control_plane", "control_plane", null, "core");
   if (value.includes("policy") || value.includes("classification")) return owner("identity_policy", "identity_policy", null, "core");

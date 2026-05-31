@@ -1,0 +1,629 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/trading/trading-model-improvement.schema.json",
+  "title": "Trading Model Improvement Layer",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "layer_id",
+    "phase_range",
+    "model_improvement_status",
+    "generated_at",
+    "safety_boundary",
+    "phase_coverage",
+    "model_registry",
+    "dataset_registry",
+    "label_generation_contract",
+    "data_splits",
+    "leakage_guards",
+    "explainability_artifacts",
+    "hyperparameter_search",
+    "automated_retraining_candidate",
+    "model_scorecards",
+    "degradation_checks",
+    "drift_checks",
+    "promotion_candidates",
+    "promotion_policy_gate",
+    "rollback_policy",
+    "champion_challenger",
+    "auto_improvement_loop",
+    "live_deployment_boundary",
+    "audit_replay",
+    "dashboard_api_stub"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "trading-model-improvement.v1"
+    },
+    "layer_id": {
+      "type": "string",
+      "pattern": "^trading\\.model_improvement\\.[a-z0-9_\\.:-]+$"
+    },
+    "phase_range": {
+      "const": "P126-P165"
+    },
+    "model_improvement_status": {
+      "enum": ["complete", "blocked"]
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "safety_boundary": {
+      "type": "object",
+      "required": [
+        "research_only",
+        "model_training_deterministic",
+        "external_model_training_allowed",
+        "investment_advice_generated",
+        "trade_recommendation_generated",
+        "order_intent_generated",
+        "automated_live_deployment_allowed",
+        "live_execution_allowed",
+        "human_review_required"
+      ],
+      "properties": {
+        "research_only": {
+          "type": "boolean"
+        },
+        "model_training_deterministic": {
+          "type": "boolean"
+        },
+        "external_model_training_allowed": {
+          "type": "boolean"
+        },
+        "investment_advice_generated": {
+          "type": "boolean"
+        },
+        "trade_recommendation_generated": {
+          "type": "boolean"
+        },
+        "order_intent_generated": {
+          "type": "boolean"
+        },
+        "automated_live_deployment_allowed": {
+          "type": "boolean"
+        },
+        "live_execution_allowed": {
+          "type": "boolean"
+        },
+        "human_review_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "phase_coverage": {
+      "type": "array",
+      "minItems": 40,
+      "items": {
+        "type": "object",
+        "required": ["phase_id", "status", "artifact_ref"],
+        "properties": {
+          "phase_id": {
+            "type": "string",
+            "pattern": "^P[0-9]{3}$"
+          },
+          "status": {
+            "enum": ["complete", "planned", "blocked"]
+          },
+          "artifact_ref": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "model_registry": {
+      "type": "object",
+      "required": ["registry_id", "output_contract", "models"],
+      "properties": {
+        "registry_id": {
+          "type": "string"
+        },
+        "output_contract": {
+          "const": "trading-model.v1"
+        },
+        "models": {
+          "type": "array",
+          "minItems": 5,
+          "items": {
+            "type": "object",
+            "required": [
+              "model_id",
+              "model_role",
+              "status",
+              "allowed_stages",
+              "live_deployment_allowed",
+              "order_intent_generation_allowed",
+              "uses_external_service",
+              "model_artifact"
+            ],
+            "properties": {
+              "model_id": {
+                "type": "string"
+              },
+              "model_role": {
+                "enum": ["baseline", "sequence_placeholder", "temporal_transformer_placeholder", "ensemble_placeholder", "reinforcement_learning_placeholder"]
+              },
+              "status": {
+                "enum": ["trained_fixture", "placeholder"]
+              },
+              "allowed_stages": {
+                "type": "array",
+                "items": {
+                  "enum": ["research", "backtest", "paper"]
+                }
+              },
+              "live_deployment_allowed": {
+                "type": "boolean"
+              },
+              "order_intent_generation_allowed": {
+                "type": "boolean"
+              },
+              "uses_external_service": {
+                "type": "boolean"
+              },
+              "model_artifact": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "dataset_registry": {
+      "type": "object",
+      "required": ["registry_id", "datasets"],
+      "properties": {
+        "registry_id": {
+          "type": "string"
+        },
+        "datasets": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["dataset_id", "source_ref", "label_contract_ref", "split_contract_ref", "external_vendor_required"],
+            "properties": {
+              "dataset_id": {
+                "type": "string"
+              },
+              "source_ref": {
+                "type": "string"
+              },
+              "label_contract_ref": {
+                "type": "string"
+              },
+              "split_contract_ref": {
+                "type": "string"
+              },
+              "external_vendor_required": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "label_generation_contract": {
+      "type": "object",
+      "required": ["contract_id", "label_type", "target_horizon", "no_future_feature_access", "human_review_required"],
+      "properties": {
+        "contract_id": {
+          "type": "string"
+        },
+        "label_type": {
+          "enum": ["forward_return_bucket", "directional_classification", "risk_adjusted_return"]
+        },
+        "target_horizon": {
+          "type": "string"
+        },
+        "no_future_feature_access": {
+          "type": "boolean"
+        },
+        "human_review_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "data_splits": {
+      "type": "object",
+      "required": ["split_id", "train_validation_test", "walk_forward"],
+      "properties": {
+        "split_id": {
+          "type": "string"
+        },
+        "train_validation_test": {
+          "type": "object",
+          "required": ["chronological_order_required", "train_window", "validation_window", "test_window"],
+          "properties": {
+            "chronological_order_required": {
+              "type": "boolean"
+            },
+            "train_window": {
+              "type": "object"
+            },
+            "validation_window": {
+              "type": "object"
+            },
+            "test_window": {
+              "type": "object"
+            }
+          }
+        },
+        "walk_forward": {
+          "type": "object",
+          "required": ["enabled", "evaluation_after_training_window", "windows"],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "evaluation_after_training_window": {
+              "type": "boolean"
+            },
+            "windows": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "leakage_guards": {
+      "type": "object",
+      "required": ["time_series", "target"],
+      "properties": {
+        "time_series": {
+          "type": "object",
+          "required": ["enabled", "result", "blocks_promotion"],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "result": {
+              "enum": ["pass", "warn", "block"]
+            },
+            "blocks_promotion": {
+              "type": "boolean"
+            }
+          }
+        },
+        "target": {
+          "type": "object",
+          "required": ["enabled", "result", "future_target_excluded_from_features", "blocks_promotion"],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "result": {
+              "enum": ["pass", "warn", "block"]
+            },
+            "future_target_excluded_from_features": {
+              "type": "boolean"
+            },
+            "blocks_promotion": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "explainability_artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["artifact_id", "model_id", "method", "human_review_required"],
+        "properties": {
+          "artifact_id": {
+            "type": "string"
+          },
+          "model_id": {
+            "type": "string"
+          },
+          "method": {
+            "enum": ["feature_importance", "coefficient_summary", "placeholder_explainability"]
+          },
+          "human_review_required": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "hyperparameter_search": {
+      "type": "object",
+      "required": ["search_id", "deterministic_grid", "live_tuning_allowed", "best_candidate_model_id"],
+      "properties": {
+        "search_id": {
+          "type": "string"
+        },
+        "deterministic_grid": {
+          "type": "boolean"
+        },
+        "live_tuning_allowed": {
+          "type": "boolean"
+        },
+        "best_candidate_model_id": {
+          "type": "string"
+        }
+      }
+    },
+    "automated_retraining_candidate": {
+      "type": "object",
+      "required": ["candidate_id", "research_stage_only", "auto_promotion_allowed", "human_review_required"],
+      "properties": {
+        "candidate_id": {
+          "type": "string"
+        },
+        "research_stage_only": {
+          "type": "boolean"
+        },
+        "auto_promotion_allowed": {
+          "type": "boolean"
+        },
+        "human_review_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "model_scorecards": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["scorecard_id", "model_id", "validation_status", "human_review_required"],
+        "properties": {
+          "scorecard_id": {
+            "type": "string"
+          },
+          "model_id": {
+            "type": "string"
+          },
+          "validation_status": {
+            "enum": ["passed", "warn", "blocked"]
+          },
+          "human_review_required": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "degradation_checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["check_id", "model_id", "result", "blocks_promotion"],
+        "properties": {
+          "check_id": {
+            "type": "string"
+          },
+          "model_id": {
+            "type": "string"
+          },
+          "result": {
+            "enum": ["pass", "warn", "halt"]
+          },
+          "blocks_promotion": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "drift_checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["check_id", "model_id", "result", "blocks_promotion"],
+        "properties": {
+          "check_id": {
+            "type": "string"
+          },
+          "model_id": {
+            "type": "string"
+          },
+          "result": {
+            "enum": ["pass", "warn", "halt"]
+          },
+          "blocks_promotion": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "promotion_candidates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["candidate_id", "model_id", "target_stage", "promotion_artifact"],
+        "properties": {
+          "candidate_id": {
+            "type": "string"
+          },
+          "model_id": {
+            "type": "string"
+          },
+          "target_stage": {
+            "enum": ["backtest", "paper", "shadow_live"]
+          },
+          "promotion_artifact": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "promotion_policy_gate": {
+      "type": "object",
+      "required": ["gate_id", "human_approval_required", "auto_live_promotion_allowed", "live_promotion_allowed"],
+      "properties": {
+        "gate_id": {
+          "type": "string"
+        },
+        "human_approval_required": {
+          "type": "boolean"
+        },
+        "auto_live_promotion_allowed": {
+          "type": "boolean"
+        },
+        "live_promotion_allowed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "rollback_policy": {
+      "type": "object",
+      "required": ["policy_id", "rollback_to_paper_only", "human_review_required", "rollback_model_id"],
+      "properties": {
+        "policy_id": {
+          "type": "string"
+        },
+        "rollback_to_paper_only": {
+          "type": "boolean"
+        },
+        "human_review_required": {
+          "type": "boolean"
+        },
+        "rollback_model_id": {
+          "type": "string"
+        }
+      }
+    },
+    "champion_challenger": {
+      "type": "object",
+      "required": ["champion_model_id", "challenger_model_ids", "replacement_requires_human_approval", "live_replacement_allowed"],
+      "properties": {
+        "champion_model_id": {
+          "type": "string"
+        },
+        "challenger_model_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "replacement_requires_human_approval": {
+          "type": "boolean"
+        },
+        "live_replacement_allowed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "auto_improvement_loop": {
+      "type": "object",
+      "required": ["loop_id", "enabled", "max_stage", "allowed_actions", "forbidden_actions", "human_review_required"],
+      "properties": {
+        "loop_id": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "max_stage": {
+          "enum": ["research", "backtest", "paper"]
+        },
+        "allowed_actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "forbidden_actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "human_review_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "live_deployment_boundary": {
+      "type": "object",
+      "required": ["boundary_id", "live_deployment_allowed", "generated_live_deployment_count", "promotion_required_before_live"],
+      "properties": {
+        "boundary_id": {
+          "type": "string"
+        },
+        "live_deployment_allowed": {
+          "type": "boolean"
+        },
+        "generated_live_deployment_count": {
+          "type": "number"
+        },
+        "promotion_required_before_live": {
+          "type": "boolean"
+        }
+      }
+    },
+    "audit_replay": {
+      "type": "object",
+      "required": ["audit_id", "source_lineage_required", "replay_deterministic", "review_status_required"],
+      "properties": {
+        "audit_id": {
+          "type": "string"
+        },
+        "source_lineage_required": {
+          "type": "boolean"
+        },
+        "replay_deterministic": {
+          "type": "boolean"
+        },
+        "review_status_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "dashboard_api_stub": {
+      "type": "object",
+      "required": ["read_only", "mutating_routes_enabled", "routes", "disabled_routes"],
+      "properties": {
+        "read_only": {
+          "type": "boolean"
+        },
+        "mutating_routes_enabled": {
+          "type": "boolean"
+        },
+        "routes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["method", "path"],
+            "properties": {
+              "method": {
+                "enum": ["GET"]
+              },
+              "path": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "disabled_routes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["method", "path", "reason"],
+            "properties": {
+              "method": {
+                "enum": ["POST", "PUT", "PATCH", "DELETE"]
+              },
+              "path": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/trading/trading-fill-reconciliation.schema.json",
+  "title": "Trading Fill Reconciliation",
+  "type": "object",
+  "required": ["schema_version", "reconciliation_id", "execution_id", "status", "expected_fills", "observed_fills", "discrepancies"],
+  "properties": {
+    "schema_version": {
+      "const": "trading-fill-reconciliation.v1"
+    },
+    "reconciliation_id": {
+      "type": "string",
+      "pattern": "^reconciliation\\.[a-z0-9_\\.:-]+$"
+    },
+    "execution_id": {
+      "type": "string"
+    },
+    "status": {
+      "enum": ["matched", "mismatch", "blocked", "not_applicable"]
+    },
+    "expected_fills": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "observed_fills": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "discrepancies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

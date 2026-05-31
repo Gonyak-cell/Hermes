@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/document-parser-adapter.schema.json",
+  "title": "Hermes Document Parser Adapter Output",
+  "type": "object",
+  "required": ["schema_version", "extractor", "text", "metadata"],
+  "properties": {
+    "schema_version": { "const": "document-parser-adapter-output.v1" },
+    "extractor": {
+      "enum": [
+        "liteparse_local",
+        "liteparse_layout_sidecar",
+        "paddleocr_local",
+        "manual_review_image_probe",
+        "pdf_pdftotext_probe",
+        "pdf_header_probe",
+        "docx_word_xml_probe",
+        "pptx_open_xml_probe",
+        "xlsx_open_xml_probe"
+      ]
+    },
+    "available": { "type": "boolean" },
+    "ok": { "type": "boolean" },
+    "text": { "type": "string" },
+    "text_truncated": { "type": "boolean" },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "external_service_allowed": { "const": false },
+        "network_access_allowed": { "const": false },
+        "adapter_chain": { "type": "object" },
+        "parser_chain": { "type": "array", "items": { "type": "string" } },
+        "source_spans": { "type": "array" },
+        "human_review_required": { "type": "boolean" },
+        "output_status": { "enum": ["pending_review", "complete", "blocked"] }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

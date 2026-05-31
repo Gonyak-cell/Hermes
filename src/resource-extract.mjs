@@ -4,6 +4,9 @@ import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import path from "node:path";
 import { parseOutlookEml } from "./outlook-parser.mjs";
+import { isStructuredAdapterExtension, selectAdapterChain } from "./adapter-selection-policy.mjs";
+import { liteParseUsable, runLiteParseAdapter } from "./liteparse-adapter.mjs";
+import { runPaddleOcrAdapter, shouldTryPaddleOcr } from "./paddleocr-adapter.mjs";
 
 export const DEFAULT_EXTRACTOR_QUEUE = "audits/resource-audit/latest/extractor-queue.json";
 export const DEFAULT_EXTRACTION_OUT_DIR = "audits/resource-audit/latest/extraction";
@@ -38,6 +41,7 @@ const TEXT_EXTENSIONS = new Set([
 ]);
 
 const ARCHIVE_EXTENSIONS = new Set(["plugin", "zip"]);
+const IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp"]);
 
 const PRACTICE_KEYWORDS = {
   ldd_vdr: ["ldd", "vdr", "due diligence", "실사", "법률실사", "전수검토", "자료실", "rfi"],
@@ -208,13 +212,143 @@ export function extractTextFromOfficeXml(xml) {
 async function extractByExtension(file, options) {
   const ext = file.extension;
   if (TEXT_EXTENSIONS.has(ext)) return extractPlainText(file, options);
-  if (ext === "docx") return extractDocx(file);
-  if (ext === "pptx") return extractPptx(file);
-  if (ext === "xlsx") return extractXlsx(file);
-  if (ext === "pdf") return extractPdf(file);
+  if (isStructuredAdapterExtension(ext)) return extractWithAdapterChain(file, options);
   if (ext === "eml") return extractEml(file, options);
   if (ARCHIVE_EXTENSIONS.has(ext)) return extractArchiveOrPlugin(file);
   throw new Error(`No extractor registered for extension ${ext}`);
+}
+
+async function extractWithAdapterChain(file, options) {
+  const ext = file.extension;
+  const chain = selectAdapterChain(ext);
+  if (!chain) throw new Error(`No adapter chain registered for extension ${ext}`);
+
+  if (["docx", "pptx", "xlsx"].includes(ext)) {
+    const primary = await extractOfficePrimary(file);
+    const sidecars = [];
+    if (chain.sidecar_adapter_ids.includes("liteparse_layout_sidecar") && options.disableSidecars !== true) {
+      const sidecar = await runLiteParseAdapter(file, { ...options, sidecar: true });
+      sidecars.push(sidecarMetadata(sidecar));
+    }
+    return addAdapterChainMetadata(primary, {
+      chain,
+      selectedExtractor: primary.extractor,
+      fallbackExtractor: null,
+      sidecars,
+    });
+  }
+
+  if (ext === "pdf" || IMAGE_EXTENSIONS.has(ext)) {
+    const liteparse = await runLiteParseAdapter(file, options);
+    if (liteParseUsable(liteparse)) {
+      return addAdapterChainMetadata(liteparse, {
+        chain,
+        selectedExtractor: "liteparse_local",
+        fallbackExtractor: null,
+        sidecars: [],
+      });
+    }
+
+    if (shouldTryPaddleOcr(liteparse, file)) {
+      const paddle = await runPaddleOcrAdapter(file, options);
+      if (paddle.ok) {
+        return addAdapterChainMetadata(paddle, {
+          chain,
+          selectedExtractor: "paddleocr_local",
+          fallbackExtractor: "liteparse_local",
+          sidecars: [sidecarMetadata(liteparse)],
+        });
+      }
+      if (ext !== "pdf") {
+        return addAdapterChainMetadata(manualReviewImageProbe(file, [liteparse, paddle]), {
+          chain,
+          selectedExtractor: "manual_review",
+          fallbackExtractor: "paddleocr_local",
+          sidecars: [sidecarMetadata(liteparse), sidecarMetadata(paddle)],
+        });
+      }
+    }
+
+    if (ext === "pdf") {
+      const pdf = await extractPdf(file);
+      return addAdapterChainMetadata(pdf, {
+        chain,
+        selectedExtractor: pdf.extractor,
+        fallbackExtractor: liteparse.available ? "liteparse_local" : null,
+        sidecars: [sidecarMetadata(liteparse)],
+      });
+    }
+  }
+
+  throw new Error(`No adapter chain path handled extension ${ext}`);
+}
+
+async function extractOfficePrimary(file) {
+  if (file.extension === "docx") return extractDocx(file);
+  if (file.extension === "pptx") return extractPptx(file);
+  if (file.extension === "xlsx") return extractXlsx(file);
+  throw new Error(`Unsupported Office extension ${file.extension}`);
+}
+
+function addAdapterChainMetadata(extraction, { chain, selectedExtractor, fallbackExtractor, sidecars }) {
+  const normalizedSidecars = (sidecars ?? []).filter(Boolean);
+  const metadata = {
+    ...(extraction.metadata ?? {}),
+    adapter_chain: {
+      extension: chain.extension,
+      primary_adapter_id: chain.primary_adapter_id,
+      sidecar_adapter_ids: chain.sidecar_adapter_ids,
+      fallback_adapter_ids: chain.fallback_adapter_ids,
+      selected_extractor: selectedExtractor,
+      fallback_extractor: fallbackExtractor,
+      sidecars: normalizedSidecars,
+      network_access_allowed: chain.network_access_allowed,
+      external_service_allowed: chain.external_service_allowed,
+      human_review_required: chain.human_review_required,
+      output_status: chain.output_status,
+    },
+    parser_chain: [
+      selectedExtractor,
+      ...normalizedSidecars.map((sidecar) => sidecar.extractor).filter(Boolean),
+      fallbackExtractor,
+    ].filter(Boolean),
+  };
+  return {
+    schema_version: "document-parser-adapter-output.v1",
+    ...extraction,
+    metadata,
+  };
+}
+
+function sidecarMetadata(extraction) {
+  if (!extraction) return null;
+  return {
+    extractor: extraction.extractor,
+    available: Boolean(extraction.available),
+    ok: Boolean(extraction.ok),
+    text_length: extraction.text?.length ?? 0,
+    failure_reason: extraction.metadata?.failure_reason ?? null,
+    page_count: extraction.metadata?.page_count ?? null,
+    bbox_count: extraction.metadata?.bbox_count ?? null,
+    mean_confidence: extraction.metadata?.mean_confidence ?? null,
+  };
+}
+
+function manualReviewImageProbe(file, attempts) {
+  return {
+    extractor: "manual_review_image_probe",
+    text: "",
+    metadata: {
+      manual_review_required: true,
+      review_reason: "image_parser_unavailable_or_empty",
+      attempted_extractors: attempts.map(sidecarMetadata),
+      source_path: file.path,
+      extension: file.extension,
+      external_service_allowed: false,
+      network_access_allowed: false,
+      output_status: "pending_review",
+    },
+  };
 }
 
 async function extractPlainText(file, options) {
@@ -517,17 +651,21 @@ function runCommand(command, args, options = {}) {
 }
 
 async function commandExists(command) {
-  try {
-    await runCommand("command", ["-v", command], { timeoutMs: 1000, maxStdoutBytes: 4096 });
-    return true;
-  } catch {
+  const probes = process.platform === "win32"
+    ? [["where.exe", [command]]]
+    : [["sh", ["-lc", `command -v ${shellQuote(command)}`]], ["which", [command]]];
+  for (const [probe, args] of probes) {
     try {
-      await runCommand("which", [command], { timeoutMs: 1000, maxStdoutBytes: 4096 });
+      await runCommand(probe, args, { timeoutMs: 1000, maxStdoutBytes: 4096 });
       return true;
     } catch {
-      return false;
     }
   }
+  return false;
+}
+
+function shellQuote(value) {
+  return `'${String(value).replaceAll("'", "'\\''")}'`;
 }
 
 function parseJsonMetadata(text) {

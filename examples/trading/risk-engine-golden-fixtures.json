@@ -1,0 +1,23 @@
+{
+  "schema_version": "trading-risk-engine-golden-fixtures.v1",
+  "fixture_set_id": "trading.risk-engine.p196_p220",
+  "generated_at": "2026-05-31T00:00:00.000Z",
+  "fixtures": [
+    {
+      "fixture_id": "golden.trading.risk_engine.p196_p220",
+      "input_ref": "examples/trading/risk-engine.json",
+      "expected_status": "complete",
+      "expected_phase_range": "P196-P220",
+      "expected_phase_count": 25,
+      "expected_risk_check_artifact_count": 1,
+      "expected_risk_result": "block",
+      "expected_guard_count": 12,
+      "expected_limit_group_count": 7,
+      "expected_generated_order_intent_count": 0,
+      "expected_live_execution_allowed": false,
+      "expected_override_requires_human": true,
+      "expected_freeze_locked": true,
+      "expected_dashboard_read_only": true
+    }
+  ]
+}

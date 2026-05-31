@@ -1,0 +1,422 @@
+{
+  "schema_version": "trading-model-improvement.v1",
+  "layer_id": "trading.model_improvement.p126_p165",
+  "phase_range": "P126-P165",
+  "model_improvement_status": "complete",
+  "generated_at": "2026-05-31T00:00:00.000Z",
+  "safety_boundary": {
+    "research_only": true,
+    "model_training_deterministic": true,
+    "external_model_training_allowed": false,
+    "investment_advice_generated": false,
+    "trade_recommendation_generated": false,
+    "order_intent_generated": false,
+    "automated_live_deployment_allowed": false,
+    "live_execution_allowed": false,
+    "human_review_required": true
+  },
+  "phase_coverage": [
+    { "phase_id": "P126", "status": "complete", "artifact_ref": "model_registry" },
+    { "phase_id": "P127", "status": "complete", "artifact_ref": "dataset_registry" },
+    { "phase_id": "P128", "status": "complete", "artifact_ref": "label_generation_contract" },
+    { "phase_id": "P129", "status": "complete", "artifact_ref": "data_splits.train_validation_test" },
+    { "phase_id": "P130", "status": "complete", "artifact_ref": "data_splits.walk_forward" },
+    { "phase_id": "P131", "status": "complete", "artifact_ref": "leakage_guards.time_series" },
+    { "phase_id": "P132", "status": "complete", "artifact_ref": "leakage_guards.target" },
+    { "phase_id": "P133", "status": "complete", "artifact_ref": "explainability_artifacts" },
+    { "phase_id": "P134", "status": "complete", "artifact_ref": "model_registry.baseline" },
+    { "phase_id": "P135", "status": "complete", "artifact_ref": "model_registry.sequence_placeholder" },
+    { "phase_id": "P136", "status": "complete", "artifact_ref": "model_registry.temporal_transformer_placeholder" },
+    { "phase_id": "P137", "status": "complete", "artifact_ref": "model_registry.ensemble_placeholder" },
+    { "phase_id": "P138", "status": "complete", "artifact_ref": "model_registry.reinforcement_learning_placeholder" },
+    { "phase_id": "P139", "status": "complete", "artifact_ref": "hyperparameter_search" },
+    { "phase_id": "P140", "status": "complete", "artifact_ref": "automated_retraining_candidate" },
+    { "phase_id": "P141", "status": "complete", "artifact_ref": "model_scorecards" },
+    { "phase_id": "P142", "status": "complete", "artifact_ref": "degradation_checks" },
+    { "phase_id": "P143", "status": "complete", "artifact_ref": "drift_checks" },
+    { "phase_id": "P144", "status": "complete", "artifact_ref": "promotion_candidates" },
+    { "phase_id": "P145", "status": "complete", "artifact_ref": "promotion_policy_gate" },
+    { "phase_id": "P146", "status": "complete", "artifact_ref": "rollback_policy" },
+    { "phase_id": "P147", "status": "complete", "artifact_ref": "champion_challenger" },
+    { "phase_id": "P148", "status": "complete", "artifact_ref": "auto_improvement_loop" },
+    { "phase_id": "P149", "status": "complete", "artifact_ref": "live_deployment_boundary" },
+    { "phase_id": "P150", "status": "complete", "artifact_ref": "trading:model-train-report" },
+    { "phase_id": "P151", "status": "complete", "artifact_ref": "trading:model-eval-report" },
+    { "phase_id": "P152", "status": "complete", "artifact_ref": "tests.model_improvement_schema" },
+    { "phase_id": "P153", "status": "complete", "artifact_ref": "tests.model_contract_validation" },
+    { "phase_id": "P154", "status": "complete", "artifact_ref": "tests.promotion_contract_validation" },
+    { "phase_id": "P155", "status": "complete", "artifact_ref": "tests.leakage_guard_regression" },
+    { "phase_id": "P156", "status": "complete", "artifact_ref": "tests.no_write_check" },
+    { "phase_id": "P157", "status": "complete", "artifact_ref": "fixtures.model_improvement" },
+    { "phase_id": "P158", "status": "complete", "artifact_ref": "fixtures.model_improvement_golden" },
+    { "phase_id": "P159", "status": "complete", "artifact_ref": "audit_replay" },
+    { "phase_id": "P160", "status": "complete", "artifact_ref": "pack.workflow.model_train_report" },
+    { "phase_id": "P161", "status": "complete", "artifact_ref": "pack.workflow.model_eval_report" },
+    { "phase_id": "P162", "status": "complete", "artifact_ref": "capability.entrypoints.model_reports" },
+    { "phase_id": "P163", "status": "complete", "artifact_ref": "dashboard_api_stub" },
+    { "phase_id": "P164", "status": "complete", "artifact_ref": "contracts.release_gate" },
+    { "phase_id": "P165", "status": "complete", "artifact_ref": "docs.trading_pack_phase_ledger" }
+  ],
+  "model_registry": {
+    "registry_id": "model_registry.trading.p126_p165",
+    "output_contract": "trading-model.v1",
+    "models": [
+      {
+        "model_id": "model.fixture.baseline_rule",
+        "model_role": "baseline",
+        "status": "trained_fixture",
+        "allowed_stages": ["research", "backtest", "paper"],
+        "live_deployment_allowed": false,
+        "order_intent_generation_allowed": false,
+        "uses_external_service": false,
+        "model_artifact": {
+          "schema_version": "trading-model.v1",
+          "model_id": "model.fixture.baseline_rule",
+          "model_type": "baseline_rule",
+          "lifecycle_status": "champion",
+          "research_only": true,
+          "deployment_stage": "paper",
+          "leakage_guard_status": "passed",
+          "scorecard": {
+            "validation_status": "passed",
+            "degradation_status": "none",
+            "drift_status": "none"
+          }
+        }
+      },
+      {
+        "model_id": "model.fixture.sequence_placeholder",
+        "model_role": "sequence_placeholder",
+        "status": "placeholder",
+        "allowed_stages": ["research", "backtest"],
+        "live_deployment_allowed": false,
+        "order_intent_generation_allowed": false,
+        "uses_external_service": false,
+        "model_artifact": {
+          "schema_version": "trading-model.v1",
+          "model_id": "model.fixture.sequence_placeholder",
+          "model_type": "deep_learning_placeholder",
+          "lifecycle_status": "challenger",
+          "research_only": true,
+          "deployment_stage": "research",
+          "leakage_guard_status": "passed",
+          "scorecard": {
+            "validation_status": "warn",
+            "degradation_status": "none",
+            "drift_status": "none"
+          }
+        }
+      },
+      {
+        "model_id": "model.fixture.temporal_transformer_placeholder",
+        "model_role": "temporal_transformer_placeholder",
+        "status": "placeholder",
+        "allowed_stages": ["research"],
+        "live_deployment_allowed": false,
+        "order_intent_generation_allowed": false,
+        "uses_external_service": false,
+        "model_artifact": {
+          "schema_version": "trading-model.v1",
+          "model_id": "model.fixture.temporal_transformer_placeholder",
+          "model_type": "deep_learning_placeholder",
+          "lifecycle_status": "draft",
+          "research_only": true,
+          "deployment_stage": "research",
+          "leakage_guard_status": "passed",
+          "scorecard": {
+            "validation_status": "warn",
+            "degradation_status": "none",
+            "drift_status": "none"
+          }
+        }
+      },
+      {
+        "model_id": "model.fixture.ensemble_placeholder",
+        "model_role": "ensemble_placeholder",
+        "status": "placeholder",
+        "allowed_stages": ["research"],
+        "live_deployment_allowed": false,
+        "order_intent_generation_allowed": false,
+        "uses_external_service": false,
+        "model_artifact": {
+          "schema_version": "trading-model.v1",
+          "model_id": "model.fixture.ensemble_placeholder",
+          "model_type": "deep_learning_placeholder",
+          "lifecycle_status": "draft",
+          "research_only": true,
+          "deployment_stage": "research",
+          "leakage_guard_status": "passed",
+          "scorecard": {
+            "validation_status": "warn",
+            "degradation_status": "none",
+            "drift_status": "none"
+          }
+        }
+      },
+      {
+        "model_id": "model.fixture.reinforcement_learning_placeholder",
+        "model_role": "reinforcement_learning_placeholder",
+        "status": "placeholder",
+        "allowed_stages": ["research"],
+        "live_deployment_allowed": false,
+        "order_intent_generation_allowed": false,
+        "uses_external_service": false,
+        "model_artifact": {
+          "schema_version": "trading-model.v1",
+          "model_id": "model.fixture.reinforcement_learning_placeholder",
+          "model_type": "reinforcement_learning_placeholder",
+          "lifecycle_status": "draft",
+          "research_only": true,
+          "deployment_stage": "research",
+          "leakage_guard_status": "not_applicable",
+          "scorecard": {
+            "validation_status": "warn",
+            "degradation_status": "none",
+            "drift_status": "none"
+          }
+        }
+      }
+    ]
+  },
+  "dataset_registry": {
+    "registry_id": "dataset_registry.trading.p126_p165",
+    "datasets": [
+      {
+        "dataset_id": "model_dataset.kr_stock.005930.daily",
+        "source_ref": "dataset.csv_manual.kr_stock.005930.daily",
+        "label_contract_ref": "label_contract.forward_return_bucket.v1",
+        "split_contract_ref": "split.walk_forward.p126_p165",
+        "external_vendor_required": false
+      },
+      {
+        "dataset_id": "model_dataset.us_equity.aapl.daily",
+        "source_ref": "dataset.fixture.us_equity.aapl.daily",
+        "label_contract_ref": "label_contract.forward_return_bucket.v1",
+        "split_contract_ref": "split.walk_forward.p126_p165",
+        "external_vendor_required": false
+      },
+      {
+        "dataset_id": "model_dataset.crypto.btc_usd.hourly",
+        "source_ref": "dataset.fixture.crypto.btc_usd.hourly",
+        "label_contract_ref": "label_contract.forward_return_bucket.v1",
+        "split_contract_ref": "split.walk_forward.p126_p165",
+        "external_vendor_required": false
+      }
+    ]
+  },
+  "label_generation_contract": {
+    "contract_id": "label_contract.forward_return_bucket.v1",
+    "label_type": "forward_return_bucket",
+    "target_horizon": "5_trading_days_or_120_crypto_hours",
+    "no_future_feature_access": true,
+    "human_review_required": true
+  },
+  "data_splits": {
+    "split_id": "split.walk_forward.p126_p165",
+    "train_validation_test": {
+      "chronological_order_required": true,
+      "train_window": { "start": "2024-01-01", "end": "2024-08-31" },
+      "validation_window": { "start": "2024-09-01", "end": "2024-10-31" },
+      "test_window": { "start": "2024-11-01", "end": "2024-12-31" }
+    },
+    "walk_forward": {
+      "enabled": true,
+      "evaluation_after_training_window": true,
+      "windows": [
+        {
+          "window_id": "wf.2024_q3_to_q4",
+          "train_end": "2024-08-31",
+          "validation_start": "2024-09-01",
+          "test_start": "2024-11-01"
+        }
+      ]
+    }
+  },
+  "leakage_guards": {
+    "time_series": {
+      "guard_id": "leakage_guard.time_series.v1",
+      "enabled": true,
+      "result": "pass",
+      "blocks_promotion": true
+    },
+    "target": {
+      "guard_id": "leakage_guard.target.v1",
+      "enabled": true,
+      "result": "pass",
+      "future_target_excluded_from_features": true,
+      "blocks_promotion": true
+    }
+  },
+  "explainability_artifacts": [
+    {
+      "artifact_id": "explainability.baseline_rule.feature_importance",
+      "model_id": "model.fixture.baseline_rule",
+      "method": "feature_importance",
+      "top_features": ["momentum_20d", "volatility_20d", "liquidity_score"],
+      "human_review_required": true
+    },
+    {
+      "artifact_id": "explainability.sequence.placeholder",
+      "model_id": "model.fixture.sequence_placeholder",
+      "method": "placeholder_explainability",
+      "top_features": ["sequence_window_stub"],
+      "human_review_required": true
+    }
+  ],
+  "hyperparameter_search": {
+    "search_id": "hparam_search.baseline_grid.v1",
+    "deterministic_grid": true,
+    "live_tuning_allowed": false,
+    "best_candidate_model_id": "model.fixture.baseline_rule",
+    "search_space": {
+      "lookback_days": [20, 60],
+      "confidence_floor": [0.55, 0.6]
+    }
+  },
+  "automated_retraining_candidate": {
+    "candidate_id": "retraining_candidate.model_fixture_baseline.v1",
+    "research_stage_only": true,
+    "auto_promotion_allowed": false,
+    "human_review_required": true,
+    "trigger_conditions": ["drift_warn", "degradation_warn", "new_fixture_snapshot"]
+  },
+  "model_scorecards": [
+    {
+      "scorecard_id": "scorecard.model.fixture.baseline_rule",
+      "model_id": "model.fixture.baseline_rule",
+      "validation_status": "passed",
+      "metrics": { "walk_forward_hit_rate": 0.54, "max_drawdown_proxy": 0.08, "sample_count": 1280 },
+      "human_review_required": true
+    },
+    {
+      "scorecard_id": "scorecard.model.fixture.sequence_placeholder",
+      "model_id": "model.fixture.sequence_placeholder",
+      "validation_status": "warn",
+      "metrics": { "walk_forward_hit_rate": 0.51, "max_drawdown_proxy": 0.1, "sample_count": 1280 },
+      "human_review_required": true
+    },
+    {
+      "scorecard_id": "scorecard.model.fixture.temporal_transformer_placeholder",
+      "model_id": "model.fixture.temporal_transformer_placeholder",
+      "validation_status": "warn",
+      "metrics": { "walk_forward_hit_rate": 0.5, "max_drawdown_proxy": 0.11, "sample_count": 1280 },
+      "human_review_required": true
+    },
+    {
+      "scorecard_id": "scorecard.model.fixture.ensemble_placeholder",
+      "model_id": "model.fixture.ensemble_placeholder",
+      "validation_status": "warn",
+      "metrics": { "walk_forward_hit_rate": 0.5, "max_drawdown_proxy": 0.11, "sample_count": 1280 },
+      "human_review_required": true
+    },
+    {
+      "scorecard_id": "scorecard.model.fixture.reinforcement_learning_placeholder",
+      "model_id": "model.fixture.reinforcement_learning_placeholder",
+      "validation_status": "warn",
+      "metrics": { "walk_forward_hit_rate": 0, "max_drawdown_proxy": 0, "sample_count": 0 },
+      "human_review_required": true
+    }
+  ],
+  "degradation_checks": [
+    { "check_id": "degradation.baseline_rule.validation_delta", "model_id": "model.fixture.baseline_rule", "result": "pass", "blocks_promotion": true },
+    { "check_id": "degradation.sequence.placeholder", "model_id": "model.fixture.sequence_placeholder", "result": "warn", "blocks_promotion": true },
+    { "check_id": "degradation.transformer.placeholder", "model_id": "model.fixture.temporal_transformer_placeholder", "result": "warn", "blocks_promotion": true },
+    { "check_id": "degradation.ensemble.placeholder", "model_id": "model.fixture.ensemble_placeholder", "result": "warn", "blocks_promotion": true },
+    { "check_id": "degradation.rl.placeholder", "model_id": "model.fixture.reinforcement_learning_placeholder", "result": "warn", "blocks_promotion": true }
+  ],
+  "drift_checks": [
+    { "check_id": "drift.baseline_rule.feature_distribution", "model_id": "model.fixture.baseline_rule", "result": "pass", "blocks_promotion": true },
+    { "check_id": "drift.sequence.placeholder", "model_id": "model.fixture.sequence_placeholder", "result": "warn", "blocks_promotion": true },
+    { "check_id": "drift.transformer.placeholder", "model_id": "model.fixture.temporal_transformer_placeholder", "result": "warn", "blocks_promotion": true },
+    { "check_id": "drift.ensemble.placeholder", "model_id": "model.fixture.ensemble_placeholder", "result": "warn", "blocks_promotion": true },
+    { "check_id": "drift.rl.placeholder", "model_id": "model.fixture.reinforcement_learning_placeholder", "result": "warn", "blocks_promotion": true }
+  ],
+  "promotion_candidates": [
+    {
+      "candidate_id": "promotion_candidate.baseline_rule.to_paper",
+      "model_id": "model.fixture.baseline_rule",
+      "target_stage": "paper",
+      "promotion_artifact": {
+        "schema_version": "trading-promotion.v1",
+        "promotion_id": "promotion.model_fixture_baseline.to_paper",
+        "from_stage": "backtest",
+        "to_stage": "paper",
+        "decision": "pending_human_review",
+        "criteria_results": [
+          { "criterion_id": "leakage_guards_passed", "status": "pass", "message": "Time-series and target leakage guards passed." },
+          { "criterion_id": "scorecard_review_required", "status": "warn", "message": "Human review is required before any promotion." },
+          { "criterion_id": "live_deployment_blocked", "status": "block", "message": "Live deployment is out of scope for P126-P165." }
+        ],
+        "human_approval_required": true,
+        "live_promotion_allowed": false
+      }
+    }
+  ],
+  "promotion_policy_gate": {
+    "gate_id": "model_promotion_policy_gate.trading.v1",
+    "human_approval_required": true,
+    "auto_live_promotion_allowed": false,
+    "live_promotion_allowed": false
+  },
+  "rollback_policy": {
+    "policy_id": "model_rollback_policy.trading.v1",
+    "rollback_to_paper_only": true,
+    "human_review_required": true,
+    "rollback_model_id": "model.fixture.baseline_rule"
+  },
+  "champion_challenger": {
+    "champion_model_id": "model.fixture.baseline_rule",
+    "challenger_model_ids": ["model.fixture.sequence_placeholder"],
+    "replacement_requires_human_approval": true,
+    "live_replacement_allowed": false
+  },
+  "auto_improvement_loop": {
+    "loop_id": "auto_improvement_loop.research_only.v1",
+    "enabled": true,
+    "max_stage": "paper",
+    "allowed_actions": ["propose_retrain", "evaluate_candidate", "open_review_item", "recommend_rollback_to_paper"],
+    "forbidden_actions": ["auto_promote_live", "generate_order_intent", "place_order", "store_api_key"],
+    "human_review_required": true
+  },
+  "live_deployment_boundary": {
+    "boundary_id": "model_live_deployment_boundary.trading.v1",
+    "live_deployment_allowed": false,
+    "generated_live_deployment_count": 0,
+    "promotion_required_before_live": true
+  },
+  "audit_replay": {
+    "audit_id": "model_improvement_audit_replay.trading.v1",
+    "source_lineage_required": true,
+    "replay_deterministic": true,
+    "review_status_required": true
+  },
+  "dashboard_api_stub": {
+    "read_only": true,
+    "mutating_routes_enabled": false,
+    "routes": [
+      { "method": "GET", "path": "/api/trading/models/registry" },
+      { "method": "GET", "path": "/api/trading/models/train-report" },
+      { "method": "GET", "path": "/api/trading/models/eval-report" },
+      { "method": "GET", "path": "/api/trading/models/scorecards" },
+      { "method": "GET", "path": "/api/trading/models/promotion-candidates" },
+      { "method": "GET", "path": "/api/trading/models/audit-replay" }
+    ],
+    "disabled_routes": [
+      {
+        "method": "POST",
+        "path": "/api/trading/models/promote-live",
+        "reason": "Live model deployment is blocked until later promotion, risk, and execution phases exist."
+      },
+      {
+        "method": "POST",
+        "path": "/api/trading/models/to-order-intent",
+        "reason": "Models cannot generate order intent in P126-P165."
+      },
+      {
+        "method": "POST",
+        "path": "/api/trading/orders",
+        "reason": "Order placement remains blocked for the research/backtest/paper boundary."
+      }
+    ]
+  }
+}

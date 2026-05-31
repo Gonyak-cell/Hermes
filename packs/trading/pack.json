@@ -1,0 +1,154 @@
+{
+  "schema_version": "domain-pack-manifest.v1",
+  "pack_id": "trading",
+  "pack_version": "0.1.0",
+  "display_name": "Trading Pack",
+  "description": "Research, backtest, and paper trading control-plane workflows with live trading and real execution blocked by default.",
+  "enabled": true,
+  "core_compatibility": {
+    "min_core_version": "0.1.0"
+  },
+  "capabilities": [
+    {
+      "capability_id": "trading.research_backtest_paper",
+      "version": "0.1.0",
+      "path": "capabilities/research-backtest-paper.json"
+    }
+  ],
+  "policies": [
+    {
+      "policy_id": "trading.policy.no_return_guarantee",
+      "description": "Outputs must not promise returns or present research as investment advice."
+    },
+    {
+      "policy_id": "trading.policy.no_live_without_promotion",
+      "description": "shadow_live, limited_live, and full_auto remain blocked until explicit human-approved promotion gates exist."
+    },
+    {
+      "policy_id": "trading.policy.no_plaintext_secrets",
+      "description": "Broker and exchange API keys must never be stored in plaintext or inserted into model context."
+    },
+    {
+      "policy_id": "trading.policy.rollback_to_paper",
+      "description": "Every incident, drift, data outage, or risk halt rolls back to paper mode by default."
+    }
+  ],
+  "schemas": [
+    "schemas/trading/trading-asset.schema.json",
+    "schemas/trading/trading-portfolio.schema.json",
+    "schemas/trading/trading-market-data.schema.json",
+    "schemas/trading/trading-feature.schema.json",
+    "schemas/trading/trading-strategy.schema.json",
+    "schemas/trading/trading-model.schema.json",
+    "schemas/trading/trading-signal.schema.json",
+    "schemas/trading/trading-risk.schema.json",
+    "schemas/trading/trading-backtest.schema.json",
+    "schemas/trading/trading-paper-trade.schema.json",
+    "schemas/trading/trading-order-intent.schema.json",
+    "schemas/trading/trading-execution.schema.json",
+    "schemas/trading/trading-fill-reconciliation.schema.json",
+    "schemas/trading/trading-incident.schema.json",
+    "schemas/trading/trading-promotion.schema.json",
+    "schemas/trading/trading-strategy-archetype-registry.schema.json",
+    "schemas/trading/trading-market-data-feature-store.schema.json",
+    "schemas/trading/trading-signal-engine.schema.json",
+    "schemas/trading/trading-model-improvement.schema.json",
+    "schemas/trading/trading-backtest-validation.schema.json",
+    "schemas/trading/trading-risk-engine.schema.json",
+    "schemas/trading/trading-paper-shadow-live.schema.json",
+    "schemas/trading/trading-execution-engine.schema.json",
+    "schemas/trading/trading-limited-live-governance.schema.json",
+    "schemas/trading/trading-full-auto-governance.schema.json"
+  ],
+  "workflows": [
+    "workflow.trading.research_intake.v1",
+    "workflow.trading.backtest_validation.v1",
+    "workflow.trading.paper_scorecard.v1",
+    "workflow.trading.safety_gate.v1",
+    "workflow.trading.strategy_taxonomy.v1",
+    "workflow.trading.market_data_report.v1",
+    "workflow.trading.feature_report.v1",
+    "workflow.trading.feature_store_dashboard.v1",
+    "workflow.trading.signal_report.v1",
+    "workflow.trading.signal_dashboard.v1",
+    "workflow.trading.model_train_report.v1",
+    "workflow.trading.model_eval_report.v1",
+    "workflow.trading.model_improvement_dashboard.v1",
+    "workflow.trading.backtest_report.v1",
+    "workflow.trading.backtest_dashboard.v1",
+    "workflow.trading.risk_check.v1",
+    "workflow.trading.risk_dashboard.v1",
+    "workflow.trading.risk_freeze.v1",
+    "workflow.trading.paper_report.v1",
+    "workflow.trading.shadow_report.v1",
+    "workflow.trading.paper_shadow_dashboard.v1",
+    "workflow.trading.execution_report.v1",
+    "workflow.trading.execution_dashboard.v1",
+    "workflow.trading.execution_api.v1",
+    "workflow.trading.limited_live_report.v1",
+    "workflow.trading.limited_live_dashboard.v1",
+    "workflow.trading.limited_live_api.v1",
+    "workflow.trading.limited_live_freeze.v1",
+    "workflow.trading.full_auto_report.v1",
+    "workflow.trading.full_auto_dashboard.v1",
+    "workflow.trading.full_auto_api.v1",
+    "workflow.trading.trading_pack_v1_freeze.v1"
+  ],
+  "gates": [
+    "classification_gate",
+    "tool_permission_gate",
+    "secrets_gate",
+    "cost_budget_gate",
+    "test_gate",
+    "human_approval_gate",
+    "trading_risk_gate",
+    "market_data_quality_gate",
+    "simulation_only_gate"
+  ],
+  "templates": [],
+  "extractors": [
+    "extractor.trading.csv_ohlcv.v1",
+    "extractor.trading.manual_signal_note.v1"
+  ],
+  "renderers": [
+    "renderer.trading.markdown_report.v1",
+    "renderer.trading.json_artifact.v1"
+  ],
+  "migrations": [],
+  "golden_cases": [
+    "golden.trading.research_backtest_paper.safe_fixture",
+    "golden.trading.live_execution_blocked",
+    "golden.trading.strategy_taxonomy.p036_p060",
+    "golden.trading.market_data_feature_store.p061_p090",
+    "golden.trading.signal_engine.p091_p125",
+    "golden.trading.model_improvement.p126_p165",
+    "golden.trading.backtest_validation.p166_p195",
+    "golden.trading.risk_engine.p196_p220",
+    "golden.trading.paper_shadow_live.p221_p245",
+    "golden.trading.execution_engine.p246_p280",
+    "golden.trading.limited_live_governance.p281_p310",
+    "golden.trading.full_auto_governance.p311_p340"
+  ],
+  "dependencies": [
+    {
+      "pack_id": "common",
+      "version": "0.1.0"
+    }
+  ],
+  "permissions": {
+    "max_classification": "P1_INTERNAL",
+    "external_model_policy": "forbidden",
+    "allowed_runtimes": ["harness", "local_script", "manual"],
+    "default_output_status": "pending_review"
+  },
+  "metadata": {
+    "financial_advice_disclaimer_required": true,
+    "live_trading_enabled": false,
+    "real_broker_adapters_enabled": false,
+    "plaintext_api_key_storage_allowed": false,
+    "initial_active_stages": ["research", "backtest", "paper"],
+    "blocked_stages": ["shadow_live", "limited_live", "full_auto"],
+    "rollback_default_stage": "paper",
+    "kill_switch_manual_resume_only": true
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": "public-web-connector-input.v1",
+  "allowed_domains": ["example.com"],
+  "pages": [
+    {
+      "url": "https://example.com/hermes-public-alpha",
+      "fixture_path": "examples/public-web-connector/fixtures/hermes-public-alpha.html",
+      "tenant_id": "tenant.personal.jws",
+      "matter_id": "matter.public-web.alpha",
+      "classification": "P0_PUBLIC",
+      "purpose": "Fixture-only public web connector smoke test"
+    },
+    {
+      "url": "https://example.com/internal-search",
+      "tenant_id": "tenant.personal.jws",
+      "matter_id": "matter.public-web.alpha",
+      "classification": "P2_CLIENT_CONFIDENTIAL",
+      "purpose": "Blocked classification fixture"
+    }
+  ]
+}

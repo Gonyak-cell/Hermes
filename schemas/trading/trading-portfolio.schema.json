@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/trading/trading-portfolio.schema.json",
+  "title": "Trading Portfolio",
+  "type": "object",
+  "required": ["schema_version", "portfolio_id", "base_currency", "stage", "asset_ids", "cash_balances", "live_trading_enabled", "human_review_required"],
+  "properties": {
+    "schema_version": {
+      "const": "trading-portfolio.v1"
+    },
+    "portfolio_id": {
+      "type": "string",
+      "pattern": "^portfolio\\.[a-z0-9_\\.:-]+$"
+    },
+    "base_currency": {
+      "type": "string"
+    },
+    "stage": {
+      "enum": ["research", "backtest", "paper"]
+    },
+    "asset_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "cash_balances": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["currency", "amount"],
+        "properties": {
+          "currency": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "live_trading_enabled": {
+      "const": false
+    },
+    "human_review_required": {
+      "const": true
+    }
+  }
+}

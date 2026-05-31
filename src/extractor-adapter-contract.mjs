@@ -44,6 +44,19 @@ const OCR_POLICIES = [
   },
   {
     schema_version: "ocr-fallback-policy.v1",
+    ocr_fallback_policy_id: "ocr-fallback-policy.paddleocr_local_only.v1",
+    policy_name: "PaddleOCR Local Fallback",
+    fallback_mode: "local_ocr_only",
+    execution_boundary: "local_deterministic",
+    external_service_allowed: false,
+    human_review_required: true,
+    allowed_tools: ["filesystem.read", "paddleocr"],
+    blocked_tools: ["external_ocr_api", "cloud_document_ai", "network.fetch"],
+    quarantine_when_unreadable: true,
+    review_note: "OCR fallback may run only through a local PaddleOCR command or an explicitly local OCR server contract.",
+  },
+  {
+    schema_version: "ocr-fallback-policy.v1",
     ocr_fallback_policy_id: "ocr-fallback-policy.archive_header_quarantine.v1",
     policy_name: "Archive Header Quarantine",
     fallback_mode: "metadata_only_then_quarantine",
@@ -129,6 +142,59 @@ const ADAPTER_DEFINITIONS = [
     ocr_fallback_policy_id: "ocr-fallback-policy.pdf_local_or_manual.v1",
     required_tools: ["filesystem.read"],
     metadata_fields: ["pdftotext_available"],
+    quality_floor: "low",
+  }),
+  adapterDefinition({
+    key: "liteparse_local",
+    extractor_family: "document_structure",
+    display_name: "LiteParse Local Document Parser",
+    document_types: ["pdf", "scanned_or_native_pdf", "image", "evidence_image"],
+    extensions: ["pdf", "png", "jpg", "jpeg", "webp"],
+    media_types: ["application/pdf", "image/png", "image/jpeg", "image/webp"],
+    parser_strategy: "local_liteparse_json_text_bbox_screenshot_probe",
+    ocr_fallback_policy_id: "ocr-fallback-policy.paddleocr_local_only.v1",
+    required_tools: ["filesystem.read", "lit.optional"],
+    metadata_fields: ["page_count", "bbox_count", "table_signal_count", "mean_confidence", "source_spans", "screenshot_refs", "adapter_chain"],
+  }),
+  adapterDefinition({
+    key: "liteparse_layout_sidecar",
+    extractor_family: "layout_sidecar",
+    display_name: "LiteParse Layout Sidecar",
+    document_types: ["word_document", "presentation", "spreadsheet", "layout_enrichment"],
+    extensions: ["docx", "pptx", "xlsx"],
+    media_types: [
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ],
+    parser_strategy: "local_liteparse_layout_metadata_sidecar_without_primary_replacement",
+    ocr_fallback_policy_id: "ocr-fallback-policy.none.v1",
+    required_tools: ["filesystem.read", "lit.optional"],
+    metadata_fields: ["page_count", "bbox_count", "table_signal_count", "mean_confidence", "source_spans", "screenshot_refs", "adapter_chain"],
+  }),
+  adapterDefinition({
+    key: "paddleocr_local",
+    extractor_family: "ocr",
+    display_name: "PaddleOCR Local Fallback",
+    document_types: ["pdf", "scanned_or_native_pdf", "image", "evidence_image"],
+    extensions: ["pdf", "png", "jpg", "jpeg", "webp"],
+    media_types: ["application/pdf", "image/png", "image/jpeg", "image/webp"],
+    parser_strategy: "local_paddleocr_text_bbox_confidence_fallback",
+    ocr_fallback_policy_id: "ocr-fallback-policy.paddleocr_local_only.v1",
+    required_tools: ["filesystem.read", "paddleocr.optional"],
+    metadata_fields: ["page_count", "bbox_count", "mean_confidence", "language", "source_spans", "model_hash", "adapter_chain"],
+  }),
+  adapterDefinition({
+    key: "manual_review_image_probe",
+    extractor_family: "manual_review",
+    display_name: "Manual Review Image Probe",
+    document_types: ["image", "evidence_image", "unreadable_image"],
+    extensions: ["png", "jpg", "jpeg", "webp"],
+    media_types: ["image/png", "image/jpeg", "image/webp"],
+    parser_strategy: "metadata_only_manual_review_when_local_parsers_unavailable",
+    ocr_fallback_policy_id: "ocr-fallback-policy.paddleocr_local_only.v1",
+    required_tools: ["filesystem.read", "manual_review"],
+    metadata_fields: ["review_reason", "attempted_extractors", "adapter_chain"],
     quality_floor: "low",
   }),
   adapterDefinition({
@@ -497,6 +563,7 @@ function validateExtractorAdapterContract({
   const validationItems = [];
   const packageJson = JSON.parse(packageText);
   const adapterIds = new Set(extractorAdapters.map((adapter) => adapter.adapter_id));
+  const adapterNames = new Set(extractorAdapters.map((adapter) => adapter.extractor_name));
   const adapterIdsWithIo = new Set(extractorIoContracts.map((contract) => contract.adapter_id));
   const adapterIdsWithDocumentBindings = new Set(documentTypeBindings.map((binding) => binding.adapter_id));
   const policyIds = new Set(ocrFallbackPolicies.map((policy) => policy.ocr_fallback_policy_id));
@@ -510,6 +577,9 @@ function validateExtractorAdapterContract({
   pushCheck(validationItems, "catalog", "document_type_bindings_present", documentTypeBindings.length >= extractorAdapters.length, "Every adapter must have document type bindings.");
   pushCheck(validationItems, "catalog", "ocr_policies_present", ocrFallbackPolicies.length > 0, "OCR fallback policies must be declared.");
   pushCheck(validationItems, "catalog", "pdf_ocr_policy_local_only", Boolean(ocrFallbackPolicies.find((policy) => policy.ocr_fallback_policy_id === "ocr-fallback-policy.pdf_local_or_manual.v1" && policy.external_service_allowed === false)), "PDF OCR fallback must be local/manual by default.");
+  pushCheck(validationItems, "catalog", "paddleocr_policy_local_only", Boolean(ocrFallbackPolicies.find((policy) => policy.ocr_fallback_policy_id === "ocr-fallback-policy.paddleocr_local_only.v1" && policy.external_service_allowed === false && policy.blocked_tools.includes("network.fetch"))), "PaddleOCR fallback policy must remain local-only.");
+  pushCheck(validationItems, "catalog", "liteparse_registered", adapterNames.has("liteparse_local") && adapterNames.has("liteparse_layout_sidecar"), "LiteParse primary and sidecar adapters must be registered.");
+  pushCheck(validationItems, "catalog", "paddleocr_registered", adapterNames.has("paddleocr_local"), "PaddleOCR local fallback adapter must be registered.");
   pushCheck(validationItems, "catalog", "normalized_text_binding_count_matches_source", normalizedTextBindings.length === normalizedTextArtifacts.length, "Every normalized text artifact must receive one extractor binding.");
   pushCheck(validationItems, "catalog", "all_adapters_local_only", extractorAdapters.every((adapter) => adapter.execution_boundary === "local_deterministic" && adapter.external_service_allowed === false && adapter.network_access_allowed === false), "Extractor adapters must be local-only and deterministic by default.");
 

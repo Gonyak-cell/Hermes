@@ -23,7 +23,7 @@ const REQUIRED_PACK_SECTIONS = [
   "golden_cases",
 ];
 
-const KNOWN_PACK_IDS = new Set(["common", "law-firm", "personal-dev", "creative-document"]);
+const KNOWN_PACK_IDS = new Set(["common", "law-firm", "personal-dev", "creative-document", "trading"]);
 
 export async function runDomainPackRegistry(options = {}) {
   const result = await buildDomainPackRegistry(options);

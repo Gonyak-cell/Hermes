@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/trading/trading-incident.schema.json",
+  "title": "Trading Incident",
+  "type": "object",
+  "required": ["schema_version", "incident_id", "severity", "trigger", "affected_stage", "status", "rollback_stage", "kill_switch_engaged", "human_owner_required"],
+  "properties": {
+    "schema_version": {
+      "const": "trading-incident.v1"
+    },
+    "incident_id": {
+      "type": "string",
+      "pattern": "^incident\\.[a-z0-9_\\.:-]+$"
+    },
+    "severity": {
+      "enum": ["info", "warn", "high", "critical"]
+    },
+    "trigger": {
+      "type": "string"
+    },
+    "affected_stage": {
+      "enum": ["research", "backtest", "paper", "shadow_live", "limited_live", "full_auto"]
+    },
+    "status": {
+      "enum": ["open", "triaged", "mitigated", "closed"]
+    },
+    "rollback_stage": {
+      "const": "paper"
+    },
+    "kill_switch_engaged": {
+      "type": "boolean"
+    },
+    "human_owner_required": {
+      "const": true
+    }
+  }
+}

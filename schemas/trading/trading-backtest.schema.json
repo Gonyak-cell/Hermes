@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/trading/trading-backtest.schema.json",
+  "title": "Trading Backtest",
+  "type": "object",
+  "required": ["schema_version", "backtest_id", "strategy_id", "dataset_id", "run_mode", "metrics", "bias_checks", "promotion_candidate"],
+  "properties": {
+    "schema_version": {
+      "const": "trading-backtest.v1"
+    },
+    "backtest_id": {
+      "type": "string",
+      "pattern": "^backtest\\.[a-z0-9_\\.:-]+$"
+    },
+    "strategy_id": {
+      "type": "string"
+    },
+    "dataset_id": {
+      "type": "string"
+    },
+    "run_mode": {
+      "const": "deterministic_backtest"
+    },
+    "metrics": {
+      "type": "object",
+      "required": ["return_pct", "max_drawdown_pct", "win_rate", "risk_adjusted_score"],
+      "properties": {
+        "return_pct": {
+          "type": "number"
+        },
+        "max_drawdown_pct": {
+          "type": "number"
+        },
+        "win_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "risk_adjusted_score": {
+          "type": "number"
+        }
+      }
+    },
+    "bias_checks": {
+      "type": "object",
+      "required": ["lookahead_bias_check", "survivorship_bias_note", "overfitting_warning"],
+      "properties": {
+        "lookahead_bias_check": {
+          "enum": ["passed", "blocked"]
+        },
+        "survivorship_bias_note": {
+          "type": "string"
+        },
+        "overfitting_warning": {
+          "enum": ["none", "warn", "block"]
+        }
+      }
+    },
+    "promotion_candidate": {
+      "type": "boolean"
+    }
+  }
+}

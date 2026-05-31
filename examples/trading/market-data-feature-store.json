@@ -1,0 +1,576 @@
+{
+  "schema_version": "trading-market-data-feature-store.v1",
+  "store_id": "trading.market_data_feature_store.p061_p090",
+  "phase_range": "P061-P090",
+  "feature_store_status": "complete",
+  "generated_at": "2026-05-30T00:00:00.000Z",
+  "safety_boundary": {
+    "manual_or_fixture_only": true,
+    "live_vendor_feeds_enabled": false,
+    "real_time_trading_feed_enabled": false,
+    "external_api_keys_required": false,
+    "investment_advice_generated": false,
+    "trade_recommendation_generated": false,
+    "order_intent_generated": false
+  },
+  "phase_coverage": [
+    {
+      "phase_id": "P061",
+      "status": "complete",
+      "artifact_ref": "import_adapters.csv_manual"
+    },
+    {
+      "phase_id": "P062",
+      "status": "complete",
+      "artifact_ref": "market_data_artifacts.normalized_ohlcv"
+    },
+    {
+      "phase_id": "P063",
+      "status": "complete",
+      "artifact_ref": "market_sessions.kr_stock"
+    },
+    {
+      "phase_id": "P064",
+      "status": "complete",
+      "artifact_ref": "market_sessions.us_stock"
+    },
+    {
+      "phase_id": "P065",
+      "status": "complete",
+      "artifact_ref": "market_sessions.crypto_24_7"
+    },
+    {
+      "phase_id": "P066",
+      "status": "complete",
+      "artifact_ref": "fx_snapshots.usdkrw"
+    },
+    {
+      "phase_id": "P067",
+      "status": "complete",
+      "artifact_ref": "corporate_action_placeholders"
+    },
+    {
+      "phase_id": "P068",
+      "status": "complete",
+      "artifact_ref": "quality_gate_model.stale_data"
+    },
+    {
+      "phase_id": "P069",
+      "status": "complete",
+      "artifact_ref": "quality_gate_model.missing_data"
+    },
+    {
+      "phase_id": "P070",
+      "status": "complete",
+      "artifact_ref": "quality_gate_model.duplicate_candle"
+    },
+    {
+      "phase_id": "P071",
+      "status": "complete",
+      "artifact_ref": "quality_gate_model.abnormal_price_spread"
+    },
+    {
+      "phase_id": "P072",
+      "status": "complete",
+      "artifact_ref": "feature_definitions.liquidity"
+    },
+    {
+      "phase_id": "P073",
+      "status": "complete",
+      "artifact_ref": "feature_definitions.volatility"
+    },
+    {
+      "phase_id": "P074",
+      "status": "complete",
+      "artifact_ref": "feature_definitions.momentum"
+    },
+    {
+      "phase_id": "P075",
+      "status": "complete",
+      "artifact_ref": "feature_definitions.mean_reversion"
+    },
+    {
+      "phase_id": "P076",
+      "status": "complete",
+      "artifact_ref": "feature_definitions.correlation"
+    },
+    {
+      "phase_id": "P077",
+      "status": "complete",
+      "artifact_ref": "feature_definitions.regime"
+    },
+    {
+      "phase_id": "P078",
+      "status": "complete",
+      "artifact_ref": "feature_definitions.macro_placeholder"
+    },
+    {
+      "phase_id": "P079",
+      "status": "complete",
+      "artifact_ref": "feature_definitions.event_placeholder"
+    },
+    {
+      "phase_id": "P080",
+      "status": "complete",
+      "artifact_ref": "feature_definitions.on_chain_placeholder"
+    },
+    {
+      "phase_id": "P081",
+      "status": "complete",
+      "artifact_ref": "feature_definitions.sentiment_placeholder"
+    },
+    {
+      "phase_id": "P082",
+      "status": "complete",
+      "artifact_ref": "feature_snapshots.snapshot_version"
+    },
+    {
+      "phase_id": "P083",
+      "status": "complete",
+      "artifact_ref": "feature_snapshots.lineage_refs"
+    },
+    {
+      "phase_id": "P084",
+      "status": "complete",
+      "artifact_ref": "feature_snapshots.leakage_check_status"
+    },
+    {
+      "phase_id": "P085",
+      "status": "complete",
+      "artifact_ref": "feature_snapshots.quality_score"
+    },
+    {
+      "phase_id": "P086",
+      "status": "complete",
+      "artifact_ref": "vendor_abstraction"
+    },
+    {
+      "phase_id": "P087",
+      "status": "complete",
+      "artifact_ref": "replay_mode"
+    },
+    {
+      "phase_id": "P088",
+      "status": "complete",
+      "artifact_ref": "trading:market-data-report"
+    },
+    {
+      "phase_id": "P089",
+      "status": "complete",
+      "artifact_ref": "trading:feature-report"
+    },
+    {
+      "phase_id": "P090",
+      "status": "complete",
+      "artifact_ref": "dashboard_api_stub"
+    }
+  ],
+  "import_adapters": [
+    {
+      "adapter_id": "adapter.trading.csv_manual_ohlcv",
+      "source_type": "csv_manual",
+      "enabled": true,
+      "credential_required": false,
+      "write_mode": "read_only",
+      "normalization_contract": "trading-market-data.v1"
+    },
+    {
+      "adapter_id": "adapter.trading.manual_fx_snapshot",
+      "source_type": "manual_entry",
+      "enabled": true,
+      "credential_required": false,
+      "write_mode": "read_only",
+      "normalization_contract": "trading-market-data.v1"
+    },
+    {
+      "adapter_id": "adapter.trading.vendor_stub",
+      "source_type": "vendor_stub",
+      "enabled": false,
+      "credential_required": false,
+      "write_mode": "disabled",
+      "normalization_contract": "trading-market-data.v1"
+    }
+  ],
+  "market_data_artifacts": [
+    {
+      "schema_version": "trading-market-data.v1",
+      "dataset_id": "dataset.csv_manual.kr_stock.005930.daily",
+      "source_type": "csv_manual",
+      "asset_ids": ["asset.kr_equity.005930"],
+      "timeframe": "1d",
+      "normalized_ohlcv": true,
+      "session_ref": "session.kr_stock.xkrx",
+      "bars": [
+        {
+          "timestamp": "2026-05-28T06:30:00.000Z",
+          "open": 78000,
+          "high": 78500,
+          "low": 77500,
+          "close": 78200,
+          "volume": 12000000
+        },
+        {
+          "timestamp": "2026-05-29T06:30:00.000Z",
+          "open": 78200,
+          "high": 79000,
+          "low": 77900,
+          "close": 78800,
+          "volume": 13000000
+        }
+      ],
+      "quality_checks": {
+        "stale_data_detected": false,
+        "missing_data_detected": false,
+        "duplicate_candle_detected": false,
+        "abnormal_price_detected": false
+      }
+    },
+    {
+      "schema_version": "trading-market-data.v1",
+      "dataset_id": "dataset.fixture.us_equity.aapl.daily",
+      "source_type": "fixture",
+      "asset_ids": ["asset.us_equity.aapl"],
+      "timeframe": "1d",
+      "normalized_ohlcv": true,
+      "session_ref": "session.us_stock.xnas",
+      "bars": [
+        {
+          "timestamp": "2026-05-28T20:00:00.000Z",
+          "open": 101,
+          "high": 103,
+          "low": 100,
+          "close": 102,
+          "volume": 1100000
+        },
+        {
+          "timestamp": "2026-05-29T20:00:00.000Z",
+          "open": 102,
+          "high": 104,
+          "low": 101,
+          "close": 103,
+          "volume": 1150000
+        }
+      ],
+      "quality_checks": {
+        "stale_data_detected": false,
+        "missing_data_detected": false,
+        "duplicate_candle_detected": false,
+        "abnormal_price_detected": false
+      }
+    },
+    {
+      "schema_version": "trading-market-data.v1",
+      "dataset_id": "dataset.fixture.crypto.btc_usd.hourly",
+      "source_type": "fixture",
+      "asset_ids": ["asset.crypto.btc"],
+      "timeframe": "1h",
+      "normalized_ohlcv": true,
+      "session_ref": "session.crypto_24_7.global",
+      "bars": [
+        {
+          "timestamp": "2026-05-29T22:00:00.000Z",
+          "open": 68000,
+          "high": 68150,
+          "low": 67900,
+          "close": 68080,
+          "volume": 125
+        },
+        {
+          "timestamp": "2026-05-29T23:00:00.000Z",
+          "open": 68080,
+          "high": 68200,
+          "low": 68000,
+          "close": 68120,
+          "volume": 132
+        }
+      ],
+      "quality_checks": {
+        "stale_data_detected": false,
+        "missing_data_detected": false,
+        "duplicate_candle_detected": false,
+        "abnormal_price_detected": false
+      }
+    }
+  ],
+  "market_sessions": [
+    {
+      "session_id": "session.kr_stock.xkrx",
+      "asset_scope": "kr_stock",
+      "calendar_type": "exchange_hours",
+      "timezone": "Asia/Seoul",
+      "status": "complete",
+      "open_time": "09:00",
+      "close_time": "15:30"
+    },
+    {
+      "session_id": "session.us_stock.xnas",
+      "asset_scope": "us_stock",
+      "calendar_type": "exchange_hours",
+      "timezone": "America/New_York",
+      "status": "complete",
+      "open_time": "09:30",
+      "close_time": "16:00"
+    },
+    {
+      "session_id": "session.crypto_24_7.global",
+      "asset_scope": "crypto_24_7",
+      "calendar_type": "twenty_four_seven",
+      "timezone": "UTC",
+      "status": "complete"
+    }
+  ],
+  "fx_snapshots": [
+    {
+      "snapshot_id": "fx.manual.usdkrw.20260530",
+      "pair": "USD/KRW",
+      "as_of": "2026-05-30T00:00:00.000Z",
+      "rate": 1365.25,
+      "source_type": "manual_entry"
+    }
+  ],
+  "corporate_action_placeholders": [
+    {
+      "placeholder_id": "corp_action.placeholder.dividend",
+      "event_type": "dividend",
+      "status": "placeholder",
+      "live_action_allowed": false
+    },
+    {
+      "placeholder_id": "corp_action.placeholder.split",
+      "event_type": "split",
+      "status": "placeholder",
+      "live_action_allowed": false
+    }
+  ],
+  "quality_gate_model": {
+    "checks": [
+      {
+        "check_id": "stale_data",
+        "status": "pass",
+        "blocks_usage": true
+      },
+      {
+        "check_id": "missing_data",
+        "status": "pass",
+        "blocks_usage": true
+      },
+      {
+        "check_id": "duplicate_candle",
+        "status": "pass",
+        "blocks_usage": true
+      },
+      {
+        "check_id": "abnormal_price_spread",
+        "status": "pass",
+        "blocks_usage": true
+      }
+    ],
+    "default_result": "pass",
+    "blocks_feature_generation_on_failure": true
+  },
+  "feature_definitions": [
+    {
+      "feature_id": "feature.liquidity.dollar_volume",
+      "category": "liquidity",
+      "status": "complete",
+      "lookahead_safe": true,
+      "source_fields": ["close", "volume"]
+    },
+    {
+      "feature_id": "feature.volatility.close_to_close",
+      "category": "volatility",
+      "status": "complete",
+      "lookahead_safe": true,
+      "source_fields": ["close"]
+    },
+    {
+      "feature_id": "feature.momentum.return_2_bar",
+      "category": "momentum",
+      "status": "complete",
+      "lookahead_safe": true,
+      "source_fields": ["close"]
+    },
+    {
+      "feature_id": "feature.mean_reversion.zscore_close",
+      "category": "mean_reversion",
+      "status": "complete",
+      "lookahead_safe": true,
+      "source_fields": ["close"]
+    },
+    {
+      "feature_id": "feature.correlation.cross_asset_stub",
+      "category": "correlation",
+      "status": "complete",
+      "lookahead_safe": true,
+      "source_fields": ["close"]
+    },
+    {
+      "feature_id": "feature.regime.volatility_bucket",
+      "category": "regime",
+      "status": "complete",
+      "lookahead_safe": true,
+      "source_fields": ["close", "volume"]
+    },
+    {
+      "feature_id": "feature.macro.placeholder",
+      "category": "macro_placeholder",
+      "status": "placeholder",
+      "lookahead_safe": true,
+      "source_fields": []
+    },
+    {
+      "feature_id": "feature.event.placeholder",
+      "category": "event_placeholder",
+      "status": "placeholder",
+      "lookahead_safe": true,
+      "source_fields": []
+    },
+    {
+      "feature_id": "feature.on_chain.placeholder",
+      "category": "on_chain_placeholder",
+      "status": "placeholder",
+      "lookahead_safe": true,
+      "source_fields": []
+    },
+    {
+      "feature_id": "feature.sentiment.placeholder",
+      "category": "sentiment_placeholder",
+      "status": "placeholder",
+      "lookahead_safe": true,
+      "source_fields": []
+    }
+  ],
+  "feature_snapshots": [
+    {
+      "snapshot_id": "feature_snapshot.p061_p090.demo.v1",
+      "snapshot_version": "2026-05-30.1",
+      "generated_at": "2026-05-30T00:00:00.000Z",
+      "source_dataset_ids": [
+        "dataset.csv_manual.kr_stock.005930.daily",
+        "dataset.fixture.us_equity.aapl.daily",
+        "dataset.fixture.crypto.btc_usd.hourly"
+      ],
+      "lineage_refs": [
+        "dataset.csv_manual.kr_stock.005930.daily",
+        "dataset.fixture.us_equity.aapl.daily",
+        "dataset.fixture.crypto.btc_usd.hourly",
+        "fx.manual.usdkrw.20260530"
+      ],
+      "leakage_check_status": "passed",
+      "quality_score": 0.96,
+      "feature_artifact": {
+        "schema_version": "trading-feature.v1",
+        "feature_set_id": "features.p061_p090.demo.v1",
+        "dataset_id": "dataset.csv_manual.kr_stock.005930.daily",
+        "generated_at": "2026-05-30T00:00:00.000Z",
+        "leakage_check_status": "passed",
+        "quality_score": 0.96,
+        "features": [
+          {
+            "feature_id": "feature.liquidity.dollar_volume",
+            "category": "liquidity",
+            "value": 1024
+          },
+          {
+            "feature_id": "feature.volatility.close_to_close",
+            "category": "volatility",
+            "value": 0.014
+          },
+          {
+            "feature_id": "feature.momentum.return_2_bar",
+            "category": "momentum",
+            "value": 0.007
+          },
+          {
+            "feature_id": "feature.mean_reversion.zscore_close",
+            "category": "mean_reversion",
+            "value": 0.2
+          },
+          {
+            "feature_id": "feature.correlation.cross_asset_stub",
+            "category": "correlation",
+            "value": 0.1
+          },
+          {
+            "feature_id": "feature.regime.volatility_bucket",
+            "category": "regime",
+            "value": 1
+          },
+          {
+            "feature_id": "feature.macro.placeholder",
+            "category": "macro_placeholder",
+            "value": 0
+          },
+          {
+            "feature_id": "feature.event.placeholder",
+            "category": "event_placeholder",
+            "value": 0
+          },
+          {
+            "feature_id": "feature.on_chain.placeholder",
+            "category": "on_chain_placeholder",
+            "value": 0
+          },
+          {
+            "feature_id": "feature.sentiment.placeholder",
+            "category": "sentiment_placeholder",
+            "value": 0
+          }
+        ],
+        "lineage_refs": [
+          "dataset.csv_manual.kr_stock.005930.daily",
+          "dataset.fixture.us_equity.aapl.daily",
+          "dataset.fixture.crypto.btc_usd.hourly",
+          "fx.manual.usdkrw.20260530"
+        ]
+      }
+    }
+  ],
+  "vendor_abstraction": {
+    "adapter_state": "stub_only",
+    "allowed_source_types": ["csv_manual", "manual_entry", "fixture", "vendor_stub"],
+    "live_vendor_calls_allowed": false,
+    "credentials_required": false,
+    "credential_storage_policy": "not_applicable_until_separate_approval"
+  },
+  "replay_mode": {
+    "enabled": true,
+    "deterministic_clock": "2026-05-30T00:00:00.000Z",
+    "source_snapshot_required": true,
+    "replay_cursor": "replay.market_data_feature_store.20260530"
+  },
+  "dashboard_api_stub": {
+    "read_only": true,
+    "mutating_routes_enabled": false,
+    "routes": [
+      {
+        "method": "GET",
+        "path": "/api/trading/market-data/report"
+      },
+      {
+        "method": "GET",
+        "path": "/api/trading/features/report"
+      },
+      {
+        "method": "GET",
+        "path": "/api/trading/feature-store/snapshots"
+      },
+      {
+        "method": "GET",
+        "path": "/api/trading/feature-store/lineage"
+      }
+    ],
+    "disabled_routes": [
+      {
+        "method": "POST",
+        "path": "/api/trading/market-data/live-feed",
+        "reason": "Live vendor feeds require a future approval and credential-broker phase."
+      },
+      {
+        "method": "POST",
+        "path": "/api/trading/vendors/credentials",
+        "reason": "Vendor credentials must never be stored in this repository or model context."
+      }
+    ]
+  }
+}

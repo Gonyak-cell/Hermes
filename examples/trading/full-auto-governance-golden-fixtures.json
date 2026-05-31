@@ -1,0 +1,27 @@
+{
+  "schema_version": "trading-full-auto-governance-golden-fixtures.v1",
+  "fixture_set_id": "trading.full-auto-governance.p311_p340",
+  "generated_at": "2026-05-31T00:00:00.000Z",
+  "fixtures": [
+    {
+      "fixture_id": "golden.trading.full_auto_governance.p311_p340",
+      "input_ref": "examples/trading/full-auto-governance.json",
+      "expected_status": "complete",
+      "expected_phase_range": "P311-P340",
+      "expected_phase_count": 30,
+      "expected_approval_required": true,
+      "expected_approval_receipt_present": false,
+      "expected_strategy_health_count": 1,
+      "expected_model_health_count": 1,
+      "expected_allocator_count": 5,
+      "expected_failover_policy_count": 2,
+      "expected_full_auto_enabled": false,
+      "expected_automatic_order_submission_allowed": false,
+      "expected_real_order_submitted": false,
+      "expected_final_regression_case_count": 12,
+      "expected_v1_freeze_checklist_count": 10,
+      "expected_live_enablement_allowed": false,
+      "expected_dashboard_read_only": true
+    }
+  ]
+}

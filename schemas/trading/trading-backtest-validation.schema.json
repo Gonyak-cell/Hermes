@@ -1,0 +1,546 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/trading/trading-backtest-validation.schema.json",
+  "title": "Trading Backtest Validation",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "validation_id",
+    "phase_range",
+    "backtest_validation_status",
+    "generated_at",
+    "safety_boundary",
+    "phase_coverage",
+    "runner",
+    "version_bindings",
+    "cost_models",
+    "position_sizing",
+    "backtest_artifacts",
+    "portfolio_backtest",
+    "multi_strategy_backtest",
+    "benchmark_comparison",
+    "metric_suite",
+    "exposure_turnover_capacity",
+    "bias_checks",
+    "walk_forward_validation",
+    "stress_scenarios",
+    "replay_modes",
+    "promotion_boundary",
+    "dashboard_api_stub"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "trading-backtest-validation.v1"
+    },
+    "validation_id": {
+      "type": "string",
+      "pattern": "^trading\\.backtest_validation\\.[a-z0-9_\\.:-]+$"
+    },
+    "phase_range": {
+      "const": "P166-P195"
+    },
+    "backtest_validation_status": {
+      "enum": ["complete", "blocked"]
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "safety_boundary": {
+      "type": "object",
+      "required": [
+        "deterministic_only",
+        "simulation_only",
+        "investment_advice_generated",
+        "trade_recommendation_generated",
+        "order_intent_generated",
+        "paper_order_generated",
+        "live_execution_allowed",
+        "promotion_candidate_generated",
+        "human_review_required"
+      ],
+      "properties": {
+        "deterministic_only": {
+          "type": "boolean"
+        },
+        "simulation_only": {
+          "type": "boolean"
+        },
+        "investment_advice_generated": {
+          "type": "boolean"
+        },
+        "trade_recommendation_generated": {
+          "type": "boolean"
+        },
+        "order_intent_generated": {
+          "type": "boolean"
+        },
+        "paper_order_generated": {
+          "type": "boolean"
+        },
+        "live_execution_allowed": {
+          "type": "boolean"
+        },
+        "promotion_candidate_generated": {
+          "type": "boolean"
+        },
+        "human_review_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "phase_coverage": {
+      "type": "array",
+      "minItems": 30,
+      "items": {
+        "type": "object",
+        "required": ["phase_id", "status", "artifact_ref"],
+        "properties": {
+          "phase_id": {
+            "type": "string",
+            "pattern": "^P[0-9]{3}$"
+          },
+          "status": {
+            "enum": ["complete", "planned", "blocked"]
+          },
+          "artifact_ref": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "runner": {
+      "type": "object",
+      "required": ["runner_id", "run_mode", "seed", "replay_clock", "data_replay_required", "mutation_allowed"],
+      "properties": {
+        "runner_id": {
+          "type": "string"
+        },
+        "run_mode": {
+          "const": "deterministic_backtest"
+        },
+        "seed": {
+          "type": "number"
+        },
+        "replay_clock": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_replay_required": {
+          "type": "boolean"
+        },
+        "mutation_allowed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "version_bindings": {
+      "type": "object",
+      "required": ["strategy_versions", "model_versions"],
+      "properties": {
+        "strategy_versions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["strategy_id", "version_ref"],
+            "properties": {
+              "strategy_id": {
+                "type": "string"
+              },
+              "version_ref": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "model_versions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["model_id", "version_ref"],
+            "properties": {
+              "model_id": {
+                "type": "string"
+              },
+              "version_ref": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "cost_models": {
+      "type": "object",
+      "required": ["transaction_cost", "slippage", "fx_conversion", "crypto_fee"],
+      "properties": {
+        "transaction_cost": {
+          "type": "object",
+          "required": ["model_id", "enabled", "basis_points"],
+          "properties": {
+            "model_id": {
+              "type": "string"
+            },
+            "enabled": {
+              "type": "boolean"
+            },
+            "basis_points": {
+              "type": "number"
+            }
+          }
+        },
+        "slippage": {
+          "type": "object",
+          "required": ["model_id", "enabled", "basis_points"],
+          "properties": {
+            "model_id": {
+              "type": "string"
+            },
+            "enabled": {
+              "type": "boolean"
+            },
+            "basis_points": {
+              "type": "number"
+            }
+          }
+        },
+        "fx_conversion": {
+          "type": "object",
+          "required": ["model_id", "enabled", "source_ref"],
+          "properties": {
+            "model_id": {
+              "type": "string"
+            },
+            "enabled": {
+              "type": "boolean"
+            },
+            "source_ref": {
+              "type": "string"
+            }
+          }
+        },
+        "crypto_fee": {
+          "type": "object",
+          "required": ["model_id", "enabled", "basis_points"],
+          "properties": {
+            "model_id": {
+              "type": "string"
+            },
+            "enabled": {
+              "type": "boolean"
+            },
+            "basis_points": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "position_sizing": {
+      "type": "object",
+      "required": ["model_id", "method", "max_position_pct", "leverage_allowed"],
+      "properties": {
+        "model_id": {
+          "type": "string"
+        },
+        "method": {
+          "enum": ["fixed_fractional", "equal_weight", "risk_parity_placeholder"]
+        },
+        "max_position_pct": {
+          "type": "number"
+        },
+        "leverage_allowed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "backtest_artifacts": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object"
+      }
+    },
+    "portfolio_backtest": {
+      "type": "object",
+      "required": ["portfolio_id", "enabled", "strategy_count", "dataset_refs", "live_trading_enabled"],
+      "properties": {
+        "portfolio_id": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "strategy_count": {
+          "type": "number"
+        },
+        "dataset_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "live_trading_enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "multi_strategy_backtest": {
+      "type": "object",
+      "required": ["enabled", "strategy_ids", "correlation_penalty_applied"],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "strategy_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "correlation_penalty_applied": {
+          "type": "boolean"
+        }
+      }
+    },
+    "benchmark_comparison": {
+      "type": "object",
+      "required": ["benchmark_id", "enabled", "result"],
+      "properties": {
+        "benchmark_id": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "result": {
+          "enum": ["informational", "underperform", "outperform"]
+        }
+      }
+    },
+    "metric_suite": {
+      "type": "object",
+      "required": ["cagr_pct", "return_pct", "max_drawdown_pct", "win_rate", "payoff_ratio", "risk_adjusted_score"],
+      "properties": {
+        "cagr_pct": {
+          "type": "number"
+        },
+        "return_pct": {
+          "type": "number"
+        },
+        "max_drawdown_pct": {
+          "type": "number"
+        },
+        "win_rate": {
+          "type": "number"
+        },
+        "payoff_ratio": {
+          "type": "number"
+        },
+        "risk_adjusted_score": {
+          "type": "number"
+        }
+      }
+    },
+    "exposure_turnover_capacity": {
+      "type": "object",
+      "required": ["exposure_time_pct", "turnover_pct", "capacity_estimate"],
+      "properties": {
+        "exposure_time_pct": {
+          "type": "number"
+        },
+        "turnover_pct": {
+          "type": "number"
+        },
+        "capacity_estimate": {
+          "type": "object",
+          "required": ["status", "notional_limit"],
+          "properties": {
+            "status": {
+              "enum": ["informational", "warn", "block"]
+            },
+            "notional_limit": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "bias_checks": {
+      "type": "object",
+      "required": ["lookahead_bias", "survivorship_bias", "overfitting"],
+      "properties": {
+        "lookahead_bias": {
+          "type": "object",
+          "required": ["result", "blocks_promotion"],
+          "properties": {
+            "result": {
+              "enum": ["pass", "warn", "block"]
+            },
+            "blocks_promotion": {
+              "type": "boolean"
+            }
+          }
+        },
+        "survivorship_bias": {
+          "type": "object",
+          "required": ["note", "requires_human_review"],
+          "properties": {
+            "note": {
+              "type": "string"
+            },
+            "requires_human_review": {
+              "type": "boolean"
+            }
+          }
+        },
+        "overfitting": {
+          "type": "object",
+          "required": ["result", "blocks_promotion"],
+          "properties": {
+            "result": {
+              "enum": ["pass", "warn", "block"]
+            },
+            "blocks_promotion": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "walk_forward_validation": {
+      "type": "object",
+      "required": ["enabled", "window_count", "all_windows_after_training", "result"],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "window_count": {
+          "type": "number"
+        },
+        "all_windows_after_training": {
+          "type": "boolean"
+        },
+        "result": {
+          "enum": ["pass", "warn", "block"]
+        }
+      }
+    },
+    "stress_scenarios": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["scenario_id", "scenario_type", "result", "blocks_promotion"],
+        "properties": {
+          "scenario_id": {
+            "type": "string"
+          },
+          "scenario_type": {
+            "enum": ["liquidity_stress", "crash_regime", "crypto_24_7_gap"]
+          },
+          "result": {
+            "enum": ["pass", "warn", "block"]
+          },
+          "blocks_promotion": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "replay_modes": {
+      "type": "object",
+      "required": ["crash_regime_replay", "crypto_weekend_gap_replay"],
+      "properties": {
+        "crash_regime_replay": {
+          "type": "object",
+          "required": ["enabled", "scenario_ref"],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "scenario_ref": {
+              "type": "string"
+            }
+          }
+        },
+        "crypto_weekend_gap_replay": {
+          "type": "object",
+          "required": ["enabled", "scenario_ref"],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "scenario_ref": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "promotion_boundary": {
+      "type": "object",
+      "required": ["promotion_candidate_generated", "promotion_requires_future_risk_gate", "live_promotion_allowed"],
+      "properties": {
+        "promotion_candidate_generated": {
+          "type": "boolean"
+        },
+        "promotion_requires_future_risk_gate": {
+          "type": "boolean"
+        },
+        "live_promotion_allowed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "dashboard_api_stub": {
+      "type": "object",
+      "required": ["read_only", "mutating_routes_enabled", "routes", "disabled_routes"],
+      "properties": {
+        "read_only": {
+          "type": "boolean"
+        },
+        "mutating_routes_enabled": {
+          "type": "boolean"
+        },
+        "routes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["method", "path"],
+            "properties": {
+              "method": {
+                "enum": ["GET"]
+              },
+              "path": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "disabled_routes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["method", "path", "reason"],
+            "properties": {
+              "method": {
+                "enum": ["POST", "PUT", "PATCH", "DELETE"]
+              },
+              "path": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

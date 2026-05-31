@@ -147,6 +147,21 @@ const CONNECTOR_BLUEPRINTS = [
     expectedResourceTypes: ["invoice_draft", "estimate_draft"],
     draftOutputConnector: true,
   }),
+  connectorBlueprint({
+    connectorId: "connector.public_web.v2",
+    label: "Public web connector",
+    phaseSlot: "P276",
+    family: "public_web",
+    sourceSystem: "public_web",
+    sourceKind: "allowlisted_public_url",
+    authMode: "allowlisted_public_url_no_credentials",
+    credentialRefRequired: false,
+    networkAccessRequired: true,
+    leastPrivilegeScopes: ["public_web.url.read.allowlisted"],
+    cursorKind: "url_snapshot_hash_cursor",
+    externalIdFields: ["canonical_url", "content_hash"],
+    expectedResourceTypes: ["public_web_snapshot", "markdown_document"],
+  }),
 ];
 
 export async function runConnectorContractV2(options = {}) {
@@ -566,6 +581,7 @@ function buildCheckpoints({
   contractBoundary,
 }) {
   const connectorCount = connectorDefinitions.length;
+  const plannedConnectorCount = CONNECTOR_BLUEPRINTS.length;
   const sourceIds = new Set(sourceContracts.map((item) => item.source_id));
   const externalNamespaces = new Set(externalIdContracts.map((item) => item.external_id_namespace));
   const authIds = new Set(authBoundaries.map((item) => item.auth_boundary_id));
@@ -575,7 +591,7 @@ function buildCheckpoints({
       && sourceReads.policy_matrix_catalog.value?.summary?.policy_status === "valid"
       && sourceReads.tool_runtime_policy_enforcement.value?.summary?.tool_runtime_policy_enforcement_status === "complete"
       && sourceReads.creative_document_freeze.value?.summary?.creative_document_freeze_status === "complete", "Connector Contract v2 source artifacts are complete."),
-    checkpoint("connectors.coverage", connectorCount === 8, `${connectorCount}/8 planned connector family contract(s) are declared for P268-P275.`),
+    checkpoint("connectors.coverage", connectorCount === plannedConnectorCount, `${connectorCount}/${plannedConnectorCount} planned connector family contract(s) are declared for P268-P276.`),
     checkpoint("source_ids.common", sourceContracts.length === connectorCount && sourceIds.size === connectorCount && sourceContracts.every((item) => item.source_id && item.tenant_id_required && item.matter_id_required), "Every connector has a unique stable source_id contract with tenant/matter scope."),
     checkpoint("cursors.common", cursorContracts.length === connectorCount && cursorContracts.every((item) => item.resume_supported && item.cursor_state_fields.includes("last_seen_external_id") && item.raw_token_material_allowed === false && item.cross_matter_cursor_reuse_allowed === false), "Every connector has a resumable cursor contract without raw token material or cross-matter reuse."),
     checkpoint("external_ids.common", externalIdContracts.length === connectorCount && externalNamespaces.size === connectorCount && externalIdContracts.every((item) => item.external_id_fields.length > 0 && item.resource_v2_field === "external_id" && item.resource_version_v2_field === "external_version_id"), "Every connector has an external_id namespace mapped to Resource v2 and ResourceVersion v2."),

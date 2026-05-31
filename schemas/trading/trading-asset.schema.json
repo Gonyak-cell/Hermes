@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/trading/trading-asset.schema.json",
+  "title": "Trading Asset",
+  "type": "object",
+  "required": ["schema_version", "asset_id", "asset_class", "symbol", "display_name", "currency", "venue", "tradability_status", "capability_flags", "risk_notes"],
+  "properties": {
+    "schema_version": {
+      "const": "trading-asset.v1"
+    },
+    "asset_id": {
+      "type": "string",
+      "pattern": "^asset\\.[a-z0-9_\\.:-]+$"
+    },
+    "asset_class": {
+      "enum": ["kr_equity", "us_equity", "btc", "crypto", "cash", "fx"]
+    },
+    "symbol": {
+      "type": "string"
+    },
+    "display_name": {
+      "type": "string"
+    },
+    "currency": {
+      "type": "string"
+    },
+    "venue": {
+      "type": "string"
+    },
+    "tradability_status": {
+      "enum": ["research_only", "paper_allowed", "live_blocked"]
+    },
+    "capability_flags": {
+      "type": "object",
+      "required": ["short_allowed", "derivatives_allowed", "leverage_allowed", "live_trading_allowed"],
+      "properties": {
+        "short_allowed": {
+          "type": "boolean"
+        },
+        "derivatives_allowed": {
+          "type": "boolean"
+        },
+        "leverage_allowed": {
+          "type": "boolean"
+        },
+        "live_trading_allowed": {
+          "const": false
+        }
+      }
+    },
+    "risk_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

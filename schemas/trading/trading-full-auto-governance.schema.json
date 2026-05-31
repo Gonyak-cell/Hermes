@@ -1,0 +1,346 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/trading/trading-full-auto-governance.schema.json",
+  "title": "Trading Full Auto Governance",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "full_auto_governance_id",
+    "phase_range",
+    "full_auto_status",
+    "generated_at",
+    "safety_boundary",
+    "phase_coverage",
+    "full_auto_approval_checklist",
+    "strategy_health_scoring",
+    "model_health_scoring",
+    "automatic_disable_policies",
+    "allocators",
+    "failover_policies",
+    "monthly_strategy_review",
+    "audit_replay",
+    "disaster_recovery",
+    "tax_export_placeholder",
+    "operator_handbook",
+    "dashboard_api_stub",
+    "final_safety_regression_suite",
+    "trading_pack_v1_freeze"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "trading-full-auto-governance.v1"
+    },
+    "full_auto_governance_id": {
+      "type": "string",
+      "pattern": "^trading\\.full_auto_governance\\.[a-z0-9_\\.:-]+$"
+    },
+    "phase_range": {
+      "const": "P311-P340"
+    },
+    "full_auto_status": {
+      "enum": ["complete", "blocked"]
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "safety_boundary": {
+      "type": "object",
+      "required": [
+        "control_plane_only",
+        "full_auto_enabled",
+        "limited_live_enabled",
+        "automatic_order_submission_allowed",
+        "live_order_submission_allowed",
+        "real_order_submitted",
+        "broker_write_allowed",
+        "exchange_write_allowed",
+        "external_service_allowed",
+        "human_approval_required",
+        "rollback_to_paper_required"
+      ],
+      "properties": {
+        "control_plane_only": {
+          "type": "boolean"
+        },
+        "full_auto_enabled": {
+          "type": "boolean"
+        },
+        "limited_live_enabled": {
+          "type": "boolean"
+        },
+        "automatic_order_submission_allowed": {
+          "type": "boolean"
+        },
+        "live_order_submission_allowed": {
+          "type": "boolean"
+        },
+        "real_order_submitted": {
+          "type": "boolean"
+        },
+        "broker_write_allowed": {
+          "type": "boolean"
+        },
+        "exchange_write_allowed": {
+          "type": "boolean"
+        },
+        "external_service_allowed": {
+          "type": "boolean"
+        },
+        "human_approval_required": {
+          "type": "boolean"
+        },
+        "rollback_to_paper_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "phase_coverage": {
+      "type": "array",
+      "minItems": 30,
+      "items": {
+        "type": "object",
+        "required": ["phase_id", "status", "artifact_ref"],
+        "properties": {
+          "phase_id": {
+            "type": "string",
+            "pattern": "^P[0-9]{3}$"
+          },
+          "status": {
+            "enum": ["complete", "planned", "blocked"]
+          },
+          "artifact_ref": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "full_auto_approval_checklist": {
+      "type": "object",
+      "required": ["checklist_id", "approval_required", "approval_receipt_present", "decision", "checks"],
+      "properties": {
+        "checklist_id": {
+          "type": "string"
+        },
+        "approval_required": {
+          "type": "boolean"
+        },
+        "approval_receipt_present": {
+          "type": "boolean"
+        },
+        "decision": {
+          "enum": ["pending_review", "approved", "blocked"]
+        },
+        "checks": {
+          "type": "array"
+        }
+      }
+    },
+    "strategy_health_scoring": {
+      "type": "object",
+      "required": ["scoring_id", "score_threshold", "scores", "human_review_required"],
+      "properties": {
+        "scoring_id": {
+          "type": "string"
+        },
+        "score_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "scores": {
+          "type": "array"
+        },
+        "human_review_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "model_health_scoring": {
+      "type": "object",
+      "required": ["scoring_id", "score_threshold", "scores", "human_review_required"],
+      "properties": {
+        "scoring_id": {
+          "type": "string"
+        },
+        "score_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "scores": {
+          "type": "array"
+        },
+        "human_review_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "automatic_disable_policies": {
+      "type": "object",
+      "required": ["strategy_disable_on_degradation", "model_disable_on_drift"],
+      "properties": {
+        "strategy_disable_on_degradation": {
+          "type": "object"
+        },
+        "model_disable_on_drift": {
+          "type": "object"
+        }
+      }
+    },
+    "allocators": {
+      "type": "object",
+      "required": [
+        "portfolio_capital_allocator",
+        "multi_strategy_conflict_resolver",
+        "risk_budget_allocator",
+        "regime_detection_allocator",
+        "market_stress_allocator"
+      ],
+      "properties": {
+        "portfolio_capital_allocator": {
+          "type": "object"
+        },
+        "multi_strategy_conflict_resolver": {
+          "type": "object"
+        },
+        "risk_budget_allocator": {
+          "type": "object"
+        },
+        "regime_detection_allocator": {
+          "type": "object"
+        },
+        "market_stress_allocator": {
+          "type": "object"
+        }
+      }
+    },
+    "failover_policies": {
+      "type": "object",
+      "required": ["data_vendor_failover", "broker_exchange_failover"],
+      "properties": {
+        "data_vendor_failover": {
+          "type": "object"
+        },
+        "broker_exchange_failover": {
+          "type": "object"
+        }
+      }
+    },
+    "monthly_strategy_review": {
+      "type": "object"
+    },
+    "audit_replay": {
+      "type": "object"
+    },
+    "disaster_recovery": {
+      "type": "object"
+    },
+    "tax_export_placeholder": {
+      "type": "object"
+    },
+    "operator_handbook": {
+      "type": "object"
+    },
+    "dashboard_api_stub": {
+      "type": "object",
+      "required": ["read_only", "mutating_routes_enabled", "routes", "disabled_routes"],
+      "properties": {
+        "read_only": {
+          "type": "boolean"
+        },
+        "mutating_routes_enabled": {
+          "type": "boolean"
+        },
+        "routes": {
+          "type": "array"
+        },
+        "disabled_routes": {
+          "type": "array"
+        }
+      }
+    },
+    "final_safety_regression_suite": {
+      "type": "object",
+      "required": ["suite_id", "case_count", "golden_fixture_ref", "all_cases_passed", "cases"],
+      "properties": {
+        "suite_id": {
+          "type": "string"
+        },
+        "case_count": {
+          "type": "number",
+          "minimum": 1
+        },
+        "golden_fixture_ref": {
+          "type": "string"
+        },
+        "all_cases_passed": {
+          "type": "boolean"
+        },
+        "cases": {
+          "type": "array"
+        }
+      }
+    },
+    "trading_pack_v1_freeze": {
+      "type": "object",
+      "required": [
+        "freeze_id",
+        "phase_range",
+        "status",
+        "frozen",
+        "fixture_ref",
+        "golden_fixture_ref",
+        "schema_ref",
+        "check_mode_no_write_required",
+        "contract_validation_required",
+        "release_freeze_required",
+        "live_enablement_allowed",
+        "completion_baseline_phase",
+        "checklist"
+      ],
+      "properties": {
+        "freeze_id": {
+          "type": "string"
+        },
+        "phase_range": {
+          "const": "P331-P340"
+        },
+        "status": {
+          "enum": ["complete", "blocked"]
+        },
+        "frozen": {
+          "type": "boolean"
+        },
+        "fixture_ref": {
+          "type": "string"
+        },
+        "golden_fixture_ref": {
+          "type": "string"
+        },
+        "schema_ref": {
+          "type": "string"
+        },
+        "check_mode_no_write_required": {
+          "type": "boolean"
+        },
+        "contract_validation_required": {
+          "type": "boolean"
+        },
+        "release_freeze_required": {
+          "type": "boolean"
+        },
+        "live_enablement_allowed": {
+          "type": "boolean"
+        },
+        "completion_baseline_phase": {
+          "const": "P340"
+        },
+        "checklist": {
+          "type": "array",
+          "minItems": 10
+        }
+      }
+    }
+  }
+}

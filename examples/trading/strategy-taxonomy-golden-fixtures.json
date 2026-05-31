@@ -1,0 +1,18 @@
+{
+  "schema_version": "trading-strategy-taxonomy-golden-fixtures.v1",
+  "fixture_set_id": "trading.strategy-taxonomy.p036_p060",
+  "generated_at": "2026-05-30T00:00:00.000Z",
+  "fixtures": [
+    {
+      "fixture_id": "golden.trading.strategy_taxonomy.p036_p060",
+      "input_ref": "examples/trading/strategy-archetype-registry.json",
+      "expected_status": "complete",
+      "expected_phase_range": "P036-P060",
+      "expected_phase_count": 25,
+      "expected_archetype_count": 12,
+      "expected_event_model_count": 8,
+      "expected_live_eligible_count": 0,
+      "expected_signal_boundary": "signal_only_by_default"
+    }
+  ]
+}

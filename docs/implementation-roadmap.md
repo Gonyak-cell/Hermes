@@ -8739,3 +8739,30 @@ Changes:
   behavior.
 - Updated the P341-P500 ledger so P372 owns release-check human receipt queue
   visibility.
+
+## Phase 373 - Release-Check Receipt Validation Rules
+
+Phase 373 declares deterministic future validation rules for the P372
+release-check receipt queue. It records required receipt fields and allowed
+decisions for each queued row without receiving receipt payloads, validating
+receipts, marking rows ready for application, completing signoff, applying
+approvals, running release checks, reading or writing artifacts, publishing
+releases, or mutating release/trading state.
+
+Changes:
+
+- Added `src/platform-release-check-receipt-validation-rules.mjs`,
+  `scripts/platform-release-check-receipt-validation-rules.mjs`,
+  `schemas/platform-release-check-receipt-validation-rules.schema.json`, and
+  `docs/platform-release-check-receipt-validation-rules.md`.
+- Added `platform:release-check-receipt-validation-rules` and registered
+  `platform:release-check-receipt-validation-rules -- --check` in the
+  validation chain.
+- The command consumes the P372 receipt queue in memory and produces validation
+  rule rows, gate rows, a boundary report, validation output, and a Markdown
+  summary when not in `--check` mode.
+- Added focused tests for validation rule rows, missing validation-chain
+  registration, blocked source receipt queues, and `--check` no-overwrite
+  behavior.
+- Updated the P341-P500 ledger so P373 owns release-check future receipt
+  validation rules.

@@ -21,7 +21,7 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 | Range | Scope | Current status | Stability note |
 | --- | --- | --- | --- |
 | P341-P360 | Reproducibility baseline | complete | Pin Node/npm policy, lockfile policy, P340 provenance, deterministic runtime baseline artifact, and `platform:runtime-baseline`. |
-| P361-P380 | Unified platform and trading checks | active | Add `trading:release-check`, `platform:ops-check`, and `platform:release-check` so operators do not rely on remembered command order. |
+| P361-P380 | Unified platform and trading checks | complete | Add `trading:release-check`, `platform:ops-check`, `platform:release-check`, and receipt-readiness closeout so operators do not rely on remembered command order. |
 | P381-P400 | Trading safety regression | planned | Fail immediately if live, full-auto, automatic order submission, broker credential, generic order, or mutating trading routes become enabled. |
 | P401-P420 | Promotion receipt gates | planned | Require independent human approval receipts for research -> backtest -> paper -> shadow -> limited-live -> full-auto promotion claims. |
 | P421-P440 | Execution and secret isolation | planned | Keep simulated and live broker adapters schema/API separated; live credentials are external secret handles only. |
@@ -73,6 +73,7 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 - P377: `platform:release-check-receipt-validation-packet` declares future validation packet rows for release-check receipts without reading actor workspace files, materializing merged receipt input, receiving payloads, validating receipts, completing signoff, applying approvals, executing commands, reading/writing artifacts, or mutating release/trading state.
 - P378: `platform:release-check-receipt-approval-plan` declares future approval-plan rows for release-check receipts without reading actor workspace files, materializing merged receipt input, receiving payloads, validating receipts, completing signoff, applying approvals, executing commands, reading/writing artifacts, or mutating release/trading state.
 - P379: `platform:release-check-receipt-approval-closeout` closes the future approval-plan readiness layer for release-check receipts without reading actor workspace files, materializing merged receipt input, receiving payloads, validating receipts, completing signoff, applying approvals, executing commands, reading/writing artifacts, or mutating release/trading state.
+- P380: `platform:release-check-receipt-closeout` closes the P361-P380 release-check receipt readiness chain and records P381 as the next trading safety regression block without reading actor workspace files, receiving payloads, validating receipts, completing signoff, applying approvals, executing commands, reading/writing artifacts, or mutating release/trading state.
 - `trading:release-check` runs the complete Trading Pack validation stack, contract validation, release freeze, and trading no-write checks in one command.
 - `platform:ops-check` verifies runtime baseline, contracts, control-plane loop, dashboard/API smoke readiness, and domain-pack registry health.
 - `platform:release-check` composes `platform:ops-check`, `trading:release-check`, `npm run validate`, `npm test`, `contracts:validate -- --check`, and `release:freeze -- --check`.

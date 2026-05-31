@@ -8612,3 +8612,29 @@ Changes:
   registration, blocked source review packets, and `--check` no-overwrite
   behavior.
 - Updated the P341-P500 ledger so P367 owns release-check signoff requirements.
+
+## Phase 368 - Release-Check Signoff Receipt Template
+
+Phase 368 adds human-fillable receipt templates over the P367 release-check
+signoff ledger. It records required receipt fields and allowed decisions for
+each signoff row without completing receipts, completing signoff, applying
+approvals, materializing receipts, running release checks, reading or writing
+artifacts, publishing releases, or mutating release/trading state.
+
+Changes:
+
+- Added `src/platform-release-check-signoff-receipt-template.mjs`,
+  `scripts/platform-release-check-signoff-receipt-template.mjs`,
+  `schemas/platform-release-check-signoff-receipt-template.schema.json`, and
+  `docs/platform-release-check-signoff-receipt-template.md`.
+- Added `platform:release-check-signoff-receipt-template` and registered
+  `platform:release-check-signoff-receipt-template -- --check` in the validation
+  chain.
+- The command consumes the P367 signoff ledger in memory and produces receipt
+  template rows, gate rows, a boundary report, validation output, and a
+  Markdown summary when not in `--check` mode.
+- Added focused tests for ready receipt templates, missing validation-chain
+  registration, blocked source signoff ledgers, and `--check` no-overwrite
+  behavior.
+- Updated the P341-P500 ledger so P368 owns release-check signoff receipt
+  templates.

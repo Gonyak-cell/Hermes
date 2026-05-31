@@ -35,6 +35,7 @@ import { runTradingLeverageDisabledFixtures } from "../src/trading-leverage-disa
 import { runTradingShortSellingDisabledFixtures } from "../src/trading-short-selling-disabled-fixtures.mjs";
 import { runTradingOrderFrequencyThrottleFixtures } from "../src/trading-order-frequency-throttle-fixtures.mjs";
 import { runTradingLossStreakCooldownFixtures } from "../src/trading-loss-streak-cooldown-fixtures.mjs";
+import { runTradingModelDegradationHaltFixtures } from "../src/trading-model-degradation-halt-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -2959,6 +2960,220 @@ test("trading loss streak cooldown fixtures --check does not overwrite existing 
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingLossStreakCooldownFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading model degradation halt fixtures keep model halt paths human gated", async () => {
+  const result = await runTradingModelDegradationHaltFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_model_degradation_halt_fixtures_status, "ready_for_trading_model_degradation_halt_regression");
+  assert.equal(result.summary.phase_slot, "P399");
+  assert.equal(result.summary.previous_phase_slot, "P398");
+  assert.equal(result.summary.next_phase_slot, "P400");
+  assert.equal(result.summary.source_loss_streak_cooldown_status, "ready_for_trading_loss_streak_cooldown_regression");
+  assert.equal(result.summary.source_loss_streak_cooldown_ready, true);
+  assert.equal(result.summary.required_fixture_count, 6);
+  assert.equal(result.summary.passed_fixture_count, 6);
+  assert.equal(result.summary.unsafe_model_degradation_signal_count, 0);
+  assert.equal(result.summary.model_degradation_halt_covered, true);
+  assert.equal(result.summary.risk_model_degradation_source_unbound, false);
+  assert.equal(result.summary.risk_degradation_result_not_pass, false);
+  assert.equal(result.summary.risk_model_degradation_halt_not_armed, false);
+  assert.equal(result.summary.risk_model_degradation_result_not_pass, false);
+  assert.equal(result.summary.risk_model_degradation_check_not_pass, false);
+  assert.equal(result.summary.model_registry_missing, false);
+  assert.equal(result.summary.model_degradation_checks_missing, false);
+  assert.equal(result.summary.model_degradation_checks_allow_promotion, false);
+  assert.equal(result.summary.model_degradation_halt_present, false);
+  assert.equal(result.summary.model_auto_live_promotion_allowed, false);
+  assert.equal(result.summary.model_live_deployment_allowed, false);
+  assert.equal(result.summary.research_model_not_research_only, false);
+  assert.equal(result.summary.research_model_live_deployed, false);
+  assert.equal(result.summary.research_model_degradation_not_none, false);
+  assert.equal(result.summary.research_model_drift_not_none, false);
+  assert.equal(result.summary.research_live_trading_enabled, false);
+  assert.equal(result.summary.research_full_auto_not_blocked, false);
+  assert.equal(result.summary.limited_live_model_degradation_source_unbound, false);
+  assert.equal(result.summary.limited_live_model_degradation_result_not_pass, false);
+  assert.equal(result.summary.limited_live_model_degradation_halt_not_armed, false);
+  assert.equal(result.summary.limited_live_model_enabled, false);
+  assert.equal(result.summary.limited_live_order_submission_allowed, false);
+  assert.equal(result.summary.full_auto_degradation_disable_not_control_plane, false);
+  assert.equal(result.summary.full_auto_model_drift_disable_not_control_plane, false);
+  assert.equal(result.summary.full_auto_live_orders_touched, false);
+  assert.equal(result.summary.full_auto_enabled, false);
+  assert.equal(result.summary.automatic_order_submission_allowed, false);
+  assert.equal(result.summary.model_automated_live_deployment_allowed, false);
+  assert.equal(result.summary.model_order_intent_generated, false);
+  assert.equal(result.summary.order_intent_generated, false);
+  assert.equal(result.summary.live_execution_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.ok(result.model_degradation_halt_evidence_rows.every((row) => row.evidence_status === "model_degradation_halt_ready" && row.unsafe_model_degradation_signal_detected === false));
+  assert.ok(result.model_degradation_halt_fixture_rows.every((row) => row.fixture_status === "passed" && row.fixture_should_fail_when_model_degradation_bypassed && row.fixture_should_fail_when_promotion_enabled && row.fixture_should_fail_when_live_model_enabled));
+  assert.ok(result.model_degradation_halt_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_gate === false));
+});
+
+test("trading model degradation halt fixtures block when model degradation halt is bypassed", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-model-degradation-bypass-"));
+  try {
+    const riskEngine = JSON.parse(await readFile("examples/trading/risk-engine.json", "utf8"));
+    riskEngine.risk_guards.model_degradation_halt.source_ref = "degradation.missing";
+    riskEngine.risk_guards.model_degradation_halt.degradation_result = "halt";
+    riskEngine.risk_guards.model_degradation_halt.halt_on_degradation = false;
+    riskEngine.risk_guards.model_degradation_halt.result = "halt";
+    riskEngine.safety_boundary.order_intent_generated = true;
+    riskEngine.safety_boundary.live_execution_allowed = true;
+    riskEngine.risk_check_artifacts[0].checks = riskEngine.risk_check_artifacts[0].checks.map((check) => (
+      check.check_id === "model_degradation_halt" ? { ...check, status: "halt" } : check
+    ));
+    const riskEnginePath = path.join(root, "risk-engine.json");
+    await writeFile(riskEnginePath, `${JSON.stringify(riskEngine, null, 2)}\n`, "utf8");
+
+    const modelImprovement = JSON.parse(await readFile("examples/trading/model-improvement-layer.json", "utf8"));
+    modelImprovement.degradation_checks = modelImprovement.degradation_checks.map((check) => (
+      check.check_id === "degradation.baseline_rule.validation_delta" ? { ...check, result: "halt", blocks_promotion: false } : check
+    ));
+    modelImprovement.promotion_policy_gate.auto_live_promotion_allowed = true;
+    modelImprovement.live_deployment_boundary.live_deployment_allowed = true;
+    modelImprovement.safety_boundary.automated_live_deployment_allowed = true;
+    modelImprovement.safety_boundary.order_intent_generated = true;
+    const modelImprovementPath = path.join(root, "model-improvement-layer.json");
+    await writeFile(modelImprovementPath, `${JSON.stringify(modelImprovement, null, 2)}\n`, "utf8");
+
+    const researchBacktestPaper = JSON.parse(await readFile("examples/trading/research-backtest-paper-sample.json", "utf8"));
+    researchBacktestPaper.contract_examples["trading-model"].research_only = false;
+    researchBacktestPaper.contract_examples["trading-model"].deployment_stage = "live";
+    researchBacktestPaper.contract_examples["trading-model"].scorecard.degradation_status = "halt";
+    researchBacktestPaper.contract_examples["trading-model"].scorecard.drift_status = "halt";
+    researchBacktestPaper.safety_policy.live_trading_enabled = true;
+    researchBacktestPaper.stage_policy.full_auto = "active";
+    const researchBacktestPaperPath = path.join(root, "research-backtest-paper-sample.json");
+    await writeFile(researchBacktestPaperPath, `${JSON.stringify(researchBacktestPaper, null, 2)}\n`, "utf8");
+
+    const limitedLive = JSON.parse(await readFile("examples/trading/limited-live-governance.json", "utf8"));
+    limitedLive.model_live_degradation_check.source_ref = "degradation.missing";
+    limitedLive.model_live_degradation_check.result = "halt";
+    limitedLive.model_live_degradation_check.halt_on_degradation = false;
+    limitedLive.model_live_degradation_check.live_model_enabled = true;
+    limitedLive.safety_boundary.live_order_submission_allowed = true;
+    const limitedLivePath = path.join(root, "limited-live-governance.json");
+    await writeFile(limitedLivePath, `${JSON.stringify(limitedLive, null, 2)}\n`, "utf8");
+
+    const fullAuto = JSON.parse(await readFile("examples/trading/full-auto-governance.json", "utf8"));
+    fullAuto.automatic_disable_policies.strategy_disable_on_degradation.enabled = false;
+    fullAuto.automatic_disable_policies.strategy_disable_on_degradation.trigger_results = ["warn", "block"];
+    fullAuto.automatic_disable_policies.strategy_disable_on_degradation.control_plane_state_change_only = false;
+    fullAuto.automatic_disable_policies.strategy_disable_on_degradation.live_orders_touched = true;
+    fullAuto.automatic_disable_policies.model_disable_on_drift.control_plane_state_change_only = false;
+    fullAuto.safety_boundary.automatic_order_submission_allowed = true;
+    fullAuto.safety_boundary.broker_write_allowed = true;
+    fullAuto.safety_boundary.exchange_write_allowed = true;
+    const fullAutoPath = path.join(root, "full-auto-governance.json");
+    await writeFile(fullAutoPath, `${JSON.stringify(fullAuto, null, 2)}\n`, "utf8");
+
+    const result = await runTradingModelDegradationHaltFixtures({
+      riskEnginePath,
+      modelImprovementPath,
+      researchBacktestPaperPath,
+      limitedLivePath,
+      fullAutoPath,
+      write: false,
+    });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_model_degradation_halt_fixtures_status, "blocked");
+    assert.ok(result.summary.unsafe_model_degradation_signal_count > 0);
+    assert.equal(result.summary.risk_model_degradation_source_unbound, true);
+    assert.equal(result.summary.risk_degradation_result_not_pass, true);
+    assert.equal(result.summary.risk_model_degradation_halt_not_armed, true);
+    assert.equal(result.summary.risk_model_degradation_result_not_pass, true);
+    assert.equal(result.summary.risk_model_degradation_check_not_pass, true);
+    assert.equal(result.summary.model_degradation_checks_allow_promotion, true);
+    assert.equal(result.summary.model_degradation_halt_present, true);
+    assert.equal(result.summary.model_auto_live_promotion_allowed, true);
+    assert.equal(result.summary.model_live_deployment_allowed, true);
+    assert.equal(result.summary.research_model_not_research_only, true);
+    assert.equal(result.summary.research_model_live_deployed, true);
+    assert.equal(result.summary.research_model_degradation_not_none, true);
+    assert.equal(result.summary.research_model_drift_not_none, true);
+    assert.equal(result.summary.research_live_trading_enabled, true);
+    assert.equal(result.summary.research_full_auto_not_blocked, true);
+    assert.equal(result.summary.limited_live_model_degradation_source_unbound, true);
+    assert.equal(result.summary.limited_live_model_degradation_result_not_pass, true);
+    assert.equal(result.summary.limited_live_model_degradation_halt_not_armed, true);
+    assert.equal(result.summary.limited_live_model_enabled, true);
+    assert.equal(result.summary.limited_live_order_submission_allowed, true);
+    assert.equal(result.summary.full_auto_degradation_disable_not_control_plane, true);
+    assert.equal(result.summary.full_auto_model_drift_disable_not_control_plane, true);
+    assert.equal(result.summary.full_auto_live_orders_touched, true);
+    assert.equal(result.summary.automatic_order_submission_allowed, true);
+    assert.equal(result.summary.model_automated_live_deployment_allowed, true);
+    assert.equal(result.summary.model_order_intent_generated, true);
+    assert.equal(result.summary.order_intent_generated, true);
+    assert.equal(result.summary.live_execution_allowed, true);
+    assert.equal(result.summary.broker_write_allowed, true);
+    assert.equal(result.summary.exchange_write_allowed, true);
+    assert.ok(result.model_degradation_halt_fixture_rows.some((row) => row.row_key === "risk_model_degradation_halt_declared" && row.fixture_status === "failed" && row.unsafe_model_degradation_signal_detected));
+    await assert.rejects(
+      () => runTradingModelDegradationHaltFixtures({
+        riskEnginePath,
+        modelImprovementPath,
+        researchBacktestPaperPath,
+        limitedLivePath,
+        fullAutoPath,
+        write: false,
+        check: true,
+      }),
+      /Trading model degradation halt fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading model degradation halt fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-model-degradation-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:model-degradation-halt-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:model-degradation-halt-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingModelDegradationHaltFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_model_degradation_halt_fixtures_status, "blocked");
+    assert.ok(result.model_degradation_halt_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.model_degradation_halt_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingModelDegradationHaltFixtures({ packagePath, write: false, check: true }),
+      /Trading model degradation halt fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading model degradation halt fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-model-degradation-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-model-degradation-halt-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-model-degradation-halt-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingModelDegradationHaltFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

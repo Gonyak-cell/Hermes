@@ -44,7 +44,8 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 - P351: `platform:mac-windows-replay-notes` documents Mac/Windows replay notes for operator handoff without importing history, changing checkout state, regenerating artifacts, or mutating lockfiles.
 - P352: `platform:lockfile-policy` records package manager, npmrc, and package-lock policy without dependency installs, package mutation, lockfile mutation, or artifact regeneration.
 - P353: `platform:replay-handoff-map` maps replay scopes to owner roles, expected evidence, and next operator actions without executing commands or protected actions.
-- P354-P355: replay handoff refinements are documented for operator handoff.
+- P354: `platform:replay-evidence-checklist` records replay evidence expectations without collecting evidence, executing commands, regenerating artifacts, or performing protected actions.
+- P355: replay handoff closeout is documented for operator handoff.
 - P356-P360: reproducibility checks are registered in the platform validation and future release-check chain.
 
 ## P361-P380 Acceptance Criteria

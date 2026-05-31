@@ -253,7 +253,7 @@ function buildReplayHandoffGateRows({ lockfilePolicy, packageJson, platformOpsLe
     gateRow("p353_ledger_acceptance_declared", "P353 acceptance row is declared in the platform operations ledger.", ledgerText.includes("P353: `platform:replay-handoff-map`")),
     gateRow("replay_handoff_rows_ready", "All replay handoff rows are ready.", replayHandoffRows.length >= 6 && replayHandoffRows.every((row) => row.replay_handoff_status === "ready")),
     gateRow("no_command_or_protected_action", "Replay handoff map performs no commands or protected actions.", true),
-    gateRow("p354_next_phase_reserved", "P354-P355 remain reserved for replay handoff refinements.", ledgerText.includes("P354-P355") && ledgerText.includes("replay handoff")),
+    gateRow("p354_next_phase_reserved", "P354 owns the replay evidence checklist and P355 remains reserved for replay handoff closeout.", ledgerText.includes("P354: `platform:replay-evidence-checklist`") && ledgerText.includes("P355") && ledgerText.includes("replay handoff")),
   ];
   return rows.map((row, index) => withOrdinalAndHash(row, index, "replay_handoff_gate_hash"));
 }

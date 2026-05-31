@@ -8272,3 +8272,28 @@ Changes:
   no-overwrite behavior.
 - Updated the P341-P500 ledger so P353 owns the replay handoff map and P354-P355
   remain reserved for replay handoff refinements.
+
+## Phase 354 - Platform Replay Evidence Checklist
+
+Phase 354 records the replay evidence checklist that operators use before replay
+handoff closeout. It consumes P353 replay handoff map in memory and records the
+expected evidence rows for runtime, contracts, validation, artifact
+regeneration, cross-OS history, trading safety, and human review without
+collecting evidence, running commands, regenerating artifacts, importing
+history, changing checkout state, performing git operations, submitting trading
+orders, or executing protected actions.
+
+Changes:
+
+- Added `src/platform-replay-evidence-checklist.mjs`,
+  `scripts/platform-replay-evidence-checklist.mjs`,
+  `schemas/platform-replay-evidence-checklist.schema.json`, and
+  `docs/platform-replay-evidence-checklist.md`.
+- Added `platform:replay-evidence-checklist` and registered
+  `platform:replay-evidence-checklist -- --check` after
+  `platform:replay-handoff-map` in the validation chain.
+- Added focused platform operations tests for replay evidence checklist
+  readiness, missing package-script or validation-chain registration, and
+  `--check` no-overwrite behavior.
+- Updated the P341-P500 ledger so P354 owns the replay evidence checklist and
+  P355 remains reserved for replay handoff closeout.

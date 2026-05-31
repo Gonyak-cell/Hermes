@@ -16,6 +16,7 @@ import { runPlatformProvenanceFreeze } from "../src/platform-provenance-freeze.m
 import { runPlatformMacWindowsReplayNotes } from "../src/platform-mac-windows-replay-notes.mjs";
 import { runPlatformLockfilePolicy } from "../src/platform-lockfile-policy.mjs";
 import { runPlatformReplayHandoffMap } from "../src/platform-replay-handoff-map.mjs";
+import { runPlatformReplayEvidenceChecklist } from "../src/platform-replay-evidence-checklist.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -862,6 +863,74 @@ test("platform replay handoff map --check does not overwrite existing artifacts"
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformReplayHandoffMap({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform replay evidence checklist records P354 without collecting evidence", async () => {
+  const result = await runPlatformReplayEvidenceChecklist({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_replay_evidence_checklist_status, "ready");
+  assert.equal(result.summary.phase_slot, "P354");
+  assert.equal(result.summary.previous_phase_slot, "P353");
+  assert.equal(result.summary.next_phase_slot, "P355");
+  assert.equal(result.summary.source_replay_handoff_map_status, "ready");
+  assert.equal(result.summary.replay_evidence_count, 8);
+  assert.equal(result.summary.ready_replay_evidence_count, 8);
+  assert.equal(result.summary.replay_evidence_gate_count, 7);
+  assert.equal(result.summary.ready_replay_evidence_gate_count, 7);
+  assert.equal(result.summary.evidence_collected, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_regeneration_performed, false);
+  assert.equal(result.summary.history_import_performed, false);
+  assert.equal(result.summary.repository_checkout_changed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.ok(result.replay_evidence_rows.every((row) => row.replay_evidence_status === "ready" && row.evidence_collected_by_report === false));
+  assert.ok(result.replay_evidence_gate_rows.every((row) => row.gate_status === "ready" && row.command_execution_performed_by_report === false));
+});
+
+test("platform replay evidence checklist blocks when validation chain is missing P354", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-replay-evidence-block-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:replay-evidence-checklist"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:replay-evidence-checklist -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformReplayEvidenceChecklist({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_replay_evidence_checklist_status, "blocked");
+    assert.ok(result.replay_evidence_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.replay_evidence_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformReplayEvidenceChecklist({ packagePath, write: false, check: true }),
+      /Platform replay evidence checklist failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform replay evidence checklist --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-replay-evidence-check-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-replay-evidence-checklist.json");
+    const sentinel = "{ \"sentinel\": \"replay-evidence-checklist\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformReplayEvidenceChecklist({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

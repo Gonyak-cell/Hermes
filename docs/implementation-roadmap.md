@@ -8021,3 +8021,25 @@ Changes:
 - Updated the P341-P500 ledger so P342 owns the first runtime/dependency drift
   comparison and P343-P345 remain reserved for replay-window and operator
   handoff detail.
+
+## Phase 343 - Platform Runtime Replay Window
+
+Phase 343 adds a read-only replay-window artifact for runtime/dependency
+stability operations. It consumes the P342 drift check in memory and maps the
+operator replay windows for current runtime/dependency checks, contract/release
+checks, validation/tests, artifact regeneration, cross-OS history review, and
+Trading safety checks without executing commands or mutating artifacts.
+
+Changes:
+
+- Added `src/platform-runtime-replay-window.mjs`,
+  `scripts/platform-runtime-replay-window.mjs`,
+  `schemas/platform-runtime-replay-window.schema.json`, and
+  `docs/platform-runtime-replay-window.md`.
+- Added `platform:replay-window` and registered
+  `platform:replay-window -- --check` after `platform:drift-check` in the
+  validation chain.
+- Added focused platform operations tests for ready replay windows, drift-blocked
+  replay windows, and `--check` no-overwrite behavior.
+- Updated the P341-P500 ledger so P343 owns replay-window mapping and P344-P345
+  remain reserved for deeper operator handoff detail.

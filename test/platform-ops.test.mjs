@@ -5,6 +5,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { runPlatformRuntimeDriftCheck } from "../src/platform-runtime-drift.mjs";
 import { runPlatformRuntimeBaseline } from "../src/platform-runtime-baseline.mjs";
+import { runPlatformRuntimeReplayWindow } from "../src/platform-runtime-replay-window.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -106,6 +107,78 @@ test("platform runtime drift check --check does not overwrite existing artifacts
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformRuntimeDriftCheck({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform runtime replay window maps P343 operator replay without executing commands", async () => {
+  const result = await runPlatformRuntimeReplayWindow({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_runtime_replay_window_status, "ready");
+  assert.equal(result.summary.phase_slot, "P343");
+  assert.equal(result.summary.previous_phase_slot, "P342");
+  assert.equal(result.summary.next_phase_slot, "P344");
+  assert.equal(result.summary.baseline_phase_slot, "P341");
+  assert.equal(result.summary.drift_phase_slot, "P342");
+  assert.equal(result.summary.source_drift_status, "stable");
+  assert.equal(result.summary.source_drifted_row_count, 0);
+  assert.equal(result.summary.replay_window_count, 6);
+  assert.equal(result.summary.ready_replay_window_count, 6);
+  assert.equal(result.summary.replay_command_count, 13);
+  assert.equal(result.summary.ready_replay_command_count, 13);
+  assert.equal(result.summary.executed_command_count, 0);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.dependency_install_performed, false);
+  assert.equal(result.summary.package_mutation_performed, false);
+  assert.equal(result.summary.lockfile_mutation_performed, false);
+  assert.equal(result.summary.artifact_regeneration_performed, false);
+  assert.equal(result.summary.git_operation_performed, false);
+  assert.equal(result.summary.release_published, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.ok(result.replay_command_rows.every((row) => row.executed_by_report === false && row.mutation_allowed_by_report === false));
+  assert.ok(result.operator_handoff_rows.every((row) => row.human_review_required && row.command_execution_allowed_by_report === false));
+});
+
+test("platform runtime replay window blocks when P342 drift is present", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-runtime-replay-block-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    packageJson.dependencies = { "unexpected-runtime-dependency": "1.0.0" };
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformRuntimeReplayWindow({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_runtime_replay_window_status, "blocked");
+    assert.equal(result.summary.source_drift_status, "drift_detected");
+    assert.equal(result.summary.source_drifted_row_count > 0, true);
+    await assert.rejects(
+      () => runPlatformRuntimeReplayWindow({ packagePath, write: false, check: true }),
+      /Platform runtime replay window failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform runtime replay window --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-runtime-replay-check-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-runtime-replay-window.json");
+    const sentinel = "{ \"sentinel\": \"runtime-replay-window\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformRuntimeReplayWindow({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

@@ -33,7 +33,8 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 
 - P341: `platform:runtime-baseline` validates `.nvmrc`, `.node-version`, `.npmrc`, `packageManager`, `engines`, `package-lock.json`, this ledger, and the P340 bundle hash without installing dependencies, creating releases, or enabling trading mutation.
 - P342: `platform:drift-check` compares the current local runtime/dependency/provenance state to the P341 baseline in memory and validates source fingerprints without overwriting artifacts in `--check`.
-- P343-P345: runtime/dependency drift reports add replay-window and operator handoff detail while keeping artifacts read-only.
+- P343: `platform:replay-window` consumes the P342 drift check in memory and maps current-checkout, contract/release, validation/test, artifact-regeneration, cross-OS history, and Trading safety replay windows without executing commands.
+- P344-P345: runtime/dependency drift reports add deeper operator handoff detail while keeping artifacts read-only.
 - P346-P350: baseline provenance records release bundle hashes and future signed-tag requirements without creating tags.
 - P351-P355: Mac/Windows replay notes and lockfile policy are documented for operator handoff.
 - P356-P360: reproducibility checks are registered in the platform validation and future release-check chain.

@@ -20,6 +20,7 @@ import {
   runTradingRouteInventoryFixtures,
 } from "../src/trading-route-inventory-fixtures.mjs";
 import { runTradingApprovalAbsenceFixtures } from "../src/trading-approval-absence-fixtures.mjs";
+import { runTradingLiveAdapterDisabledFixtures } from "../src/trading-live-adapter-disabled-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -950,6 +951,107 @@ test("trading approval absence fixtures --check does not overwrite existing arti
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingApprovalAbsenceFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading live adapter disabled fixtures keep live adapters and writes disabled", async () => {
+  const result = await runTradingLiveAdapterDisabledFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_live_adapter_disabled_fixtures_status, "ready_for_trading_live_adapter_disabled_regression");
+  assert.equal(result.summary.phase_slot, "P384");
+  assert.equal(result.summary.previous_phase_slot, "P383");
+  assert.equal(result.summary.next_phase_slot, "P385");
+  assert.equal(result.summary.source_approval_absence_status, "ready_for_trading_approval_absence_regression");
+  assert.equal(result.summary.required_fixture_count, 5);
+  assert.equal(result.summary.evidence_count, 5);
+  assert.equal(result.summary.fixture_count, 5);
+  assert.equal(result.summary.passed_fixture_count, 5);
+  assert.equal(result.summary.failed_fixture_count, 0);
+  assert.equal(result.summary.unsafe_adapter_signal_count, 0);
+  assert.equal(result.summary.live_adapter_disabled_covered, true);
+  assert.equal(result.summary.live_adapter_enabled, false);
+  assert.equal(result.summary.external_network_allowed, false);
+  assert.equal(result.summary.live_write_allowed, false);
+  assert.equal(result.summary.credential_lookup_enabled, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.ok(result.live_adapter_disabled_evidence_rows.every((row) => row.evidence_status === "live_adapter_disabled" && row.unsafe_adapter_signal_detected === false));
+  assert.ok(result.live_adapter_disabled_fixture_rows.every((row) => row.fixture_status === "passed" && row.fixture_should_fail_when_live_adapter_enabled && row.fixture_should_fail_when_live_write_allowed));
+  assert.ok(result.live_adapter_disabled_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_gate === false));
+});
+
+test("trading live adapter disabled fixtures block when live adapter is enabled", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-live-adapter-enabled-"));
+  try {
+    const executionEngine = JSON.parse(await readFile("examples/trading/execution-engine.json", "utf8"));
+    executionEngine.safety_boundary.live_adapter_enabled = true;
+    executionEngine.safety_boundary.live_execution_allowed = true;
+    executionEngine.adapters.live_adapter.enabled = true;
+    executionEngine.adapters.live_adapter.external_network_allowed = true;
+    executionEngine.adapters.live_adapter.live_write_allowed = true;
+    const executionEnginePath = path.join(root, "execution-engine.json");
+    await writeFile(executionEnginePath, `${JSON.stringify(executionEngine, null, 2)}\n`, "utf8");
+
+    const result = await runTradingLiveAdapterDisabledFixtures({ executionEnginePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_live_adapter_disabled_fixtures_status, "blocked");
+    assert.ok(result.summary.unsafe_adapter_signal_count > 0);
+    assert.equal(result.summary.live_adapter_enabled, true);
+    assert.equal(result.summary.external_network_allowed, true);
+    assert.equal(result.summary.live_write_allowed, true);
+    assert.ok(result.live_adapter_disabled_fixture_rows.some((row) => row.row_key === "execution_live_adapter_disabled" && row.fixture_status === "failed" && row.unsafe_adapter_signal_detected));
+    await assert.rejects(
+      () => runTradingLiveAdapterDisabledFixtures({ executionEnginePath, write: false, check: true }),
+      /Trading live adapter disabled fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading live adapter disabled fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-live-adapter-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:live-adapter-disabled-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:live-adapter-disabled-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingLiveAdapterDisabledFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_live_adapter_disabled_fixtures_status, "blocked");
+    assert.ok(result.live_adapter_disabled_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.live_adapter_disabled_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingLiveAdapterDisabledFixtures({ packagePath, write: false, check: true }),
+      /Trading live adapter disabled fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading live adapter disabled fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-live-adapter-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-live-adapter-disabled-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-live-adapter-disabled-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingLiveAdapterDisabledFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

@@ -1,0 +1,317 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/trading/trading-live-adapter-disabled-fixtures.schema.json",
+  "title": "Trading Live Adapter Disabled Fixtures",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "trading_live_adapter_disabled_fixtures_id",
+    "capability_id",
+    "live_adapter_disabled_anchor",
+    "live_adapter_disabled_evidence_rows",
+    "live_adapter_disabled_fixture_rows",
+    "live_adapter_disabled_gate_rows",
+    "live_adapter_disabled_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "trading-live-adapter-disabled-fixtures.v1" },
+    "trading_live_adapter_disabled_fixtures_id": {
+      "type": "string",
+      "pattern": "^trading-live-adapter-disabled-fixtures\\.[0-9]{8}$"
+    },
+    "capability_id": { "const": "trading.live_adapter_disabled_fixtures" },
+    "live_adapter_disabled_anchor": {
+      "type": "object",
+      "required": [
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "source_approval_absence_status",
+        "required_fixture_count"
+      ],
+      "properties": {
+        "phase_slot": { "const": "P384" },
+        "previous_phase_slot": { "const": "P383" },
+        "next_phase_slot": { "const": "P385" },
+        "source_approval_absence_status": { "const": "ready_for_trading_approval_absence_regression" },
+        "required_fixture_count": { "const": 5 }
+      }
+    },
+    "live_adapter_disabled_evidence_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "row_key",
+          "observed_conditions",
+          "observed_condition_count",
+          "all_conditions_present",
+          "unsafe_adapter_signal_detected",
+          "evidence_status",
+          "human_review_required"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P384" },
+          "row_key": {
+            "enum": [
+              "execution_live_adapter_disabled",
+              "execution_interfaces_write_disabled",
+              "shadow_live_data_adapter_read_only",
+              "limited_live_adapter_boundary_blocked",
+              "full_auto_failover_live_adapter_not_required"
+            ]
+          },
+          "observed_conditions": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "condition_path",
+                "expected_safe_value",
+                "observed_value",
+                "condition_present",
+                "unsafe_when_not_safe"
+              ],
+              "properties": {
+                "condition_present": { "const": true },
+                "unsafe_when_not_safe": { "const": true }
+              }
+            }
+          },
+          "all_conditions_present": { "const": true },
+          "unsafe_adapter_signal_detected": { "const": false },
+          "evidence_status": { "const": "live_adapter_disabled" },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "live_adapter_disabled_fixture_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "row_key",
+          "expected_live_adapter_enabled",
+          "unsafe_adapter_signal_detected",
+          "fixture_should_fail_when_live_adapter_enabled",
+          "fixture_should_fail_when_external_network_enabled",
+          "fixture_should_fail_when_live_write_allowed",
+          "fixture_status",
+          "live_adapter_enabled_by_fixture",
+          "external_network_allowed_by_fixture",
+          "live_write_allowed_by_fixture",
+          "broker_write_allowed_by_fixture",
+          "exchange_write_allowed_by_fixture",
+          "command_execution_performed_by_fixture",
+          "artifact_write_performed_by_fixture",
+          "protected_action_executed_by_fixture",
+          "human_review_required"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P384" },
+          "row_key": {
+            "enum": [
+              "execution_live_adapter_disabled",
+              "execution_interfaces_write_disabled",
+              "shadow_live_data_adapter_read_only",
+              "limited_live_adapter_boundary_blocked",
+              "full_auto_failover_live_adapter_not_required"
+            ]
+          },
+          "expected_live_adapter_enabled": { "const": false },
+          "unsafe_adapter_signal_detected": { "const": false },
+          "fixture_should_fail_when_live_adapter_enabled": { "const": true },
+          "fixture_should_fail_when_external_network_enabled": { "const": true },
+          "fixture_should_fail_when_live_write_allowed": { "const": true },
+          "fixture_status": { "const": "passed" },
+          "live_adapter_enabled_by_fixture": { "const": false },
+          "external_network_allowed_by_fixture": { "const": false },
+          "live_write_allowed_by_fixture": { "const": false },
+          "broker_write_allowed_by_fixture": { "const": false },
+          "exchange_write_allowed_by_fixture": { "const": false },
+          "command_execution_performed_by_fixture": { "const": false },
+          "artifact_write_performed_by_fixture": { "const": false },
+          "protected_action_executed_by_fixture": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "live_adapter_disabled_gate_rows": {
+      "type": "array",
+      "minItems": 9,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "gate_status",
+          "live_adapter_enabled_by_gate",
+          "external_network_allowed_by_gate",
+          "live_write_allowed_by_gate",
+          "broker_write_allowed_by_gate",
+          "exchange_write_allowed_by_gate",
+          "protected_action_executed_by_gate",
+          "human_review_required"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P384" },
+          "gate_status": { "const": "ready" },
+          "live_adapter_enabled_by_gate": { "const": false },
+          "external_network_allowed_by_gate": { "const": false },
+          "live_write_allowed_by_gate": { "const": false },
+          "broker_write_allowed_by_gate": { "const": false },
+          "exchange_write_allowed_by_gate": { "const": false },
+          "protected_action_executed_by_gate": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "live_adapter_disabled_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "phase_slot",
+        "read_only",
+        "report_only",
+        "live_adapter_disabled_fixture_execution_performed",
+        "required_fixture_count",
+        "live_adapter_evidence_count",
+        "fixture_count",
+        "unsafe_adapter_signal_count",
+        "live_adapter_disabled_covered",
+        "live_adapter_enabled",
+        "external_network_allowed",
+        "live_write_allowed",
+        "trading_live_enabled",
+        "trading_full_auto_enabled",
+        "trading_order_submission_allowed",
+        "automatic_order_submission_allowed",
+        "live_order_submission_allowed",
+        "credential_lookup_enabled",
+        "broker_write_allowed",
+        "exchange_write_allowed",
+        "command_execution_performed",
+        "package_command_execution_performed",
+        "release_check_execution_performed",
+        "artifact_write_performed",
+        "release_published",
+        "git_operation_performed",
+        "protected_action_executed",
+        "human_review_required"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "phase_slot": { "const": "P384" },
+        "read_only": { "const": true },
+        "report_only": { "const": true },
+        "live_adapter_disabled_fixture_execution_performed": { "const": false },
+        "required_fixture_count": { "const": 5 },
+        "live_adapter_evidence_count": { "const": 5 },
+        "fixture_count": { "const": 5 },
+        "unsafe_adapter_signal_count": { "const": 0 },
+        "live_adapter_disabled_covered": { "const": true },
+        "live_adapter_enabled": { "const": false },
+        "external_network_allowed": { "const": false },
+        "live_write_allowed": { "const": false },
+        "trading_live_enabled": { "const": false },
+        "trading_full_auto_enabled": { "const": false },
+        "trading_order_submission_allowed": { "const": false },
+        "automatic_order_submission_allowed": { "const": false },
+        "live_order_submission_allowed": { "const": false },
+        "credential_lookup_enabled": { "const": false },
+        "broker_write_allowed": { "const": false },
+        "exchange_write_allowed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "package_command_execution_performed": { "const": false },
+        "release_check_execution_performed": { "const": false },
+        "artifact_write_performed": { "const": false },
+        "release_published": { "const": false },
+        "git_operation_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "human_review_required": { "const": true }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "trading_live_adapter_disabled_fixtures_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "source_approval_absence_status",
+        "required_fixture_count",
+        "evidence_count",
+        "fixture_count",
+        "passed_fixture_count",
+        "failed_fixture_count",
+        "gate_count",
+        "ready_gate_count",
+        "unsafe_adapter_signal_count",
+        "live_adapter_disabled_covered",
+        "live_adapter_enabled",
+        "external_network_allowed",
+        "live_write_allowed",
+        "trading_live_enabled",
+        "trading_full_auto_enabled",
+        "trading_order_submission_allowed",
+        "automatic_order_submission_allowed",
+        "live_order_submission_allowed",
+        "credential_lookup_enabled",
+        "broker_write_allowed",
+        "exchange_write_allowed",
+        "command_execution_performed",
+        "release_check_execution_performed",
+        "artifact_write_performed",
+        "release_published",
+        "git_operation_performed",
+        "protected_action_executed",
+        "human_review_required",
+        "validation_error_count"
+      ],
+      "properties": {
+        "trading_live_adapter_disabled_fixtures_status": { "const": "ready_for_trading_live_adapter_disabled_regression" },
+        "phase_slot": { "const": "P384" },
+        "previous_phase_slot": { "const": "P383" },
+        "next_phase_slot": { "const": "P385" },
+        "source_approval_absence_status": { "const": "ready_for_trading_approval_absence_regression" },
+        "required_fixture_count": { "const": 5 },
+        "evidence_count": { "const": 5 },
+        "fixture_count": { "const": 5 },
+        "passed_fixture_count": { "const": 5 },
+        "failed_fixture_count": { "const": 0 },
+        "gate_count": { "minimum": 9 },
+        "ready_gate_count": { "minimum": 9 },
+        "unsafe_adapter_signal_count": { "const": 0 },
+        "live_adapter_disabled_covered": { "const": true },
+        "live_adapter_enabled": { "const": false },
+        "external_network_allowed": { "const": false },
+        "live_write_allowed": { "const": false },
+        "trading_live_enabled": { "const": false },
+        "trading_full_auto_enabled": { "const": false },
+        "trading_order_submission_allowed": { "const": false },
+        "automatic_order_submission_allowed": { "const": false },
+        "live_order_submission_allowed": { "const": false },
+        "credential_lookup_enabled": { "const": false },
+        "broker_write_allowed": { "const": false },
+        "exchange_write_allowed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "release_check_execution_performed": { "const": false },
+        "artifact_write_performed": { "const": false },
+        "release_published": { "const": false },
+        "git_operation_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "human_review_required": { "const": true },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

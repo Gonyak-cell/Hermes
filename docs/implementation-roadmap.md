@@ -8423,4 +8423,30 @@ Changes:
   readiness, missing package-script or validation-chain registration, and
   `--check` no-overwrite behavior.
 - Updated the P341-P500 ledger so P359 owns the reproducibility operator review
-  and P360 remains reserved for closeout.
+  and P360 owns reproducibility closeout.
+
+## Phase 360 - Platform Reproducibility Closeout
+
+Phase 360 closes the P341-P360 reproducibility baseline tranche. It consumes
+P359 in memory, verifies the P341-P360 reproducibility commands are registered
+in `package.json` and the validation chain, and records P361-P380 as the next
+unified platform and trading check block without executing checks, executing
+release-check commands, completing review, applying approvals, materializing
+proof, reading artifacts, collecting evidence, installing dependencies,
+regenerating artifacts, importing history, changing checkout state, performing
+git operations, submitting trading orders, or executing protected actions.
+
+Changes:
+
+- Added `src/platform-reproducibility-closeout.mjs`,
+  `scripts/platform-reproducibility-closeout.mjs`,
+  `schemas/platform-reproducibility-closeout.schema.json`, and
+  `docs/platform-reproducibility-closeout.md`.
+- Added `platform:reproducibility-closeout` and registered
+  `platform:reproducibility-closeout -- --check` after
+  `platform:reproducibility-operator-review` in the validation chain.
+- Added focused platform operations tests for reproducibility closeout
+  readiness, missing package-script or validation-chain registration, and
+  `--check` no-overwrite behavior.
+- Updated the P341-P500 ledger so P360 closes P341-P360 reproducibility
+  readiness and hands off to P361-P380 unified checks.

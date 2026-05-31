@@ -213,7 +213,7 @@ function buildReviewGateRows({ proofIndex, packageJson, platformOpsLedger, revie
     gateRow("p359_ledger_acceptance_declared", "P359 acceptance row is declared in the platform operations ledger.", ledgerText.includes("P359: `platform:reproducibility-operator-review`")),
     gateRow("operator_review_rows_ready", "All reproducibility operator review rows are ready.", reviewRows.length >= 10 && reviewRows.every((row) => row.operator_review_status === "ready")),
     gateRow("no_approval_or_protected_action", "Operator review records review requirements without applying approvals or protected actions.", true),
-    gateRow("p360_next_phase_reserved", "P360 remains reserved for reproducibility closeout.", ledgerText.includes("P360") && ledgerText.includes("reproducibility closeout")),
+    gateRow("p360_next_phase_reserved", "P360 owns reproducibility closeout.", ledgerText.includes("P360: `platform:reproducibility-closeout`")),
   ];
   return rows.map((row, index) => withOrdinalAndHash(row, index, "operator_review_gate_hash"));
 }

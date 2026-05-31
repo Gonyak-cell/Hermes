@@ -246,7 +246,7 @@ function buildProofGateRows({ evidenceMatrix, packageJson, platformOpsLedger, pr
     gateRow("p358_ledger_acceptance_declared", "P358 acceptance row is declared in the platform operations ledger.", ledgerText.includes("P358: `platform:reproducibility-proof-index`")),
     gateRow("reproducibility_proof_rows_ready", "All reproducibility proof index rows are ready.", proofIndexRows.length >= 10 && proofIndexRows.every((row) => row.reproducibility_proof_status === "ready")),
     gateRow("no_proof_materialization", "Proof index records proof references without materializing proof or reading artifacts.", true),
-    gateRow("p359_next_phase_reserved", "P359 owns reproducibility operator review and P360 remains reserved for closeout.", ledgerText.includes("P359: `platform:reproducibility-operator-review`") && ledgerText.includes("P360") && ledgerText.includes("reproducibility closeout")),
+    gateRow("p359_next_phase_reserved", "P359 owns reproducibility operator review and P360 owns closeout.", ledgerText.includes("P359: `platform:reproducibility-operator-review`") && ledgerText.includes("P360: `platform:reproducibility-closeout`")),
   ];
   return rows.map((row, index) => withOrdinalAndHash(row, index, "reproducibility_proof_gate_hash"));
 }

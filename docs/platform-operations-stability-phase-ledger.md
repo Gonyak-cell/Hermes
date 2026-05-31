@@ -50,7 +50,7 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 - P357: `platform:reproducibility-evidence-matrix` records grouped reproducibility evidence expectations without collecting evidence, executing checks, or executing future release-check commands.
 - P358: `platform:reproducibility-proof-index` maps reproducibility evidence rows to expected proof references without materializing proof, reading artifacts, collecting evidence, or executing checks.
 - P359: `platform:reproducibility-operator-review` turns proof rows into human-reviewable operator review rows without completing review, applying approvals, reading artifacts, or executing protected actions.
-- P360: reproducibility closeout remains reserved for the platform validation and future release-check chain.
+- P360: `platform:reproducibility-closeout` closes P341-P360 reproducibility readiness and records P361-P380 as the next unified platform and trading check block without executing checks, applying approvals, or protected actions.
 
 ## P361-P380 Acceptance Criteria
 

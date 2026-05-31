@@ -22,6 +22,7 @@ import { runPlatformReproducibilityCheckRegistry } from "../src/platform-reprodu
 import { runPlatformReproducibilityEvidenceMatrix } from "../src/platform-reproducibility-evidence-matrix.mjs";
 import { runPlatformReproducibilityProofIndex } from "../src/platform-reproducibility-proof-index.mjs";
 import { runPlatformReproducibilityOperatorReview } from "../src/platform-reproducibility-operator-review.mjs";
+import { runPlatformReproducibilityCloseout } from "../src/platform-reproducibility-closeout.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -1289,6 +1290,77 @@ test("platform reproducibility operator review --check does not overwrite existi
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformReproducibilityOperatorReview({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform reproducibility closeout closes P341-P360 without executing checks", async () => {
+  const result = await runPlatformReproducibilityCloseout({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_reproducibility_closeout_status, "ready");
+  assert.equal(result.summary.phase_slot, "P360");
+  assert.equal(result.summary.previous_phase_slot, "P359");
+  assert.equal(result.summary.next_phase_slot, "P361");
+  assert.equal(result.summary.source_reproducibility_operator_review_status, "ready");
+  assert.equal(result.summary.reproducibility_closeout_count, 20);
+  assert.equal(result.summary.ready_reproducibility_closeout_count, 20);
+  assert.equal(result.summary.reproducibility_closeout_gate_count, 7);
+  assert.equal(result.summary.ready_reproducibility_closeout_gate_count, 7);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.release_check_execution_performed, false);
+  assert.equal(result.summary.review_completed, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.artifact_regeneration_performed, false);
+  assert.equal(result.summary.history_import_performed, false);
+  assert.equal(result.summary.repository_checkout_changed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.ok(result.reproducibility_closeout_rows.every((row) => row.reproducibility_closeout_status === "ready" && row.package_script_registered && row.validation_chain_registered && row.command_execution_performed_by_report === false));
+  assert.ok(result.reproducibility_closeout_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_report === false));
+});
+
+test("platform reproducibility closeout blocks when validation chain is missing P360", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-repro-closeout-block-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:reproducibility-closeout"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:reproducibility-closeout -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformReproducibilityCloseout({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_reproducibility_closeout_status, "blocked");
+    assert.ok(result.reproducibility_closeout_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.reproducibility_closeout_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    assert.ok(result.reproducibility_closeout_rows.some((row) => row.source_phase_slot === "P360" && row.reproducibility_closeout_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformReproducibilityCloseout({ packagePath, write: false, check: true }),
+      /Platform reproducibility closeout failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform reproducibility closeout --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-repro-closeout-check-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-reproducibility-closeout.json");
+    const sentinel = "{ \"sentinel\": \"reproducibility-closeout\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformReproducibilityCloseout({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

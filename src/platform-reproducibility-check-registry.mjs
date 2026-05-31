@@ -269,7 +269,7 @@ function buildReproducibilityGateRows({ replayHandoffCloseout, packageJson, plat
     gateRow("p356_ledger_acceptance_declared", "P356 acceptance row is declared in the platform operations ledger.", ledgerText.includes("P356: `platform:reproducibility-check-registry`")),
     gateRow("reproducibility_checks_registered", "P341-P356 reproducibility checks are registered in package scripts and validation.", reproducibilityCheckRows.length >= 16 && reproducibilityCheckRows.every((row) => row.reproducibility_check_status === "ready")),
     gateRow("future_release_check_bridge_declared", "Future P361-P380 release-check bridge remains declared without requiring future scripts now.", releaseChainBridgeRows.length >= 3 && releaseChainBridgeRows.every((row) => row.release_chain_bridge_status === "ready" && row.package_script_required_now === false)),
-    gateRow("p357_next_phase_reserved", "P357-P359 own evidence, proof, and operator review while P360 remains reserved.", ledgerText.includes("P357: `platform:reproducibility-evidence-matrix`") && ledgerText.includes("P358: `platform:reproducibility-proof-index`") && ledgerText.includes("P359: `platform:reproducibility-operator-review`") && ledgerText.includes("P360") && ledgerText.includes("reproducibility closeout")),
+    gateRow("p357_next_phase_reserved", "P357-P360 own evidence, proof, operator review, and closeout.", ledgerText.includes("P357: `platform:reproducibility-evidence-matrix`") && ledgerText.includes("P358: `platform:reproducibility-proof-index`") && ledgerText.includes("P359: `platform:reproducibility-operator-review`") && ledgerText.includes("P360: `platform:reproducibility-closeout`")),
   ];
   return rows.map((row, index) => withOrdinalAndHash(row, index, "reproducibility_gate_hash"));
 }

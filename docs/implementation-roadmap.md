@@ -8087,3 +8087,26 @@ Changes:
   missing-script blocking, and `--check` no-overwrite behavior.
 - Updated the P341-P500 ledger so P345 closes the runtime/dependency
   drift-report sequence before the P346-P350 provenance phases begin.
+
+## Phase 346 - Platform Provenance Ledger
+
+Phase 346 starts the baseline provenance portion of the P341-P360 stability
+tranche. It consumes the P345 artifact guard in memory and records P340 verified
+bundle provenance, history baseline commit provenance, Mac replay stabilization
+provenance, release-bundle hash policy, and future signed-tag requirements
+without creating tags, signed tags, release bundles, releases, or protected
+actions.
+
+Changes:
+
+- Added `src/platform-provenance-ledger.mjs`,
+  `scripts/platform-provenance-ledger.mjs`,
+  `schemas/platform-provenance-ledger.schema.json`, and
+  `docs/platform-provenance-ledger.md`.
+- Added `platform:provenance-ledger` and registered
+  `platform:provenance-ledger -- --check` after `platform:artifact-guard` in the
+  validation chain.
+- Added focused platform operations tests for provenance readiness, missing P340
+  hash blocking, and `--check` no-overwrite behavior.
+- Updated the P341-P500 ledger so P346 owns the first provenance ledger and
+  P347-P350 remain reserved for expanded release bundle and signed-tag policy.

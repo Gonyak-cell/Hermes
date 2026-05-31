@@ -8,6 +8,7 @@ import { runPlatformRuntimeBaseline } from "../src/platform-runtime-baseline.mjs
 import { runPlatformRuntimeReplayWindow } from "../src/platform-runtime-replay-window.mjs";
 import { runPlatformOperatorHandoff } from "../src/platform-operator-handoff.mjs";
 import { runPlatformArtifactGuard } from "../src/platform-artifact-guard.mjs";
+import { runPlatformProvenanceLedger } from "../src/platform-provenance-ledger.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -323,6 +324,73 @@ test("platform artifact guard --check does not overwrite existing artifacts", as
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformArtifactGuard({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform provenance ledger records P346 release hash and signed tag policy", async () => {
+  const result = await runPlatformProvenanceLedger({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_provenance_ledger_status, "ready");
+  assert.equal(result.summary.phase_slot, "P346");
+  assert.equal(result.summary.previous_phase_slot, "P345");
+  assert.equal(result.summary.next_phase_slot, "P347");
+  assert.equal(result.summary.source_artifact_guard_status, "guarded");
+  assert.equal(result.summary.provenance_record_count, 5);
+  assert.equal(result.summary.ready_provenance_record_count, 5);
+  assert.equal(result.summary.release_hash_policy_count, 3);
+  assert.equal(result.summary.ready_release_hash_policy_count, 3);
+  assert.equal(result.summary.signed_tag_requirement_count, 3);
+  assert.equal(result.summary.ready_signed_tag_requirement_count, 3);
+  assert.equal(result.summary.git_operation_performed, false);
+  assert.equal(result.summary.git_tag_created, false);
+  assert.equal(result.summary.signed_tag_created, false);
+  assert.equal(result.summary.release_bundle_created, false);
+  assert.equal(result.summary.release_published, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.ok(result.provenance_records.some((row) => row.record_key === "p340_verified_bundle_hash" && row.hash_recorded));
+  assert.ok(result.signed_tag_requirement_rows.every((row) => row.git_tag_created_by_report === false && row.human_review_required));
+});
+
+test("platform provenance ledger blocks when P340 hash is missing from ledger", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-provenance-block-"));
+  try {
+    const ledgerText = (await readFile("docs/platform-operations-stability-phase-ledger.md", "utf8"))
+      .replace("1a1563a47e2f6704e0f25be56a4c74069863e97c6312e0b0348088ccd231051d", "missing-p340-hash");
+    const ledgerPath = path.join(root, "platform-operations-stability-phase-ledger.md");
+    await writeFile(ledgerPath, ledgerText, "utf8");
+
+    const result = await runPlatformProvenanceLedger({ platformOpsLedgerPath: ledgerPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_provenance_ledger_status, "blocked");
+    assert.ok(result.provenance_records.some((row) => row.record_key === "p340_verified_bundle_hash" && row.provenance_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformProvenanceLedger({ platformOpsLedgerPath: ledgerPath, write: false, check: true }),
+      /Platform provenance ledger failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform provenance ledger --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-provenance-check-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-provenance-ledger.json");
+    const sentinel = "{ \"sentinel\": \"provenance-ledger\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformProvenanceLedger({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

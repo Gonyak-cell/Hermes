@@ -36,7 +36,8 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 - P343: `platform:replay-window` consumes the P342 drift check in memory and maps current-checkout, contract/release, validation/test, artifact-regeneration, cross-OS history, and Trading safety replay windows without executing commands.
 - P344: `platform:operator-handoff` turns P343 replay windows into human-reviewable handoff packets with evidence rows, decision rows, owner roles, and next operator actions without executing commands.
 - P345: `platform:artifact-guard` closes the runtime/dependency drift-report sequence by proving P341-P345 generated outputs stay under ignored `artifacts/`, platform commands are registered in validation, and `--check` remains no-overwrite.
-- P346-P350: baseline provenance records release bundle hashes and future signed-tag requirements without creating tags.
+- P346: `platform:provenance-ledger` records the P340 bundle hash, P340 history baseline commit, Mac replay stabilization commit, release-bundle hash policy, and future signed-tag requirements without creating tags or releases.
+- P347-P350: baseline provenance expands release bundle hashes and future signed-tag requirements without creating tags.
 - P351-P355: Mac/Windows replay notes and lockfile policy are documented for operator handoff.
 - P356-P360: reproducibility checks are registered in the platform validation and future release-check chain.
 

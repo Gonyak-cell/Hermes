@@ -78,7 +78,8 @@
     "schemas/trading/trading-short-selling-disabled-fixtures.schema.json",
     "schemas/trading/trading-order-frequency-throttle-fixtures.schema.json",
     "schemas/trading/trading-loss-streak-cooldown-fixtures.schema.json",
-    "schemas/trading/trading-model-degradation-halt-fixtures.schema.json"
+    "schemas/trading/trading-model-degradation-halt-fixtures.schema.json",
+    "schemas/trading/trading-data-outage-halt-fixtures.schema.json"
   ],
   "workflows": [
     "workflow.trading.research_intake.v1",
@@ -132,7 +133,8 @@
     "workflow.trading.short_selling_disabled_fixtures.v1",
     "workflow.trading.order_frequency_throttle_fixtures.v1",
     "workflow.trading.loss_streak_cooldown_fixtures.v1",
-    "workflow.trading.model_degradation_halt_fixtures.v1"
+    "workflow.trading.model_degradation_halt_fixtures.v1",
+    "workflow.trading.data_outage_halt_fixtures.v1"
   ],
   "gates": [
     "classification_gate",

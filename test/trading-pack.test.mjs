@@ -36,6 +36,7 @@ import { runTradingShortSellingDisabledFixtures } from "../src/trading-short-sel
 import { runTradingOrderFrequencyThrottleFixtures } from "../src/trading-order-frequency-throttle-fixtures.mjs";
 import { runTradingLossStreakCooldownFixtures } from "../src/trading-loss-streak-cooldown-fixtures.mjs";
 import { runTradingModelDegradationHaltFixtures } from "../src/trading-model-degradation-halt-fixtures.mjs";
+import { runTradingDataOutageHaltFixtures } from "../src/trading-data-outage-halt-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -3174,6 +3175,238 @@ test("trading model degradation halt fixtures --check does not overwrite existin
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingModelDegradationHaltFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading data outage halt fixtures keep outage and data quality paths read-only", async () => {
+  const result = await runTradingDataOutageHaltFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_data_outage_halt_fixtures_status, "ready_for_trading_data_outage_halt_regression");
+  assert.equal(result.summary.phase_slot, "P400");
+  assert.equal(result.summary.previous_phase_slot, "P399");
+  assert.equal(result.summary.next_phase_slot, "P401");
+  assert.equal(result.summary.source_model_degradation_halt_status, "ready_for_trading_model_degradation_halt_regression");
+  assert.equal(result.summary.source_model_degradation_halt_ready, true);
+  assert.equal(result.summary.required_fixture_count, 6);
+  assert.equal(result.summary.passed_fixture_count, 6);
+  assert.equal(result.summary.unsafe_data_outage_signal_count, 0);
+  assert.equal(result.summary.data_outage_halt_covered, true);
+  assert.equal(result.summary.risk_data_outage_source_unbound, false);
+  assert.equal(result.summary.risk_data_outage_detected, false);
+  assert.equal(result.summary.risk_data_outage_halt_not_armed, false);
+  assert.equal(result.summary.risk_data_outage_result_not_pass, false);
+  assert.equal(result.summary.risk_data_outage_check_not_pass, false);
+  assert.equal(result.summary.risk_stale_data_detected, false);
+  assert.equal(result.summary.risk_stale_data_not_blocking_order_intent, false);
+  assert.equal(result.summary.market_data_artifacts_missing, false);
+  assert.equal(result.summary.market_data_quality_not_clean, false);
+  assert.equal(result.summary.market_data_quality_checks_missing, false);
+  assert.equal(result.summary.market_data_quality_checks_not_blocking_usage, false);
+  assert.equal(result.summary.market_data_live_feed_enabled, false);
+  assert.equal(result.summary.market_data_order_intent_generated, false);
+  assert.equal(result.summary.paper_shadow_data_outage_detected, false);
+  assert.equal(result.summary.paper_shadow_data_outage_halt_not_armed, false);
+  assert.equal(result.summary.paper_shadow_live_adapter_not_read_only, false);
+  assert.equal(result.summary.paper_shadow_order_routes_enabled, false);
+  assert.equal(result.summary.paper_real_order_submitted, false);
+  assert.equal(result.summary.limited_live_exchange_outage_halt_not_armed, false);
+  assert.equal(result.summary.limited_live_exchange_outage_detected, false);
+  assert.equal(result.summary.limited_live_stale_data_halt_not_armed, false);
+  assert.equal(result.summary.limited_live_stale_data_detected, false);
+  assert.equal(result.summary.limited_live_order_submission_allowed, false);
+  assert.equal(result.summary.full_auto_data_failover_not_read_only, false);
+  assert.equal(result.summary.full_auto_data_failover_external_network_allowed, false);
+  assert.equal(result.summary.full_auto_order_generation_during_failover_allowed, false);
+  assert.equal(result.summary.full_auto_broker_exchange_failover_allows_writes, false);
+  assert.equal(result.summary.full_auto_enabled, false);
+  assert.equal(result.summary.automatic_order_submission_allowed, false);
+  assert.equal(result.summary.external_service_allowed, false);
+  assert.equal(result.summary.order_intent_generated, false);
+  assert.equal(result.summary.live_execution_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.ok(result.data_outage_halt_evidence_rows.every((row) => row.evidence_status === "data_outage_halt_ready" && row.unsafe_data_outage_signal_detected === false));
+  assert.ok(result.data_outage_halt_fixture_rows.every((row) => row.fixture_status === "passed" && row.fixture_should_fail_when_data_outage_bypassed && row.fixture_should_fail_when_quality_gate_disabled && row.fixture_should_fail_when_live_feed_enabled));
+  assert.ok(result.data_outage_halt_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_gate === false));
+});
+
+test("trading data outage halt fixtures block when outage and live-feed paths are bypassed", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-data-outage-bypass-"));
+  try {
+    const riskEngine = JSON.parse(await readFile("examples/trading/risk-engine.json", "utf8"));
+    riskEngine.risk_guards.data_outage_halt.source_ref = "market_data_quality_report.missing";
+    riskEngine.risk_guards.data_outage_halt.data_outage_detected = true;
+    riskEngine.risk_guards.data_outage_halt.halt_on_outage = false;
+    riskEngine.risk_guards.data_outage_halt.result = "halt";
+    riskEngine.risk_guards.stale_data_trade_block.stale_data_detected = true;
+    riskEngine.risk_guards.stale_data_trade_block.blocks_order_intent = false;
+    riskEngine.risk_check_artifacts[0].checks = riskEngine.risk_check_artifacts[0].checks.map((check) => (
+      check.check_id === "data_outage_halt" ? { ...check, status: "halt" } : check
+    ));
+    const riskEnginePath = path.join(root, "risk-engine.json");
+    await writeFile(riskEnginePath, `${JSON.stringify(riskEngine, null, 2)}\n`, "utf8");
+
+    const marketDataFeatureStore = JSON.parse(await readFile("examples/trading/market-data-feature-store.json", "utf8"));
+    marketDataFeatureStore.market_data_artifacts[0].quality_checks.stale_data_detected = true;
+    marketDataFeatureStore.market_data_artifacts[0].quality_checks.missing_data_detected = true;
+    marketDataFeatureStore.quality_gate_model.checks = marketDataFeatureStore.quality_gate_model.checks
+      .filter((check) => check.check_id !== "duplicate_candle")
+      .map((check) => check.check_id === "stale_data" ? { ...check, status: "fail", blocks_usage: false } : check);
+    marketDataFeatureStore.quality_gate_model.blocks_feature_generation_on_failure = false;
+    marketDataFeatureStore.safety_boundary.live_vendor_feeds_enabled = true;
+    marketDataFeatureStore.safety_boundary.real_time_trading_feed_enabled = true;
+    marketDataFeatureStore.safety_boundary.order_intent_generated = true;
+    const marketDataFeatureStorePath = path.join(root, "market-data-feature-store.json");
+    await writeFile(marketDataFeatureStorePath, `${JSON.stringify(marketDataFeatureStore, null, 2)}\n`, "utf8");
+
+    const paperShadow = JSON.parse(await readFile("examples/trading/paper-shadow-live.json", "utf8"));
+    paperShadow.data_outage_detection.outage_detected = true;
+    paperShadow.data_outage_detection.halt_shadow_generation_on_outage = false;
+    paperShadow.read_only_live_data_adapter.read_only = false;
+    paperShadow.read_only_live_data_adapter.credentials_required = true;
+    paperShadow.read_only_live_data_adapter.external_network_required = true;
+    paperShadow.read_only_live_data_adapter.order_routes_enabled = true;
+    paperShadow.safety_boundary.real_order_submitted = true;
+    paperShadow.safety_boundary.live_execution_allowed = true;
+    const paperShadowPath = path.join(root, "paper-shadow-live.json");
+    await writeFile(paperShadowPath, `${JSON.stringify(paperShadow, null, 2)}\n`, "utf8");
+
+    const limitedLive = JSON.parse(await readFile("examples/trading/limited-live-governance.json", "utf8"));
+    limitedLive.halt_gates.exchange_broker_outage_halt.enabled = false;
+    limitedLive.halt_gates.exchange_broker_outage_halt.outage_detected = true;
+    limitedLive.halt_gates.exchange_broker_outage_halt.halt_on_trigger = false;
+    limitedLive.halt_gates.stale_data_halt.enabled = false;
+    limitedLive.halt_gates.stale_data_halt.stale_data_detected = true;
+    limitedLive.halt_gates.stale_data_halt.halt_on_trigger = false;
+    limitedLive.safety_boundary.live_order_submission_allowed = true;
+    limitedLive.safety_boundary.broker_write_allowed = true;
+    limitedLive.safety_boundary.exchange_write_allowed = true;
+    const limitedLivePath = path.join(root, "limited-live-governance.json");
+    await writeFile(limitedLivePath, `${JSON.stringify(limitedLive, null, 2)}\n`, "utf8");
+
+    const fullAuto = JSON.parse(await readFile("examples/trading/full-auto-governance.json", "utf8"));
+    fullAuto.failover_policies.data_vendor_failover.enabled = false;
+    fullAuto.failover_policies.data_vendor_failover.read_only = false;
+    fullAuto.failover_policies.data_vendor_failover.external_network_allowed = true;
+    fullAuto.failover_policies.data_vendor_failover.order_generation_allowed_during_failover = true;
+    fullAuto.failover_policies.broker_exchange_failover.broker_write_allowed = true;
+    fullAuto.failover_policies.broker_exchange_failover.exchange_write_allowed = true;
+    fullAuto.failover_policies.broker_exchange_failover.failover_target = "live";
+    fullAuto.failover_policies.broker_exchange_failover.manual_resume_required = false;
+    fullAuto.safety_boundary.full_auto_enabled = true;
+    fullAuto.safety_boundary.automatic_order_submission_allowed = true;
+    fullAuto.safety_boundary.broker_write_allowed = true;
+    fullAuto.safety_boundary.exchange_write_allowed = true;
+    fullAuto.safety_boundary.external_service_allowed = true;
+    const fullAutoPath = path.join(root, "full-auto-governance.json");
+    await writeFile(fullAutoPath, `${JSON.stringify(fullAuto, null, 2)}\n`, "utf8");
+
+    const result = await runTradingDataOutageHaltFixtures({
+      riskEnginePath,
+      marketDataFeatureStorePath,
+      paperShadowPath,
+      limitedLivePath,
+      fullAutoPath,
+      write: false,
+    });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_data_outage_halt_fixtures_status, "blocked");
+    assert.ok(result.summary.unsafe_data_outage_signal_count > 0);
+    assert.equal(result.summary.risk_data_outage_source_unbound, true);
+    assert.equal(result.summary.risk_data_outage_detected, true);
+    assert.equal(result.summary.risk_data_outage_halt_not_armed, true);
+    assert.equal(result.summary.risk_data_outage_result_not_pass, true);
+    assert.equal(result.summary.risk_data_outage_check_not_pass, true);
+    assert.equal(result.summary.risk_stale_data_detected, true);
+    assert.equal(result.summary.risk_stale_data_not_blocking_order_intent, true);
+    assert.equal(result.summary.market_data_quality_not_clean, true);
+    assert.equal(result.summary.market_data_quality_checks_missing, true);
+    assert.equal(result.summary.market_data_quality_checks_not_blocking_usage, true);
+    assert.equal(result.summary.market_data_live_feed_enabled, true);
+    assert.equal(result.summary.market_data_order_intent_generated, true);
+    assert.equal(result.summary.paper_shadow_data_outage_detected, true);
+    assert.equal(result.summary.paper_shadow_data_outage_halt_not_armed, true);
+    assert.equal(result.summary.paper_shadow_live_adapter_not_read_only, true);
+    assert.equal(result.summary.paper_shadow_order_routes_enabled, true);
+    assert.equal(result.summary.paper_real_order_submitted, true);
+    assert.equal(result.summary.limited_live_exchange_outage_halt_not_armed, true);
+    assert.equal(result.summary.limited_live_exchange_outage_detected, true);
+    assert.equal(result.summary.limited_live_stale_data_halt_not_armed, true);
+    assert.equal(result.summary.limited_live_stale_data_detected, true);
+    assert.equal(result.summary.limited_live_order_submission_allowed, true);
+    assert.equal(result.summary.full_auto_data_failover_not_read_only, true);
+    assert.equal(result.summary.full_auto_data_failover_external_network_allowed, true);
+    assert.equal(result.summary.full_auto_order_generation_during_failover_allowed, true);
+    assert.equal(result.summary.full_auto_broker_exchange_failover_allows_writes, true);
+    assert.equal(result.summary.full_auto_enabled, true);
+    assert.equal(result.summary.automatic_order_submission_allowed, true);
+    assert.equal(result.summary.external_service_allowed, true);
+    assert.equal(result.summary.order_intent_generated, true);
+    assert.equal(result.summary.real_order_submitted, true);
+    assert.equal(result.summary.live_execution_allowed, true);
+    assert.equal(result.summary.broker_write_allowed, true);
+    assert.equal(result.summary.exchange_write_allowed, true);
+    assert.ok(result.data_outage_halt_fixture_rows.some((row) => row.row_key === "risk_data_outage_halt_declared" && row.fixture_status === "failed" && row.unsafe_data_outage_signal_detected));
+    await assert.rejects(
+      () => runTradingDataOutageHaltFixtures({
+        riskEnginePath,
+        marketDataFeatureStorePath,
+        paperShadowPath,
+        limitedLivePath,
+        fullAutoPath,
+        write: false,
+        check: true,
+      }),
+      /Trading data outage halt fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading data outage halt fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-data-outage-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:data-outage-halt-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:data-outage-halt-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingDataOutageHaltFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_data_outage_halt_fixtures_status, "blocked");
+    assert.ok(result.data_outage_halt_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.data_outage_halt_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingDataOutageHaltFixtures({ packagePath, write: false, check: true }),
+      /Trading data outage halt fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading data outage halt fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-data-outage-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-data-outage-halt-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-data-outage-halt-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingDataOutageHaltFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

@@ -214,7 +214,7 @@ function buildLockfileGateRows({ lockfilePolicyRows, macWindowsReplayNotes, pack
     gateRow("p352_ledger_acceptance_declared", "P352 acceptance row is declared in the platform operations ledger.", ledgerText.includes("P352: `platform:lockfile-policy`")),
     gateRow("lockfile_policy_rows_ready", "All lockfile policy rows are ready.", lockfilePolicyRows.length >= 6 && lockfilePolicyRows.every((row) => row.lockfile_policy_status === "ready")),
     gateRow("no_install_or_lockfile_mutation", "Lockfile policy performs no dependency install, package mutation, or lockfile mutation.", true),
-    gateRow("p353_next_phase_reserved", "P353-P355 remain reserved for replay handoff refinements.", ledgerText.includes("P353-P355") && ledgerText.includes("replay handoff")),
+    gateRow("p353_next_phase_reserved", "P353 owns the replay handoff map and P354-P355 remain reserved for replay handoff refinements.", ledgerText.includes("P353: `platform:replay-handoff-map`") && ledgerText.includes("P354-P355") && ledgerText.includes("replay handoff")),
   ];
   return rows.map((row, index) => withOrdinalAndHash(row, index, "lockfile_gate_hash"));
 }

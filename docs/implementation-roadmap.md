@@ -8248,3 +8248,27 @@ Changes:
   package-lock evidence, and `--check` no-overwrite behavior.
 - Updated the P341-P500 ledger so P352 owns lockfile policy and P353-P355 remain
   reserved for replay handoff refinements.
+
+## Phase 353 - Platform Replay Handoff Map
+
+Phase 353 records the first replay handoff refinement after the lockfile policy.
+It consumes P352 lockfile policy in memory and maps the six replay scopes to
+owner roles, expected evidence, and next operator actions without executing
+commands, regenerating artifacts, importing history, changing checkout state,
+performing git operations, submitting trading orders, or executing protected
+actions.
+
+Changes:
+
+- Added `src/platform-replay-handoff-map.mjs`,
+  `scripts/platform-replay-handoff-map.mjs`,
+  `schemas/platform-replay-handoff-map.schema.json`, and
+  `docs/platform-replay-handoff-map.md`.
+- Added `platform:replay-handoff-map` and registered
+  `platform:replay-handoff-map -- --check` after
+  `platform:lockfile-policy` in the validation chain.
+- Added focused platform operations tests for replay handoff map readiness,
+  missing package-script or validation-chain registration, and `--check`
+  no-overwrite behavior.
+- Updated the P341-P500 ledger so P353 owns the replay handoff map and P354-P355
+  remain reserved for replay handoff refinements.

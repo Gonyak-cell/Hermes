@@ -28,6 +28,7 @@ import { runTradingSafetyBoundaryFixtures } from "../src/trading-safety-boundary
 import { runTradingManualResumeDisabledFixtures } from "../src/trading-manual-resume-disabled-fixtures.mjs";
 import { runTradingRiskOverrideDisabledFixtures } from "../src/trading-risk-override-disabled-fixtures.mjs";
 import { runTradingPromotionDisabledFixtures } from "../src/trading-promotion-disabled-fixtures.mjs";
+import { runTradingFirstTradeDisabledFixtures } from "../src/trading-first-trade-disabled-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -1849,6 +1850,136 @@ test("trading promotion disabled fixtures --check does not overwrite existing ar
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingPromotionDisabledFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading first trade disabled fixtures keep first trade blocked", async () => {
+  const result = await runTradingFirstTradeDisabledFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_first_trade_disabled_fixtures_status, "ready_for_trading_first_trade_disabled_regression");
+  assert.equal(result.summary.phase_slot, "P392");
+  assert.equal(result.summary.previous_phase_slot, "P391");
+  assert.equal(result.summary.next_phase_slot, "P393");
+  assert.equal(result.summary.source_promotion_disabled_status, "ready_for_trading_promotion_disabled_regression");
+  assert.equal(result.summary.required_fixture_count, 5);
+  assert.equal(result.summary.evidence_count, 5);
+  assert.equal(result.summary.fixture_count, 5);
+  assert.equal(result.summary.passed_fixture_count, 5);
+  assert.equal(result.summary.failed_fixture_count, 0);
+  assert.equal(result.summary.unsafe_first_trade_signal_count, 0);
+  assert.equal(result.summary.first_trade_disabled_covered, true);
+  assert.equal(result.summary.approval_required_missing, false);
+  assert.equal(result.summary.approval_receipt_present, false);
+  assert.equal(result.summary.first_trade_confirmation_required_missing, false);
+  assert.equal(result.summary.first_trade_confirmation_present, false);
+  assert.equal(result.summary.first_trade_not_blocked, false);
+  assert.equal(result.summary.first_trade_submitted, false);
+  assert.equal(result.summary.order_size_cap_missing, false);
+  assert.equal(result.summary.daily_order_cap_missing, false);
+  assert.equal(result.summary.order_submission_allowed, false);
+  assert.equal(result.summary.live_order_route_enabled, false);
+  assert.equal(result.summary.live_cancel_allowed, false);
+  assert.equal(result.summary.live_fill_recorded, false);
+  assert.equal(result.summary.real_order_reported, false);
+  assert.equal(result.summary.limited_live_enabled, false);
+  assert.equal(result.summary.live_order_submission_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.ok(result.first_trade_disabled_evidence_rows.every((row) => row.evidence_status === "first_trade_disabled" && row.unsafe_first_trade_signal_detected === false));
+  assert.ok(result.first_trade_disabled_fixture_rows.every((row) => row.fixture_status === "passed" && row.fixture_should_fail_when_first_trade_submitted && row.fixture_should_fail_when_order_route_enabled));
+  assert.ok(result.first_trade_disabled_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_gate === false));
+});
+
+test("trading first trade disabled fixtures block when first trade is enabled", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-first-trade-enabled-"));
+  try {
+    const limitedLive = JSON.parse(await readFile("examples/trading/limited-live-governance.json", "utf8"));
+    limitedLive.approval_gate.approval_receipt_present = true;
+    limitedLive.approval_gate.decision = "approved";
+    limitedLive.safety_boundary.limited_live_enabled = true;
+    limitedLive.safety_boundary.live_order_submission_allowed = true;
+    limitedLive.first_trade_confirmation.confirmation_present = true;
+    limitedLive.first_trade_confirmation.blocks_first_trade = false;
+    limitedLive.first_trade_confirmation.first_trade_submitted = true;
+    limitedLive.order_caps.order_submission_allowed = true;
+    limitedLive.order_caps.daily_order_count_cap.max_orders_per_day = 1;
+    limitedLive.auto_cancel_stale_orders.live_cancel_allowed = true;
+    limitedLive.post_trade_reconciliation.live_fill_count = 1;
+    limitedLive.daily_live_report.real_order_count = 1;
+    limitedLive.dashboard_api_stub.mutating_routes_enabled = true;
+    limitedLive.dashboard_api_stub.disabled_routes = limitedLive.dashboard_api_stub.disabled_routes.filter((route) => route.path !== "/api/trading/limited-live/orders");
+    const limitedLivePath = path.join(root, "limited-live-governance.json");
+    await writeFile(limitedLivePath, `${JSON.stringify(limitedLive, null, 2)}\n`, "utf8");
+
+    const result = await runTradingFirstTradeDisabledFixtures({ limitedLivePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_first_trade_disabled_fixtures_status, "blocked");
+    assert.ok(result.summary.unsafe_first_trade_signal_count > 0);
+    assert.equal(result.summary.approval_receipt_present, true);
+    assert.equal(result.summary.first_trade_confirmation_present, true);
+    assert.equal(result.summary.first_trade_not_blocked, true);
+    assert.equal(result.summary.first_trade_submitted, true);
+    assert.equal(result.summary.daily_order_cap_missing, true);
+    assert.equal(result.summary.order_submission_allowed, true);
+    assert.equal(result.summary.live_order_route_enabled, true);
+    assert.equal(result.summary.live_cancel_allowed, true);
+    assert.equal(result.summary.live_fill_recorded, true);
+    assert.equal(result.summary.real_order_reported, true);
+    assert.equal(result.summary.limited_live_enabled, true);
+    assert.equal(result.summary.live_order_submission_allowed, true);
+    assert.ok(result.first_trade_disabled_fixture_rows.some((row) => row.row_key === "first_trade_confirmation_missing_blocks_submission" && row.fixture_status === "failed" && row.unsafe_first_trade_signal_detected));
+    await assert.rejects(
+      () => runTradingFirstTradeDisabledFixtures({ limitedLivePath, write: false, check: true }),
+      /Trading first trade disabled fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading first trade disabled fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-first-trade-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:first-trade-disabled-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:first-trade-disabled-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingFirstTradeDisabledFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_first_trade_disabled_fixtures_status, "blocked");
+    assert.ok(result.first_trade_disabled_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.first_trade_disabled_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingFirstTradeDisabledFixtures({ packagePath, write: false, check: true }),
+      /Trading first trade disabled fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading first trade disabled fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-first-trade-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-first-trade-disabled-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-first-trade-disabled-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingFirstTradeDisabledFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

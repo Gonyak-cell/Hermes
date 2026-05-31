@@ -39,7 +39,8 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 - P346: `platform:provenance-ledger` records the P340 bundle hash, P340 history baseline commit, Mac replay stabilization commit, release-bundle hash policy, and future signed-tag requirements without creating tags or releases.
 - P347: `platform:release-bundle-provenance` expands release-bundle hash and manifest requirements without creating release bundles, tags, signed tags, or releases.
 - P348: `platform:signed-tag-provenance` expands future signed-tag policy and gates without running git, materializing signing keys, creating tags, creating signed tags, or publishing releases.
-- P349-P350: baseline provenance adds final provenance freeze detail without creating tags.
+- P349: `platform:provenance-freeze-preflight` maps P341-P349 provenance freeze sources and gates before final freeze without executing checks, creating tags, creating signed tags, creating release bundles, or publishing releases.
+- P350: final provenance freeze detail closes P346-P350 without creating tags.
 - P351-P355: Mac/Windows replay notes and lockfile policy are documented for operator handoff.
 - P356-P360: reproducibility checks are registered in the platform validation and future release-check chain.
 

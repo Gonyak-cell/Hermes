@@ -8154,3 +8154,27 @@ Changes:
   missing signed-tag policy blocking, and `--check` no-overwrite behavior.
 - Updated the P341-P500 ledger so P348 owns signed-tag policy and P349-P350
   remain reserved for final provenance freeze detail.
+
+## Phase 349 - Platform Provenance Freeze Preflight
+
+Phase 349 adds a read-only preflight before the final P350 provenance freeze. It
+consumes P348 signed-tag provenance in memory, maps P341-P349 freeze source
+rows, and verifies package-script, validation-chain, and ledger acceptance gates
+without executing checks, creating tags, creating signed tags, materializing
+signing keys, creating release bundles, publishing releases, or executing
+protected actions.
+
+Changes:
+
+- Added `src/platform-provenance-freeze-preflight.mjs`,
+  `scripts/platform-provenance-freeze-preflight.mjs`,
+  `schemas/platform-provenance-freeze-preflight.schema.json`, and
+  `docs/platform-provenance-freeze-preflight.md`.
+- Added `platform:provenance-freeze-preflight` and registered
+  `platform:provenance-freeze-preflight -- --check` after
+  `platform:signed-tag-provenance` in the validation chain.
+- Added focused platform operations tests for freeze preflight readiness,
+  missing package-script or validation-chain registration, and `--check`
+  no-overwrite behavior.
+- Updated the P341-P500 ledger so P349 owns provenance freeze preflight and P350
+  remains reserved for final provenance freeze closeout.

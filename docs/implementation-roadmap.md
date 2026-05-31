@@ -8588,3 +8588,27 @@ Changes:
 - Added focused tests for ready review rows, missing validation-chain
   registration, blocked source evidence, and `--check` no-overwrite behavior.
 - Updated the P341-P500 ledger so P366 owns release-check review packets.
+
+## Phase 367 - Release-Check Signoff Ledger
+
+Phase 367 adds a signoff ledger over the P366 release-check review packet. It
+records the human signoff receipt required for each P361-P364 release-check
+command without completing signoff, applying approvals, materializing receipts,
+running release checks, reading or writing artifacts, publishing releases, or
+mutating release/trading state.
+
+Changes:
+
+- Added `src/platform-release-check-signoff-ledger.mjs`,
+  `scripts/platform-release-check-signoff-ledger.mjs`,
+  `schemas/platform-release-check-signoff-ledger.schema.json`, and
+  `docs/platform-release-check-signoff-ledger.md`.
+- Added `platform:release-check-signoff-ledger` and registered
+  `platform:release-check-signoff-ledger -- --check` in the validation chain.
+- The command consumes the P366 review packet in memory and produces signoff
+  rows, gate rows, a boundary report, validation output, and a Markdown summary
+  when not in `--check` mode.
+- Added focused tests for ready signoff rows, missing validation-chain
+  registration, blocked source review packets, and `--check` no-overwrite
+  behavior.
+- Updated the P341-P500 ledger so P367 owns release-check signoff requirements.

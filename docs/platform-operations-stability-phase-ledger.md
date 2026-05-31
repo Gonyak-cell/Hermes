@@ -60,6 +60,7 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 - P364: `platform:release-check-no-write-audit` verifies the P361-P363 release-check bridge commands have `--check` write guards and no-overwrite tests without executing those commands or mutating artifacts.
 - P365: `platform:release-check-evidence-index` maps P361-P364 release-check commands to docs, expected report paths, validation-chain policy, and human-review evidence without executing commands or mutating artifacts.
 - P366: `platform:release-check-review-packet` turns P365 evidence rows into human-reviewable release-check review packets with reviewer roles and expected decisions without completing review, applying approvals, executing commands, reading/writing artifacts, or mutating release/trading state.
+- P367: `platform:release-check-signoff-ledger` records required human signoff receipts for P366 review rows without completing signoff, applying approvals, materializing receipts, executing commands, reading/writing artifacts, or mutating release/trading state.
 - `trading:release-check` runs the complete Trading Pack validation stack, contract validation, release freeze, and trading no-write checks in one command.
 - `platform:ops-check` verifies runtime baseline, contracts, control-plane loop, dashboard/API smoke readiness, and domain-pack registry health.
 - `platform:release-check` composes `platform:ops-check`, `trading:release-check`, `npm run validate`, `npm test`, `contracts:validate -- --check`, and `release:freeze -- --check`.

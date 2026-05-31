@@ -27,6 +27,7 @@ import { runPlatformOpsCheck } from "../src/platform-ops-check.mjs";
 import { runPlatformReleaseCheck } from "../src/platform-release-check.mjs";
 import { runPlatformReleaseCheckNoWriteAudit } from "../src/platform-release-check-no-write-audit.mjs";
 import { runPlatformReleaseCheckEvidenceIndex } from "../src/platform-release-check-evidence-index.mjs";
+import { runPlatformReleaseCheckReviewPacket } from "../src/platform-release-check-review-packet.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -1785,6 +1786,103 @@ test("platform release-check evidence index --check does not overwrite existing 
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformReleaseCheckEvidenceIndex({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform release-check review packet records P366 without applying approvals", async () => {
+  const result = await runPlatformReleaseCheckReviewPacket({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_release_check_review_packet_status, "ready");
+  assert.equal(result.summary.phase_slot, "P366");
+  assert.equal(result.summary.previous_phase_slot, "P365");
+  assert.equal(result.summary.next_phase_slot, "P367");
+  assert.equal(result.summary.source_evidence_index_status, "ready");
+  assert.equal(result.summary.review_packet_row_count, 4);
+  assert.equal(result.summary.ready_review_packet_row_count, 4);
+  assert.equal(result.summary.review_packet_gate_count, 8);
+  assert.equal(result.summary.ready_review_packet_gate_count, 8);
+  assert.equal(result.summary.read_only, true);
+  assert.equal(result.summary.report_only, true);
+  assert.equal(result.summary.review_completed, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.evidence_index_consumed_in_memory, true);
+  assert.equal(result.summary.evidence_index_artifact_read_performed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.package_command_execution_performed, false);
+  assert.equal(result.summary.release_check_execution_performed, false);
+  assert.equal(result.summary.artifact_read_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.release_published, false);
+  assert.equal(result.summary.git_operation_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.ok(result.release_check_review_packet_rows.every((row) => row.review_packet_status === "ready" && row.source_evidence_status === "ready" && row.review_completed_by_packet === false && row.approval_applied_by_packet === false));
+  assert.ok(result.release_check_review_packet_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_packet === false));
+});
+
+test("platform release-check review packet blocks when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-release-review-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:release-check-review-packet"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:release-check-review-packet -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformReleaseCheckReviewPacket({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_release_check_review_packet_status, "blocked");
+    assert.ok(result.release_check_review_packet_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.release_check_review_packet_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformReleaseCheckReviewPacket({ packagePath, write: false, check: true }),
+      /Platform release-check review packet failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform release-check review packet blocks when source evidence index is blocked", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-release-review-source-"));
+  try {
+    const docPath = path.join(root, "platform-release-check.md");
+    await writeFile(docPath, "# Missing release-check evidence\n\nNo command evidence here.\n", "utf8");
+
+    const result = await runPlatformReleaseCheckReviewPacket({ platformReleaseCheckDocPath: docPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_release_check_review_packet_status, "blocked");
+    assert.equal(result.summary.source_evidence_index_status, "blocked");
+    assert.ok(result.release_check_review_packet_gate_rows.some((row) => row.row_key === "p365_evidence_index_ready" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformReleaseCheckReviewPacket({ platformReleaseCheckDocPath: docPath, write: false, check: true }),
+      /Platform release-check review packet failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform release-check review packet --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-release-review-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-release-check-review-packet.json");
+    const sentinel = "{ \"sentinel\": \"platform-release-check-review-packet\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformReleaseCheckReviewPacket({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

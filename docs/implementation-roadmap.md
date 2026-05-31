@@ -8565,3 +8565,26 @@ Changes:
   registration, missing documentation evidence, and `--check` no-overwrite
   behavior.
 - Updated the P341-P500 ledger so P365 owns release-check evidence indexing.
+
+## Phase 366 - Release-Check Review Packet
+
+Phase 366 adds a human-review packet over the P365 release-check evidence
+index. It assigns reviewer roles and expected review decisions to each P361-P364
+release-check evidence row without completing reviews, applying approvals,
+running release checks, reading or writing artifacts, publishing releases, or
+mutating release/trading state.
+
+Changes:
+
+- Added `src/platform-release-check-review-packet.mjs`,
+  `scripts/platform-release-check-review-packet.mjs`,
+  `schemas/platform-release-check-review-packet.schema.json`, and
+  `docs/platform-release-check-review-packet.md`.
+- Added `platform:release-check-review-packet` and registered
+  `platform:release-check-review-packet -- --check` in the validation chain.
+- The command consumes the P365 evidence index in memory and produces review
+  packet rows, gate rows, a boundary report, validation output, and a Markdown
+  summary when not in `--check` mode.
+- Added focused tests for ready review rows, missing validation-chain
+  registration, blocked source evidence, and `--check` no-overwrite behavior.
+- Updated the P341-P500 ledger so P366 owns release-check review packets.

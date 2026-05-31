@@ -10,6 +10,7 @@ import { runPlatformOperatorHandoff } from "../src/platform-operator-handoff.mjs
 import { runPlatformArtifactGuard } from "../src/platform-artifact-guard.mjs";
 import { runPlatformProvenanceLedger } from "../src/platform-provenance-ledger.mjs";
 import { runPlatformReleaseBundleProvenance } from "../src/platform-release-bundle-provenance.mjs";
+import { runPlatformSignedTagProvenance } from "../src/platform-signed-tag-provenance.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -455,6 +456,73 @@ test("platform release bundle provenance --check does not overwrite existing art
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformReleaseBundleProvenance({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform signed-tag provenance maps P348 tag policy without git operations", async () => {
+  const result = await runPlatformSignedTagProvenance({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_signed_tag_provenance_status, "ready");
+  assert.equal(result.summary.phase_slot, "P348");
+  assert.equal(result.summary.previous_phase_slot, "P347");
+  assert.equal(result.summary.next_phase_slot, "P349");
+  assert.equal(result.summary.source_release_bundle_provenance_status, "ready");
+  assert.equal(result.summary.signed_tag_policy_count, 5);
+  assert.equal(result.summary.ready_signed_tag_policy_count, 5);
+  assert.equal(result.summary.signed_tag_gate_count, 5);
+  assert.equal(result.summary.ready_signed_tag_gate_count, 5);
+  assert.equal(result.summary.git_operation_performed, false);
+  assert.equal(result.summary.git_tag_created, false);
+  assert.equal(result.summary.signed_tag_created, false);
+  assert.equal(result.summary.signing_key_materialized, false);
+  assert.equal(result.summary.release_bundle_created, false);
+  assert.equal(result.summary.release_published, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.ok(result.signed_tag_policy_rows.every((row) => row.signed_tag_policy_status === "ready" && row.signed_tag_created_by_report === false));
+  assert.ok(result.signed_tag_gate_rows.every((row) => row.gate_status === "ready" && row.git_operation_performed_by_report === false));
+});
+
+test("platform signed-tag provenance blocks when signed-tag policy wording is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-signed-tag-block-"));
+  try {
+    const ledgerText = (await readFile("docs/platform-operations-stability-phase-ledger.md", "utf8"))
+      .replace(/signed-tag/g, "unsigned")
+      .replace(/signed tag/g, "unsigned tag");
+    const ledgerPath = path.join(root, "platform-operations-stability-phase-ledger.md");
+    await writeFile(ledgerPath, ledgerText, "utf8");
+
+    const result = await runPlatformSignedTagProvenance({ platformOpsLedgerPath: ledgerPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_signed_tag_provenance_status, "blocked");
+    assert.ok(result.signed_tag_policy_rows.some((row) => row.row_key === "signed_tag_required_for_future_release" && row.signed_tag_policy_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformSignedTagProvenance({ platformOpsLedgerPath: ledgerPath, write: false, check: true }),
+      /Platform signed-tag provenance failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform signed-tag provenance --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-signed-tag-check-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-signed-tag-provenance.json");
+    const sentinel = "{ \"sentinel\": \"signed-tag-provenance\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformSignedTagProvenance({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

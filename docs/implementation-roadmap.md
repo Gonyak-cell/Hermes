@@ -8132,3 +8132,25 @@ Changes:
 - Updated the P341-P500 ledger so P347 owns release-bundle hash/manifest
   provenance and P348-P350 remain reserved for signed-tag and provenance freeze
   detail.
+
+## Phase 348 - Platform Signed-Tag Provenance
+
+Phase 348 expands future signed-tag provenance for the P341-P360 stability
+tranche. It consumes the P347 release-bundle provenance in memory and records
+signed-tag policy rows and gate rows without running git, materializing signing
+keys, creating tags, creating signed tags, creating release bundles, publishing
+releases, or executing protected actions.
+
+Changes:
+
+- Added `src/platform-signed-tag-provenance.mjs`,
+  `scripts/platform-signed-tag-provenance.mjs`,
+  `schemas/platform-signed-tag-provenance.schema.json`, and
+  `docs/platform-signed-tag-provenance.md`.
+- Added `platform:signed-tag-provenance` and registered
+  `platform:signed-tag-provenance -- --check` after
+  `platform:release-bundle-provenance` in the validation chain.
+- Added focused platform operations tests for signed-tag readiness,
+  missing signed-tag policy blocking, and `--check` no-overwrite behavior.
+- Updated the P341-P500 ledger so P348 owns signed-tag policy and P349-P350
+  remain reserved for final provenance freeze detail.

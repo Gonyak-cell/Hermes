@@ -38,7 +38,8 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 - P345: `platform:artifact-guard` closes the runtime/dependency drift-report sequence by proving P341-P345 generated outputs stay under ignored `artifacts/`, platform commands are registered in validation, and `--check` remains no-overwrite.
 - P346: `platform:provenance-ledger` records the P340 bundle hash, P340 history baseline commit, Mac replay stabilization commit, release-bundle hash policy, and future signed-tag requirements without creating tags or releases.
 - P347: `platform:release-bundle-provenance` expands release-bundle hash and manifest requirements without creating release bundles, tags, signed tags, or releases.
-- P348-P350: baseline provenance expands future signed-tag requirements and final provenance freeze detail without creating tags.
+- P348: `platform:signed-tag-provenance` expands future signed-tag policy and gates without running git, materializing signing keys, creating tags, creating signed tags, or publishing releases.
+- P349-P350: baseline provenance adds final provenance freeze detail without creating tags.
 - P351-P355: Mac/Windows replay notes and lockfile policy are documented for operator handoff.
 - P356-P360: reproducibility checks are registered in the platform validation and future release-check chain.
 

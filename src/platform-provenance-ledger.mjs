@@ -251,10 +251,11 @@ function releaseHashPolicyRow(rowKey, description, passed, details = {}) {
 
 function buildSignedTagRequirementRows(platformOpsLedger) {
   const ledgerText = platformOpsLedger.text ?? "";
+  const signedTagPolicyDeclared = hasSignedTagPolicy(ledgerText);
   const rows = [
-    signedTagRequirementRow("future_signed_tag_required", "Future release tags require a signed-tag requirement record.", ledgerText.includes("signed-tag") || ledgerText.includes("signed tag"), {
+    signedTagRequirementRow("future_signed_tag_required", "Future release tags require a signed-tag requirement record.", signedTagPolicyDeclared, {
       expected_value: "signed-tag requirement",
-      actual_value: ledgerText.includes("signed-tag") || ledgerText.includes("signed tag") ? "ledger_text" : null,
+      actual_value: signedTagPolicyDeclared ? "ledger_text" : null,
     }),
     signedTagRequirementRow("tag_creation_not_performed", "P346 records tag policy without creating a tag.", true, {
       expected_value: "git_tag_created=false",
@@ -266,6 +267,10 @@ function buildSignedTagRequirementRows(platformOpsLedger) {
     }),
   ];
   return rows.map((row, index) => withOrdinalAndHash(row, index, "signed_tag_requirement_hash"));
+}
+
+function hasSignedTagPolicy(text) {
+  return /\bsigned[- ]tags?\b/iu.test(text);
 }
 
 function signedTagRequirementRow(rowKey, description, passed, details = {}) {

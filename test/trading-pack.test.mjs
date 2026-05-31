@@ -33,6 +33,7 @@ import { runTradingOrderIntentDisabledFixtures } from "../src/trading-order-inte
 import { runTradingMarketOrderDisabledFixtures } from "../src/trading-market-order-disabled-fixtures.mjs";
 import { runTradingLeverageDisabledFixtures } from "../src/trading-leverage-disabled-fixtures.mjs";
 import { runTradingShortSellingDisabledFixtures } from "../src/trading-short-selling-disabled-fixtures.mjs";
+import { runTradingOrderFrequencyThrottleFixtures } from "../src/trading-order-frequency-throttle-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -2569,6 +2570,205 @@ test("trading short selling disabled fixtures --check does not overwrite existin
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingShortSellingDisabledFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading order frequency throttle fixtures keep order generation blocked", async () => {
+  const result = await runTradingOrderFrequencyThrottleFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_order_frequency_throttle_fixtures_status, "ready_for_trading_order_frequency_throttle_regression");
+  assert.equal(result.summary.phase_slot, "P397");
+  assert.equal(result.summary.previous_phase_slot, "P396");
+  assert.equal(result.summary.next_phase_slot, "P398");
+  assert.equal(result.summary.source_short_selling_disabled_status, "ready_for_trading_short_selling_disabled_regression");
+  assert.equal(result.summary.required_fixture_count, 6);
+  assert.equal(result.summary.passed_fixture_count, 6);
+  assert.equal(result.summary.unsafe_order_frequency_signal_count, 0);
+  assert.equal(result.summary.order_frequency_throttle_covered, true);
+  assert.equal(result.summary.signal_order_intent_generated, false);
+  assert.equal(result.summary.signal_to_order_intent_route_enabled, false);
+  assert.equal(result.summary.risk_order_frequency_max_not_zero, false);
+  assert.equal(result.summary.risk_order_frequency_current_nonzero, false);
+  assert.equal(result.summary.risk_order_frequency_not_blocking, false);
+  assert.equal(result.summary.risk_order_frequency_not_blocking_order_intent, false);
+  assert.equal(result.summary.risk_order_frequency_check_not_blocking, false);
+  assert.equal(result.summary.execution_order_frequency_max_not_zero, false);
+  assert.equal(result.summary.execution_current_orders_nonzero, false);
+  assert.equal(result.summary.execution_order_throttle_not_blocking, false);
+  assert.equal(result.summary.execution_submit_route_enabled, false);
+  assert.equal(result.summary.limited_live_order_cap_max_not_zero, false);
+  assert.equal(result.summary.limited_live_current_orders_nonzero, false);
+  assert.equal(result.summary.limited_live_order_cap_not_enforced, false);
+  assert.equal(result.summary.limited_live_order_cap_not_blocking, false);
+  assert.equal(result.summary.limited_live_order_submission_allowed, false);
+  assert.equal(result.summary.shadow_order_intents_executable, false);
+  assert.equal(result.summary.shadow_real_order_count_nonzero, false);
+  assert.equal(result.summary.full_auto_order_generation_allowed, false);
+  assert.equal(result.summary.full_auto_automatic_order_submission_allowed, false);
+  assert.equal(result.summary.full_auto_live_order_submission_allowed, false);
+  assert.equal(result.summary.full_auto_orders_route_enabled, false);
+  assert.equal(result.summary.order_intent_generated, false);
+  assert.equal(result.summary.live_execution_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.ok(result.order_frequency_throttle_evidence_rows.every((row) => row.evidence_status === "order_frequency_throttled" && row.unsafe_order_frequency_signal_detected === false));
+  assert.ok(result.order_frequency_throttle_fixture_rows.every((row) => row.fixture_status === "passed" && row.fixture_should_fail_when_order_frequency_enabled));
+  assert.ok(result.order_frequency_throttle_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_gate === false));
+});
+
+test("trading order frequency throttle fixtures block when order generation is enabled", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-order-frequency-enabled-"));
+  try {
+    const signalEngine = JSON.parse(await readFile("examples/trading/signal-engine.json", "utf8"));
+    signalEngine.safety_boundary.order_intent_generated = true;
+    signalEngine.safety_boundary.live_execution_allowed = true;
+    signalEngine.dashboard_api_stub.disabled_routes = signalEngine.dashboard_api_stub.disabled_routes.filter((route) => route.path !== "/api/trading/signals/to-order-intent");
+    const signalEnginePath = path.join(root, "signal-engine.json");
+    await writeFile(signalEnginePath, `${JSON.stringify(signalEngine, null, 2)}\n`, "utf8");
+
+    const riskEngine = JSON.parse(await readFile("examples/trading/risk-engine.json", "utf8"));
+    riskEngine.risk_guards.order_frequency_throttle.max_orders_per_day = 25;
+    riskEngine.risk_guards.order_frequency_throttle.current_orders_today = 1;
+    riskEngine.risk_guards.order_frequency_throttle.result = "pass";
+    riskEngine.risk_guards.order_frequency_throttle.blocks_order_intent = false;
+    riskEngine.risk_check_artifacts[0].checks = riskEngine.risk_check_artifacts[0].checks.map((check) => (
+      check.check_id === "order_frequency_throttle" ? { ...check, status: "pass" } : check
+    ));
+    const riskEnginePath = path.join(root, "risk-engine.json");
+    await writeFile(riskEnginePath, `${JSON.stringify(riskEngine, null, 2)}\n`, "utf8");
+
+    const executionEngine = JSON.parse(await readFile("examples/trading/execution-engine.json", "utf8"));
+    executionEngine.order_controls.order_throttle.max_orders_per_day = 25;
+    executionEngine.order_controls.order_throttle.current_orders_today = 1;
+    executionEngine.order_controls.order_throttle.blocks_order_submission = false;
+    executionEngine.dashboard_api_stub.disabled_routes = executionEngine.dashboard_api_stub.disabled_routes.filter((route) => route.path !== "/api/trading/orders/submit");
+    const executionEnginePath = path.join(root, "execution-engine.json");
+    await writeFile(executionEnginePath, `${JSON.stringify(executionEngine, null, 2)}\n`, "utf8");
+
+    const limitedLive = JSON.parse(await readFile("examples/trading/limited-live-governance.json", "utf8"));
+    limitedLive.order_caps.daily_order_count_cap.max_orders_per_day = 25;
+    limitedLive.order_caps.daily_order_count_cap.current_orders_today = 1;
+    limitedLive.order_caps.daily_order_count_cap.enforced = false;
+    limitedLive.order_caps.daily_order_count_cap.blocks_submission = false;
+    limitedLive.order_caps.order_submission_allowed = true;
+    const limitedLivePath = path.join(root, "limited-live-governance.json");
+    await writeFile(limitedLivePath, `${JSON.stringify(limitedLive, null, 2)}\n`, "utf8");
+
+    const paperShadow = JSON.parse(await readFile("examples/trading/paper-shadow-live.json", "utf8"));
+    paperShadow.safety_boundary.shadow_order_intent_non_executable = false;
+    paperShadow.shadow_order_intents[0].non_executable = false;
+    paperShadow.shadow_order_intents[0].review_only = false;
+    paperShadow.shadow_order_intents[0].risk_gate_status = "pass";
+    paperShadow.no_order_shadow_mode.real_order_count = 1;
+    const paperShadowPath = path.join(root, "paper-shadow-live.json");
+    await writeFile(paperShadowPath, `${JSON.stringify(paperShadow, null, 2)}\n`, "utf8");
+
+    const fullAuto = JSON.parse(await readFile("examples/trading/full-auto-governance.json", "utf8"));
+    fullAuto.allocators.multi_strategy_conflict_resolver.order_generation_allowed = true;
+    fullAuto.safety_boundary.automatic_order_submission_allowed = true;
+    fullAuto.safety_boundary.live_order_submission_allowed = true;
+    fullAuto.dashboard_api_stub.disabled_routes = fullAuto.dashboard_api_stub.disabled_routes.filter((route) => route.path !== "/api/trading/full-auto/orders" && route.path !== "/api/trading/orders");
+    const fullAutoPath = path.join(root, "full-auto-governance.json");
+    await writeFile(fullAutoPath, `${JSON.stringify(fullAuto, null, 2)}\n`, "utf8");
+
+    const result = await runTradingOrderFrequencyThrottleFixtures({
+      signalEnginePath,
+      riskEnginePath,
+      executionEnginePath,
+      limitedLivePath,
+      paperShadowPath,
+      fullAutoPath,
+      write: false,
+    });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_order_frequency_throttle_fixtures_status, "blocked");
+    assert.ok(result.summary.unsafe_order_frequency_signal_count > 0);
+    assert.equal(result.summary.signal_order_intent_generated, true);
+    assert.equal(result.summary.signal_to_order_intent_route_enabled, true);
+    assert.equal(result.summary.risk_order_frequency_max_not_zero, true);
+    assert.equal(result.summary.risk_order_frequency_current_nonzero, true);
+    assert.equal(result.summary.risk_order_frequency_not_blocking, true);
+    assert.equal(result.summary.risk_order_frequency_not_blocking_order_intent, true);
+    assert.equal(result.summary.risk_order_frequency_check_not_blocking, true);
+    assert.equal(result.summary.execution_order_frequency_max_not_zero, true);
+    assert.equal(result.summary.execution_current_orders_nonzero, true);
+    assert.equal(result.summary.execution_order_throttle_not_blocking, true);
+    assert.equal(result.summary.execution_submit_route_enabled, true);
+    assert.equal(result.summary.limited_live_order_cap_max_not_zero, true);
+    assert.equal(result.summary.limited_live_current_orders_nonzero, true);
+    assert.equal(result.summary.limited_live_order_cap_not_enforced, true);
+    assert.equal(result.summary.limited_live_order_cap_not_blocking, true);
+    assert.equal(result.summary.limited_live_order_submission_allowed, true);
+    assert.equal(result.summary.shadow_order_intents_executable, true);
+    assert.equal(result.summary.shadow_real_order_count_nonzero, true);
+    assert.equal(result.summary.full_auto_order_generation_allowed, true);
+    assert.equal(result.summary.full_auto_automatic_order_submission_allowed, true);
+    assert.equal(result.summary.full_auto_live_order_submission_allowed, true);
+    assert.equal(result.summary.full_auto_orders_route_enabled, true);
+    assert.equal(result.summary.order_intent_generated, true);
+    assert.equal(result.summary.live_execution_allowed, true);
+    assert.ok(result.order_frequency_throttle_fixture_rows.some((row) => row.row_key === "risk_order_frequency_throttle_blocks" && row.fixture_status === "failed" && row.unsafe_order_frequency_signal_detected));
+    await assert.rejects(
+      () => runTradingOrderFrequencyThrottleFixtures({
+        signalEnginePath,
+        riskEnginePath,
+        executionEnginePath,
+        limitedLivePath,
+        paperShadowPath,
+        fullAutoPath,
+        write: false,
+        check: true,
+      }),
+      /Trading order frequency throttle fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading order frequency throttle fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-order-frequency-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:order-frequency-throttle-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:order-frequency-throttle-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingOrderFrequencyThrottleFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_order_frequency_throttle_fixtures_status, "blocked");
+    assert.ok(result.order_frequency_throttle_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.order_frequency_throttle_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingOrderFrequencyThrottleFixtures({ packagePath, write: false, check: true }),
+      /Trading order frequency throttle fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading order frequency throttle fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-order-frequency-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-order-frequency-throttle-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-order-frequency-throttle-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingOrderFrequencyThrottleFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

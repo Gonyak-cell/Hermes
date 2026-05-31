@@ -1,0 +1,242 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/trading/trading-order-frequency-throttle-fixtures.schema.json",
+  "title": "Trading Order Frequency Throttle Fixtures",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "trading_order_frequency_throttle_fixtures_id",
+    "capability_id",
+    "order_frequency_throttle_anchor",
+    "order_frequency_throttle_evidence_rows",
+    "order_frequency_throttle_fixture_rows",
+    "order_frequency_throttle_gate_rows",
+    "order_frequency_throttle_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "trading-order-frequency-throttle-fixtures.v1" },
+    "trading_order_frequency_throttle_fixtures_id": {
+      "type": "string",
+      "pattern": "^trading-order-frequency-throttle-fixtures\\.[0-9]{8}$"
+    },
+    "capability_id": { "const": "trading.order_frequency_throttle_fixtures" },
+    "order_frequency_throttle_anchor": {
+      "type": "object",
+      "required": ["phase_slot", "previous_phase_slot", "next_phase_slot", "source_short_selling_disabled_status", "required_fixture_count"],
+      "properties": {
+        "phase_slot": { "const": "P397" },
+        "previous_phase_slot": { "const": "P396" },
+        "next_phase_slot": { "const": "P398" },
+        "source_short_selling_disabled_status": { "const": "ready_for_trading_short_selling_disabled_regression" },
+        "required_fixture_count": { "const": 6 }
+      }
+    },
+    "order_frequency_throttle_evidence_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["phase_slot", "row_key", "observed_conditions", "all_conditions_present", "unsafe_order_frequency_signal_detected", "evidence_status", "human_review_required"],
+        "properties": {
+          "phase_slot": { "const": "P397" },
+          "row_key": {
+            "enum": [
+              "signal_order_intent_generation_disabled",
+              "risk_order_frequency_throttle_blocks",
+              "execution_order_throttle_blocks_submission",
+              "limited_live_daily_order_cap_blocks",
+              "shadow_order_intents_non_executable",
+              "full_auto_order_generation_disabled"
+            ]
+          },
+          "observed_conditions": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["condition_path", "expected_safe_value", "observed_value", "condition_present", "unsafe_when_not_safe"],
+              "properties": {
+                "condition_present": { "const": true },
+                "unsafe_when_not_safe": { "const": true }
+              }
+            }
+          },
+          "all_conditions_present": { "const": true },
+          "unsafe_order_frequency_signal_detected": { "const": false },
+          "evidence_status": { "const": "order_frequency_throttled" },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "order_frequency_throttle_fixture_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["phase_slot", "row_key", "expected_max_orders_per_day", "expected_current_orders_today", "unsafe_order_frequency_signal_detected", "fixture_should_fail_when_order_frequency_enabled", "fixture_should_fail_when_order_intent_generated", "fixture_should_fail_when_order_submit_enabled", "fixture_status", "order_frequency_enabled_by_fixture", "order_intent_generated_by_fixture", "order_submit_enabled_by_fixture", "live_execution_allowed_by_fixture", "command_execution_performed_by_fixture", "artifact_write_performed_by_fixture", "protected_action_executed_by_fixture", "human_review_required"],
+        "properties": {
+          "phase_slot": { "const": "P397" },
+          "expected_max_orders_per_day": { "const": 0 },
+          "expected_current_orders_today": { "const": 0 },
+          "unsafe_order_frequency_signal_detected": { "const": false },
+          "fixture_should_fail_when_order_frequency_enabled": { "const": true },
+          "fixture_should_fail_when_order_intent_generated": { "const": true },
+          "fixture_should_fail_when_order_submit_enabled": { "const": true },
+          "fixture_status": { "const": "passed" },
+          "order_frequency_enabled_by_fixture": { "const": false },
+          "order_intent_generated_by_fixture": { "const": false },
+          "order_submit_enabled_by_fixture": { "const": false },
+          "live_execution_allowed_by_fixture": { "const": false },
+          "command_execution_performed_by_fixture": { "const": false },
+          "artifact_write_performed_by_fixture": { "const": false },
+          "protected_action_executed_by_fixture": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "order_frequency_throttle_gate_rows": {
+      "type": "array",
+      "minItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["phase_slot", "row_key", "gate_status", "order_frequency_enabled_by_gate", "order_intent_generated_by_gate", "order_submit_enabled_by_gate", "live_execution_allowed_by_gate", "protected_action_executed_by_gate", "human_review_required"],
+        "properties": {
+          "phase_slot": { "const": "P397" },
+          "gate_status": { "const": "ready" },
+          "order_frequency_enabled_by_gate": { "const": false },
+          "order_intent_generated_by_gate": { "const": false },
+          "order_submit_enabled_by_gate": { "const": false },
+          "live_execution_allowed_by_gate": { "const": false },
+          "protected_action_executed_by_gate": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "order_frequency_throttle_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "phase_slot",
+        "read_only",
+        "report_only",
+        "order_frequency_throttle_covered",
+        "unsafe_order_frequency_signal_count",
+        "source_short_selling_disabled_ready",
+        "signal_order_intent_generated",
+        "risk_order_frequency_max_not_zero",
+        "risk_order_frequency_not_blocking",
+        "execution_order_frequency_max_not_zero",
+        "execution_order_throttle_not_blocking",
+        "limited_live_order_cap_max_not_zero",
+        "limited_live_order_submission_allowed",
+        "shadow_order_intents_executable",
+        "full_auto_order_generation_allowed",
+        "automatic_order_submission_allowed",
+        "live_order_submission_allowed",
+        "order_intent_generated",
+        "live_execution_allowed",
+        "broker_write_allowed",
+        "exchange_write_allowed",
+        "command_execution_performed",
+        "artifact_write_performed",
+        "protected_action_executed",
+        "human_review_required"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "phase_slot": { "const": "P397" },
+        "read_only": { "const": true },
+        "report_only": { "const": true },
+        "required_fixture_count": { "const": 6 },
+        "order_frequency_evidence_count": { "const": 6 },
+        "fixture_count": { "const": 6 },
+        "unsafe_order_frequency_signal_count": { "const": 0 },
+        "order_frequency_throttle_covered": { "const": true },
+        "source_short_selling_disabled_ready": { "const": true },
+        "signal_order_intent_generated": { "const": false },
+        "signal_live_execution_allowed": { "const": false },
+        "signal_to_order_intent_route_enabled": { "const": false },
+        "risk_order_frequency_max_not_zero": { "const": false },
+        "risk_order_frequency_current_nonzero": { "const": false },
+        "risk_order_frequency_not_blocking": { "const": false },
+        "risk_order_frequency_not_blocking_order_intent": { "const": false },
+        "risk_order_frequency_check_not_blocking": { "const": false },
+        "execution_order_frequency_max_not_zero": { "const": false },
+        "execution_current_orders_nonzero": { "const": false },
+        "execution_order_throttle_not_blocking": { "const": false },
+        "execution_submit_route_enabled": { "const": false },
+        "limited_live_order_cap_max_not_zero": { "const": false },
+        "limited_live_current_orders_nonzero": { "const": false },
+        "limited_live_order_cap_not_enforced": { "const": false },
+        "limited_live_order_cap_not_blocking": { "const": false },
+        "limited_live_order_submission_allowed": { "const": false },
+        "shadow_order_intents_executable": { "const": false },
+        "shadow_real_order_count_nonzero": { "const": false },
+        "full_auto_order_generation_allowed": { "const": false },
+        "full_auto_automatic_order_submission_allowed": { "const": false },
+        "full_auto_live_order_submission_allowed": { "const": false },
+        "full_auto_orders_route_enabled": { "const": false },
+        "automatic_order_submission_allowed": { "const": false },
+        "live_order_submission_allowed": { "const": false },
+        "order_intent_generated": { "const": false },
+        "real_order_submitted": { "const": false },
+        "live_execution_allowed": { "const": false },
+        "broker_write_allowed": { "const": false },
+        "exchange_write_allowed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "artifact_write_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "human_review_required": { "const": true }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["trading_order_frequency_throttle_fixtures_status", "phase_slot", "previous_phase_slot", "next_phase_slot", "source_short_selling_disabled_status", "required_fixture_count", "evidence_count", "fixture_count", "passed_fixture_count", "unsafe_order_frequency_signal_count", "order_frequency_throttle_covered", "signal_order_intent_generated", "risk_order_frequency_max_not_zero", "execution_order_frequency_max_not_zero", "limited_live_order_cap_max_not_zero", "shadow_order_intents_executable", "full_auto_order_generation_allowed", "automatic_order_submission_allowed", "live_order_submission_allowed", "order_intent_generated", "live_execution_allowed", "broker_write_allowed", "exchange_write_allowed", "command_execution_performed", "artifact_write_performed", "protected_action_executed", "validation_error_count"],
+      "properties": {
+        "trading_order_frequency_throttle_fixtures_status": { "const": "ready_for_trading_order_frequency_throttle_regression" },
+        "phase_slot": { "const": "P397" },
+        "previous_phase_slot": { "const": "P396" },
+        "next_phase_slot": { "const": "P398" },
+        "source_short_selling_disabled_status": { "const": "ready_for_trading_short_selling_disabled_regression" },
+        "required_fixture_count": { "const": 6 },
+        "evidence_count": { "const": 6 },
+        "fixture_count": { "const": 6 },
+        "passed_fixture_count": { "const": 6 },
+        "unsafe_order_frequency_signal_count": { "const": 0 },
+        "order_frequency_throttle_covered": { "const": true },
+        "signal_order_intent_generated": { "const": false },
+        "risk_order_frequency_max_not_zero": { "const": false },
+        "risk_order_frequency_not_blocking": { "const": false },
+        "execution_order_frequency_max_not_zero": { "const": false },
+        "execution_order_throttle_not_blocking": { "const": false },
+        "limited_live_order_cap_max_not_zero": { "const": false },
+        "limited_live_order_submission_allowed": { "const": false },
+        "shadow_order_intents_executable": { "const": false },
+        "full_auto_order_generation_allowed": { "const": false },
+        "automatic_order_submission_allowed": { "const": false },
+        "live_order_submission_allowed": { "const": false },
+        "order_intent_generated": { "const": false },
+        "live_execution_allowed": { "const": false },
+        "broker_write_allowed": { "const": false },
+        "exchange_write_allowed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "artifact_write_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "errors": { "type": "array", "maxItems": 0 }
+      }
+    }
+  }
+}

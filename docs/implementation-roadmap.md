@@ -8713,3 +8713,29 @@ Changes:
 - Added focused tests for status rows, missing validation-chain registration,
   blocked source closeout, and `--check` no-overwrite behavior.
 - Updated the P341-P500 ledger so P371 owns release-check status visibility.
+
+## Phase 372 - Release-Check Receipt Queue
+
+Phase 372 turns the P371 release-check status ledger into a deterministic
+external human receipt collection queue. It records four queued receipt items as
+`queued_for_human_receipt` without receiving receipts, validating receipts,
+marking rows ready for validation, completing signoff, applying approvals,
+running release checks, reading or writing artifacts, publishing releases, or
+mutating release/trading state.
+
+Changes:
+
+- Added `src/platform-release-check-receipt-queue.mjs`,
+  `scripts/platform-release-check-receipt-queue.mjs`,
+  `schemas/platform-release-check-receipt-queue.schema.json`, and
+  `docs/platform-release-check-receipt-queue.md`.
+- Added `platform:release-check-receipt-queue` and registered
+  `platform:release-check-receipt-queue -- --check` in the validation chain.
+- The command consumes the P371 status ledger in memory and produces receipt
+  queue rows, gate rows, a boundary report, validation output, and a Markdown
+  summary when not in `--check` mode.
+- Added focused tests for receipt queue rows, missing validation-chain
+  registration, blocked source status ledgers, and `--check` no-overwrite
+  behavior.
+- Updated the P341-P500 ledger so P372 owns release-check human receipt queue
+  visibility.

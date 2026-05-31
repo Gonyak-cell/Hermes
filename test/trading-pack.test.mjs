@@ -13,6 +13,7 @@ import { runTradingBacktestReport } from "../src/trading-backtest-validation.mjs
 import { runTradingExecutionReport } from "../src/trading-execution-engine.mjs";
 import { runTradingFullAutoReport } from "../src/trading-full-auto-governance.mjs";
 import { runTradingLimitedLiveReport } from "../src/trading-limited-live-governance.mjs";
+import { runTradingReleaseCheck } from "../src/trading-release-check.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -303,6 +304,116 @@ test("trading full auto governance covers P311-P340 without automatic orders", a
   assert.equal(result.summary.dashboard_read_only, true);
 });
 
+test("trading release check composes P361 child checks without enabling trading mutation", async () => {
+  const calls = [];
+  const result = await runTradingReleaseCheck({
+    write: false,
+    check: true,
+    runner: async (spec) => {
+      calls.push(spec.package_script_name);
+      return {
+        exitCode: 0,
+        stdout: `${spec.package_script_name} ok\n`,
+        stderr: "",
+        durationMs: 1,
+      };
+    },
+  });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_release_check_status, "complete");
+  assert.equal(result.summary.phase_slot, "P361");
+  assert.equal(result.summary.previous_phase_slot, "P360");
+  assert.equal(result.summary.next_phase_slot, "P362");
+  assert.equal(result.summary.command_count, 20);
+  assert.equal(result.summary.passed_command_count, 20);
+  assert.equal(result.summary.contract_release_command_count, 3);
+  assert.equal(result.summary.trading_command_count, 17);
+  assert.equal(result.summary.command_execution_performed, true);
+  assert.equal(result.summary.release_check_execution_performed, true);
+  assert.equal(result.summary.check_mode_command_count, 20);
+  assert.equal(result.summary.child_artifact_write_allowed, false);
+  assert.equal(result.summary.dependency_install_performed, false);
+  assert.equal(result.summary.package_mutation_performed, false);
+  assert.equal(result.summary.lockfile_mutation_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.release_published, false);
+  assert.equal(result.summary.git_operation_performed, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.automatic_order_submission_allowed, false);
+  assert.equal(result.summary.live_order_submission_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(calls.length, 20);
+  assert.deepEqual(calls.slice(0, 3), ["contracts:golden-fixtures", "contracts:validate", "release:freeze"]);
+  assert.ok(result.release_check_command_rows.every((row) => row.executed_by_release_check && row.check_mode_used && row.release_check_command_status === "passed"));
+  assert.ok(result.release_check_gate_rows.every((row) => row.gate_status === "ready"));
+});
+
+test("trading release check blocks when a child check fails", async () => {
+  const result = await runTradingReleaseCheck({
+    write: false,
+    runner: async (spec) => ({
+      exitCode: spec.package_script_name === "trading:risk-check" ? 1 : 0,
+      stdout: "",
+      stderr: spec.package_script_name === "trading:risk-check" ? "risk failed\n" : "",
+      durationMs: 1,
+    }),
+  });
+
+  assert.equal(result.validation.valid, false);
+  assert.equal(result.summary.trading_release_check_status, "blocked");
+  assert.equal(result.summary.failed_command_count, 1);
+  assert.ok(result.release_check_command_rows.some((row) => row.package_script_name === "trading:risk-check" && row.release_check_command_status === "failed"));
+  await assert.rejects(
+    () => runTradingReleaseCheck({
+      write: false,
+      check: true,
+      runner: async (spec) => ({
+        exitCode: spec.package_script_name === "trading:risk-check" ? 1 : 0,
+        stdout: "",
+        stderr: "",
+        durationMs: 1,
+      }),
+    }),
+    /Trading release check failed/,
+  );
+});
+
+test("trading release check blocks when package registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-release-registration-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:release-check"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:release-check -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingReleaseCheck({
+      packagePath,
+      write: false,
+      runner: async () => ({ exitCode: 0, stdout: "", stderr: "", durationMs: 1 }),
+    });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_release_check_status, "blocked");
+    assert.ok(result.source_rows.some((row) => row.row_key === "package_trading_release_check_registered" && row.source_status === "blocked"));
+    assert.ok(result.source_rows.some((row) => row.row_key === "package_validation_chain_registered" && row.source_status === "blocked"));
+    await assert.rejects(
+      () => runTradingReleaseCheck({
+        packagePath,
+        write: false,
+        check: true,
+        runner: async () => ({ exitCode: 0, stdout: "", stderr: "", durationMs: 1 }),
+      }),
+      /Trading release check failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("trading --check runners do not overwrite existing artifacts", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-check-"));
   try {
@@ -504,6 +615,28 @@ test("trading full auto report --check does not overwrite existing artifacts", a
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingFullAutoReport({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading release check --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-release-check-"));
+  try {
+    const outDir = path.join(root, "release-check");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-release-check.json");
+    const sentinel = "{ \"sentinel\": \"release-check\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingReleaseCheck({
+      outDir,
+      write: false,
+      check: true,
+      runner: async () => ({ exitCode: 0, stdout: "", stderr: "", durationMs: 1 }),
+    });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

@@ -58,7 +58,8 @@
     "schemas/trading/trading-paper-shadow-live.schema.json",
     "schemas/trading/trading-execution-engine.schema.json",
     "schemas/trading/trading-limited-live-governance.schema.json",
-    "schemas/trading/trading-full-auto-governance.schema.json"
+    "schemas/trading/trading-full-auto-governance.schema.json",
+    "schemas/trading/trading-release-check.schema.json"
   ],
   "workflows": [
     "workflow.trading.research_intake.v1",
@@ -92,7 +93,8 @@
     "workflow.trading.full_auto_report.v1",
     "workflow.trading.full_auto_dashboard.v1",
     "workflow.trading.full_auto_api.v1",
-    "workflow.trading.trading_pack_v1_freeze.v1"
+    "workflow.trading.trading_pack_v1_freeze.v1",
+    "workflow.trading.release_check.v1"
   ],
   "gates": [
     "classification_gate",
@@ -127,7 +129,8 @@
     "golden.trading.paper_shadow_live.p221_p245",
     "golden.trading.execution_engine.p246_p280",
     "golden.trading.limited_live_governance.p281_p310",
-    "golden.trading.full_auto_governance.p311_p340"
+    "golden.trading.full_auto_governance.p311_p340",
+    "golden.trading.release_check.p361"
   ],
   "dependencies": [
     {

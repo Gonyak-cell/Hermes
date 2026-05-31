@@ -20,8 +20,8 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 
 | Range | Scope | Current status | Stability note |
 | --- | --- | --- | --- |
-| P341-P360 | Reproducibility baseline | active | Pin Node/npm policy, lockfile policy, P340 provenance, deterministic runtime baseline artifact, and `platform:runtime-baseline`. |
-| P361-P380 | Unified platform and trading checks | planned | Add `trading:release-check`, `platform:ops-check`, and `platform:release-check` so operators do not rely on remembered command order. |
+| P341-P360 | Reproducibility baseline | complete | Pin Node/npm policy, lockfile policy, P340 provenance, deterministic runtime baseline artifact, and `platform:runtime-baseline`. |
+| P361-P380 | Unified platform and trading checks | active | Add `trading:release-check`, `platform:ops-check`, and `platform:release-check` so operators do not rely on remembered command order. |
 | P381-P400 | Trading safety regression | planned | Fail immediately if live, full-auto, automatic order submission, broker credential, generic order, or mutating trading routes become enabled. |
 | P401-P420 | Promotion receipt gates | planned | Require independent human approval receipts for research -> backtest -> paper -> shadow -> limited-live -> full-auto promotion claims. |
 | P421-P440 | Execution and secret isolation | planned | Keep simulated and live broker adapters schema/API separated; live credentials are external secret handles only. |
@@ -54,6 +54,7 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 
 ## P361-P380 Acceptance Criteria
 
+- P361: `trading:release-check` executes the contract validation, release freeze, and complete Trading Pack check stack in `--check` mode while keeping live trading, full-auto, order submission, broker writes, exchange writes, release publication, git operations, and protected actions disabled.
 - `trading:release-check` runs the complete Trading Pack validation stack, contract validation, release freeze, and trading no-write checks in one command.
 - `platform:ops-check` verifies runtime baseline, contracts, control-plane loop, dashboard/API smoke readiness, and domain-pack registry health.
 - `platform:release-check` composes `platform:ops-check`, `trading:release-check`, `npm run validate`, `npm test`, `contracts:validate -- --check`, and `release:freeze -- --check`.

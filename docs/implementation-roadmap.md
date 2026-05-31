@@ -8450,3 +8450,28 @@ Changes:
   `--check` no-overwrite behavior.
 - Updated the P341-P500 ledger so P360 closes P341-P360 reproducibility
   readiness and hands off to P361-P380 unified checks.
+
+## Phase 361 - Trading Release Check
+
+Phase 361 starts the P361-P380 unified platform and trading checks tranche. It
+adds `trading:release-check` as an executable command runner that invokes the
+contract validation, release freeze, and complete Trading Pack check stack in
+`--check` mode. The command records child command rows, source registration
+rows, gate rows, and a safety boundary showing that dependency installs,
+package or lockfile mutation, release publication, git operations, protected
+actions, live trading, full-auto, order submission, broker writes, and exchange
+writes remain disabled.
+
+Changes:
+
+- Added `src/trading-release-check.mjs`, `scripts/trading-release-check.mjs`,
+  `schemas/trading/trading-release-check.schema.json`, and
+  `docs/trading-release-check.md`.
+- Added `trading:release-check`, registered it in the validation chain, and
+  added release-check schema/workflow/golden-case metadata to the Trading Pack
+  manifest and capability manifest.
+- Added focused Trading Pack tests for P361 command composition, child-check
+  failure blocking, missing release-check registration, and `--check`
+  no-overwrite behavior.
+- Updated the P341-P500 ledger so P341-P360 is complete, P361-P380 is active,
+  and P361 owns the Trading release-check bridge.

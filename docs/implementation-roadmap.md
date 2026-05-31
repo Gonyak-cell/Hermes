@@ -8872,3 +8872,30 @@ Changes:
   blocked source preflights, and `--check` no-overwrite behavior.
 - Updated the P341-P500 ledger so P377 owns release-check receipt validation
   packet preparation.
+
+## Phase 378 - Release-Check Receipt Approval Plan
+
+Phase 378 declares future approval-plan rows for the P377 release-check receipt
+validation packet. It records future approval application steps for each
+reviewer row without reading actor workspace files, materializing merged receipt
+input, receiving receipt payloads, validating receipts, marking rows ready for
+approval application, completing signoff, applying approvals, running release
+checks, reading or writing artifacts, publishing releases, or mutating
+release/trading state.
+
+Changes:
+
+- Added `src/platform-release-check-receipt-approval-plan.mjs`,
+  `scripts/platform-release-check-receipt-approval-plan.mjs`,
+  `schemas/platform-release-check-receipt-approval-plan.schema.json`, and
+  `docs/platform-release-check-receipt-approval-plan.md`.
+- Added `platform:release-check-receipt-approval-plan` and registered
+  `platform:release-check-receipt-approval-plan -- --check` in the validation
+  chain.
+- The command consumes the P377 receipt validation packet in memory and produces
+  approval-plan rows, gate rows, a boundary report, validation output, and a
+  Markdown summary when not in `--check` mode.
+- Added focused tests for approval-plan rows, missing validation-chain
+  registration, blocked source packets, and `--check` no-overwrite behavior.
+- Updated the P341-P500 ledger so P378 owns release-check receipt approval-plan
+  preparation.

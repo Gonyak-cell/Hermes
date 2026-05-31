@@ -39,6 +39,7 @@ import { runPlatformReleaseCheckReceiptWorkspace } from "../src/platform-release
 import { runPlatformReleaseCheckReceiptWorkspaceMerge } from "../src/platform-release-check-receipt-workspace-merge.mjs";
 import { runPlatformReleaseCheckReceiptMergePreflight } from "../src/platform-release-check-receipt-merge-preflight.mjs";
 import { runPlatformReleaseCheckReceiptValidationPacket } from "../src/platform-release-check-receipt-validation-packet.mjs";
+import { runPlatformReleaseCheckReceiptApprovalPlan } from "../src/platform-release-check-receipt-approval-plan.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -3008,6 +3009,110 @@ test("platform release-check receipt validation packet --check does not overwrit
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformReleaseCheckReceiptValidationPacket({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform release-check receipt approval plan records P378 without applying approvals", async () => {
+  const result = await runPlatformReleaseCheckReceiptApprovalPlan({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_release_check_receipt_approval_plan_status, "ready_for_future_receipt_approval_plan");
+  assert.equal(result.summary.phase_slot, "P378");
+  assert.equal(result.summary.previous_phase_slot, "P377");
+  assert.equal(result.summary.next_phase_slot, "P379");
+  assert.equal(result.summary.source_receipt_validation_packet_status, "ready_for_future_receipt_validation_packet");
+  assert.equal(result.summary.approval_plan_row_count, 4);
+  assert.equal(result.summary.ready_approval_plan_row_count, 4);
+  assert.equal(result.summary.approval_plan_gate_count, 8);
+  assert.equal(result.summary.ready_approval_plan_gate_count, 8);
+  assert.equal(result.summary.receipt_validation_packet_consumed_in_memory, true);
+  assert.equal(result.summary.receipt_validation_packet_artifact_read_performed, false);
+  assert.equal(result.summary.approval_plan_declared, true);
+  assert.equal(result.summary.actor_workspace_input_present, false);
+  assert.equal(result.summary.receipt_input_file_materialized, false);
+  assert.equal(result.summary.merged_receipt_input_materialized, false);
+  assert.equal(result.summary.receipt_payload_present, false);
+  assert.equal(result.summary.ready_for_validation, false);
+  assert.equal(result.summary.ready_for_approval_application, false);
+  assert.equal(result.summary.receipt_received, false);
+  assert.equal(result.summary.receipt_validated, false);
+  assert.equal(result.summary.signoff_completed, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.package_command_execution_performed, false);
+  assert.equal(result.summary.release_check_execution_performed, false);
+  assert.equal(result.summary.artifact_read_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.release_published, false);
+  assert.equal(result.summary.git_operation_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.ok(result.release_check_receipt_approval_plan_rows.every((row) => row.approval_plan_status === "ready_for_future_receipt_approval_plan" && row.source_validation_packet_status === "ready_for_future_receipt_validation_packet" && row.approval_plan_declared && row.approval_plan_checks.length >= 6 && row.actor_workspace_input_present === false && row.merged_receipt_input_materialized === false && row.receipt_payload_present === false && row.ready_for_approval_application === false && row.approval_applied_by_plan === false));
+  assert.ok(result.release_check_receipt_approval_plan_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_plan === false));
+});
+
+test("platform release-check receipt approval plan blocks when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-release-receipt-approval-plan-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:release-check-receipt-approval-plan"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:release-check-receipt-approval-plan -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformReleaseCheckReceiptApprovalPlan({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_release_check_receipt_approval_plan_status, "blocked");
+    assert.ok(result.release_check_receipt_approval_plan_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.release_check_receipt_approval_plan_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformReleaseCheckReceiptApprovalPlan({ packagePath, write: false, check: true }),
+      /Platform release-check receipt approval plan failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform release-check receipt approval plan blocks when source validation packet is blocked", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-release-receipt-approval-plan-source-"));
+  try {
+    const docPath = path.join(root, "platform-release-check.md");
+    await writeFile(docPath, "# Missing release-check receipt approval plan evidence\n\nNo command evidence here.\n", "utf8");
+
+    const result = await runPlatformReleaseCheckReceiptApprovalPlan({ platformReleaseCheckDocPath: docPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_release_check_receipt_approval_plan_status, "blocked");
+    assert.equal(result.summary.source_receipt_validation_packet_status, "blocked");
+    assert.ok(result.release_check_receipt_approval_plan_gate_rows.some((row) => row.row_key === "p377_receipt_validation_packet_ready" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformReleaseCheckReceiptApprovalPlan({ platformReleaseCheckDocPath: docPath, write: false, check: true }),
+      /Platform release-check receipt approval plan failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform release-check receipt approval plan --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-release-receipt-approval-plan-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-release-check-receipt-approval-plan.json");
+    const sentinel = "{ \"sentinel\": \"platform-release-check-receipt-approval-plan\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformReleaseCheckReceiptApprovalPlan({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

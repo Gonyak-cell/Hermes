@@ -41,6 +41,7 @@ import { runTradingPromotionReceiptContractFixtures } from "../src/trading-promo
 import { runTradingPromotionCompletionGateFixtures } from "../src/trading-promotion-completion-gate-fixtures.mjs";
 import { runTradingPromotionGovernanceReadonlyFixtures } from "../src/trading-promotion-governance-readonly-fixtures.mjs";
 import { runTradingPromotionReceiptIntakeQueueFixtures } from "../src/trading-promotion-receipt-intake-queue-fixtures.mjs";
+import { runTradingPromotionReceiptValidationRulesFixtures } from "../src/trading-promotion-receipt-validation-rules-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -4032,6 +4033,124 @@ test("trading promotion receipt intake queue fixtures --check does not overwrite
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingPromotionReceiptIntakeQueueFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion receipt validation rules fixtures declare future validation without payloads", async () => {
+  const result = await runTradingPromotionReceiptValidationRulesFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_promotion_receipt_validation_rules_fixtures_status, "ready_for_trading_promotion_receipt_validation_rules_regression");
+  assert.equal(result.summary.phase_slot, "P405");
+  assert.equal(result.summary.previous_phase_slot, "P404");
+  assert.equal(result.summary.next_phase_slot, "P406");
+  assert.equal(result.summary.source_promotion_receipt_intake_queue_status, "ready_for_trading_promotion_receipt_intake_queue_regression");
+  assert.equal(result.summary.source_promotion_receipt_intake_queue_ready, true);
+  assert.equal(result.summary.rule_row_count, 6);
+  assert.equal(result.summary.ready_rule_row_count, 6);
+  assert.equal(result.summary.validation_rules_declared, true);
+  assert.equal(result.summary.future_receipt_validation_required, true);
+  assert.equal(result.summary.required_receipt_field_count, 7);
+  assert.equal(result.summary.allowed_receipt_decision_count, 3);
+  assert.equal(result.summary.receipt_queue_consumed_in_memory, true);
+  assert.equal(result.summary.receipt_queue_artifact_read_performed, false);
+  assert.equal(result.summary.receipt_payload_present, false);
+  assert.equal(result.summary.ready_to_validate_receipt_payload, false);
+  assert.equal(result.summary.receipt_received, false);
+  assert.equal(result.summary.receipt_validated, false);
+  assert.equal(result.summary.receipt_application_performed, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.source_receipt_present, false);
+  assert.equal(result.summary.source_approval_applied, false);
+  assert.equal(result.summary.real_enablement_count, 0);
+  assert.equal(result.summary.shadow_live_enabled, false);
+  assert.equal(result.summary.limited_live_enabled, false);
+  assert.equal(result.summary.full_auto_enabled, false);
+  assert.equal(result.summary.automatic_order_submission_allowed, false);
+  assert.equal(result.summary.live_order_submission_allowed, false);
+  assert.equal(result.summary.live_execution_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_read_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.ok(result.promotion_receipt_validation_rule_rows.every((row) => row.receipt_validation_rule_status === "ready_for_future_receipt_validation" && row.future_receipt_validation_required && row.receipt_payload_present === false));
+  assert.ok(result.promotion_receipt_validation_rule_rows.every((row) => row.required_receipt_fields.includes("receipt_id") && row.allowed_receipt_decisions.includes("approved_for_next_stage")));
+  assert.ok(result.promotion_receipt_validation_rule_summary_rows.every((row) => row.summary_status === "future_receipt_validation_rules_ready" && row.receipt_validated_by_rules === false));
+  assert.ok(result.promotion_receipt_validation_rules_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_rules === false));
+});
+
+test("trading promotion receipt validation rules fixtures block when source queue is blocked", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-validation-rules-source-"));
+  try {
+    const limitedLive = JSON.parse(await readFile("examples/trading/limited-live-governance.json", "utf8"));
+    limitedLive.safety_boundary.approval_receipt_present = true;
+    const limitedLivePath = path.join(root, "limited-live-governance.json");
+    await writeFile(limitedLivePath, `${JSON.stringify(limitedLive, null, 2)}\n`, "utf8");
+
+    const result = await runTradingPromotionReceiptValidationRulesFixtures({
+      limitedLivePath,
+      write: false,
+    });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_promotion_receipt_validation_rules_fixtures_status, "blocked");
+    assert.equal(result.summary.source_promotion_receipt_intake_queue_ready, false);
+    assert.equal(result.summary.source_receipt_present, true);
+    assert.equal(result.summary.ready_rule_row_count, 0);
+    assert.ok(result.promotion_receipt_validation_rule_rows.every((row) => row.receipt_validation_rule_status === "blocked"));
+    await assert.rejects(
+      () => runTradingPromotionReceiptValidationRulesFixtures({
+        limitedLivePath,
+        write: false,
+        check: true,
+      }),
+      /Trading promotion receipt validation rules fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion receipt validation rules fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-validation-rules-registration-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:promotion-receipt-validation-rules-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:promotion-receipt-validation-rules-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingPromotionReceiptValidationRulesFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_promotion_receipt_validation_rules_fixtures_status, "blocked");
+    assert.ok(result.promotion_receipt_validation_rules_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.promotion_receipt_validation_rules_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingPromotionReceiptValidationRulesFixtures({ packagePath, write: false, check: true }),
+      /Trading promotion receipt validation rules fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion receipt validation rules fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-validation-rules-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-promotion-receipt-validation-rules-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-promotion-receipt-validation-rules-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingPromotionReceiptValidationRulesFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

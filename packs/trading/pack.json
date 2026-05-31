@@ -83,7 +83,8 @@
     "schemas/trading/trading-promotion-receipt-contract-fixtures.schema.json",
     "schemas/trading/trading-promotion-completion-gate-fixtures.schema.json",
     "schemas/trading/trading-promotion-governance-readonly-fixtures.schema.json",
-    "schemas/trading/trading-promotion-receipt-intake-queue-fixtures.schema.json"
+    "schemas/trading/trading-promotion-receipt-intake-queue-fixtures.schema.json",
+    "schemas/trading/trading-promotion-receipt-validation-rules-fixtures.schema.json"
   ],
   "workflows": [
     "workflow.trading.research_intake.v1",
@@ -142,7 +143,8 @@
     "workflow.trading.promotion_receipt_contract_fixtures.v1",
     "workflow.trading.promotion_completion_gate_fixtures.v1",
     "workflow.trading.promotion_governance_readonly_fixtures.v1",
-    "workflow.trading.promotion_receipt_intake_queue_fixtures.v1"
+    "workflow.trading.promotion_receipt_intake_queue_fixtures.v1",
+    "workflow.trading.promotion_receipt_validation_rules_fixtures.v1"
   ],
   "gates": [
     "classification_gate",

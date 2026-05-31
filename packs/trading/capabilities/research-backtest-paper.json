@@ -270,6 +270,11 @@
       "entrypoint_type": "command",
       "name": "trading:promotion-receipt-intake-queue-fixtures",
       "path": "scripts/trading-promotion-receipt-intake-queue-fixtures.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:promotion-receipt-validation-rules-fixtures",
+      "path": "scripts/trading-promotion-receipt-validation-rules-fixtures.mjs"
     }
   ],
   "dependencies": ["common.workflow.approval", "common.audit.replay", "common.test.gate"],
@@ -488,6 +493,12 @@
       "case_id": "golden.trading.promotion_receipt_intake_queue_fixtures.p404",
       "description": "P404 promotion receipt intake queue fixtures prove every promotion receipt remains pending human input without materializing, validating, or applying receipts.",
       "input_ref": "artifacts/trading-promotion-receipt-intake-queue-fixtures/latest/trading-promotion-receipt-intake-queue-fixtures.json",
+      "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
+    },
+    {
+      "case_id": "golden.trading.promotion_receipt_validation_rules_fixtures.p405",
+      "description": "P405 promotion receipt validation rules fixtures declare future human receipt validation fields and decisions without receiving or validating payloads.",
+      "input_ref": "artifacts/trading-promotion-receipt-validation-rules-fixtures/latest/trading-promotion-receipt-validation-rules-fixtures.json",
       "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
     }
   ],

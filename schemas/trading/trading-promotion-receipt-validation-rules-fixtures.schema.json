@@ -1,0 +1,301 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/trading/trading-promotion-receipt-validation-rules-fixtures.schema.json",
+  "title": "Trading Promotion Receipt Validation Rules Fixtures",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "trading_promotion_receipt_validation_rules_fixtures_id",
+    "capability_id",
+    "promotion_receipt_validation_rules_anchor",
+    "promotion_receipt_validation_rule_rows",
+    "promotion_receipt_validation_rule_summary_rows",
+    "promotion_receipt_validation_rules_gate_rows",
+    "promotion_receipt_validation_rules_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "trading-promotion-receipt-validation-rules-fixtures.v1" },
+    "trading_promotion_receipt_validation_rules_fixtures_id": {
+      "type": "string",
+      "pattern": "^trading-promotion-receipt-validation-rules-fixtures\\.[0-9]{8}$"
+    },
+    "capability_id": { "const": "trading.promotion_receipt_validation_rules_fixtures" },
+    "promotion_receipt_validation_rules_anchor": {
+      "type": "object",
+      "required": [
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "source_promotion_receipt_intake_queue_status",
+        "required_receipt_field_count",
+        "allowed_receipt_decision_count"
+      ],
+      "properties": {
+        "phase_slot": { "const": "P405" },
+        "previous_phase_slot": { "const": "P404" },
+        "next_phase_slot": { "const": "P406" },
+        "source_promotion_receipt_intake_queue_status": { "const": "ready_for_trading_promotion_receipt_intake_queue_regression" },
+        "required_receipt_field_count": { "const": 7 },
+        "allowed_receipt_decision_count": { "const": 3 }
+      }
+    },
+    "promotion_receipt_validation_rule_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "source_queue_row_key",
+          "source_receipt_intake_queue_status",
+          "receipt_validation_rule_status",
+          "required_receipt_fields",
+          "allowed_receipt_decisions",
+          "future_receipt_validation_required",
+          "receipt_payload_present",
+          "ready_to_validate_receipt_payload",
+          "receipt_received_by_rules",
+          "receipt_validated_by_rules",
+          "receipt_application_performed_by_rules",
+          "approval_applied_by_rules",
+          "promotion_enablement_allowed_by_rules",
+          "live_order_submission_allowed_by_rules",
+          "live_execution_allowed_by_rules",
+          "receipt_queue_consumed_in_memory",
+          "receipt_queue_artifact_read_performed_by_rules",
+          "command_execution_performed_by_rules",
+          "artifact_read_performed_by_rules",
+          "artifact_write_performed_by_rules",
+          "protected_action_executed_by_rules",
+          "human_review_required"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P405" },
+          "source_queue_row_key": {
+            "enum": [
+              "research_to_backtest_receipt_intake_queue",
+              "backtest_to_paper_receipt_intake_queue",
+              "paper_to_shadow_receipt_intake_queue",
+              "shadow_to_limited_live_receipt_intake_queue",
+              "limited_live_to_full_auto_receipt_intake_queue",
+              "full_auto_activation_receipt_intake_queue"
+            ]
+          },
+          "source_receipt_intake_queue_status": { "const": "queued_pending_human_receipt" },
+          "receipt_validation_rule_status": { "const": "ready_for_future_receipt_validation" },
+          "required_receipt_fields": {
+            "type": "array",
+            "minItems": 7,
+            "contains": { "const": "receipt_id" }
+          },
+          "allowed_receipt_decisions": {
+            "type": "array",
+            "minItems": 3,
+            "contains": { "const": "approved_for_next_stage" }
+          },
+          "future_receipt_validation_required": { "const": true },
+          "receipt_payload_present": { "const": false },
+          "ready_to_validate_receipt_payload": { "const": false },
+          "receipt_received_by_rules": { "const": false },
+          "receipt_validated_by_rules": { "const": false },
+          "receipt_application_performed_by_rules": { "const": false },
+          "approval_applied_by_rules": { "const": false },
+          "promotion_enablement_allowed_by_rules": { "const": false },
+          "live_order_submission_allowed_by_rules": { "const": false },
+          "live_execution_allowed_by_rules": { "const": false },
+          "receipt_queue_consumed_in_memory": { "const": true },
+          "receipt_queue_artifact_read_performed_by_rules": { "const": false },
+          "command_execution_performed_by_rules": { "const": false },
+          "artifact_read_performed_by_rules": { "const": false },
+          "artifact_write_performed_by_rules": { "const": false },
+          "protected_action_executed_by_rules": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "promotion_receipt_validation_rule_summary_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "source_queue_row_key",
+          "receipt_validation_rule_status",
+          "required_receipt_field_count",
+          "allowed_receipt_decision_count",
+          "future_receipt_validation_required",
+          "receipt_payload_present",
+          "receipt_validated_by_rules",
+          "approval_applied_by_rules",
+          "promotion_enablement_allowed_by_rules",
+          "summary_status",
+          "human_review_required"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P405" },
+          "receipt_validation_rule_status": { "const": "ready_for_future_receipt_validation" },
+          "required_receipt_field_count": { "const": 7 },
+          "allowed_receipt_decision_count": { "const": 3 },
+          "future_receipt_validation_required": { "const": true },
+          "receipt_payload_present": { "const": false },
+          "receipt_validated_by_rules": { "const": false },
+          "approval_applied_by_rules": { "const": false },
+          "promotion_enablement_allowed_by_rules": { "const": false },
+          "summary_status": { "const": "future_receipt_validation_rules_ready" },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "promotion_receipt_validation_rules_gate_rows": {
+      "type": "array",
+      "minItems": 9,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "row_key",
+          "gate_status",
+          "receipt_payload_present_by_rules",
+          "receipt_validated_by_rules",
+          "receipt_application_performed_by_rules",
+          "approval_applied_by_rules",
+          "promotion_enablement_allowed_by_rules",
+          "live_order_submission_allowed_by_rules",
+          "live_execution_allowed_by_rules",
+          "protected_action_executed_by_rules",
+          "human_review_required"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P405" },
+          "gate_status": { "const": "ready" },
+          "receipt_payload_present_by_rules": { "const": false },
+          "receipt_validated_by_rules": { "const": false },
+          "receipt_application_performed_by_rules": { "const": false },
+          "approval_applied_by_rules": { "const": false },
+          "promotion_enablement_allowed_by_rules": { "const": false },
+          "live_order_submission_allowed_by_rules": { "const": false },
+          "live_execution_allowed_by_rules": { "const": false },
+          "protected_action_executed_by_rules": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "promotion_receipt_validation_rules_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "phase_slot",
+        "read_only",
+        "report_only",
+        "source_promotion_receipt_intake_queue_ready",
+        "rule_row_count",
+        "ready_rule_row_count",
+        "validation_rules_declared",
+        "future_receipt_validation_required",
+        "receipt_queue_consumed_in_memory",
+        "receipt_queue_artifact_read_performed",
+        "receipt_payload_present",
+        "ready_to_validate_receipt_payload",
+        "receipt_received",
+        "receipt_validated",
+        "receipt_application_performed",
+        "approval_applied",
+        "source_receipt_present",
+        "source_approval_applied",
+        "shadow_live_enabled",
+        "limited_live_enabled",
+        "full_auto_enabled",
+        "automatic_order_submission_allowed",
+        "live_order_submission_allowed",
+        "live_execution_allowed",
+        "broker_write_allowed",
+        "exchange_write_allowed",
+        "command_execution_performed",
+        "artifact_read_performed",
+        "artifact_write_performed",
+        "protected_action_executed",
+        "human_review_required"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "phase_slot": { "const": "P405" },
+        "read_only": { "const": true },
+        "report_only": { "const": true },
+        "source_promotion_receipt_intake_queue_status": { "const": "ready_for_trading_promotion_receipt_intake_queue_regression" },
+        "source_promotion_receipt_intake_queue_ready": { "const": true },
+        "rule_row_count": { "const": 6 },
+        "summary_row_count": { "const": 6 },
+        "ready_rule_row_count": { "const": 6 },
+        "validation_rules_declared": { "const": true },
+        "future_receipt_validation_required": { "const": true },
+        "required_receipt_field_count": { "const": 7 },
+        "allowed_receipt_decision_count": { "const": 3 },
+        "receipt_queue_consumed_in_memory": { "const": true },
+        "receipt_queue_artifact_read_performed": { "const": false },
+        "receipt_payload_present": { "const": false },
+        "ready_to_validate_receipt_payload": { "const": false },
+        "receipt_received": { "const": false },
+        "receipt_validated": { "const": false },
+        "receipt_application_performed": { "const": false },
+        "approval_applied": { "const": false },
+        "source_receipt_present": { "const": false },
+        "source_approval_applied": { "const": false },
+        "real_enablement_count": { "const": 0 },
+        "shadow_live_enabled": { "const": false },
+        "limited_live_enabled": { "const": false },
+        "full_auto_enabled": { "const": false },
+        "automatic_order_submission_allowed": { "const": false },
+        "live_order_submission_allowed": { "const": false },
+        "live_promotion_allowed": { "const": false },
+        "live_execution_allowed": { "const": false },
+        "broker_write_allowed": { "const": false },
+        "exchange_write_allowed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "artifact_read_performed": { "const": false },
+        "artifact_write_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "human_review_required": { "const": true }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "trading_promotion_receipt_validation_rules_fixtures_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "source_promotion_receipt_intake_queue_ready",
+        "validation_rules_declared",
+        "future_receipt_validation_required",
+        "receipt_payload_present",
+        "receipt_validated",
+        "receipt_application_performed",
+        "approval_applied",
+        "live_execution_allowed",
+        "protected_action_executed"
+      ],
+      "properties": {
+        "trading_promotion_receipt_validation_rules_fixtures_status": { "const": "ready_for_trading_promotion_receipt_validation_rules_regression" },
+        "phase_slot": { "const": "P405" },
+        "previous_phase_slot": { "const": "P404" },
+        "next_phase_slot": { "const": "P406" },
+        "source_promotion_receipt_intake_queue_ready": { "const": true },
+        "validation_rules_declared": { "const": true },
+        "future_receipt_validation_required": { "const": true },
+        "receipt_payload_present": { "const": false },
+        "receipt_validated": { "const": false },
+        "receipt_application_performed": { "const": false },
+        "approval_applied": { "const": false },
+        "live_execution_allowed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

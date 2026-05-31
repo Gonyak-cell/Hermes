@@ -1,0 +1,89 @@
+# Hermes Platform Operations Stability Phase Ledger (P341-P500)
+
+Status date: 2026-05-31
+
+This ledger starts after the Hermes v1.0 freeze and the Trading Pack P340 verified
+baseline. Its purpose is not to add risky runtime behavior. It turns the harness
+into a more reproducible, observable, recoverable, and operator-safe platform.
+
+## Current Boundary
+
+- Platform v1.0 source baseline: Phase 312.
+- Trading pack completion baseline: Phase 340.
+- Verified P340 transfer bundle SHA256: `1a1563a47e2f6704e0f25be56a4c74069863e97c6312e0b0348088ccd231051d`.
+- Verified P340 history baseline commit: `0abc97b`.
+- Mac replay stabilization commit: `8e4323d`.
+- Hermes Desktop posture: optional read-only operator companion, not source of truth.
+- Trading posture: research, backtest, and paper are active; shadow-live, limited-live, full-auto, live order submission, broker writes, and automatic order submission stay disabled by default.
+
+## Phase Ranges
+
+| Range | Scope | Current status | Stability note |
+| --- | --- | --- | --- |
+| P341-P360 | Reproducibility baseline | active | Pin Node/npm policy, lockfile policy, P340 provenance, deterministic runtime baseline artifact, and `platform:runtime-baseline`. |
+| P361-P380 | Unified platform and trading checks | planned | Add `trading:release-check`, `platform:ops-check`, and `platform:release-check` so operators do not rely on remembered command order. |
+| P381-P400 | Trading safety regression | planned | Fail immediately if live, full-auto, automatic order submission, broker credential, generic order, or mutating trading routes become enabled. |
+| P401-P420 | Promotion receipt gates | planned | Require independent human approval receipts for research -> backtest -> paper -> shadow -> limited-live -> full-auto promotion claims. |
+| P421-P440 | Execution and secret isolation | planned | Keep simulated and live broker adapters schema/API separated; live credentials are external secret handles only. |
+| P441-P460 | Recovery drills | planned | Cover stale data, exchange outage, failed fill, partial fill, duplicate order intent, kill switch, and rollback-to-paper as dry-run receipt drafts. |
+| P461-P480 | Operator observability | planned | Show why live/future mutation is blocked: risk halt, missing approval, disabled route, rollback target, and Desktop read-only boundary. |
+| P481-P500 | Platform operations freeze | planned | Freeze the operations layer with unified checks, reproducibility evidence, recovery proof, and safety boundary invariants. |
+
+## P341-P360 Acceptance Criteria
+
+- P341: `platform:runtime-baseline` validates `.nvmrc`, `.node-version`, `.npmrc`, `packageManager`, `engines`, `package-lock.json`, this ledger, and the P340 bundle hash without installing dependencies, creating releases, or enabling trading mutation.
+- P342-P345: runtime/dependency drift reports compare current local state to the P341 baseline and keep artifacts read-only.
+- P346-P350: baseline provenance records release bundle hashes and future signed-tag requirements without creating tags.
+- P351-P355: Mac/Windows replay notes and lockfile policy are documented for operator handoff.
+- P356-P360: reproducibility checks are registered in the platform validation and future release-check chain.
+
+## P361-P380 Acceptance Criteria
+
+- `trading:release-check` runs the complete Trading Pack validation stack, contract validation, release freeze, and trading no-write checks in one command.
+- `platform:ops-check` verifies runtime baseline, contracts, control-plane loop, dashboard/API smoke readiness, and domain-pack registry health.
+- `platform:release-check` composes `platform:ops-check`, `trading:release-check`, `npm run validate`, `npm test`, `contracts:validate -- --check`, and `release:freeze -- --check`.
+- Every command supports `--check` without overwriting existing artifacts on failure.
+
+## P381-P400 Acceptance Criteria
+
+- Regression fixtures fail when `limited_live_enabled`, `full_auto_enabled`, `automatic_order_submission_allowed`, or `live_order_submission_allowed` is true.
+- Route inventory fixtures fail when mutating trading routes, broker credential routes, live broker write routes, or generic order submission routes are present.
+- Safety checks cover disabled routes, approval absence, live adapter disabled state, credential lookup disabled state, no broker writes, and no exchange writes.
+
+## P401-P420 Acceptance Criteria
+
+- Each promotion stage has an independent approval receipt contract and summary row.
+- A higher stage cannot be marked complete for enablement without its required receipt.
+- Governance reports may be complete while real enablement remains false.
+- Full-auto governance remains complete only as a blocked/default-disabled control-plane state.
+
+## P421-P440 Acceptance Criteria
+
+- Simulated broker adapter and live broker adapter contracts are separate.
+- Live adapter files, if present in the future, are not imported by default control-plane paths.
+- Live credentials use external secret handles only; plaintext, environment dumps, and provider keys are forbidden in repo artifacts.
+- Secret boundary checks include Trading and Desktop companion configuration fixtures.
+
+## P441-P460 Acceptance Criteria
+
+- Recovery drills include stale data, exchange outage, failed fill, partial fill, duplicate order intent, kill switch, rollback-to-paper, and rollback-to-paper-after-live-halt fixtures.
+- Recovery commands remain draft receipts and do not execute broker calls, shell commands, file restores, or protected actions.
+- Recovery artifacts are visible to operator surfaces and remain human-review gated.
+
+## P461-P480 Acceptance Criteria
+
+- Dashboard/API surfaces explain why live/future mutation is blocked.
+- Operator rows expose risk block/halt reason, disabled route, missing approval, rollback target, current stage, and next allowed action.
+- Hermes Desktop remains a companion/operator surface and never becomes runtime source of truth.
+
+## P481-P500 Acceptance Criteria
+
+- Platform operations freeze proves every P341-P480 source is complete or explicitly blocked by a documented human gate.
+- `platform:release-check -- --check`, `trading:release-check -- --check`, `npm run validate`, `npm test`, `contracts:validate -- --check`, `release:freeze -- --check`, and `control-plane:loop` pass.
+- Trading live/full-auto/order submission, Desktop mutation/source-of-truth, protected recovery execution, and secret exposure remain false.
+
+## Non-Goal
+
+This program does not turn Hermes into a broker, deployment system, Desktop source
+of truth, or autonomous mutation engine. It strengthens the platform's ability to
+prove what is safe, blocked, reproducible, observable, and recoverable.

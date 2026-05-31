@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-runtime-baseline.schema.json",
+  "title": "Platform Runtime Baseline",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_runtime_baseline_id",
+    "capability_id",
+    "baseline_policy",
+    "runtime_rows",
+    "dependency_rows",
+    "provenance_rows",
+    "runtime_baseline_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-runtime-baseline.v1" },
+    "platform_runtime_baseline_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "platform.runtime_baseline" },
+    "baseline_policy": {
+      "type": "object",
+      "required": [
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "pinned_node_version",
+        "pinned_package_manager",
+        "package_lock_required",
+        "p340_verified_bundle_sha256"
+      ],
+      "properties": {
+        "phase_slot": { "const": "P341" },
+        "previous_phase_slot": { "const": "P340" },
+        "next_phase_slot": { "const": "P342" },
+        "pinned_node_version": { "const": "26.0.0" },
+        "pinned_package_manager": { "const": "npm@11.12.1" },
+        "package_lock_required": { "const": true },
+        "p340_verified_bundle_sha256": { "const": "1a1563a47e2f6704e0f25be56a4c74069863e97c6312e0b0348088ccd231051d" }
+      }
+    },
+    "runtime_rows": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "object",
+        "required": ["row_id", "row_kind", "row_status"],
+        "properties": {
+          "row_kind": { "const": "runtime" },
+          "row_status": { "const": "passed" }
+        }
+      }
+    },
+    "dependency_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["row_id", "row_kind", "row_status"],
+        "properties": {
+          "row_kind": { "const": "dependency" },
+          "row_status": { "const": "passed" }
+        }
+      }
+    },
+    "provenance_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["row_id", "row_kind", "row_status"],
+        "properties": {
+          "row_kind": { "const": "provenance" },
+          "row_status": { "const": "passed" }
+        }
+      }
+    },
+    "runtime_baseline_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "phase_slot",
+        "read_only",
+        "report_only",
+        "dependency_install_performed",
+        "package_mutation_performed",
+        "command_execution_performed",
+        "git_tag_created",
+        "release_published",
+        "desktop_source_of_truth",
+        "desktop_mutation_allowed",
+        "trading_live_enabled",
+        "trading_full_auto_enabled",
+        "trading_order_submission_allowed",
+        "human_review_required_for_promotion"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "phase_slot": { "const": "P341" },
+        "read_only": { "const": true },
+        "report_only": { "const": true },
+        "dependency_install_performed": { "const": false },
+        "package_mutation_performed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "git_tag_created": { "const": false },
+        "release_published": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "desktop_mutation_allowed": { "const": false },
+        "trading_live_enabled": { "const": false },
+        "trading_full_auto_enabled": { "const": false },
+        "trading_order_submission_allowed": { "const": false },
+        "human_review_required_for_promotion": { "const": true }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "platform_runtime_baseline_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "pinned_node_version",
+        "pinned_package_manager",
+        "package_lock_required",
+        "package_lock_present",
+        "p340_bundle_hash_recorded",
+        "read_only",
+        "report_only",
+        "package_mutation_performed",
+        "release_published",
+        "desktop_source_of_truth",
+        "trading_live_enabled",
+        "trading_full_auto_enabled",
+        "trading_order_submission_allowed",
+        "validation_error_count"
+      ],
+      "properties": {
+        "platform_runtime_baseline_status": { "const": "complete" },
+        "phase_slot": { "const": "P341" },
+        "previous_phase_slot": { "const": "P340" },
+        "next_phase_slot": { "const": "P342" },
+        "pinned_node_version": { "const": "26.0.0" },
+        "pinned_package_manager": { "const": "npm@11.12.1" },
+        "package_lock_required": { "const": true },
+        "package_lock_present": { "const": true },
+        "p340_bundle_hash_recorded": { "const": true },
+        "read_only": { "const": true },
+        "report_only": { "const": true },
+        "package_mutation_performed": { "const": false },
+        "release_published": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "trading_live_enabled": { "const": false },
+        "trading_full_auto_enabled": { "const": false },
+        "trading_order_submission_allowed": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

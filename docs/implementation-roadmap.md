@@ -7985,3 +7985,16 @@ Changes:
 - 문서/콘텐츠 산출물은 Template/Style/Asset Registry, Renderer, Layout Validation, Output Artifact, Approval/Audit를 통과한다.
 - 중요한 실행은 Event Ledger, Run Ledger, Audit Trail, Cost/Observability projection에 남는다.
 - Domain Pack은 core 수정 없이 manifest와 contract로 등록 가능하다.
+
+## Phase 341 - Platform Runtime Baseline
+
+Phase 341 starts the P341-P500 Platform Operations Stability Program with a deterministic runtime/dependency baseline. It records the pinned Node/npm policy, lockfile policy, P340 verified bundle hash, and read-only/default-disabled safety boundary without installing dependencies, creating tags, publishing releases, executing recovery, enabling Desktop mutation, or enabling Trading live/full-auto/order submission.
+
+Changes:
+
+- Added `src/platform-runtime-baseline.mjs`, `scripts/platform-runtime-baseline.mjs`, `schemas/platform-runtime-baseline.schema.json`, and `docs/platform-runtime-baseline.md`.
+- Added `docs/platform-operations-stability-phase-ledger.md` as the P341-P500 operations stability ledger.
+- Added `.nvmrc`, `.node-version`, `.npmrc`, `packageManager`, npm engine policy, and `platform:runtime-baseline` npm script.
+- Registered `platform:runtime-baseline -- --check` in the `npm run validate` chain.
+- The baseline emits `platform-runtime-baseline.json`, runtime rows, dependency rows, provenance rows, boundary, validation report, and summary markdown under `artifacts/platform-runtime-baseline/latest`.
+- The P340 verified transfer bundle hash is recorded as the provenance anchor while Trading live/full-auto/order submission and Desktop mutation/source-of-truth remain false.

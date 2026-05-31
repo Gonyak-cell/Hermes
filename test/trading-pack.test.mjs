@@ -21,6 +21,7 @@ import {
 } from "../src/trading-route-inventory-fixtures.mjs";
 import { runTradingApprovalAbsenceFixtures } from "../src/trading-approval-absence-fixtures.mjs";
 import { runTradingLiveAdapterDisabledFixtures } from "../src/trading-live-adapter-disabled-fixtures.mjs";
+import { runTradingCredentialLookupDisabledFixtures } from "../src/trading-credential-lookup-disabled-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -1052,6 +1053,109 @@ test("trading live adapter disabled fixtures --check does not overwrite existing
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingLiveAdapterDisabledFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading credential lookup disabled fixtures keep credentials and secrets blocked", async () => {
+  const result = await runTradingCredentialLookupDisabledFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_credential_lookup_disabled_fixtures_status, "ready_for_trading_credential_lookup_disabled_regression");
+  assert.equal(result.summary.phase_slot, "P385");
+  assert.equal(result.summary.previous_phase_slot, "P384");
+  assert.equal(result.summary.next_phase_slot, "P386");
+  assert.equal(result.summary.source_live_adapter_disabled_status, "ready_for_trading_live_adapter_disabled_regression");
+  assert.equal(result.summary.required_fixture_count, 6);
+  assert.equal(result.summary.evidence_count, 6);
+  assert.equal(result.summary.fixture_count, 6);
+  assert.equal(result.summary.passed_fixture_count, 6);
+  assert.equal(result.summary.failed_fixture_count, 0);
+  assert.equal(result.summary.unsafe_credential_signal_count, 0);
+  assert.equal(result.summary.credential_lookup_disabled_covered, true);
+  assert.equal(result.summary.credential_lookup_enabled, false);
+  assert.equal(result.summary.plaintext_secret_allowed, false);
+  assert.equal(result.summary.model_context_secret_allowed, false);
+  assert.equal(result.summary.external_api_keys_required, false);
+  assert.equal(result.summary.credentials_required, false);
+  assert.equal(result.summary.secret_logged, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.ok(result.credential_lookup_disabled_evidence_rows.every((row) => row.evidence_status === "credential_lookup_disabled" && row.unsafe_credential_signal_detected === false));
+  assert.ok(result.credential_lookup_disabled_fixture_rows.every((row) => row.fixture_status === "passed" && row.fixture_should_fail_when_lookup_enabled && row.fixture_should_fail_when_plaintext_allowed));
+  assert.ok(result.credential_lookup_disabled_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_gate === false));
+});
+
+test("trading credential lookup disabled fixtures block when credential lookup is enabled", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-credential-lookup-enabled-"));
+  try {
+    const executionEngine = JSON.parse(await readFile("examples/trading/execution-engine.json", "utf8"));
+    executionEngine.credential_broker_contract.credential_lookup_allowed = true;
+    executionEngine.credential_broker_contract.plaintext_secret_allowed = true;
+    executionEngine.credential_broker_contract.model_context_secret_allowed = true;
+    executionEngine.safety_boundary.secret_logged = true;
+    const executionEnginePath = path.join(root, "execution-engine.json");
+    await writeFile(executionEnginePath, `${JSON.stringify(executionEngine, null, 2)}\n`, "utf8");
+
+    const result = await runTradingCredentialLookupDisabledFixtures({ executionEnginePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_credential_lookup_disabled_fixtures_status, "blocked");
+    assert.ok(result.summary.unsafe_credential_signal_count > 0);
+    assert.equal(result.summary.credential_lookup_enabled, true);
+    assert.equal(result.summary.plaintext_secret_allowed, true);
+    assert.equal(result.summary.model_context_secret_allowed, true);
+    assert.equal(result.summary.secret_logged, true);
+    assert.ok(result.credential_lookup_disabled_fixture_rows.some((row) => row.row_key === "credential_broker_lookup_disabled" && row.fixture_status === "failed" && row.unsafe_credential_signal_detected));
+    await assert.rejects(
+      () => runTradingCredentialLookupDisabledFixtures({ executionEnginePath, write: false, check: true }),
+      /Trading credential lookup disabled fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading credential lookup disabled fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-credential-lookup-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:credential-lookup-disabled-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:credential-lookup-disabled-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingCredentialLookupDisabledFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_credential_lookup_disabled_fixtures_status, "blocked");
+    assert.ok(result.credential_lookup_disabled_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.credential_lookup_disabled_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingCredentialLookupDisabledFixtures({ packagePath, write: false, check: true }),
+      /Trading credential lookup disabled fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading credential lookup disabled fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-credential-lookup-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-credential-lookup-disabled-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-credential-lookup-disabled-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingCredentialLookupDisabledFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

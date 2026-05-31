@@ -8665,3 +8665,27 @@ Changes:
   behavior.
 - Updated the P341-P500 ledger so P369 owns release-check signoff receipt
   intake.
+
+## Phase 370 - Release-Check Signoff Closeout
+
+Phase 370 closes the release-check signoff-readiness subchain from P365-P370.
+It consumes the P369 receipt-intake queue in memory and records that the
+release-check commands are ready for external human receipt collection without
+receiving receipts, validating receipts, completing signoff, applying approvals,
+running release checks, reading or writing artifacts, publishing releases, or
+mutating release/trading state.
+
+Changes:
+
+- Added `src/platform-release-check-signoff-closeout.mjs`,
+  `scripts/platform-release-check-signoff-closeout.mjs`,
+  `schemas/platform-release-check-signoff-closeout.schema.json`, and
+  `docs/platform-release-check-signoff-closeout.md`.
+- Added `platform:release-check-signoff-closeout` and registered
+  `platform:release-check-signoff-closeout -- --check` in the validation chain.
+- The command consumes the P369 receipt intake in memory and produces closeout
+  rows, gate rows, a boundary report, validation output, and a Markdown summary
+  when not in `--check` mode.
+- Added focused tests for closeout rows, missing validation-chain registration,
+  blocked source receipt intake, and `--check` no-overwrite behavior.
+- Updated the P341-P500 ledger so P370 owns release-check signoff closeout.

@@ -31,6 +31,7 @@ import { runPlatformReleaseCheckReviewPacket } from "../src/platform-release-che
 import { runPlatformReleaseCheckSignoffLedger } from "../src/platform-release-check-signoff-ledger.mjs";
 import { runPlatformReleaseCheckSignoffReceiptTemplate } from "../src/platform-release-check-signoff-receipt-template.mjs";
 import { runPlatformReleaseCheckSignoffReceiptIntake } from "../src/platform-release-check-signoff-receipt-intake.mjs";
+import { runPlatformReleaseCheckSignoffCloseout } from "../src/platform-release-check-signoff-closeout.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -2185,6 +2186,104 @@ test("platform release-check signoff receipt intake --check does not overwrite e
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformReleaseCheckSignoffReceiptIntake({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform release-check signoff closeout records P370 without completing signoff", async () => {
+  const result = await runPlatformReleaseCheckSignoffCloseout({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_release_check_signoff_closeout_status, "ready_for_human_receipt_collection");
+  assert.equal(result.summary.phase_slot, "P370");
+  assert.equal(result.summary.previous_phase_slot, "P369");
+  assert.equal(result.summary.next_phase_slot, "P371");
+  assert.equal(result.summary.source_receipt_intake_status, "ready");
+  assert.equal(result.summary.closeout_row_count, 4);
+  assert.equal(result.summary.ready_closeout_row_count, 4);
+  assert.equal(result.summary.closeout_gate_count, 8);
+  assert.equal(result.summary.ready_closeout_gate_count, 8);
+  assert.equal(result.summary.receipt_intake_consumed_in_memory, true);
+  assert.equal(result.summary.receipt_intake_artifact_read_performed, false);
+  assert.equal(result.summary.receipt_received, false);
+  assert.equal(result.summary.receipt_validated, false);
+  assert.equal(result.summary.human_receipt_collection_required, true);
+  assert.equal(result.summary.signoff_completed, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.package_command_execution_performed, false);
+  assert.equal(result.summary.release_check_execution_performed, false);
+  assert.equal(result.summary.artifact_read_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.release_published, false);
+  assert.equal(result.summary.git_operation_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.ok(result.release_check_signoff_closeout_rows.every((row) => row.closeout_status === "ready_for_human_receipt_collection" && row.source_receipt_intake_status === "awaiting_human_receipt" && row.receipt_received_by_closeout === false && row.approval_applied_by_closeout === false));
+  assert.ok(result.release_check_signoff_closeout_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_closeout === false));
+});
+
+test("platform release-check signoff closeout blocks when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-release-signoff-closeout-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:release-check-signoff-closeout"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:release-check-signoff-closeout -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformReleaseCheckSignoffCloseout({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_release_check_signoff_closeout_status, "blocked");
+    assert.ok(result.release_check_signoff_closeout_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.release_check_signoff_closeout_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformReleaseCheckSignoffCloseout({ packagePath, write: false, check: true }),
+      /Platform release-check signoff closeout failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform release-check signoff closeout blocks when source receipt intake is blocked", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-release-signoff-closeout-source-"));
+  try {
+    const docPath = path.join(root, "platform-release-check.md");
+    await writeFile(docPath, "# Missing release-check closeout evidence\n\nNo command evidence here.\n", "utf8");
+
+    const result = await runPlatformReleaseCheckSignoffCloseout({ platformReleaseCheckDocPath: docPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_release_check_signoff_closeout_status, "blocked");
+    assert.equal(result.summary.source_receipt_intake_status, "blocked");
+    assert.ok(result.release_check_signoff_closeout_gate_rows.some((row) => row.row_key === "p369_receipt_intake_ready" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformReleaseCheckSignoffCloseout({ platformReleaseCheckDocPath: docPath, write: false, check: true }),
+      /Platform release-check signoff closeout failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform release-check signoff closeout --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-release-signoff-closeout-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-release-check-signoff-closeout.json");
+    const sentinel = "{ \"sentinel\": \"platform-release-check-signoff-closeout\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformReleaseCheckSignoffCloseout({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

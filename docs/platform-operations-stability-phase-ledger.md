@@ -46,7 +46,8 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 - P353: `platform:replay-handoff-map` maps replay scopes to owner roles, expected evidence, and next operator actions without executing commands or protected actions.
 - P354: `platform:replay-evidence-checklist` records replay evidence expectations without collecting evidence, executing commands, regenerating artifacts, or performing protected actions.
 - P355: `platform:replay-handoff-closeout` closes P351-P355 replay handoff readiness without executing replay actions, regenerating artifacts, collecting evidence, or performing protected actions.
-- P356-P360: reproducibility checks are registered in the platform validation and future release-check chain.
+- P356: `platform:reproducibility-check-registry` registers P341-P356 reproducibility checks in package scripts and validation, while bridging to future release-check commands without executing checks or requiring future scripts now.
+- P357-P360: reproducibility evidence and closeout checks remain reserved for the platform validation and future release-check chain.
 
 ## P361-P380 Acceptance Criteria
 

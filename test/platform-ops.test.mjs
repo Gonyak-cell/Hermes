@@ -18,6 +18,7 @@ import { runPlatformLockfilePolicy } from "../src/platform-lockfile-policy.mjs";
 import { runPlatformReplayHandoffMap } from "../src/platform-replay-handoff-map.mjs";
 import { runPlatformReplayEvidenceChecklist } from "../src/platform-replay-evidence-checklist.mjs";
 import { runPlatformReplayHandoffCloseout } from "../src/platform-replay-handoff-closeout.mjs";
+import { runPlatformReproducibilityCheckRegistry } from "../src/platform-reproducibility-check-registry.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -1001,6 +1002,78 @@ test("platform replay handoff closeout --check does not overwrite existing artif
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformReplayHandoffCloseout({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform reproducibility check registry registers P356 without executing checks", async () => {
+  const result = await runPlatformReproducibilityCheckRegistry({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_reproducibility_check_registry_status, "ready");
+  assert.equal(result.summary.phase_slot, "P356");
+  assert.equal(result.summary.previous_phase_slot, "P355");
+  assert.equal(result.summary.next_phase_slot, "P357");
+  assert.equal(result.summary.source_replay_handoff_closeout_status, "ready");
+  assert.equal(result.summary.reproducibility_check_count, 16);
+  assert.equal(result.summary.ready_reproducibility_check_count, 16);
+  assert.equal(result.summary.release_chain_bridge_count, 3);
+  assert.equal(result.summary.ready_release_chain_bridge_count, 3);
+  assert.equal(result.summary.reproducibility_gate_count, 7);
+  assert.equal(result.summary.ready_reproducibility_gate_count, 7);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.release_check_execution_performed, false);
+  assert.equal(result.summary.artifact_regeneration_performed, false);
+  assert.equal(result.summary.history_import_performed, false);
+  assert.equal(result.summary.repository_checkout_changed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.ok(result.reproducibility_check_rows.every((row) => row.reproducibility_check_status === "ready" && row.package_script_registered && row.validation_chain_registered && row.command_execution_performed_by_report === false));
+  assert.ok(result.release_chain_bridge_rows.every((row) => row.release_chain_bridge_status === "ready" && row.ledger_declared && row.package_script_required_now === false));
+  assert.ok(result.reproducibility_gate_rows.every((row) => row.gate_status === "ready" && row.release_check_execution_performed_by_report === false));
+});
+
+test("platform reproducibility check registry blocks when validation chain is missing P356", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-repro-registry-block-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:reproducibility-check-registry"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:reproducibility-check-registry -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformReproducibilityCheckRegistry({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_reproducibility_check_registry_status, "blocked");
+    assert.ok(result.reproducibility_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.reproducibility_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    assert.ok(result.reproducibility_check_rows.some((row) => row.source_phase_slot === "P356" && row.reproducibility_check_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformReproducibilityCheckRegistry({ packagePath, write: false, check: true }),
+      /Platform reproducibility check registry failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform reproducibility check registry --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-repro-registry-check-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-reproducibility-check-registry.json");
+    const sentinel = "{ \"sentinel\": \"reproducibility-check-registry\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformReproducibilityCheckRegistry({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

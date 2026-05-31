@@ -8319,6 +8319,31 @@ Changes:
 - Added focused platform operations tests for replay handoff closeout readiness,
   missing package-script or validation-chain registration, and `--check`
   no-overwrite behavior.
-- Updated the P341-P500 ledger so P355 owns replay handoff closeout and P356-P360
-  remain reserved for reproducibility checks registered in validation and future
-  release-check.
+- Updated the P341-P500 ledger so P355 owns replay handoff closeout and the
+  next tranche starts reproducibility check registration.
+
+## Phase 356 - Platform Reproducibility Check Registry
+
+Phase 356 starts the P356-P360 reproducibility check sequence. It consumes P355
+replay handoff closeout in memory, verifies the P341-P356 reproducibility
+commands are registered in `package.json` and the validation chain, and records
+the future P361-P380 release-check bridge from the platform operations ledger
+without running checks, executing release-check commands, installing
+dependencies, regenerating artifacts, importing history, changing checkout
+state, performing git operations, submitting trading orders, or executing
+protected actions.
+
+Changes:
+
+- Added `src/platform-reproducibility-check-registry.mjs`,
+  `scripts/platform-reproducibility-check-registry.mjs`,
+  `schemas/platform-reproducibility-check-registry.schema.json`, and
+  `docs/platform-reproducibility-check-registry.md`.
+- Added `platform:reproducibility-check-registry` and registered
+  `platform:reproducibility-check-registry -- --check` after
+  `platform:replay-handoff-closeout` in the validation chain.
+- Added focused platform operations tests for reproducibility check registry
+  readiness, missing package-script or validation-chain registration, and
+  `--check` no-overwrite behavior.
+- Updated the P341-P500 ledger so P356 owns reproducibility check registration
+  and P357-P360 remain reserved for reproducibility evidence and closeout checks.

@@ -8766,3 +8766,29 @@ Changes:
   behavior.
 - Updated the P341-P500 ledger so P373 owns release-check future receipt
   validation rules.
+
+## Phase 374 - Release-Check Receipt Workspace
+
+Phase 374 declares reviewer receipt workspace rows for the P373 release-check
+receipt validation rules. It records editable receipt fields for each reviewer
+role without materializing receipt input files, receiving receipt payloads,
+validating receipts, marking rows ready for validation, completing signoff,
+applying approvals, running release checks, reading or writing artifacts,
+publishing releases, or mutating release/trading state.
+
+Changes:
+
+- Added `src/platform-release-check-receipt-workspace.mjs`,
+  `scripts/platform-release-check-receipt-workspace.mjs`,
+  `schemas/platform-release-check-receipt-workspace.schema.json`, and
+  `docs/platform-release-check-receipt-workspace.md`.
+- Added `platform:release-check-receipt-workspace` and registered
+  `platform:release-check-receipt-workspace -- --check` in the validation
+  chain.
+- The command consumes the P373 receipt validation rules in memory and produces
+  workspace rows, gate rows, a boundary report, validation output, and a
+  Markdown summary when not in `--check` mode.
+- Added focused tests for workspace rows, missing validation-chain registration,
+  blocked source validation rules, and `--check` no-overwrite behavior.
+- Updated the P341-P500 ledger so P374 owns release-check receipt workspace
+  preparation.

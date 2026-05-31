@@ -35,6 +35,7 @@ import { runPlatformReleaseCheckSignoffCloseout } from "../src/platform-release-
 import { runPlatformReleaseCheckStatusLedger } from "../src/platform-release-check-status-ledger.mjs";
 import { runPlatformReleaseCheckReceiptQueue } from "../src/platform-release-check-receipt-queue.mjs";
 import { runPlatformReleaseCheckReceiptValidationRules } from "../src/platform-release-check-receipt-validation-rules.mjs";
+import { runPlatformReleaseCheckReceiptWorkspace } from "../src/platform-release-check-receipt-workspace.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -2593,6 +2594,108 @@ test("platform release-check receipt validation rules --check does not overwrite
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformReleaseCheckReceiptValidationRules({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform release-check receipt workspace records P374 without materializing receipt inputs", async () => {
+  const result = await runPlatformReleaseCheckReceiptWorkspace({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_release_check_receipt_workspace_status, "ready_for_human_receipt_workspace");
+  assert.equal(result.summary.phase_slot, "P374");
+  assert.equal(result.summary.previous_phase_slot, "P373");
+  assert.equal(result.summary.next_phase_slot, "P375");
+  assert.equal(result.summary.source_receipt_validation_rules_status, "ready_for_future_receipt_validation");
+  assert.equal(result.summary.workspace_row_count, 4);
+  assert.equal(result.summary.ready_workspace_row_count, 4);
+  assert.equal(result.summary.workspace_gate_count, 8);
+  assert.equal(result.summary.ready_workspace_gate_count, 8);
+  assert.equal(result.summary.validation_rules_consumed_in_memory, true);
+  assert.equal(result.summary.validation_rules_artifact_read_performed, false);
+  assert.equal(result.summary.workspace_rows_declared, true);
+  assert.equal(result.summary.editable_receipt_fields_declared, true);
+  assert.equal(result.summary.receipt_input_file_materialized, false);
+  assert.equal(result.summary.receipt_payload_present, false);
+  assert.equal(result.summary.ready_for_validation, false);
+  assert.equal(result.summary.receipt_received, false);
+  assert.equal(result.summary.receipt_validated, false);
+  assert.equal(result.summary.signoff_completed, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.package_command_execution_performed, false);
+  assert.equal(result.summary.release_check_execution_performed, false);
+  assert.equal(result.summary.artifact_read_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.release_published, false);
+  assert.equal(result.summary.git_operation_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.ok(result.release_check_receipt_workspace_rows.every((row) => row.workspace_status === "ready_for_human_receipt_input" && row.source_receipt_validation_rule_status === "ready_for_future_receipt_validation" && row.editable_receipt_fields_declared && row.receipt_input_file_materialized === false && row.receipt_payload_present === false && row.ready_for_validation === false && row.receipt_validated_by_workspace === false));
+  assert.ok(result.release_check_receipt_workspace_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_workspace === false));
+});
+
+test("platform release-check receipt workspace blocks when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-release-receipt-workspace-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:release-check-receipt-workspace"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:release-check-receipt-workspace -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformReleaseCheckReceiptWorkspace({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_release_check_receipt_workspace_status, "blocked");
+    assert.ok(result.release_check_receipt_workspace_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.release_check_receipt_workspace_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformReleaseCheckReceiptWorkspace({ packagePath, write: false, check: true }),
+      /Platform release-check receipt workspace failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform release-check receipt workspace blocks when source validation rules are blocked", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-release-receipt-workspace-source-"));
+  try {
+    const docPath = path.join(root, "platform-release-check.md");
+    await writeFile(docPath, "# Missing release-check receipt workspace evidence\n\nNo command evidence here.\n", "utf8");
+
+    const result = await runPlatformReleaseCheckReceiptWorkspace({ platformReleaseCheckDocPath: docPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_release_check_receipt_workspace_status, "blocked");
+    assert.equal(result.summary.source_receipt_validation_rules_status, "blocked");
+    assert.ok(result.release_check_receipt_workspace_gate_rows.some((row) => row.row_key === "p373_receipt_validation_rules_ready" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformReleaseCheckReceiptWorkspace({ platformReleaseCheckDocPath: docPath, write: false, check: true }),
+      /Platform release-check receipt workspace failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform release-check receipt workspace --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-release-receipt-workspace-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-release-check-receipt-workspace.json");
+    const sentinel = "{ \"sentinel\": \"platform-release-check-receipt-workspace\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformReleaseCheckReceiptWorkspace({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

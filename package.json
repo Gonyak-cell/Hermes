@@ -102,6 +102,7 @@
     "platform:reproducibility-operator-review": "node scripts/platform-reproducibility-operator-review.mjs",
     "platform:reproducibility-closeout": "node scripts/platform-reproducibility-closeout.mjs",
     "platform:ops-check": "node scripts/platform-ops-check.mjs",
+    "platform:release-check": "node scripts/platform-release-check.mjs",
     "capabilities:manifest-v2": "node scripts/capability-manifest-v2.mjs",
     "capabilities:registry-api": "node scripts/capability-registry-api.mjs",
     "model:routing": "node scripts/model-routing-ledger.mjs",

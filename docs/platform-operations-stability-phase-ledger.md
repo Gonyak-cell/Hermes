@@ -56,6 +56,7 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 
 - P361: `trading:release-check` executes the contract validation, release freeze, and complete Trading Pack check stack in `--check` mode while keeping live trading, full-auto, order submission, broker writes, exchange writes, release publication, git operations, and protected actions disabled.
 - P362: `platform:ops-check` verifies runtime baseline, contract validation, control-plane loop runner readiness, dashboard/API smoke readiness, and domain-pack registry health without rebuilding dashboard artifacts, running package commands, or mutating release/trading state.
+- P363: `platform:release-check` composes `platform:ops-check -- --check`, `trading:release-check -- --check`, `npm run validate`, `npm test`, `contracts:validate -- --check`, and `release:freeze -- --check` without registering itself in `npm run validate` or executing release/trading mutations.
 - `trading:release-check` runs the complete Trading Pack validation stack, contract validation, release freeze, and trading no-write checks in one command.
 - `platform:ops-check` verifies runtime baseline, contracts, control-plane loop, dashboard/API smoke readiness, and domain-pack registry health.
 - `platform:release-check` composes `platform:ops-check`, `trading:release-check`, `npm run validate`, `npm test`, `contracts:validate -- --check`, and `release:freeze -- --check`.

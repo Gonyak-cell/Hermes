@@ -24,6 +24,7 @@ import { runPlatformReproducibilityProofIndex } from "../src/platform-reproducib
 import { runPlatformReproducibilityOperatorReview } from "../src/platform-reproducibility-operator-review.mjs";
 import { runPlatformReproducibilityCloseout } from "../src/platform-reproducibility-closeout.mjs";
 import { runPlatformOpsCheck } from "../src/platform-ops-check.mjs";
+import { runPlatformReleaseCheck } from "../src/platform-release-check.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -1476,6 +1477,150 @@ test("platform ops check --check does not overwrite existing artifacts", async (
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformOpsCheck({ outDir, write: false, check: true, checkOverrides: platformOpsReadyCheckOverrides() });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+function passingPlatformReleaseCheckRunner() {
+  const calls = [];
+  return {
+    calls,
+    runner: async (spec) => {
+      calls.push(spec);
+      return {
+        exitCode: 0,
+        stdout: `${spec.row_key} passed\n`,
+        stderr: "",
+        durationMs: 1,
+      };
+    },
+  };
+}
+
+test("platform release check composes P363 child commands without release or trading mutation", async () => {
+  const { calls, runner } = passingPlatformReleaseCheckRunner();
+
+  const result = await runPlatformReleaseCheck({ write: false, check: true, runner });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_release_check_status, "complete");
+  assert.equal(result.summary.phase_slot, "P363");
+  assert.equal(result.summary.previous_phase_slot, "P362");
+  assert.equal(result.summary.next_phase_slot, "P364");
+  assert.equal(result.summary.command_count, 6);
+  assert.equal(result.summary.passed_command_count, 6);
+  assert.equal(result.summary.release_check_gate_count, 11);
+  assert.equal(result.summary.ready_release_check_gate_count, 11);
+  assert.equal(result.summary.command_execution_performed, true);
+  assert.equal(result.summary.package_command_execution_performed, true);
+  assert.equal(result.summary.release_check_execution_performed, true);
+  assert.equal(result.summary.child_commands_guarded, true);
+  assert.equal(result.summary.release_check_artifact_write_requested, false);
+  assert.equal(result.summary.child_artifact_write_allowed, false);
+  assert.equal(result.summary.dependency_install_performed, false);
+  assert.equal(result.summary.package_mutation_performed, false);
+  assert.equal(result.summary.lockfile_mutation_performed, false);
+  assert.equal(result.summary.release_published, false);
+  assert.equal(result.summary.git_operation_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.deepEqual(calls.map((spec) => spec.row_key), [
+    "platform_ops_check",
+    "trading_release_check",
+    "repo_validate",
+    "repo_test",
+    "contracts_validate",
+    "release_freeze",
+  ]);
+  assert.ok(result.source_rows.some((row) => row.row_key === "package_validation_chain_non_recursive" && row.source_status === "ready"));
+  assert.ok(result.release_check_command_rows.every((row) => row.release_check_command_status === "passed" && row.child_command_guarded && row.artifact_write_allowed_by_child_command === false));
+});
+
+test("platform release check blocks when a child command fails", async () => {
+  const runner = async (spec) => ({
+    exitCode: spec.row_key === "repo_test" ? 1 : 0,
+    stdout: "",
+    stderr: spec.row_key === "repo_test" ? "test failed\n" : "",
+    durationMs: 1,
+  });
+
+  const result = await runPlatformReleaseCheck({ write: false, runner });
+
+  assert.equal(result.validation.valid, false);
+  assert.equal(result.summary.platform_release_check_status, "blocked");
+  assert.ok(result.release_check_command_rows.some((row) => row.row_key === "repo_test" && row.release_check_command_status === "failed"));
+  assert.ok(result.release_check_gate_rows.some((row) => row.row_key === "repo_validation_and_tests_passed" && row.gate_status === "blocked"));
+  await assert.rejects(
+    () => runPlatformReleaseCheck({ write: false, check: true, runner }),
+    /Platform release check failed/,
+  );
+});
+
+test("platform release check blocks when package registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-release-check-registration-"));
+  try {
+    const { runner } = passingPlatformReleaseCheckRunner();
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:release-check"];
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformReleaseCheck({ packagePath, write: false, runner });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_release_check_status, "blocked");
+    assert.ok(result.source_rows.some((row) => row.row_key === "package_platform_release_check_registered" && row.source_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformReleaseCheck({ packagePath, write: false, check: true, runner }),
+      /Platform release check failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform release check blocks recursive validation-chain registration", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-release-check-recursion-"));
+  try {
+    const { runner } = passingPlatformReleaseCheckRunner();
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    packageJson.scripts.validate = `${packageJson.scripts.validate} && npm run platform:release-check -- --check`;
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformReleaseCheck({ packagePath, write: false, runner });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_release_check_status, "blocked");
+    assert.ok(result.source_rows.some((row) => row.row_key === "package_validation_chain_non_recursive" && row.source_status === "blocked"));
+    assert.ok(result.release_check_gate_rows.some((row) => row.row_key === "validate_chain_non_recursive" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformReleaseCheck({ packagePath, write: false, check: true, runner }),
+      /Platform release check failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform release check --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-release-check-no-overwrite-"));
+  try {
+    const { runner } = passingPlatformReleaseCheckRunner();
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-release-check.json");
+    const sentinel = "{ \"sentinel\": \"platform-release-check\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformReleaseCheck({ outDir, write: false, check: true, runner });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

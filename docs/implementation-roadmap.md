@@ -8497,3 +8497,28 @@ Changes:
   package-script/validation-chain registration, source-route blocking, and
   `--check` no-overwrite behavior.
 - Updated the P341-P500 ledger so P362 owns the platform ops-check bridge.
+
+## Phase 363 - Platform Release Check
+
+Phase 363 adds the top-level platform release-check bridge for the P361-P380
+stability tranche. It executes `platform:ops-check -- --check`,
+`trading:release-check -- --check`, `npm run validate`, `npm test`,
+`contracts:validate -- --check`, and `release:freeze -- --check` from one
+operator-facing command while keeping release publication, git operations,
+protected actions, live trading, full-auto, order submission, broker writes,
+and exchange writes disabled.
+
+Changes:
+
+- Added `src/platform-release-check.mjs`,
+  `scripts/platform-release-check.mjs`,
+  `schemas/platform-release-check.schema.json`, and
+  `docs/platform-release-check.md`.
+- Added `platform:release-check` as a package script, while keeping it out of
+  `npm run validate` to avoid recursive release-check execution.
+- Added source rows and gates that block if the validation chain ever calls
+  `platform:release-check`.
+- Added focused platform release-check tests for command composition, child
+  failure blocking, missing package registration, recursion blocking, and
+  `--check` no-overwrite behavior.
+- Updated the P341-P500 ledger so P363 owns the platform release-check bridge.

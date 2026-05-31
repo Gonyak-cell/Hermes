@@ -8297,3 +8297,28 @@ Changes:
   `--check` no-overwrite behavior.
 - Updated the P341-P500 ledger so P354 owns the replay evidence checklist and
   P355 remains reserved for replay handoff closeout.
+
+## Phase 355 - Platform Replay Handoff Closeout
+
+Phase 355 closes the P351-P355 replay handoff sequence. It consumes P354 replay
+evidence checklist in memory, verifies the P351-P355 replay handoff commands are
+registered, and records closeout readiness without running replay actions,
+regenerating artifacts, collecting evidence, importing history, changing
+checkout state, performing git operations, submitting trading orders, or
+executing protected actions.
+
+Changes:
+
+- Added `src/platform-replay-handoff-closeout.mjs`,
+  `scripts/platform-replay-handoff-closeout.mjs`,
+  `schemas/platform-replay-handoff-closeout.schema.json`, and
+  `docs/platform-replay-handoff-closeout.md`.
+- Added `platform:replay-handoff-closeout` and registered
+  `platform:replay-handoff-closeout -- --check` after
+  `platform:replay-evidence-checklist` in the validation chain.
+- Added focused platform operations tests for replay handoff closeout readiness,
+  missing package-script or validation-chain registration, and `--check`
+  no-overwrite behavior.
+- Updated the P341-P500 ledger so P355 owns replay handoff closeout and P356-P360
+  remain reserved for reproducibility checks registered in validation and future
+  release-check.

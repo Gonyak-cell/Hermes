@@ -17,6 +17,7 @@ import { runPlatformMacWindowsReplayNotes } from "../src/platform-mac-windows-re
 import { runPlatformLockfilePolicy } from "../src/platform-lockfile-policy.mjs";
 import { runPlatformReplayHandoffMap } from "../src/platform-replay-handoff-map.mjs";
 import { runPlatformReplayEvidenceChecklist } from "../src/platform-replay-evidence-checklist.mjs";
+import { runPlatformReplayHandoffCloseout } from "../src/platform-replay-handoff-closeout.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -931,6 +932,75 @@ test("platform replay evidence checklist --check does not overwrite existing art
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformReplayEvidenceChecklist({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform replay handoff closeout closes P355 without replay execution", async () => {
+  const result = await runPlatformReplayHandoffCloseout({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_replay_handoff_closeout_status, "ready");
+  assert.equal(result.summary.phase_slot, "P355");
+  assert.equal(result.summary.previous_phase_slot, "P354");
+  assert.equal(result.summary.next_phase_slot, "P356");
+  assert.equal(result.summary.source_replay_evidence_checklist_status, "ready");
+  assert.equal(result.summary.closeout_count, 5);
+  assert.equal(result.summary.ready_closeout_count, 5);
+  assert.equal(result.summary.closeout_gate_count, 7);
+  assert.equal(result.summary.ready_closeout_gate_count, 7);
+  assert.equal(result.summary.replay_execution_performed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_regeneration_performed, false);
+  assert.equal(result.summary.history_import_performed, false);
+  assert.equal(result.summary.repository_checkout_changed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.ok(result.replay_handoff_closeout_rows.every((row) => row.closeout_status === "ready" && row.replay_execution_performed_by_report === false));
+  assert.ok(result.replay_handoff_closeout_gate_rows.every((row) => row.gate_status === "ready" && row.command_execution_performed_by_report === false));
+});
+
+test("platform replay handoff closeout blocks when validation chain is missing P355", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-replay-closeout-block-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:replay-handoff-closeout"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:replay-handoff-closeout -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformReplayHandoffCloseout({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_replay_handoff_closeout_status, "blocked");
+    assert.ok(result.replay_handoff_closeout_gate_rows.some((row) => row.row_key === "platform_package_scripts_registered" && row.gate_status === "blocked"));
+    assert.ok(result.replay_handoff_closeout_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    assert.ok(result.replay_handoff_closeout_rows.some((row) => row.source_phase_slot === "P355" && row.closeout_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformReplayHandoffCloseout({ packagePath, write: false, check: true }),
+      /Platform replay handoff closeout failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform replay handoff closeout --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-replay-closeout-check-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-replay-handoff-closeout.json");
+    const sentinel = "{ \"sentinel\": \"replay-handoff-closeout\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformReplayHandoffCloseout({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

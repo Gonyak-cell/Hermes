@@ -45,7 +45,7 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 - P352: `platform:lockfile-policy` records package manager, npmrc, and package-lock policy without dependency installs, package mutation, lockfile mutation, or artifact regeneration.
 - P353: `platform:replay-handoff-map` maps replay scopes to owner roles, expected evidence, and next operator actions without executing commands or protected actions.
 - P354: `platform:replay-evidence-checklist` records replay evidence expectations without collecting evidence, executing commands, regenerating artifacts, or performing protected actions.
-- P355: replay handoff closeout is documented for operator handoff.
+- P355: `platform:replay-handoff-closeout` closes P351-P355 replay handoff readiness without executing replay actions, regenerating artifacts, collecting evidence, or performing protected actions.
 - P356-P360: reproducibility checks are registered in the platform validation and future release-check chain.
 
 ## P361-P380 Acceptance Criteria

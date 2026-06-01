@@ -380,6 +380,11 @@
       "entrypoint_type": "command",
       "name": "trading:secret-scan-attention-fixtures",
       "path": "scripts/trading-secret-scan-attention-fixtures.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:secret-scan-fail-closed-fixtures",
+      "path": "scripts/trading-secret-scan-fail-closed-fixtures.mjs"
     }
   ],
   "dependencies": ["common.workflow.approval", "common.audit.replay", "common.test.gate"],

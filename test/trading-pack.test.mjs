@@ -52,6 +52,7 @@ import { runTradingPromotionReceiptCloseoutFixtures } from "../src/trading-promo
 import { runTradingPromotionReceiptChainRegressionFixtures } from "../src/trading-promotion-receipt-chain-regression-fixtures.mjs";
 import { runTradingPromotionReceiptChainReviewFixtures } from "../src/trading-promotion-receipt-chain-review-fixtures.mjs";
 import { runTradingPromotionReceiptChainSignoffLedgerFixtures } from "../src/trading-promotion-receipt-chain-signoff-ledger-fixtures.mjs";
+import { runTradingPromotionReceiptChainSignoffTemplateFixtures } from "../src/trading-promotion-receipt-chain-signoff-template-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -5286,6 +5287,125 @@ test("trading promotion receipt chain signoff ledger fixtures --check does not o
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingPromotionReceiptChainSignoffLedgerFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion receipt chain signoff template fixtures declare templates without materializing receipts", async () => {
+  const result = await runTradingPromotionReceiptChainSignoffTemplateFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_promotion_receipt_chain_signoff_template_fixtures_status, "ready_for_trading_promotion_receipt_chain_signoff_template");
+  assert.equal(result.summary.phase_slot, "P416");
+  assert.equal(result.summary.previous_phase_slot, "P415");
+  assert.equal(result.summary.next_phase_slot, "P417");
+  assert.equal(result.summary.source_promotion_receipt_chain_signoff_ledger_status, "ready_for_trading_promotion_receipt_chain_signoff_ledger");
+  assert.equal(result.summary.source_promotion_receipt_chain_signoff_ledger_ready, true);
+  assert.equal(result.summary.chain_signoff_template_row_count, 12);
+  assert.equal(result.summary.ready_chain_signoff_template_row_count, 12);
+  assert.equal(result.summary.chain_signoff_template_gate_count, 9);
+  assert.equal(result.summary.ready_chain_signoff_template_gate_count, 9);
+  assert.equal(result.summary.read_only, true);
+  assert.equal(result.summary.report_only, true);
+  assert.equal(result.summary.signoff_ledger_consumed_in_memory, true);
+  assert.equal(result.summary.signoff_ledger_artifact_read_performed, false);
+  assert.equal(result.summary.promotion_receipt_chain_signoff_template_declared, true);
+  assert.equal(result.summary.signoff_template_materialized, false);
+  assert.equal(result.summary.review_completed, false);
+  assert.equal(result.summary.review_approval_applied, false);
+  assert.equal(result.summary.signoff_completed, false);
+  assert.equal(result.summary.signoff_approval_applied, false);
+  assert.equal(result.summary.p401_p412_chain_ready, true);
+  assert.equal(result.summary.human_receipts_pending, true);
+  assert.equal(result.summary.receipt_payload_present, false);
+  assert.equal(result.summary.ready_for_validation, false);
+  assert.equal(result.summary.ready_for_approval_application, false);
+  assert.equal(result.summary.receipt_received, false);
+  assert.equal(result.summary.receipt_validated, false);
+  assert.equal(result.summary.receipt_application_performed, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.source_receipt_present, false);
+  assert.equal(result.summary.source_approval_applied, false);
+  assert.equal(result.summary.real_enablement_count, 0);
+  assert.equal(result.summary.shadow_live_enabled, false);
+  assert.equal(result.summary.limited_live_enabled, false);
+  assert.equal(result.summary.full_auto_enabled, false);
+  assert.equal(result.summary.automatic_order_submission_allowed, false);
+  assert.equal(result.summary.live_order_submission_allowed, false);
+  assert.equal(result.summary.live_execution_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_read_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.human_signoff_required, true);
+  assert.ok(result.promotion_receipt_chain_signoff_template_rows.every((row) => row.chain_signoff_template_status === "ready_for_trading_promotion_receipt_chain_signoff_template" && row.source_chain_signoff_status === "ready_for_trading_promotion_receipt_chain_signoff" && row.promotion_receipt_chain_signoff_ledger_declared && row.promotion_receipt_chain_signoff_template_declared && row.signoff_template_materialized === false && row.signoff_completed === false && row.signoff_approval_applied === false && row.p401_p412_chain_ready && row.human_receipts_pending && row.chain_signoff_template_checks.length >= 8 && row.receipt_payload_present === false && row.ready_for_validation === false && row.approval_applied_by_template === false && row.live_execution_allowed_by_template === false && row.broker_write_allowed_by_template === false && row.exchange_write_allowed_by_template === false && row.protected_action_executed_by_template === false && row.human_signoff_required));
+  assert.ok(result.promotion_receipt_chain_signoff_template_gate_rows.every((row) => row.gate_status === "ready" && row.signoff_template_materialized_by_template === false && row.signoff_completed_by_template === false && row.approval_applied_by_template === false && row.protected_action_executed_by_template === false));
+});
+
+test("trading promotion receipt chain signoff template fixtures block when source signoff ledger is blocked", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-receipt-chain-signoff-template-source-"));
+  try {
+    const limitedLive = JSON.parse(await readFile("examples/trading/limited-live-governance.json", "utf8"));
+    limitedLive.safety_boundary.approval_receipt_present = true;
+    const limitedLivePath = path.join(root, "limited-live-governance.json");
+    await writeFile(limitedLivePath, `${JSON.stringify(limitedLive, null, 2)}\n`, "utf8");
+
+    const result = await runTradingPromotionReceiptChainSignoffTemplateFixtures({ limitedLivePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_promotion_receipt_chain_signoff_template_fixtures_status, "blocked");
+    assert.equal(result.summary.source_promotion_receipt_chain_signoff_ledger_ready, false);
+    assert.equal(result.summary.source_receipt_present, true);
+    assert.equal(result.summary.ready_chain_signoff_template_row_count, 0);
+    assert.ok(result.promotion_receipt_chain_signoff_template_rows.every((row) => row.chain_signoff_template_status === "blocked"));
+    await assert.rejects(
+      () => runTradingPromotionReceiptChainSignoffTemplateFixtures({ limitedLivePath, write: false, check: true }),
+      /Trading promotion receipt chain signoff template fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion receipt chain signoff template fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-receipt-chain-signoff-template-registration-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:promotion-receipt-chain-signoff-template-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:promotion-receipt-chain-signoff-template-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingPromotionReceiptChainSignoffTemplateFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_promotion_receipt_chain_signoff_template_fixtures_status, "blocked");
+    assert.ok(result.promotion_receipt_chain_signoff_template_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.promotion_receipt_chain_signoff_template_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingPromotionReceiptChainSignoffTemplateFixtures({ packagePath, write: false, check: true }),
+      /Trading promotion receipt chain signoff template fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion receipt chain signoff template fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-receipt-chain-signoff-template-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-promotion-receipt-chain-signoff-template-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-promotion-receipt-chain-signoff-template-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingPromotionReceiptChainSignoffTemplateFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

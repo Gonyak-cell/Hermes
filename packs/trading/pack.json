@@ -106,7 +106,8 @@
     "schemas/trading/trading-secret-leakage-regression-fixtures.schema.json",
     "schemas/trading/trading-secret-scan-gate-fixtures.schema.json",
     "schemas/trading/trading-secret-scan-attention-fixtures.schema.json",
-    "schemas/trading/trading-secret-scan-fail-closed-fixtures.schema.json"
+    "schemas/trading/trading-secret-scan-fail-closed-fixtures.schema.json",
+    "schemas/trading/trading-secret-scan-remediation-fixtures.schema.json"
   ],
   "workflows": [
     "workflow.trading.research_intake.v1",
@@ -188,7 +189,8 @@
     "workflow.trading.secret_leakage_regression_fixtures.v1",
     "workflow.trading.secret_scan_gate_fixtures.v1",
     "workflow.trading.secret_scan_attention_fixtures.v1",
-    "workflow.trading.secret_scan_fail_closed_fixtures.v1"
+    "workflow.trading.secret_scan_fail_closed_fixtures.v1",
+    "workflow.trading.secret_scan_remediation_fixtures.v1"
   ],
   "gates": [
     "classification_gate",

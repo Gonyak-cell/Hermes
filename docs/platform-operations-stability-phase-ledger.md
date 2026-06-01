@@ -141,6 +141,7 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 - P425: `trading:secret-scan-gate-fixtures` records the bridge from P424 secret-leakage regressions into the existing platform Secrets Scan Gate package command, control-plane loop step, contract-validation requirement, Review API surfaces, and documentation boundary while no real secret values, `.env` files, Desktop config content, credential lookup, trading writes, artifact mutation, release publication, git operations, or protected actions are read or executed.
 - P426: `trading:secret-scan-attention-fixtures` records the operator attention surface for Secrets Scan Gate leakage through Review Dashboard stage/counters/fix actions, Review API filters, Review API docs, and attention-state documentation while no secret values, `.env` files, Desktop config content, provider keys, credential lookup, trading writes, artifact mutation, release publication, git operations, or protected actions are read or executed.
 - P427: `trading:secret-scan-fail-closed-fixtures` records that P300 Secrets Scan Gate rows fail closed for credential, token, env, Desktop config, provider-key, protected config write, and secret-transfer leakage signals while the P427 probe stays synthetic/redacted and no secret values, `.env` files, Desktop config content, credential lookup, trading writes, artifact mutation, release publication, git operations, or protected actions are read or executed.
+- P428: `trading:secret-scan-remediation-fixtures` records that Secrets Scan Gate remediation actions remain advisory and human-review-only by proving dashboard fix actions are non-protected, the control-plane action plan does not auto-map secret fix/rerun actions to commands, pending human receipts do not trigger protected actions, and no automatic secret redaction, deletion, rotation, apply, credential lookup, trading write, artifact mutation, release publication, git operation, or protected action occurs.
 - Simulated broker adapter and live broker adapter contracts are separate.
 - Live adapter files, if present in the future, are not imported by default control-plane paths.
 - Live credentials use external secret handles only; plaintext, environment dumps, and provider keys are forbidden in repo artifacts.
@@ -149,6 +150,7 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 - Secrets Scan Gate wiring remains attached to the platform command, control-plane loop, contract validation, and Review API surfaces.
 - Secrets Scan Gate attention states remain visible through dashboard counters and Review API filters without exposing secret material.
 - Secrets Scan Gate fail-closed behavior remains asserted across every leakage category without materializing secret values.
+- Secrets Scan Gate remediation remains advisory; fix/rerun actions do not become automatic redaction, deletion, rotation, apply, or protected-action commands.
 
 ## P441-P460 Acceptance Criteria
 

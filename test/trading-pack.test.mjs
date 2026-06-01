@@ -64,6 +64,7 @@ import { runTradingSecretLeakageRegressionFixtures } from "../src/trading-secret
 import { runTradingSecretScanGateFixtures } from "../src/trading-secret-scan-gate-fixtures.mjs";
 import { runTradingSecretScanAttentionFixtures } from "../src/trading-secret-scan-attention-fixtures.mjs";
 import { runTradingSecretScanFailClosedFixtures } from "../src/trading-secret-scan-fail-closed-fixtures.mjs";
+import { runTradingSecretScanRemediationFixtures } from "../src/trading-secret-scan-remediation-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -6942,6 +6943,168 @@ test("trading secret scan fail-closed fixtures --check does not overwrite existi
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingSecretScanFailClosedFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading secret scan remediation fixtures keep fix actions advisory", async () => {
+  const result = await runTradingSecretScanRemediationFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_secret_scan_remediation_fixtures_status, "ready_for_trading_secret_scan_remediation");
+  assert.equal(result.summary.phase_slot, "P428");
+  assert.equal(result.summary.previous_phase_slot, "P427");
+  assert.equal(result.summary.next_phase_slot, "P429");
+  assert.equal(result.summary.source_secret_scan_fail_closed_status, "ready_for_trading_secret_scan_fail_closed");
+  assert.equal(result.summary.source_secret_scan_fail_closed_ready, true);
+  assert.equal(result.summary.required_row_count, 8);
+  assert.equal(result.summary.secret_scan_remediation_row_count, 8);
+  assert.equal(result.summary.ready_secret_scan_remediation_row_count, 8);
+  assert.equal(result.summary.secret_scan_remediation_gate_count, 10);
+  assert.equal(result.summary.ready_secret_scan_remediation_gate_count, 10);
+  assert.equal(result.summary.dashboard_fix_action_registered, true);
+  assert.equal(result.summary.dashboard_remediation_actions_non_protected, true);
+  assert.equal(result.summary.action_plan_no_auto_secret_fix_command, true);
+  assert.equal(result.summary.human_gate_receipts_keep_pending_manual, true);
+  assert.equal(result.summary.forbidden_secret_remediation_script_count, 0);
+  assert.equal(result.summary.remediation_no_auto_redaction_or_deletion, true);
+  assert.equal(result.summary.no_secret_material_read, true);
+  assert.equal(result.summary.no_secret_or_trading_mutation, true);
+  assert.equal(result.summary.read_only, true);
+  assert.equal(result.summary.report_only, true);
+  assert.equal(result.summary.auto_fix_command_registered, false);
+  assert.equal(result.summary.auto_redaction_allowed, false);
+  assert.equal(result.summary.auto_deletion_allowed, false);
+  assert.equal(result.summary.auto_rotation_allowed, false);
+  assert.equal(result.summary.raw_secret_material_materialized, false);
+  assert.equal(result.summary.raw_secret_material_exposed, false);
+  assert.equal(result.summary.provider_key_material_present, false);
+  assert.equal(result.summary.secret_values_read, false);
+  assert.equal(result.summary.env_file_read, false);
+  assert.equal(result.summary.desktop_config_content_inspected, false);
+  assert.equal(result.summary.desktop_config_read, false);
+  assert.equal(result.summary.credential_lookup_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.human_review_required, true);
+  assert.equal(result.summary.human_signoff_required, true);
+  assert.ok(result.secret_scan_remediation_rows.every((row) => row.secret_scan_remediation_status === "ready_for_trading_secret_scan_remediation" && row.source_secret_scan_fail_closed_ready && row.remediation_action_registered && row.remediation_action_advisory_only && row.auto_fix_command_registered === false && row.auto_redaction_allowed === false && row.auto_deletion_allowed === false && row.auto_rotation_allowed === false && row.secret_values_read === false && row.env_file_read === false && row.desktop_config_content_inspected === false && row.desktop_config_read === false && row.credential_lookup_allowed === false && row.broker_write_allowed === false && row.exchange_write_allowed === false && row.protected_action_executed === false && row.human_signoff_required));
+  assert.ok(result.secret_scan_remediation_gate_rows.every((row) => row.gate_status === "ready" && row.auto_fix_command_registered_by_gate === false && row.auto_redaction_allowed_by_gate === false && row.auto_deletion_allowed_by_gate === false && row.auto_rotation_allowed_by_gate === false && row.secret_values_read_by_gate === false && row.env_file_read_by_gate === false && row.desktop_config_content_inspected_by_gate === false && row.desktop_config_read_by_gate === false && row.credential_lookup_allowed_by_gate === false && row.broker_write_allowed_by_gate === false && row.exchange_write_allowed_by_gate === false && row.protected_action_executed_by_gate === false));
+});
+
+test("trading secret scan remediation fixtures block when source fail-closed fixtures are blocked", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-secret-scan-remediation-source-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:secret-scan-fail-closed-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:secret-scan-fail-closed-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingSecretScanRemediationFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_secret_scan_remediation_fixtures_status, "blocked");
+    assert.equal(result.summary.source_secret_scan_fail_closed_ready, false);
+    assert.equal(result.summary.ready_secret_scan_remediation_row_count, 0);
+    assert.ok(result.secret_scan_remediation_rows.every((row) => row.secret_scan_remediation_status === "blocked"));
+    await assert.rejects(
+      () => runTradingSecretScanRemediationFixtures({ packagePath, write: false, check: true }),
+      /Trading secret scan remediation fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading secret scan remediation fixtures block when dashboard fix action is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-secret-scan-remediation-dashboard-"));
+  try {
+    const reviewDashboard = (await readFile("src/review-dashboard.mjs", "utf8")).replace("\"fix_secrets_scan_gate\", ", "");
+    const reviewDashboardPath = path.join(root, "review-dashboard.mjs");
+    await writeFile(reviewDashboardPath, reviewDashboard, "utf8");
+
+    const result = await runTradingSecretScanRemediationFixtures({ reviewDashboardPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_secret_scan_remediation_fixtures_status, "blocked");
+    assert.equal(result.summary.dashboard_fix_action_registered, false);
+    assert.ok(result.secret_scan_remediation_rows.some((row) => row.row_key === "dashboard_fix_action_registered" && row.secret_scan_remediation_status === "blocked"));
+    assert.ok(result.secret_scan_remediation_gate_rows.some((row) => row.row_key === "dashboard_fix_action_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingSecretScanRemediationFixtures({ reviewDashboardPath, write: false, check: true }),
+      /Trading secret scan remediation fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading secret scan remediation fixtures block when action plan auto-maps secret fix commands", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-secret-scan-remediation-action-plan-"));
+  try {
+    const actionPlan = (await readFile("src/control-plane-action-plan.mjs", "utf8")).replace(
+      "const ACTION_COMMANDS = {\n",
+      "const ACTION_COMMANDS = {\n  fix_secrets_scan_gate: [\"npm run security:secrets-scan-gate\"],\n",
+    );
+    const controlPlaneActionPlanPath = path.join(root, "control-plane-action-plan.mjs");
+    await writeFile(controlPlaneActionPlanPath, actionPlan, "utf8");
+
+    const result = await runTradingSecretScanRemediationFixtures({ controlPlaneActionPlanPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_secret_scan_remediation_fixtures_status, "blocked");
+    assert.equal(result.summary.action_plan_no_auto_secret_fix_command, false);
+    assert.ok(result.secret_scan_remediation_rows.some((row) => row.row_key === "action_plan_no_auto_secret_fix_command" && row.secret_scan_remediation_status === "blocked"));
+    assert.ok(result.secret_scan_remediation_gate_rows.some((row) => row.row_key === "action_plan_no_auto_secret_fix_command" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingSecretScanRemediationFixtures({ controlPlaneActionPlanPath, write: false, check: true }),
+      /Trading secret scan remediation fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading secret scan remediation fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-secret-scan-remediation-registration-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:secret-scan-remediation-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:secret-scan-remediation-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingSecretScanRemediationFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_secret_scan_remediation_fixtures_status, "blocked");
+    assert.ok(result.secret_scan_remediation_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.secret_scan_remediation_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingSecretScanRemediationFixtures({ packagePath, write: false, check: true }),
+      /Trading secret scan remediation fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading secret scan remediation fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-secret-scan-remediation-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-secret-scan-remediation-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-secret-scan-remediation-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingSecretScanRemediationFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

@@ -385,6 +385,11 @@
       "entrypoint_type": "command",
       "name": "trading:secret-scan-fail-closed-fixtures",
       "path": "scripts/trading-secret-scan-fail-closed-fixtures.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:secret-scan-remediation-fixtures",
+      "path": "scripts/trading-secret-scan-remediation-fixtures.mjs"
     }
   ],
   "dependencies": ["common.workflow.approval", "common.audit.replay", "common.test.gate"],

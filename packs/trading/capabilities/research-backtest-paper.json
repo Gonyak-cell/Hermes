@@ -480,6 +480,11 @@
       "entrypoint_type": "command",
       "name": "trading:secret-scan-remediation-receipt-chain-signoff-closeout-fixtures",
       "path": "scripts/trading-secret-scan-remediation-receipt-chain-signoff-closeout-fixtures.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:secret-scan-remediation-receipt-chain-broker-adapter-separation-fixtures",
+      "path": "scripts/trading-secret-scan-remediation-receipt-chain-broker-adapter-separation-fixtures.mjs"
     }
   ],
   "dependencies": ["common.workflow.approval", "common.audit.replay", "common.test.gate"],

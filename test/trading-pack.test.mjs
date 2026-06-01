@@ -105,6 +105,7 @@ import { runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceipt
 import { runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainReviewFixtures } from "../src/trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-review-fixtures.mjs";
 import { runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainSignoffLedgerFixtures } from "../src/trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-signoff-ledger-fixtures.mjs";
 import { runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainSignoffTemplateFixtures } from "../src/trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-signoff-template-fixtures.mjs";
+import { runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainSignoffIntakeFixtures } from "../src/trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-signoff-intake-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -12312,6 +12313,141 @@ test("trading secret scan remediation receipt chain secret scan remediation rece
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainSignoffTemplateFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading secret scan remediation receipt chain secret scan remediation receipt chain signoff intake fixtures queue human input without receiving receipts", async () => {
+  const result = await runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainSignoffIntakeFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_signoff_intake_fixtures_status, "ready_for_trading_secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_signoff_intake");
+  assert.equal(result.summary.phase_slot, "P469");
+  assert.equal(result.summary.previous_phase_slot, "P468");
+  assert.equal(result.summary.next_phase_slot, "P470");
+  assert.equal(result.summary.source_secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_signoff_template_status, "ready_for_trading_secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_signoff_template");
+  assert.equal(result.summary.source_secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_signoff_template_ready, true);
+  assert.equal(result.summary.chain_signoff_intake_row_count, 10);
+  assert.equal(result.summary.ready_chain_signoff_intake_row_count, 10);
+  assert.equal(result.summary.chain_signoff_intake_gate_count, 10);
+  assert.equal(result.summary.ready_chain_signoff_intake_gate_count, 10);
+  assert.equal(result.summary.read_only, true);
+  assert.equal(result.summary.report_only, true);
+  assert.equal(result.summary.signoff_template_consumed_in_memory, true);
+  assert.equal(result.summary.signoff_template_artifact_read_performed, false);
+  assert.equal(result.summary.secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_signoff_intake_queued, true);
+  assert.equal(result.summary.signoff_template_materialized, false);
+  assert.equal(result.summary.signoff_receipt_received, false);
+  assert.equal(result.summary.review_completed, false);
+  assert.equal(result.summary.review_approval_applied, false);
+  assert.equal(result.summary.signoff_completed, false);
+  assert.equal(result.summary.signoff_approval_applied, false);
+  assert.equal(result.summary.p455_p464_chain_ready, true);
+  assert.equal(result.summary.human_receipts_pending, true);
+  assert.equal(result.summary.no_secret_material_read, true);
+  assert.equal(result.summary.no_secret_or_trading_mutation, true);
+  assert.equal(result.summary.actor_workspace_input_present, false);
+  assert.equal(result.summary.receipt_input_file_materialized, false);
+  assert.equal(result.summary.merged_receipt_input_materialized, false);
+  assert.equal(result.summary.receipt_payload_present, false);
+  assert.equal(result.summary.ready_for_validation, false);
+  assert.equal(result.summary.ready_for_approval_application, false);
+  assert.equal(result.summary.receipt_received, false);
+  assert.equal(result.summary.receipt_validated, false);
+  assert.equal(result.summary.receipt_application_performed, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.source_receipt_present, false);
+  assert.equal(result.summary.source_approval_applied, false);
+  assert.equal(result.summary.secret_scan_remediation_action_allowed, false);
+  assert.equal(result.summary.secret_values_read, false);
+  assert.equal(result.summary.env_file_read, false);
+  assert.equal(result.summary.desktop_config_content_inspected, false);
+  assert.equal(result.summary.desktop_config_read, false);
+  assert.equal(result.summary.raw_secret_material_materialized, false);
+  assert.equal(result.summary.raw_secret_material_exposed, false);
+  assert.equal(result.summary.desktop_provider_key_visible, false);
+  assert.equal(result.summary.forbidden_receipt_fields_allowed, false);
+  assert.equal(result.summary.auto_fix_command_registered, false);
+  assert.equal(result.summary.auto_redaction_allowed, false);
+  assert.equal(result.summary.auto_deletion_allowed, false);
+  assert.equal(result.summary.auto_rotation_allowed, false);
+  assert.equal(result.summary.credential_lookup_allowed, false);
+  assert.equal(result.summary.live_execution_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_read_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.human_review_required, true);
+  assert.equal(result.summary.human_signoff_required, true);
+  assert.ok(result.secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_signoff_intake_rows.every((row) => row.chain_signoff_intake_status === "ready_for_trading_secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_signoff_intake" && row.source_chain_signoff_template_status === "ready_for_trading_secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_signoff_template" && row.source_chain_signoff_status === "ready_for_trading_secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_signoff" && row.secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_signoff_template_declared && row.secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_signoff_intake_queued && row.ready_for_human_input && row.signoff_template_materialized === false && row.signoff_receipt_received === false && row.signoff_completed === false && row.signoff_approval_applied === false && row.p455_p464_chain_ready && row.human_receipts_pending && row.no_secret_material_read && row.no_secret_or_trading_mutation && row.receipt_payload_present === false && row.ready_for_validation === false && row.approval_applied_by_intake === false && row.secret_scan_remediation_action_allowed_by_intake === false && row.secret_values_read_by_intake === false && row.raw_secret_material_materialized_by_intake === false && row.raw_secret_material_exposed_by_intake === false && row.desktop_provider_key_visible_by_intake === false && row.forbidden_receipt_fields_allowed_by_intake === false && row.auto_fix_command_registered_by_intake === false && row.auto_redaction_allowed_by_intake === false && row.auto_deletion_allowed_by_intake === false && row.auto_rotation_allowed_by_intake === false && row.credential_lookup_allowed_by_intake === false && row.live_execution_allowed_by_intake === false && row.broker_write_allowed_by_intake === false && row.exchange_write_allowed_by_intake === false && row.protected_action_executed_by_intake === false && row.human_signoff_required));
+  assert.ok(result.secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_signoff_intake_gate_rows.every((row) => row.gate_status === "ready" && row.signoff_receipt_received_by_intake === false && row.signoff_completed_by_intake === false && row.approval_applied_by_intake === false && row.secret_values_read_by_intake === false && row.desktop_provider_key_visible_by_intake === false && row.secret_scan_remediation_action_allowed_by_intake === false && row.credential_lookup_allowed_by_intake === false && row.protected_action_executed_by_intake === false));
+});
+
+test("trading secret scan remediation receipt chain secret scan remediation receipt chain signoff intake fixtures block when source template is blocked", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-signoff-intake-source-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-signoff-template-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-signoff-template-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainSignoffIntakeFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_signoff_intake_fixtures_status, "blocked");
+    assert.equal(result.summary.source_secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_signoff_template_ready, false);
+    assert.equal(result.summary.ready_chain_signoff_intake_row_count, 0);
+    assert.ok(result.secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_signoff_intake_rows.every((row) => row.chain_signoff_intake_status === "blocked"));
+    assert.ok(result.secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_signoff_intake_gate_rows.some((row) => row.row_key === "p468_signoff_template_ready" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainSignoffIntakeFixtures({ packagePath, write: false, check: true }),
+      /Trading secret scan remediation receipt chain signoff intake fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading secret scan remediation receipt chain secret scan remediation receipt chain signoff intake fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-signoff-intake-registration-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-signoff-intake-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-signoff-intake-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainSignoffIntakeFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_signoff_intake_fixtures_status, "blocked");
+    assert.ok(result.secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_signoff_intake_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_signoff_intake_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainSignoffIntakeFixtures({ packagePath, write: false, check: true }),
+      /Trading secret scan remediation receipt chain signoff intake fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading secret scan remediation receipt chain secret scan remediation receipt chain signoff intake fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-signoff-intake-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-signoff-intake-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-signoff-intake-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainSignoffIntakeFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

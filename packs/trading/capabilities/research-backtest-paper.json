@@ -460,6 +460,11 @@
       "entrypoint_type": "command",
       "name": "trading:secret-scan-remediation-receipt-chain-signoff-template-fixtures",
       "path": "scripts/trading-secret-scan-remediation-receipt-chain-signoff-template-fixtures.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:secret-scan-remediation-receipt-chain-signoff-intake-fixtures",
+      "path": "scripts/trading-secret-scan-remediation-receipt-chain-signoff-intake-fixtures.mjs"
     }
   ],
   "dependencies": ["common.workflow.approval", "common.audit.replay", "common.test.gate"],

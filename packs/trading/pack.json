@@ -121,7 +121,8 @@
     "schemas/trading/trading-secret-scan-remediation-receipt-chain-regression-fixtures.schema.json",
     "schemas/trading/trading-secret-scan-remediation-receipt-chain-review-fixtures.schema.json",
     "schemas/trading/trading-secret-scan-remediation-receipt-chain-signoff-ledger-fixtures.schema.json",
-    "schemas/trading/trading-secret-scan-remediation-receipt-chain-signoff-template-fixtures.schema.json"
+    "schemas/trading/trading-secret-scan-remediation-receipt-chain-signoff-template-fixtures.schema.json",
+    "schemas/trading/trading-secret-scan-remediation-receipt-chain-signoff-intake-fixtures.schema.json"
   ],
   "workflows": [
     "workflow.trading.research_intake.v1",
@@ -218,7 +219,8 @@
     "workflow.trading.secret_scan_remediation_receipt_chain_regression_fixtures.v1",
     "workflow.trading.secret_scan_remediation_receipt_chain_review_fixtures.v1",
     "workflow.trading.secret_scan_remediation_receipt_chain_signoff_ledger_fixtures.v1",
-    "workflow.trading.secret_scan_remediation_receipt_chain_signoff_template_fixtures.v1"
+    "workflow.trading.secret_scan_remediation_receipt_chain_signoff_template_fixtures.v1",
+    "workflow.trading.secret_scan_remediation_receipt_chain_signoff_intake_fixtures.v1"
   ],
   "gates": [
     "classification_gate",

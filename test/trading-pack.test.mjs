@@ -87,6 +87,7 @@ import { runTradingSecretScanRemediationReceiptChainBrokerAdapterSeparationFixtu
 import { runTradingSecretScanRemediationReceiptChainLiveAdapterImportBoundaryFixtures } from "../src/trading-secret-scan-remediation-receipt-chain-live-adapter-import-boundary-fixtures.mjs";
 import { runTradingSecretScanRemediationReceiptChainSecretHandleBoundaryFixtures } from "../src/trading-secret-scan-remediation-receipt-chain-secret-handle-boundary-fixtures.mjs";
 import { runTradingSecretScanRemediationReceiptChainSecretLeakageRegressionFixtures } from "../src/trading-secret-scan-remediation-receipt-chain-secret-leakage-regression-fixtures.mjs";
+import { runTradingSecretScanRemediationReceiptChainSecretScanGateFixtures } from "../src/trading-secret-scan-remediation-receipt-chain-secret-scan-gate-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -9914,6 +9915,166 @@ test("trading secret scan remediation receipt chain secret leakage regression fi
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingSecretScanRemediationReceiptChainSecretLeakageRegressionFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading secret scan remediation receipt chain secret scan gate fixtures bridge regressions into platform scan surfaces", async () => {
+  const result = await runTradingSecretScanRemediationReceiptChainSecretScanGateFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_secret_scan_remediation_receipt_chain_secret_scan_gate_fixtures_status, "ready_for_trading_secret_scan_remediation_receipt_chain_secret_scan_gate");
+  assert.equal(result.summary.phase_slot, "P451");
+  assert.equal(result.summary.previous_phase_slot, "P450");
+  assert.equal(result.summary.next_phase_slot, "P452");
+  assert.equal(result.summary.source_secret_scan_remediation_receipt_chain_secret_leakage_regression_status, "ready_for_trading_secret_scan_remediation_receipt_chain_secret_leakage_regression");
+  assert.equal(result.summary.source_secret_scan_remediation_receipt_chain_secret_leakage_regression_ready, true);
+  assert.equal(result.summary.required_row_count, 8);
+  assert.equal(result.summary.secret_scan_gate_row_count, 8);
+  assert.equal(result.summary.ready_secret_scan_gate_row_count, 8);
+  assert.equal(result.summary.secret_scan_gate_gate_count, 10);
+  assert.equal(result.summary.ready_secret_scan_gate_gate_count, 10);
+  assert.equal(result.summary.security_secrets_scan_gate_registered, true);
+  assert.equal(result.summary.p450_regression_registered, true);
+  assert.equal(result.summary.control_plane_secret_scan_step_registered, true);
+  assert.equal(result.summary.contract_validation_secret_scan_required, true);
+  assert.equal(result.summary.review_api_secret_scan_surfaces_registered, true);
+  assert.equal(result.summary.secret_scan_doc_forbids_secret_reads, true);
+  assert.equal(result.summary.secret_scan_doc_declares_attention_gate, true);
+  assert.equal(result.summary.p450_synthetic_regressions_ready, true);
+  assert.equal(result.summary.synthetic_pattern_only, true);
+  assert.equal(result.summary.raw_secret_material_materialized, false);
+  assert.equal(result.summary.raw_secret_material_exposed, false);
+  assert.equal(result.summary.provider_key_material_present, false);
+  assert.equal(result.summary.environment_dump_present, false);
+  assert.equal(result.summary.desktop_provider_key_visible, false);
+  assert.equal(result.summary.no_secret_material_read, true);
+  assert.equal(result.summary.no_secret_or_trading_mutation, true);
+  assert.equal(result.summary.secret_scan_remediation_action_allowed, false);
+  assert.equal(result.summary.secret_values_read, false);
+  assert.equal(result.summary.env_file_read, false);
+  assert.equal(result.summary.desktop_config_content_inspected, false);
+  assert.equal(result.summary.desktop_config_read, false);
+  assert.equal(result.summary.credential_lookup_allowed, false);
+  assert.equal(result.summary.plaintext_secret_allowed, false);
+  assert.equal(result.summary.model_context_secret_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_read_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.human_review_required, true);
+  assert.equal(result.summary.human_signoff_required, true);
+  assert.ok(result.secret_scan_gate_rows.every((row) => row.secret_scan_gate_status === "ready_for_trading_secret_scan_remediation_receipt_chain_secret_scan_gate" && row.source_secret_scan_remediation_receipt_chain_secret_leakage_regression_ready && row.raw_secret_material_materialized === false && row.raw_secret_material_exposed === false && row.provider_key_material_present === false && row.no_secret_material_read && row.no_secret_or_trading_mutation && row.secret_scan_remediation_action_allowed === false && row.secret_values_read === false && row.env_file_read === false && row.desktop_config_content_inspected === false && row.desktop_config_read === false && row.credential_lookup_allowed === false && row.broker_write_allowed === false && row.exchange_write_allowed === false && row.protected_action_executed === false && row.human_signoff_required));
+  assert.ok(result.secret_scan_gate_gate_rows.every((row) => row.gate_status === "ready" && row.raw_secret_material_materialized_by_gate === false && row.raw_secret_material_exposed_by_gate === false && row.provider_key_material_present_by_gate === false && row.secret_scan_remediation_action_allowed_by_gate === false && row.secret_values_read_by_gate === false && row.env_file_read_by_gate === false && row.desktop_config_content_inspected_by_gate === false && row.desktop_config_read_by_gate === false && row.credential_lookup_allowed_by_gate === false && row.broker_write_allowed_by_gate === false && row.exchange_write_allowed_by_gate === false && row.protected_action_executed_by_gate === false));
+});
+
+test("trading secret scan remediation receipt chain secret scan gate fixtures block when source leakage regression is blocked", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-secret-scan-remediation-receipt-chain-secret-scan-gate-source-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:secret-scan-remediation-receipt-chain-secret-leakage-regression-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:secret-scan-remediation-receipt-chain-secret-leakage-regression-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingSecretScanRemediationReceiptChainSecretScanGateFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_secret_scan_remediation_receipt_chain_secret_scan_gate_fixtures_status, "blocked");
+    assert.equal(result.summary.source_secret_scan_remediation_receipt_chain_secret_leakage_regression_ready, false);
+    assert.equal(result.summary.ready_secret_scan_gate_row_count, 0);
+    assert.ok(result.secret_scan_gate_rows.every((row) => row.secret_scan_gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingSecretScanRemediationReceiptChainSecretScanGateFixtures({ packagePath, write: false, check: true }),
+      /Trading secret scan remediation receipt chain secret scan gate fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading secret scan remediation receipt chain secret scan gate fixtures block when docs no longer forbid secret reads", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-secret-scan-remediation-receipt-chain-secret-scan-gate-doc-"));
+  try {
+    const secretsScanGateDocPath = path.join(root, "secrets-scan-gate.md");
+    await writeFile(secretsScanGateDocPath, "# Secrets Scan Gate\n\nThis scan may read secret values and Desktop config content.\n", "utf8");
+
+    const result = await runTradingSecretScanRemediationReceiptChainSecretScanGateFixtures({ secretsScanGateDocPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_secret_scan_remediation_receipt_chain_secret_scan_gate_fixtures_status, "blocked");
+    assert.equal(result.summary.secret_scan_doc_forbids_secret_reads, false);
+    assert.ok(result.secret_scan_gate_rows.some((row) => row.row_key === "secret_scan_gate_doc_forbids_secret_reads" && row.secret_scan_gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingSecretScanRemediationReceiptChainSecretScanGateFixtures({ secretsScanGateDocPath, write: false, check: true }),
+      /Trading secret scan remediation receipt chain secret scan gate fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading secret scan remediation receipt chain secret scan gate fixtures block when control-plane scan step is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-secret-scan-remediation-receipt-chain-secret-scan-gate-control-plane-"));
+  try {
+    const controlPlaneLoopPath = path.join(root, "control-plane-loop.mjs");
+    const controlPlaneLoop = (await readFile("src/control-plane-loop.mjs", "utf8")).replace("step(\"secrets_scan_gate\"", "step(\"secrets_scan_gate_removed\"");
+    await writeFile(controlPlaneLoopPath, controlPlaneLoop, "utf8");
+
+    const result = await runTradingSecretScanRemediationReceiptChainSecretScanGateFixtures({ controlPlaneLoopPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_secret_scan_remediation_receipt_chain_secret_scan_gate_fixtures_status, "blocked");
+    assert.equal(result.summary.control_plane_secret_scan_step_registered, false);
+    assert.ok(result.secret_scan_gate_rows.some((row) => row.row_key === "control_plane_loop_secret_scan_step_registered" && row.secret_scan_gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingSecretScanRemediationReceiptChainSecretScanGateFixtures({ controlPlaneLoopPath, write: false, check: true }),
+      /Trading secret scan remediation receipt chain secret scan gate fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading secret scan remediation receipt chain secret scan gate fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-secret-scan-remediation-receipt-chain-secret-scan-gate-registration-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:secret-scan-remediation-receipt-chain-secret-scan-gate-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:secret-scan-remediation-receipt-chain-secret-scan-gate-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingSecretScanRemediationReceiptChainSecretScanGateFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_secret_scan_remediation_receipt_chain_secret_scan_gate_fixtures_status, "blocked");
+    assert.ok(result.secret_scan_gate_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.secret_scan_gate_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingSecretScanRemediationReceiptChainSecretScanGateFixtures({ packagePath, write: false, check: true }),
+      /Trading secret scan remediation receipt chain secret scan gate fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading secret scan remediation receipt chain secret scan gate fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-secret-scan-remediation-receipt-chain-secret-scan-gate-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-secret-scan-remediation-receipt-chain-secret-scan-gate-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-secret-scan-remediation-receipt-chain-secret-scan-gate-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingSecretScanRemediationReceiptChainSecretScanGateFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

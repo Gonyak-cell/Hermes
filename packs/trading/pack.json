@@ -151,7 +151,8 @@
     "schemas/trading/trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-signoff-intake-fixtures.schema.json",
     "schemas/trading/trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-signoff-validation-rules-fixtures.schema.json",
     "schemas/trading/trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-signoff-approval-closeout-fixtures.schema.json",
-    "schemas/trading/trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-signoff-closeout-fixtures.schema.json"
+    "schemas/trading/trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-signoff-closeout-fixtures.schema.json",
+    "schemas/trading/trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-broker-adapter-separation-fixtures.schema.json"
   ],
   "workflows": [
     "workflow.trading.research_intake.v1",

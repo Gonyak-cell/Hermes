@@ -74,6 +74,7 @@ import { runTradingSecretScanRemediationReceiptMergePreflightFixtures } from "..
 import { runTradingSecretScanRemediationReceiptValidationPacketFixtures } from "../src/trading-secret-scan-remediation-receipt-validation-packet-fixtures.mjs";
 import { runTradingSecretScanRemediationReceiptApprovalPlanFixtures } from "../src/trading-secret-scan-remediation-receipt-approval-plan-fixtures.mjs";
 import { runTradingSecretScanRemediationReceiptApprovalCloseoutFixtures } from "../src/trading-secret-scan-remediation-receipt-approval-closeout-fixtures.mjs";
+import { runTradingSecretScanRemediationReceiptCloseoutFixtures } from "../src/trading-secret-scan-remediation-receipt-closeout-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -8189,6 +8190,129 @@ test("trading secret scan remediation receipt approval closeout fixtures --check
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingSecretScanRemediationReceiptApprovalCloseoutFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading secret scan remediation receipt closeout fixtures close the chain without applying approvals", async () => {
+  const result = await runTradingSecretScanRemediationReceiptCloseoutFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_secret_scan_remediation_receipt_closeout_fixtures_status, "ready_for_trading_secret_scan_remediation_receipt_chain_regression");
+  assert.equal(result.summary.phase_slot, "P438");
+  assert.equal(result.summary.previous_phase_slot, "P437");
+  assert.equal(result.summary.next_phase_slot, "P439");
+  assert.equal(result.summary.source_secret_scan_remediation_receipt_approval_closeout_status, "ready_for_trading_secret_scan_remediation_receipt_approval_closeout");
+  assert.equal(result.summary.source_secret_scan_remediation_receipt_approval_closeout_ready, true);
+  assert.equal(result.summary.expected_receipt_closeout_row_count, 5);
+  assert.equal(result.summary.secret_scan_remediation_receipt_closeout_row_count, 5);
+  assert.equal(result.summary.ready_secret_scan_remediation_receipt_closeout_row_count, 5);
+  assert.equal(result.summary.secret_scan_remediation_receipt_closeout_gate_count, 10);
+  assert.equal(result.summary.ready_secret_scan_remediation_receipt_closeout_gate_count, 10);
+  assert.equal(result.summary.all_approval_closeout_rows_covered, true);
+  assert.equal(result.summary.receipt_closeout_declared, true);
+  assert.equal(result.summary.p429_p438_chain_ready, true);
+  assert.equal(result.summary.human_receipts_pending, true);
+  assert.equal(result.summary.ready_for_p439_secret_scan_remediation_receipt_chain_regression, true);
+  assert.equal(result.summary.no_closeout_input_materialized, true);
+  assert.equal(result.summary.no_secret_material_read, true);
+  assert.equal(result.summary.no_secret_or_trading_mutation, true);
+  assert.equal(result.summary.receipt_approval_closeout_consumed_in_memory, true);
+  assert.equal(result.summary.receipt_approval_closeout_artifact_read_performed, false);
+  assert.equal(result.summary.actor_workspace_required, true);
+  assert.equal(result.summary.actor_workspace_input_present, false);
+  assert.equal(result.summary.actor_workspace_file_read, false);
+  assert.equal(result.summary.actor_workspace_payload_read, false);
+  assert.equal(result.summary.receipt_input_file_materialized, false);
+  assert.equal(result.summary.merged_receipt_input_materialized, false);
+  assert.equal(result.summary.receipt_payload_present, false);
+  assert.equal(result.summary.ready_for_validation, false);
+  assert.equal(result.summary.ready_for_approval_application, false);
+  assert.equal(result.summary.receipt_received, false);
+  assert.equal(result.summary.receipt_validated, false);
+  assert.equal(result.summary.receipt_application_performed, false);
+  assert.equal(result.summary.receipt_applied, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.secret_values_read, false);
+  assert.equal(result.summary.env_file_read, false);
+  assert.equal(result.summary.desktop_config_content_inspected, false);
+  assert.equal(result.summary.desktop_config_read, false);
+  assert.equal(result.summary.auto_fix_command_registered, false);
+  assert.equal(result.summary.auto_redaction_allowed, false);
+  assert.equal(result.summary.auto_deletion_allowed, false);
+  assert.equal(result.summary.auto_rotation_allowed, false);
+  assert.equal(result.summary.credential_lookup_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.artifact_read_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.ok(result.secret_scan_remediation_receipt_closeout_rows.every((row) => row.receipt_closeout_status === "ready_for_trading_secret_scan_remediation_receipt_chain_closeout" && row.source_approval_closeout_status === "ready_for_future_secret_scan_remediation_receipt_approval_closeout" && row.receipt_approval_closeout_consumed_in_memory && row.receipt_approval_closeout_artifact_read_performed_by_closeout === false && row.actor_workspace_required && row.actor_workspace_input_present === false && row.actor_workspace_file_read_by_closeout === false && row.actor_workspace_payload_read_by_closeout === false && row.receipt_input_file_materialized === false && row.merged_receipt_input_materialized === false && row.receipt_payload_present === false && row.receipt_closeout_declared && row.p429_p438_chain_ready && row.human_receipts_pending && row.ready_for_p439_secret_scan_remediation_receipt_chain_regression && row.receipt_closeout_checks.length >= 8 && row.ready_for_validation === false && row.ready_for_approval_application === false && row.receipt_validated_by_closeout === false && row.approval_applied_by_closeout === false && row.secret_values_read_by_closeout === false && row.env_file_read_by_closeout === false && row.desktop_config_content_inspected_by_closeout === false && row.desktop_config_read_by_closeout === false && row.auto_fix_command_registered_by_closeout === false && row.auto_redaction_allowed_by_closeout === false && row.auto_deletion_allowed_by_closeout === false && row.auto_rotation_allowed_by_closeout === false && row.credential_lookup_allowed_by_closeout === false && row.broker_write_allowed_by_closeout === false && row.exchange_write_allowed_by_closeout === false && row.artifact_write_performed_by_closeout === false && row.protected_action_executed_by_closeout === false && row.human_signoff_required));
+  assert.ok(result.secret_scan_remediation_receipt_closeout_gate_rows.every((row) => row.gate_status === "ready" && row.actor_workspace_file_read_by_closeout === false && row.actor_workspace_payload_read_by_closeout === false && row.actor_workspace_input_present_by_closeout === false && row.receipt_input_file_materialized_by_closeout === false && row.merged_receipt_input_materialized_by_closeout === false && row.receipt_payload_present_by_closeout === false && row.ready_for_validation_by_closeout === false && row.ready_for_approval_application_by_closeout === false && row.receipt_validated_by_closeout === false && row.approval_applied_by_closeout === false && row.secret_values_read_by_closeout === false && row.env_file_read_by_closeout === false && row.desktop_config_content_inspected_by_closeout === false && row.desktop_config_read_by_closeout === false && row.artifact_write_performed_by_closeout === false && row.protected_action_executed_by_closeout === false));
+});
+
+test("trading secret scan remediation receipt closeout fixtures block when source approval closeout is blocked", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-secret-scan-remediation-receipt-closeout-source-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:secret-scan-remediation-receipt-approval-closeout-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:secret-scan-remediation-receipt-approval-closeout-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingSecretScanRemediationReceiptCloseoutFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_secret_scan_remediation_receipt_closeout_fixtures_status, "blocked");
+    assert.equal(result.summary.source_secret_scan_remediation_receipt_approval_closeout_ready, false);
+    assert.equal(result.summary.ready_secret_scan_remediation_receipt_closeout_row_count, 0);
+    assert.ok(result.secret_scan_remediation_receipt_closeout_rows.every((row) => row.receipt_closeout_status === "blocked"));
+    await assert.rejects(
+      () => runTradingSecretScanRemediationReceiptCloseoutFixtures({ packagePath, write: false, check: true }),
+      /Trading secret scan remediation receipt closeout fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading secret scan remediation receipt closeout fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-secret-scan-remediation-receipt-closeout-registration-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:secret-scan-remediation-receipt-closeout-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:secret-scan-remediation-receipt-closeout-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingSecretScanRemediationReceiptCloseoutFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_secret_scan_remediation_receipt_closeout_fixtures_status, "blocked");
+    assert.ok(result.secret_scan_remediation_receipt_closeout_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.secret_scan_remediation_receipt_closeout_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingSecretScanRemediationReceiptCloseoutFixtures({ packagePath, write: false, check: true }),
+      /Trading secret scan remediation receipt closeout fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading secret scan remediation receipt closeout fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-secret-scan-remediation-receipt-closeout-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-secret-scan-remediation-receipt-closeout-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-secret-scan-remediation-receipt-closeout-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingSecretScanRemediationReceiptCloseoutFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

@@ -535,6 +535,11 @@
       "entrypoint_type": "command",
       "name": "trading:secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-validation-rules-fixtures",
       "path": "scripts/trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-validation-rules-fixtures.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-workspace-fixtures",
+      "path": "scripts/trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-workspace-fixtures.mjs"
     }
   ],
   "dependencies": ["common.workflow.approval", "common.audit.replay", "common.test.gate"],

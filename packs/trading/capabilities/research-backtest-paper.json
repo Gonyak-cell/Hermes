@@ -330,6 +330,11 @@
       "entrypoint_type": "command",
       "name": "trading:promotion-receipt-chain-signoff-template-fixtures",
       "path": "scripts/trading-promotion-receipt-chain-signoff-template-fixtures.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:promotion-receipt-chain-signoff-intake-fixtures",
+      "path": "scripts/trading-promotion-receipt-chain-signoff-intake-fixtures.mjs"
     }
   ],
   "dependencies": ["common.workflow.approval", "common.audit.replay", "common.test.gate"],
@@ -620,6 +625,12 @@
       "case_id": "golden.trading.promotion_receipt_chain_signoff_template_fixtures.p416",
       "description": "P416 promotion receipt chain signoff template fixtures declare human-fillable templates while template materialization, signoff, receipt, approval, and trading mutation remain blocked.",
       "input_ref": "artifacts/trading-promotion-receipt-chain-signoff-template-fixtures/latest/trading-promotion-receipt-chain-signoff-template-fixtures.json",
+      "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
+    },
+    {
+      "case_id": "golden.trading.promotion_receipt_chain_signoff_intake_fixtures.p417",
+      "description": "P417 promotion receipt chain signoff intake fixtures queue signoff templates for external human input while receipt, validation, signoff, approval, and trading mutation remain blocked.",
+      "input_ref": "artifacts/trading-promotion-receipt-chain-signoff-intake-fixtures/latest/trading-promotion-receipt-chain-signoff-intake-fixtures.json",
       "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
     }
   ],

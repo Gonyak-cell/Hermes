@@ -139,12 +139,14 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 - P423: `trading:secret-handle-boundary-fixtures` records Trading credential contracts, secret logging, policy, Hermes example config, Desktop companion, and secrets-scan gate fixtures as external-handle/reference-only with no plaintext secrets, provider keys, environment dumps, Desktop secret exposure, live execution, broker writes, exchange writes, artifact mutation, command execution, or protected actions.
 - P424: `trading:secret-leakage-regression-fixtures` records synthetic secret-leakage regression cases proving external secret-handle placeholders remain allowed while raw provider-key, bearer-token, private-key, environment-dump, and Desktop provider-key visibility patterns remain blocked without materializing secret values or performing credential lookup, trading writes, artifact mutation, command execution, release publication, git operations, or protected actions.
 - P425: `trading:secret-scan-gate-fixtures` records the bridge from P424 secret-leakage regressions into the existing platform Secrets Scan Gate package command, control-plane loop step, contract-validation requirement, Review API surfaces, and documentation boundary while no real secret values, `.env` files, Desktop config content, credential lookup, trading writes, artifact mutation, release publication, git operations, or protected actions are read or executed.
+- P426: `trading:secret-scan-attention-fixtures` records the operator attention surface for Secrets Scan Gate leakage through Review Dashboard stage/counters/fix actions, Review API filters, Review API docs, and attention-state documentation while no secret values, `.env` files, Desktop config content, provider keys, credential lookup, trading writes, artifact mutation, release publication, git operations, or protected actions are read or executed.
 - Simulated broker adapter and live broker adapter contracts are separate.
 - Live adapter files, if present in the future, are not imported by default control-plane paths.
 - Live credentials use external secret handles only; plaintext, environment dumps, and provider keys are forbidden in repo artifacts.
 - Secret boundary checks include Trading and Desktop companion configuration fixtures.
 - Secret leakage regressions use synthetic pattern-only rows and redacted samples.
 - Secrets Scan Gate wiring remains attached to the platform command, control-plane loop, contract validation, and Review API surfaces.
+- Secrets Scan Gate attention states remain visible through dashboard counters and Review API filters without exposing secret material.
 
 ## P441-P460 Acceptance Criteria
 

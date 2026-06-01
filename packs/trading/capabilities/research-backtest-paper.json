@@ -375,6 +375,11 @@
       "entrypoint_type": "command",
       "name": "trading:secret-scan-gate-fixtures",
       "path": "scripts/trading-secret-scan-gate-fixtures.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:secret-scan-attention-fixtures",
+      "path": "scripts/trading-secret-scan-attention-fixtures.mjs"
     }
   ],
   "dependencies": ["common.workflow.approval", "common.audit.replay", "common.test.gate"],

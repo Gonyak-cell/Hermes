@@ -46,6 +46,7 @@ import { runPlatformOperationsFreezeSourceInventory } from "../src/platform-oper
 import { runPlatformOperationsFreezeCommandMatrix } from "../src/platform-operations-freeze-command-matrix.mjs";
 import { runPlatformOperationsFreezeEvidenceIndex } from "../src/platform-operations-freeze-evidence-index.mjs";
 import { runPlatformOperationsFreezeReviewPacket } from "../src/platform-operations-freeze-review-packet.mjs";
+import { runPlatformOperationsFreezeSignoffLedger } from "../src/platform-operations-freeze-signoff-ledger.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -3866,6 +3867,127 @@ test("platform operations freeze review packet --check does not overwrite existi
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformOperationsFreezeReviewPacket({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform operations freeze signoff ledger records P485 without completing signoff", async () => {
+  const result = await runPlatformOperationsFreezeSignoffLedger({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_operations_freeze_signoff_ledger_status, "ready_for_operations_freeze_signoff_ledger");
+  assert.equal(result.summary.phase_slot, "P485");
+  assert.equal(result.summary.previous_phase_slot, "P484");
+  assert.equal(result.summary.next_phase_slot, "P486");
+  assert.equal(result.summary.source_review_packet_status, "ready_for_operations_freeze_review_packet");
+  assert.equal(result.summary.source_review_packet_row_count, 7);
+  assert.equal(result.summary.source_review_packet_ready_review_row_count, 7);
+  assert.equal(result.summary.signoff_row_count, 7);
+  assert.equal(result.summary.ready_signoff_row_count, 7);
+  assert.equal(result.summary.signoff_gate_count, 8);
+  assert.equal(result.summary.ready_signoff_gate_count, 8);
+  assert.equal(result.summary.read_only, true);
+  assert.equal(result.summary.report_only, true);
+  assert.equal(result.summary.signoff_ledger_artifact_write_requested, false);
+  assert.equal(result.summary.review_packet_consumed_in_memory, true);
+  assert.equal(result.summary.review_packet_artifact_read_performed, false);
+  assert.equal(result.summary.review_completed, false);
+  assert.equal(result.summary.signoff_completed, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.receipt_materialized, false);
+  assert.equal(result.summary.receipt_received, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.package_command_execution_performed, false);
+  assert.equal(result.summary.acceptance_command_execution_performed, false);
+  assert.equal(result.summary.generated_artifact_read_performed, false);
+  assert.equal(result.summary.artifact_read_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.dependency_install_performed, false);
+  assert.equal(result.summary.package_mutation_performed, false);
+  assert.equal(result.summary.lockfile_mutation_performed, false);
+  assert.equal(result.summary.release_published, false);
+  assert.equal(result.summary.git_operation_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.protected_recovery_execution_allowed, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.equal(result.summary.desktop_mutation_allowed, false);
+  assert.equal(result.summary.secret_exposure_allowed, false);
+  assert.equal(result.summary.secret_values_read, false);
+  assert.equal(result.summary.env_file_read, false);
+  assert.equal(result.summary.desktop_config_content_inspected, false);
+  assert.equal(result.summary.desktop_provider_key_visible, false);
+  assert.equal(result.summary.credential_lookup_allowed, false);
+  assert.ok(result.operations_freeze_signoff_rows.every((row) => row.signoff_status === "ready_for_human_signoff" && row.source_review_packet_status === "ready" && row.source_evidence_status === "ready" && row.signoff_completed_by_ledger === false && row.approval_applied_by_ledger === false && row.receipt_received_by_ledger === false && row.command_execution_performed_by_ledger === false && row.secret_exposure_allowed_by_ledger === false));
+  assert.ok(result.operations_freeze_signoff_rows.some((row) => row.source_evidence_row_key === "trading_release_check" && row.required_signoff_role === "trading_safety_reviewer"));
+  assert.ok(result.operations_freeze_signoff_rows.some((row) => row.source_evidence_row_key === "test" && row.required_signoff_role === "qa_reviewer"));
+  assert.ok(result.operations_freeze_signoff_rows.some((row) => row.source_evidence_row_key === "control_plane_loop" && row.required_signoff_role === "control_plane_operator"));
+  assert.ok(result.operations_freeze_signoff_gate_rows.every((row) => row.gate_status === "ready" && row.signoff_completed_by_gate === false && row.approval_applied_by_gate === false && row.receipt_received_by_gate === false && row.protected_action_executed_by_gate === false));
+});
+
+test("platform operations freeze signoff ledger blocks when the P484 review packet is blocked", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-signoff-ledger-source-"));
+  try {
+    const ledgerText = await readFile("docs/platform-operations-stability-phase-ledger.md", "utf8");
+    const ledgerPath = path.join(root, "platform-operations-stability-phase-ledger.md");
+    await writeFile(ledgerPath, ledgerText.replace(/^- P480: `trading:secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-secret-scan-remediation-fixtures`.*\n/m, ""), "utf8");
+
+    const result = await runPlatformOperationsFreezeSignoffLedger({ platformOpsLedgerPath: ledgerPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_operations_freeze_signoff_ledger_status, "blocked");
+    assert.equal(result.summary.source_review_packet_status, "blocked");
+    assert.ok(result.operations_freeze_signoff_gate_rows.some((row) => row.row_key === "p484_review_packet_ready" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformOperationsFreezeSignoffLedger({ platformOpsLedgerPath: ledgerPath, write: false, check: true }),
+      /Platform operations freeze signoff ledger failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform operations freeze signoff ledger blocks when P485 validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-signoff-ledger-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:operations-freeze-signoff-ledger"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:operations-freeze-signoff-ledger -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformOperationsFreezeSignoffLedger({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_operations_freeze_signoff_ledger_status, "blocked");
+    assert.ok(result.operations_freeze_signoff_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.operations_freeze_signoff_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformOperationsFreezeSignoffLedger({ packagePath, write: false, check: true }),
+      /Platform operations freeze signoff ledger failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform operations freeze signoff ledger --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-signoff-ledger-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-operations-freeze-signoff-ledger.json");
+    const sentinel = "{ \"sentinel\": \"platform-operations-freeze-signoff-ledger\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformOperationsFreezeSignoffLedger({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

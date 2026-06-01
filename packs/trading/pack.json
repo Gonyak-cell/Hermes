@@ -112,7 +112,8 @@
     "schemas/trading/trading-secret-scan-remediation-receipt-intake-fixtures.schema.json",
     "schemas/trading/trading-secret-scan-remediation-receipt-validation-rules-fixtures.schema.json",
     "schemas/trading/trading-secret-scan-remediation-receipt-workspace-fixtures.schema.json",
-    "schemas/trading/trading-secret-scan-remediation-receipt-workspace-merge-fixtures.schema.json"
+    "schemas/trading/trading-secret-scan-remediation-receipt-workspace-merge-fixtures.schema.json",
+    "schemas/trading/trading-secret-scan-remediation-receipt-merge-preflight-fixtures.schema.json"
   ],
   "workflows": [
     "workflow.trading.research_intake.v1",
@@ -200,7 +201,8 @@
     "workflow.trading.secret_scan_remediation_receipt_intake_fixtures.v1",
     "workflow.trading.secret_scan_remediation_receipt_validation_rules_fixtures.v1",
     "workflow.trading.secret_scan_remediation_receipt_workspace_fixtures.v1",
-    "workflow.trading.secret_scan_remediation_receipt_workspace_merge_fixtures.v1"
+    "workflow.trading.secret_scan_remediation_receipt_workspace_merge_fixtures.v1",
+    "workflow.trading.secret_scan_remediation_receipt_merge_preflight_fixtures.v1"
   ],
   "gates": [
     "classification_gate",

@@ -415,6 +415,11 @@
       "entrypoint_type": "command",
       "name": "trading:secret-scan-remediation-receipt-workspace-merge-fixtures",
       "path": "scripts/trading-secret-scan-remediation-receipt-workspace-merge-fixtures.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:secret-scan-remediation-receipt-merge-preflight-fixtures",
+      "path": "scripts/trading-secret-scan-remediation-receipt-merge-preflight-fixtures.mjs"
     }
   ],
   "dependencies": ["common.workflow.approval", "common.audit.replay", "common.test.gate"],

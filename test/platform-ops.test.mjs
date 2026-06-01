@@ -44,6 +44,7 @@ import { runPlatformReleaseCheckReceiptApprovalCloseout } from "../src/platform-
 import { runPlatformReleaseCheckReceiptCloseout } from "../src/platform-release-check-receipt-closeout.mjs";
 import { runPlatformOperationsFreezeSourceInventory } from "../src/platform-operations-freeze-source-inventory.mjs";
 import { runPlatformOperationsFreezeCommandMatrix } from "../src/platform-operations-freeze-command-matrix.mjs";
+import { runPlatformOperationsFreezeEvidenceIndex } from "../src/platform-operations-freeze-evidence-index.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -3607,6 +3608,144 @@ test("platform operations freeze command matrix --check does not overwrite exist
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformOperationsFreezeCommandMatrix({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform operations freeze evidence index maps freeze commands to proof slots without execution", async () => {
+  const result = await runPlatformOperationsFreezeEvidenceIndex({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_operations_freeze_evidence_index_status, "ready_for_operations_freeze_evidence_index");
+  assert.equal(result.summary.phase_slot, "P483");
+  assert.equal(result.summary.previous_phase_slot, "P482");
+  assert.equal(result.summary.next_phase_slot, "P484");
+  assert.equal(result.summary.source_command_matrix_status, "ready_for_operations_freeze_command_matrix");
+  assert.equal(result.summary.source_command_matrix_row_count, 7);
+  assert.equal(result.summary.source_command_matrix_ready_command_row_count, 7);
+  assert.equal(result.summary.evidence_row_count, 7);
+  assert.equal(result.summary.ready_evidence_row_count, 7);
+  assert.equal(result.summary.generated_report_evidence_row_count, 5);
+  assert.equal(result.summary.command_result_capture_row_count, 2);
+  assert.equal(result.summary.human_review_slot_count, 7);
+  assert.equal(result.summary.freeze_evidence_gate_count, 8);
+  assert.equal(result.summary.ready_freeze_evidence_gate_count, 8);
+  assert.equal(result.summary.read_only, true);
+  assert.equal(result.summary.report_only, true);
+  assert.equal(result.summary.evidence_index_artifact_write_requested, false);
+  assert.equal(result.summary.command_matrix_consumed_in_memory, true);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.package_command_execution_performed, false);
+  assert.equal(result.summary.generated_artifact_read_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.dependency_install_performed, false);
+  assert.equal(result.summary.package_mutation_performed, false);
+  assert.equal(result.summary.lockfile_mutation_performed, false);
+  assert.equal(result.summary.release_published, false);
+  assert.equal(result.summary.git_operation_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.protected_recovery_execution_allowed, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.equal(result.summary.desktop_mutation_allowed, false);
+  assert.equal(result.summary.secret_exposure_allowed, false);
+  assert.equal(result.summary.secret_values_read, false);
+  assert.equal(result.summary.env_file_read, false);
+  assert.equal(result.summary.desktop_config_content_inspected, false);
+  assert.equal(result.summary.desktop_provider_key_visible, false);
+  assert.equal(result.summary.credential_lookup_allowed, false);
+  assert.ok(result.operations_freeze_evidence_rows.every((row) => row.evidence_status === "ready" && row.command_matrix_row_ready && row.package_script_registered && row.ledger_acceptance_declared && row.check_mode_policy_satisfied && row.expected_artifact_declared && row.evidence_path_policy_satisfied && row.human_review_evidence_slot.startsWith("operations-freeze.p483.") && row.command_execution_performed_by_index === false && row.generated_artifact_read_performed_by_index === false && row.protected_action_executed_by_index === false));
+  assert.ok(result.operations_freeze_evidence_rows.some((row) => row.row_key === "platform_release_check" && row.expected_report_path === "artifacts/platform-release-check/latest/platform-release-check.json"));
+  assert.ok(result.operations_freeze_evidence_rows.some((row) => row.row_key === "control_plane_loop" && row.expected_report_path === "artifacts/control-plane-loop/latest/control-plane-loop.json"));
+  assert.ok(result.operations_freeze_evidence_rows.some((row) => row.row_key === "validate" && row.expected_report_path === null && row.no_artifact_reason.includes("aggregate command chain")));
+  assert.ok(result.operations_freeze_evidence_rows.some((row) => row.row_key === "test" && row.expected_report_path === null && row.no_artifact_reason.includes("test runner")));
+  assert.ok(result.operations_freeze_evidence_gate_rows.every((row) => row.gate_status === "ready" && row.command_execution_performed_by_gate === false && row.generated_artifact_read_performed_by_gate === false && row.protected_action_executed_by_gate === false));
+});
+
+test("platform operations freeze evidence index blocks when the P482 command matrix is blocked", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-evidence-index-source-"));
+  try {
+    const ledgerText = await readFile("docs/platform-operations-stability-phase-ledger.md", "utf8");
+    const ledgerPath = path.join(root, "platform-operations-stability-phase-ledger.md");
+    await writeFile(ledgerPath, ledgerText.replace(/^- P480: `trading:secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-secret-scan-remediation-fixtures`.*\n/m, ""), "utf8");
+
+    const result = await runPlatformOperationsFreezeEvidenceIndex({ platformOpsLedgerPath: ledgerPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_operations_freeze_evidence_index_status, "blocked");
+    assert.equal(result.summary.source_command_matrix_status, "blocked");
+    assert.ok(result.operations_freeze_evidence_gate_rows.some((row) => row.row_key === "p482_command_matrix_ready" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformOperationsFreezeEvidenceIndex({ platformOpsLedgerPath: ledgerPath, write: false, check: true }),
+      /Platform operations freeze evidence index failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform operations freeze evidence index blocks when a freeze evidence command package script is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-evidence-index-package-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["release:freeze"];
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformOperationsFreezeEvidenceIndex({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_operations_freeze_evidence_index_status, "blocked");
+    assert.ok(result.operations_freeze_evidence_rows.some((row) => row.row_key === "release_freeze" && row.evidence_status === "blocked" && row.package_script_registered === false));
+    assert.ok(result.operations_freeze_evidence_gate_rows.some((row) => row.row_key === "p482_command_matrix_ready" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformOperationsFreezeEvidenceIndex({ packagePath, write: false, check: true }),
+      /Platform operations freeze evidence index failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform operations freeze evidence index blocks when P483 validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-evidence-index-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:operations-freeze-evidence-index -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformOperationsFreezeEvidenceIndex({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_operations_freeze_evidence_index_status, "blocked");
+    assert.ok(result.operations_freeze_evidence_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformOperationsFreezeEvidenceIndex({ packagePath, write: false, check: true }),
+      /Platform operations freeze evidence index failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform operations freeze evidence index --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-evidence-index-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-operations-freeze-evidence-index.json");
+    const sentinel = "{ \"sentinel\": \"platform-operations-freeze-evidence-index\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformOperationsFreezeEvidenceIndex({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

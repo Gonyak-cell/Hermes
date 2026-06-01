@@ -42,6 +42,7 @@ import { runPlatformReleaseCheckReceiptValidationPacket } from "../src/platform-
 import { runPlatformReleaseCheckReceiptApprovalPlan } from "../src/platform-release-check-receipt-approval-plan.mjs";
 import { runPlatformReleaseCheckReceiptApprovalCloseout } from "../src/platform-release-check-receipt-approval-closeout.mjs";
 import { runPlatformReleaseCheckReceiptCloseout } from "../src/platform-release-check-receipt-closeout.mjs";
+import { runPlatformOperationsFreezeSourceInventory } from "../src/platform-operations-freeze-source-inventory.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -3326,6 +3327,148 @@ test("platform release-check receipt closeout --check does not overwrite existin
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformReleaseCheckReceiptCloseout({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform operations freeze source inventory records P341-P480 without executing commands", async () => {
+  const result = await runPlatformOperationsFreezeSourceInventory({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_operations_freeze_source_inventory_status, "ready_for_operations_freeze");
+  assert.equal(result.summary.phase_slot, "P481");
+  assert.equal(result.summary.previous_phase_slot, "P480");
+  assert.equal(result.summary.next_phase_slot, "P482");
+  assert.equal(result.summary.expected_source_count, 140);
+  assert.equal(result.summary.source_inventory_row_count, 140);
+  assert.equal(result.summary.discovered_ledger_row_count, 140);
+  assert.equal(result.summary.complete_source_row_count, 140);
+  assert.equal(result.summary.blocked_source_row_count, 0);
+  assert.equal(result.summary.platform_source_row_count, 39);
+  assert.equal(result.summary.trading_source_row_count, 101);
+  assert.equal(result.summary.package_script_registered_source_count, 140);
+  assert.equal(result.summary.validation_chain_registered_source_count, 139);
+  assert.equal(result.summary.validation_chain_satisfied_source_count, 140);
+  assert.equal(result.summary.validation_chain_exception_source_count, 1);
+  assert.equal(result.summary.freeze_gate_count, 8);
+  assert.equal(result.summary.ready_freeze_gate_count, 8);
+  assert.equal(result.summary.read_only, true);
+  assert.equal(result.summary.report_only, true);
+  assert.equal(result.summary.source_inventory_artifact_write_requested, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.package_command_execution_performed, false);
+  assert.equal(result.summary.source_command_execution_performed, false);
+  assert.equal(result.summary.generated_artifact_read_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.dependency_install_performed, false);
+  assert.equal(result.summary.package_mutation_performed, false);
+  assert.equal(result.summary.lockfile_mutation_performed, false);
+  assert.equal(result.summary.release_published, false);
+  assert.equal(result.summary.git_operation_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.protected_recovery_execution_allowed, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.equal(result.summary.desktop_mutation_allowed, false);
+  assert.equal(result.summary.secret_exposure_allowed, false);
+  assert.equal(result.summary.secret_values_read, false);
+  assert.equal(result.summary.env_file_read, false);
+  assert.equal(result.summary.desktop_config_content_inspected, false);
+  assert.equal(result.summary.desktop_provider_key_visible, false);
+  assert.equal(result.summary.credential_lookup_allowed, false);
+  assert.ok(result.operations_freeze_source_inventory_rows.every((row) => row.source_inventory_status === "complete" && row.ledger_row_present && row.package_script_registered && row.validation_chain_satisfied && row.command_execution_performed_by_inventory === false && row.artifact_write_performed_by_inventory === false && row.protected_action_executed_by_inventory === false));
+  assert.ok(result.operations_freeze_source_inventory_rows.some((row) => row.source_phase_slot === "P363" && row.validation_chain_registered === false && row.validation_chain_exception_documented && row.validation_chain_policy === "documented_recursive_validation_exclusion"));
+  assert.ok(result.operations_freeze_source_inventory_gate_rows.every((row) => row.gate_status === "ready" && row.command_execution_performed_by_gate === false && row.protected_action_executed_by_gate === false));
+});
+
+test("platform operations freeze source inventory blocks when a source ledger row is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-source-inventory-ledger-"));
+  try {
+    const ledgerText = await readFile("docs/platform-operations-stability-phase-ledger.md", "utf8");
+    const ledgerPath = path.join(root, "platform-operations-stability-phase-ledger.md");
+    await writeFile(ledgerPath, ledgerText.replace(/^- P480: `trading:secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-secret-scan-remediation-fixtures`.*\n/m, ""), "utf8");
+
+    const result = await runPlatformOperationsFreezeSourceInventory({ platformOpsLedgerPath: ledgerPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_operations_freeze_source_inventory_status, "blocked");
+    assert.equal(result.summary.discovered_ledger_row_count, 139);
+    assert.equal(result.summary.missing_source_phase_count, 1);
+    assert.deepEqual(result.summary.missing_source_phases, ["P480"]);
+    assert.ok(result.operations_freeze_source_inventory_rows.some((row) => row.source_phase_slot === "P480" && row.source_inventory_status === "blocked" && row.documented_blocker.includes("missing ledger row")));
+    assert.ok(result.operations_freeze_source_inventory_gate_rows.some((row) => row.row_key === "source_phase_range_complete" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformOperationsFreezeSourceInventory({ platformOpsLedgerPath: ledgerPath, write: false, check: true }),
+      /Platform operations freeze source inventory failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform operations freeze source inventory blocks when a source package script is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-source-inventory-package-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-secret-scan-remediation-fixtures"];
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformOperationsFreezeSourceInventory({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_operations_freeze_source_inventory_status, "blocked");
+    assert.equal(result.summary.package_script_registered_source_count, 139);
+    assert.ok(result.operations_freeze_source_inventory_rows.some((row) => row.source_phase_slot === "P480" && row.source_inventory_status === "blocked" && row.documented_blocker.includes("missing package script")));
+    assert.ok(result.operations_freeze_source_inventory_gate_rows.some((row) => row.row_key === "source_package_scripts_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformOperationsFreezeSourceInventory({ packagePath, write: false, check: true }),
+      /Platform operations freeze source inventory failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform operations freeze source inventory blocks when P481 validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-source-inventory-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:operations-freeze-source-inventory -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformOperationsFreezeSourceInventory({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_operations_freeze_source_inventory_status, "blocked");
+    assert.ok(result.operations_freeze_source_inventory_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformOperationsFreezeSourceInventory({ packagePath, write: false, check: true }),
+      /Platform operations freeze source inventory failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform operations freeze source inventory --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-source-inventory-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-operations-freeze-source-inventory.json");
+    const sentinel = "{ \"sentinel\": \"platform-operations-freeze-source-inventory\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformOperationsFreezeSourceInventory({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

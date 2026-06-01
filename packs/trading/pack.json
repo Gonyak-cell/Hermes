@@ -97,7 +97,8 @@
     "schemas/trading/trading-promotion-receipt-chain-signoff-ledger-fixtures.schema.json",
     "schemas/trading/trading-promotion-receipt-chain-signoff-template-fixtures.schema.json",
     "schemas/trading/trading-promotion-receipt-chain-signoff-intake-fixtures.schema.json",
-    "schemas/trading/trading-promotion-receipt-chain-signoff-validation-rules-fixtures.schema.json"
+    "schemas/trading/trading-promotion-receipt-chain-signoff-validation-rules-fixtures.schema.json",
+    "schemas/trading/trading-promotion-receipt-chain-signoff-approval-closeout-fixtures.schema.json"
   ],
   "workflows": [
     "workflow.trading.research_intake.v1",
@@ -170,7 +171,8 @@
     "workflow.trading.promotion_receipt_chain_signoff_ledger_fixtures.v1",
     "workflow.trading.promotion_receipt_chain_signoff_template_fixtures.v1",
     "workflow.trading.promotion_receipt_chain_signoff_intake_fixtures.v1",
-    "workflow.trading.promotion_receipt_chain_signoff_validation_rules_fixtures.v1"
+    "workflow.trading.promotion_receipt_chain_signoff_validation_rules_fixtures.v1",
+    "workflow.trading.promotion_receipt_chain_signoff_approval_closeout_fixtures.v1"
   ],
   "gates": [
     "classification_gate",

@@ -127,7 +127,8 @@
     "schemas/trading/trading-secret-scan-remediation-receipt-chain-signoff-approval-closeout-fixtures.schema.json",
     "schemas/trading/trading-secret-scan-remediation-receipt-chain-signoff-closeout-fixtures.schema.json",
     "schemas/trading/trading-secret-scan-remediation-receipt-chain-broker-adapter-separation-fixtures.schema.json",
-    "schemas/trading/trading-secret-scan-remediation-receipt-chain-live-adapter-import-boundary-fixtures.schema.json"
+    "schemas/trading/trading-secret-scan-remediation-receipt-chain-live-adapter-import-boundary-fixtures.schema.json",
+    "schemas/trading/trading-secret-scan-remediation-receipt-chain-secret-handle-boundary-fixtures.schema.json"
   ],
   "workflows": [
     "workflow.trading.research_intake.v1",
@@ -230,7 +231,8 @@
     "workflow.trading.secret_scan_remediation_receipt_chain_signoff_approval_closeout_fixtures.v1",
     "workflow.trading.secret_scan_remediation_receipt_chain_signoff_closeout_fixtures.v1",
     "workflow.trading.secret_scan_remediation_receipt_chain_broker_adapter_separation_fixtures.v1",
-    "workflow.trading.secret_scan_remediation_receipt_chain_live_adapter_import_boundary_fixtures.v1"
+    "workflow.trading.secret_scan_remediation_receipt_chain_live_adapter_import_boundary_fixtures.v1",
+    "workflow.trading.secret_scan_remediation_receipt_chain_secret_handle_boundary_fixtures.v1"
   ],
   "gates": [
     "classification_gate",

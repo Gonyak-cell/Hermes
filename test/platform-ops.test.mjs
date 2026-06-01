@@ -45,6 +45,7 @@ import { runPlatformReleaseCheckReceiptCloseout } from "../src/platform-release-
 import { runPlatformOperationsFreezeSourceInventory } from "../src/platform-operations-freeze-source-inventory.mjs";
 import { runPlatformOperationsFreezeCommandMatrix } from "../src/platform-operations-freeze-command-matrix.mjs";
 import { runPlatformOperationsFreezeEvidenceIndex } from "../src/platform-operations-freeze-evidence-index.mjs";
+import { runPlatformOperationsFreezeReviewPacket } from "../src/platform-operations-freeze-review-packet.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -3746,6 +3747,125 @@ test("platform operations freeze evidence index --check does not overwrite exist
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformOperationsFreezeEvidenceIndex({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform operations freeze review packet records P484 without applying approvals", async () => {
+  const result = await runPlatformOperationsFreezeReviewPacket({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_operations_freeze_review_packet_status, "ready_for_operations_freeze_review_packet");
+  assert.equal(result.summary.phase_slot, "P484");
+  assert.equal(result.summary.previous_phase_slot, "P483");
+  assert.equal(result.summary.next_phase_slot, "P485");
+  assert.equal(result.summary.source_evidence_index_status, "ready_for_operations_freeze_evidence_index");
+  assert.equal(result.summary.source_evidence_index_row_count, 7);
+  assert.equal(result.summary.source_evidence_index_ready_evidence_row_count, 7);
+  assert.equal(result.summary.review_packet_row_count, 7);
+  assert.equal(result.summary.ready_review_packet_row_count, 7);
+  assert.equal(result.summary.review_packet_gate_count, 8);
+  assert.equal(result.summary.ready_review_packet_gate_count, 8);
+  assert.equal(result.summary.read_only, true);
+  assert.equal(result.summary.report_only, true);
+  assert.equal(result.summary.review_packet_artifact_write_requested, false);
+  assert.equal(result.summary.review_completed, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.evidence_index_consumed_in_memory, true);
+  assert.equal(result.summary.evidence_index_artifact_read_performed, false);
+  assert.equal(result.summary.evidence_collected, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.package_command_execution_performed, false);
+  assert.equal(result.summary.acceptance_command_execution_performed, false);
+  assert.equal(result.summary.generated_artifact_read_performed, false);
+  assert.equal(result.summary.artifact_read_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.dependency_install_performed, false);
+  assert.equal(result.summary.package_mutation_performed, false);
+  assert.equal(result.summary.lockfile_mutation_performed, false);
+  assert.equal(result.summary.release_published, false);
+  assert.equal(result.summary.git_operation_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.protected_recovery_execution_allowed, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.equal(result.summary.desktop_mutation_allowed, false);
+  assert.equal(result.summary.secret_exposure_allowed, false);
+  assert.equal(result.summary.secret_values_read, false);
+  assert.equal(result.summary.env_file_read, false);
+  assert.equal(result.summary.desktop_config_content_inspected, false);
+  assert.equal(result.summary.desktop_provider_key_visible, false);
+  assert.equal(result.summary.credential_lookup_allowed, false);
+  assert.ok(result.operations_freeze_review_packet_rows.every((row) => row.review_packet_status === "ready" && row.source_evidence_status === "ready" && row.evidence_path_policy_satisfied && row.review_completed_by_packet === false && row.approval_applied_by_packet === false && row.command_execution_performed_by_packet === false && row.generated_artifact_read_performed_by_packet === false && row.secret_exposure_allowed_by_packet === false));
+  assert.ok(result.operations_freeze_review_packet_rows.some((row) => row.source_evidence_row_key === "trading_release_check" && row.required_reviewer_role === "trading_safety_reviewer"));
+  assert.ok(result.operations_freeze_review_packet_rows.some((row) => row.source_evidence_row_key === "test" && row.required_reviewer_role === "qa_reviewer"));
+  assert.ok(result.operations_freeze_review_packet_rows.some((row) => row.source_evidence_row_key === "control_plane_loop" && row.required_reviewer_role === "control_plane_operator"));
+  assert.ok(result.operations_freeze_review_packet_gate_rows.every((row) => row.gate_status === "ready" && row.approval_applied_by_gate === false && row.generated_artifact_read_performed_by_gate === false && row.protected_action_executed_by_gate === false));
+});
+
+test("platform operations freeze review packet blocks when the P483 evidence index is blocked", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-review-packet-source-"));
+  try {
+    const ledgerText = await readFile("docs/platform-operations-stability-phase-ledger.md", "utf8");
+    const ledgerPath = path.join(root, "platform-operations-stability-phase-ledger.md");
+    await writeFile(ledgerPath, ledgerText.replace(/^- P480: `trading:secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-secret-scan-remediation-fixtures`.*\n/m, ""), "utf8");
+
+    const result = await runPlatformOperationsFreezeReviewPacket({ platformOpsLedgerPath: ledgerPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_operations_freeze_review_packet_status, "blocked");
+    assert.equal(result.summary.source_evidence_index_status, "blocked");
+    assert.ok(result.operations_freeze_review_packet_gate_rows.some((row) => row.row_key === "p483_evidence_index_ready" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformOperationsFreezeReviewPacket({ platformOpsLedgerPath: ledgerPath, write: false, check: true }),
+      /Platform operations freeze review packet failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform operations freeze review packet blocks when P484 validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-review-packet-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:operations-freeze-review-packet"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:operations-freeze-review-packet -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformOperationsFreezeReviewPacket({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_operations_freeze_review_packet_status, "blocked");
+    assert.ok(result.operations_freeze_review_packet_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.operations_freeze_review_packet_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformOperationsFreezeReviewPacket({ packagePath, write: false, check: true }),
+      /Platform operations freeze review packet failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform operations freeze review packet --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-review-packet-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-operations-freeze-review-packet.json");
+    const sentinel = "{ \"sentinel\": \"platform-operations-freeze-review-packet\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformOperationsFreezeReviewPacket({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

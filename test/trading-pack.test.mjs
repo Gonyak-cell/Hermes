@@ -80,6 +80,7 @@ import { runTradingSecretScanRemediationReceiptChainReviewFixtures } from "../sr
 import { runTradingSecretScanRemediationReceiptChainSignoffLedgerFixtures } from "../src/trading-secret-scan-remediation-receipt-chain-signoff-ledger-fixtures.mjs";
 import { runTradingSecretScanRemediationReceiptChainSignoffTemplateFixtures } from "../src/trading-secret-scan-remediation-receipt-chain-signoff-template-fixtures.mjs";
 import { runTradingSecretScanRemediationReceiptChainSignoffIntakeFixtures } from "../src/trading-secret-scan-remediation-receipt-chain-signoff-intake-fixtures.mjs";
+import { runTradingSecretScanRemediationReceiptChainSignoffValidationRulesFixtures } from "../src/trading-secret-scan-remediation-receipt-chain-signoff-validation-rules-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -8923,6 +8924,130 @@ test("trading secret scan remediation receipt chain signoff intake fixtures --ch
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingSecretScanRemediationReceiptChainSignoffIntakeFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading secret scan remediation receipt chain signoff validation rules fixtures declare rules without validating receipts", async () => {
+  const result = await runTradingSecretScanRemediationReceiptChainSignoffValidationRulesFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_secret_scan_remediation_receipt_chain_signoff_validation_rules_fixtures_status, "ready_for_trading_secret_scan_remediation_receipt_chain_signoff_validation_rules");
+  assert.equal(result.summary.phase_slot, "P444");
+  assert.equal(result.summary.previous_phase_slot, "P443");
+  assert.equal(result.summary.next_phase_slot, "P445");
+  assert.equal(result.summary.source_secret_scan_remediation_receipt_chain_signoff_intake_status, "ready_for_trading_secret_scan_remediation_receipt_chain_signoff_intake");
+  assert.equal(result.summary.source_secret_scan_remediation_receipt_chain_signoff_intake_ready, true);
+  assert.equal(result.summary.chain_signoff_validation_rules_row_count, 10);
+  assert.equal(result.summary.ready_chain_signoff_validation_rules_row_count, 10);
+  assert.equal(result.summary.chain_signoff_validation_rules_gate_count, 10);
+  assert.equal(result.summary.ready_chain_signoff_validation_rules_gate_count, 10);
+  assert.equal(result.summary.read_only, true);
+  assert.equal(result.summary.report_only, true);
+  assert.equal(result.summary.signoff_intake_consumed_in_memory, true);
+  assert.equal(result.summary.signoff_intake_artifact_read_performed, false);
+  assert.equal(result.summary.secret_scan_remediation_receipt_chain_signoff_validation_rules_declared, true);
+  assert.equal(result.summary.signoff_validation_performed, false);
+  assert.equal(result.summary.signoff_receipt_received, false);
+  assert.equal(result.summary.review_completed, false);
+  assert.equal(result.summary.review_approval_applied, false);
+  assert.equal(result.summary.signoff_completed, false);
+  assert.equal(result.summary.signoff_approval_applied, false);
+  assert.equal(result.summary.p429_p438_chain_ready, true);
+  assert.equal(result.summary.human_receipts_pending, true);
+  assert.equal(result.summary.no_secret_material_read, true);
+  assert.equal(result.summary.no_secret_or_trading_mutation, true);
+  assert.equal(result.summary.receipt_payload_present, false);
+  assert.equal(result.summary.ready_for_validation, false);
+  assert.equal(result.summary.ready_for_approval_application, false);
+  assert.equal(result.summary.receipt_received, false);
+  assert.equal(result.summary.receipt_validated, false);
+  assert.equal(result.summary.receipt_application_performed, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.source_receipt_present, false);
+  assert.equal(result.summary.source_approval_applied, false);
+  assert.equal(result.summary.secret_scan_remediation_action_allowed, false);
+  assert.equal(result.summary.secret_values_read, false);
+  assert.equal(result.summary.env_file_read, false);
+  assert.equal(result.summary.desktop_config_content_inspected, false);
+  assert.equal(result.summary.desktop_config_read, false);
+  assert.equal(result.summary.credential_lookup_allowed, false);
+  assert.equal(result.summary.live_execution_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_read_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.human_review_required, true);
+  assert.equal(result.summary.human_signoff_required, true);
+  assert.ok(result.secret_scan_remediation_receipt_chain_signoff_validation_rules_rows.every((row) => row.chain_signoff_validation_rules_status === "ready_for_trading_secret_scan_remediation_receipt_chain_signoff_validation_rules" && row.source_chain_signoff_intake_status === "ready_for_trading_secret_scan_remediation_receipt_chain_signoff_intake" && row.secret_scan_remediation_receipt_chain_signoff_intake_queued && row.secret_scan_remediation_receipt_chain_signoff_validation_rules_declared && row.signoff_validation_performed === false && row.signoff_receipt_received === false && row.required_validation_rules.length >= 5 && row.p429_p438_chain_ready && row.human_receipts_pending && row.no_secret_material_read && row.no_secret_or_trading_mutation && row.receipt_payload_present === false && row.ready_for_validation === false && row.receipt_received_by_validation_rules === false && row.receipt_validated_by_validation_rules === false && row.approval_applied_by_validation_rules === false && row.secret_scan_remediation_action_allowed_by_validation_rules === false && row.secret_values_read_by_validation_rules === false && row.credential_lookup_allowed_by_validation_rules === false && row.live_execution_allowed_by_validation_rules === false && row.broker_write_allowed_by_validation_rules === false && row.exchange_write_allowed_by_validation_rules === false && row.protected_action_executed_by_validation_rules === false && row.human_signoff_required));
+  assert.ok(result.secret_scan_remediation_receipt_chain_signoff_validation_rules_gate_rows.every((row) => row.gate_status === "ready" && row.signoff_receipt_received_by_validation_rules === false && row.signoff_validation_performed_by_validation_rules === false && row.signoff_completed_by_validation_rules === false && row.approval_applied_by_validation_rules === false && row.secret_values_read_by_validation_rules === false && row.credential_lookup_allowed_by_validation_rules === false && row.protected_action_executed_by_validation_rules === false));
+});
+
+test("trading secret scan remediation receipt chain signoff validation rules fixtures block when source intake is blocked", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-secret-scan-remediation-receipt-chain-signoff-validation-rules-source-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:secret-scan-remediation-receipt-chain-signoff-intake-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:secret-scan-remediation-receipt-chain-signoff-intake-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingSecretScanRemediationReceiptChainSignoffValidationRulesFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_secret_scan_remediation_receipt_chain_signoff_validation_rules_fixtures_status, "blocked");
+    assert.equal(result.summary.source_secret_scan_remediation_receipt_chain_signoff_intake_ready, false);
+    assert.equal(result.summary.ready_chain_signoff_validation_rules_row_count, 0);
+    assert.ok(result.secret_scan_remediation_receipt_chain_signoff_validation_rules_rows.every((row) => row.chain_signoff_validation_rules_status === "blocked"));
+    assert.ok(result.secret_scan_remediation_receipt_chain_signoff_validation_rules_gate_rows.some((row) => row.row_key === "p443_signoff_intake_ready" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingSecretScanRemediationReceiptChainSignoffValidationRulesFixtures({ packagePath, write: false, check: true }),
+      /Trading secret scan remediation receipt chain signoff validation rules fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading secret scan remediation receipt chain signoff validation rules fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-secret-scan-remediation-receipt-chain-signoff-validation-rules-registration-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:secret-scan-remediation-receipt-chain-signoff-validation-rules-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:secret-scan-remediation-receipt-chain-signoff-validation-rules-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingSecretScanRemediationReceiptChainSignoffValidationRulesFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_secret_scan_remediation_receipt_chain_signoff_validation_rules_fixtures_status, "blocked");
+    assert.ok(result.secret_scan_remediation_receipt_chain_signoff_validation_rules_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.secret_scan_remediation_receipt_chain_signoff_validation_rules_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingSecretScanRemediationReceiptChainSignoffValidationRulesFixtures({ packagePath, write: false, check: true }),
+      /Trading secret scan remediation receipt chain signoff validation rules fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading secret scan remediation receipt chain signoff validation rules fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-secret-scan-remediation-receipt-chain-signoff-validation-rules-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-secret-scan-remediation-receipt-chain-signoff-validation-rules-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-secret-scan-remediation-receipt-chain-signoff-validation-rules-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingSecretScanRemediationReceiptChainSignoffValidationRulesFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

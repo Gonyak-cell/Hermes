@@ -365,6 +365,11 @@
       "entrypoint_type": "command",
       "name": "trading:secret-handle-boundary-fixtures",
       "path": "scripts/trading-secret-handle-boundary-fixtures.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:secret-leakage-regression-fixtures",
+      "path": "scripts/trading-secret-leakage-regression-fixtures.mjs"
     }
   ],
   "dependencies": ["common.workflow.approval", "common.audit.replay", "common.test.gate"],

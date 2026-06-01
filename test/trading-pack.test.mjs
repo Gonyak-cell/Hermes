@@ -57,6 +57,7 @@ import { runTradingPromotionReceiptChainSignoffIntakeFixtures } from "../src/tra
 import { runTradingPromotionReceiptChainSignoffValidationRulesFixtures } from "../src/trading-promotion-receipt-chain-signoff-validation-rules-fixtures.mjs";
 import { runTradingPromotionReceiptChainSignoffApprovalCloseoutFixtures } from "../src/trading-promotion-receipt-chain-signoff-approval-closeout-fixtures.mjs";
 import { runTradingPromotionReceiptChainSignoffCloseoutFixtures } from "../src/trading-promotion-receipt-chain-signoff-closeout-fixtures.mjs";
+import { runTradingBrokerAdapterSeparationFixtures } from "../src/trading-broker-adapter-separation-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -5894,6 +5895,134 @@ test("trading promotion receipt chain signoff closeout fixtures --check does not
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingPromotionReceiptChainSignoffCloseoutFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading broker adapter separation fixtures keep live adapters out of default paths", async () => {
+  const result = await runTradingBrokerAdapterSeparationFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_broker_adapter_separation_fixtures_status, "ready_for_trading_broker_adapter_separation");
+  assert.equal(result.summary.phase_slot, "P421");
+  assert.equal(result.summary.previous_phase_slot, "P420");
+  assert.equal(result.summary.next_phase_slot, "P422");
+  assert.equal(result.summary.source_promotion_receipt_chain_signoff_closeout_status, "ready_for_trading_promotion_receipt_chain_signoff_closeout");
+  assert.equal(result.summary.source_promotion_receipt_chain_signoff_closeout_ready, true);
+  assert.equal(result.summary.required_row_count, 6);
+  assert.equal(result.summary.adapter_separation_row_count, 6);
+  assert.equal(result.summary.ready_adapter_separation_row_count, 6);
+  assert.equal(result.summary.adapter_separation_gate_count, 9);
+  assert.equal(result.summary.ready_adapter_separation_gate_count, 9);
+  assert.equal(result.summary.adapter_contracts_separate, true);
+  assert.equal(result.summary.default_control_plane_imports_live_adapter, false);
+  assert.equal(result.summary.live_adapter_imported_by_default, false);
+  assert.equal(result.summary.live_adapter_enabled, false);
+  assert.equal(result.summary.live_adapter_file_import_performed, false);
+  assert.equal(result.summary.credential_reference_only, true);
+  assert.equal(result.summary.credential_lookup_allowed, false);
+  assert.equal(result.summary.plaintext_secret_allowed, false);
+  assert.equal(result.summary.provider_key_material_present, false);
+  assert.equal(result.summary.environment_dump_present, false);
+  assert.equal(result.summary.secret_material_exposed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_read_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.human_review_required, true);
+  assert.equal(result.summary.human_signoff_required, true);
+  assert.ok(result.broker_adapter_separation_rows.every((row) => row.adapter_separation_status === "ready_for_trading_broker_adapter_separation" && row.source_promotion_receipt_chain_signoff_closeout_ready && row.adapter_contracts_separate && row.default_control_plane_imports_live_adapter === false && row.live_adapter_imported_by_default === false && row.live_adapter_enabled === false && row.live_adapter_file_import_performed === false && row.credential_lookup_allowed === false && row.plaintext_secret_allowed === false && row.provider_key_material_present === false && row.environment_dump_present === false && row.secret_material_exposed === false && row.broker_write_allowed === false && row.exchange_write_allowed === false && row.protected_action_executed === false && row.human_signoff_required));
+  assert.ok(result.broker_adapter_separation_gate_rows.every((row) => row.gate_status === "ready" && row.live_adapter_imported_by_gate === false && row.live_adapter_enabled_by_gate === false && row.credential_lookup_allowed_by_gate === false && row.plaintext_secret_allowed_by_gate === false && row.broker_write_allowed_by_gate === false && row.exchange_write_allowed_by_gate === false && row.protected_action_executed_by_gate === false));
+});
+
+test("trading broker adapter separation fixtures block when source signoff closeout is blocked", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-broker-adapter-separation-source-"));
+  try {
+    const limitedLive = JSON.parse(await readFile("examples/trading/limited-live-governance.json", "utf8"));
+    limitedLive.safety_boundary.approval_receipt_present = true;
+    const limitedLivePath = path.join(root, "limited-live-governance.json");
+    await writeFile(limitedLivePath, `${JSON.stringify(limitedLive, null, 2)}\n`, "utf8");
+
+    const result = await runTradingBrokerAdapterSeparationFixtures({ limitedLivePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_broker_adapter_separation_fixtures_status, "blocked");
+    assert.equal(result.summary.source_promotion_receipt_chain_signoff_closeout_ready, false);
+    assert.equal(result.summary.ready_adapter_separation_row_count, 0);
+    assert.ok(result.broker_adapter_separation_rows.every((row) => row.adapter_separation_status === "blocked"));
+    await assert.rejects(
+      () => runTradingBrokerAdapterSeparationFixtures({ limitedLivePath, write: false, check: true }),
+      /Trading broker adapter separation fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading broker adapter separation fixtures block when live adapter is enabled", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-broker-adapter-separation-live-enabled-"));
+  try {
+    const executionEngine = JSON.parse(await readFile("examples/trading/execution-engine.json", "utf8"));
+    executionEngine.safety_boundary.live_adapter_enabled = true;
+    executionEngine.adapters.live_adapter.enabled = true;
+    const executionEnginePath = path.join(root, "execution-engine.json");
+    await writeFile(executionEnginePath, `${JSON.stringify(executionEngine, null, 2)}\n`, "utf8");
+
+    const result = await runTradingBrokerAdapterSeparationFixtures({ executionEnginePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_broker_adapter_separation_fixtures_status, "blocked");
+    assert.equal(result.summary.live_adapter_enabled, true);
+    assert.ok(result.summary.ready_adapter_separation_row_count < result.summary.adapter_separation_row_count);
+    assert.ok(result.broker_adapter_separation_rows.some((row) => row.row_key === "live_adapter_contract_disabled" && row.adapter_separation_status === "blocked"));
+    await assert.rejects(
+      () => runTradingBrokerAdapterSeparationFixtures({ executionEnginePath, write: false, check: true }),
+      /Trading broker adapter separation fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading broker adapter separation fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-broker-adapter-separation-registration-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:broker-adapter-separation-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:broker-adapter-separation-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingBrokerAdapterSeparationFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_broker_adapter_separation_fixtures_status, "blocked");
+    assert.ok(result.broker_adapter_separation_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.broker_adapter_separation_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingBrokerAdapterSeparationFixtures({ packagePath, write: false, check: true }),
+      /Trading broker adapter separation fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading broker adapter separation fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-broker-adapter-separation-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-broker-adapter-separation-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-broker-adapter-separation-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingBrokerAdapterSeparationFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

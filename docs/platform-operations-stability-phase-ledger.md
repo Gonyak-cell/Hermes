@@ -134,6 +134,7 @@ into a more reproducible, observable, recoverable, and operator-safe platform.
 
 ## P421-P440 Acceptance Criteria
 
+- P421: `trading:broker-adapter-separation-fixtures` records the simulated/sandbox broker adapter contracts separately from the disabled live adapter contract while default control-plane paths do not import live adapter files and credential lookup, plaintext secrets, provider key material, environment dumps, live execution, broker writes, exchange writes, artifact mutation, command execution, and protected actions remain false.
 - Simulated broker adapter and live broker adapter contracts are separate.
 - Live adapter files, if present in the future, are not imported by default control-plane paths.
 - Live credentials use external secret handles only; plaintext, environment dumps, and provider keys are forbidden in repo artifacts.

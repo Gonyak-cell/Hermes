@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-operations-freeze.schema.json",
+  "title": "Platform Operations Freeze",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_operations_freeze_id",
+    "capability_id",
+    "operations_freeze_anchor",
+    "operations_freeze_claim_registry_rows",
+    "operations_freeze_claim_gate_rows",
+    "operations_freeze_claim_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-operations-freeze.v1" },
+    "platform_operations_freeze_id": {
+      "type": "string",
+      "pattern": "^platform-operations-freeze\\.[0-9]{8}$"
+    },
+    "capability_id": { "const": "platform.operations_freeze" },
+    "operations_freeze_claim_registry_rows": {
+      "type": "array",
+      "minItems": 140,
+      "maxItems": 140,
+      "items": {
+        "type": "object",
+        "required": [
+          "claim_id",
+          "claim_type",
+          "claim_status",
+          "evidence_ref",
+          "reviewer_ref",
+          "gate_ref",
+          "hard_gate_result",
+          "human_receipt_required",
+          "human_receipt_ref",
+          "protected_claim",
+          "unsafe_flags_false",
+          "verdict",
+          "current_verdict",
+          "block_reason",
+          "responsible_owner",
+          "next_allowed_action",
+          "missing_evidence",
+          "missing_reviewer",
+          "missing_gate",
+          "missing_human_receipt",
+          "operator_surface_fields_declared",
+          "unsupported_complete_claim",
+          "pass_without_reviewer_or_gate",
+          "protected_pass_without_receipt",
+          "unsafe_true_but_pass",
+          "blocked_without_reason",
+          "blocked_without_next_action"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P500" },
+          "claim_status": { "const": "claimed" },
+          "verdict": { "enum": ["pass", "blocked"] },
+          "current_verdict": { "enum": ["pass", "blocked"] },
+          "unsafe_flags_false": { "const": true },
+          "operator_surface_fields_declared": { "const": true },
+          "unsupported_complete_claim": { "const": false },
+          "pass_without_reviewer_or_gate": { "const": false },
+          "protected_pass_without_receipt": { "const": false },
+          "unsafe_true_but_pass": { "const": false },
+          "blocked_without_reason": { "const": false },
+          "blocked_without_next_action": { "const": false }
+        }
+      }
+    },
+    "operations_freeze_claim_gate_rows": {
+      "type": "array",
+      "minItems": 14,
+      "items": {
+        "type": "object",
+        "required": ["phase_slot", "gate_status"],
+        "properties": {
+          "phase_slot": { "const": "P500" },
+          "gate_status": { "const": "ready" }
+        }
+      }
+    },
+    "operations_freeze_claim_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "phase_slot",
+        "read_only",
+        "report_only",
+        "claim_registry_declared",
+        "claim_count",
+        "unsupported_complete_claim_count",
+        "pass_without_reviewer_or_gate_count",
+        "protected_pass_without_receipt_count",
+        "unsafe_true_but_pass_count",
+        "blocked_without_reason_count",
+        "blocked_without_next_action_count",
+        "blocked_human_gate_missing_count",
+        "operator_surface_fields_declared",
+        "acceptance_command_execution_performed",
+        "artifact_write_performed",
+        "protected_action_executed",
+        "trading_order_submission_allowed",
+        "desktop_mutation_allowed",
+        "secret_exposure_allowed"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "phase_slot": { "const": "P500" },
+        "read_only": { "const": true },
+        "report_only": { "const": true },
+        "claim_registry_declared": { "const": true },
+        "claim_count": { "const": 140 },
+        "unsupported_complete_claim_count": { "const": 0 },
+        "pass_without_reviewer_or_gate_count": { "const": 0 },
+        "protected_pass_without_receipt_count": { "const": 0 },
+        "unsafe_true_but_pass_count": { "const": 0 },
+        "blocked_without_reason_count": { "const": 0 },
+        "blocked_without_next_action_count": { "const": 0 },
+        "blocked_human_gate_missing_count": { "const": 0 },
+        "operator_surface_fields_declared": { "const": true },
+        "acceptance_command_execution_performed": { "const": false },
+        "artifact_write_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "trading_order_submission_allowed": { "const": false },
+        "desktop_mutation_allowed": { "const": false },
+        "secret_exposure_allowed": { "const": false }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "platform_operations_freeze_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "source_closeout_status",
+        "claim_count",
+        "pass_claim_count",
+        "blocked_claim_count",
+        "claim_gate_count",
+        "ready_claim_gate_count",
+        "unsupported_complete_claim_count",
+        "pass_without_reviewer_or_gate_count",
+        "protected_pass_without_receipt_count",
+        "unsafe_true_but_pass_count",
+        "blocked_without_reason_count",
+        "blocked_without_next_action_count",
+        "blocked_human_gate_missing_count",
+        "operator_surface_fields_declared",
+        "validation_error_count"
+      ],
+      "properties": {
+        "platform_operations_freeze_status": { "const": "ready_for_claim_freeze" },
+        "phase_slot": { "const": "P500" },
+        "previous_phase_slot": { "const": "P500" },
+        "next_phase_slot": { "const": "complete" },
+        "source_closeout_status": { "const": "ready_for_platform_operations_stability_closeout" },
+        "claim_count": { "const": 140 },
+        "claim_gate_count": { "const": 14 },
+        "ready_claim_gate_count": { "const": 14 },
+        "unsupported_complete_claim_count": { "const": 0 },
+        "pass_without_reviewer_or_gate_count": { "const": 0 },
+        "protected_pass_without_receipt_count": { "const": 0 },
+        "unsafe_true_but_pass_count": { "const": 0 },
+        "blocked_without_reason_count": { "const": 0 },
+        "blocked_without_next_action_count": { "const": 0 },
+        "blocked_human_gate_missing_count": { "const": 0 },
+        "operator_surface_fields_declared": { "const": true },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

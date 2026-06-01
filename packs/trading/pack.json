@@ -103,7 +103,8 @@
     "schemas/trading/trading-broker-adapter-separation-fixtures.schema.json",
     "schemas/trading/trading-live-adapter-import-boundary-fixtures.schema.json",
     "schemas/trading/trading-secret-handle-boundary-fixtures.schema.json",
-    "schemas/trading/trading-secret-leakage-regression-fixtures.schema.json"
+    "schemas/trading/trading-secret-leakage-regression-fixtures.schema.json",
+    "schemas/trading/trading-secret-scan-gate-fixtures.schema.json"
   ],
   "workflows": [
     "workflow.trading.research_intake.v1",
@@ -182,7 +183,8 @@
     "workflow.trading.broker_adapter_separation_fixtures.v1",
     "workflow.trading.live_adapter_import_boundary_fixtures.v1",
     "workflow.trading.secret_handle_boundary_fixtures.v1",
-    "workflow.trading.secret_leakage_regression_fixtures.v1"
+    "workflow.trading.secret_leakage_regression_fixtures.v1",
+    "workflow.trading.secret_scan_gate_fixtures.v1"
   ],
   "gates": [
     "classification_gate",

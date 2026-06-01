@@ -87,7 +87,8 @@
     "schemas/trading/trading-promotion-receipt-validation-rules-fixtures.schema.json",
     "schemas/trading/trading-promotion-receipt-workspace-fixtures.schema.json",
     "schemas/trading/trading-promotion-receipt-workspace-merge-fixtures.schema.json",
-    "schemas/trading/trading-promotion-receipt-merge-preflight-fixtures.schema.json"
+    "schemas/trading/trading-promotion-receipt-merge-preflight-fixtures.schema.json",
+    "schemas/trading/trading-promotion-receipt-validation-packet-fixtures.schema.json"
   ],
   "workflows": [
     "workflow.trading.research_intake.v1",
@@ -150,7 +151,8 @@
     "workflow.trading.promotion_receipt_validation_rules_fixtures.v1",
     "workflow.trading.promotion_receipt_workspace_fixtures.v1",
     "workflow.trading.promotion_receipt_workspace_merge_fixtures.v1",
-    "workflow.trading.promotion_receipt_merge_preflight_fixtures.v1"
+    "workflow.trading.promotion_receipt_merge_preflight_fixtures.v1",
+    "workflow.trading.promotion_receipt_validation_packet_fixtures.v1"
   ],
   "gates": [
     "classification_gate",

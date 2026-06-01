@@ -290,6 +290,11 @@
       "entrypoint_type": "command",
       "name": "trading:promotion-receipt-merge-preflight-fixtures",
       "path": "scripts/trading-promotion-receipt-merge-preflight-fixtures.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:promotion-receipt-validation-packet-fixtures",
+      "path": "scripts/trading-promotion-receipt-validation-packet-fixtures.mjs"
     }
   ],
   "dependencies": ["common.workflow.approval", "common.audit.replay", "common.test.gate"],
@@ -532,6 +537,12 @@
       "case_id": "golden.trading.promotion_receipt_merge_preflight_fixtures.p408",
       "description": "P408 promotion receipt merge preflight fixtures declare future validation preflight rows without materializing inputs, receiving payloads, or validating receipts.",
       "input_ref": "artifacts/trading-promotion-receipt-merge-preflight-fixtures/latest/trading-promotion-receipt-merge-preflight-fixtures.json",
+      "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
+    },
+    {
+      "case_id": "golden.trading.promotion_receipt_validation_packet_fixtures.p409",
+      "description": "P409 promotion receipt validation packet fixtures declare future validation packets without materializing inputs, receiving payloads, or validating receipts.",
+      "input_ref": "artifacts/trading-promotion-receipt-validation-packet-fixtures/latest/trading-promotion-receipt-validation-packet-fixtures.json",
       "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
     }
   ],

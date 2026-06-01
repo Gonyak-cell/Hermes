@@ -47,6 +47,7 @@ import { runPlatformOperationsFreezeCommandMatrix } from "../src/platform-operat
 import { runPlatformOperationsFreezeEvidenceIndex } from "../src/platform-operations-freeze-evidence-index.mjs";
 import { runPlatformOperationsFreezeReviewPacket } from "../src/platform-operations-freeze-review-packet.mjs";
 import { runPlatformOperationsFreezeSignoffLedger } from "../src/platform-operations-freeze-signoff-ledger.mjs";
+import { runPlatformOperationsFreezeSignoffReceiptTemplate } from "../src/platform-operations-freeze-signoff-receipt-template.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -3988,6 +3989,126 @@ test("platform operations freeze signoff ledger --check does not overwrite exist
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformOperationsFreezeSignoffLedger({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform operations freeze signoff receipt template records P486 without receiving receipts", async () => {
+  const result = await runPlatformOperationsFreezeSignoffReceiptTemplate({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_operations_freeze_signoff_receipt_template_status, "ready_for_operations_freeze_signoff_receipt_template");
+  assert.equal(result.summary.phase_slot, "P486");
+  assert.equal(result.summary.previous_phase_slot, "P485");
+  assert.equal(result.summary.next_phase_slot, "P487");
+  assert.equal(result.summary.source_signoff_ledger_status, "ready_for_operations_freeze_signoff_ledger");
+  assert.equal(result.summary.source_signoff_row_count, 7);
+  assert.equal(result.summary.source_signoff_ready_row_count, 7);
+  assert.equal(result.summary.receipt_template_count, 7);
+  assert.equal(result.summary.ready_receipt_template_count, 7);
+  assert.equal(result.summary.template_gate_count, 8);
+  assert.equal(result.summary.ready_template_gate_count, 8);
+  assert.equal(result.summary.read_only, true);
+  assert.equal(result.summary.report_only, true);
+  assert.equal(result.summary.receipt_template_artifact_write_requested, false);
+  assert.equal(result.summary.signoff_ledger_consumed_in_memory, true);
+  assert.equal(result.summary.signoff_ledger_artifact_read_performed, false);
+  assert.equal(result.summary.receipt_completed, false);
+  assert.equal(result.summary.receipt_received, false);
+  assert.equal(result.summary.signoff_completed, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.receipt_materialized, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.package_command_execution_performed, false);
+  assert.equal(result.summary.acceptance_command_execution_performed, false);
+  assert.equal(result.summary.generated_artifact_read_performed, false);
+  assert.equal(result.summary.artifact_read_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.dependency_install_performed, false);
+  assert.equal(result.summary.package_mutation_performed, false);
+  assert.equal(result.summary.lockfile_mutation_performed, false);
+  assert.equal(result.summary.release_published, false);
+  assert.equal(result.summary.git_operation_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.protected_recovery_execution_allowed, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.equal(result.summary.desktop_mutation_allowed, false);
+  assert.equal(result.summary.secret_exposure_allowed, false);
+  assert.equal(result.summary.secret_values_read, false);
+  assert.equal(result.summary.env_file_read, false);
+  assert.equal(result.summary.desktop_config_content_inspected, false);
+  assert.equal(result.summary.desktop_provider_key_visible, false);
+  assert.equal(result.summary.credential_lookup_allowed, false);
+  assert.ok(result.operations_freeze_signoff_receipt_templates.every((row) => row.receipt_template_status === "ready_for_human_receipt" && row.source_signoff_status === "ready_for_human_signoff" && row.receipt_completed_by_template === false && row.receipt_received_by_template === false && row.approval_applied_by_template === false && row.command_execution_performed_by_template === false && row.secret_exposure_allowed_by_template === false));
+  assert.ok(result.operations_freeze_signoff_receipt_templates.some((row) => row.source_evidence_row_key === "trading_release_check" && row.allowed_decisions.includes("approve_ready_evidence")));
+  assert.ok(result.operations_freeze_signoff_receipt_templates.some((row) => row.source_evidence_row_key === "test" && row.required_receipt_fields.includes("command_result_reference")));
+  assert.ok(result.operations_freeze_signoff_receipt_template_gate_rows.every((row) => row.gate_status === "ready" && row.receipt_completed_by_template === false && row.receipt_received_by_template === false && row.protected_action_executed_by_template === false));
+});
+
+test("platform operations freeze signoff receipt template blocks when the P485 signoff ledger is blocked", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-signoff-receipt-template-source-"));
+  try {
+    const ledgerText = await readFile("docs/platform-operations-stability-phase-ledger.md", "utf8");
+    const ledgerPath = path.join(root, "platform-operations-stability-phase-ledger.md");
+    await writeFile(ledgerPath, ledgerText.replace(/^- P480: `trading:secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-secret-scan-remediation-fixtures`.*\n/m, ""), "utf8");
+
+    const result = await runPlatformOperationsFreezeSignoffReceiptTemplate({ platformOpsLedgerPath: ledgerPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_operations_freeze_signoff_receipt_template_status, "blocked");
+    assert.equal(result.summary.source_signoff_ledger_status, "blocked");
+    assert.ok(result.operations_freeze_signoff_receipt_template_gate_rows.some((row) => row.row_key === "p485_signoff_ledger_ready" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformOperationsFreezeSignoffReceiptTemplate({ platformOpsLedgerPath: ledgerPath, write: false, check: true }),
+      /Platform operations freeze signoff receipt template failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform operations freeze signoff receipt template blocks when P486 validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-signoff-receipt-template-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:operations-freeze-signoff-receipt-template"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:operations-freeze-signoff-receipt-template -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformOperationsFreezeSignoffReceiptTemplate({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_operations_freeze_signoff_receipt_template_status, "blocked");
+    assert.ok(result.operations_freeze_signoff_receipt_template_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.operations_freeze_signoff_receipt_template_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformOperationsFreezeSignoffReceiptTemplate({ packagePath, write: false, check: true }),
+      /Platform operations freeze signoff receipt template failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform operations freeze signoff receipt template --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-signoff-receipt-template-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-operations-freeze-signoff-receipt-template.json");
+    const sentinel = "{ \"sentinel\": \"platform-operations-freeze-signoff-receipt-template\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformOperationsFreezeSignoffReceiptTemplate({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

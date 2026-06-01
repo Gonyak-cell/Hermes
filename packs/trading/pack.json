@@ -101,7 +101,8 @@
     "schemas/trading/trading-promotion-receipt-chain-signoff-approval-closeout-fixtures.schema.json",
     "schemas/trading/trading-promotion-receipt-chain-signoff-closeout-fixtures.schema.json",
     "schemas/trading/trading-broker-adapter-separation-fixtures.schema.json",
-    "schemas/trading/trading-live-adapter-import-boundary-fixtures.schema.json"
+    "schemas/trading/trading-live-adapter-import-boundary-fixtures.schema.json",
+    "schemas/trading/trading-secret-handle-boundary-fixtures.schema.json"
   ],
   "workflows": [
     "workflow.trading.research_intake.v1",
@@ -178,7 +179,8 @@
     "workflow.trading.promotion_receipt_chain_signoff_approval_closeout_fixtures.v1",
     "workflow.trading.promotion_receipt_chain_signoff_closeout_fixtures.v1",
     "workflow.trading.broker_adapter_separation_fixtures.v1",
-    "workflow.trading.live_adapter_import_boundary_fixtures.v1"
+    "workflow.trading.live_adapter_import_boundary_fixtures.v1",
+    "workflow.trading.secret_handle_boundary_fixtures.v1"
   ],
   "gates": [
     "classification_gate",

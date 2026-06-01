@@ -360,6 +360,11 @@
       "entrypoint_type": "command",
       "name": "trading:live-adapter-import-boundary-fixtures",
       "path": "scripts/trading-live-adapter-import-boundary-fixtures.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:secret-handle-boundary-fixtures",
+      "path": "scripts/trading-secret-handle-boundary-fixtures.mjs"
     }
   ],
   "dependencies": ["common.workflow.approval", "common.audit.replay", "common.test.gate"],

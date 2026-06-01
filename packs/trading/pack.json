@@ -135,7 +135,8 @@
     "schemas/trading/trading-secret-scan-remediation-receipt-chain-secret-scan-fail-closed-fixtures.schema.json",
     "schemas/trading/trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-fixtures.schema.json",
     "schemas/trading/trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-template-fixtures.schema.json",
-    "schemas/trading/trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-intake-fixtures.schema.json"
+    "schemas/trading/trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-intake-fixtures.schema.json",
+    "schemas/trading/trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-validation-rules-fixtures.schema.json"
   ],
   "workflows": [
     "workflow.trading.research_intake.v1",
@@ -246,7 +247,8 @@
     "workflow.trading.secret_scan_remediation_receipt_chain_secret_scan_fail_closed_fixtures.v1",
     "workflow.trading.secret_scan_remediation_receipt_chain_secret_scan_remediation_fixtures.v1",
     "workflow.trading.secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_template_fixtures.v1",
-    "workflow.trading.secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_intake_fixtures.v1"
+    "workflow.trading.secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_intake_fixtures.v1",
+    "workflow.trading.secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_validation_rules_fixtures.v1"
   ],
   "gates": [
     "classification_gate",

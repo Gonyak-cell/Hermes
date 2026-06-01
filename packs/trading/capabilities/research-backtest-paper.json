@@ -355,6 +355,11 @@
       "entrypoint_type": "command",
       "name": "trading:broker-adapter-separation-fixtures",
       "path": "scripts/trading-broker-adapter-separation-fixtures.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:live-adapter-import-boundary-fixtures",
+      "path": "scripts/trading-live-adapter-import-boundary-fixtures.mjs"
     }
   ],
   "dependencies": ["common.workflow.approval", "common.audit.replay", "common.test.gate"],

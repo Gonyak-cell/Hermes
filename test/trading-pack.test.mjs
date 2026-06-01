@@ -110,6 +110,7 @@ import { runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceipt
 import { runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainSignoffApprovalCloseoutFixtures } from "../src/trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-signoff-approval-closeout-fixtures.mjs";
 import { runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainSignoffCloseoutFixtures } from "../src/trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-signoff-closeout-fixtures.mjs";
 import { runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainBrokerAdapterSeparationFixtures } from "../src/trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-broker-adapter-separation-fixtures.mjs";
+import { runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainLiveAdapterImportBoundaryFixtures } from "../src/trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-live-adapter-import-boundary-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -12975,6 +12976,160 @@ test("trading secret scan remediation receipt chain secret scan remediation rece
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainBrokerAdapterSeparationFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading secret scan remediation receipt chain secret scan remediation receipt chain live adapter import boundary fixtures keep future live imports out of default paths", async () => {
+  const result = await runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainLiveAdapterImportBoundaryFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_live_adapter_import_boundary_fixtures_status, "ready_for_trading_secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_live_adapter_import_boundary");
+  assert.equal(result.summary.phase_slot, "P474");
+  assert.equal(result.summary.previous_phase_slot, "P473");
+  assert.equal(result.summary.next_phase_slot, "P475");
+  assert.equal(result.summary.source_secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_broker_adapter_separation_status, "ready_for_trading_secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_broker_adapter_separation");
+  assert.equal(result.summary.source_secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_broker_adapter_separation_ready, true);
+  assert.equal(result.summary.required_row_count, 7);
+  assert.equal(result.summary.live_adapter_import_boundary_row_count, 7);
+  assert.equal(result.summary.ready_live_adapter_import_boundary_row_count, 7);
+  assert.equal(result.summary.live_adapter_import_boundary_gate_count, 10);
+  assert.equal(result.summary.ready_live_adapter_import_boundary_gate_count, 10);
+  assert.equal(result.summary.prohibited_import_ref_count, 0);
+  assert.equal(result.summary.package_scripts_prohibited_import_ref_count, 0);
+  assert.equal(result.summary.validate_chain_prohibited_import_ref_count, 0);
+  assert.equal(result.summary.pack_manifest_prohibited_import_ref_count, 0);
+  assert.equal(result.summary.capability_entrypoints_prohibited_import_ref_count, 0);
+  assert.equal(result.summary.future_live_adapter_file_may_exist, true);
+  assert.equal(result.summary.future_live_adapter_default_import_allowed, false);
+  assert.equal(result.summary.default_control_plane_imports_live_adapter, false);
+  assert.equal(result.summary.live_adapter_imported_by_default, false);
+  assert.equal(result.summary.live_adapter_enabled, false);
+  assert.equal(result.summary.live_adapter_file_read_performed, false);
+  assert.equal(result.summary.live_adapter_file_import_performed, false);
+  assert.equal(result.summary.live_adapter_file_execution_performed, false);
+  assert.equal(result.summary.credential_reference_only, true);
+  assert.equal(result.summary.credential_lookup_allowed, false);
+  assert.equal(result.summary.plaintext_secret_allowed, false);
+  assert.equal(result.summary.provider_key_material_present, false);
+  assert.equal(result.summary.environment_dump_present, false);
+  assert.equal(result.summary.secret_material_exposed, false);
+  assert.equal(result.summary.raw_secret_material_materialized, false);
+  assert.equal(result.summary.raw_secret_material_exposed, false);
+  assert.equal(result.summary.desktop_provider_key_visible, false);
+  assert.equal(result.summary.forbidden_receipt_fields_allowed, false);
+  assert.equal(result.summary.no_secret_material_read, true);
+  assert.equal(result.summary.no_secret_or_trading_mutation, true);
+  assert.equal(result.summary.secret_scan_remediation_action_allowed, false);
+  assert.equal(result.summary.auto_fix_command_registered, false);
+  assert.equal(result.summary.auto_redaction_allowed, false);
+  assert.equal(result.summary.auto_deletion_allowed, false);
+  assert.equal(result.summary.auto_rotation_allowed, false);
+  assert.equal(result.summary.secret_values_read, false);
+  assert.equal(result.summary.env_file_read, false);
+  assert.equal(result.summary.desktop_config_content_inspected, false);
+  assert.equal(result.summary.desktop_config_read, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_read_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.human_review_required, true);
+  assert.equal(result.summary.human_signoff_required, true);
+  assert.ok(result.live_adapter_import_boundary_rows.every((row) => row.live_adapter_import_boundary_status === "ready_for_trading_secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_live_adapter_import_boundary" && row.source_secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_broker_adapter_separation_ready && row.prohibited_import_ref_count === 0 && row.future_live_adapter_file_may_exist && row.future_live_adapter_default_import_allowed === false && row.default_control_plane_imports_live_adapter === false && row.live_adapter_imported_by_default === false && row.live_adapter_file_read_performed === false && row.live_adapter_file_import_performed === false && row.live_adapter_file_execution_performed === false && row.credential_lookup_allowed === false && row.plaintext_secret_allowed === false && row.raw_secret_material_materialized === false && row.raw_secret_material_exposed === false && row.desktop_provider_key_visible === false && row.forbidden_receipt_fields_allowed === false && row.no_secret_material_read && row.no_secret_or_trading_mutation && row.secret_scan_remediation_action_allowed === false && row.auto_fix_command_registered === false && row.auto_redaction_allowed === false && row.auto_deletion_allowed === false && row.auto_rotation_allowed === false && row.secret_values_read === false && row.broker_write_allowed === false && row.exchange_write_allowed === false && row.protected_action_executed === false && row.human_signoff_required));
+  assert.ok(result.live_adapter_import_boundary_gate_rows.every((row) => row.gate_status === "ready" && row.live_adapter_imported_by_gate === false && row.live_adapter_enabled_by_gate === false && row.live_adapter_file_read_performed_by_gate === false && row.live_adapter_file_import_performed_by_gate === false && row.live_adapter_file_execution_performed_by_gate === false && row.credential_lookup_allowed_by_gate === false && row.plaintext_secret_allowed_by_gate === false && row.raw_secret_material_materialized_by_gate === false && row.raw_secret_material_exposed_by_gate === false && row.desktop_provider_key_visible_by_gate === false && row.forbidden_receipt_fields_allowed_by_gate === false && row.secret_scan_remediation_action_allowed_by_gate === false && row.auto_fix_command_registered_by_gate === false && row.auto_redaction_allowed_by_gate === false && row.auto_deletion_allowed_by_gate === false && row.auto_rotation_allowed_by_gate === false && row.broker_write_allowed_by_gate === false && row.exchange_write_allowed_by_gate === false && row.protected_action_executed_by_gate === false));
+});
+
+test("trading secret scan remediation receipt chain secret scan remediation receipt chain live adapter import boundary fixtures block when source broker adapter separation is blocked", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-live-adapter-import-boundary-source-"));
+  try {
+    const executionEngine = JSON.parse(await readFile("examples/trading/execution-engine.json", "utf8"));
+    executionEngine.safety_boundary.live_adapter_enabled = true;
+    executionEngine.adapters.live_adapter.enabled = true;
+    const executionEnginePath = path.join(root, "execution-engine.json");
+    await writeFile(executionEnginePath, `${JSON.stringify(executionEngine, null, 2)}\n`, "utf8");
+
+    const result = await runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainLiveAdapterImportBoundaryFixtures({ executionEnginePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_live_adapter_import_boundary_fixtures_status, "blocked");
+    assert.equal(result.summary.source_secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_broker_adapter_separation_ready, false);
+    assert.equal(result.summary.live_adapter_enabled, true);
+    assert.equal(result.summary.ready_live_adapter_import_boundary_row_count, 0);
+    assert.ok(result.live_adapter_import_boundary_rows.every((row) => row.live_adapter_import_boundary_status === "blocked"));
+    await assert.rejects(
+      () => runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainLiveAdapterImportBoundaryFixtures({ executionEnginePath, write: false, check: true }),
+      /Trading secret scan remediation receipt chain secret scan remediation receipt chain live adapter import boundary fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading secret scan remediation receipt chain secret scan remediation receipt chain live adapter import boundary fixtures block when package scripts import a future live adapter", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-live-adapter-import-boundary-package-import-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    packageJson.scripts["trading:future-live-import"] = "node scripts/trading-live-adapter.mjs --enable-live-adapter";
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainLiveAdapterImportBoundaryFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_live_adapter_import_boundary_fixtures_status, "blocked");
+    assert.ok(result.summary.prohibited_import_ref_count > 0);
+    assert.ok(result.summary.package_scripts_prohibited_import_ref_count > 0);
+    assert.equal(result.summary.default_control_plane_imports_live_adapter, true);
+    assert.equal(result.summary.live_adapter_imported_by_default, true);
+    assert.ok(result.live_adapter_import_boundary_rows.some((row) => row.row_key === "package_scripts_no_future_live_adapter_import" && row.live_adapter_import_boundary_status === "blocked" && row.prohibited_import_ref_count > 0));
+    await assert.rejects(
+      () => runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainLiveAdapterImportBoundaryFixtures({ packagePath, write: false, check: true }),
+      /Trading secret scan remediation receipt chain secret scan remediation receipt chain live adapter import boundary fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading secret scan remediation receipt chain secret scan remediation receipt chain live adapter import boundary fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-live-adapter-import-boundary-registration-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-live-adapter-import-boundary-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-live-adapter-import-boundary-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainLiveAdapterImportBoundaryFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_secret_scan_remediation_receipt_chain_secret_scan_remediation_receipt_chain_live_adapter_import_boundary_fixtures_status, "blocked");
+    assert.ok(result.live_adapter_import_boundary_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.live_adapter_import_boundary_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainLiveAdapterImportBoundaryFixtures({ packagePath, write: false, check: true }),
+      /Trading secret scan remediation receipt chain secret scan remediation receipt chain live adapter import boundary fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading secret scan remediation receipt chain secret scan remediation receipt chain live adapter import boundary fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-live-adapter-import-boundary-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-live-adapter-import-boundary-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-secret-scan-remediation-receipt-chain-secret-scan-remediation-receipt-chain-live-adapter-import-boundary-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingSecretScanRemediationReceiptChainSecretScanRemediationReceiptChainLiveAdapterImportBoundaryFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

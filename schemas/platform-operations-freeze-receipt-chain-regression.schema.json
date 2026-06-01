@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-operations-freeze-receipt-chain-regression.schema.json",
+  "title": "Platform Operations Freeze Receipt Chain Regression",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_operations_freeze_receipt_chain_regression_id",
+    "capability_id",
+    "operations_freeze_receipt_chain_regression_anchor",
+    "operations_freeze_receipt_chain_regression_rows",
+    "operations_freeze_receipt_chain_regression_gate_rows",
+    "operations_freeze_receipt_chain_regression_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-operations-freeze-receipt-chain-regression.v1" },
+    "platform_operations_freeze_receipt_chain_regression_id": {
+      "type": "string",
+      "pattern": "^platform-operations-freeze-receipt-chain-regression\\.[0-9]{8}$"
+    },
+    "capability_id": { "const": "platform.operations_freeze_receipt_chain_regression" },
+    "operations_freeze_receipt_chain_regression_rows": {
+      "type": "array",
+      "minItems": 18,
+      "maxItems": 18,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "source_phase_slot",
+          "package_script_name",
+          "chain_phase_status",
+          "source_receipt_closeout_status",
+          "script_registered",
+          "validation_chain_registered",
+          "ledger_acceptance_declared",
+          "receipt_chain_regression_declared",
+          "p481_p498_chain_ready",
+          "human_receipts_pending",
+          "receipt_payload_present",
+          "ready_for_validation",
+          "ready_for_approval_application",
+          "approval_applied_by_regression",
+          "acceptance_command_execution_performed_by_regression",
+          "protected_action_executed_by_regression",
+          "secret_exposure_allowed_by_regression"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P499" },
+          "chain_phase_status": { "const": "ready_for_operations_freeze_receipt_chain_regression" },
+          "source_receipt_closeout_status": { "const": "ready_for_operations_freeze_receipt_chain_closeout" },
+          "script_registered": { "const": true },
+          "validation_chain_registered": { "const": true },
+          "ledger_acceptance_declared": { "const": true },
+          "receipt_chain_regression_declared": { "const": true },
+          "p481_p498_chain_ready": { "const": true },
+          "human_receipts_pending": { "const": true },
+          "receipt_payload_present": { "const": false },
+          "ready_for_validation": { "const": false },
+          "ready_for_approval_application": { "const": false },
+          "approval_applied_by_regression": { "const": false },
+          "acceptance_command_execution_performed_by_regression": { "const": false },
+          "protected_action_executed_by_regression": { "const": false },
+          "secret_exposure_allowed_by_regression": { "const": false }
+        }
+      }
+    },
+    "operations_freeze_receipt_chain_regression_gate_rows": {
+      "type": "array",
+      "minItems": 9,
+      "items": {
+        "type": "object",
+        "required": ["phase_slot", "gate_status"],
+        "properties": {
+          "phase_slot": { "const": "P499" },
+          "gate_status": { "const": "ready" }
+        }
+      }
+    },
+    "operations_freeze_receipt_chain_regression_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "phase_slot",
+        "read_only",
+        "report_only",
+        "receipt_closeout_consumed_in_memory",
+        "receipt_closeout_artifact_read_performed",
+        "receipt_chain_regression_declared",
+        "p481_p498_chain_ready",
+        "human_receipts_pending",
+        "ready_for_p500_closeout",
+        "receipt_payload_present",
+        "ready_for_validation",
+        "approval_applied",
+        "acceptance_command_execution_performed",
+        "artifact_write_performed",
+        "protected_action_executed",
+        "trading_order_submission_allowed",
+        "desktop_mutation_allowed",
+        "secret_exposure_allowed"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "phase_slot": { "const": "P499" },
+        "read_only": { "const": true },
+        "report_only": { "const": true },
+        "receipt_closeout_consumed_in_memory": { "const": true },
+        "receipt_closeout_artifact_read_performed": { "const": false },
+        "receipt_chain_regression_declared": { "const": true },
+        "p481_p498_chain_ready": { "const": true },
+        "human_receipts_pending": { "const": true },
+        "ready_for_p500_closeout": { "const": true },
+        "receipt_payload_present": { "const": false },
+        "ready_for_validation": { "const": false },
+        "approval_applied": { "const": false },
+        "acceptance_command_execution_performed": { "const": false },
+        "artifact_write_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "trading_order_submission_allowed": { "const": false },
+        "desktop_mutation_allowed": { "const": false },
+        "secret_exposure_allowed": { "const": false }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "platform_operations_freeze_receipt_chain_regression_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "source_receipt_closeout_status",
+        "chain_phase_count",
+        "ready_chain_phase_count",
+        "chain_gate_count",
+        "ready_chain_gate_count",
+        "ready_for_p500_closeout",
+        "validation_error_count"
+      ],
+      "properties": {
+        "platform_operations_freeze_receipt_chain_regression_status": { "const": "ready_for_operations_freeze_receipt_chain_regression" },
+        "phase_slot": { "const": "P499" },
+        "previous_phase_slot": { "const": "P498" },
+        "next_phase_slot": { "const": "P500" },
+        "source_receipt_closeout_status": { "const": "ready_for_operations_freeze_receipt_chain_closeout" },
+        "chain_phase_count": { "const": 18 },
+        "ready_chain_phase_count": { "const": 18 },
+        "chain_gate_count": { "const": 9 },
+        "ready_chain_gate_count": { "const": 9 },
+        "ready_for_p500_closeout": { "const": true },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

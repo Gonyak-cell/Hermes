@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-operations-freeze-closeout.schema.json",
+  "title": "Platform Operations Freeze Closeout",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_operations_freeze_closeout_id",
+    "capability_id",
+    "operations_freeze_closeout_anchor",
+    "operations_freeze_closeout_rows",
+    "operations_freeze_closeout_gate_rows",
+    "operations_freeze_closeout_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-operations-freeze-closeout.v1" },
+    "platform_operations_freeze_closeout_id": {
+      "type": "string",
+      "pattern": "^platform-operations-freeze-closeout\\.[0-9]{8}$"
+    },
+    "capability_id": { "const": "platform.operations_freeze_closeout" },
+    "operations_freeze_closeout_rows": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "closeout_lane_key",
+          "closeout_status",
+          "source_receipt_chain_regression_status",
+          "closeout_declared",
+          "human_review_required",
+          "human_signoff_required",
+          "human_receipts_pending",
+          "p341_p500_program_ready",
+          "receipt_payload_present",
+          "ready_for_validation",
+          "ready_for_approval_application",
+          "approval_applied_by_closeout",
+          "acceptance_command_execution_performed_by_closeout",
+          "protected_action_executed_by_closeout",
+          "secret_exposure_allowed_by_closeout"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P500" },
+          "closeout_status": { "const": "ready_for_platform_operations_stability_closeout" },
+          "source_receipt_chain_regression_status": { "const": "ready_for_operations_freeze_receipt_chain_regression" },
+          "closeout_declared": { "const": true },
+          "human_review_required": { "const": true },
+          "human_signoff_required": { "const": true },
+          "human_receipts_pending": { "const": true },
+          "p341_p500_program_ready": { "const": true },
+          "receipt_payload_present": { "const": false },
+          "ready_for_validation": { "const": false },
+          "ready_for_approval_application": { "const": false },
+          "approval_applied_by_closeout": { "const": false },
+          "acceptance_command_execution_performed_by_closeout": { "const": false },
+          "protected_action_executed_by_closeout": { "const": false },
+          "secret_exposure_allowed_by_closeout": { "const": false }
+        }
+      }
+    },
+    "operations_freeze_closeout_gate_rows": {
+      "type": "array",
+      "minItems": 9,
+      "items": {
+        "type": "object",
+        "required": ["phase_slot", "gate_status"],
+        "properties": {
+          "phase_slot": { "const": "P500" },
+          "gate_status": { "const": "ready" }
+        }
+      }
+    },
+    "operations_freeze_closeout_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "phase_slot",
+        "read_only",
+        "report_only",
+        "closeout_declared",
+        "p341_p500_program_ready",
+        "human_receipts_pending",
+        "final_program_phase",
+        "receipt_payload_present",
+        "ready_for_validation",
+        "approval_applied",
+        "acceptance_command_execution_performed",
+        "artifact_write_performed",
+        "protected_action_executed",
+        "trading_order_submission_allowed",
+        "desktop_mutation_allowed",
+        "secret_exposure_allowed"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "phase_slot": { "const": "P500" },
+        "read_only": { "const": true },
+        "report_only": { "const": true },
+        "closeout_declared": { "const": true },
+        "p341_p500_program_ready": { "const": true },
+        "human_receipts_pending": { "const": true },
+        "final_program_phase": { "const": true },
+        "receipt_payload_present": { "const": false },
+        "ready_for_validation": { "const": false },
+        "approval_applied": { "const": false },
+        "acceptance_command_execution_performed": { "const": false },
+        "artifact_write_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "trading_order_submission_allowed": { "const": false },
+        "desktop_mutation_allowed": { "const": false },
+        "secret_exposure_allowed": { "const": false }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "platform_operations_freeze_closeout_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "source_receipt_chain_regression_status",
+        "closeout_row_count",
+        "ready_closeout_row_count",
+        "closeout_gate_count",
+        "ready_closeout_gate_count",
+        "p341_p500_program_ready",
+        "final_program_phase",
+        "validation_error_count"
+      ],
+      "properties": {
+        "platform_operations_freeze_closeout_status": { "const": "ready_for_platform_operations_stability_closeout" },
+        "phase_slot": { "const": "P500" },
+        "previous_phase_slot": { "const": "P499" },
+        "next_phase_slot": { "const": "complete" },
+        "source_receipt_chain_regression_status": { "const": "ready_for_operations_freeze_receipt_chain_regression" },
+        "closeout_row_count": { "const": 7 },
+        "ready_closeout_row_count": { "const": 7 },
+        "closeout_gate_count": { "const": 9 },
+        "ready_closeout_gate_count": { "const": 9 },
+        "p341_p500_program_ready": { "const": true },
+        "final_program_phase": { "const": true },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

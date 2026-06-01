@@ -60,6 +60,8 @@ import { runPlatformOperationsFreezeReceiptValidationPacket } from "../src/platf
 import { runPlatformOperationsFreezeReceiptApprovalPlan } from "../src/platform-operations-freeze-receipt-approval-plan.mjs";
 import { runPlatformOperationsFreezeReceiptApprovalCloseout } from "../src/platform-operations-freeze-receipt-approval-closeout.mjs";
 import { runPlatformOperationsFreezeReceiptCloseout } from "../src/platform-operations-freeze-receipt-closeout.mjs";
+import { runPlatformOperationsFreezeReceiptChainRegression } from "../src/platform-operations-freeze-receipt-chain-regression.mjs";
+import { runPlatformOperationsFreezeCloseout } from "../src/platform-operations-freeze-closeout.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -5580,6 +5582,251 @@ test("platform operations freeze receipt closeout --check does not overwrite exi
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformOperationsFreezeReceiptCloseout({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform operations freeze receipt chain regression records P499 without receiving receipts", async () => {
+  const result = await runPlatformOperationsFreezeReceiptChainRegression({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_operations_freeze_receipt_chain_regression_status, "ready_for_operations_freeze_receipt_chain_regression");
+  assert.equal(result.summary.phase_slot, "P499");
+  assert.equal(result.summary.previous_phase_slot, "P498");
+  assert.equal(result.summary.next_phase_slot, "P500");
+  assert.equal(result.summary.source_receipt_closeout_status, "ready_for_operations_freeze_receipt_chain_closeout");
+  assert.equal(result.summary.chain_phase_count, 18);
+  assert.equal(result.summary.ready_chain_phase_count, 18);
+  assert.equal(result.summary.chain_gate_count, 9);
+  assert.equal(result.summary.ready_chain_gate_count, 9);
+  assert.equal(result.summary.read_only, true);
+  assert.equal(result.summary.report_only, true);
+  assert.equal(result.summary.receipt_closeout_consumed_in_memory, true);
+  assert.equal(result.summary.receipt_closeout_artifact_read_performed, false);
+  assert.equal(result.summary.receipt_chain_regression_declared, true);
+  assert.equal(result.summary.p481_p498_chain_ready, true);
+  assert.equal(result.summary.human_receipts_pending, true);
+  assert.equal(result.summary.ready_for_p500_closeout, true);
+  assert.equal(result.summary.actor_workspace_input_present, false);
+  assert.equal(result.summary.receipt_input_file_materialized, false);
+  assert.equal(result.summary.merged_receipt_input_materialized, false);
+  assert.equal(result.summary.receipt_payload_present, false);
+  assert.equal(result.summary.ready_for_validation, false);
+  assert.equal(result.summary.ready_for_approval_application, false);
+  assert.equal(result.summary.receipt_received, false);
+  assert.equal(result.summary.receipt_validated, false);
+  assert.equal(result.summary.signoff_completed, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.package_command_execution_performed, false);
+  assert.equal(result.summary.acceptance_command_execution_performed, false);
+  assert.equal(result.summary.generated_artifact_read_performed, false);
+  assert.equal(result.summary.artifact_read_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.dependency_install_performed, false);
+  assert.equal(result.summary.package_mutation_performed, false);
+  assert.equal(result.summary.lockfile_mutation_performed, false);
+  assert.equal(result.summary.release_published, false);
+  assert.equal(result.summary.git_operation_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.protected_recovery_execution_allowed, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.equal(result.summary.desktop_mutation_allowed, false);
+  assert.equal(result.summary.secret_exposure_allowed, false);
+  assert.equal(result.summary.secret_values_read, false);
+  assert.equal(result.summary.env_file_read, false);
+  assert.equal(result.summary.desktop_config_content_inspected, false);
+  assert.equal(result.summary.desktop_provider_key_visible, false);
+  assert.equal(result.summary.credential_lookup_allowed, false);
+  assert.ok(result.operations_freeze_receipt_chain_regression_rows.every((row) => row.chain_phase_status === "ready_for_operations_freeze_receipt_chain_regression" && row.script_registered && row.validation_chain_registered && row.ledger_acceptance_declared && row.receipt_chain_regression_declared && row.p481_p498_chain_ready && row.human_receipts_pending && row.receipt_payload_present === false && row.ready_for_validation === false && row.ready_for_approval_application === false && row.approval_applied_by_regression === false && row.acceptance_command_execution_performed_by_regression === false && row.secret_exposure_allowed_by_regression === false));
+  assert.ok(result.operations_freeze_receipt_chain_regression_rows.some((row) => row.source_phase_slot === "P498" && row.package_script_name === "platform:operations-freeze-receipt-closeout"));
+  assert.ok(result.operations_freeze_receipt_chain_regression_gate_rows.every((row) => row.gate_status === "ready" && row.approval_applied_by_regression === false && row.acceptance_command_execution_performed_by_regression === false && row.protected_action_executed_by_regression === false && row.secret_exposure_allowed_by_regression === false));
+});
+
+test("platform operations freeze receipt chain regression blocks when the P498 closeout is blocked", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-receipt-chain-regression-source-"));
+  try {
+    const ledgerText = await readFile("docs/platform-operations-stability-phase-ledger.md", "utf8");
+    const ledgerPath = path.join(root, "platform-operations-stability-phase-ledger.md");
+    await writeFile(ledgerPath, ledgerText.replace(/^- P498: `platform:operations-freeze-receipt-closeout`.*\n/m, ""), "utf8");
+
+    const result = await runPlatformOperationsFreezeReceiptChainRegression({ platformOpsLedgerPath: ledgerPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_operations_freeze_receipt_chain_regression_status, "blocked");
+    assert.equal(result.summary.source_receipt_closeout_status, "blocked");
+    assert.ok(result.operations_freeze_receipt_chain_regression_gate_rows.some((row) => row.row_key === "p498_receipt_closeout_ready" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformOperationsFreezeReceiptChainRegression({ platformOpsLedgerPath: ledgerPath, write: false, check: true }),
+      /Platform operations freeze receipt chain regression failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform operations freeze receipt chain regression blocks when P499 validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-receipt-chain-regression-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:operations-freeze-receipt-chain-regression"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:operations-freeze-receipt-chain-regression -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformOperationsFreezeReceiptChainRegression({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_operations_freeze_receipt_chain_regression_status, "blocked");
+    assert.ok(result.operations_freeze_receipt_chain_regression_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.operations_freeze_receipt_chain_regression_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformOperationsFreezeReceiptChainRegression({ packagePath, write: false, check: true }),
+      /Platform operations freeze receipt chain regression failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform operations freeze receipt chain regression --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-receipt-chain-regression-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-operations-freeze-receipt-chain-regression.json");
+    const sentinel = "{ \"sentinel\": \"platform-operations-freeze-receipt-chain-regression\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformOperationsFreezeReceiptChainRegression({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform operations freeze closeout records P500 without executing acceptance commands", async () => {
+  const result = await runPlatformOperationsFreezeCloseout({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_operations_freeze_closeout_status, "ready_for_platform_operations_stability_closeout");
+  assert.equal(result.summary.phase_slot, "P500");
+  assert.equal(result.summary.previous_phase_slot, "P499");
+  assert.equal(result.summary.next_phase_slot, "complete");
+  assert.equal(result.summary.source_receipt_chain_regression_status, "ready_for_operations_freeze_receipt_chain_regression");
+  assert.equal(result.summary.closeout_row_count, 7);
+  assert.equal(result.summary.ready_closeout_row_count, 7);
+  assert.equal(result.summary.closeout_gate_count, 9);
+  assert.equal(result.summary.ready_closeout_gate_count, 9);
+  assert.equal(result.summary.read_only, true);
+  assert.equal(result.summary.report_only, true);
+  assert.equal(result.summary.closeout_declared, true);
+  assert.equal(result.summary.p341_p500_program_ready, true);
+  assert.equal(result.summary.human_receipts_pending, true);
+  assert.equal(result.summary.final_program_phase, true);
+  assert.equal(result.summary.receipt_payload_present, false);
+  assert.equal(result.summary.ready_for_validation, false);
+  assert.equal(result.summary.ready_for_approval_application, false);
+  assert.equal(result.summary.receipt_received, false);
+  assert.equal(result.summary.receipt_validated, false);
+  assert.equal(result.summary.signoff_completed, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.package_command_execution_performed, false);
+  assert.equal(result.summary.acceptance_command_execution_performed, false);
+  assert.equal(result.summary.generated_artifact_read_performed, false);
+  assert.equal(result.summary.artifact_read_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.dependency_install_performed, false);
+  assert.equal(result.summary.package_mutation_performed, false);
+  assert.equal(result.summary.lockfile_mutation_performed, false);
+  assert.equal(result.summary.release_published, false);
+  assert.equal(result.summary.git_operation_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.protected_recovery_execution_allowed, false);
+  assert.equal(result.summary.trading_live_enabled, false);
+  assert.equal(result.summary.trading_full_auto_enabled, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.desktop_source_of_truth, false);
+  assert.equal(result.summary.desktop_mutation_allowed, false);
+  assert.equal(result.summary.secret_exposure_allowed, false);
+  assert.equal(result.summary.secret_values_read, false);
+  assert.equal(result.summary.env_file_read, false);
+  assert.equal(result.summary.desktop_config_content_inspected, false);
+  assert.equal(result.summary.desktop_provider_key_visible, false);
+  assert.equal(result.summary.credential_lookup_allowed, false);
+  assert.ok(result.operations_freeze_closeout_rows.every((row) => row.closeout_status === "ready_for_platform_operations_stability_closeout" && row.source_receipt_chain_regression_status === "ready_for_operations_freeze_receipt_chain_regression" && row.closeout_declared && row.human_review_required && row.human_signoff_required && row.human_receipts_pending && row.p341_p500_program_ready && row.receipt_payload_present === false && row.ready_for_validation === false && row.ready_for_approval_application === false && row.approval_applied_by_closeout === false && row.acceptance_command_execution_performed_by_closeout === false && row.secret_exposure_allowed_by_closeout === false));
+  assert.ok(result.operations_freeze_closeout_rows.some((row) => row.closeout_lane_key === "chain_regression_handoff"));
+  assert.ok(result.operations_freeze_closeout_gate_rows.every((row) => row.gate_status === "ready" && row.approval_applied_by_closeout === false && row.acceptance_command_execution_performed_by_closeout === false && row.protected_action_executed_by_closeout === false && row.secret_exposure_allowed_by_closeout === false));
+});
+
+test("platform operations freeze closeout blocks when the P499 chain regression is blocked", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-closeout-source-"));
+  try {
+    const ledgerText = await readFile("docs/platform-operations-stability-phase-ledger.md", "utf8");
+    const ledgerPath = path.join(root, "platform-operations-stability-phase-ledger.md");
+    await writeFile(ledgerPath, ledgerText.replace(/^- P499: `platform:operations-freeze-receipt-chain-regression`.*\n/m, ""), "utf8");
+
+    const result = await runPlatformOperationsFreezeCloseout({ platformOpsLedgerPath: ledgerPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_operations_freeze_closeout_status, "blocked");
+    assert.equal(result.summary.source_receipt_chain_regression_status, "blocked");
+    assert.ok(result.operations_freeze_closeout_gate_rows.some((row) => row.row_key === "p499_chain_regression_ready" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformOperationsFreezeCloseout({ platformOpsLedgerPath: ledgerPath, write: false, check: true }),
+      /Platform operations freeze closeout failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform operations freeze closeout blocks when P500 validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-closeout-validation-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:operations-freeze-closeout"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:operations-freeze-closeout -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformOperationsFreezeCloseout({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_operations_freeze_closeout_status, "blocked");
+    assert.ok(result.operations_freeze_closeout_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.operations_freeze_closeout_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformOperationsFreezeCloseout({ packagePath, write: false, check: true }),
+      /Platform operations freeze closeout failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform operations freeze closeout --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-freeze-closeout-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-operations-freeze-closeout.json");
+    const sentinel = "{ \"sentinel\": \"platform-operations-freeze-closeout\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformOperationsFreezeCloseout({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

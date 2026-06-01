@@ -43,6 +43,7 @@ import { runTradingPromotionGovernanceReadonlyFixtures } from "../src/trading-pr
 import { runTradingPromotionReceiptIntakeQueueFixtures } from "../src/trading-promotion-receipt-intake-queue-fixtures.mjs";
 import { runTradingPromotionReceiptValidationRulesFixtures } from "../src/trading-promotion-receipt-validation-rules-fixtures.mjs";
 import { runTradingPromotionReceiptWorkspaceFixtures } from "../src/trading-promotion-receipt-workspace-fixtures.mjs";
+import { runTradingPromotionReceiptWorkspaceMergeFixtures } from "../src/trading-promotion-receipt-workspace-merge-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -4260,6 +4261,114 @@ test("trading promotion receipt workspace fixtures --check does not overwrite ex
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingPromotionReceiptWorkspaceFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion receipt workspace merge fixtures declare future merge without inputs", async () => {
+  const result = await runTradingPromotionReceiptWorkspaceMergeFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_promotion_receipt_workspace_merge_fixtures_status, "ready_for_trading_promotion_receipt_workspace_merge_regression");
+  assert.equal(result.summary.phase_slot, "P407");
+  assert.equal(result.summary.previous_phase_slot, "P406");
+  assert.equal(result.summary.next_phase_slot, "P408");
+  assert.equal(result.summary.source_promotion_receipt_workspace_status, "ready_for_trading_promotion_receipt_workspace_regression");
+  assert.equal(result.summary.source_promotion_receipt_workspace_ready, true);
+  assert.equal(result.summary.merge_row_count, 6);
+  assert.equal(result.summary.ready_merge_row_count, 6);
+  assert.equal(result.summary.receipt_workspace_consumed_in_memory, true);
+  assert.equal(result.summary.receipt_workspace_artifact_read_performed, false);
+  assert.equal(result.summary.merge_rows_declared, true);
+  assert.equal(result.summary.merged_receipt_input_materialized, false);
+  assert.equal(result.summary.receipt_payload_present, false);
+  assert.equal(result.summary.merge_performed, false);
+  assert.equal(result.summary.ready_for_validation, false);
+  assert.equal(result.summary.receipt_received, false);
+  assert.equal(result.summary.receipt_validated, false);
+  assert.equal(result.summary.receipt_application_performed, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.source_receipt_present, false);
+  assert.equal(result.summary.source_approval_applied, false);
+  assert.equal(result.summary.real_enablement_count, 0);
+  assert.equal(result.summary.shadow_live_enabled, false);
+  assert.equal(result.summary.limited_live_enabled, false);
+  assert.equal(result.summary.full_auto_enabled, false);
+  assert.equal(result.summary.automatic_order_submission_allowed, false);
+  assert.equal(result.summary.live_order_submission_allowed, false);
+  assert.equal(result.summary.live_execution_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_read_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.ok(result.promotion_receipt_workspace_merge_rows.every((row) => row.merge_status === "ready_for_future_receipt_merge" && row.source_workspace_status === "ready_for_human_receipt_input" && row.merged_receipt_input_materialized === false && row.merge_performed === false && row.receipt_payload_present === false));
+  assert.ok(result.promotion_receipt_workspace_merge_gate_rows.every((row) => row.gate_status === "ready" && row.protected_action_executed_by_merge === false));
+});
+
+test("trading promotion receipt workspace merge fixtures block when source workspace is blocked", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-workspace-merge-source-"));
+  try {
+    const limitedLive = JSON.parse(await readFile("examples/trading/limited-live-governance.json", "utf8"));
+    limitedLive.safety_boundary.approval_receipt_present = true;
+    const limitedLivePath = path.join(root, "limited-live-governance.json");
+    await writeFile(limitedLivePath, `${JSON.stringify(limitedLive, null, 2)}\n`, "utf8");
+
+    const result = await runTradingPromotionReceiptWorkspaceMergeFixtures({ limitedLivePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_promotion_receipt_workspace_merge_fixtures_status, "blocked");
+    assert.equal(result.summary.source_promotion_receipt_workspace_ready, false);
+    assert.equal(result.summary.source_receipt_present, true);
+    assert.equal(result.summary.ready_merge_row_count, 0);
+    assert.ok(result.promotion_receipt_workspace_merge_rows.every((row) => row.merge_status === "blocked"));
+    await assert.rejects(
+      () => runTradingPromotionReceiptWorkspaceMergeFixtures({ limitedLivePath, write: false, check: true }),
+      /Trading promotion receipt workspace merge fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion receipt workspace merge fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-workspace-merge-registration-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:promotion-receipt-workspace-merge-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:promotion-receipt-workspace-merge-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingPromotionReceiptWorkspaceMergeFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_promotion_receipt_workspace_merge_fixtures_status, "blocked");
+    assert.ok(result.promotion_receipt_workspace_merge_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.promotion_receipt_workspace_merge_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingPromotionReceiptWorkspaceMergeFixtures({ packagePath, write: false, check: true }),
+      /Trading promotion receipt workspace merge fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion receipt workspace merge fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-workspace-merge-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-promotion-receipt-workspace-merge-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-promotion-receipt-workspace-merge-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingPromotionReceiptWorkspaceMergeFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

@@ -49,6 +49,7 @@ import { runTradingPromotionReceiptValidationPacketFixtures } from "../src/tradi
 import { runTradingPromotionReceiptApprovalPlanFixtures } from "../src/trading-promotion-receipt-approval-plan-fixtures.mjs";
 import { runTradingPromotionReceiptApprovalCloseoutFixtures } from "../src/trading-promotion-receipt-approval-closeout-fixtures.mjs";
 import { runTradingPromotionReceiptCloseoutFixtures } from "../src/trading-promotion-receipt-closeout-fixtures.mjs";
+import { runTradingPromotionReceiptChainRegressionFixtures } from "../src/trading-promotion-receipt-chain-regression-fixtures.mjs";
 import {
   runTradingFeatureReport,
   runTradingMarketDataReport,
@@ -4935,6 +4936,122 @@ test("trading promotion receipt closeout fixtures --check does not overwrite exi
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runTradingPromotionReceiptCloseoutFixtures({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion receipt chain regression fixtures verify P401-P412 wiring without applying receipts", async () => {
+  const result = await runTradingPromotionReceiptChainRegressionFixtures({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.trading_promotion_receipt_chain_regression_fixtures_status, "ready_for_trading_promotion_receipt_chain_regression");
+  assert.equal(result.summary.phase_slot, "P413");
+  assert.equal(result.summary.previous_phase_slot, "P412");
+  assert.equal(result.summary.next_phase_slot, "P414");
+  assert.equal(result.summary.source_promotion_receipt_closeout_status, "ready_for_trading_promotion_receipt_chain_closeout_regression");
+  assert.equal(result.summary.source_promotion_receipt_closeout_ready, true);
+  assert.equal(result.summary.chain_phase_count, 12);
+  assert.equal(result.summary.ready_chain_phase_count, 12);
+  assert.equal(result.summary.chain_gate_count, 9);
+  assert.equal(result.summary.ready_chain_gate_count, 9);
+  assert.equal(result.summary.read_only, true);
+  assert.equal(result.summary.report_only, true);
+  assert.equal(result.summary.receipt_closeout_consumed_in_memory, true);
+  assert.equal(result.summary.receipt_closeout_artifact_read_performed, false);
+  assert.equal(result.summary.receipt_chain_regression_declared, true);
+  assert.equal(result.summary.p401_p412_chain_ready, true);
+  assert.equal(result.summary.human_receipts_pending, true);
+  assert.equal(result.summary.actor_workspace_input_present, false);
+  assert.equal(result.summary.receipt_input_file_materialized, false);
+  assert.equal(result.summary.merged_receipt_input_materialized, false);
+  assert.equal(result.summary.receipt_payload_present, false);
+  assert.equal(result.summary.ready_for_validation, false);
+  assert.equal(result.summary.ready_for_approval_application, false);
+  assert.equal(result.summary.receipt_received, false);
+  assert.equal(result.summary.receipt_validated, false);
+  assert.equal(result.summary.receipt_application_performed, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.source_receipt_present, false);
+  assert.equal(result.summary.source_approval_applied, false);
+  assert.equal(result.summary.real_enablement_count, 0);
+  assert.equal(result.summary.shadow_live_enabled, false);
+  assert.equal(result.summary.limited_live_enabled, false);
+  assert.equal(result.summary.full_auto_enabled, false);
+  assert.equal(result.summary.automatic_order_submission_allowed, false);
+  assert.equal(result.summary.live_order_submission_allowed, false);
+  assert.equal(result.summary.live_execution_allowed, false);
+  assert.equal(result.summary.broker_write_allowed, false);
+  assert.equal(result.summary.exchange_write_allowed, false);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_read_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.ok(result.promotion_receipt_chain_regression_rows.every((row) => row.chain_phase_status === "ready_for_trading_promotion_receipt_chain_regression" && row.source_receipt_closeout_status === "ready_for_trading_promotion_receipt_chain_closeout_regression" && row.script_registered && row.validation_chain_registered && row.ledger_acceptance_declared && row.receipt_chain_regression_declared && row.p401_p412_chain_ready && row.human_receipts_pending && row.receipt_payload_present === false && row.ready_for_validation === false && row.ready_for_approval_application === false && row.approval_applied_by_regression === false && row.live_execution_allowed_by_regression === false && row.broker_write_allowed_by_regression === false && row.exchange_write_allowed_by_regression === false && row.protected_action_executed_by_regression === false));
+  assert.ok(result.promotion_receipt_chain_regression_gate_rows.every((row) => row.gate_status === "ready" && row.approval_applied_by_regression === false && row.protected_action_executed_by_regression === false));
+});
+
+test("trading promotion receipt chain regression fixtures block when source closeout is blocked", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-receipt-chain-regression-source-"));
+  try {
+    const limitedLive = JSON.parse(await readFile("examples/trading/limited-live-governance.json", "utf8"));
+    limitedLive.safety_boundary.approval_receipt_present = true;
+    const limitedLivePath = path.join(root, "limited-live-governance.json");
+    await writeFile(limitedLivePath, `${JSON.stringify(limitedLive, null, 2)}\n`, "utf8");
+
+    const result = await runTradingPromotionReceiptChainRegressionFixtures({ limitedLivePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_promotion_receipt_chain_regression_fixtures_status, "blocked");
+    assert.equal(result.summary.source_promotion_receipt_closeout_ready, false);
+    assert.equal(result.summary.source_receipt_present, true);
+    assert.equal(result.summary.ready_chain_phase_count, 0);
+    assert.ok(result.promotion_receipt_chain_regression_rows.every((row) => row.chain_phase_status === "blocked"));
+    await assert.rejects(
+      () => runTradingPromotionReceiptChainRegressionFixtures({ limitedLivePath, write: false, check: true }),
+      /Trading promotion receipt chain regression fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion receipt chain regression fixtures block when validation-chain registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-receipt-chain-regression-registration-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["trading:promotion-receipt-chain-regression-fixtures"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run trading:promotion-receipt-chain-regression-fixtures -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runTradingPromotionReceiptChainRegressionFixtures({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.trading_promotion_receipt_chain_regression_fixtures_status, "blocked");
+    assert.ok(result.promotion_receipt_chain_regression_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.promotion_receipt_chain_regression_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runTradingPromotionReceiptChainRegressionFixtures({ packagePath, write: false, check: true }),
+      /Trading promotion receipt chain regression fixtures failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("trading promotion receipt chain regression fixtures --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-trading-promotion-receipt-chain-regression-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "trading-promotion-receipt-chain-regression-fixtures.json");
+    const sentinel = "{ \"sentinel\": \"trading-promotion-receipt-chain-regression-fixtures\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runTradingPromotionReceiptChainRegressionFixtures({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

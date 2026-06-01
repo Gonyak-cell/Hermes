@@ -310,6 +310,11 @@
       "entrypoint_type": "command",
       "name": "trading:promotion-receipt-closeout-fixtures",
       "path": "scripts/trading-promotion-receipt-closeout-fixtures.mjs"
+    },
+    {
+      "entrypoint_type": "command",
+      "name": "trading:promotion-receipt-chain-regression-fixtures",
+      "path": "scripts/trading-promotion-receipt-chain-regression-fixtures.mjs"
     }
   ],
   "dependencies": ["common.workflow.approval", "common.audit.replay", "common.test.gate"],
@@ -576,6 +581,12 @@
       "case_id": "golden.trading.promotion_receipt_closeout_fixtures.p412",
       "description": "P412 promotion receipt closeout fixtures close the P401-P412 receipt chain while human receipts remain pending and non-applied.",
       "input_ref": "artifacts/trading-promotion-receipt-closeout-fixtures/latest/trading-promotion-receipt-closeout-fixtures.json",
+      "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
+    },
+    {
+      "case_id": "golden.trading.promotion_receipt_chain_regression_fixtures.p413",
+      "description": "P413 promotion receipt chain regression fixtures verify P401-P412 script, validation, and ledger wiring while receipt and trading mutation remain blocked.",
+      "input_ref": "artifacts/trading-promotion-receipt-chain-regression-fixtures/latest/trading-promotion-receipt-chain-regression-fixtures.json",
       "expected_gate_results": ["classification_gate", "tool_permission_gate", "secrets_gate", "test_gate", "human_approval_gate"]
     }
   ],

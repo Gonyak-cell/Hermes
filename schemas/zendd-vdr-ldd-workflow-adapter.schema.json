@@ -1,0 +1,308 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/zendd-vdr-ldd-workflow-adapter.schema.json",
+  "title": "Zendd VDR/LDD Workflow Adapter",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "zendd_vdr_ldd_workflow_adapter_id",
+    "capability_id",
+    "output_dir",
+    "inputs",
+    "vdr_ldd_workflow_adapter_anchor",
+    "source_client_output_gate_summary",
+    "source_release_candidate_sandbox_summary",
+    "vdr_ldd_workflow_adapter_policy",
+    "vdr_ldd_workflow_adapter_rows",
+    "vdr_ldd_source_span_mapping_rows",
+    "vdr_ldd_quality_privilege_gate_rows",
+    "vdr_ldd_operator_claim_surface_rows",
+    "vdr_ldd_workflow_fail_closed_rows",
+    "vdr_ldd_workflow_closeout_rows",
+    "vdr_ldd_workflow_gate_rows",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "zendd-vdr-ldd-workflow-adapter.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "zendd_vdr_ldd_workflow_adapter_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "project.zendd.vdr_ldd_workflow_adapter" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["schema_path", "package_path", "integration_phase_ledger_path", "development_phase_ledger_path", "zendd_project_root"],
+      "additionalProperties": true
+    },
+    "vdr_ldd_workflow_adapter_anchor": {
+      "type": "object",
+      "required": ["schema_version", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "source_client_output_gate_status", "source_release_candidate_sandbox_status"],
+      "properties": {
+        "schema_version": { "const": "zendd-vdr-ldd-workflow-adapter-anchor.v1" },
+        "phase_range": { "const": "P901-P920" },
+        "phase_slot": { "const": "P901" },
+        "previous_phase_slot": { "const": "P900" },
+        "next_phase_slot": { "const": "P921" },
+        "command_name": { "const": "project:zendd-vdr-ldd-workflow-adapter" },
+        "source_client_output_gate_status": { "const": "ready_for_operator_surface_bridge" },
+        "source_release_candidate_sandbox_status": { "const": "ready_for_zendd_release_candidate_sandbox" }
+      },
+      "additionalProperties": true
+    },
+    "vdr_ldd_workflow_adapter_policy": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "phase_range",
+        "phase_slot",
+        "project_id",
+        "workflow_surface_creation_allowed",
+        "vdr_source_mutation_allowed_now",
+        "ldd_workflow_mutation_allowed_now",
+        "client_output_generation_allowed_now",
+        "client_delivery_allowed_now",
+        "automatic_legal_pass_allowed",
+        "legal_advice_or_filing_decision_allowed_now",
+        "receipt_application_allowed_now",
+        "release_candidate_publish_allowed_now",
+        "raw_vdr_material_copy_allowed_in_hermes",
+        "raw_client_document_copy_allowed_in_hermes",
+        "raw_fact_text_storage_allowed_in_hermes",
+        "raw_ocr_text_storage_allowed_in_hermes",
+        "secret_read_allowed_now",
+        "workflow_pass_requires",
+        "blocked_status_requires",
+        "next_allowed_action"
+      ],
+      "properties": {
+        "schema_version": { "const": "zendd-vdr-ldd-workflow-adapter-policy.v1" },
+        "phase_range": { "const": "P901-P920" },
+        "phase_slot": { "const": "P901" },
+        "project_id": { "const": "project.zendd" },
+        "workflow_surface_creation_allowed": { "const": true },
+        "vdr_source_mutation_allowed_now": { "const": false },
+        "ldd_workflow_mutation_allowed_now": { "const": false },
+        "client_output_generation_allowed_now": { "const": false },
+        "client_delivery_allowed_now": { "const": false },
+        "automatic_legal_pass_allowed": { "const": false },
+        "legal_advice_or_filing_decision_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "release_candidate_publish_allowed_now": { "const": false },
+        "raw_vdr_material_copy_allowed_in_hermes": { "const": false },
+        "raw_client_document_copy_allowed_in_hermes": { "const": false },
+        "raw_fact_text_storage_allowed_in_hermes": { "const": false },
+        "raw_ocr_text_storage_allowed_in_hermes": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "workflow_pass_requires": { "type": "array", "minItems": 13 },
+        "blocked_status_requires": { "type": "array", "minItems": 3 }
+      },
+      "additionalProperties": true
+    },
+    "vdr_ldd_workflow_adapter_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "phase_slot",
+          "row_id",
+          "project_id",
+          "workflow_adapter_ref",
+          "workflow_type",
+          "claim_id",
+          "output_ref",
+          "source_trace_ref",
+          "fact_claim_ref",
+          "issue_ref",
+          "citation_ref",
+          "redacted_summary_ref",
+          "quality_gate_ref",
+          "conflict_gate_ref",
+          "privilege_gate_ref",
+          "reviewer_ref",
+          "hard_gate_ref",
+          "human_receipt_ref",
+          "source_span_preserved",
+          "citation_gate_preserved",
+          "quality_gate_preserved",
+          "conflict_gate_preserved",
+          "privilege_gate_preserved",
+          "human_review_gate_preserved",
+          "vdr_source_mutation_allowed_now",
+          "ldd_workflow_mutation_allowed_now",
+          "client_output_generation_allowed_now",
+          "automatic_legal_pass_allowed",
+          "raw_vdr_material_copy_allowed_in_hermes",
+          "raw_client_document_copy_allowed_in_hermes",
+          "raw_fact_text_storage_allowed_in_hermes",
+          "secret_read_allowed_now",
+          "current_verdict",
+          "block_reason",
+          "responsible_owner",
+          "next_allowed_action"
+        ],
+        "properties": {
+          "schema_version": { "const": "zendd-vdr-ldd-workflow-adapter-row.v1" },
+          "source_span_preserved": { "const": true },
+          "citation_gate_preserved": { "const": true },
+          "quality_gate_preserved": { "const": true },
+          "conflict_gate_preserved": { "const": true },
+          "privilege_gate_preserved": { "const": true },
+          "human_review_gate_preserved": { "const": true },
+          "vdr_source_mutation_allowed_now": { "const": false },
+          "ldd_workflow_mutation_allowed_now": { "const": false },
+          "client_output_generation_allowed_now": { "const": false },
+          "automatic_legal_pass_allowed": { "const": false },
+          "raw_vdr_material_copy_allowed_in_hermes": { "const": false },
+          "raw_client_document_copy_allowed_in_hermes": { "const": false },
+          "raw_fact_text_storage_allowed_in_hermes": { "const": false },
+          "secret_read_allowed_now": { "const": false },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "vdr_ldd_source_span_mapping_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "claim_id", "source_trace_ref", "fact_claim_ref", "issue_ref", "citation_ref", "redacted_summary_ref", "source_span_ref", "evidence_ref", "raw_source_text_present", "raw_vdr_material_copy_allowed_in_hermes", "raw_client_document_copy_allowed_in_hermes", "raw_fact_text_storage_allowed_in_hermes", "citation_required", "source_span_required", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-vdr-ldd-source-span-mapping-row.v1" },
+          "raw_source_text_present": { "const": false },
+          "raw_vdr_material_copy_allowed_in_hermes": { "const": false },
+          "raw_client_document_copy_allowed_in_hermes": { "const": false },
+          "raw_fact_text_storage_allowed_in_hermes": { "const": false },
+          "citation_required": { "const": true },
+          "source_span_required": { "const": true },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "vdr_ldd_quality_privilege_gate_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "claim_id", "output_ref", "quality_gate_ref", "citation_gate_ref", "conflict_gate_ref", "privilege_gate_ref", "exposure_gate_refs", "quality_evidence_refs", "human_receipt_ref", "quality_gate_passed", "citation_gate_passed", "conflict_gate_passed", "privilege_gate_passed", "human_receipt_payload_present", "automatic_legal_pass_allowed", "client_output_generation_allowed_now", "client_delivery_allowed_now", "raw_vdr_material_copy_allowed_in_hermes", "raw_client_document_copy_allowed_in_hermes", "raw_fact_text_storage_allowed_in_hermes", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-vdr-ldd-quality-privilege-gate-row.v1" },
+          "quality_gate_passed": { "const": false },
+          "citation_gate_passed": { "const": false },
+          "conflict_gate_passed": { "const": false },
+          "privilege_gate_passed": { "const": false },
+          "human_receipt_payload_present": { "const": false },
+          "automatic_legal_pass_allowed": { "const": false },
+          "client_output_generation_allowed_now": { "const": false },
+          "client_delivery_allowed_now": { "const": false },
+          "raw_vdr_material_copy_allowed_in_hermes": { "const": false },
+          "raw_client_document_copy_allowed_in_hermes": { "const": false },
+          "raw_fact_text_storage_allowed_in_hermes": { "const": false },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "vdr_ldd_operator_claim_surface_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "claim_id", "workflow_adapter_ref", "current_verdict", "missing_evidence", "missing_reviewer_or_receipt", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-vdr-ldd-operator-claim-surface-row.v1" },
+          "current_verdict": { "const": "blocked" },
+          "missing_evidence": { "type": "array", "minItems": 4 },
+          "missing_reviewer_or_receipt": { "type": "array", "minItems": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "vdr_ldd_workflow_fail_closed_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "fixture_id", "project_id", "fixture_status", "automatic_legal_pass_allowed", "vdr_source_mutation_allowed_now", "ldd_workflow_mutation_allowed_now", "client_output_generation_allowed_now", "client_delivery_allowed_now", "receipt_application_allowed_now", "release_candidate_publish_allowed_now", "raw_vdr_material_copy_allowed_in_hermes", "raw_client_document_copy_allowed_in_hermes", "raw_fact_text_storage_allowed_in_hermes", "secret_read_allowed_now", "message", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-vdr-ldd-workflow-fail-closed-row.v1" },
+          "fixture_status": { "const": "pass" },
+          "automatic_legal_pass_allowed": { "const": false },
+          "vdr_source_mutation_allowed_now": { "const": false },
+          "ldd_workflow_mutation_allowed_now": { "const": false },
+          "client_output_generation_allowed_now": { "const": false },
+          "client_delivery_allowed_now": { "const": false },
+          "receipt_application_allowed_now": { "const": false },
+          "release_candidate_publish_allowed_now": { "const": false },
+          "raw_vdr_material_copy_allowed_in_hermes": { "const": false },
+          "raw_client_document_copy_allowed_in_hermes": { "const": false },
+          "raw_fact_text_storage_allowed_in_hermes": { "const": false },
+          "secret_read_allowed_now": { "const": false }
+        },
+        "additionalProperties": true
+      }
+    },
+    "vdr_ldd_workflow_closeout_rows": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "closeout_status", "workflow_adapter_ready", "vdr_ldd_workflow_adapter_count", "vdr_ldd_source_span_mapping_count", "vdr_ldd_quality_privilege_gate_count", "vdr_ldd_operator_claim_surface_count", "automatic_legal_pass_allowed", "vdr_source_mutation_allowed_now", "ldd_workflow_mutation_allowed_now", "client_output_generation_allowed_now", "client_delivery_allowed_now", "receipt_application_allowed_now", "release_candidate_publish_allowed_now", "raw_vdr_material_copy_allowed_in_hermes", "raw_client_document_copy_allowed_in_hermes", "raw_fact_text_storage_allowed_in_hermes", "secret_read_allowed_now", "next_integration_phase_slot", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-vdr-ldd-workflow-closeout-row.v1" },
+          "phase_slot": { "const": "P920" },
+          "closeout_status": { "const": "ready_for_zendd_vdr_ldd_workflow_adapter" },
+          "workflow_adapter_ready": { "const": true },
+          "automatic_legal_pass_allowed": { "const": false },
+          "vdr_source_mutation_allowed_now": { "const": false },
+          "ldd_workflow_mutation_allowed_now": { "const": false },
+          "client_output_generation_allowed_now": { "const": false },
+          "client_delivery_allowed_now": { "const": false },
+          "receipt_application_allowed_now": { "const": false },
+          "release_candidate_publish_allowed_now": { "const": false },
+          "raw_vdr_material_copy_allowed_in_hermes": { "const": false },
+          "raw_client_document_copy_allowed_in_hermes": { "const": false },
+          "raw_fact_text_storage_allowed_in_hermes": { "const": false },
+          "secret_read_allowed_now": { "const": false },
+          "next_integration_phase_slot": { "const": "P921" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "vdr_ldd_workflow_gate_rows": {
+      "type": "array",
+      "minItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "gate_id", "phase_slot", "gate_status", "message", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-vdr-ldd-workflow-gate-row.v1" },
+          "gate_status": { "enum": ["pass", "blocked"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "validation_items": { "type": "array", "minItems": 1 },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": ["zendd_vdr_ldd_workflow_adapter_status", "automatic_legal_pass_allowed", "raw_vdr_material_copy_allowed_in_hermes", "validation_error_count"],
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

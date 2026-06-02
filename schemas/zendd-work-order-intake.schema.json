@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/zendd-work-order-intake.schema.json",
+  "title": "Zendd Work Order Intake",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "zendd_work_order_intake_id",
+    "capability_id",
+    "output_dir",
+    "inputs",
+    "work_order_intake_anchor",
+    "frontend_operation_summary",
+    "intake_policy",
+    "work_order_source_rows",
+    "work_order_classification_rows",
+    "work_order_rows",
+    "protected_work_order_block_rows",
+    "work_order_route_rows",
+    "work_order_intake_closeout_rows",
+    "work_order_intake_gate_rows",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "zendd-work-order-intake.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "zendd_work_order_intake_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "project.zendd.work_order_intake" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["schema_path", "package_path", "development_phase_ledger_path", "zendd_project_root"],
+      "additionalProperties": true
+    },
+    "work_order_intake_anchor": {
+      "type": "object",
+      "required": ["schema_version", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "source_frontend_operation_status"],
+      "properties": {
+        "schema_version": { "const": "zendd-work-order-intake-anchor.v1" },
+        "phase_range": { "const": "P781-P800" },
+        "phase_slot": { "const": "P781" },
+        "previous_phase_slot": { "const": "P780" },
+        "next_phase_slot": { "const": "P801" },
+        "command_name": { "const": "project:zendd-work-order-intake" },
+        "source_frontend_operation_status": { "const": "ready_for_zendd_frontend_operation_shell" }
+      },
+      "additionalProperties": true
+    },
+    "intake_policy": {
+      "type": "object",
+      "required": ["schema_version", "phase_range", "phase_slot", "project_id", "work_order_intake_allowed", "planning_only_pass_allowed", "zendd_mutation_allowed_now", "command_execution_allowed_now", "raw_material_copy_allowed_now", "secret_read_allowed_now", "protected_action_execution_allowed", "next_allowed_action"],
+      "properties": {
+        "schema_version": { "const": "zendd-work-order-intake-policy.v1" },
+        "phase_range": { "const": "P781-P800" },
+        "phase_slot": { "const": "P781" },
+        "project_id": { "const": "project.zendd" },
+        "work_order_intake_allowed": { "const": true },
+        "planning_only_pass_allowed": { "const": true },
+        "zendd_mutation_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "raw_material_copy_allowed_now": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "protected_action_execution_allowed": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "work_order_source_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "phase_slot", "project_id", "request_type", "request_summary", "domain_area", "protection_class", "source_ref_policy", "raw_material_payload_allowed", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-work-order-source-row.v1" },
+          "project_id": { "const": "project.zendd" },
+          "raw_material_payload_allowed": { "const": false },
+          "next_allowed_action": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "work_order_classification_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "phase_slot", "source_row_ref", "request_type", "protected_action", "risk_level", "required_reviewer_ref", "required_hard_gate_ref", "human_receipt_required", "classification_verdict", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-work-order-classification-row.v1" },
+          "protected_action": { "type": "boolean" },
+          "risk_level": { "enum": ["low", "medium", "high", "critical"] },
+          "classification_verdict": { "const": "pass" },
+          "next_allowed_action": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "work_order_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "work_order_id", "source_row_ref", "project_id", "request_type", "domain_area", "work_order_status", "work_order_scope", "protected_action_class", "risk_level", "evidence_ref", "reviewer_ref", "hard_gate_ref", "human_receipt_required", "rollback_target_ref", "command_execution_allowed_now", "zendd_mutation_allowed_now", "raw_material_copy_allowed_now", "secret_read_allowed_now", "protected_action_execution_allowed", "current_verdict", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-work-order-row.v1" },
+          "project_id": { "const": "project.zendd" },
+          "current_verdict": { "enum": ["pass", "blocked"] },
+          "command_execution_allowed_now": { "const": false },
+          "zendd_mutation_allowed_now": { "const": false },
+          "raw_material_copy_allowed_now": { "const": false },
+          "secret_read_allowed_now": { "const": false },
+          "protected_action_execution_allowed": { "const": false },
+          "next_allowed_action": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "protected_work_order_block_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "work_order_id", "request_type", "protected_action_class", "current_verdict", "block_reason", "responsible_owner", "evidence_ref", "hard_gate_ref", "human_receipt_required", "human_receipt_ref", "rollback_target_ref", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-protected-work-order-block-row.v1" },
+          "current_verdict": { "const": "blocked" },
+          "human_receipt_required": { "const": true },
+          "next_allowed_action": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "work_order_route_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "route_path", "route_type", "read_only", "server_started", "zendd_mutation_allowed_now", "protected_action_execution_allowed", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-work-order-route-row.v1" },
+          "read_only": { "const": true },
+          "server_started": { "const": false },
+          "zendd_mutation_allowed_now": { "const": false },
+          "protected_action_execution_allowed": { "const": false }
+        },
+        "additionalProperties": true
+      }
+    },
+    "work_order_intake_closeout_rows": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "closeout_status", "work_order_intake_ready", "planning_only_pass_allowed", "protected_work_orders_blocked", "zendd_mutation_allowed_now", "command_execution_allowed_now", "raw_material_copy_allowed_now", "secret_read_allowed_now", "protected_action_execution_allowed", "next_integration_phase_slot", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-work-order-intake-closeout-row.v1" },
+          "phase_slot": { "const": "P800" },
+          "closeout_status": { "const": "ready_for_zendd_work_order_intake" },
+          "work_order_intake_ready": { "const": true },
+          "planning_only_pass_allowed": { "const": true },
+          "protected_work_orders_blocked": { "const": true },
+          "zendd_mutation_allowed_now": { "const": false },
+          "command_execution_allowed_now": { "const": false },
+          "raw_material_copy_allowed_now": { "const": false },
+          "secret_read_allowed_now": { "const": false },
+          "protected_action_execution_allowed": { "const": false },
+          "next_integration_phase_slot": { "const": "P801" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "work_order_intake_gate_rows": {
+      "type": "array",
+      "minItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "gate_id", "phase_slot", "gate_status", "message", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-work-order-intake-gate-row.v1" },
+          "gate_status": { "enum": ["pass", "blocked"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "validation_items": { "type": "array" },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": ["phase_range", "phase_slot", "next_phase_slot", "command_name", "zendd_work_order_intake_status", "source_frontend_operation_status", "selected_integration_mode", "work_order_source_row_count", "work_order_classification_row_count", "work_order_row_count", "planning_pass_work_order_count", "protected_work_order_block_count", "route_surface_row_count", "work_order_intake_ready", "zendd_mutation_allowed_now", "command_execution_allowed_now", "raw_material_copy_allowed_now", "secret_read_allowed_now", "protected_action_execution_allowed", "validation_error_count"],
+      "properties": {
+        "phase_range": { "const": "P781-P800" },
+        "phase_slot": { "const": "P781" },
+        "next_phase_slot": { "const": "P801" },
+        "command_name": { "const": "project:zendd-work-order-intake" },
+        "zendd_work_order_intake_status": { "const": "ready_for_zendd_work_order_intake" },
+        "source_frontend_operation_status": { "const": "ready_for_zendd_frontend_operation_shell" },
+        "selected_integration_mode": { "const": "external_project_adapter" },
+        "work_order_intake_ready": { "const": true },
+        "zendd_mutation_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "raw_material_copy_allowed_now": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "protected_action_execution_allowed": { "const": false },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

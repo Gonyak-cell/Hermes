@@ -1,0 +1,216 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/zendd-development-freeze-cockpit.schema.json",
+  "title": "Zendd Development Freeze Cockpit",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "zendd_development_freeze_cockpit_id",
+    "capability_id",
+    "output_dir",
+    "inputs",
+    "development_freeze_cockpit_anchor",
+    "source_active_operator_dashboard_summary",
+    "source_human_receipt_intake_summary",
+    "development_freeze_policy",
+    "development_freeze_claim_rows",
+    "development_freeze_cockpit_panel_rows",
+    "development_freeze_adjudication_rows",
+    "development_freeze_fail_closed_rows",
+    "development_freeze_closeout_rows",
+    "development_freeze_gate_rows",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "zendd-development-freeze-cockpit.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "zendd_development_freeze_cockpit_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "project.zendd.development_freeze_cockpit" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["schema_path", "package_path", "integration_phase_ledger_path", "development_phase_ledger_path", "design_tokens_path", "zendd_project_root"],
+      "additionalProperties": true
+    },
+    "development_freeze_cockpit_anchor": {
+      "type": "object",
+      "required": ["schema_version", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "source_active_operator_dashboard_status", "source_human_receipt_intake_status"],
+      "properties": {
+        "schema_version": { "const": "zendd-development-freeze-cockpit-anchor.v1" },
+        "phase_range": { "const": "P981-P1000" },
+        "phase_slot": { "const": "P981" },
+        "previous_phase_slot": { "const": "P980" },
+        "next_phase_slot": { "const": "P1001" },
+        "command_name": { "const": "project:zendd-development-freeze-cockpit" },
+        "source_active_operator_dashboard_status": { "const": "ready_for_zendd_active_operator_dashboard" },
+        "source_human_receipt_intake_status": { "const": "ready_for_zendd_human_receipt_intake" }
+      },
+      "additionalProperties": true
+    },
+    "development_freeze_policy": {
+      "type": "object",
+      "required": ["schema_version", "phase_range", "phase_slot", "project_id", "freeze_adjudication_surface_creation_allowed", "pass_without_evidence_allowed", "pass_without_reviewer_or_gate_allowed", "protected_pass_without_human_receipt_allowed", "unsafe_true_pass_allowed", "blocked_without_reason_allowed", "blocked_without_owner_allowed", "blocked_without_next_action_allowed", "undocumented_block_allowed", "server_started", "route_mutation_performed", "command_execution_allowed_now", "protected_action_execution_allowed_now", "recovery_execution_allowed_now", "rollback_execution_allowed_now", "receipt_application_allowed_now", "pass_promotion_allowed_now", "raw_vdr_or_client_material_copy_allowed_now", "raw_log_storage_allowed", "secret_read_allowed_now", "final_pass_requires", "final_block_requires", "protected_claim_requires", "next_allowed_action"],
+      "properties": {
+        "schema_version": { "const": "zendd-development-freeze-policy.v1" },
+        "phase_range": { "const": "P981-P1000" },
+        "phase_slot": { "const": "P981" },
+        "project_id": { "const": "project.zendd" },
+        "freeze_adjudication_surface_creation_allowed": { "const": true },
+        "pass_without_evidence_allowed": { "const": false },
+        "pass_without_reviewer_or_gate_allowed": { "const": false },
+        "protected_pass_without_human_receipt_allowed": { "const": false },
+        "unsafe_true_pass_allowed": { "const": false },
+        "blocked_without_reason_allowed": { "const": false },
+        "blocked_without_owner_allowed": { "const": false },
+        "blocked_without_next_action_allowed": { "const": false },
+        "undocumented_block_allowed": { "const": false },
+        "server_started": { "const": false },
+        "route_mutation_performed": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "protected_action_execution_allowed_now": { "const": false },
+        "recovery_execution_allowed_now": { "const": false },
+        "rollback_execution_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "pass_promotion_allowed_now": { "const": false },
+        "raw_vdr_or_client_material_copy_allowed_now": { "const": false },
+        "raw_log_storage_allowed": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "final_pass_requires": { "type": "array", "minItems": 5 },
+        "final_block_requires": { "type": "array", "minItems": 5 },
+        "protected_claim_requires": { "type": "array", "minItems": 2 }
+      },
+      "additionalProperties": true
+    },
+    "development_freeze_claim_rows": {
+      "type": "array",
+      "minItems": 20,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "claim_id", "claim_type", "source_type", "source_ref", "evidence_ref", "reviewer_ref", "hard_gate_ref", "protected_claim", "human_receipt_required", "rollback_target_ref", "unsafe_flags_false", "current_verdict", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-development-freeze-claim-row.v1" },
+          "unsafe_flags_false": { "const": true },
+          "current_verdict": { "enum": ["pass", "blocked"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "development_freeze_cockpit_panel_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "panel_id", "title", "display_count", "source_collection", "panel_status", "read_only", "current_verdict", "server_started", "route_mutation_performed", "pass_promotion_allowed_now", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-development-freeze-cockpit-panel-row.v1" },
+          "panel_status": { "const": "ready_read_only" },
+          "read_only": { "const": true },
+          "current_verdict": { "const": "pass" },
+          "server_started": { "const": false },
+          "route_mutation_performed": { "const": false },
+          "pass_promotion_allowed_now": { "const": false }
+        },
+        "additionalProperties": true
+      }
+    },
+    "development_freeze_adjudication_rows": {
+      "type": "array",
+      "minItems": 20,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "claim_id", "source_ref", "current_verdict", "pass_condition_satisfied", "block_condition_satisfied", "evidence_ref_present", "reviewer_ref_present", "hard_gate_ref_present", "protected_human_receipt_present", "rollback_target_ref_present", "unsafe_flags_false", "block_reason_present", "responsible_owner_present", "next_allowed_action_present", "final_adjudication_status", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-development-freeze-adjudication-row.v1" },
+          "unsafe_flags_false": { "const": true },
+          "final_adjudication_status": { "const": "adjudicated" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "development_freeze_fail_closed_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "fixture_id", "project_id", "fixture_status", "server_started", "route_mutation_performed", "command_execution_allowed_now", "protected_action_execution_allowed_now", "recovery_execution_allowed_now", "rollback_execution_allowed_now", "receipt_application_allowed_now", "pass_promotion_allowed_now", "raw_vdr_or_client_material_copy_allowed_now", "raw_log_storage_allowed", "secret_read_allowed_now", "message", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-development-freeze-fail-closed-row.v1" },
+          "fixture_status": { "const": "pass" },
+          "server_started": { "const": false },
+          "route_mutation_performed": { "const": false },
+          "command_execution_allowed_now": { "const": false },
+          "protected_action_execution_allowed_now": { "const": false },
+          "recovery_execution_allowed_now": { "const": false },
+          "rollback_execution_allowed_now": { "const": false },
+          "receipt_application_allowed_now": { "const": false },
+          "pass_promotion_allowed_now": { "const": false },
+          "raw_vdr_or_client_material_copy_allowed_now": { "const": false },
+          "raw_log_storage_allowed": { "const": false },
+          "secret_read_allowed_now": { "const": false }
+        },
+        "additionalProperties": true
+      }
+    },
+    "development_freeze_closeout_rows": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "closeout_status", "development_freeze_cockpit_ready", "freeze_claim_count", "pass_claim_count", "blocked_claim_count", "cockpit_panel_count", "adjudication_row_count", "unsafe_flag_count", "server_started", "route_mutation_performed", "command_execution_allowed_now", "protected_action_execution_allowed_now", "recovery_execution_allowed_now", "rollback_execution_allowed_now", "receipt_application_allowed_now", "pass_promotion_allowed_now", "raw_vdr_or_client_material_copy_allowed_now", "raw_log_storage_allowed", "secret_read_allowed_now", "next_integration_phase_slot", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-development-freeze-closeout-row.v1" },
+          "phase_slot": { "const": "P1000" },
+          "closeout_status": { "const": "ready_for_zendd_development_freeze_cockpit" },
+          "development_freeze_cockpit_ready": { "const": true },
+          "unsafe_flag_count": { "const": 0 },
+          "server_started": { "const": false },
+          "route_mutation_performed": { "const": false },
+          "command_execution_allowed_now": { "const": false },
+          "protected_action_execution_allowed_now": { "const": false },
+          "recovery_execution_allowed_now": { "const": false },
+          "rollback_execution_allowed_now": { "const": false },
+          "receipt_application_allowed_now": { "const": false },
+          "pass_promotion_allowed_now": { "const": false },
+          "raw_vdr_or_client_material_copy_allowed_now": { "const": false },
+          "raw_log_storage_allowed": { "const": false },
+          "secret_read_allowed_now": { "const": false },
+          "next_integration_phase_slot": { "const": "P1001" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "development_freeze_gate_rows": {
+      "type": "array",
+      "minItems": 13,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "gate_id", "phase_slot", "gate_status", "message", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-development-freeze-gate-row.v1" },
+          "gate_status": { "enum": ["pass", "blocked"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "validation_items": { "type": "array", "minItems": 1 },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": ["zendd_development_freeze_cockpit_status", "freeze_claim_count", "pass_claim_count", "blocked_claim_count", "unsafe_flag_count", "validation_error_count"],
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

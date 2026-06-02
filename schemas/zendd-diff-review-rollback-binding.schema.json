@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/zendd-diff-review-rollback-binding.schema.json",
+  "title": "Zendd Diff Review Rollback Binding",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "zendd_diff_review_rollback_binding_id",
+    "capability_id",
+    "output_dir",
+    "inputs",
+    "diff_review_rollback_binding_anchor",
+    "source_protected_action_escalation_summary",
+    "source_safe_patch_lane_summary",
+    "source_integration_setup_summary",
+    "diff_review_policy",
+    "diff_inventory_rows",
+    "diff_review_packet_rows",
+    "rollback_binding_rows",
+    "protected_diff_block_rows",
+    "diff_review_fail_closed_rows",
+    "diff_review_closeout_rows",
+    "diff_review_gate_rows",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "zendd-diff-review-rollback-binding.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "zendd_diff_review_rollback_binding_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "project.zendd.diff_review_rollback_binding" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["schema_path", "package_path", "integration_phase_ledger_path", "development_phase_ledger_path", "zendd_project_root"],
+      "additionalProperties": true
+    },
+    "diff_review_rollback_binding_anchor": {
+      "type": "object",
+      "required": ["schema_version", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "source_protected_action_escalation_status", "source_safe_patch_lane_status", "source_integration_setup_status"],
+      "properties": {
+        "schema_version": { "const": "zendd-diff-review-rollback-binding-anchor.v1" },
+        "phase_range": { "const": "P861-P880" },
+        "phase_slot": { "const": "P861" },
+        "previous_phase_slot": { "const": "P860" },
+        "next_phase_slot": { "const": "P881" },
+        "command_name": { "const": "project:zendd-diff-review-rollback-binding" },
+        "source_protected_action_escalation_status": { "const": "ready_for_zendd_protected_action_escalation" },
+        "source_safe_patch_lane_status": { "const": "ready_for_zendd_safe_patch_lane" }
+      },
+      "additionalProperties": true
+    },
+    "diff_review_policy": {
+      "type": "object",
+      "required": ["schema_version", "phase_range", "phase_slot", "project_id", "review_packet_creation_allowed", "rollback_binding_required", "diff_apply_allowed_now", "zendd_file_write_allowed_now", "command_execution_allowed_now", "protected_action_execution_allowed_now", "receipt_application_allowed_now", "rollback_execution_allowed_now", "raw_diff_storage_allowed", "raw_file_content_read_allowed", "raw_material_copy_allowed_now", "secret_read_allowed_now", "unreviewed_diff_pass_allowed", "protected_path_pass_allowed_without_receipt", "diff_pass_requires", "blocked_status_requires", "next_allowed_action"],
+      "properties": {
+        "schema_version": { "const": "zendd-diff-review-policy.v1" },
+        "phase_range": { "const": "P861-P880" },
+        "phase_slot": { "const": "P861" },
+        "project_id": { "const": "project.zendd" },
+        "review_packet_creation_allowed": { "const": true },
+        "rollback_binding_required": { "const": true },
+        "diff_apply_allowed_now": { "const": false },
+        "zendd_file_write_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "protected_action_execution_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "rollback_execution_allowed_now": { "const": false },
+        "raw_diff_storage_allowed": { "const": false },
+        "raw_file_content_read_allowed": { "const": false },
+        "raw_material_copy_allowed_now": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "unreviewed_diff_pass_allowed": { "const": false },
+        "protected_path_pass_allowed_without_receipt": { "const": false },
+        "diff_pass_requires": { "type": "array", "minItems": 6 },
+        "blocked_status_requires": { "type": "array", "minItems": 4 }
+      },
+      "additionalProperties": true
+    },
+    "diff_inventory_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "diff_ref", "source_dirty_tree_row_id", "status_code", "path_classification", "risk_level", "change_scope", "protected_path", "human_review_required", "human_receipt_required", "raw_file_content_read", "raw_diff_storage_allowed", "raw_material_copy_allowed_now", "secret_read_allowed_now", "diff_apply_allowed_now", "zendd_file_write_allowed_now", "command_execution_allowed_now", "evidence_ref", "reviewer_ref", "hard_gate_ref", "rollback_target_ref", "current_verdict", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-diff-inventory-row.v1" },
+          "project_id": { "const": "project.zendd" },
+          "raw_file_content_read": { "const": false },
+          "raw_diff_storage_allowed": { "const": false },
+          "raw_material_copy_allowed_now": { "const": false },
+          "secret_read_allowed_now": { "const": false },
+          "diff_apply_allowed_now": { "const": false },
+          "zendd_file_write_allowed_now": { "const": false },
+          "command_execution_allowed_now": { "const": false },
+          "current_verdict": { "enum": ["pass", "blocked"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "diff_review_packet_rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "diff_review_packet_ref", "diff_ref", "source_diff_inventory_row_id", "path_classification", "change_scope", "protected_path", "evidence_ref", "reviewer_ref", "hard_gate_ref", "human_receipt_required", "human_receipt_ref", "rollback_target_ref", "packet_status", "review_status", "raw_file_content_read", "raw_diff_payload_stored", "raw_material_copy_allowed_now", "secret_read_allowed_now", "diff_apply_allowed_now", "zendd_file_write_allowed_now", "command_execution_allowed_now", "pass_candidate_allowed_now", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-diff-review-packet-row.v1" },
+          "packet_status": { "const": "pending_human_review" },
+          "review_status": { "const": "pending_human_review" },
+          "human_receipt_required": { "const": true },
+          "raw_file_content_read": { "const": false },
+          "raw_diff_payload_stored": { "const": false },
+          "raw_material_copy_allowed_now": { "const": false },
+          "secret_read_allowed_now": { "const": false },
+          "diff_apply_allowed_now": { "const": false },
+          "zendd_file_write_allowed_now": { "const": false },
+          "command_execution_allowed_now": { "const": false },
+          "pass_candidate_allowed_now": { "const": false },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "rollback_binding_rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "rollback_binding_ref", "diff_review_packet_ref", "diff_ref", "evidence_ref", "reviewer_ref", "hard_gate_ref", "rollback_target_ref", "rollback_target_status", "rollback_execution_allowed_now", "zendd_file_write_allowed_now", "diff_apply_allowed_now", "current_verdict", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-rollback-binding-row.v1" },
+          "rollback_target_status": { "const": "bound_pending_review" },
+          "rollback_execution_allowed_now": { "const": false },
+          "zendd_file_write_allowed_now": { "const": false },
+          "diff_apply_allowed_now": { "const": false },
+          "current_verdict": { "const": "pass" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "protected_diff_block_rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "protected_diff_block_ref", "diff_ref", "source_diff_inventory_row_id", "path_classification", "change_scope", "risk_level", "protected_path", "evidence_ref", "reviewer_ref", "hard_gate_ref", "documented_human_gate_ref", "human_receipt_required", "rollback_target_ref", "raw_file_content_read", "raw_diff_payload_stored", "raw_material_copy_allowed_now", "secret_read_allowed_now", "diff_apply_allowed_now", "zendd_file_write_allowed_now", "command_execution_allowed_now", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-protected-diff-block-row.v1" },
+          "protected_path": { "const": true },
+          "human_receipt_required": { "const": true },
+          "raw_file_content_read": { "const": false },
+          "raw_diff_payload_stored": { "const": false },
+          "raw_material_copy_allowed_now": { "const": false },
+          "secret_read_allowed_now": { "const": false },
+          "diff_apply_allowed_now": { "const": false },
+          "zendd_file_write_allowed_now": { "const": false },
+          "command_execution_allowed_now": { "const": false },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "diff_review_fail_closed_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "fixture_id", "project_id", "fixture_status", "diff_apply_allowed_now", "zendd_file_write_allowed_now", "command_execution_allowed_now", "protected_action_execution_allowed_now", "receipt_application_allowed_now", "rollback_execution_allowed_now", "raw_diff_storage_allowed", "raw_file_content_read_allowed", "raw_material_copy_allowed_now", "secret_read_allowed_now", "message", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-diff-review-fail-closed-row.v1" },
+          "fixture_status": { "const": "pass" },
+          "diff_apply_allowed_now": { "const": false },
+          "zendd_file_write_allowed_now": { "const": false },
+          "command_execution_allowed_now": { "const": false },
+          "protected_action_execution_allowed_now": { "const": false },
+          "receipt_application_allowed_now": { "const": false },
+          "rollback_execution_allowed_now": { "const": false },
+          "raw_diff_storage_allowed": { "const": false },
+          "raw_file_content_read_allowed": { "const": false },
+          "raw_material_copy_allowed_now": { "const": false },
+          "secret_read_allowed_now": { "const": false }
+        },
+        "additionalProperties": true
+      }
+    },
+    "diff_review_closeout_rows": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "closeout_status", "diff_review_rollback_binding_ready", "dirty_diff_row_count", "diff_review_packet_count", "rollback_binding_count", "protected_diff_block_count", "diff_apply_allowed_now", "zendd_file_write_allowed_now", "command_execution_allowed_now", "protected_action_execution_allowed_now", "receipt_application_allowed_now", "rollback_execution_allowed_now", "raw_diff_storage_allowed", "raw_file_content_read_allowed", "raw_material_copy_allowed_now", "secret_read_allowed_now", "next_integration_phase_slot", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-diff-review-closeout-row.v1" },
+          "phase_slot": { "const": "P880" },
+          "closeout_status": { "const": "ready_for_zendd_diff_review_rollback_binding" },
+          "diff_review_rollback_binding_ready": { "const": true },
+          "diff_apply_allowed_now": { "const": false },
+          "zendd_file_write_allowed_now": { "const": false },
+          "command_execution_allowed_now": { "const": false },
+          "protected_action_execution_allowed_now": { "const": false },
+          "receipt_application_allowed_now": { "const": false },
+          "rollback_execution_allowed_now": { "const": false },
+          "raw_diff_storage_allowed": { "const": false },
+          "raw_file_content_read_allowed": { "const": false },
+          "raw_material_copy_allowed_now": { "const": false },
+          "secret_read_allowed_now": { "const": false },
+          "next_integration_phase_slot": { "const": "P881" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "diff_review_gate_rows": {
+      "type": "array",
+      "minItems": 13,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "gate_id", "phase_slot", "gate_status", "message", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-diff-review-gate-row.v1" },
+          "gate_status": { "enum": ["pass", "blocked"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "validation_items": { "type": "array" },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": ["phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "zendd_diff_review_rollback_binding_status", "source_protected_action_escalation_status", "source_safe_patch_lane_status", "source_integration_setup_status", "dirty_tree_row_count", "dirty_diff_row_count", "diff_inventory_row_count", "diff_review_packet_count", "rollback_binding_count", "protected_diff_block_count", "diff_review_fail_closed_count", "diff_review_closeout_ready", "diff_apply_allowed_now", "zendd_file_write_allowed_now", "command_execution_allowed_now", "protected_action_execution_allowed_now", "receipt_application_allowed_now", "rollback_execution_allowed_now", "raw_diff_storage_allowed", "raw_file_content_read_allowed", "raw_material_copy_allowed_now", "secret_read_allowed_now", "validation_error_count"],
+      "properties": {
+        "phase_range": { "const": "P861-P880" },
+        "phase_slot": { "const": "P861" },
+        "previous_phase_slot": { "const": "P860" },
+        "next_phase_slot": { "const": "P881" },
+        "command_name": { "const": "project:zendd-diff-review-rollback-binding" },
+        "zendd_diff_review_rollback_binding_status": { "const": "ready_for_zendd_diff_review_rollback_binding" },
+        "source_protected_action_escalation_status": { "const": "ready_for_zendd_protected_action_escalation" },
+        "source_safe_patch_lane_status": { "const": "ready_for_zendd_safe_patch_lane" },
+        "diff_review_closeout_ready": { "const": true },
+        "diff_apply_allowed_now": { "const": false },
+        "zendd_file_write_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "protected_action_execution_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "rollback_execution_allowed_now": { "const": false },
+        "raw_diff_storage_allowed": { "const": false },
+        "raw_file_content_read_allowed": { "const": false },
+        "raw_material_copy_allowed_now": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

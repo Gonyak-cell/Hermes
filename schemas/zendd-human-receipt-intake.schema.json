@@ -1,0 +1,250 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/zendd-human-receipt-intake.schema.json",
+  "title": "Zendd Human Receipt Intake",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "zendd_human_receipt_intake_id",
+    "capability_id",
+    "output_dir",
+    "inputs",
+    "human_receipt_intake_anchor",
+    "source_vdr_ldd_workflow_adapter_summary",
+    "source_protected_action_escalation_summary",
+    "human_receipt_intake_policy",
+    "zendd_receipt_template_rows",
+    "zendd_receipt_queue_rows",
+    "zendd_receipt_validation_packet_rows",
+    "zendd_receipt_quarantine_rows",
+    "zendd_receipt_approval_closeout_rows",
+    "zendd_receipt_fail_closed_rows",
+    "zendd_receipt_intake_closeout_rows",
+    "zendd_receipt_intake_gate_rows",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "zendd-human-receipt-intake.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "zendd_human_receipt_intake_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "project.zendd.human_receipt_intake" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["schema_path", "package_path", "integration_phase_ledger_path", "development_phase_ledger_path", "zendd_project_root"],
+      "additionalProperties": true
+    },
+    "human_receipt_intake_anchor": {
+      "type": "object",
+      "required": ["schema_version", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "source_vdr_ldd_workflow_adapter_status", "source_protected_action_escalation_status"],
+      "properties": {
+        "schema_version": { "const": "zendd-human-receipt-intake-anchor.v1" },
+        "phase_range": { "const": "P921-P940" },
+        "phase_slot": { "const": "P921" },
+        "previous_phase_slot": { "const": "P920" },
+        "next_phase_slot": { "const": "P941" },
+        "command_name": { "const": "project:zendd-human-receipt-intake" },
+        "source_vdr_ldd_workflow_adapter_status": { "const": "ready_for_zendd_vdr_ldd_workflow_adapter" },
+        "source_protected_action_escalation_status": { "const": "ready_for_zendd_protected_action_escalation" }
+      },
+      "additionalProperties": true
+    },
+    "human_receipt_intake_policy": {
+      "type": "object",
+      "required": ["schema_version", "phase_range", "phase_slot", "project_id", "receipt_intake_surface_creation_allowed", "receipt_payload_present", "receipt_payload_materialization_allowed_now", "receipt_payload_validation_allowed_now", "receipt_application_allowed_now", "protected_pass_allowed_now", "synthetic_receipt_allowed", "unbound_receipt_allowed", "cross_project_receipt_allowed", "raw_receipt_attachment_storage_allowed", "raw_vdr_or_client_material_copy_allowed_now", "secret_read_allowed_now", "receipt_pass_requires", "blocked_status_requires", "next_allowed_action"],
+      "properties": {
+        "schema_version": { "const": "zendd-human-receipt-intake-policy.v1" },
+        "phase_range": { "const": "P921-P940" },
+        "phase_slot": { "const": "P921" },
+        "project_id": { "const": "project.zendd" },
+        "receipt_intake_surface_creation_allowed": { "const": true },
+        "receipt_payload_present": { "const": false },
+        "receipt_payload_materialization_allowed_now": { "const": false },
+        "receipt_payload_validation_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "protected_pass_allowed_now": { "const": false },
+        "synthetic_receipt_allowed": { "const": false },
+        "unbound_receipt_allowed": { "const": false },
+        "cross_project_receipt_allowed": { "const": false },
+        "raw_receipt_attachment_storage_allowed": { "const": false },
+        "raw_vdr_or_client_material_copy_allowed_now": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "receipt_pass_requires": { "type": "array", "minItems": 9 },
+        "blocked_status_requires": { "type": "array", "minItems": 3 }
+      },
+      "additionalProperties": true
+    },
+    "zendd_receipt_template_rows": {
+      "type": "array",
+      "minItems": 20,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "receipt_template_ref", "source_type", "source_ref", "claim_id", "evidence_ref", "reviewer_ref", "hard_gate_ref", "human_receipt_ref", "required_reviewer_role", "required_receipt_fields", "receipt_scope_statement", "receipt_payload_present", "receipt_payload_materialized", "synthetic_receipt_allowed", "pass_without_receipt_allowed", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-human-receipt-template-row.v1" },
+          "receipt_payload_present": { "const": false },
+          "receipt_payload_materialized": { "const": false },
+          "synthetic_receipt_allowed": { "const": false },
+          "pass_without_receipt_allowed": { "const": false },
+          "required_receipt_fields": { "type": "array", "minItems": 7 },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "zendd_receipt_queue_rows": {
+      "type": "array",
+      "minItems": 20,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "receipt_queue_ref", "receipt_template_ref", "claim_id", "source_type", "source_ref", "required_reviewer_role", "queue_status", "receipt_payload_present", "receipt_payload_materialized", "raw_receipt_attachment_storage_allowed", "synthetic_receipt_allowed", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-human-receipt-queue-row.v1" },
+          "queue_status": { "const": "queued_pending_human_input" },
+          "receipt_payload_present": { "const": false },
+          "receipt_payload_materialized": { "const": false },
+          "raw_receipt_attachment_storage_allowed": { "const": false },
+          "synthetic_receipt_allowed": { "const": false },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "zendd_receipt_validation_packet_rows": {
+      "type": "array",
+      "minItems": 20,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "receipt_validation_packet_ref", "receipt_template_ref", "claim_id", "source_ref", "evidence_ref", "reviewer_ref", "hard_gate_ref", "human_receipt_ref", "validation_rules", "validation_allowed_now", "receipt_payload_present", "receipt_validated", "pass_candidate_allowed_now", "receipt_application_allowed_now", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-human-receipt-validation-packet-row.v1" },
+          "validation_rules": { "type": "array", "minItems": 6 },
+          "validation_allowed_now": { "const": false },
+          "receipt_payload_present": { "const": false },
+          "receipt_validated": { "const": false },
+          "pass_candidate_allowed_now": { "const": false },
+          "receipt_application_allowed_now": { "const": false },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "zendd_receipt_quarantine_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "quarantine_reason", "quarantine_description", "quarantine_required", "receipt_application_allowed_now", "protected_pass_allowed_now", "raw_receipt_attachment_storage_allowed", "raw_vdr_or_client_material_copy_allowed_now", "secret_read_allowed_now", "synthetic_receipt_allowed", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-human-receipt-quarantine-row.v1" },
+          "quarantine_required": { "const": true },
+          "receipt_application_allowed_now": { "const": false },
+          "protected_pass_allowed_now": { "const": false },
+          "raw_receipt_attachment_storage_allowed": { "const": false },
+          "raw_vdr_or_client_material_copy_allowed_now": { "const": false },
+          "secret_read_allowed_now": { "const": false },
+          "synthetic_receipt_allowed": { "const": false },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "zendd_receipt_approval_closeout_rows": {
+      "type": "array",
+      "minItems": 20,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "receipt_template_ref", "claim_id", "source_ref", "human_receipt_ref", "human_receipt_ref_status", "receipt_payload_present", "receipt_validated", "approval_application_allowed_now", "protected_pass_allowed_now", "receipt_application_allowed_now", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-human-receipt-approval-closeout-row.v1" },
+          "human_receipt_ref_status": { "const": "missing" },
+          "receipt_payload_present": { "const": false },
+          "receipt_validated": { "const": false },
+          "approval_application_allowed_now": { "const": false },
+          "protected_pass_allowed_now": { "const": false },
+          "receipt_application_allowed_now": { "const": false },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "zendd_receipt_fail_closed_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "fixture_id", "project_id", "fixture_status", "receipt_payload_present", "receipt_payload_validation_allowed_now", "receipt_application_allowed_now", "protected_pass_allowed_now", "synthetic_receipt_allowed", "raw_receipt_attachment_storage_allowed", "raw_vdr_or_client_material_copy_allowed_now", "secret_read_allowed_now", "message", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-human-receipt-fail-closed-row.v1" },
+          "fixture_status": { "const": "pass" },
+          "receipt_payload_present": { "const": false },
+          "receipt_payload_validation_allowed_now": { "const": false },
+          "receipt_application_allowed_now": { "const": false },
+          "protected_pass_allowed_now": { "const": false },
+          "synthetic_receipt_allowed": { "const": false },
+          "raw_receipt_attachment_storage_allowed": { "const": false },
+          "raw_vdr_or_client_material_copy_allowed_now": { "const": false },
+          "secret_read_allowed_now": { "const": false }
+        },
+        "additionalProperties": true
+      }
+    },
+    "zendd_receipt_intake_closeout_rows": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "closeout_status", "human_receipt_intake_ready", "receipt_template_count", "receipt_queue_count", "receipt_validation_packet_count", "receipt_quarantine_count", "receipt_approval_closeout_count", "receipt_payload_present", "receipt_payload_validation_allowed_now", "receipt_application_allowed_now", "protected_pass_allowed_now", "synthetic_receipt_allowed", "raw_receipt_attachment_storage_allowed", "raw_vdr_or_client_material_copy_allowed_now", "secret_read_allowed_now", "next_integration_phase_slot", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-human-receipt-intake-closeout-row.v1" },
+          "phase_slot": { "const": "P940" },
+          "closeout_status": { "const": "ready_for_zendd_human_receipt_intake" },
+          "human_receipt_intake_ready": { "const": true },
+          "receipt_payload_present": { "const": false },
+          "receipt_payload_validation_allowed_now": { "const": false },
+          "receipt_application_allowed_now": { "const": false },
+          "protected_pass_allowed_now": { "const": false },
+          "synthetic_receipt_allowed": { "const": false },
+          "raw_receipt_attachment_storage_allowed": { "const": false },
+          "raw_vdr_or_client_material_copy_allowed_now": { "const": false },
+          "secret_read_allowed_now": { "const": false },
+          "next_integration_phase_slot": { "const": "P941" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "zendd_receipt_intake_gate_rows": {
+      "type": "array",
+      "minItems": 13,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "gate_id", "phase_slot", "gate_status", "message", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-human-receipt-intake-gate-row.v1" },
+          "gate_status": { "enum": ["pass", "blocked"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "validation_items": { "type": "array", "minItems": 1 },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": ["zendd_human_receipt_intake_status", "receipt_payload_present", "receipt_application_allowed_now", "validation_error_count"],
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/zendd-safe-patch-lane.schema.json",
+  "title": "Zendd Safe Patch Lane",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "zendd_safe_patch_lane_id",
+    "capability_id",
+    "output_dir",
+    "inputs",
+    "safe_patch_lane_anchor",
+    "work_order_intake_summary",
+    "integration_setup_summary",
+    "safe_patch_policy",
+    "patch_candidate_rows",
+    "patch_scope_rows",
+    "dirty_tree_guard_rows",
+    "patch_preflight_rows",
+    "protected_patch_block_rows",
+    "safe_patch_lane_closeout_rows",
+    "safe_patch_lane_gate_rows",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "zendd-safe-patch-lane.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "zendd_safe_patch_lane_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "project.zendd.safe_patch_lane" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["schema_path", "package_path", "integration_phase_ledger_path", "development_phase_ledger_path", "zendd_project_root"],
+      "additionalProperties": true
+    },
+    "safe_patch_lane_anchor": {
+      "type": "object",
+      "required": ["schema_version", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "source_work_order_intake_status", "source_integration_setup_status"],
+      "properties": {
+        "schema_version": { "const": "zendd-safe-patch-lane-anchor.v1" },
+        "phase_range": { "const": "P801-P820" },
+        "phase_slot": { "const": "P801" },
+        "previous_phase_slot": { "const": "P800" },
+        "next_phase_slot": { "const": "P821" },
+        "command_name": { "const": "project:zendd-safe-patch-lane" },
+        "source_work_order_intake_status": { "const": "ready_for_zendd_work_order_intake" },
+        "source_integration_setup_status": { "const": "ready_for_project_zendd_boundary" }
+      },
+      "additionalProperties": true
+    },
+    "safe_patch_policy": {
+      "type": "object",
+      "required": ["schema_version", "phase_range", "phase_slot", "project_id", "patch_candidate_review_allowed", "planning_only_pass_required", "automatic_patch_allowed_now", "direct_unscoped_patch_allowed_now", "file_write_executed_by_this_command", "zendd_file_write_allowed_now", "command_execution_allowed_now", "raw_material_copy_allowed_now", "secret_read_allowed_now", "database_migration_allowed_now", "release_package_allowed_now", "receipt_application_allowed_now", "protected_action_execution_allowed", "next_allowed_action"],
+      "properties": {
+        "schema_version": { "const": "zendd-safe-patch-policy.v1" },
+        "phase_range": { "const": "P801-P820" },
+        "phase_slot": { "const": "P801" },
+        "project_id": { "const": "project.zendd" },
+        "patch_candidate_review_allowed": { "const": true },
+        "planning_only_pass_required": { "const": true },
+        "automatic_patch_allowed_now": { "const": false },
+        "direct_unscoped_patch_allowed_now": { "const": false },
+        "file_write_executed_by_this_command": { "const": false },
+        "zendd_file_write_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "raw_material_copy_allowed_now": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "database_migration_allowed_now": { "const": false },
+        "release_package_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "protected_action_execution_allowed": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "patch_candidate_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "patch_candidate_id", "row_id", "work_order_id", "request_type", "domain_area", "patch_candidate_status", "non_protected_scope", "evidence_ref", "reviewer_ref", "hard_gate_ref", "rollback_target_ref", "dirty_tree_guard_ref", "current_verdict", "file_write_executed_now", "command_execution_allowed_now", "automatic_patch_allowed_now", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-patch-candidate-row.v1" },
+          "non_protected_scope": { "const": true },
+          "current_verdict": { "const": "pass" },
+          "file_write_executed_now": { "const": false },
+          "command_execution_allowed_now": { "const": false },
+          "automatic_patch_allowed_now": { "const": false }
+        },
+        "additionalProperties": true
+      }
+    },
+    "patch_scope_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "scope_id", "path_pattern", "scope_status", "current_verdict", "responsible_owner", "eligible_for_future_scoped_write", "file_write_executed_now", "command_execution_allowed_now", "rollback_target_ref", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-patch-scope-row.v1" },
+          "current_verdict": { "enum": ["pass", "blocked"] },
+          "file_write_executed_now": { "const": false },
+          "command_execution_allowed_now": { "const": false }
+        },
+        "additionalProperties": true
+      }
+    },
+    "dirty_tree_guard_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "guard_id", "source_integration_setup_ref", "dirty_tree_row_count", "high_risk_dirty_tree_row_count", "current_verdict", "responsible_owner", "file_write_executed_now", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-dirty-tree-guard-row.v1" },
+          "current_verdict": { "enum": ["pass", "blocked"] },
+          "file_write_executed_now": { "const": false }
+        },
+        "additionalProperties": true
+      }
+    },
+    "patch_preflight_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "patch_candidate_id", "work_order_id", "allowed_scope_refs", "evidence_ref", "reviewer_ref", "hard_gate_ref", "rollback_target_ref", "dirty_tree_guard_refs", "preflight_status", "current_verdict", "patch_execution_allowed_now", "file_write_executed_now", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-patch-preflight-row.v1" },
+          "allowed_scope_refs": { "type": "array", "minItems": 1 },
+          "dirty_tree_guard_refs": { "type": "array", "minItems": 1 },
+          "current_verdict": { "const": "pass" },
+          "patch_execution_allowed_now": { "const": false },
+          "file_write_executed_now": { "const": false }
+        },
+        "additionalProperties": true
+      }
+    },
+    "protected_patch_block_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "block_source", "source_ref", "protected_action_class", "current_verdict", "block_reason", "responsible_owner", "evidence_ref", "hard_gate_ref", "human_receipt_required", "rollback_target_ref", "file_write_executed_now", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-protected-patch-block-row.v1" },
+          "current_verdict": { "const": "blocked" },
+          "human_receipt_required": { "const": true },
+          "file_write_executed_now": { "const": false }
+        },
+        "additionalProperties": true
+      }
+    },
+    "safe_patch_lane_closeout_rows": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "closeout_status", "safe_patch_lane_ready", "patch_candidate_review_allowed", "patch_candidate_count", "protected_patch_block_count", "file_write_executed_now", "automatic_patch_allowed_now", "command_execution_allowed_now", "raw_material_copy_allowed_now", "secret_read_allowed_now", "protected_action_execution_allowed", "next_integration_phase_slot", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-safe-patch-lane-closeout-row.v1" },
+          "phase_slot": { "const": "P820" },
+          "closeout_status": { "const": "ready_for_zendd_safe_patch_lane" },
+          "safe_patch_lane_ready": { "const": true },
+          "patch_candidate_review_allowed": { "const": true },
+          "file_write_executed_now": { "const": false },
+          "automatic_patch_allowed_now": { "const": false },
+          "command_execution_allowed_now": { "const": false },
+          "raw_material_copy_allowed_now": { "const": false },
+          "secret_read_allowed_now": { "const": false },
+          "protected_action_execution_allowed": { "const": false },
+          "next_integration_phase_slot": { "const": "P821" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "safe_patch_lane_gate_rows": {
+      "type": "array",
+      "minItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "gate_id", "phase_slot", "gate_status", "message", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-safe-patch-lane-gate-row.v1" },
+          "gate_status": { "enum": ["pass", "blocked"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "validation_items": { "type": "array" },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": ["phase_range", "phase_slot", "next_phase_slot", "command_name", "zendd_safe_patch_lane_status", "source_work_order_intake_status", "source_integration_setup_status", "selected_integration_mode", "patch_candidate_count", "allowed_patch_scope_count", "blocked_patch_scope_count", "dirty_tree_guard_count", "patch_preflight_count", "protected_patch_block_count", "safe_patch_lane_ready", "patch_candidate_review_allowed", "file_write_executed_now", "automatic_patch_allowed_now", "command_execution_allowed_now", "raw_material_copy_allowed_now", "secret_read_allowed_now", "protected_action_execution_allowed", "validation_error_count"],
+      "properties": {
+        "phase_range": { "const": "P801-P820" },
+        "phase_slot": { "const": "P801" },
+        "next_phase_slot": { "const": "P821" },
+        "command_name": { "const": "project:zendd-safe-patch-lane" },
+        "zendd_safe_patch_lane_status": { "const": "ready_for_zendd_safe_patch_lane" },
+        "source_work_order_intake_status": { "const": "ready_for_zendd_work_order_intake" },
+        "source_integration_setup_status": { "const": "ready_for_project_zendd_boundary" },
+        "selected_integration_mode": { "const": "external_project_adapter" },
+        "safe_patch_lane_ready": { "const": true },
+        "patch_candidate_review_allowed": { "const": true },
+        "file_write_executed_now": { "const": false },
+        "automatic_patch_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "raw_material_copy_allowed_now": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "protected_action_execution_allowed": { "const": false },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

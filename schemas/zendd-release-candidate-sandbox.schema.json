@@ -1,0 +1,298 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/zendd-release-candidate-sandbox.schema.json",
+  "title": "Zendd Release Candidate Sandbox",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "zendd_release_candidate_sandbox_id",
+    "capability_id",
+    "output_dir",
+    "inputs",
+    "release_candidate_sandbox_anchor",
+    "source_diff_review_rollback_binding_summary",
+    "source_release_recovery_summary",
+    "source_command_evidence_execution_bridge_summary",
+    "release_candidate_sandbox_policy",
+    "release_candidate_sandbox_rows",
+    "artifact_isolation_rows",
+    "client_delivery_block_rows",
+    "sandbox_evidence_packet_rows",
+    "release_candidate_fail_closed_rows",
+    "release_candidate_closeout_rows",
+    "release_candidate_gate_rows",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "zendd-release-candidate-sandbox.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "zendd_release_candidate_sandbox_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "project.zendd.release_candidate_sandbox" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["schema_path", "package_path", "integration_phase_ledger_path", "development_phase_ledger_path", "zendd_project_root"],
+      "additionalProperties": true
+    },
+    "release_candidate_sandbox_anchor": {
+      "type": "object",
+      "required": ["schema_version", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "source_diff_review_rollback_binding_status", "source_release_recovery_status", "source_command_evidence_execution_bridge_status"],
+      "properties": {
+        "schema_version": { "const": "zendd-release-candidate-sandbox-anchor.v1" },
+        "phase_range": { "const": "P881-P900" },
+        "phase_slot": { "const": "P881" },
+        "previous_phase_slot": { "const": "P880" },
+        "next_phase_slot": { "const": "P901" },
+        "command_name": { "const": "project:zendd-release-candidate-sandbox" },
+        "source_diff_review_rollback_binding_status": { "const": "ready_for_zendd_diff_review_rollback_binding" },
+        "source_release_recovery_status": { "const": "ready_for_cross_system_claim_freeze" },
+        "source_command_evidence_execution_bridge_status": { "const": "ready_for_zendd_command_evidence_execution_bridge" }
+      },
+      "additionalProperties": true
+    },
+    "release_candidate_sandbox_policy": {
+      "type": "object",
+      "required": ["schema_version", "phase_range", "phase_slot", "project_id", "sandbox_view_creation_allowed", "release_candidate_pass_allowed_now", "release_candidate_execution_allowed_now", "command_execution_allowed_now", "build_artifact_execution_allowed_now", "package_build_allowed_now", "publish_allowed_now", "client_export_allowed_now", "client_delivery_allowed_now", "database_migration_allowed_now", "zendd_file_write_allowed_now", "artifact_materialization_allowed_now", "artifact_upload_allowed_now", "receipt_application_allowed_now", "rollback_execution_allowed_now", "raw_artifact_copy_allowed_now", "raw_vdr_or_client_material_copy_allowed_now", "raw_log_storage_allowed", "secret_read_allowed_now", "synthetic_receipt_allowed", "release_candidate_pass_requires", "blocked_status_requires", "next_allowed_action"],
+      "properties": {
+        "schema_version": { "const": "zendd-release-candidate-sandbox-policy.v1" },
+        "phase_range": { "const": "P881-P900" },
+        "phase_slot": { "const": "P881" },
+        "project_id": { "const": "project.zendd" },
+        "sandbox_view_creation_allowed": { "const": true },
+        "release_candidate_pass_allowed_now": { "const": false },
+        "release_candidate_execution_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "build_artifact_execution_allowed_now": { "const": false },
+        "package_build_allowed_now": { "const": false },
+        "publish_allowed_now": { "const": false },
+        "client_export_allowed_now": { "const": false },
+        "client_delivery_allowed_now": { "const": false },
+        "database_migration_allowed_now": { "const": false },
+        "zendd_file_write_allowed_now": { "const": false },
+        "artifact_materialization_allowed_now": { "const": false },
+        "artifact_upload_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "rollback_execution_allowed_now": { "const": false },
+        "raw_artifact_copy_allowed_now": { "const": false },
+        "raw_vdr_or_client_material_copy_allowed_now": { "const": false },
+        "raw_log_storage_allowed": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "synthetic_receipt_allowed": { "const": false },
+        "release_candidate_pass_requires": { "type": "array", "minItems": 10 },
+        "blocked_status_requires": { "type": "array", "minItems": 4 }
+      },
+      "additionalProperties": true
+    },
+    "release_candidate_sandbox_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "release_candidate_ref", "source_release_claim_ref", "release_type", "sandbox_status", "sandbox_evidence_packet_ref", "command_execution_packet_ref", "command_execution_evidence_ref", "artifact_isolation_ref", "artifact_hash_ref", "diff_review_ref", "evidence_ref", "reviewer_ref", "hard_gate_ref", "human_receipt_required", "human_receipt_ref", "rollback_target_ref", "release_candidate_pass_allowed_now", "release_candidate_execution_allowed_now", "command_execution_allowed_now", "build_artifact_execution_allowed_now", "package_build_allowed_now", "publish_allowed_now", "client_export_allowed_now", "client_delivery_allowed_now", "database_migration_allowed_now", "zendd_file_write_allowed_now", "artifact_materialized_now", "artifact_upload_allowed_now", "raw_artifact_copy_allowed_now", "raw_vdr_or_client_material_copy_allowed_now", "secret_read_allowed_now", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-release-candidate-sandbox-row.v1" },
+          "sandbox_status": { "const": "view_prepared_not_executed" },
+          "human_receipt_required": { "const": true },
+          "release_candidate_pass_allowed_now": { "const": false },
+          "release_candidate_execution_allowed_now": { "const": false },
+          "command_execution_allowed_now": { "const": false },
+          "build_artifact_execution_allowed_now": { "const": false },
+          "package_build_allowed_now": { "const": false },
+          "publish_allowed_now": { "const": false },
+          "client_export_allowed_now": { "const": false },
+          "client_delivery_allowed_now": { "const": false },
+          "database_migration_allowed_now": { "const": false },
+          "zendd_file_write_allowed_now": { "const": false },
+          "artifact_materialized_now": { "const": false },
+          "artifact_upload_allowed_now": { "const": false },
+          "raw_artifact_copy_allowed_now": { "const": false },
+          "raw_vdr_or_client_material_copy_allowed_now": { "const": false },
+          "secret_read_allowed_now": { "const": false },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "artifact_isolation_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "artifact_isolation_ref", "source_type", "source_ref", "protected_action_class", "artifact_scope", "evidence_ref", "reviewer_ref", "hard_gate_ref", "human_receipt_required", "human_receipt_ref", "rollback_target_ref", "artifact_materialized_now", "build_artifact_execution_allowed_now", "package_build_allowed_now", "publish_allowed_now", "artifact_upload_allowed_now", "raw_artifact_copy_allowed_now", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-artifact-isolation-row.v1" },
+          "human_receipt_required": { "const": true },
+          "artifact_materialized_now": { "const": false },
+          "build_artifact_execution_allowed_now": { "const": false },
+          "package_build_allowed_now": { "const": false },
+          "publish_allowed_now": { "const": false },
+          "artifact_upload_allowed_now": { "const": false },
+          "raw_artifact_copy_allowed_now": { "const": false },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "client_delivery_block_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "client_delivery_block_ref", "source_type", "source_ref", "release_type", "evidence_ref", "reviewer_ref", "hard_gate_ref", "human_receipt_required", "human_receipt_ref", "rollback_target_ref", "attorney_or_operator_receipt_required", "client_export_allowed_now", "client_delivery_allowed_now", "raw_vdr_or_client_material_copy_allowed_now", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-client-delivery-block-row.v1" },
+          "human_receipt_required": { "const": true },
+          "attorney_or_operator_receipt_required": { "const": true },
+          "client_export_allowed_now": { "const": false },
+          "client_delivery_allowed_now": { "const": false },
+          "raw_vdr_or_client_material_copy_allowed_now": { "const": false },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "sandbox_evidence_packet_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "sandbox_evidence_packet_ref", "release_candidate_ref", "source_release_claim_ref", "command_execution_packet_ref", "command_execution_evidence_ref", "artifact_isolation_ref", "artifact_hash_ref", "diff_review_ref", "evidence_ref", "reviewer_ref", "hard_gate_ref", "human_receipt_ref", "rollback_target_ref", "packet_status", "command_execution_evidence_present", "artifact_hash_present", "human_receipt_payload_present", "release_candidate_pass_allowed_now", "publish_allowed_now", "client_delivery_allowed_now", "raw_log_storage_allowed", "raw_artifact_copy_allowed_now", "raw_vdr_or_client_material_copy_allowed_now", "secret_read_allowed_now", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-sandbox-evidence-packet-row.v1" },
+          "packet_status": { "const": "draft_only_not_executed" },
+          "command_execution_evidence_present": { "const": false },
+          "artifact_hash_present": { "const": false },
+          "human_receipt_payload_present": { "const": false },
+          "release_candidate_pass_allowed_now": { "const": false },
+          "publish_allowed_now": { "const": false },
+          "client_delivery_allowed_now": { "const": false },
+          "raw_log_storage_allowed": { "const": false },
+          "raw_artifact_copy_allowed_now": { "const": false },
+          "raw_vdr_or_client_material_copy_allowed_now": { "const": false },
+          "secret_read_allowed_now": { "const": false },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "release_candidate_fail_closed_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "fixture_id", "project_id", "fixture_status", "release_candidate_pass_allowed_now", "command_execution_allowed_now", "build_artifact_execution_allowed_now", "package_build_allowed_now", "publish_allowed_now", "client_delivery_allowed_now", "artifact_materialization_allowed_now", "receipt_application_allowed_now", "rollback_execution_allowed_now", "raw_artifact_copy_allowed_now", "raw_vdr_or_client_material_copy_allowed_now", "secret_read_allowed_now", "message", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-release-candidate-fail-closed-row.v1" },
+          "fixture_status": { "const": "pass" },
+          "release_candidate_pass_allowed_now": { "const": false },
+          "command_execution_allowed_now": { "const": false },
+          "build_artifact_execution_allowed_now": { "const": false },
+          "package_build_allowed_now": { "const": false },
+          "publish_allowed_now": { "const": false },
+          "client_delivery_allowed_now": { "const": false },
+          "artifact_materialization_allowed_now": { "const": false },
+          "receipt_application_allowed_now": { "const": false },
+          "rollback_execution_allowed_now": { "const": false },
+          "raw_artifact_copy_allowed_now": { "const": false },
+          "raw_vdr_or_client_material_copy_allowed_now": { "const": false },
+          "secret_read_allowed_now": { "const": false }
+        },
+        "additionalProperties": true
+      }
+    },
+    "release_candidate_closeout_rows": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "closeout_status", "release_candidate_sandbox_ready", "release_candidate_sandbox_count", "artifact_isolation_count", "client_delivery_block_count", "sandbox_evidence_packet_count", "release_candidate_pass_allowed_now", "command_execution_allowed_now", "build_artifact_execution_allowed_now", "package_build_allowed_now", "publish_allowed_now", "client_export_allowed_now", "client_delivery_allowed_now", "database_migration_allowed_now", "zendd_file_write_allowed_now", "artifact_materialization_allowed_now", "artifact_upload_allowed_now", "receipt_application_allowed_now", "rollback_execution_allowed_now", "raw_artifact_copy_allowed_now", "raw_vdr_or_client_material_copy_allowed_now", "secret_read_allowed_now", "next_integration_phase_slot", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-release-candidate-closeout-row.v1" },
+          "phase_slot": { "const": "P900" },
+          "closeout_status": { "const": "ready_for_zendd_release_candidate_sandbox" },
+          "release_candidate_sandbox_ready": { "const": true },
+          "release_candidate_pass_allowed_now": { "const": false },
+          "command_execution_allowed_now": { "const": false },
+          "build_artifact_execution_allowed_now": { "const": false },
+          "package_build_allowed_now": { "const": false },
+          "publish_allowed_now": { "const": false },
+          "client_export_allowed_now": { "const": false },
+          "client_delivery_allowed_now": { "const": false },
+          "database_migration_allowed_now": { "const": false },
+          "zendd_file_write_allowed_now": { "const": false },
+          "artifact_materialization_allowed_now": { "const": false },
+          "artifact_upload_allowed_now": { "const": false },
+          "receipt_application_allowed_now": { "const": false },
+          "rollback_execution_allowed_now": { "const": false },
+          "raw_artifact_copy_allowed_now": { "const": false },
+          "raw_vdr_or_client_material_copy_allowed_now": { "const": false },
+          "secret_read_allowed_now": { "const": false },
+          "next_integration_phase_slot": { "const": "P901" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "release_candidate_gate_rows": {
+      "type": "array",
+      "minItems": 13,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "gate_id", "phase_slot", "gate_status", "message", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-release-candidate-gate-row.v1" },
+          "gate_status": { "enum": ["pass", "blocked"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "validation_items": { "type": "array" },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": ["phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "zendd_release_candidate_sandbox_status", "source_diff_review_rollback_binding_status", "source_release_recovery_status", "source_command_evidence_execution_bridge_status", "release_candidate_sandbox_count", "artifact_isolation_count", "client_delivery_block_count", "sandbox_evidence_packet_count", "release_candidate_fail_closed_count", "release_candidate_closeout_ready", "release_candidate_pass_allowed_now", "command_execution_allowed_now", "build_artifact_execution_allowed_now", "package_build_allowed_now", "publish_allowed_now", "client_export_allowed_now", "client_delivery_allowed_now", "database_migration_allowed_now", "zendd_file_write_allowed_now", "artifact_materialization_allowed_now", "artifact_upload_allowed_now", "receipt_application_allowed_now", "rollback_execution_allowed_now", "raw_artifact_copy_allowed_now", "raw_vdr_or_client_material_copy_allowed_now", "secret_read_allowed_now", "validation_error_count"],
+      "properties": {
+        "phase_range": { "const": "P881-P900" },
+        "phase_slot": { "const": "P881" },
+        "previous_phase_slot": { "const": "P880" },
+        "next_phase_slot": { "const": "P901" },
+        "command_name": { "const": "project:zendd-release-candidate-sandbox" },
+        "zendd_release_candidate_sandbox_status": { "const": "ready_for_zendd_release_candidate_sandbox" },
+        "source_diff_review_rollback_binding_status": { "const": "ready_for_zendd_diff_review_rollback_binding" },
+        "source_release_recovery_status": { "const": "ready_for_cross_system_claim_freeze" },
+        "source_command_evidence_execution_bridge_status": { "const": "ready_for_zendd_command_evidence_execution_bridge" },
+        "release_candidate_closeout_ready": { "const": true },
+        "release_candidate_pass_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "build_artifact_execution_allowed_now": { "const": false },
+        "package_build_allowed_now": { "const": false },
+        "publish_allowed_now": { "const": false },
+        "client_export_allowed_now": { "const": false },
+        "client_delivery_allowed_now": { "const": false },
+        "database_migration_allowed_now": { "const": false },
+        "zendd_file_write_allowed_now": { "const": false },
+        "artifact_materialization_allowed_now": { "const": false },
+        "artifact_upload_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "rollback_execution_allowed_now": { "const": false },
+        "raw_artifact_copy_allowed_now": { "const": false },
+        "raw_vdr_or_client_material_copy_allowed_now": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

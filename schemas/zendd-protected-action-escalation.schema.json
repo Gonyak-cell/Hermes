@@ -1,0 +1,250 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/zendd-protected-action-escalation.schema.json",
+  "title": "Zendd Protected Action Escalation",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "zendd_protected_action_escalation_id",
+    "capability_id",
+    "output_dir",
+    "inputs",
+    "protected_action_escalation_anchor",
+    "source_command_evidence_execution_bridge_summary",
+    "source_protected_action_rollback_summary",
+    "protected_action_escalation_policy",
+    "command_protected_action_request_rows",
+    "domain_protected_action_request_rows",
+    "protected_action_escalation_packet_rows",
+    "protected_action_human_gate_rows",
+    "protected_action_fail_closed_rows",
+    "protected_action_escalation_closeout_rows",
+    "protected_action_escalation_gate_rows",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "zendd-protected-action-escalation.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "zendd_protected_action_escalation_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "project.zendd.protected_action_escalation" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["schema_path", "package_path", "integration_phase_ledger_path", "development_phase_ledger_path", "zendd_project_root"],
+      "additionalProperties": true
+    },
+    "protected_action_escalation_anchor": {
+      "type": "object",
+      "required": ["schema_version", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "source_command_evidence_execution_bridge_status", "source_protected_action_rollback_status"],
+      "properties": {
+        "schema_version": { "const": "zendd-protected-action-escalation-anchor.v1" },
+        "phase_range": { "const": "P841-P860" },
+        "phase_slot": { "const": "P841" },
+        "previous_phase_slot": { "const": "P840" },
+        "next_phase_slot": { "const": "P861" },
+        "command_name": { "const": "project:zendd-protected-action-escalation" },
+        "source_command_evidence_execution_bridge_status": { "const": "ready_for_zendd_command_evidence_execution_bridge" },
+        "source_protected_action_rollback_status": { "const": "ready_for_physical_integration_decision" }
+      },
+      "additionalProperties": true
+    },
+    "protected_action_escalation_policy": {
+      "type": "object",
+      "required": ["schema_version", "phase_range", "phase_slot", "project_id", "escalation_queue_open", "protected_action_execution_allowed_now", "command_execution_allowed_now", "release_package_allowed_now", "database_migration_allowed_now", "client_export_allowed_now", "receipt_application_allowed_now", "rollback_execution_allowed_now", "physical_code_move_allowed_now", "raw_material_copy_allowed_now", "secret_read_allowed_now", "synthetic_receipt_allowed", "escalation_pass_requires", "blocked_status_requires", "next_allowed_action"],
+      "properties": {
+        "schema_version": { "const": "zendd-protected-action-escalation-policy.v1" },
+        "phase_range": { "const": "P841-P860" },
+        "phase_slot": { "const": "P841" },
+        "project_id": { "const": "project.zendd" },
+        "escalation_queue_open": { "const": true },
+        "protected_action_execution_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "release_package_allowed_now": { "const": false },
+        "database_migration_allowed_now": { "const": false },
+        "client_export_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "rollback_execution_allowed_now": { "const": false },
+        "physical_code_move_allowed_now": { "const": false },
+        "raw_material_copy_allowed_now": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "synthetic_receipt_allowed": { "const": false },
+        "escalation_pass_requires": { "type": "array", "minItems": 7 },
+        "blocked_status_requires": { "type": "array", "minItems": 4 }
+      },
+      "additionalProperties": true
+    },
+    "command_protected_action_request_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "protected_action_request_ref", "source_type", "source_ref", "protected_action_class", "evidence_ref", "hard_gate_ref", "human_receipt_ref", "human_receipt_required", "rollback_target_ref", "reviewer_ref", "escalation_packet_ref", "request_payload_present", "protected_action_execution_allowed_now", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-command-protected-action-request-row.v1" },
+          "project_id": { "const": "project.zendd" },
+          "human_receipt_required": { "const": true },
+          "request_payload_present": { "const": false },
+          "protected_action_execution_allowed_now": { "const": false },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "domain_protected_action_request_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "protected_action_request_ref", "source_type", "source_ref", "protected_action_class", "evidence_ref", "hard_gate_ref", "human_receipt_ref", "human_receipt_required", "rollback_target_ref", "reviewer_ref", "escalation_packet_ref", "request_payload_present", "protected_action_execution_allowed_now", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-domain-protected-action-request-row.v1" },
+          "project_id": { "const": "project.zendd" },
+          "human_receipt_required": { "const": true },
+          "request_payload_present": { "const": false },
+          "protected_action_execution_allowed_now": { "const": false },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "protected_action_escalation_packet_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "escalation_packet_ref", "protected_action_request_ref", "source_type", "source_ref", "protected_action_class", "evidence_ref", "reviewer_ref", "hard_gate_ref", "human_receipt_ref", "rollback_target_ref", "packet_status", "request_payload_present", "human_receipt_payload_present", "human_receipt_validated", "pass_candidate_allowed_now", "protected_action_execution_allowed_now", "rollback_execution_allowed_now", "receipt_application_allowed_now", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-protected-action-escalation-packet-row.v1" },
+          "packet_status": { "const": "draft_only_not_submitted" },
+          "request_payload_present": { "const": false },
+          "human_receipt_payload_present": { "const": false },
+          "human_receipt_validated": { "const": false },
+          "pass_candidate_allowed_now": { "const": false },
+          "protected_action_execution_allowed_now": { "const": false },
+          "rollback_execution_allowed_now": { "const": false },
+          "receipt_application_allowed_now": { "const": false },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "protected_action_human_gate_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "human_gate_ref", "escalation_packet_ref", "protected_action_request_ref", "human_receipt_ref", "human_receipt_required", "synthetic_receipt_allowed", "human_receipt_payload_present", "human_receipt_validated", "pass_without_human_receipt_allowed", "protected_action_execution_allowed_now", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-protected-action-human-gate-row.v1" },
+          "human_receipt_required": { "const": true },
+          "synthetic_receipt_allowed": { "const": false },
+          "human_receipt_payload_present": { "const": false },
+          "human_receipt_validated": { "const": false },
+          "pass_without_human_receipt_allowed": { "const": false },
+          "protected_action_execution_allowed_now": { "const": false },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "protected_action_fail_closed_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "fixture_id", "project_id", "fixture_status", "protected_action_execution_allowed_now", "command_execution_allowed_now", "rollback_execution_allowed_now", "receipt_application_allowed_now", "synthetic_receipt_allowed", "message", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-protected-action-fail-closed-row.v1" },
+          "fixture_status": { "const": "pass" },
+          "protected_action_execution_allowed_now": { "const": false },
+          "command_execution_allowed_now": { "const": false },
+          "rollback_execution_allowed_now": { "const": false },
+          "receipt_application_allowed_now": { "const": false },
+          "synthetic_receipt_allowed": { "const": false }
+        },
+        "additionalProperties": true
+      }
+    },
+    "protected_action_escalation_closeout_rows": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "closeout_status", "protected_action_escalation_ready", "command_protected_action_request_count", "domain_protected_action_request_count", "escalation_packet_count", "human_gate_count", "fail_closed_count", "protected_action_execution_allowed_now", "command_execution_allowed_now", "release_package_allowed_now", "database_migration_allowed_now", "client_export_allowed_now", "receipt_application_allowed_now", "rollback_execution_allowed_now", "raw_material_copy_allowed_now", "secret_read_allowed_now", "synthetic_receipt_allowed", "next_integration_phase_slot", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-protected-action-escalation-closeout-row.v1" },
+          "phase_slot": { "const": "P860" },
+          "closeout_status": { "const": "ready_for_zendd_protected_action_escalation" },
+          "protected_action_escalation_ready": { "const": true },
+          "protected_action_execution_allowed_now": { "const": false },
+          "command_execution_allowed_now": { "const": false },
+          "release_package_allowed_now": { "const": false },
+          "database_migration_allowed_now": { "const": false },
+          "client_export_allowed_now": { "const": false },
+          "receipt_application_allowed_now": { "const": false },
+          "rollback_execution_allowed_now": { "const": false },
+          "raw_material_copy_allowed_now": { "const": false },
+          "secret_read_allowed_now": { "const": false },
+          "synthetic_receipt_allowed": { "const": false },
+          "next_integration_phase_slot": { "const": "P861" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "protected_action_escalation_gate_rows": {
+      "type": "array",
+      "minItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "gate_id", "phase_slot", "gate_status", "message", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-protected-action-escalation-gate-row.v1" },
+          "gate_status": { "enum": ["pass", "blocked"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "validation_items": { "type": "array" },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": ["phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "zendd_protected_action_escalation_status", "source_command_evidence_execution_bridge_status", "source_protected_action_rollback_status", "command_protected_action_request_count", "domain_protected_action_request_count", "protected_action_escalation_packet_count", "protected_action_human_gate_count", "protected_action_fail_closed_count", "protected_action_escalation_ready", "protected_action_execution_allowed_now", "command_execution_allowed_now", "release_package_allowed_now", "database_migration_allowed_now", "client_export_allowed_now", "receipt_application_allowed_now", "rollback_execution_allowed_now", "raw_material_copy_allowed_now", "secret_read_allowed_now", "synthetic_receipt_allowed", "validation_error_count"],
+      "properties": {
+        "phase_range": { "const": "P841-P860" },
+        "phase_slot": { "const": "P841" },
+        "previous_phase_slot": { "const": "P840" },
+        "next_phase_slot": { "const": "P861" },
+        "command_name": { "const": "project:zendd-protected-action-escalation" },
+        "zendd_protected_action_escalation_status": { "const": "ready_for_zendd_protected_action_escalation" },
+        "source_command_evidence_execution_bridge_status": { "const": "ready_for_zendd_command_evidence_execution_bridge" },
+        "source_protected_action_rollback_status": { "const": "ready_for_physical_integration_decision" },
+        "protected_action_escalation_ready": { "const": true },
+        "protected_action_execution_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "release_package_allowed_now": { "const": false },
+        "database_migration_allowed_now": { "const": false },
+        "client_export_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "rollback_execution_allowed_now": { "const": false },
+        "raw_material_copy_allowed_now": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "synthetic_receipt_allowed": { "const": false },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

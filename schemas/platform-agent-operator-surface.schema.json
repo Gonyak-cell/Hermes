@@ -1,0 +1,302 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-agent-operator-surface.schema.json",
+  "title": "Platform Agent Operator Surface",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_agent_operator_surface_id",
+    "capability_id",
+    "inputs",
+    "agent_operator_surface_anchor",
+    "source_agent_adoption_freeze_summary",
+    "agent_operator_baseline_rows",
+    "agent_operator_dashboard_rows",
+    "agent_operator_api_route_rows",
+    "agent_operator_protected_queue_rows",
+    "agent_operator_next_action_rows",
+    "agent_operator_mutation_block_rows",
+    "agent_operator_claim_rows",
+    "agent_operator_closeout_rows",
+    "agent_operator_gate_rows",
+    "agent_operator_surface_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-agent-operator-surface.v1" },
+    "capability_id": { "const": "platform.agent_runtime_pilot.operator_surface" },
+    "agent_operator_surface_anchor": {
+      "type": "object",
+      "required": ["schema_version", "program_range", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "source_command_name", "capability_id", "baseline_commit_ref", "package_script_registered", "validation_chain_registered", "runtime_pilot_ledger_present", "source_adoption_freeze_status", "baseline_count", "dashboard_row_count", "api_route_count", "protected_queue_count", "next_action_count", "mutation_block_count", "claim_count", "closeout_count"],
+      "properties": {
+        "schema_version": { "const": "platform-agent-operator-surface-anchor.v1" },
+        "program_range": { "const": "P1122-P1200" },
+        "phase_range": { "const": "P1125-P1132" },
+        "phase_slot": { "const": "P1125" },
+        "previous_phase_slot": { "const": "P1124" },
+        "next_phase_slot": { "const": "P1133" },
+        "command_name": { "const": "platform:agent-operator-surface" },
+        "source_command_name": { "const": "platform:agent-adoption-freeze" },
+        "capability_id": { "const": "platform.agent_runtime_pilot.operator_surface" },
+        "baseline_commit_ref": { "const": "4cfda48" },
+        "package_script_registered": { "const": true },
+        "validation_chain_registered": { "const": true },
+        "runtime_pilot_ledger_present": { "const": true },
+        "source_adoption_freeze_status": { "const": "ready_for_agent_adoption_freeze" },
+        "baseline_count": { "const": 3 },
+        "dashboard_row_count": { "const": 6 },
+        "api_route_count": { "const": 5 },
+        "protected_queue_count": { "const": 16 },
+        "next_action_count": { "const": 16 },
+        "mutation_block_count": { "const": 8 },
+        "claim_count": { "const": 54 }
+      }
+    },
+    "source_agent_adoption_freeze_summary": {
+      "type": "object",
+      "required": ["platform_agent_adoption_freeze_status", "source_claim_count", "source_pass_claim_count", "source_blocked_claim_count"],
+      "properties": {
+        "platform_agent_adoption_freeze_status": { "const": "ready_for_agent_adoption_freeze" },
+        "source_claim_count": { "const": 211 },
+        "source_pass_claim_count": { "const": 164 },
+        "source_blocked_claim_count": { "const": 47 }
+      }
+    },
+    "agent_operator_baseline_rows": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "baseline_id", "phase_slot", "current_verdict", "baseline_commit_ref", "source_ref", "description", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "agent-operator-baseline-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "baseline_commit_ref": { "const": "4cfda48" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_operator_dashboard_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "widget_id", "current_verdict", "widget_status", "description", "source_adoption_freeze_ref", "source_claim_count", "source_blocked_claim_count", "protected_block_count", "next_action_count", "read_only", "server_started", "mutation_performed", "protected_action_executed", "raw_material_exposed", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "agent-operator-dashboard-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "widget_status": { "const": "ready_for_agent_operator_dashboard" },
+          "source_claim_count": { "const": 211 },
+          "source_blocked_claim_count": { "const": 47 },
+          "protected_block_count": { "const": 16 },
+          "next_action_count": { "const": 16 },
+          "read_only": { "const": true },
+          "server_started": { "const": false },
+          "mutation_performed": { "const": false },
+          "protected_action_executed": { "const": false },
+          "raw_material_exposed": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_operator_api_route_rows": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "route_path", "method", "current_verdict", "route_status", "source_surface_ref", "source_adoption_freeze_ref", "route_mode", "server_started", "mutation_route", "protected_action_route", "raw_material_route", "response_fields", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "agent-operator-api-route-row.v1" },
+          "method": { "const": "GET" },
+          "current_verdict": { "const": "pass" },
+          "route_status": { "const": "ready_for_agent_operator_read_only_route" },
+          "route_mode": { "const": "read_only_planned_surface" },
+          "server_started": { "const": false },
+          "mutation_route": { "const": false },
+          "protected_action_route": { "const": false },
+          "raw_material_route": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_operator_protected_queue_rows": {
+      "type": "array",
+      "minItems": 16,
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "protected_action_id", "source_protected_block_ref", "source_block_reason", "protected_action_verdict", "current_verdict", "queue_status", "displayed_fields", "human_receipt_ref", "receipt_payload_present", "protected_action_execution_allowed_now", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "agent-operator-protected-queue-row.v1" },
+          "protected_action_verdict": { "const": "blocked" },
+          "current_verdict": { "const": "pass" },
+          "queue_status": { "const": "ready_for_operator_attention" },
+          "receipt_payload_present": { "const": false },
+          "protected_action_execution_allowed_now": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_operator_next_action_rows": {
+      "type": "array",
+      "minItems": 16,
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "next_action_id", "source_protected_block_ref", "protected_action_id", "current_verdict", "action_status", "block_reason", "responsible_owner", "next_allowed_action", "execution_allowed_now", "evidence_ref", "reviewer_ref", "hard_gate_ref", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "agent-operator-next-action-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "action_status": { "const": "ready_for_operator_review" },
+          "execution_allowed_now": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_operator_mutation_block_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "blocked_route_id", "method", "current_verdict", "block_reason", "route_registered", "server_started", "mutation_performed", "protected_action_executed", "raw_material_exposed", "human_receipt_required", "receipt_payload_present", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "agent-operator-mutation-block-row.v1" },
+          "method": { "const": "POST" },
+          "current_verdict": { "const": "blocked" },
+          "route_registered": { "const": false },
+          "server_started": { "const": false },
+          "mutation_performed": { "const": false },
+          "protected_action_executed": { "const": false },
+          "raw_material_exposed": { "const": false },
+          "human_receipt_required": { "const": true },
+          "receipt_payload_present": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_operator_claim_rows": {
+      "type": "array",
+      "minItems": 54,
+      "maxItems": 54,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "claim_id", "claim_type", "source_ref", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "agent-operator-claim-row.v1" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_operator_closeout_rows": {
+      "type": "array",
+      "minItems": 9,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "closeout_id", "current_verdict", "source_ref", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "agent-operator-closeout-row.v1" },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "agent_operator_gate_rows": {
+      "type": "array",
+      "minItems": 14,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "gate_id", "gate_status", "source_ref", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "server_started_by_gate", "mutation_performed_by_gate", "protected_action_executed_by_gate", "raw_material_exposed_by_gate", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "agent-operator-gate-row.v1" },
+          "gate_status": { "const": "ready" },
+          "server_started_by_gate": { "const": false },
+          "mutation_performed_by_gate": { "const": false },
+          "protected_action_executed_by_gate": { "const": false },
+          "raw_material_exposed_by_gate": { "const": false }
+        }
+      }
+    },
+    "agent_operator_surface_boundary": {
+      "type": "object",
+      "required": ["schema_version", "source_adoption_freeze_ref", "source_adoption_freeze_status", "read_only", "server_started", "api_server_started", "mutation_route_registered", "mutation_performed", "protected_action_executed", "receipt_payload_present", "receipt_applied", "install_execution_performed", "runtime_execution_performed", "terminal_execution_performed", "mcp_connection_started", "cron_gateway_started", "provider_secret_configured", "raw_secret_exposed", "raw_client_or_vdr_exposed", "direct_zendd_mutation_performed", "agent_final_pass_created"],
+      "properties": {
+        "schema_version": { "const": "platform-agent-operator-surface-boundary.v1" },
+        "source_adoption_freeze_status": { "const": "ready_for_agent_adoption_freeze" },
+        "read_only": { "const": true },
+        "server_started": { "const": false },
+        "api_server_started": { "const": false },
+        "mutation_route_registered": { "const": false },
+        "mutation_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "receipt_payload_present": { "const": false },
+        "receipt_applied": { "const": false },
+        "install_execution_performed": { "const": false },
+        "runtime_execution_performed": { "const": false },
+        "terminal_execution_performed": { "const": false },
+        "mcp_connection_started": { "const": false },
+        "cron_gateway_started": { "const": false },
+        "provider_secret_configured": { "const": false },
+        "raw_secret_exposed": { "const": false },
+        "raw_client_or_vdr_exposed": { "const": false },
+        "direct_zendd_mutation_performed": { "const": false },
+        "agent_final_pass_created": { "const": false }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["platform_agent_operator_surface_status", "program_range", "phase_range", "phase_slot", "baseline_commit_ref", "source_adoption_freeze_status", "source_claim_count", "source_blocked_claim_count", "baseline_count", "dashboard_row_count", "api_route_count", "protected_queue_count", "next_action_count", "mutation_block_count", "claim_count", "pass_claim_count", "blocked_claim_count", "read_only", "server_started", "api_server_started", "mutation_route_registered", "mutation_performed", "protected_action_executed", "receipt_payload_present", "receipt_applied", "install_execution_performed", "runtime_execution_performed", "terminal_execution_performed", "mcp_connection_started", "cron_gateway_started", "provider_secret_configured", "raw_secret_exposed", "raw_client_or_vdr_exposed", "direct_zendd_mutation_performed", "agent_final_pass_created", "unsafe_flag_count", "validation_error_count"],
+      "properties": {
+        "platform_agent_operator_surface_status": { "const": "ready_for_agent_operator_surface" },
+        "program_range": { "const": "P1122-P1200" },
+        "phase_range": { "const": "P1125-P1132" },
+        "phase_slot": { "const": "P1125" },
+        "baseline_commit_ref": { "const": "4cfda48" },
+        "source_adoption_freeze_status": { "const": "ready_for_agent_adoption_freeze" },
+        "source_claim_count": { "const": 211 },
+        "source_blocked_claim_count": { "const": 47 },
+        "baseline_count": { "const": 3 },
+        "dashboard_row_count": { "const": 6 },
+        "api_route_count": { "const": 5 },
+        "protected_queue_count": { "const": 16 },
+        "next_action_count": { "const": 16 },
+        "mutation_block_count": { "const": 8 },
+        "claim_count": { "const": 54 },
+        "pass_claim_count": { "const": 46 },
+        "blocked_claim_count": { "const": 8 },
+        "read_only": { "const": true },
+        "server_started": { "const": false },
+        "api_server_started": { "const": false },
+        "mutation_route_registered": { "const": false },
+        "mutation_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "receipt_payload_present": { "const": false },
+        "receipt_applied": { "const": false },
+        "install_execution_performed": { "const": false },
+        "runtime_execution_performed": { "const": false },
+        "terminal_execution_performed": { "const": false },
+        "mcp_connection_started": { "const": false },
+        "cron_gateway_started": { "const": false },
+        "provider_secret_configured": { "const": false },
+        "raw_secret_exposed": { "const": false },
+        "raw_client_or_vdr_exposed": { "const": false },
+        "direct_zendd_mutation_performed": { "const": false },
+        "agent_final_pass_created": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

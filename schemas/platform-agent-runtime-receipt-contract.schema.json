@@ -1,0 +1,300 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-agent-runtime-receipt-contract.schema.json",
+  "title": "Platform Agent Runtime Receipt Contract",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_agent_runtime_receipt_contract_id",
+    "capability_id",
+    "inputs",
+    "agent_runtime_receipt_contract_anchor",
+    "source_agent_operator_surface_summary",
+    "agent_runtime_receipt_template_rows",
+    "agent_runtime_receipt_protected_action_gate_rows",
+    "agent_runtime_receipt_route_gate_rows",
+    "agent_runtime_receipt_validation_rule_rows",
+    "agent_runtime_receipt_quarantine_rows",
+    "agent_runtime_receipt_claim_rows",
+    "agent_runtime_receipt_closeout_rows",
+    "agent_runtime_receipt_gate_rows",
+    "agent_runtime_receipt_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-agent-runtime-receipt-contract.v1" },
+    "capability_id": { "const": "platform.agent_runtime_pilot.runtime_receipt_contract" },
+    "agent_runtime_receipt_contract_anchor": {
+      "type": "object",
+      "required": ["schema_version", "program_range", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "source_command_name", "capability_id", "package_script_registered", "validation_chain_registered", "runtime_pilot_ledger_present", "source_operator_surface_status", "receipt_template_count", "protected_action_gate_count", "route_gate_count", "validation_rule_count", "quarantine_count", "claim_count", "closeout_count"],
+      "properties": {
+        "schema_version": { "const": "platform-agent-runtime-receipt-contract-anchor.v1" },
+        "program_range": { "const": "P1122-P1200" },
+        "phase_range": { "const": "P1133-P1140" },
+        "phase_slot": { "const": "P1133" },
+        "previous_phase_slot": { "const": "P1132" },
+        "next_phase_slot": { "const": "P1141" },
+        "command_name": { "const": "platform:agent-runtime-receipt-contract" },
+        "source_command_name": { "const": "platform:agent-operator-surface" },
+        "capability_id": { "const": "platform.agent_runtime_pilot.runtime_receipt_contract" },
+        "package_script_registered": { "const": true },
+        "validation_chain_registered": { "const": true },
+        "runtime_pilot_ledger_present": { "const": true },
+        "source_operator_surface_status": { "const": "ready_for_agent_operator_surface" },
+        "receipt_template_count": { "const": 16 },
+        "protected_action_gate_count": { "const": 16 },
+        "route_gate_count": { "const": 8 },
+        "validation_rule_count": { "const": 8 },
+        "quarantine_count": { "const": 8 },
+        "claim_count": { "const": 56 }
+      }
+    },
+    "source_agent_operator_surface_summary": {
+      "type": "object",
+      "required": ["platform_agent_operator_surface_status", "protected_queue_count", "mutation_block_count", "server_started", "mutation_performed", "raw_secret_exposed", "raw_client_or_vdr_exposed"],
+      "properties": {
+        "platform_agent_operator_surface_status": { "const": "ready_for_agent_operator_surface" },
+        "protected_queue_count": { "const": 16 },
+        "mutation_block_count": { "const": 8 },
+        "server_started": { "const": false },
+        "mutation_performed": { "const": false },
+        "raw_secret_exposed": { "const": false },
+        "raw_client_or_vdr_exposed": { "const": false }
+      }
+    },
+    "agent_runtime_receipt_template_rows": {
+      "type": "array",
+      "minItems": 16,
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "protected_action_id", "source_queue_ref", "current_verdict", "template_status", "required_receipt_fields", "allowed_receipt_decisions", "human_receipt_required", "receipt_payload_present", "receipt_validated", "receipt_applied", "target_after_valid_receipt", "protected_action_execution_allowed_now", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "agent-runtime-receipt-template-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "template_status": { "const": "ready_for_human_receipt_input" },
+          "required_receipt_fields": {
+            "type": "array",
+            "contains": { "const": "human_receipt_ref" }
+          },
+          "human_receipt_required": { "const": true },
+          "receipt_payload_present": { "const": false },
+          "receipt_validated": { "const": false },
+          "receipt_applied": { "const": false },
+          "protected_action_execution_allowed_now": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_runtime_receipt_protected_action_gate_rows": {
+      "type": "array",
+      "minItems": 16,
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "protected_action_id", "source_queue_ref", "current_verdict", "block_reason", "source_block_reason", "human_receipt_required", "human_receipt_ref", "receipt_payload_present", "receipt_validated", "receipt_applied", "install_execution_allowed_now", "runtime_execution_allowed_now", "terminal_execution_allowed_now", "mcp_connection_allowed_now", "api_server_start_allowed_now", "cron_gateway_start_allowed_now", "provider_secret_configuration_allowed_now", "raw_material_access_allowed_now", "direct_zendd_mutation_allowed_now", "protected_action_execution_allowed_now", "agent_final_pass_allowed_now", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "agent-runtime-receipt-protected-action-gate-row.v1" },
+          "current_verdict": { "const": "blocked" },
+          "block_reason": { "const": "missing_validated_human_receipt" },
+          "human_receipt_required": { "const": true },
+          "receipt_payload_present": { "const": false },
+          "receipt_validated": { "const": false },
+          "receipt_applied": { "const": false },
+          "install_execution_allowed_now": { "const": false },
+          "runtime_execution_allowed_now": { "const": false },
+          "terminal_execution_allowed_now": { "const": false },
+          "mcp_connection_allowed_now": { "const": false },
+          "api_server_start_allowed_now": { "const": false },
+          "cron_gateway_start_allowed_now": { "const": false },
+          "provider_secret_configuration_allowed_now": { "const": false },
+          "raw_material_access_allowed_now": { "const": false },
+          "direct_zendd_mutation_allowed_now": { "const": false },
+          "protected_action_execution_allowed_now": { "const": false },
+          "agent_final_pass_allowed_now": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_runtime_receipt_route_gate_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "blocked_route_id", "source_mutation_block_ref", "method", "current_verdict", "block_reason", "source_block_reason", "human_receipt_required", "receipt_payload_present", "receipt_validated", "route_registered", "route_execution_allowed_now", "mutation_performed", "protected_action_executed", "raw_material_exposed", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "agent-runtime-receipt-route-gate-row.v1" },
+          "method": { "const": "POST" },
+          "current_verdict": { "const": "blocked" },
+          "block_reason": { "const": "missing_validated_human_receipt" },
+          "human_receipt_required": { "const": true },
+          "receipt_payload_present": { "const": false },
+          "receipt_validated": { "const": false },
+          "route_registered": { "const": false },
+          "route_execution_allowed_now": { "const": false },
+          "mutation_performed": { "const": false },
+          "protected_action_executed": { "const": false },
+          "raw_material_exposed": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_runtime_receipt_validation_rule_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "rule_id", "current_verdict", "rule_status", "description", "receipt_payload_present", "receipt_validated", "pass_promoted", "protected_action_executed", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "agent-runtime-receipt-validation-rule-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "rule_status": { "const": "ready_for_future_receipt_validation" },
+          "receipt_payload_present": { "const": false },
+          "receipt_validated": { "const": false },
+          "pass_promoted": { "const": false },
+          "protected_action_executed": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_runtime_receipt_quarantine_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "quarantine_id", "current_verdict", "quarantine_status", "unsafe_payload_block_reason", "receipt_payload_present", "unsafe_payload_accepted", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "agent-runtime-receipt-quarantine-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "quarantine_status": { "const": "ready_for_future_receipt_quarantine" },
+          "receipt_payload_present": { "const": false },
+          "unsafe_payload_accepted": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_runtime_receipt_claim_rows": {
+      "type": "array",
+      "minItems": 56,
+      "maxItems": 56,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "claim_id", "claim_type", "source_ref", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "agent-runtime-receipt-claim-row.v1" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_runtime_receipt_closeout_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "closeout_id", "current_verdict", "source_ref", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "agent-runtime-receipt-closeout-row.v1" },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "agent_runtime_receipt_gate_rows": {
+      "type": "array",
+      "minItems": 13,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "gate_id", "gate_status", "source_ref", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "receipt_received_by_gate", "receipt_validated_by_gate", "receipt_applied_by_gate", "protected_action_executed_by_gate", "runtime_execution_performed_by_gate", "raw_material_exposed_by_gate", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "agent-runtime-receipt-gate-row.v1" },
+          "gate_status": { "const": "ready" },
+          "receipt_received_by_gate": { "const": false },
+          "receipt_validated_by_gate": { "const": false },
+          "receipt_applied_by_gate": { "const": false },
+          "protected_action_executed_by_gate": { "const": false },
+          "runtime_execution_performed_by_gate": { "const": false },
+          "raw_material_exposed_by_gate": { "const": false }
+        }
+      }
+    },
+    "agent_runtime_receipt_boundary": {
+      "type": "object",
+      "required": ["schema_version", "source_operator_surface_ref", "source_operator_surface_status", "read_only", "receipt_contract_declared", "human_receipt_required", "receipt_payload_present", "receipt_received", "receipt_validated", "receipt_applied", "pass_promoted", "install_execution_performed", "runtime_execution_performed", "terminal_execution_performed", "mcp_connection_started", "api_server_started", "cron_gateway_started", "provider_secret_configured", "raw_secret_exposed", "raw_client_or_vdr_exposed", "direct_zendd_mutation_performed", "protected_action_executed", "agent_final_pass_created"],
+      "properties": {
+        "schema_version": { "const": "platform-agent-runtime-receipt-boundary.v1" },
+        "source_operator_surface_status": { "const": "ready_for_agent_operator_surface" },
+        "read_only": { "const": true },
+        "receipt_contract_declared": { "const": true },
+        "human_receipt_required": { "const": true },
+        "receipt_payload_present": { "const": false },
+        "receipt_received": { "const": false },
+        "receipt_validated": { "const": false },
+        "receipt_applied": { "const": false },
+        "pass_promoted": { "const": false },
+        "install_execution_performed": { "const": false },
+        "runtime_execution_performed": { "const": false },
+        "terminal_execution_performed": { "const": false },
+        "mcp_connection_started": { "const": false },
+        "api_server_started": { "const": false },
+        "cron_gateway_started": { "const": false },
+        "provider_secret_configured": { "const": false },
+        "raw_secret_exposed": { "const": false },
+        "raw_client_or_vdr_exposed": { "const": false },
+        "direct_zendd_mutation_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "agent_final_pass_created": { "const": false }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["platform_agent_runtime_receipt_contract_status", "program_range", "phase_range", "phase_slot", "source_operator_surface_status", "receipt_template_count", "protected_action_gate_count", "route_gate_count", "validation_rule_count", "quarantine_count", "claim_count", "pass_claim_count", "blocked_claim_count", "read_only", "human_receipt_required", "receipt_payload_present", "receipt_received", "receipt_validated", "receipt_applied", "pass_promoted", "install_execution_performed", "runtime_execution_performed", "terminal_execution_performed", "mcp_connection_started", "api_server_started", "cron_gateway_started", "provider_secret_configured", "raw_secret_exposed", "raw_client_or_vdr_exposed", "direct_zendd_mutation_performed", "protected_action_executed", "agent_final_pass_created", "unsafe_flag_count", "validation_error_count"],
+      "properties": {
+        "platform_agent_runtime_receipt_contract_status": { "const": "ready_for_agent_runtime_receipt_contract" },
+        "program_range": { "const": "P1122-P1200" },
+        "phase_range": { "const": "P1133-P1140" },
+        "phase_slot": { "const": "P1133" },
+        "source_operator_surface_status": { "const": "ready_for_agent_operator_surface" },
+        "receipt_template_count": { "const": 16 },
+        "protected_action_gate_count": { "const": 16 },
+        "route_gate_count": { "const": 8 },
+        "validation_rule_count": { "const": 8 },
+        "quarantine_count": { "const": 8 },
+        "claim_count": { "const": 56 },
+        "pass_claim_count": { "const": 32 },
+        "blocked_claim_count": { "const": 24 },
+        "read_only": { "const": true },
+        "human_receipt_required": { "const": true },
+        "receipt_payload_present": { "const": false },
+        "receipt_received": { "const": false },
+        "receipt_validated": { "const": false },
+        "receipt_applied": { "const": false },
+        "pass_promoted": { "const": false },
+        "install_execution_performed": { "const": false },
+        "runtime_execution_performed": { "const": false },
+        "terminal_execution_performed": { "const": false },
+        "mcp_connection_started": { "const": false },
+        "api_server_started": { "const": false },
+        "cron_gateway_started": { "const": false },
+        "provider_secret_configured": { "const": false },
+        "raw_secret_exposed": { "const": false },
+        "raw_client_or_vdr_exposed": { "const": false },
+        "direct_zendd_mutation_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "agent_final_pass_created": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

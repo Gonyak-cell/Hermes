@@ -233,10 +233,25 @@ Acceptance for P1195-P1198:
 
 ## P1199-P1200 Agent Runtime Pilot Readiness Freeze
 
-Future command: `platform:agent-runtime-pilot-freeze -- --check`.
+Command: `platform:agent-runtime-pilot-freeze -- --check`.
 
 The final freeze will re-adjudicate all P1122-P1198 claims. Every claim must be
 PASS with evidence/reviewer/gate and required receipt refs, or documented BLOCK
 with block reason, owner, human gate when protected, and next allowed action.
 The expected closing status is `ready_for_human_approved_agent_runtime_pilot`;
 runtime execution still remains BLOCK until a future human receipt is validated.
+
+Acceptance for P1199-P1200:
+
+- P1199 consumes all Agent Runtime Pilot sources from P1122-P1198.
+- P1199 audits every source claim row for PASS evidence/reviewer/gate/owner/next
+  action, or documented BLOCK reason/owner/next action.
+- P1200 documents runtime execution, package install, terminal/MCP/API/cron,
+  provider secrets, raw secret/client/VDR exposure, cross-domain forwarding,
+  direct Zendd mutation, protected action execution, receipt application, Agent
+  final PASS/approval, legal final judgment, and release/deploy decision as
+  BLOCK unless a future human-approved receipt chain is validated.
+- P1200 may return `ready_for_human_approved_agent_runtime_pilot`, but it must
+  not start Hermes Agent, invoke tools, execute commands, start services,
+  configure secrets, expose raw materials, mutate Zendd, apply receipts, execute
+  protected actions, or create final legal/release authority.

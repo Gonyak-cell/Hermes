@@ -183,12 +183,29 @@ Acceptance for P1181-P1188:
 
 ## P1189-P1194 Delegation/Subagent Contract
 
-Future command: `platform:agent-delegation-contract -- --check`.
+Command: `platform:agent-delegation-contract -- --check`.
 
-The delegation contract will separate planner, researcher, reviewer, verifier,
-and recovery drafter roles. Subagents may draft candidates and evidence only;
-they cannot create final PASS, approval, legal final judgment, release decisions,
-or protected action execution.
+The delegation contract separates domain observer, work-order planner, evidence
+packet drafter, and review packet drafter roles. These roles are contract rows
+for dry-run simulation only; they do not spawn subagents, invoke tools, start
+services, forward raw material, execute protected actions, or create final PASS,
+approval, legal final judgment, or release decisions.
+
+Acceptance for P1189-P1194:
+
+- P1189 consumes `platform:agent-zendd-candidate-bridge -- --check` and
+  `platform:agent-capability-registry -- --check` as source evidence.
+- P1190 emits four delegation roles for each registered domain.
+- P1191 emits one safe handoff channel per domain with allowed refs and
+  forbidden raw/secret/final-authority payload fields.
+- P1192 emits five Zendd delegation packets from P1181-P1188 candidate packets.
+- P1193 documents autonomous subagent spawn, background loops, cross-domain data
+  forwarding, raw secret/client/VDR forwarding, terminal/MCP/API/cron start,
+  direct Zendd mutation, protected action execution, and Agent final authority as
+  BLOCK.
+- P1194 closes delegation as contract-ready only; no subagent spawn, runtime
+  execution, tool invocation, data forwarding, raw exposure, receipt application,
+  protected action, release decision, legal final judgment, or final PASS occurs.
 
 ## P1195-P1198 Dry-run Runtime Simulation
 

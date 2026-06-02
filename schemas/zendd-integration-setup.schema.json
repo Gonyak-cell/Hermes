@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/zendd-integration-setup.schema.json",
+  "title": "Zendd Integration Setup",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "zendd_integration_setup_id",
+    "capability_id",
+    "output_dir",
+    "inputs",
+    "zendd_integration_anchor",
+    "integration_adr",
+    "zendd_baseline",
+    "dirty_tree_safety_inventory_rows",
+    "feature_parity_matrix_rows",
+    "project_zendd_boundary_contract",
+    "zendd_integration_gate_rows",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "zendd-integration-setup.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "zendd_integration_setup_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "project.zendd.integration_setup" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["schema_path", "phase_ledger_path", "package_path", "zendd_project_root"],
+      "additionalProperties": true
+    },
+    "zendd_integration_anchor": {
+      "type": "object",
+      "required": ["schema_version", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name"],
+      "properties": {
+        "schema_version": { "const": "zendd-integration-anchor.v1" },
+        "phase_range": { "const": "P521-P525" },
+        "phase_slot": { "const": "P521" },
+        "previous_phase_slot": { "const": "P520" },
+        "next_phase_slot": { "const": "P526" },
+        "command_name": { "const": "project:zendd-integration-setup" }
+      },
+      "additionalProperties": true
+    },
+    "integration_adr": {
+      "type": "object",
+      "required": ["schema_version", "adr_id", "phase_slot", "status", "selected_option", "rejected_options", "controlling_principles"],
+      "properties": {
+        "schema_version": { "const": "zendd-integration-adr.v1" },
+        "phase_slot": { "const": "P521" },
+        "status": { "const": "proposed" },
+        "selected_option": { "const": "external_project_adapter" },
+        "rejected_options": { "type": "array", "minItems": 3 },
+        "controlling_principles": { "type": "array", "minItems": 4 }
+      },
+      "additionalProperties": true
+    },
+    "zendd_baseline": {
+      "type": "object",
+      "required": ["schema_version", "phase_slot", "project_id", "project_root", "source_control", "runtime_profile", "detected_capabilities", "mutation_allowed", "raw_vdr_copy_allowed"],
+      "properties": {
+        "schema_version": { "const": "zendd-baseline.v1" },
+        "phase_slot": { "const": "P522" },
+        "project_id": { "const": "project.zendd" },
+        "mutation_allowed": { "const": false },
+        "command_execution_allowed_by_setup": { "const": false },
+        "raw_vdr_copy_allowed": { "const": false },
+        "source_control": { "type": "object" },
+        "runtime_profile": { "type": "object" },
+        "detected_capabilities": { "type": "array", "minItems": 5 }
+      },
+      "additionalProperties": true
+    },
+    "dirty_tree_safety_inventory_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "path_classification", "risk_level", "handling_policy", "next_allowed_action", "mutation_allowed"],
+        "properties": {
+          "schema_version": { "const": "zendd-dirty-tree-safety-row.v1" },
+          "phase_slot": { "const": "P523" },
+          "mutation_allowed": { "const": false },
+          "next_allowed_action": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "feature_parity_matrix_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "feature_id", "integration_decision", "next_allowed_action", "pass_policy"],
+        "properties": {
+          "schema_version": { "const": "zendd-feature-parity-row.v1" },
+          "phase_slot": { "const": "P524" },
+          "pass_policy": { "const": "requires_evidence_review_gate_and_receipt_when_protected" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "project_zendd_boundary_contract": {
+      "type": "object",
+      "required": ["schema_version", "phase_slot", "project_id", "source_of_truth", "read_only", "mutation_allowed", "command_execution_allowed", "raw_vdr_copy_allowed", "next_allowed_action"],
+      "properties": {
+        "schema_version": { "const": "project-zendd-boundary-contract.v1" },
+        "phase_slot": { "const": "P525" },
+        "project_id": { "const": "project.zendd" },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "command_execution_allowed": { "const": false },
+        "raw_vdr_copy_allowed": { "const": false },
+        "next_allowed_action": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "zendd_integration_gate_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "gate_id", "phase_slot", "gate_status", "message", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-integration-gate-row.v1" },
+          "gate_status": { "enum": ["pass", "blocked"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "validation_items": { "type": "array" },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "phase_range",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "command_name",
+        "zendd_integration_setup_status",
+        "zendd_mutation_allowed",
+        "raw_vdr_copy_allowed",
+        "command_execution_allowed",
+        "validation_error_count"
+      ],
+      "properties": {
+        "phase_range": { "const": "P521-P525" },
+        "phase_slot": { "const": "P521" },
+        "previous_phase_slot": { "const": "P520" },
+        "next_phase_slot": { "const": "P526" },
+        "command_name": { "const": "project:zendd-integration-setup" },
+        "zendd_mutation_allowed": { "const": false },
+        "raw_vdr_copy_allowed": { "const": false },
+        "command_execution_allowed": { "const": false },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

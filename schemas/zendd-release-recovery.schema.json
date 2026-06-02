@@ -1,0 +1,244 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/zendd-release-recovery.schema.json",
+  "title": "Zendd Release Recovery",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "zendd_release_recovery_id",
+    "capability_id",
+    "output_dir",
+    "inputs",
+    "release_recovery_anchor",
+    "operator_surface_summary",
+    "release_recovery_policy",
+    "release_claim_rows",
+    "recovery_scenario_rows",
+    "rollback_target_rows",
+    "protected_release_action_rows",
+    "recovery_receipt_rows",
+    "release_recovery_closeout_rows",
+    "release_recovery_gate_rows",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "zendd-release-recovery.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "zendd_release_recovery_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "project.zendd.release_recovery" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["schema_path", "phase_ledger_path", "package_path", "zendd_project_root"],
+      "additionalProperties": true
+    },
+    "release_recovery_anchor": {
+      "type": "object",
+      "required": ["schema_version", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "operator_surface_command_name", "source_operator_surface_status"],
+      "properties": {
+        "schema_version": { "const": "zendd-release-recovery-anchor.v1" },
+        "phase_range": { "const": "P681-P700" },
+        "phase_slot": { "const": "P681" },
+        "previous_phase_slot": { "const": "P680" },
+        "next_phase_slot": { "const": "P701" },
+        "command_name": { "const": "project:zendd-release-recovery" },
+        "operator_surface_command_name": { "const": "project:zendd-operator-surface" },
+        "source_operator_surface_status": { "const": "ready_for_release_recovery_bridge" }
+      },
+      "additionalProperties": true
+    },
+    "release_recovery_policy": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "phase_slot",
+        "release_execution_allowed_now",
+        "package_build_allowed_now",
+        "electron_package_allowed_now",
+        "database_migration_allowed_now",
+        "client_export_allowed_now",
+        "rollback_execution_allowed_now",
+        "recovery_execution_allowed_now",
+        "protected_release_pass_allowed_without_receipt",
+        "release_pass_requires",
+        "blocked_status_requires",
+        "rollback_target_required_for_all_release_claims",
+        "next_allowed_action"
+      ],
+      "properties": {
+        "schema_version": { "const": "zendd-release-recovery-policy.v1" },
+        "phase_slot": { "const": "P681" },
+        "release_execution_allowed_now": { "const": false },
+        "package_build_allowed_now": { "const": false },
+        "electron_package_allowed_now": { "const": false },
+        "database_migration_allowed_now": { "const": false },
+        "client_export_allowed_now": { "const": false },
+        "rollback_execution_allowed_now": { "const": false },
+        "recovery_execution_allowed_now": { "const": false },
+        "protected_release_pass_allowed_without_receipt": { "const": false },
+        "release_pass_requires": { "type": "array", "minItems": 7 },
+        "blocked_status_requires": { "type": "array", "minItems": 3 },
+        "rollback_target_required_for_all_release_claims": { "const": true },
+        "next_allowed_action": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "release_claim_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "claim_id", "release_type", "operator_surface_ref", "command_evidence_ref", "release_evidence_ref", "rollback_target", "rollback_target_ref", "recovery_receipt_ref", "reviewer_ref", "hard_gate_ref", "human_receipt_ref", "protected_release_claim", "release_execution_allowed_now", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-release-claim-row.v1" },
+          "project_id": { "const": "project.zendd" },
+          "protected_release_claim": { "const": true },
+          "release_execution_allowed_now": { "const": false },
+          "current_verdict": { "const": "blocked" },
+          "next_allowed_action": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "recovery_scenario_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "scenario_id", "claim_id", "rollback_target", "rollback_target_ref", "recovery_receipt_ref", "recovery_draft_receipt_status", "release_or_recovery_execution_allowed_now", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-recovery-scenario-row.v1" },
+          "release_or_recovery_execution_allowed_now": { "const": false },
+          "recovery_draft_receipt_status": { "const": "draft_only_not_applied" },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "rollback_target_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "rollback_target", "rollback_target_ref", "rollback_execution_allowed_now", "rollback_receipt_required", "rollback_evidence_ref", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-rollback-target-row.v1" },
+          "rollback_execution_allowed_now": { "const": false },
+          "rollback_receipt_required": { "const": true },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "protected_release_action_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "action_id", "action_type", "action_allowed_now", "human_receipt_required", "release_evidence_required", "rollback_target_required", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-protected-release-action-row.v1" },
+          "action_allowed_now": { "const": false },
+          "human_receipt_required": { "const": true },
+          "release_evidence_required": { "const": true },
+          "rollback_target_required": { "const": true },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "recovery_receipt_rows": {
+      "type": "array",
+      "minItems": 18,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "receipt_type", "source_ref", "recovery_receipt_ref", "rollback_target", "receipt_payload_present", "receipt_materialized", "receipt_validated", "approval_applied", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-recovery-receipt-row.v1" },
+          "receipt_payload_present": { "const": false },
+          "receipt_materialized": { "const": false },
+          "receipt_validated": { "const": false },
+          "approval_applied": { "const": false },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "release_recovery_closeout_rows": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "closeout_status", "release_claim_row_count", "recovery_scenario_row_count", "rollback_target_row_count", "protected_release_action_row_count", "recovery_receipt_row_count", "release_execution_allowed_now", "package_build_allowed_now", "database_migration_allowed_now", "client_export_allowed_now", "rollback_execution_allowed_now", "recovery_execution_allowed_now", "receipt_validated", "approval_applied", "pass_promoted", "next_integration_phase_slot", "next_allowed_action", "read_only"],
+        "properties": {
+          "schema_version": { "const": "zendd-release-recovery-closeout-row.v1" },
+          "phase_slot": { "const": "P700" },
+          "closeout_status": { "const": "ready_for_release_recovery_closeout" },
+          "release_execution_allowed_now": { "const": false },
+          "package_build_allowed_now": { "const": false },
+          "database_migration_allowed_now": { "const": false },
+          "client_export_allowed_now": { "const": false },
+          "rollback_execution_allowed_now": { "const": false },
+          "recovery_execution_allowed_now": { "const": false },
+          "receipt_validated": { "const": false },
+          "approval_applied": { "const": false },
+          "pass_promoted": { "const": false },
+          "next_integration_phase_slot": { "const": "P701" },
+          "read_only": { "const": true }
+        },
+        "additionalProperties": true
+      }
+    },
+    "release_recovery_gate_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "gate_id", "phase_slot", "gate_status", "message", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-release-recovery-gate-row.v1" },
+          "gate_status": { "enum": ["pass", "blocked"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "validation_items": { "type": "array" },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": ["phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "zendd_release_recovery_status", "release_claim_row_count", "recovery_scenario_row_count", "rollback_target_row_count", "protected_release_action_row_count", "recovery_receipt_row_count", "release_execution_allowed_now", "package_build_allowed_now", "database_migration_allowed_now", "client_export_allowed_now", "rollback_execution_allowed_now", "recovery_execution_allowed_now", "receipt_validated", "approval_applied", "pass_promoted", "validation_error_count"],
+      "properties": {
+        "phase_range": { "const": "P681-P700" },
+        "phase_slot": { "const": "P681" },
+        "previous_phase_slot": { "const": "P680" },
+        "next_phase_slot": { "const": "P701" },
+        "command_name": { "const": "project:zendd-release-recovery" },
+        "zendd_release_recovery_status": { "const": "ready_for_cross_system_claim_freeze" },
+        "release_execution_allowed_now": { "const": false },
+        "package_build_allowed_now": { "const": false },
+        "database_migration_allowed_now": { "const": false },
+        "client_export_allowed_now": { "const": false },
+        "rollback_execution_allowed_now": { "const": false },
+        "recovery_execution_allowed_now": { "const": false },
+        "receipt_validated": { "const": false },
+        "approval_applied": { "const": false },
+        "pass_promoted": { "const": false },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

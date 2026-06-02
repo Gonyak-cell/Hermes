@@ -1,0 +1,290 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/zendd-source-contract.schema.json",
+  "title": "Zendd Source Contract",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "zendd_source_contract_id",
+    "capability_id",
+    "output_dir",
+    "inputs",
+    "source_contract_anchor",
+    "source_command_evidence_summary",
+    "source_contract_policy",
+    "gate_comparison_rows",
+    "vdr_ldd_source_contract_rows",
+    "source_reference_policy",
+    "cross_gate_improvement_rows",
+    "source_pass_block_policy",
+    "source_review_binding_rows",
+    "source_freeze_rows",
+    "source_contract_gate_rows",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "zendd-source-contract.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "zendd_source_contract_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "project.zendd.source_contract" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["schema_path", "phase_ledger_path", "package_path", "zendd_project_root"],
+      "additionalProperties": true
+    },
+    "source_contract_anchor": {
+      "type": "object",
+      "required": ["schema_version", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "command_evidence_command_name"],
+      "properties": {
+        "schema_version": { "const": "zendd-source-contract-anchor.v1" },
+        "phase_range": { "const": "P581-P600" },
+        "phase_slot": { "const": "P581" },
+        "previous_phase_slot": { "const": "P580" },
+        "next_phase_slot": { "const": "P601" },
+        "command_name": { "const": "project:zendd-source-contract" },
+        "command_evidence_command_name": { "const": "project:zendd-command-evidence" }
+      },
+      "additionalProperties": true
+    },
+    "source_contract_policy": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "phase_slot",
+        "raw_material_copy_allowed_in_hermes",
+        "source_pass_requires",
+        "protected_source_pass_requires",
+        "blocked_status_requires",
+        "forbidden_hermes_source_fields",
+        "next_allowed_action"
+      ],
+      "properties": {
+        "schema_version": { "const": "zendd-source-contract-policy.v1" },
+        "phase_slot": { "const": "P581" },
+        "raw_material_copy_allowed_in_hermes": { "const": false },
+        "source_pass_requires": { "type": "array", "minItems": 5 },
+        "protected_source_pass_requires": { "type": "array", "minItems": 2 },
+        "blocked_status_requires": { "type": "array", "minItems": 3 },
+        "forbidden_hermes_source_fields": { "type": "array", "minItems": 5 },
+        "next_allowed_action": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "gate_comparison_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "phase_slot",
+          "row_id",
+          "project_id",
+          "comparison_id",
+          "hermes_gate",
+          "zendd_gate",
+          "hermes_strength",
+          "zendd_strength",
+          "integration_decision",
+          "hermes_improvement_action",
+          "zendd_improvement_action",
+          "current_verdict",
+          "next_allowed_action"
+        ],
+        "properties": {
+          "schema_version": { "const": "zendd-gate-comparison-row.v1" },
+          "project_id": { "const": "project.zendd" },
+          "current_verdict": { "const": "pass" },
+          "next_allowed_action": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "vdr_ldd_source_contract_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "phase_slot",
+          "row_id",
+          "project_id",
+          "claim_id",
+          "source_contract_id",
+          "source_type",
+          "stable_source_ref",
+          "evidence_ref",
+          "redacted_summary_ref",
+          "hermes_resource_gate_ref",
+          "zendd_vdr_ldd_gate_ref",
+          "reviewer_ref",
+          "hard_gate_ref",
+          "human_receipt_ref_required",
+          "raw_material_copy_allowed_in_hermes",
+          "current_verdict",
+          "block_reason",
+          "responsible_owner",
+          "next_allowed_action"
+        ],
+        "properties": {
+          "schema_version": { "const": "zendd-vdr-ldd-source-contract-row.v1" },
+          "project_id": { "const": "project.zendd" },
+          "human_receipt_ref_required": { "const": true },
+          "raw_material_copy_allowed_in_hermes": { "const": false },
+          "current_verdict": { "const": "blocked" },
+          "block_reason": { "type": "string", "minLength": 1 },
+          "responsible_owner": { "type": "string", "minLength": 1 },
+          "next_allowed_action": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "source_reference_policy": {
+      "type": "object",
+      "required": ["schema_version", "phase_slot", "allowed_hermes_fields", "blocked_hermes_fields", "reference_only_required", "raw_material_copy_allowed_in_hermes", "next_allowed_action"],
+      "properties": {
+        "schema_version": { "const": "zendd-source-reference-policy.v1" },
+        "phase_slot": { "const": "P591" },
+        "reference_only_required": { "const": true },
+        "raw_material_copy_allowed_in_hermes": { "const": false },
+        "allowed_hermes_fields": { "type": "array", "minItems": 5 },
+        "blocked_hermes_fields": { "type": "array", "minItems": 5 },
+        "next_allowed_action": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "cross_gate_improvement_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "improvement_id", "direction", "description", "current_verdict", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-cross-gate-improvement-row.v1" },
+          "project_id": { "const": "project.zendd" },
+          "direction": { "enum": ["hermes_from_zendd", "zendd_from_hermes", "mutual_hardening"] },
+          "current_verdict": { "const": "documented_improvement" },
+          "responsible_owner": { "type": "string", "minLength": 1 },
+          "next_allowed_action": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "source_pass_block_policy": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "phase_slot",
+        "pass_allowed_without_stable_source_ref",
+        "pass_allowed_without_redacted_summary",
+        "pass_allowed_without_review",
+        "protected_pass_allowed_without_receipt",
+        "unsafe_raw_material_copy_can_pass",
+        "blocked_status_requires",
+        "next_allowed_action"
+      ],
+      "properties": {
+        "schema_version": { "const": "zendd-source-pass-block-policy.v1" },
+        "phase_slot": { "const": "P595" },
+        "pass_allowed_without_stable_source_ref": { "const": false },
+        "pass_allowed_without_redacted_summary": { "const": false },
+        "pass_allowed_without_review": { "const": false },
+        "protected_pass_allowed_without_receipt": { "const": false },
+        "unsafe_raw_material_copy_can_pass": { "const": false },
+        "blocked_status_requires": { "type": "array", "minItems": 3 },
+        "next_allowed_action": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "source_review_binding_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "claim_id", "stable_source_ref", "evidence_ref", "reviewer_ref", "hard_gate_ref", "human_receipt_ref_required", "pass_without_review_allowed", "pass_without_receipt_allowed", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-source-review-binding-row.v1" },
+          "human_receipt_ref_required": { "const": true },
+          "pass_without_review_allowed": { "const": false },
+          "pass_without_receipt_allowed": { "const": false },
+          "next_allowed_action": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "source_freeze_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "claim_id", "stable_source_ref", "evidence_ref", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-source-freeze-row.v1" },
+          "phase_slot": { "const": "P599-P600" },
+          "current_verdict": { "const": "blocked" },
+          "block_reason": { "type": "string", "minLength": 1 },
+          "responsible_owner": { "type": "string", "minLength": 1 },
+          "next_allowed_action": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "source_contract_gate_rows": {
+      "type": "array",
+      "minItems": 11,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "gate_id", "phase_slot", "gate_status", "message", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-source-contract-gate-row.v1" },
+          "gate_status": { "enum": ["pass", "blocked"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "validation_items": { "type": "array" },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "phase_range",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "command_name",
+        "zendd_source_contract_status",
+        "source_contract_row_count",
+        "gate_comparison_row_count",
+        "cross_gate_improvement_row_count",
+        "raw_material_copy_allowed_in_hermes",
+        "protected_pass_allowed_without_receipt",
+        "validation_error_count"
+      ],
+      "properties": {
+        "phase_range": { "const": "P581-P600" },
+        "phase_slot": { "const": "P581" },
+        "previous_phase_slot": { "const": "P580" },
+        "next_phase_slot": { "const": "P601" },
+        "command_name": { "const": "project:zendd-source-contract" },
+        "raw_material_copy_allowed_in_hermes": { "const": false },
+        "protected_pass_allowed_without_receipt": { "const": false },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,227 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/zendd-client-output-gate.schema.json",
+  "title": "Zendd Client Output Gate",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "zendd_client_output_gate_id",
+    "capability_id",
+    "output_dir",
+    "inputs",
+    "client_output_anchor",
+    "review_receipts_summary",
+    "client_output_gate_policy",
+    "client_output_claim_rows",
+    "korean_language_quality_rows",
+    "citation_gate_rows",
+    "client_exposure_control_rows",
+    "client_receipt_binding_rows",
+    "client_output_freeze_rows",
+    "client_output_gate_rows",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "zendd-client-output-gate.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "zendd_client_output_gate_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "project.zendd.client_output_gate" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["schema_path", "phase_ledger_path", "package_path", "zendd_project_root"],
+      "additionalProperties": true
+    },
+    "client_output_anchor": {
+      "type": "object",
+      "required": ["schema_version", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "review_receipts_command_name"],
+      "properties": {
+        "schema_version": { "const": "zendd-client-output-anchor.v1" },
+        "phase_range": { "const": "P641-P660" },
+        "phase_slot": { "const": "P641" },
+        "previous_phase_slot": { "const": "P640" },
+        "next_phase_slot": { "const": "P661" },
+        "command_name": { "const": "project:zendd-client-output-gate" },
+        "review_receipts_command_name": { "const": "project:zendd-review-receipts" }
+      },
+      "additionalProperties": true
+    },
+    "client_output_gate_policy": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "phase_slot",
+        "client_output_generation_allowed_now",
+        "protected_client_output_pass_allowed",
+        "raw_client_document_copy_allowed_in_hermes",
+        "weak_korean_language_can_pass",
+        "unsupported_sentence_can_pass",
+        "citationless_legal_conclusion_can_pass",
+        "internal_review_wording_can_pass",
+        "client_output_pass_requires",
+        "blocked_status_requires",
+        "next_allowed_action"
+      ],
+      "properties": {
+        "schema_version": { "const": "zendd-client-output-gate-policy.v1" },
+        "phase_slot": { "const": "P641" },
+        "client_output_generation_allowed_now": { "const": false },
+        "protected_client_output_pass_allowed": { "const": false },
+        "raw_client_document_copy_allowed_in_hermes": { "const": false },
+        "weak_korean_language_can_pass": { "const": false },
+        "unsupported_sentence_can_pass": { "const": false },
+        "citationless_legal_conclusion_can_pass": { "const": false },
+        "internal_review_wording_can_pass": { "const": false },
+        "client_output_pass_requires": { "type": "array", "minItems": 7 },
+        "blocked_status_requires": { "type": "array", "minItems": 3 },
+        "next_allowed_action": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "client_output_claim_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "claim_id", "output_ref", "source_trace_ref", "fact_claim_ref", "issue_ref", "citation_ref", "korean_quality_gate_ref", "reviewer_ref", "human_receipt_ref", "protected_output", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-client-output-claim-row.v1" },
+          "project_id": { "const": "project.zendd" },
+          "protected_output": { "const": true },
+          "current_verdict": { "const": "blocked" },
+          "next_allowed_action": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "korean_language_quality_rows": {
+      "type": "array",
+      "minItems": 24,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "claim_id", "output_ref", "quality_check_id", "quality_evidence_ref", "pass_without_quality_evidence_allowed", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-korean-language-quality-row.v1" },
+          "pass_without_quality_evidence_allowed": { "const": false },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "citation_gate_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "claim_id", "output_ref", "citation_ref", "source_trace_ref", "citation_required", "citationless_legal_conclusion_can_pass", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-citation-gate-row.v1" },
+          "citation_required": { "const": true },
+          "citationless_legal_conclusion_can_pass": { "const": false },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "client_exposure_control_rows": {
+      "type": "array",
+      "minItems": 24,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "claim_id", "output_ref", "exposure_check_id", "unsafe_exposure_allowed", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-client-exposure-control-row.v1" },
+          "unsafe_exposure_allowed": { "const": false },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "client_receipt_binding_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "claim_id", "output_ref", "receipt_template_ref", "required_reviewer_role", "receipt_payload_present", "protected_pass_allowed_without_receipt", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-client-receipt-binding-row.v1" },
+          "receipt_payload_present": { "const": false },
+          "protected_pass_allowed_without_receipt": { "const": false },
+          "current_verdict": { "const": "blocked" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "client_output_freeze_rows": {
+      "type": "array",
+      "minItems": 36,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "claim_id", "output_ref", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-client-output-freeze-row.v1" },
+          "phase_slot": { "const": "P659-P660" },
+          "current_verdict": { "const": "blocked" },
+          "next_allowed_action": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "client_output_gate_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "gate_id", "phase_slot", "gate_status", "message", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-client-output-gate-row.v1" },
+          "gate_status": { "enum": ["pass", "blocked"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "validation_items": { "type": "array" },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "phase_range",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "command_name",
+        "zendd_client_output_gate_status",
+        "client_output_claim_row_count",
+        "korean_language_quality_row_count",
+        "citation_gate_row_count",
+        "exposure_control_row_count",
+        "protected_client_output_pass_allowed",
+        "weak_korean_language_can_pass",
+        "validation_error_count"
+      ],
+      "properties": {
+        "phase_range": { "const": "P641-P660" },
+        "phase_slot": { "const": "P641" },
+        "previous_phase_slot": { "const": "P640" },
+        "next_phase_slot": { "const": "P661" },
+        "command_name": { "const": "project:zendd-client-output-gate" },
+        "protected_client_output_pass_allowed": { "const": false },
+        "weak_korean_language_can_pass": { "const": false },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

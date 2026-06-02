@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/zendd-boundary.schema.json",
+  "title": "Zendd Boundary",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "zendd_boundary_id",
+    "capability_id",
+    "output_dir",
+    "inputs",
+    "boundary_anchor",
+    "source_setup_summary",
+    "project_zendd_registration",
+    "observation_policy_rows",
+    "zendd_command_catalog_rows",
+    "prohibited_operation_rows",
+    "raw_material_reference_policy",
+    "secret_boundary_policy",
+    "protected_pass_policy",
+    "dirty_tree_mutation_policy",
+    "blocked_capability_ledger_rows",
+    "boundary_gate_rows",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "zendd-boundary.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "zendd_boundary_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "project.zendd.boundary" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["schema_path", "phase_ledger_path", "package_path", "zendd_project_root"],
+      "additionalProperties": true
+    },
+    "boundary_anchor": {
+      "type": "object",
+      "required": ["schema_version", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "setup_command_name"],
+      "properties": {
+        "schema_version": { "const": "zendd-boundary-anchor.v1" },
+        "phase_range": { "const": "P526-P540" },
+        "phase_slot": { "const": "P526" },
+        "previous_phase_slot": { "const": "P525" },
+        "next_phase_slot": { "const": "P541" },
+        "command_name": { "const": "project:zendd-boundary" },
+        "setup_command_name": { "const": "project:zendd-integration-setup" }
+      },
+      "additionalProperties": true
+    },
+    "project_zendd_registration": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "phase_slot",
+        "project_id",
+        "domain_pack_id",
+        "registration_mode",
+        "source_of_truth",
+        "code_directory_move_allowed",
+        "mutation_allowed",
+        "command_execution_allowed",
+        "raw_vdr_copy_allowed",
+        "protected_pass_allowed_without_receipt",
+        "next_allowed_action"
+      ],
+      "properties": {
+        "schema_version": { "const": "project-zendd-registration.v1" },
+        "phase_slot": { "const": "P526" },
+        "project_id": { "const": "project.zendd" },
+        "domain_pack_id": { "const": "law-firm" },
+        "registration_mode": { "const": "external_project_adapter" },
+        "source_of_truth": { "const": "external_zendd_checkout" },
+        "code_directory_move_allowed": { "const": false },
+        "mutation_allowed": { "const": false },
+        "command_execution_allowed": { "const": false },
+        "raw_vdr_copy_allowed": { "const": false },
+        "protected_pass_allowed_without_receipt": { "const": false },
+        "next_allowed_action": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "observation_policy_rows": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "observation_id", "observation_scope", "allowed_in_boundary_phase", "read_only", "mutation_allowed", "raw_content_allowed", "secret_value_allowed", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-observation-policy-row.v1" },
+          "phase_slot": { "const": "P527" },
+          "allowed_in_boundary_phase": { "const": true },
+          "read_only": { "const": true },
+          "mutation_allowed": { "const": false },
+          "raw_content_allowed": { "const": false },
+          "secret_value_allowed": { "const": false },
+          "next_allowed_action": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "zendd_command_catalog_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "script_name", "command_classification", "execution_policy", "execution_allowed_in_boundary_phase", "observed_only", "verdict", "block_reason", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-command-catalog-row.v1" },
+          "project_id": { "const": "project.zendd" },
+          "execution_policy": { "const": "catalog_only_no_execution" },
+          "execution_allowed_in_boundary_phase": { "const": false },
+          "observed_only": { "const": true },
+          "next_allowed_action": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "prohibited_operation_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "operation_id", "operation_type", "allowed", "verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-prohibited-operation-row.v1" },
+          "allowed": { "const": false },
+          "verdict": { "const": "blocked" },
+          "block_reason": { "type": "string", "minLength": 1 },
+          "responsible_owner": { "type": "string", "minLength": 1 },
+          "next_allowed_action": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "raw_material_reference_policy": {
+      "type": "object",
+      "required": ["schema_version", "phase_slot", "raw_vdr_copy_allowed", "raw_client_document_copy_allowed", "hermes_allowed_input_types", "prohibited_input_types", "next_allowed_action"],
+      "properties": {
+        "schema_version": { "const": "zendd-raw-material-reference-policy.v1" },
+        "phase_slot": { "const": "P529" },
+        "raw_vdr_copy_allowed": { "const": false },
+        "raw_client_document_copy_allowed": { "const": false },
+        "hermes_allowed_input_types": { "type": "array", "minItems": 4 },
+        "prohibited_input_types": { "type": "array", "minItems": 4 },
+        "next_allowed_action": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "secret_boundary_policy": {
+      "type": "object",
+      "required": ["schema_version", "phase_slot", "secret_value_read_allowed", "env_file_read_allowed", "secret_candidate_policy", "next_allowed_action"],
+      "properties": {
+        "schema_version": { "const": "zendd-secret-boundary-policy.v1" },
+        "phase_slot": { "const": "P530" },
+        "secret_value_read_allowed": { "const": false },
+        "env_file_read_allowed": { "const": false },
+        "next_allowed_action": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "protected_pass_policy": {
+      "type": "object",
+      "required": ["schema_version", "phase_slot", "pass_without_human_receipt_allowed", "blocked_status_requires", "next_allowed_action"],
+      "properties": {
+        "schema_version": { "const": "zendd-protected-pass-policy.v1" },
+        "phase_slot": { "const": "P530" },
+        "pass_without_human_receipt_allowed": { "const": false },
+        "blocked_status_requires": { "type": "array", "minItems": 3 },
+        "next_allowed_action": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "dirty_tree_mutation_policy": {
+      "type": "object",
+      "required": ["schema_version", "phase_slot", "mutation_allowed", "dirty_tree_blocks_mutation", "all_dirty_rows_have_next_action", "next_allowed_action"],
+      "properties": {
+        "schema_version": { "const": "zendd-dirty-tree-mutation-policy.v1" },
+        "phase_slot": { "const": "P535" },
+        "mutation_allowed": { "const": false },
+        "dirty_tree_blocks_mutation": { "const": true },
+        "all_dirty_rows_have_next_action": { "const": true },
+        "next_allowed_action": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "blocked_capability_ledger_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "capability_id", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-blocked-capability-ledger-row.v1" },
+          "phase_slot": { "const": "P536-P540" },
+          "project_id": { "const": "project.zendd" },
+          "block_reason": { "type": "string", "minLength": 1 },
+          "responsible_owner": { "type": "string", "minLength": 1 },
+          "next_allowed_action": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "boundary_gate_rows": {
+      "type": "array",
+      "minItems": 14,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "gate_id", "phase_slot", "gate_status", "message", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-boundary-gate-row.v1" },
+          "gate_status": { "enum": ["pass", "blocked"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "validation_items": { "type": "array" },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "phase_range",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "command_name",
+        "zendd_boundary_status",
+        "domain_pack_id",
+        "zendd_mutation_allowed",
+        "command_execution_allowed",
+        "raw_vdr_copy_allowed",
+        "code_directory_move_allowed",
+        "protected_pass_allowed_without_receipt",
+        "validation_error_count"
+      ],
+      "properties": {
+        "phase_range": { "const": "P526-P540" },
+        "phase_slot": { "const": "P526" },
+        "previous_phase_slot": { "const": "P525" },
+        "next_phase_slot": { "const": "P541" },
+        "command_name": { "const": "project:zendd-boundary" },
+        "domain_pack_id": { "const": "law-firm" },
+        "zendd_mutation_allowed": { "const": false },
+        "command_execution_allowed": { "const": false },
+        "raw_vdr_copy_allowed": { "const": false },
+        "code_directory_move_allowed": { "const": false },
+        "protected_pass_allowed_without_receipt": { "const": false },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

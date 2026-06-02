@@ -1,0 +1,255 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/zendd-fact-issue-bridge.schema.json",
+  "title": "Zendd Fact Issue Bridge",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "zendd_fact_issue_bridge_id",
+    "capability_id",
+    "output_dir",
+    "inputs",
+    "fact_issue_anchor",
+    "source_contract_summary",
+    "fact_issue_bridge_policy",
+    "fact_claim_rows",
+    "issue_bridge_rows",
+    "fact_confidence_policy",
+    "conflict_fixture_rows",
+    "fact_issue_review_binding_rows",
+    "fact_issue_freeze_rows",
+    "fact_issue_gate_rows",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "zendd-fact-issue-bridge.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "zendd_fact_issue_bridge_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "project.zendd.fact_issue_bridge" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["schema_path", "phase_ledger_path", "package_path", "zendd_project_root"],
+      "additionalProperties": true
+    },
+    "fact_issue_anchor": {
+      "type": "object",
+      "required": ["schema_version", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "source_contract_command_name"],
+      "properties": {
+        "schema_version": { "const": "zendd-fact-issue-anchor.v1" },
+        "phase_range": { "const": "P601-P620" },
+        "phase_slot": { "const": "P601" },
+        "previous_phase_slot": { "const": "P600" },
+        "next_phase_slot": { "const": "P621" },
+        "command_name": { "const": "project:zendd-fact-issue-bridge" },
+        "source_contract_command_name": { "const": "project:zendd-source-contract" }
+      },
+      "additionalProperties": true
+    },
+    "fact_issue_bridge_policy": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "phase_slot",
+        "raw_fact_text_storage_allowed_in_hermes",
+        "raw_source_material_copy_allowed_in_hermes",
+        "auto_pass_allowed",
+        "fact_pass_requires",
+        "protected_fact_pass_requires",
+        "blocked_status_requires",
+        "next_allowed_action"
+      ],
+      "properties": {
+        "schema_version": { "const": "zendd-fact-issue-bridge-policy.v1" },
+        "phase_slot": { "const": "P601" },
+        "raw_fact_text_storage_allowed_in_hermes": { "const": false },
+        "raw_source_material_copy_allowed_in_hermes": { "const": false },
+        "auto_pass_allowed": { "const": false },
+        "fact_pass_requires": { "type": "array", "minItems": 7 },
+        "protected_fact_pass_requires": { "type": "array", "minItems": 2 },
+        "blocked_status_requires": { "type": "array", "minItems": 3 },
+        "next_allowed_action": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "fact_claim_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "phase_slot",
+          "row_id",
+          "project_id",
+          "claim_id",
+          "fact_ref",
+          "fact_type",
+          "issue_ref",
+          "source_contract_id",
+          "stable_source_ref",
+          "evidence_ref",
+          "redacted_summary_ref",
+          "reviewer_ref",
+          "hard_gate_ref",
+          "human_receipt_ref_required",
+          "raw_fact_text_storage_allowed_in_hermes",
+          "current_verdict",
+          "block_reason",
+          "responsible_owner",
+          "next_allowed_action"
+        ],
+        "properties": {
+          "schema_version": { "const": "zendd-fact-claim-row.v1" },
+          "project_id": { "const": "project.zendd" },
+          "human_receipt_ref_required": { "const": true },
+          "raw_fact_text_storage_allowed_in_hermes": { "const": false },
+          "current_verdict": { "const": "blocked" },
+          "block_reason": { "type": "string", "minLength": 1 },
+          "responsible_owner": { "type": "string", "minLength": 1 },
+          "next_allowed_action": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "issue_bridge_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "issue_ref", "linked_fact_claim_id", "source_contract_id", "evidence_ref", "issue_status", "missing_evidence_surface", "human_receipt_ref_required", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-issue-bridge-row.v1" },
+          "project_id": { "const": "project.zendd" },
+          "missing_evidence_surface": { "const": true },
+          "human_receipt_ref_required": { "const": true },
+          "current_verdict": { "const": "blocked" },
+          "next_allowed_action": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "fact_confidence_policy": {
+      "type": "object",
+      "required": ["schema_version", "phase_slot", "auto_pass_allowed", "low_confidence_can_pass", "confidence_without_source_can_pass", "conflicting_source_can_pass", "required_confidence_fields", "next_allowed_action"],
+      "properties": {
+        "schema_version": { "const": "zendd-fact-confidence-policy.v1" },
+        "phase_slot": { "const": "P613" },
+        "auto_pass_allowed": { "const": false },
+        "low_confidence_can_pass": { "const": false },
+        "confidence_without_source_can_pass": { "const": false },
+        "conflicting_source_can_pass": { "const": false },
+        "required_confidence_fields": { "type": "array", "minItems": 4 },
+        "next_allowed_action": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "conflict_fixture_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "fixture_id", "claim_id", "evidence_ref", "conflict_description", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-conflict-fixture-row.v1" },
+          "project_id": { "const": "project.zendd" },
+          "current_verdict": { "const": "blocked" },
+          "block_reason": { "type": "string", "minLength": 1 },
+          "responsible_owner": { "type": "string", "minLength": 1 },
+          "next_allowed_action": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "fact_issue_review_binding_rows": {
+      "type": "array",
+      "minItems": 16,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "binding_type", "claim_id", "evidence_ref", "reviewer_ref", "hard_gate_ref", "human_receipt_ref_required", "pass_without_review_allowed", "pass_without_receipt_allowed", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-fact-issue-review-binding-row.v1" },
+          "human_receipt_ref_required": { "const": true },
+          "pass_without_review_allowed": { "const": false },
+          "pass_without_receipt_allowed": { "const": false },
+          "next_allowed_action": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "fact_issue_freeze_rows": {
+      "type": "array",
+      "minItems": 22,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_slot", "row_id", "project_id", "claim_id", "evidence_ref", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-fact-issue-freeze-row.v1" },
+          "phase_slot": { "const": "P619-P620" },
+          "current_verdict": { "const": "blocked" },
+          "block_reason": { "type": "string", "minLength": 1 },
+          "responsible_owner": { "type": "string", "minLength": 1 },
+          "next_allowed_action": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "fact_issue_gate_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "gate_id", "phase_slot", "gate_status", "message", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-fact-issue-gate-row.v1" },
+          "gate_status": { "enum": ["pass", "blocked"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "validation_items": { "type": "array" },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "phase_range",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "command_name",
+        "zendd_fact_issue_bridge_status",
+        "fact_claim_row_count",
+        "issue_bridge_row_count",
+        "conflict_fixture_row_count",
+        "raw_fact_text_storage_allowed_in_hermes",
+        "auto_pass_allowed",
+        "protected_pass_allowed_without_receipt",
+        "validation_error_count"
+      ],
+      "properties": {
+        "phase_range": { "const": "P601-P620" },
+        "phase_slot": { "const": "P601" },
+        "previous_phase_slot": { "const": "P600" },
+        "next_phase_slot": { "const": "P621" },
+        "command_name": { "const": "project:zendd-fact-issue-bridge" },
+        "raw_fact_text_storage_allowed_in_hermes": { "const": false },
+        "auto_pass_allowed": { "const": false },
+        "protected_pass_allowed_without_receipt": { "const": false },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,400 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/zendd-operator-surface.schema.json",
+  "title": "Zendd Operator Surface",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "zendd_operator_surface_id",
+    "capability_id",
+    "output_dir",
+    "inputs",
+    "operator_surface_anchor",
+    "source_tranche_summaries",
+    "zendd_operator_claim_rows",
+    "zendd_operator_filter_rows",
+    "zendd_operator_dashboard_projection_rows",
+    "zendd_operator_api_projection_rows",
+    "zendd_operator_missing_input_rows",
+    "zendd_operator_next_action_rows",
+    "zendd_operator_audit_rows",
+    "zendd_operator_closeout_rows",
+    "zendd_operator_gate_rows",
+    "zendd_operator_surface_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "zendd-operator-surface.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "zendd_operator_surface_id": { "type": "string", "minLength": 1 },
+    "capability_id": { "const": "project.zendd.operator_surface" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["schema_path", "phase_ledger_path", "package_path", "zendd_project_root"],
+      "additionalProperties": true
+    },
+    "operator_surface_anchor": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "phase_range",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "command_name",
+        "client_output_command_name",
+        "source_client_output_gate_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "zendd-operator-surface-anchor.v1" },
+        "phase_range": { "const": "P661-P680" },
+        "phase_slot": { "const": "P661" },
+        "previous_phase_slot": { "const": "P660" },
+        "next_phase_slot": { "const": "P681" },
+        "command_name": { "const": "project:zendd-operator-surface" },
+        "client_output_command_name": { "const": "project:zendd-client-output-gate" },
+        "source_client_output_gate_status": { "const": "ready_for_operator_surface_bridge" }
+      },
+      "additionalProperties": true
+    },
+    "source_tranche_summaries": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_range", "source_id", "source_status", "validation_valid"],
+        "properties": {
+          "schema_version": { "const": "zendd-source-tranche-summary-row.v1" },
+          "validation_valid": { "const": true }
+        },
+        "additionalProperties": true
+      }
+    },
+    "zendd_operator_claim_rows": {
+      "type": "array",
+      "minItems": 80,
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "phase_range",
+          "phase_slot",
+          "row_id",
+          "project_id",
+          "source_tranche",
+          "source_collection",
+          "claim_type",
+          "claim_id",
+          "current_verdict",
+          "verdict_family",
+          "evidence_refs",
+          "missing_evidence",
+          "missing_reviewer_or_gate",
+          "missing_human_receipt",
+          "hard_gate_result",
+          "responsible_owner",
+          "next_allowed_action",
+          "protected_claim",
+          "read_only",
+          "operator_surface_projection_only"
+        ],
+        "properties": {
+          "schema_version": { "const": "zendd-operator-claim-row.v1" },
+          "phase_range": { "const": "P661-P680" },
+          "project_id": { "const": "project.zendd" },
+          "verdict_family": { "enum": ["pass", "blocked", "documented"] },
+          "evidence_refs": { "type": "array" },
+          "missing_evidence": { "type": "array" },
+          "read_only": { "const": true },
+          "operator_surface_projection_only": { "const": true }
+        },
+        "additionalProperties": true
+      }
+    },
+    "zendd_operator_filter_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "phase_range",
+          "phase_slot",
+          "row_id",
+          "row_key",
+          "route_path",
+          "query_path",
+          "actual_count",
+          "filter_status",
+          "reads_operator_claim_rows_directly",
+          "claim_verdict_mutation_performed",
+          "pass_promotion_performed",
+          "receipt_validation_performed",
+          "read_only"
+        ],
+        "properties": {
+          "schema_version": { "const": "zendd-operator-filter-row.v1" },
+          "phase_range": { "const": "P661-P680" },
+          "filter_status": { "const": "ready_for_zendd_operator_filtering" },
+          "reads_operator_claim_rows_directly": { "const": true },
+          "claim_verdict_mutation_performed": { "const": false },
+          "pass_promotion_performed": { "const": false },
+          "receipt_validation_performed": { "const": false },
+          "read_only": { "const": true }
+        },
+        "additionalProperties": true
+      }
+    },
+    "zendd_operator_dashboard_projection_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_range", "dashboard_projection_status", "visible_fields", "live_dashboard_mutation_performed", "claim_verdict_mutation_performed", "receipt_validation_performed", "pass_promotion_performed", "read_only"],
+        "properties": {
+          "schema_version": { "const": "zendd-operator-dashboard-projection-row.v1" },
+          "dashboard_projection_status": { "const": "ready_for_zendd_operator_dashboard_projection" },
+          "visible_fields": { "type": "array", "minItems": 7 },
+          "live_dashboard_mutation_performed": { "const": false },
+          "claim_verdict_mutation_performed": { "const": false },
+          "receipt_validation_performed": { "const": false },
+          "pass_promotion_performed": { "const": false },
+          "read_only": { "const": true }
+        },
+        "additionalProperties": true
+      }
+    },
+    "zendd_operator_api_projection_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_range", "route_path", "collection", "api_projection_status", "projection_declared", "live_route_registered", "server_start_required", "mutating_method_allowed", "route_mutation_performed", "claim_verdict_mutation_performed", "pass_promotion_performed", "protected_action_executed", "read_only"],
+        "properties": {
+          "schema_version": { "const": "zendd-operator-api-projection-row.v1" },
+          "api_projection_status": { "const": "ready_for_zendd_operator_api_projection" },
+          "projection_declared": { "const": true },
+          "live_route_registered": { "const": false },
+          "server_start_required": { "const": false },
+          "mutating_method_allowed": { "const": false },
+          "route_mutation_performed": { "const": false },
+          "claim_verdict_mutation_performed": { "const": false },
+          "pass_promotion_performed": { "const": false },
+          "protected_action_executed": { "const": false },
+          "read_only": { "const": true }
+        },
+        "additionalProperties": true
+      }
+    },
+    "zendd_operator_missing_input_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_range", "claim_id", "missing_input_type", "missing_fields", "block_reason", "responsible_owner", "next_allowed_action", "read_only"],
+        "properties": {
+          "schema_version": { "const": "zendd-operator-missing-input-row.v1" },
+          "missing_fields": { "type": "array", "minItems": 1 },
+          "next_allowed_action": { "type": "string", "minLength": 1 },
+          "read_only": { "const": true }
+        },
+        "additionalProperties": true
+      }
+    },
+    "zendd_operator_next_action_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_range", "claim_id", "current_verdict", "block_reason", "responsible_owner", "next_allowed_action", "action_execution_allowed_now", "protected_action_executed", "read_only"],
+        "properties": {
+          "schema_version": { "const": "zendd-operator-next-action-row.v1" },
+          "action_execution_allowed_now": { "const": false },
+          "protected_action_executed": { "const": false },
+          "read_only": { "const": true }
+        },
+        "additionalProperties": true
+      }
+    },
+    "zendd_operator_audit_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_range", "row_id", "row_key", "audit_status", "actual_count", "expected_count", "claim_verdict_mutation_performed", "pass_promotion_performed", "receipt_validation_performed", "approval_applied", "protected_action_executed", "read_only"],
+        "properties": {
+          "schema_version": { "const": "zendd-operator-audit-row.v1" },
+          "audit_status": { "const": "ready_for_zendd_operator_audit_projection" },
+          "claim_verdict_mutation_performed": { "const": false },
+          "pass_promotion_performed": { "const": false },
+          "receipt_validation_performed": { "const": false },
+          "approval_applied": { "const": false },
+          "protected_action_executed": { "const": false },
+          "read_only": { "const": true }
+        },
+        "additionalProperties": true
+      }
+    },
+    "zendd_operator_closeout_rows": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "phase_range", "phase_slot", "closeout_status", "operator_claim_row_count", "blocked_operator_claim_count", "missing_input_row_count", "next_action_row_count", "pass_promoted", "receipt_validated", "receipt_applied", "approval_applied", "zendd_command_executed", "raw_material_copied", "operator_surface_mutation_performed", "protected_action_executed", "next_integration_phase_slot", "next_allowed_action", "read_only"],
+        "properties": {
+          "schema_version": { "const": "zendd-operator-closeout-row.v1" },
+          "phase_slot": { "const": "P680" },
+          "closeout_status": { "const": "ready_for_zendd_operator_surface_closeout" },
+          "pass_promoted": { "const": false },
+          "receipt_validated": { "const": false },
+          "receipt_applied": { "const": false },
+          "approval_applied": { "const": false },
+          "zendd_command_executed": { "const": false },
+          "raw_material_copied": { "const": false },
+          "operator_surface_mutation_performed": { "const": false },
+          "protected_action_executed": { "const": false },
+          "next_integration_phase_slot": { "const": "P681" },
+          "read_only": { "const": true }
+        },
+        "additionalProperties": true
+      }
+    },
+    "zendd_operator_gate_rows": {
+      "type": "array",
+      "minItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "gate_id", "phase_slot", "gate_status", "message", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-operator-gate-row.v1" },
+          "gate_status": { "enum": ["pass", "blocked"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "zendd_operator_surface_boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "phase_range",
+        "phase_slot",
+        "boundary_status",
+        "read_only",
+        "projection_only",
+        "all_blocked_rows_have_next_action",
+        "operator_fields_visible",
+        "live_dashboard_mutation_performed",
+        "live_api_route_registered",
+        "server_started",
+        "route_mutation_performed",
+        "claim_verdict_mutation_performed",
+        "pass_promotion_performed",
+        "receipt_materialized",
+        "receipt_validated",
+        "receipt_applied",
+        "approval_applied",
+        "zendd_command_executed",
+        "zendd_command_execution_allowed_now",
+        "zendd_mutation_allowed",
+        "zendd_code_directory_move_allowed",
+        "raw_vdr_copy_allowed",
+        "raw_client_document_copy_allowed",
+        "raw_material_copied",
+        "secret_values_read",
+        "env_file_read",
+        "protected_action_executed",
+        "protected_pass_without_receipt_allowed",
+        "ready_for_pass_promotion"
+      ],
+      "properties": {
+        "schema_version": { "const": "zendd-operator-surface-boundary.v1" },
+        "phase_range": { "const": "P661-P680" },
+        "phase_slot": { "const": "P661" },
+        "boundary_status": { "const": "enforced" },
+        "read_only": { "const": true },
+        "projection_only": { "const": true },
+        "all_blocked_rows_have_next_action": { "const": true },
+        "operator_fields_visible": { "const": true },
+        "live_dashboard_mutation_performed": { "const": false },
+        "live_api_route_registered": { "const": false },
+        "server_started": { "const": false },
+        "route_mutation_performed": { "const": false },
+        "claim_verdict_mutation_performed": { "const": false },
+        "pass_promotion_performed": { "const": false },
+        "receipt_materialized": { "const": false },
+        "receipt_validated": { "const": false },
+        "receipt_applied": { "const": false },
+        "approval_applied": { "const": false },
+        "zendd_command_executed": { "const": false },
+        "zendd_command_execution_allowed_now": { "const": false },
+        "zendd_mutation_allowed": { "const": false },
+        "zendd_code_directory_move_allowed": { "const": false },
+        "raw_vdr_copy_allowed": { "const": false },
+        "raw_client_document_copy_allowed": { "const": false },
+        "raw_material_copied": { "const": false },
+        "secret_values_read": { "const": false },
+        "env_file_read": { "const": false },
+        "protected_action_executed": { "const": false },
+        "protected_pass_without_receipt_allowed": { "const": false },
+        "ready_for_pass_promotion": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "validation_items": { "type": "array" },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "phase_range",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "command_name",
+        "zendd_operator_surface_status",
+        "operator_claim_row_count",
+        "blocked_operator_claim_count",
+        "missing_input_row_count",
+        "next_action_row_count",
+        "live_api_route_registered",
+        "zendd_command_executed",
+        "raw_material_copied",
+        "receipt_applied",
+        "pass_promotion_performed",
+        "validation_error_count"
+      ],
+      "properties": {
+        "phase_range": { "const": "P661-P680" },
+        "phase_slot": { "const": "P661" },
+        "previous_phase_slot": { "const": "P660" },
+        "next_phase_slot": { "const": "P681" },
+        "command_name": { "const": "project:zendd-operator-surface" },
+        "zendd_operator_surface_status": { "const": "ready_for_release_recovery_bridge" },
+        "operator_claim_row_count": { "type": "integer", "minimum": 80 },
+        "blocked_operator_claim_count": { "type": "integer", "minimum": 1 },
+        "missing_input_row_count": { "type": "integer", "minimum": 1 },
+        "next_action_row_count": { "type": "integer", "minimum": 1 },
+        "live_api_route_registered": { "const": false },
+        "zendd_command_executed": { "const": false },
+        "raw_material_copied": { "const": false },
+        "receipt_applied": { "const": false },
+        "pass_promotion_performed": { "const": false },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,251 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-agent-install-trust-gate.schema.json",
+  "title": "Platform Agent Install Trust Gate",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_agent_install_trust_gate_id",
+    "capability_id",
+    "inputs",
+    "agent_install_trust_anchor",
+    "source_agent_authority_freeze_summary",
+    "agent_install_trust_policy",
+    "agent_package_observation",
+    "agent_package_provenance_rows",
+    "agent_install_mode_rows",
+    "agent_smoke_command_rows",
+    "agent_install_rollback_rows",
+    "agent_install_trust_claim_rows",
+    "agent_install_trust_closeout_rows",
+    "agent_install_trust_gate_rows",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-agent-install-trust-gate.v1" },
+    "capability_id": { "const": "platform.agent_operations.install_trust_gate" },
+    "agent_install_trust_anchor": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "phase_range",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "command_name",
+        "source_command_name",
+        "capability_id",
+        "package_script_registered",
+        "validation_chain_registered",
+        "phase_ledger_present",
+        "source_agent_authority_freeze_status",
+        "install_execution_allowed_now",
+        "package_download_allowed_now"
+      ],
+      "properties": {
+        "schema_version": { "const": "platform-agent-install-trust-anchor.v1" },
+        "program_range": { "const": "P1041-P1121" },
+        "phase_range": { "const": "P1045-P1056" },
+        "phase_slot": { "const": "P1045" },
+        "previous_phase_slot": { "const": "P1044" },
+        "next_phase_slot": { "const": "P1057" },
+        "command_name": { "const": "platform:agent-install-trust-gate" },
+        "source_command_name": { "const": "platform:agent-authority-freeze" },
+        "capability_id": { "const": "platform.agent_operations.install_trust_gate" },
+        "package_script_registered": { "const": true },
+        "validation_chain_registered": { "const": true },
+        "phase_ledger_present": { "const": true },
+        "source_agent_authority_freeze_status": { "const": "ready_for_agent_authority_freeze" },
+        "install_execution_allowed_now": { "const": false },
+        "package_download_allowed_now": { "const": false }
+      }
+    },
+    "agent_install_trust_policy": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "phase_range",
+        "phase_slot",
+        "source_agent_authority_freeze_ref",
+        "source_agent_authority_freeze_status",
+        "install_execution_allowed_now",
+        "package_download_allowed_now",
+        "package_install_allowed_now",
+        "runtime_execution_allowed_now",
+        "terminal_command_execution_allowed_now",
+        "mcp_server_connection_allowed_now",
+        "api_server_start_allowed_now",
+        "cron_or_gateway_start_allowed_now",
+        "provider_secret_configuration_allowed_now",
+        "yolo_mode_allowed",
+        "approval_off_allowed",
+        "secret_forwarding_allowed",
+        "global_python_mutation_allowed",
+        "root_or_sudo_install_allowed",
+        "curl_pipe_bash_allowed_now",
+        "raw_client_or_vdr_context_allowed",
+        "allowed_install_mode_candidates",
+        "blocked_install_mode_candidates",
+        "required_before_p1057_install",
+        "next_allowed_action"
+      ],
+      "properties": {
+        "schema_version": { "const": "platform-agent-install-trust-policy.v1" },
+        "program_range": { "const": "P1041-P1121" },
+        "phase_range": { "const": "P1045-P1056" },
+        "phase_slot": { "const": "P1045" },
+        "source_agent_authority_freeze_status": { "const": "ready_for_agent_authority_freeze" },
+        "install_execution_allowed_now": { "const": false },
+        "package_download_allowed_now": { "const": false },
+        "package_install_allowed_now": { "const": false },
+        "runtime_execution_allowed_now": { "const": false },
+        "terminal_command_execution_allowed_now": { "const": false },
+        "mcp_server_connection_allowed_now": { "const": false },
+        "api_server_start_allowed_now": { "const": false },
+        "cron_or_gateway_start_allowed_now": { "const": false },
+        "provider_secret_configuration_allowed_now": { "const": false },
+        "yolo_mode_allowed": { "const": false },
+        "approval_off_allowed": { "const": false },
+        "secret_forwarding_allowed": { "const": false },
+        "global_python_mutation_allowed": { "const": false },
+        "root_or_sudo_install_allowed": { "const": false },
+        "curl_pipe_bash_allowed_now": { "const": false },
+        "raw_client_or_vdr_context_allowed": { "const": false }
+      }
+    },
+    "agent_package_observation": {
+      "type": "object",
+      "required": ["schema_version", "package_name", "observed_version", "observed_release_date", "python_requirement", "license", "pypi_url", "github_url", "docs_install_url", "sdist_filename", "sdist_sha256", "wheel_filename", "wheel_sha256", "pypi_trusted_publishing", "pypi_publisher_workflow", "pypi_source_commit"],
+      "properties": {
+        "schema_version": { "const": "agent-package-observation.v1" },
+        "package_name": { "const": "hermes-agent" },
+        "observed_version": { "const": "0.15.2" },
+        "observed_release_date": { "const": "2026-05-29" },
+        "python_requirement": { "const": ">=3.11" },
+        "license": { "const": "MIT" },
+        "pypi_trusted_publishing": { "const": true }
+      }
+    },
+    "agent_package_provenance_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "provenance_id", "current_verdict", "source_type", "description", "package_name", "observed_version", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "agent-package-provenance-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "package_name": { "const": "hermes-agent" },
+          "observed_version": { "const": "0.15.2" }
+        }
+      }
+    },
+    "agent_install_mode_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "install_mode_id", "package_name", "observed_version", "install_command_candidate", "rollback_command_candidate", "current_verdict", "trust_tier", "install_execution_allowed_now", "package_download_allowed_now", "provider_secret_configuration_allowed_now", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "agent-install-mode-row.v1" },
+          "package_name": { "const": "hermes-agent" },
+          "observed_version": { "const": "0.15.2" },
+          "install_execution_allowed_now": { "const": false },
+          "package_download_allowed_now": { "const": false },
+          "provider_secret_configuration_allowed_now": { "const": false }
+        }
+      }
+    },
+    "agent_smoke_command_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "smoke_id", "command_candidate", "purpose", "current_verdict", "block_reason", "command_execution_allowed_now", "raw_stdout_storage_allowed", "provider_secret_required", "evidence_ref", "reviewer_ref", "hard_gate_ref", "rollback_target_ref", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "agent-smoke-command-row.v1" },
+          "current_verdict": { "const": "blocked" },
+          "block_reason": { "const": "install_not_yet_performed" },
+          "command_execution_allowed_now": { "const": false },
+          "raw_stdout_storage_allowed": { "const": false },
+          "provider_secret_required": { "const": false }
+        }
+      }
+    },
+    "agent_install_rollback_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "install_mode_id", "current_verdict", "rollback_command_candidate", "rollback_execution_allowed_now", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "agent-install-rollback-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "rollback_execution_allowed_now": { "const": false }
+        }
+      }
+    },
+    "agent_install_trust_claim_rows": {
+      "type": "array",
+      "minItems": 25,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "claim_id", "claim_type", "source_ref", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "agent-install-trust-claim-row.v1" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_install_trust_closeout_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "closeout_id", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "source_ref", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "agent-install-trust-closeout-row.v1" },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "agent_install_trust_gate_rows": {
+      "type": "array",
+      "minItems": 13,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "gate_id", "gate_status", "source_ref", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "install_execution_performed_by_gate", "package_download_performed_by_gate", "command_execution_performed_by_gate", "protected_action_executed_by_gate", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "agent-install-trust-gate-row.v1" },
+          "gate_status": { "const": "ready" },
+          "install_execution_performed_by_gate": { "const": false },
+          "package_download_performed_by_gate": { "const": false },
+          "command_execution_performed_by_gate": { "const": false },
+          "protected_action_executed_by_gate": { "const": false }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["platform_agent_install_trust_gate_status", "program_range", "phase_range", "phase_slot", "observed_package_version", "install_execution_allowed_now", "package_download_allowed_now", "runtime_execution_allowed_now", "unsafe_flag_count", "validation_error_count"],
+      "properties": {
+        "platform_agent_install_trust_gate_status": { "const": "ready_for_agent_install_trust_gate" },
+        "program_range": { "const": "P1041-P1121" },
+        "phase_range": { "const": "P1045-P1056" },
+        "phase_slot": { "const": "P1045" },
+        "observed_package_version": { "const": "0.15.2" },
+        "install_execution_allowed_now": { "const": false },
+        "package_download_allowed_now": { "const": false },
+        "runtime_execution_allowed_now": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

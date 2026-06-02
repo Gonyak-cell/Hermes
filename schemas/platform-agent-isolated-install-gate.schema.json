@@ -1,0 +1,274 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-agent-isolated-install-gate.schema.json",
+  "title": "Platform Agent Isolated Install Gate",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_agent_isolated_install_gate_id",
+    "capability_id",
+    "inputs",
+    "agent_isolated_install_anchor",
+    "source_agent_install_trust_gate_summary",
+    "agent_isolated_install_policy",
+    "agent_isolated_install_selection_rows",
+    "agent_isolated_install_execution_rows",
+    "agent_isolated_install_receipt_template_rows",
+    "agent_doctor_smoke_plan_rows",
+    "agent_install_rollback_binding_rows",
+    "agent_isolated_install_claim_rows",
+    "agent_isolated_install_closeout_rows",
+    "agent_isolated_install_gate_rows",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-agent-isolated-install-gate.v1" },
+    "capability_id": { "const": "platform.agent_operations.isolated_install_gate" },
+    "agent_isolated_install_anchor": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "phase_range",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "command_name",
+        "source_command_name",
+        "capability_id",
+        "package_script_registered",
+        "validation_chain_registered",
+        "phase_ledger_present",
+        "source_agent_install_trust_gate_status",
+        "selected_install_mode",
+        "install_execution_allowed_now",
+        "package_download_allowed_now",
+        "selection_count",
+        "execution_count",
+        "receipt_template_count",
+        "smoke_plan_count",
+        "rollback_binding_count",
+        "claim_count",
+        "closeout_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "platform-agent-isolated-install-anchor.v1" },
+        "program_range": { "const": "P1041-P1121" },
+        "phase_range": { "const": "P1057-P1064" },
+        "phase_slot": { "const": "P1057" },
+        "previous_phase_slot": { "const": "P1056" },
+        "next_phase_slot": { "const": "P1065" },
+        "command_name": { "const": "platform:agent-isolated-install-gate" },
+        "source_command_name": { "const": "platform:agent-install-trust-gate" },
+        "capability_id": { "const": "platform.agent_operations.isolated_install_gate" },
+        "package_script_registered": { "const": true },
+        "validation_chain_registered": { "const": true },
+        "phase_ledger_present": { "const": true },
+        "source_agent_install_trust_gate_status": { "const": "ready_for_agent_install_trust_gate" },
+        "selected_install_mode": { "const": "repo_local_venv" },
+        "install_execution_allowed_now": { "const": false },
+        "package_download_allowed_now": { "const": false }
+      }
+    },
+    "agent_isolated_install_policy": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "phase_range",
+        "phase_slot",
+        "source_agent_install_trust_gate_ref",
+        "source_agent_install_trust_gate_status",
+        "selected_install_mode",
+        "selection_basis",
+        "install_packet_creation_allowed",
+        "install_execution_allowed_now",
+        "package_download_allowed_now",
+        "command_execution_allowed_now",
+        "doctor_smoke_execution_allowed_now",
+        "rollback_execution_allowed_now",
+        "provider_secret_configuration_allowed_now",
+        "mcp_server_connection_allowed_now",
+        "api_server_start_allowed_now",
+        "cron_or_gateway_start_allowed_now",
+        "yolo_mode_allowed",
+        "approval_off_allowed",
+        "secret_forwarding_allowed",
+        "raw_secret_context_allowed",
+        "raw_client_or_vdr_context_allowed",
+        "human_receipt_required_before_install",
+        "human_receipt_present",
+        "selected_install_receipt_ref",
+        "install_artifact_storage_policy",
+        "doctor_output_storage_policy",
+        "next_allowed_action"
+      ],
+      "properties": {
+        "schema_version": { "const": "platform-agent-isolated-install-policy.v1" },
+        "program_range": { "const": "P1041-P1121" },
+        "phase_range": { "const": "P1057-P1064" },
+        "phase_slot": { "const": "P1057" },
+        "source_agent_install_trust_gate_status": { "const": "ready_for_agent_install_trust_gate" },
+        "selected_install_mode": { "const": "repo_local_venv" },
+        "install_packet_creation_allowed": { "const": true },
+        "install_execution_allowed_now": { "const": false },
+        "package_download_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "doctor_smoke_execution_allowed_now": { "const": false },
+        "rollback_execution_allowed_now": { "const": false },
+        "provider_secret_configuration_allowed_now": { "const": false },
+        "mcp_server_connection_allowed_now": { "const": false },
+        "api_server_start_allowed_now": { "const": false },
+        "cron_or_gateway_start_allowed_now": { "const": false },
+        "yolo_mode_allowed": { "const": false },
+        "approval_off_allowed": { "const": false },
+        "secret_forwarding_allowed": { "const": false },
+        "raw_secret_context_allowed": { "const": false },
+        "raw_client_or_vdr_context_allowed": { "const": false },
+        "human_receipt_required_before_install": { "const": true },
+        "human_receipt_present": { "const": false }
+      }
+    },
+    "agent_isolated_install_selection_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "install_mode_id", "selected", "current_verdict", "install_command_candidate", "rollback_command_candidate", "trust_tier", "source_install_mode_ref", "human_receipt_required", "human_receipt_present", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "agent-isolated-install-selection-row.v1" },
+          "human_receipt_present": { "const": false }
+        }
+      }
+    },
+    "agent_isolated_install_execution_rows": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "install_mode_id", "selected", "current_verdict", "block_reason", "install_command_candidate", "install_execution_allowed_now", "package_download_allowed_now", "command_execution_performed", "package_download_performed", "package_install_performed", "runtime_started", "human_receipt_ref", "evidence_ref", "reviewer_ref", "hard_gate_ref", "rollback_target_ref", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "agent-isolated-install-execution-row.v1" },
+          "current_verdict": { "const": "blocked" },
+          "block_reason": { "const": "missing_human_receipt" },
+          "install_execution_allowed_now": { "const": false },
+          "package_download_allowed_now": { "const": false },
+          "command_execution_performed": { "const": false },
+          "package_download_performed": { "const": false },
+          "package_install_performed": { "const": false },
+          "runtime_started": { "const": false }
+        }
+      }
+    },
+    "agent_isolated_install_receipt_template_rows": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "receipt_template_id", "install_mode_id", "selected", "current_verdict", "receipt_payload_present", "receipt_application_allowed_now", "required_fields", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "agent-isolated-install-receipt-template-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "receipt_payload_present": { "const": false },
+          "receipt_application_allowed_now": { "const": false }
+        }
+      }
+    },
+    "agent_doctor_smoke_plan_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "smoke_id", "install_mode_id", "command_candidate", "current_verdict", "block_reason", "command_execution_allowed_now", "command_execution_performed", "provider_secret_required", "raw_stdout_storage_allowed", "redacted_summary_required", "stdout_hash_required_after_execution", "evidence_ref", "reviewer_ref", "hard_gate_ref", "rollback_target_ref", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "agent-doctor-smoke-plan-row.v1" },
+          "install_mode_id": { "const": "repo_local_venv" },
+          "current_verdict": { "const": "blocked" },
+          "block_reason": { "const": "install_not_yet_performed" },
+          "command_execution_allowed_now": { "const": false },
+          "command_execution_performed": { "const": false },
+          "provider_secret_required": { "const": false },
+          "raw_stdout_storage_allowed": { "const": false },
+          "redacted_summary_required": { "const": true },
+          "stdout_hash_required_after_execution": { "const": true }
+        }
+      }
+    },
+    "agent_install_rollback_binding_rows": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "install_mode_id", "selected", "current_verdict", "rollback_command_candidate", "rollback_execution_allowed_now", "rollback_execution_performed", "evidence_ref", "reviewer_ref", "hard_gate_ref", "rollback_target_ref", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "agent-install-rollback-binding-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "rollback_execution_allowed_now": { "const": false },
+          "rollback_execution_performed": { "const": false }
+        }
+      }
+    },
+    "agent_isolated_install_claim_rows": {
+      "type": "array",
+      "minItems": 18,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "claim_id", "claim_type", "source_ref", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "agent-isolated-install-claim-row.v1" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_isolated_install_closeout_rows": {
+      "type": "array",
+      "minItems": 9,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "closeout_id", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "source_ref", "responsible_owner", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "agent-isolated-install-closeout-row.v1" },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "agent_isolated_install_gate_rows": {
+      "type": "array",
+      "minItems": 13,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "gate_id", "gate_status", "source_ref", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "install_execution_performed_by_gate", "package_download_performed_by_gate", "command_execution_performed_by_gate", "protected_action_executed_by_gate", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "agent-isolated-install-gate-row.v1" },
+          "gate_status": { "const": "ready" },
+          "install_execution_performed_by_gate": { "const": false },
+          "package_download_performed_by_gate": { "const": false },
+          "command_execution_performed_by_gate": { "const": false },
+          "protected_action_executed_by_gate": { "const": false }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["platform_agent_isolated_install_gate_status", "program_range", "phase_range", "phase_slot", "selected_install_mode", "selection_count", "pass_selection_count", "blocked_selection_count", "execution_count", "pass_execution_count", "blocked_execution_count", "receipt_template_count", "smoke_plan_count", "rollback_binding_count", "claim_count", "pass_claim_count", "blocked_claim_count", "install_performed", "package_download_performed", "command_execution_performed", "human_receipt_present", "unsafe_flag_count", "validation_error_count"],
+      "properties": {
+        "platform_agent_isolated_install_gate_status": { "const": "ready_for_agent_isolated_install_gate" },
+        "program_range": { "const": "P1041-P1121" },
+        "phase_range": { "const": "P1057-P1064" },
+        "phase_slot": { "const": "P1057" },
+        "selected_install_mode": { "const": "repo_local_venv" },
+        "pass_execution_count": { "const": 0 },
+        "install_performed": { "const": false },
+        "package_download_performed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "human_receipt_present": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

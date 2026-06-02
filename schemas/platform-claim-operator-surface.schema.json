@@ -1,0 +1,250 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-claim-operator-surface.schema.json",
+  "title": "Platform Claim Operator Surface",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_claim_operator_surface_id",
+    "capability_id",
+    "claim_operator_surface_anchor",
+    "claim_registry_filter_rows",
+    "claim_operator_dashboard_rows",
+    "claim_operator_api_route_rows",
+    "claim_adjudication_audit_rows",
+    "claim_operator_surface_closeout_rows",
+    "claim_operator_surface_gate_rows",
+    "claim_operator_surface_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-claim-operator-surface.v1" },
+    "platform_claim_operator_surface_id": {
+      "type": "string",
+      "pattern": "^platform-claim-operator-surface\\.[0-9]{8}$"
+    },
+    "capability_id": { "const": "platform.claim_operator_surface" },
+    "claim_operator_surface_anchor": {
+      "type": "object",
+      "required": [
+        "phase_range",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "source_operations_freeze_status",
+        "source_claim_action_feasibility_status",
+        "claim_count",
+        "blocked_claim_count",
+        "pass_claim_count"
+      ],
+      "properties": {
+        "phase_range": { "const": "P511-P515" },
+        "phase_slot": { "const": "P511" },
+        "previous_phase_slot": { "const": "P510" },
+        "next_phase_slot": { "const": "P516" },
+        "source_operations_freeze_status": { "const": "ready_for_claim_freeze" },
+        "source_claim_action_feasibility_status": { "const": "ready_for_claim_action_feasibility" },
+        "claim_count": { "const": 140 },
+        "blocked_claim_count": { "const": 40 },
+        "pass_claim_count": { "const": 100 }
+      }
+    },
+    "claim_registry_filter_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "route_path",
+          "filter_status",
+          "reads_claim_registry_directly",
+          "source_collection",
+          "claim_verdict_mutation_performed",
+          "pass_promotion_performed",
+          "receipt_validation_performed",
+          "read_only"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P511" },
+          "route_path": { "const": "/api/platform-claim-registry" },
+          "filter_status": { "const": "ready_for_claim_registry_filtering" },
+          "reads_claim_registry_directly": { "const": true },
+          "source_collection": { "const": "operations_freeze_claim_registry_rows" },
+          "claim_verdict_mutation_performed": { "const": false },
+          "pass_promotion_performed": { "const": false },
+          "receipt_validation_performed": { "const": false },
+          "read_only": { "const": true }
+        }
+      }
+    },
+    "claim_operator_dashboard_rows": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "dashboard_surface_status",
+          "source_id",
+          "source_registered",
+          "stage_registered",
+          "claim_registry_route",
+          "claim_registry_rows_mutated_by_dashboard",
+          "read_only"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P512" },
+          "dashboard_surface_status": { "const": "ready_for_claim_dashboard_surface" },
+          "source_id": { "const": "platform_operations_freeze" },
+          "source_registered": { "const": true },
+          "stage_registered": { "const": true },
+          "claim_registry_route": { "const": "/api/platform-claim-registry" },
+          "claim_registry_rows_mutated_by_dashboard": { "const": false },
+          "read_only": { "const": true }
+        }
+      }
+    },
+    "claim_operator_api_route_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "api_route_status",
+          "route_registered",
+          "review_api_doc_registered",
+          "mutating_method_allowed",
+          "claim_verdict_mutation_performed",
+          "pass_promotion_performed",
+          "protected_action_executed",
+          "read_only"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P513" },
+          "api_route_status": { "const": "ready_for_claim_api_filter_route" },
+          "route_registered": { "const": true },
+          "review_api_doc_registered": { "const": true },
+          "mutating_method_allowed": { "const": false },
+          "claim_verdict_mutation_performed": { "const": false },
+          "pass_promotion_performed": { "const": false },
+          "protected_action_executed": { "const": false },
+          "read_only": { "const": true }
+        }
+      }
+    },
+    "claim_adjudication_audit_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "audit_status",
+          "claim_registry_source",
+          "claim_verdict_mutation_performed",
+          "pass_promotion_performed",
+          "receipt_validation_performed",
+          "read_only"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P514" },
+          "audit_status": { "const": "ready_for_claim_adjudication_audit_projection" },
+          "claim_registry_source": { "const": "operations_freeze_claim_registry_rows" },
+          "claim_verdict_mutation_performed": { "const": false },
+          "pass_promotion_performed": { "const": false },
+          "receipt_validation_performed": { "const": false },
+          "read_only": { "const": true }
+        }
+      }
+    },
+    "claim_operator_surface_closeout_rows": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "closeout_status",
+          "documented_block_retained_count",
+          "pass_promoted",
+          "receipt_validated",
+          "approval_applied",
+          "operator_surface_mutation_performed",
+          "protected_action_executed",
+          "next_adjudication_phase_slot",
+          "read_only"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P515" },
+          "closeout_status": { "const": "ready_for_claim_operator_surface_closeout" },
+          "documented_block_retained_count": { "const": 40 },
+          "pass_promoted": { "const": false },
+          "receipt_validated": { "const": false },
+          "approval_applied": { "const": false },
+          "operator_surface_mutation_performed": { "const": false },
+          "protected_action_executed": { "const": false },
+          "next_adjudication_phase_slot": { "const": "P516" },
+          "read_only": { "const": true }
+        }
+      }
+    },
+    "claim_operator_surface_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "read_only",
+        "report_only",
+        "claim_count",
+        "blocked_claim_count",
+        "pass_claim_count",
+        "claim_registry_direct_filtering_enabled",
+        "dashboard_claim_source_registered",
+        "api_claim_routes_registered",
+        "review_api_docs_registered",
+        "receipt_validated",
+        "approval_applied",
+        "ready_for_pass_promotion",
+        "pass_promoted",
+        "blocked_state_preserved",
+        "server_started",
+        "route_mutation_performed",
+        "artifact_write_performed",
+        "protected_action_executed",
+        "trading_order_submission_allowed",
+        "desktop_mutation_allowed",
+        "secret_exposure_allowed"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "read_only": { "const": true },
+        "report_only": { "const": true },
+        "claim_count": { "const": 140 },
+        "blocked_claim_count": { "const": 40 },
+        "pass_claim_count": { "const": 100 },
+        "claim_registry_direct_filtering_enabled": { "const": true },
+        "dashboard_claim_source_registered": { "const": true },
+        "api_claim_routes_registered": { "const": true },
+        "review_api_docs_registered": { "const": true },
+        "receipt_validated": { "const": false },
+        "approval_applied": { "const": false },
+        "ready_for_pass_promotion": { "const": false },
+        "pass_promoted": { "const": false },
+        "blocked_state_preserved": { "const": true },
+        "server_started": { "const": false },
+        "route_mutation_performed": { "const": false },
+        "artifact_write_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "trading_order_submission_allowed": { "const": false },
+        "desktop_mutation_allowed": { "const": false },
+        "secret_exposure_allowed": { "const": false }
+      }
+    }
+  }
+}

@@ -1,5 +1,20 @@
 # Review API
 
+## P511-P515 Platform Claim Registry Routes
+
+Platform Claim Registry routes expose the read-only P500 operations freeze claim
+registry for P501-P520 adjudication operators. Supported filters include
+`platform_operations_freeze_status`, `source_phase_slot`, `source_phase_number`,
+`source_command_name`, `claim_id`, `claim_type`, `claim_status`, `verdict`,
+`current_verdict`, `block_reason`, `responsible_owner`,
+`human_receipt_required`, `missing_human_receipt`, `protected_claim`,
+`operator_surface_claim`, `hard_gate_result`, `boundary_status`, `status`, and
+`limit`.
+
+Routes: `/api/platform-operations-freezes`, `/api/platform-claim-registry`,
+`/api/platform-claim-gates`, `/api/platform-claim-boundary`,
+`/api/platform-claim-validations`.
+
 ## P287 API Route Inventory Routes
 
 API Route Inventory routes expose the read-only route inventory artifact, route group rows, route records, checks, boundary, and validation rows. Supported filters include `api_route_inventory_status`, `api_route_group_status`, `api_route_status`, `api_route_group_key`, `route_group_key`, `route_method`, `read_only`, `boundary_status`, `status`, and `limit`.

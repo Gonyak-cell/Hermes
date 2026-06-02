@@ -70,6 +70,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   canonicalTestRunnerPath: "artifacts/canonical-test-runner/latest/canonical-test-runner.json",
   runtimeApiDashboardPath: "artifacts/runtime-api-dashboard/latest/runtime-api-dashboard.json",
   runtimeFreezePath: "artifacts/runtime-freeze/latest/runtime-freeze.json",
+  platformOperationsFreezePath: null,
   personalDevPackManifestPath: "artifacts/personal-dev-pack-manifest/latest/personal-dev-pack-manifest.json",
   repoProfileDetectorPath: "artifacts/repo-profile-detector/latest/repo-profile-detector.json",
   agentInstructionRegistryPath: "artifacts/agent-instruction-registry/latest/agent-instruction-registry.json",
@@ -641,6 +642,11 @@ const SOURCE_DEFINITIONS = [
     option: "runtimeFreezePath",
     source_id: "runtime_freeze",
     label: "Runtime Freeze",
+  },
+  {
+    option: "platformOperationsFreezePath",
+    source_id: "platform_operations_freeze",
+    label: "Platform Operations Claim Registry",
   },
   {
     option: "personalDevPackManifestPath",
@@ -1890,7 +1896,7 @@ async function readDashboardSources(options) {
   const results = [];
   for (const definition of SOURCE_DEFINITIONS) {
     const configuredPath = options[definition.option] ?? DEFAULT_REVIEW_DASHBOARD_INPUTS[definition.option];
-    if (configuredPath === false) {
+    if (configuredPath === false || configuredPath === null) {
       results.push({
         source_id: definition.source_id,
         label: definition.label,
@@ -2057,6 +2063,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "runtime_log_normalization") return data.summary ?? {};
   if (sourceId === "runtime_timeout_heartbeat") return data.summary ?? {};
   if (sourceId === "runtime_control_commands") return data.summary ?? {};
+  if (sourceId === "platform_operations_freeze") return data.summary ?? {};
   if (sourceId === "gate_approval_contract_freeze") return data.summary ?? {};
   if (sourceId === "output_delivery_contract_freeze") return data.summary ?? {};
   if (sourceId === "event_audit_run_contract_freeze") return data.summary ?? {};
@@ -2361,6 +2368,7 @@ function buildStageStatuses(artifacts, sources) {
     buildCanonicalTestRunnerStage(artifacts.canonical_test_runner, sourceById.get("canonical_test_runner")),
     buildRuntimeApiDashboardStage(artifacts.runtime_api_dashboard, sourceById.get("runtime_api_dashboard")),
     buildRuntimeFreezeStage(artifacts.runtime_freeze, sourceById.get("runtime_freeze")),
+    buildPlatformOperationsFreezeStage(artifacts.platform_operations_freeze, sourceById.get("platform_operations_freeze")),
     buildPersonalDevPackManifestStage(artifacts.personal_dev_pack_manifest, sourceById.get("personal_dev_pack_manifest")),
     buildRepoProfileDetectorStage(artifacts.repo_profile_detector, sourceById.get("repo_profile_detector")),
     buildAgentInstructionRegistryStage(artifacts.agent_instruction_registry, sourceById.get("agent_instruction_registry")),
@@ -6537,6 +6545,60 @@ function buildRuntimeFreezeStage(runtimeFreeze, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? runtimeFreeze.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildPlatformOperationsFreezeStage(freeze, source) {
+  if (!freeze && source?.error === "disabled") {
+    return {
+      stage_id: "platform_operations_freeze",
+      label: "Platform Operations Claim Registry",
+      status: "passed",
+      message: "Stage disabled for this dashboard run.",
+      source_path: null,
+      metrics: {
+        platform_operations_freeze_status: "disabled",
+        claim_count: 0,
+        blocked_claim_count: 0,
+        pass_claim_count: 0,
+        read_only: true,
+        claim_registry_route: "/api/platform-claim-registry",
+        validation_error_count: 0,
+      },
+    };
+  }
+  if (!freeze) return missingStage("platform_operations_freeze", "Platform Operations Claim Registry", source);
+  const summary = freeze.summary ?? {};
+  const errorCount = summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0;
+  const claimCount = summary.claim_count ?? 0;
+  const blockedClaimCount = summary.blocked_claim_count ?? 0;
+  const passClaimCount = summary.pass_claim_count ?? 0;
+  const status = summary.platform_operations_freeze_status === "ready_for_claim_freeze"
+    && errorCount === 0
+    && claimCount > 0
+    && claimCount === blockedClaimCount + passClaimCount
+    && (summary.unsupported_complete_claim_count ?? 1) === 0
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "platform_operations_freeze",
+    label: "Platform Operations Claim Registry",
+    status,
+    message: `${claimCount} claim(s), ${blockedClaimCount} documented BLOCK, ${passClaimCount} PASS.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      platform_operations_freeze_status: summary.platform_operations_freeze_status ?? "unknown",
+      claim_count: claimCount,
+      blocked_claim_count: blockedClaimCount,
+      pass_claim_count: passClaimCount,
+      claim_gate_count: summary.claim_gate_count ?? 0,
+      ready_claim_gate_count: summary.ready_claim_gate_count ?? 0,
+      unsupported_complete_claim_count: summary.unsupported_complete_claim_count ?? 0,
+      human_receipt_blocked_claim_count: summary.human_receipt_blocked_claim_count ?? blockedClaimCount,
+      read_only: true,
+      claim_registry_route: "/api/platform-claim-registry",
+      validation_error_count: errorCount,
     },
   };
 }
@@ -35114,6 +35176,8 @@ function parseArgs(argv) {
     else if (arg === "--no-runtime-api-dashboard") parsed.runtimeApiDashboardPath = false;
     else if (arg === "--runtime-freeze") parsed.runtimeFreezePath = argv[++index];
     else if (arg === "--no-runtime-freeze") parsed.runtimeFreezePath = false;
+    else if (arg === "--platform-operations-freeze") parsed.platformOperationsFreezePath = argv[++index];
+    else if (arg === "--no-platform-operations-freeze") parsed.platformOperationsFreezePath = false;
     else if (arg === "--personal-dev-pack-manifest") parsed.personalDevPackManifestPath = argv[++index];
     else if (arg === "--no-personal-dev-pack-manifest") parsed.personalDevPackManifestPath = false;
     else if (arg === "--repo-profile-detector") parsed.repoProfileDetectorPath = argv[++index];

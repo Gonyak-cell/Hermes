@@ -1,0 +1,277 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-claim-receipt-verdict-refresh.schema.json",
+  "title": "Platform Claim Receipt Verdict Refresh",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_claim_receipt_verdict_refresh_id",
+    "capability_id",
+    "claim_receipt_verdict_refresh_anchor",
+    "claim_receipt_validation_rows",
+    "claim_receipt_binding_rows",
+    "claim_pass_candidate_rows",
+    "claim_documented_block_retention_rows",
+    "claim_adjudication_closeout_rows",
+    "claim_receipt_verdict_refresh_gate_rows",
+    "claim_receipt_verdict_refresh_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-claim-receipt-verdict-refresh.v1" },
+    "platform_claim_receipt_verdict_refresh_id": {
+      "type": "string",
+      "pattern": "^platform-claim-receipt-verdict-refresh\\.[0-9]{8}$"
+    },
+    "capability_id": { "const": "platform.claim_receipt_verdict_refresh" },
+    "claim_receipt_verdict_refresh_anchor": {
+      "type": "object",
+      "required": [
+        "phase_range",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "source_operations_freeze_status",
+        "source_claim_operator_surface_status",
+        "receipt_validation_row_count",
+        "receipt_binding_row_count",
+        "pass_candidate_row_count",
+        "block_retention_row_count"
+      ],
+      "properties": {
+        "phase_range": { "const": "P516-P520" },
+        "phase_slot": { "const": "P516" },
+        "previous_phase_slot": { "const": "P515" },
+        "next_phase_slot": { "const": "complete" },
+        "source_operations_freeze_status": { "const": "ready_for_claim_freeze" },
+        "source_claim_operator_surface_status": { "const": "ready_for_claim_operator_surface" },
+        "receipt_validation_row_count": { "const": 40 },
+        "receipt_binding_row_count": { "const": 40 },
+        "pass_candidate_row_count": { "const": 40 },
+        "block_retention_row_count": { "const": 40 }
+      }
+    },
+    "claim_receipt_validation_rows": {
+      "type": "array",
+      "minItems": 40,
+      "maxItems": 40,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "current_verdict",
+          "receipt_payload_present",
+          "receipt_validation_status",
+          "validated_receipt",
+          "receipt_auto_created_by_harness",
+          "claim_verdict_mutation_performed",
+          "pass_promotion_performed",
+          "protected_action_executed",
+          "read_only"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P516" },
+          "current_verdict": { "const": "blocked" },
+          "receipt_validation_status": {
+            "enum": [
+              "waiting_for_external_receipt",
+              "validated_for_claim_adjudication",
+              "quarantined_invalid_receipt"
+            ]
+          },
+          "receipt_auto_created_by_harness": { "const": false },
+          "claim_verdict_mutation_performed": { "const": false },
+          "pass_promotion_performed": { "const": false },
+          "protected_action_executed": { "const": false },
+          "read_only": { "const": true }
+        }
+      }
+    },
+    "claim_receipt_binding_rows": {
+      "type": "array",
+      "minItems": 40,
+      "maxItems": 40,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "receipt_binding_status",
+          "receipt_to_claim_binding_valid",
+          "binding_validation_failed_closed",
+          "claim_verdict_mutation_performed",
+          "pass_promotion_performed",
+          "protected_action_executed",
+          "read_only"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P517" },
+          "receipt_binding_status": {
+            "enum": [
+              "bound_to_frozen_claim",
+              "waiting_for_receipt_binding",
+              "binding_blocked_invalid_receipt"
+            ]
+          },
+          "claim_verdict_mutation_performed": { "const": false },
+          "pass_promotion_performed": { "const": false },
+          "protected_action_executed": { "const": false },
+          "read_only": { "const": true }
+        }
+      }
+    },
+    "claim_pass_candidate_rows": {
+      "type": "array",
+      "minItems": 40,
+      "maxItems": 40,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "current_verdict",
+          "refreshed_verdict",
+          "pass_candidate_status",
+          "validated_receipt",
+          "receipt_to_claim_binding_valid",
+          "pass_candidate",
+          "pass_without_valid_receipt",
+          "pass_without_receipt_binding",
+          "pass_promotion_performed",
+          "claim_registry_mutation_performed",
+          "protected_action_executed",
+          "read_only"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P518" },
+          "current_verdict": { "const": "blocked" },
+          "refreshed_verdict": { "enum": ["blocked", "pass_candidate"] },
+          "pass_candidate_status": {
+            "enum": [
+              "ready_for_receipt_backed_pass_candidate_plan",
+              "blocked_until_valid_receipt"
+            ]
+          },
+          "pass_without_valid_receipt": { "const": false },
+          "pass_without_receipt_binding": { "const": false },
+          "pass_promotion_performed": { "const": false },
+          "claim_registry_mutation_performed": { "const": false },
+          "protected_action_executed": { "const": false },
+          "read_only": { "const": true }
+        }
+      }
+    },
+    "claim_documented_block_retention_rows": {
+      "type": "array",
+      "minItems": 40,
+      "maxItems": 40,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "retained_verdict",
+          "block_retention_status",
+          "owner_and_next_action_retained",
+          "pass_without_valid_receipt",
+          "pass_promotion_performed",
+          "claim_registry_mutation_performed",
+          "protected_action_executed",
+          "read_only"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P519" },
+          "retained_verdict": { "enum": ["blocked", "pass_candidate"] },
+          "block_retention_status": {
+            "enum": [
+              "ready_for_documented_block_retention",
+              "released_to_receipt_backed_pass_candidate"
+            ]
+          },
+          "pass_without_valid_receipt": { "const": false },
+          "pass_promotion_performed": { "const": false },
+          "claim_registry_mutation_performed": { "const": false },
+          "protected_action_executed": { "const": false },
+          "read_only": { "const": true }
+        }
+      }
+    },
+    "claim_adjudication_closeout_rows": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_slot",
+          "closeout_status",
+          "pass_without_valid_receipt_count",
+          "pass_promotion_performed",
+          "claim_registry_mutation_performed",
+          "receipt_auto_created_by_harness",
+          "protected_action_executed",
+          "read_only"
+        ],
+        "properties": {
+          "phase_slot": { "const": "P520" },
+          "closeout_status": { "const": "ready_for_claim_adjudication_closeout" },
+          "pass_without_valid_receipt_count": { "const": 0 },
+          "pass_promotion_performed": { "const": false },
+          "claim_registry_mutation_performed": { "const": false },
+          "receipt_auto_created_by_harness": { "const": false },
+          "protected_action_executed": { "const": false },
+          "read_only": { "const": true }
+        }
+      }
+    },
+    "claim_receipt_verdict_refresh_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "read_only",
+        "report_only",
+        "source_blocked_claim_count",
+        "validated_receipt_count",
+        "pass_candidate_count",
+        "documented_block_retained_count",
+        "pass_without_valid_receipt_count",
+        "claims_without_validated_receipt_remain_blocked",
+        "receipt_auto_created_by_harness",
+        "claim_registry_mutation_performed",
+        "source_claim_registry_mutated",
+        "command_execution_performed",
+        "package_command_execution_performed",
+        "server_started",
+        "route_mutation_performed",
+        "artifact_write_performed",
+        "package_mutation_performed",
+        "protected_action_executed",
+        "trading_order_submission_allowed",
+        "desktop_mutation_allowed",
+        "secret_exposure_allowed"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "read_only": { "const": true },
+        "report_only": { "const": true },
+        "source_blocked_claim_count": { "const": 40 },
+        "pass_without_valid_receipt_count": { "const": 0 },
+        "claims_without_validated_receipt_remain_blocked": { "const": true },
+        "receipt_auto_created_by_harness": { "const": false },
+        "claim_registry_mutation_performed": { "const": false },
+        "source_claim_registry_mutated": { "const": false },
+        "command_execution_performed": { "const": false },
+        "package_command_execution_performed": { "const": false },
+        "server_started": { "const": false },
+        "route_mutation_performed": { "const": false },
+        "artifact_write_performed": { "const": false },
+        "package_mutation_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "trading_order_submission_allowed": { "const": false },
+        "desktop_mutation_allowed": { "const": false },
+        "secret_exposure_allowed": { "const": false }
+      }
+    }
+  }
+}

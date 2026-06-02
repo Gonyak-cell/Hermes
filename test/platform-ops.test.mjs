@@ -63,6 +63,13 @@ import { runPlatformOperationsFreezeReceiptCloseout } from "../src/platform-oper
 import { runPlatformOperationsFreezeReceiptChainRegression } from "../src/platform-operations-freeze-receipt-chain-regression.mjs";
 import { runPlatformOperationsFreezeCloseout } from "../src/platform-operations-freeze-closeout.mjs";
 import { runPlatformOperationsFreeze } from "../src/platform-operations-freeze.mjs";
+import { runPlatformClaimReceiptIntakeContract } from "../src/platform-claim-receipt-intake-contract.mjs";
+import { runPlatformClaimReceiptWorkspace } from "../src/platform-claim-receipt-workspace.mjs";
+import { runPlatformClaimActionFeasibility } from "../src/platform-claim-action-feasibility.mjs";
+import { runPlatformClaimOperatorSurface } from "../src/platform-claim-operator-surface.mjs";
+import { runPlatformClaimReceiptVerdictRefresh } from "../src/platform-claim-receipt-verdict-refresh.mjs";
+import { buildReviewApiResponse } from "../src/review-api.mjs";
+import { runReviewDashboard } from "../src/review-dashboard.mjs";
 
 test("platform runtime baseline pins reproducibility without enabling mutation", async () => {
   const result = await runPlatformRuntimeBaseline({ write: false, check: true });
@@ -5953,6 +5960,714 @@ test("platform operations freeze --check does not overwrite existing artifacts",
     await writeFile(sentinelPath, sentinel, "utf8");
 
     await runPlatformOperationsFreeze({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform claim receipt intake contract standardizes P501 human receipt inputs without promoting claims", async () => {
+  const result = await runPlatformClaimReceiptIntakeContract({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_claim_receipt_intake_contract_status, "ready_for_claim_receipt_intake_contract");
+  assert.equal(result.summary.phase_slot, "P501");
+  assert.equal(result.summary.previous_phase_slot, "P500");
+  assert.equal(result.summary.next_phase_slot, "P502");
+  assert.equal(result.summary.source_operations_freeze_status, "ready_for_claim_freeze");
+  assert.equal(result.summary.source_claim_count, 140);
+  assert.equal(result.summary.source_blocked_claim_count, 40);
+  assert.equal(result.summary.receipt_contract_row_count, 40);
+  assert.equal(result.summary.ready_receipt_contract_row_count, 40);
+  assert.equal(result.summary.contract_gate_count, 10);
+  assert.equal(result.summary.ready_contract_gate_count, 10);
+  assert.equal(result.summary.human_receipt_pending, true);
+  assert.equal(result.summary.ready_for_human_input, true);
+  assert.equal(result.summary.ready_for_validation, false);
+  assert.equal(result.summary.ready_for_pass_promotion, false);
+  assert.equal(result.summary.receipt_received, false);
+  assert.equal(result.summary.receipt_validated, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.pass_promoted, false);
+  assert.equal(result.summary.blocked_state_preserved, true);
+  assert.equal(result.summary.read_only, true);
+  assert.equal(result.summary.report_only, true);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.equal(result.summary.desktop_mutation_allowed, false);
+  assert.equal(result.summary.secret_exposure_allowed, false);
+  assert.equal(result.summary.validation_error_count, 0);
+  assert.ok(result.claim_receipt_intake_contract_rows.every((row) => row.receipt_contract_status === "ready_for_claim_receipt_intake_contract" && row.human_receipt_required && row.human_receipt_ref === null && row.current_verdict === "blocked" && row.current_block_reason === "missing_human_receipt" && row.receipt_input_contract_declared && row.human_receipt_pending && row.ready_for_human_input && !row.ready_for_validation && !row.ready_for_pass_promotion && !row.pass_promoted_by_contract && row.blocked_state_preserved));
+  assert.ok(result.claim_receipt_intake_contract_rows.every((row) => row.required_receipt_fields.includes("human_receipt_ref") && row.required_receipt_fields.includes("claim_id") && row.allowed_receipt_decisions.includes("approve_claim_pass_candidate") && row.allowed_receipt_decisions.includes("keep_blocked")));
+  assert.ok(result.claim_receipt_intake_contract_rows.some((row) => row.source_phase_slot === "P401" && row.claim_type === "protected_promotion_claim" && row.responsible_owner === "approval_owner"));
+  assert.ok(result.claim_receipt_intake_contract_rows.some((row) => row.source_phase_slot === "P441" && row.claim_type === "recovery_next_action_claim" && row.responsible_owner === "recovery_owner"));
+  assert.ok(result.claim_receipt_intake_gate_rows.every((row) => row.gate_status === "ready" && !row.receipt_received_by_contract && !row.receipt_validated_by_contract && !row.pass_promoted_by_contract));
+});
+
+test("platform claim receipt intake contract blocks when P501 ledger row is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-claim-receipt-ledger-"));
+  try {
+    const ledgerText = await readFile("docs/platform-claim-adjudication-phase-ledger.md", "utf8");
+    const ledgerPath = path.join(root, "platform-claim-adjudication-phase-ledger.md");
+    await writeFile(ledgerPath, ledgerText.replace(/^- P501: `platform:claim-receipt-intake-contract`.*\n/m, ""), "utf8");
+
+    const result = await runPlatformClaimReceiptIntakeContract({ claimAdjudicationLedgerPath: ledgerPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_claim_receipt_intake_contract_status, "blocked");
+    assert.ok(result.claim_receipt_intake_gate_rows.some((row) => row.row_key === "p501_ledger_acceptance_declared" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformClaimReceiptIntakeContract({ claimAdjudicationLedgerPath: ledgerPath, write: false, check: true }),
+      /Platform claim receipt intake contract failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform claim receipt intake contract blocks when package registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-claim-receipt-package-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:claim-receipt-intake-contract"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:claim-receipt-intake-contract -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformClaimReceiptIntakeContract({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_claim_receipt_intake_contract_status, "blocked");
+    assert.ok(result.claim_receipt_intake_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.claim_receipt_intake_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformClaimReceiptIntakeContract({ packagePath, write: false, check: true }),
+      /Platform claim receipt intake contract failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform claim receipt intake contract --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-claim-receipt-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-claim-receipt-intake-contract.json");
+    const sentinel = "{ \"sentinel\": \"platform-claim-receipt-intake-contract\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformClaimReceiptIntakeContract({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform claim receipt workspace declares P502-P505 workspace, source, ref, and quarantine boundaries", async () => {
+  const result = await runPlatformClaimReceiptWorkspace({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_claim_receipt_workspace_status, "ready_for_claim_receipt_workspace");
+  assert.equal(result.summary.phase_range, "P502-P505");
+  assert.equal(result.summary.phase_slot, "P502");
+  assert.equal(result.summary.previous_phase_slot, "P501");
+  assert.equal(result.summary.next_phase_slot, "P506");
+  assert.equal(result.summary.source_claim_receipt_intake_contract_status, "ready_for_claim_receipt_intake_contract");
+  assert.equal(result.summary.source_receipt_contract_row_count, 40);
+  assert.equal(result.summary.workspace_row_count, 40);
+  assert.equal(result.summary.ready_workspace_row_count, 40);
+  assert.equal(result.summary.source_registry_row_count, 40);
+  assert.equal(result.summary.ready_source_registry_row_count, 40);
+  assert.equal(result.summary.ref_format_row_count, 40);
+  assert.equal(result.summary.ready_ref_format_row_count, 40);
+  assert.equal(result.summary.quarantine_row_count, 40);
+  assert.equal(result.summary.ready_quarantine_row_count, 40);
+  assert.equal(result.summary.workspace_gate_count, 14);
+  assert.equal(result.summary.ready_workspace_gate_count, 14);
+  assert.equal(result.summary.workspace_rows_declared, true);
+  assert.equal(result.summary.source_registry_declared, true);
+  assert.equal(result.summary.human_receipt_ref_format_declared, true);
+  assert.equal(result.summary.invalid_receipt_quarantine_declared, true);
+  assert.equal(result.summary.human_receipt_ref_namespace, "human-receipt");
+  assert.equal(result.summary.receipt_payload_present, false);
+  assert.equal(result.summary.receipt_source_registered, false);
+  assert.equal(result.summary.receipt_received, false);
+  assert.equal(result.summary.receipt_validated, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.ready_for_validation, false);
+  assert.equal(result.summary.ready_for_pass_promotion, false);
+  assert.equal(result.summary.pass_promoted, false);
+  assert.equal(result.summary.invalid_receipt_count, 0);
+  assert.equal(result.summary.blocked_state_preserved, true);
+  assert.equal(result.summary.read_only, true);
+  assert.equal(result.summary.report_only, true);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.equal(result.summary.desktop_mutation_allowed, false);
+  assert.equal(result.summary.secret_exposure_allowed, false);
+  assert.equal(result.summary.validation_error_count, 0);
+  assert.ok(result.claim_receipt_workspace_rows.every((row) => row.workspace_status === "ready_for_human_receipt_workspace_input" && row.human_receipt_ref === null && row.human_receipt_ref_namespace === "human-receipt" && row.human_receipt_ref_template.startsWith(`human-receipt:${row.source_phase_slot}:${row.claim_id}:`) && row.receipt_payload_present === false && row.ready_for_receipt_source_registration && !row.ready_for_validation && !row.ready_for_pass_promotion && !row.pass_promoted_by_workspace && row.blocked_state_preserved));
+  assert.ok(result.claim_receipt_source_registry_rows.every((row) => row.source_registry_status === "ready_for_external_receipt_source_reference" && row.receipt_source_ref_required && row.receipt_source_ref === null && !row.receipt_source_registered && !row.external_source_payload_read && !row.external_source_trusted_without_validation));
+  assert.ok(result.claim_receipt_ref_format_rows.every((row) => row.human_receipt_ref_format_status === "ready_for_human_receipt_ref_binding" && row.human_receipt_ref === null && row.human_receipt_ref_required_components.includes("receipt_id") && row.binds_to_frozen_claim_id && row.binds_to_source_phase_slot && row.binds_to_external_receipt_id && !row.ref_binding_materialized && !row.pass_promoted_by_ref_format));
+  assert.ok(result.claim_receipt_invalid_quarantine_rows.every((row) => row.invalid_receipt_quarantine_status === "ready_for_invalid_receipt_quarantine" && row.invalid_receipt_count === 0 && row.quarantined_receipt_refs.length === 0 && row.invalid_receipt_does_not_validate && row.invalid_receipt_does_not_apply_approval && row.invalid_receipt_does_not_promote_pass));
+  assert.ok(result.claim_receipt_workspace_gate_rows.every((row) => row.gate_status === "ready" && !row.receipt_received_by_workspace && !row.receipt_validated_by_workspace && !row.pass_promoted_by_workspace));
+});
+
+test("platform claim receipt workspace blocks when P502-P505 ledger rows are missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-claim-receipt-workspace-ledger-"));
+  try {
+    const ledgerText = await readFile("docs/platform-claim-adjudication-phase-ledger.md", "utf8");
+    const ledgerPath = path.join(root, "platform-claim-adjudication-phase-ledger.md");
+    await writeFile(ledgerPath, ledgerText.replace(/^- P50[2-5]: `platform:claim-receipt-workspace`.*\n/gm, ""), "utf8");
+
+    const result = await runPlatformClaimReceiptWorkspace({ claimAdjudicationLedgerPath: ledgerPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_claim_receipt_workspace_status, "blocked");
+    assert.ok(result.claim_receipt_workspace_gate_rows.some((row) => row.row_key === "p502_ledger_acceptance_declared" && row.gate_status === "blocked"));
+    assert.ok(result.claim_receipt_workspace_gate_rows.some((row) => row.row_key === "p503_ledger_acceptance_declared" && row.gate_status === "blocked"));
+    assert.ok(result.claim_receipt_workspace_gate_rows.some((row) => row.row_key === "p504_ledger_acceptance_declared" && row.gate_status === "blocked"));
+    assert.ok(result.claim_receipt_workspace_gate_rows.some((row) => row.row_key === "p505_ledger_acceptance_declared" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformClaimReceiptWorkspace({ claimAdjudicationLedgerPath: ledgerPath, write: false, check: true }),
+      /Platform claim receipt workspace failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform claim receipt workspace blocks when package registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-claim-receipt-workspace-package-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:claim-receipt-workspace"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:claim-receipt-workspace -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformClaimReceiptWorkspace({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_claim_receipt_workspace_status, "blocked");
+    assert.ok(result.claim_receipt_workspace_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.claim_receipt_workspace_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformClaimReceiptWorkspace({ packagePath, write: false, check: true }),
+      /Platform claim receipt workspace failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform claim receipt workspace --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-claim-receipt-workspace-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-claim-receipt-workspace.json");
+    const sentinel = "{ \"sentinel\": \"platform-claim-receipt-workspace\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformClaimReceiptWorkspace({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform claim action feasibility checks P506-P510 next_allowed_action paths without executing them", async () => {
+  const result = await runPlatformClaimActionFeasibility({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_claim_action_feasibility_status, "ready_for_claim_action_feasibility");
+  assert.equal(result.summary.phase_range, "P506-P510");
+  assert.equal(result.summary.phase_slot, "P506");
+  assert.equal(result.summary.previous_phase_slot, "P505");
+  assert.equal(result.summary.next_phase_slot, "P511");
+  assert.equal(result.summary.source_claim_receipt_workspace_status, "ready_for_claim_receipt_workspace");
+  assert.equal(result.summary.source_workspace_row_count, 40);
+  assert.equal(result.summary.action_classification_row_count, 40);
+  assert.equal(result.summary.ready_action_classification_row_count, 40);
+  assert.equal(result.summary.owner_preflight_row_count, 40);
+  assert.equal(result.summary.ready_owner_preflight_row_count, 40);
+  assert.equal(result.summary.protected_boundary_row_count, 40);
+  assert.equal(result.summary.ready_protected_boundary_row_count, 40);
+  assert.equal(result.summary.evidence_gap_row_count, 40);
+  assert.equal(result.summary.ready_evidence_gap_row_count, 40);
+  assert.equal(result.summary.fail_closed_row_count, 40);
+  assert.equal(result.summary.ready_fail_closed_row_count, 40);
+  assert.equal(result.summary.action_gate_count, 17);
+  assert.equal(result.summary.ready_action_gate_count, 17);
+  assert.equal(result.summary.target_package_script_registered_count, 40);
+  assert.equal(result.summary.check_mode_rerun_count, 40);
+  assert.equal(result.summary.open_evidence_gap_count, 40);
+  assert.equal(result.summary.documented_block_retained_count, 40);
+  assert.equal(result.summary.fail_closed_claim_count, 40);
+  assert.equal(result.summary.current_action_execution_allowed, false);
+  assert.equal(result.summary.future_action_feasible_after_valid_receipt, true);
+  assert.equal(result.summary.receipt_validated, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.ready_for_pass_promotion, false);
+  assert.equal(result.summary.pass_promoted, false);
+  assert.equal(result.summary.blocked_state_preserved, true);
+  assert.equal(result.summary.read_only, true);
+  assert.equal(result.summary.report_only, true);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.package_command_execution_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.equal(result.summary.desktop_mutation_allowed, false);
+  assert.equal(result.summary.secret_exposure_allowed, false);
+  assert.equal(result.summary.validation_error_count, 0);
+  assert.ok(result.claim_action_classification_rows.every((row) => row.classification_status === "ready_for_next_allowed_action_classification" && row.action_family === "collect_external_human_receipt_then_rerun_freeze_check" && row.target_package_script_registered && row.rerun_package_script_registered && row.rerun_check_mode_only && row.action_owner_matches_responsible_owner && row.external_human_receipt_collection_required && row.human_receipt_ref_required_before_action && row.receipt_source_ref_required_before_action && !row.current_execution_allowed && row.execution_feasible_after_valid_receipt && !row.unsafe_enablement_requested && row.blocked_state_preserved));
+  assert.ok(result.claim_action_classification_rows.some((row) => row.source_phase_slot === "P401" && row.target_command_name === "trading:promotion-receipt-contract-fixtures" && row.responsible_owner === "approval_owner"));
+  assert.ok(result.claim_action_classification_rows.some((row) => row.source_phase_slot === "P441" && row.target_command_name === "trading:secret-scan-remediation-receipt-chain-signoff-ledger-fixtures" && row.responsible_owner === "recovery_owner"));
+  assert.ok(result.claim_action_owner_preflight_rows.every((row) => row.owner_preflight_status === "ready_for_claim_action_owner_preflight" && row.allowed_owner && row.reviewer_matches_owner && row.owner_receipt_required && !row.owner_receipt_present && row.owner_ack_required && !row.owner_ack_present && !row.current_execution_allowed && row.fail_closed_until_owner_receipt));
+  assert.ok(result.claim_action_protected_boundary_rows.every((row) => row.protected_boundary_status === "ready_for_claim_action_protected_boundary" && row.protected_claim && row.target_command_is_prior_evidence_only && row.rerun_command_check_only && !row.current_execution_allowed && !row.package_command_execution_allowed_now && !row.protected_action_executed && !row.trading_order_submission_allowed && !row.desktop_mutation_allowed && !row.secret_exposure_allowed && row.fail_closed_until_valid_receipt));
+  assert.ok(result.claim_action_evidence_gap_rows.every((row) => row.evidence_gap_status === "ready_for_claim_action_evidence_gap_index" && row.evidence_gap_open && row.command_result_evidence_ref_present && row.claim_gate_ref_present && row.reviewer_ref_present && row.missing_human_receipt_ref && row.missing_receipt_source_ref && row.missing_validated_receipt_payload && !row.current_execution_allowed && row.fail_closed_until_evidence_gap_resolved));
+  assert.ok(result.claim_action_fail_closed_rows.every((row) => row.fail_closed_status === "ready_for_claim_action_fail_closed_closeout" && row.classification_ready && row.owner_preflight_ready && row.protected_boundary_ready && row.evidence_gap_index_ready && row.current_claim_status_after_closeout === "documented_block" && !row.current_execution_allowed && row.action_feasible_after_valid_receipt && row.fail_closed_until_valid_receipt && row.fail_closed_until_owner_receipt && row.fail_closed_until_evidence_gap_resolved && row.next_adjudication_phase_slot === "P511" && !row.pass_promoted));
+  assert.ok(result.claim_action_feasibility_gate_rows.every((row) => row.gate_status === "ready" && !row.current_action_execution_allowed && !row.receipt_validated_by_feasibility && !row.pass_promoted_by_feasibility && !row.protected_action_executed_by_feasibility));
+});
+
+test("platform claim action feasibility blocks when P506-P510 ledger rows are missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-claim-action-feasibility-ledger-"));
+  try {
+    const ledgerText = await readFile("docs/platform-claim-adjudication-phase-ledger.md", "utf8");
+    const ledgerPath = path.join(root, "platform-claim-adjudication-phase-ledger.md");
+    await writeFile(ledgerPath, ledgerText.replace(/^- P50[6-9]: `platform:claim-action-feasibility`.*\n/gm, "").replace(/^- P510: `platform:claim-action-feasibility`.*\n/m, ""), "utf8");
+
+    const result = await runPlatformClaimActionFeasibility({ claimAdjudicationLedgerPath: ledgerPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_claim_action_feasibility_status, "blocked");
+    assert.ok(result.claim_action_feasibility_gate_rows.some((row) => row.row_key === "p506_ledger_acceptance_declared" && row.gate_status === "blocked"));
+    assert.ok(result.claim_action_feasibility_gate_rows.some((row) => row.row_key === "p507_ledger_acceptance_declared" && row.gate_status === "blocked"));
+    assert.ok(result.claim_action_feasibility_gate_rows.some((row) => row.row_key === "p508_ledger_acceptance_declared" && row.gate_status === "blocked"));
+    assert.ok(result.claim_action_feasibility_gate_rows.some((row) => row.row_key === "p509_ledger_acceptance_declared" && row.gate_status === "blocked"));
+    assert.ok(result.claim_action_feasibility_gate_rows.some((row) => row.row_key === "p510_ledger_acceptance_declared" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformClaimActionFeasibility({ claimAdjudicationLedgerPath: ledgerPath, write: false, check: true }),
+      /Platform claim action feasibility failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform claim action feasibility blocks when package registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-claim-action-feasibility-package-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:claim-action-feasibility"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:claim-action-feasibility -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformClaimActionFeasibility({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_claim_action_feasibility_status, "blocked");
+    assert.ok(result.claim_action_feasibility_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.claim_action_feasibility_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformClaimActionFeasibility({ packagePath, write: false, check: true }),
+      /Platform claim action feasibility failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform claim action feasibility --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-claim-action-feasibility-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-claim-action-feasibility.json");
+    const sentinel = "{ \"sentinel\": \"platform-claim-action-feasibility\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformClaimActionFeasibility({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform claim operator surface wires P511-P515 filters, dashboard, API, and audit without promoting claims", async () => {
+  const result = await runPlatformClaimOperatorSurface({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_claim_operator_surface_status, "ready_for_claim_operator_surface");
+  assert.equal(result.summary.phase_range, "P511-P515");
+  assert.equal(result.summary.phase_slot, "P511");
+  assert.equal(result.summary.previous_phase_slot, "P510");
+  assert.equal(result.summary.next_phase_slot, "P516");
+  assert.equal(result.summary.source_operations_freeze_status, "ready_for_claim_freeze");
+  assert.equal(result.summary.source_claim_action_feasibility_status, "ready_for_claim_action_feasibility");
+  assert.equal(result.summary.claim_count, 140);
+  assert.equal(result.summary.blocked_claim_count, 40);
+  assert.equal(result.summary.pass_claim_count, 100);
+  assert.equal(result.summary.filter_row_count, 8);
+  assert.equal(result.summary.ready_filter_row_count, 8);
+  assert.equal(result.summary.dashboard_row_count, 3);
+  assert.equal(result.summary.ready_dashboard_row_count, 3);
+  assert.equal(result.summary.api_route_row_count, 4);
+  assert.equal(result.summary.ready_api_route_row_count, 4);
+  assert.equal(result.summary.audit_row_count, 5);
+  assert.equal(result.summary.ready_audit_row_count, 5);
+  assert.equal(result.summary.closeout_row_count, 1);
+  assert.equal(result.summary.ready_closeout_row_count, 1);
+  assert.equal(result.summary.surface_gate_count, 20);
+  assert.equal(result.summary.ready_surface_gate_count, 20);
+  assert.equal(result.summary.claim_registry_direct_filtering_enabled, true);
+  assert.equal(result.summary.dashboard_claim_source_registered, true);
+  assert.equal(result.summary.api_claim_routes_registered, true);
+  assert.equal(result.summary.review_api_docs_registered, true);
+  assert.equal(result.summary.receipt_received, false);
+  assert.equal(result.summary.receipt_validated, false);
+  assert.equal(result.summary.approval_applied, false);
+  assert.equal(result.summary.ready_for_pass_promotion, false);
+  assert.equal(result.summary.pass_promoted, false);
+  assert.equal(result.summary.blocked_state_preserved, true);
+  assert.equal(result.summary.read_only, true);
+  assert.equal(result.summary.report_only, true);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.package_command_execution_performed, false);
+  assert.equal(result.summary.server_started, false);
+  assert.equal(result.summary.route_mutation_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.package_mutation_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.equal(result.summary.desktop_mutation_allowed, false);
+  assert.equal(result.summary.secret_exposure_allowed, false);
+  assert.equal(result.summary.validation_error_count, 0);
+  assert.ok(result.claim_registry_filter_rows.every((row) => row.filter_status === "ready_for_claim_registry_filtering" && row.reads_claim_registry_directly && row.source_collection === "operations_freeze_claim_registry_rows" && !row.claim_verdict_mutation_performed && !row.pass_promotion_performed && !row.receipt_validation_performed));
+  assert.ok(result.claim_registry_filter_rows.some((row) => row.row_key === "blocked_claims" && row.actual_count === 40 && row.filters.verdict === "blocked"));
+  assert.ok(result.claim_registry_filter_rows.some((row) => row.row_key === "pass_claims" && row.actual_count === 100 && row.filters.verdict === "pass"));
+  assert.ok(result.claim_registry_filter_rows.some((row) => row.row_key === "approval_owner_blocks" && row.actual_count === 20 && row.filters.responsible_owner === "approval_owner"));
+  assert.ok(result.claim_registry_filter_rows.some((row) => row.row_key === "recovery_owner_blocks" && row.actual_count === 20 && row.filters.responsible_owner === "recovery_owner"));
+  assert.ok(result.claim_operator_dashboard_rows.every((row) => row.dashboard_surface_status === "ready_for_claim_dashboard_surface" && row.source_registered && row.stage_registered && row.source_path_option_registered && row.claim_registry_route === "/api/platform-claim-registry" && !row.claim_registry_rows_mutated_by_dashboard));
+  assert.ok(result.claim_operator_api_route_rows.every((row) => row.api_route_status === "ready_for_claim_api_filter_route" && row.route_registered && row.review_api_doc_registered && row.filter_keys_registered && !row.server_start_required && !row.mutating_method_allowed && !row.pass_promotion_performed && !row.protected_action_executed));
+  assert.ok(result.claim_adjudication_audit_rows.every((row) => row.audit_status === "ready_for_claim_adjudication_audit_projection" && row.claim_registry_source === "operations_freeze_claim_registry_rows" && !row.claim_verdict_mutation_performed && !row.pass_promotion_performed && !row.receipt_validation_performed));
+  assert.ok(result.claim_operator_surface_closeout_rows.every((row) => row.closeout_status === "ready_for_claim_operator_surface_closeout" && row.documented_block_retained_count === 40 && !row.pass_promoted && !row.receipt_validated && !row.approval_applied && !row.operator_surface_mutation_performed));
+  assert.ok(result.claim_operator_surface_gate_rows.every((row) => row.gate_status === "ready" && !row.receipt_validated_by_operator_surface && !row.approval_applied_by_operator_surface && !row.pass_promoted_by_operator_surface && !row.protected_action_executed_by_operator_surface));
+});
+
+test("platform claim operator surface blocks when P511-P515 ledger rows are missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-claim-operator-surface-ledger-"));
+  try {
+    const ledgerText = await readFile("docs/platform-claim-adjudication-phase-ledger.md", "utf8");
+    const ledgerPath = path.join(root, "platform-claim-adjudication-phase-ledger.md");
+    await writeFile(ledgerPath, ledgerText.replace(/^- P51[1-5]: `platform:claim-operator-surface`.*\n/gm, ""), "utf8");
+
+    const result = await runPlatformClaimOperatorSurface({ claimAdjudicationLedgerPath: ledgerPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_claim_operator_surface_status, "blocked");
+    assert.ok(result.claim_operator_surface_gate_rows.some((row) => row.row_key === "p511_ledger_acceptance_declared" && row.gate_status === "blocked"));
+    assert.ok(result.claim_operator_surface_gate_rows.some((row) => row.row_key === "p512_ledger_acceptance_declared" && row.gate_status === "blocked"));
+    assert.ok(result.claim_operator_surface_gate_rows.some((row) => row.row_key === "p513_ledger_acceptance_declared" && row.gate_status === "blocked"));
+    assert.ok(result.claim_operator_surface_gate_rows.some((row) => row.row_key === "p514_ledger_acceptance_declared" && row.gate_status === "blocked"));
+    assert.ok(result.claim_operator_surface_gate_rows.some((row) => row.row_key === "p515_ledger_acceptance_declared" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformClaimOperatorSurface({ claimAdjudicationLedgerPath: ledgerPath, write: false, check: true }),
+      /Platform claim operator surface failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform claim operator surface blocks when package registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-claim-operator-surface-package-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:claim-operator-surface"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:claim-operator-surface -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformClaimOperatorSurface({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_claim_operator_surface_status, "blocked");
+    assert.ok(result.claim_operator_surface_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.claim_operator_surface_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformClaimOperatorSurface({ packagePath, write: false, check: true }),
+      /Platform claim operator surface failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform claim operator surface --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-claim-operator-surface-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-claim-operator-surface.json");
+    const sentinel = "{ \"sentinel\": \"platform-claim-operator-surface\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformClaimOperatorSurface({ outDir, write: false, check: true });
+
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("review API and dashboard filter the frozen platform claim registry directly", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-claim-operator-surface-api-"));
+  try {
+    const freeze = await runPlatformOperationsFreeze({ write: false, check: true });
+    const freezePath = path.join(root, "platform-operations-freeze.json");
+    await writeFile(freezePath, `${JSON.stringify(freeze, null, 2)}\n`, "utf8");
+
+    const blockedResponse = await buildReviewApiResponse("/api/platform-claim-registry?verdict=blocked", { platformOperationsFreezePath: freezePath });
+    const blocked = JSON.parse(blockedResponse.body);
+    assert.equal(blockedResponse.status, 200);
+    assert.equal(blocked.collection, "platform_claim_registry");
+    assert.equal(blocked.count, 40);
+    assert.equal(blocked.total_count, 140);
+    assert.ok(blocked.items.every((row) => row.verdict === "blocked"));
+
+    const approvalResponse = await buildReviewApiResponse("/api/platform-claim-registry?verdict=blocked&responsible_owner=approval_owner", { platformOperationsFreezePath: freezePath });
+    const approval = JSON.parse(approvalResponse.body);
+    assert.equal(approvalResponse.status, 200);
+    assert.equal(approval.count, 20);
+    assert.ok(approval.items.every((row) => row.verdict === "blocked" && row.responsible_owner === "approval_owner"));
+
+    const recoveryResponse = await buildReviewApiResponse("/api/platform-claim-registry?verdict=blocked&responsible_owner=recovery_owner", { platformOperationsFreezePath: freezePath });
+    const recovery = JSON.parse(recoveryResponse.body);
+    assert.equal(recoveryResponse.status, 200);
+    assert.equal(recovery.count, 20);
+    assert.ok(recovery.items.every((row) => row.verdict === "blocked" && row.responsible_owner === "recovery_owner"));
+
+    const receiptRequiredResponse = await buildReviewApiResponse("/api/platform-claim-registry?human_receipt_required=true", { platformOperationsFreezePath: freezePath });
+    const receiptRequired = JSON.parse(receiptRequiredResponse.body);
+    assert.equal(receiptRequiredResponse.status, 200);
+    assert.equal(receiptRequired.count, 40);
+    assert.ok(receiptRequired.items.every((row) => row.human_receipt_required));
+
+    const operatorSurfaceResponse = await buildReviewApiResponse("/api/platform-claim-registry?operator_surface_claim=true", { platformOperationsFreezePath: freezePath });
+    const operatorSurface = JSON.parse(operatorSurfaceResponse.body);
+    assert.equal(operatorSurfaceResponse.status, 200);
+    assert.equal(operatorSurface.count, 20);
+    assert.ok(operatorSurface.items.every((row) => row.operator_surface_claim));
+
+    const passResponse = await buildReviewApiResponse("/api/platform-claim-registry?verdict=pass", { platformOperationsFreezePath: freezePath });
+    const pass = JSON.parse(passResponse.body);
+    assert.equal(passResponse.status, 200);
+    assert.equal(pass.count, 100);
+    assert.ok(pass.items.every((row) => row.verdict === "pass"));
+
+    const gatesResponse = await buildReviewApiResponse("/api/platform-claim-gates?gate_status=ready", { platformOperationsFreezePath: freezePath });
+    const gates = JSON.parse(gatesResponse.body);
+    assert.equal(gatesResponse.status, 200);
+    assert.equal(gates.collection, "platform_claim_gates");
+    assert.equal(gates.count, 14);
+
+    const boundaryResponse = await buildReviewApiResponse("/api/platform-claim-boundary?boundary_status=enforced", { platformOperationsFreezePath: freezePath });
+    const boundary = JSON.parse(boundaryResponse.body);
+    assert.equal(boundaryResponse.status, 200);
+    assert.equal(boundary.collection, "platform_claim_boundary");
+    assert.equal(boundary.count, 1);
+    assert.equal(boundary.items[0].blocked_claim_count, 40);
+
+    const dashboard = await runReviewDashboard({ platformOperationsFreezePath: freezePath, outDir: path.join(root, "dashboard"), write: false });
+    const stage = dashboard.stage_statuses.find((row) => row.stage_id === "platform_operations_freeze");
+    assert.equal(stage?.status, "passed");
+    assert.equal(stage?.metrics.claim_count, 140);
+    assert.equal(stage?.metrics.blocked_claim_count, 40);
+    assert.equal(stage?.metrics.pass_claim_count, 100);
+    assert.equal(stage?.metrics.claim_registry_route, "/api/platform-claim-registry");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform claim receipt verdict refresh closes P516-P520 with no PASS candidates when receipts are absent", async () => {
+  const result = await runPlatformClaimReceiptVerdictRefresh({ write: false, check: true });
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.platform_claim_receipt_verdict_refresh_status, "ready_for_claim_receipt_verdict_refresh");
+  assert.equal(result.summary.phase_range, "P516-P520");
+  assert.equal(result.summary.phase_slot, "P516");
+  assert.equal(result.summary.previous_phase_slot, "P515");
+  assert.equal(result.summary.next_phase_slot, "complete");
+  assert.equal(result.summary.source_operations_freeze_status, "ready_for_claim_freeze");
+  assert.equal(result.summary.source_claim_operator_surface_status, "ready_for_claim_operator_surface");
+  assert.equal(result.summary.source_claim_count, 140);
+  assert.equal(result.summary.source_blocked_claim_count, 40);
+  assert.equal(result.summary.source_pass_claim_count, 100);
+  assert.equal(result.summary.claim_receipt_input_available, false);
+  assert.equal(result.summary.input_receipt_count, 0);
+  assert.equal(result.summary.receipt_validation_row_count, 40);
+  assert.equal(result.summary.ready_receipt_validation_row_count, 40);
+  assert.equal(result.summary.receipt_binding_row_count, 40);
+  assert.equal(result.summary.ready_receipt_binding_row_count, 40);
+  assert.equal(result.summary.pass_candidate_row_count, 40);
+  assert.equal(result.summary.ready_pass_candidate_row_count, 40);
+  assert.equal(result.summary.block_retention_row_count, 40);
+  assert.equal(result.summary.ready_block_retention_row_count, 40);
+  assert.equal(result.summary.closeout_row_count, 1);
+  assert.equal(result.summary.ready_closeout_row_count, 1);
+  assert.equal(result.summary.verdict_refresh_gate_count, 18);
+  assert.equal(result.summary.ready_verdict_refresh_gate_count, 18);
+  assert.equal(result.summary.validated_receipt_count, 0);
+  assert.equal(result.summary.bound_receipt_count, 0);
+  assert.equal(result.summary.pass_candidate_count, 0);
+  assert.equal(result.summary.documented_block_retained_count, 40);
+  assert.equal(result.summary.pass_without_valid_receipt_count, 0);
+  assert.equal(result.summary.claims_without_validated_receipt_remain_blocked, true);
+  assert.equal(result.summary.receipt_auto_created_by_harness, false);
+  assert.equal(result.summary.receipt_source_registered_by_harness, false);
+  assert.equal(result.summary.claim_registry_mutation_performed, false);
+  assert.equal(result.summary.source_claim_registry_mutated, false);
+  assert.equal(result.summary.read_only, true);
+  assert.equal(result.summary.report_only, true);
+  assert.equal(result.summary.command_execution_performed, false);
+  assert.equal(result.summary.package_command_execution_performed, false);
+  assert.equal(result.summary.server_started, false);
+  assert.equal(result.summary.route_mutation_performed, false);
+  assert.equal(result.summary.artifact_write_performed, false);
+  assert.equal(result.summary.package_mutation_performed, false);
+  assert.equal(result.summary.protected_action_executed, false);
+  assert.equal(result.summary.trading_order_submission_allowed, false);
+  assert.equal(result.summary.desktop_mutation_allowed, false);
+  assert.equal(result.summary.secret_exposure_allowed, false);
+  assert.equal(result.summary.validation_error_count, 0);
+  assert.ok(result.claim_receipt_validation_rows.every((row) => row.receipt_validation_status === "waiting_for_external_receipt" && !row.receipt_payload_present && !row.validated_receipt && !row.receipt_auto_created_by_harness && !row.claim_verdict_mutation_performed && !row.pass_promotion_performed));
+  assert.ok(result.claim_receipt_binding_rows.every((row) => row.receipt_binding_status === "waiting_for_receipt_binding" && !row.receipt_to_claim_binding_valid && row.binding_validation_failed_closed && !row.claim_verdict_mutation_performed && !row.pass_promotion_performed));
+  assert.ok(result.claim_pass_candidate_rows.every((row) => row.refreshed_verdict === "blocked" && row.pass_candidate_status === "blocked_until_valid_receipt" && !row.pass_candidate && !row.pass_without_valid_receipt && !row.pass_without_receipt_binding && !row.pass_promotion_performed && !row.claim_registry_mutation_performed));
+  assert.ok(result.claim_documented_block_retention_rows.every((row) => row.retained_verdict === "blocked" && row.block_retention_status === "ready_for_documented_block_retention" && row.documented_block_retained && row.owner_and_next_action_retained && !row.pass_without_valid_receipt && !row.pass_promotion_performed));
+  assert.ok(result.claim_adjudication_closeout_rows.every((row) => row.closeout_status === "ready_for_claim_adjudication_closeout" && row.pass_candidate_count === 0 && row.documented_block_retained_count === 40 && row.pass_without_valid_receipt_count === 0 && !row.claim_registry_mutation_performed && !row.receipt_auto_created_by_harness));
+  assert.ok(result.claim_receipt_verdict_refresh_gate_rows.every((row) => row.gate_status === "ready" && !row.receipt_auto_created_by_harness && !row.pass_promoted_without_receipt && !row.claim_registry_mutation_performed && !row.protected_action_executed));
+});
+
+test("platform claim receipt verdict refresh creates PASS candidates only for validated bound receipts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-claim-verdict-receipt-"));
+  try {
+    const baseline = await runPlatformClaimReceiptVerdictRefresh({ write: false, check: true });
+    const claim = baseline.claim_receipt_validation_rows[0];
+    const receiptInputPath = path.join(root, "claim-receipts.json");
+    await writeFile(receiptInputPath, `${JSON.stringify({
+      schema_version: "platform-claim-receipts-input.v1",
+      receipts: [
+        {
+          receipt_id: "receipt-p516-valid-001",
+          source_phase_slot: claim.source_phase_slot,
+          claim_id: claim.claim_id,
+          human_receipt_ref: `human-receipt:${claim.source_phase_slot}:${claim.claim_id}:receipt-p516-valid-001`,
+          receipt_source_ref: "external-receipt-source:p516-valid-001",
+          receipt_actor: claim.responsible_owner,
+          receipt_decision: "approve_claim_pass_candidate",
+          receipt_status: "validated",
+          receipt_signed_at: "2026-06-02T00:00:00.000Z",
+          receipt_evidence_refs: ["external-evidence:p516-valid-001"],
+        },
+      ],
+    }, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformClaimReceiptVerdictRefresh({ claimReceiptInputPath: receiptInputPath, write: false, check: true });
+
+    assert.equal(result.validation.valid, true);
+    assert.equal(result.summary.claim_receipt_input_available, true);
+    assert.equal(result.summary.input_receipt_count, 1);
+    assert.equal(result.summary.validated_receipt_count, 1);
+    assert.equal(result.summary.bound_receipt_count, 1);
+    assert.equal(result.summary.pass_candidate_count, 1);
+    assert.equal(result.summary.documented_block_retained_count, 39);
+    assert.equal(result.summary.pass_without_valid_receipt_count, 0);
+    assert.equal(result.summary.claim_registry_mutation_performed, false);
+    assert.equal(result.summary.source_claim_registry_mutated, false);
+    assert.ok(result.claim_receipt_validation_rows.some((row) => row.claim_id === claim.claim_id && row.receipt_validation_status === "validated_for_claim_adjudication" && row.validated_receipt && row.receipt_decision_approves_pass_candidate && row.receipt_evidence_refs_present));
+    assert.ok(result.claim_receipt_binding_rows.some((row) => row.claim_id === claim.claim_id && row.receipt_binding_status === "bound_to_frozen_claim" && row.receipt_to_claim_binding_valid));
+    assert.ok(result.claim_pass_candidate_rows.some((row) => row.claim_id === claim.claim_id && row.refreshed_verdict === "pass_candidate" && row.pass_candidate && row.validated_receipt && row.receipt_to_claim_binding_valid && !row.pass_without_valid_receipt && !row.pass_promotion_performed && !row.claim_registry_mutation_performed));
+    assert.ok(result.claim_documented_block_retention_rows.some((row) => row.claim_id === claim.claim_id && row.retained_verdict === "pass_candidate" && row.block_retention_status === "released_to_receipt_backed_pass_candidate" && !row.documented_block_retained && !row.pass_without_valid_receipt));
+    assert.ok(result.claim_documented_block_retention_rows.filter((row) => row.documented_block_retained).every((row) => row.retained_verdict === "blocked" && row.owner_and_next_action_retained));
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform claim receipt verdict refresh blocks when P516-P520 ledger rows are missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-claim-verdict-ledger-"));
+  try {
+    const ledgerText = await readFile("docs/platform-claim-adjudication-phase-ledger.md", "utf8");
+    const ledgerPath = path.join(root, "platform-claim-adjudication-phase-ledger.md");
+    await writeFile(ledgerPath, ledgerText.replace(/^- P51[6-9]: `platform:claim-receipt-verdict-refresh`.*\n/gm, "").replace(/^- P520: `platform:claim-receipt-verdict-refresh`.*\n/m, ""), "utf8");
+
+    const result = await runPlatformClaimReceiptVerdictRefresh({ claimAdjudicationLedgerPath: ledgerPath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_claim_receipt_verdict_refresh_status, "blocked");
+    assert.ok(result.claim_receipt_verdict_refresh_gate_rows.some((row) => row.row_key === "p516_ledger_acceptance_declared" && row.gate_status === "blocked"));
+    assert.ok(result.claim_receipt_verdict_refresh_gate_rows.some((row) => row.row_key === "p517_ledger_acceptance_declared" && row.gate_status === "blocked"));
+    assert.ok(result.claim_receipt_verdict_refresh_gate_rows.some((row) => row.row_key === "p518_ledger_acceptance_declared" && row.gate_status === "blocked"));
+    assert.ok(result.claim_receipt_verdict_refresh_gate_rows.some((row) => row.row_key === "p519_ledger_acceptance_declared" && row.gate_status === "blocked"));
+    assert.ok(result.claim_receipt_verdict_refresh_gate_rows.some((row) => row.row_key === "p520_ledger_acceptance_declared" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformClaimReceiptVerdictRefresh({ claimAdjudicationLedgerPath: ledgerPath, write: false, check: true }),
+      /Platform claim receipt verdict refresh failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform claim receipt verdict refresh blocks when package registration is missing", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-claim-verdict-package-"));
+  try {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+    delete packageJson.scripts["platform:claim-receipt-verdict-refresh"];
+    packageJson.scripts.validate = packageJson.scripts.validate.replace(" && npm run platform:claim-receipt-verdict-refresh -- --check", "");
+    const packagePath = path.join(root, "package.json");
+    await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformClaimReceiptVerdictRefresh({ packagePath, write: false });
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.platform_claim_receipt_verdict_refresh_status, "blocked");
+    assert.ok(result.claim_receipt_verdict_refresh_gate_rows.some((row) => row.row_key === "platform_package_script_registered" && row.gate_status === "blocked"));
+    assert.ok(result.claim_receipt_verdict_refresh_gate_rows.some((row) => row.row_key === "platform_validation_chain_registered" && row.gate_status === "blocked"));
+    await assert.rejects(
+      () => runPlatformClaimReceiptVerdictRefresh({ packagePath, write: false, check: true }),
+      /Platform claim receipt verdict refresh failed/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("platform claim receipt verdict refresh --check does not overwrite existing artifacts", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "hermes-platform-claim-verdict-no-overwrite-"));
+  try {
+    const outDir = path.join(root, "out");
+    await mkdir(outDir, { recursive: true });
+    const sentinelPath = path.join(outDir, "platform-claim-receipt-verdict-refresh.json");
+    const sentinel = "{ \"sentinel\": \"platform-claim-receipt-verdict-refresh\" }\n";
+    await writeFile(sentinelPath, sentinel, "utf8");
+
+    await runPlatformClaimReceiptVerdictRefresh({ outDir, write: false, check: true });
 
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
   } finally {

@@ -7,6 +7,7 @@ export const DEFAULT_REVIEW_API_PORT = 4177;
 export const DEFAULT_REVIEW_API_DASHBOARD_PATH = "artifacts/dashboard/latest/review-dashboard.json";
 export const DEFAULT_REVIEW_API_INDEX_PATH = "artifacts/dashboard/latest/index.html";
 export const DEFAULT_REVIEW_API_SUMMARY_PATH = "artifacts/dashboard/latest/summary.md";
+export const DEFAULT_REVIEW_API_PLATFORM_OPERATIONS_FREEZE_PATH = "artifacts/platform-operations-freeze/latest/platform-operations-freeze.json";
 
 const JSON_HEADERS = {
   "content-type": "application/json; charset=utf-8",
@@ -76,6 +77,33 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
 
   if (pathname === "/summary.md") {
     return fileResponse(resolveSummaryPath(options), TEXT_HEADERS, method);
+  }
+
+  if (pathname === "/api/platform-operations-freezes"
+    || pathname === "/api/platform-claim-registry"
+    || pathname === "/api/platform-claim-gates"
+    || pathname === "/api/platform-claim-boundary"
+    || pathname === "/api/platform-claim-validations") {
+    const freezeResult = await readPlatformOperationsFreeze(options);
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("platform_operations_freeze_unavailable", freezeResult.error), method);
+    }
+    const freeze = freezeResult.artifact;
+    if (pathname === "/api/platform-operations-freezes") {
+      return jsonResponse(200, buildCollectionResponse("platform_operations_freezes", [freeze], url, generatedAt), method);
+    }
+    if (pathname === "/api/platform-claim-registry") {
+      return jsonResponse(200, buildCollectionResponse("platform_claim_registry", freeze.operations_freeze_claim_registry_rows ?? [], url, generatedAt), method);
+    }
+    if (pathname === "/api/platform-claim-gates") {
+      return jsonResponse(200, buildCollectionResponse("platform_claim_gates", freeze.operations_freeze_claim_gate_rows ?? [], url, generatedAt), method);
+    }
+    if (pathname === "/api/platform-claim-boundary") {
+      return jsonResponse(200, buildCollectionResponse("platform_claim_boundary", freeze.operations_freeze_claim_boundary ? [freeze.operations_freeze_claim_boundary] : [], url, generatedAt), method);
+    }
+    if (pathname === "/api/platform-claim-validations") {
+      return jsonResponse(200, buildCollectionResponse("platform_claim_validations", freeze.validation_items ?? [], url, generatedAt), method);
+    }
   }
 
   const dashboardResult = await readDashboard(options);
@@ -13344,7 +13372,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/resource-contract-freezes, /api/resource-v2-contracts, /api/resource-version-v2-contracts, /api/resource-contract-validations, /api/evidence-review-drafts, /api/evidence-review-items, /api/policy-matrices, /api/policy-classifications, /api/runtime-policies, /api/model-policies, /api/tool-policies, /api/output-policies, /api/gate-policies, /api/policy-snapshot-ledgers, /api/policy-snapshots, /api/policy-snapshot-instances, /api/policy-decisions, /api/policy-usages, /api/context-packet-ledgers, /api/context-packets, /api/context-items, /api/context-retrieval-filters, /api/model-routing-ledgers, /api/model-routing-decisions, /api/cost-budget-ledgers, /api/cost-budget-decisions, /api/token-usage-ledgers, /api/token-usage-records, /api/cost-attribution-ledgers, /api/cost-attribution-records, /api/cost-record-projections, /api/projected-cost-records, /api/run-cost-rollups, /api/cost-category-rollups, /api/cost-record-projection-validations, /api/token-usage-projections, /api/projected-token-usage-records, /api/capability-token-rollups, /api/runtime-token-rollups, /api/capability-runtime-token-rollups, /api/token-usage-projection-validations, /api/budget-alert-ledgers, /api/budget-alert-records, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/contract-inventories, /api/contract-inventory-items, /api/contract-schemas, /api/contract-artifacts, /api/contract-owner-map, /api/contract-dependency-maps, /api/contract-dependency-nodes, /api/contract-dependency-edges, /api/contract-breaking-change-risks, /api/contract-owner-dependencies, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-review-packet-ledgers, /api/human-review-packets, /api/human-review-items, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
+  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/platform-operations-freezes, /api/platform-claim-registry, /api/platform-claim-gates, /api/platform-claim-boundary, /api/platform-claim-validations, /api/resource-contract-freezes, /api/resource-v2-contracts, /api/resource-version-v2-contracts, /api/resource-contract-validations, /api/evidence-review-drafts, /api/evidence-review-items, /api/policy-matrices, /api/policy-classifications, /api/runtime-policies, /api/model-policies, /api/tool-policies, /api/output-policies, /api/gate-policies, /api/policy-snapshot-ledgers, /api/policy-snapshots, /api/policy-snapshot-instances, /api/policy-decisions, /api/policy-usages, /api/context-packet-ledgers, /api/context-packets, /api/context-items, /api/context-retrieval-filters, /api/model-routing-ledgers, /api/model-routing-decisions, /api/cost-budget-ledgers, /api/cost-budget-decisions, /api/token-usage-ledgers, /api/token-usage-records, /api/cost-attribution-ledgers, /api/cost-attribution-records, /api/cost-record-projections, /api/projected-cost-records, /api/run-cost-rollups, /api/cost-category-rollups, /api/cost-record-projection-validations, /api/token-usage-projections, /api/projected-token-usage-records, /api/capability-token-rollups, /api/runtime-token-rollups, /api/capability-runtime-token-rollups, /api/token-usage-projection-validations, /api/budget-alert-ledgers, /api/budget-alert-records, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/contract-inventories, /api/contract-inventory-items, /api/contract-schemas, /api/contract-artifacts, /api/contract-owner-map, /api/contract-dependency-maps, /api/contract-dependency-nodes, /api/contract-dependency-edges, /api/contract-breaking-change-risks, /api/contract-owner-dependencies, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-review-packet-ledgers, /api/human-review-packets, /api/human-review-items, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -13362,6 +13390,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/stages", "Control Plane stage statuses"),
       route("GET", "/api/actions", "Pending action queue"),
       route("GET", "/api/sources", "Dashboard source artifacts"),
+      route("GET", "/api/platform-operations-freezes", "Platform operations claim freeze artifacts"),
+      route("GET", "/api/platform-claim-registry", "Platform operations claim registry rows"),
+      route("GET", "/api/platform-claim-gates", "Platform operations claim gate rows"),
+      route("GET", "/api/platform-claim-boundary", "Platform operations claim boundary"),
+      route("GET", "/api/platform-claim-validations", "Platform operations claim validation rows"),
       route("GET", "/api/identity-models", "Identity model artifacts"),
       route("GET", "/api/identity-users", "Identity human users"),
       route("GET", "/api/identity-roles", "Identity role catalog"),
@@ -17184,6 +17217,22 @@ function filterItems(items, searchParams) {
     "template_row_present",
     "ready_for_validation",
     "receipt_status",
+    "platform_operations_freeze_status",
+    "source_phase_slot",
+    "source_phase_number",
+    "source_command_name",
+    "claim_id",
+    "claim_type",
+    "claim_status",
+    "verdict",
+    "current_verdict",
+    "block_reason",
+    "responsible_owner",
+    "human_receipt_required",
+    "missing_human_receipt",
+    "protected_claim",
+    "operator_surface_claim",
+    "hard_gate_result",
     "requires_human",
     "protected_action",
     "enabled",
@@ -18359,6 +18408,23 @@ async function readDashboard(options) {
   }
 }
 
+async function readPlatformOperationsFreeze(options) {
+  const freezePath = path.resolve(options.platformOperationsFreezePath ?? DEFAULT_REVIEW_API_PLATFORM_OPERATIONS_FREEZE_PATH);
+  try {
+    return {
+      available: true,
+      artifact: JSON.parse(await readFile(freezePath, "utf8")),
+      error: null,
+    };
+  } catch (error) {
+    return {
+      available: false,
+      artifact: null,
+      error: error.code === "ENOENT" ? "not_found" : error.message,
+    };
+  }
+}
+
 async function readDashboardSourceArtifact(dashboard, sourceId) {
   const source = (dashboard.sources ?? []).find((candidate) => candidate.source_id === sourceId);
   if (!source) {
@@ -18465,6 +18531,7 @@ function parseArgs(argv) {
     else if (arg === "--dashboard") parsed.dashboardPath = argv[++index];
     else if (arg === "--index") parsed.indexPath = argv[++index];
     else if (arg === "--summary") parsed.summaryPath = argv[++index];
+    else if (arg === "--platform-operations-freeze") parsed.platformOperationsFreezePath = argv[++index];
     else if (arg === "--run-at") parsed.runAt = argv[++index];
     else if (arg === "--once") parsed.once = argv[++index];
     else throw new Error(`Unknown argument: ${arg}`);
@@ -18482,6 +18549,8 @@ Options:
   --dashboard <path>     review-dashboard.json path.
   --index <path>         Static dashboard index.html path.
   --summary <path>       Static dashboard summary.md path.
+  --platform-operations-freeze <path>
+                         Platform operations freeze artifact path.
   --once <route>         Render one route and exit instead of starting a server.
   --run-at <iso>         Deterministic generated_at timestamp for API wrappers.
   -h, --help             Show this help.

@@ -1,10 +1,12 @@
-# Zendd-Hermes Development Operations Phase Ledger (P761-P1000)
+# Zendd-Hermes Development Operations Phase Ledger (P761-P1040)
 
 P761 starts after the P760 physical integration decision. Zendd remains an
 external checkout, while Hermes becomes the operator surface for controlled
 development, evidence, review, rollback, and human receipt flow. The attached
 Supabase-inspired design resources are normalized into Hermes operator design
 tokens instead of being copied as a branded frontend.
+The P761-P1000 segment remains the frozen Zendd external adapter development
+program; P1001-P1040 adds actual checkout preflight on top of that baseline.
 
 ## P761-P780 Frontend Shell And External Adapter Operation
 
@@ -402,3 +404,38 @@ Acceptance for P981-P1000:
 - P1000 closes the Zendd external adapter development program without command
   execution, recovery, rollback, receipt application, PASS promotion, raw copy,
   raw log storage, route mutation, server start, or secret read.
+
+## P1001-P1040 Actual Zendd Checkout Preflight
+
+`project:zendd-actual-checkout-preflight -- --check` inspects the real external
+Zendd checkout as a read-only reference target after the P1000 development
+freeze. It does not move Zendd code, edit files, install packages, run Zendd
+commands, start servers, read env files, read raw logs, read raw VDR/client
+material, run Alembic, or promote any Zendd claim to PASS solely because a
+script or marker exists.
+
+Acceptance for P1001-P1040:
+
+- P1001-P1005 locate the configured external Zendd root, git identity, source of
+  truth, read-only probe policy, and dirty-path redaction rule.
+- P1006-P1010 keep dirty checkout information hashed or classified only, with no
+  raw path values required for Hermes operation.
+- P1011-P1020 inventory root package, frontend package, lockfiles, Vite,
+  frontend source, backend pyproject, backend tests, Alembic config, and
+  migrations as stack markers.
+- P1021-P1022 classify env/secret, raw material, client-output, and raw-log
+  surfaces as reference-only BLOCK rows without opening their contents.
+- P1023-P1028 classify build, package, runtime, setup, database, migration, and
+  checkout mutation actions as protected and human-receipt gated.
+- P1029-P1030 lock the external checkout mutation and claim-preflight freeze
+  boundaries before any future Zendd work loop.
+- P1031-P1034 convert root/frontend/backend test, lint, build, runtime, and
+  Alembic candidates into evidence command candidates without executing them.
+- P1035-P1037 attach reviewer, hard gate, human receipt where protected,
+  rollback target, block reason, responsible owner, and next action to protected
+  command/action candidates.
+- P1038-P1039 convert locator, stack, command, protected action, and boundary
+  rows into PASS or documented BLOCK claims.
+- P1040 closes the actual checkout preflight only if every PASS has evidence,
+  reviewer/gate, rollback target, and unsafe=false, and every BLOCK has block
+  reason, owner, next action, and protected human gate where needed.

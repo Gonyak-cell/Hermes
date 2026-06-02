@@ -1,0 +1,234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/zendd-actual-checkout-preflight.schema.json",
+  "title": "Zendd Actual Checkout Preflight",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "zendd_actual_checkout_preflight_id",
+    "capability_id",
+    "inputs",
+    "actual_checkout_preflight_anchor",
+    "source_development_freeze_summary",
+    "actual_checkout_identity",
+    "actual_checkout_read_only_probe",
+    "actual_checkout_preflight_policy",
+    "actual_checkout_locator_rows",
+    "actual_checkout_stack_inventory_rows",
+    "actual_checkout_command_candidate_rows",
+    "actual_checkout_protected_action_rows",
+    "actual_checkout_boundary_rows",
+    "actual_checkout_claim_rows",
+    "actual_checkout_closeout_rows",
+    "actual_checkout_gate_rows",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "zendd-actual-checkout-preflight.v1" },
+    "capability_id": { "const": "project.zendd.actual_checkout_preflight" },
+    "actual_checkout_preflight_anchor": {
+      "type": "object",
+      "required": ["schema_version", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "source_development_freeze_ref"],
+      "properties": {
+        "schema_version": { "const": "zendd-actual-checkout-preflight-anchor.v1" },
+        "phase_range": { "const": "P1001-P1040" },
+        "phase_slot": { "const": "P1001" },
+        "previous_phase_slot": { "const": "P1000" },
+        "next_phase_slot": { "const": "P1041" },
+        "command_name": { "const": "project:zendd-actual-checkout-preflight" }
+      }
+    },
+    "actual_checkout_identity": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "phase_slot",
+        "project_id",
+        "zendd_project_root",
+        "project_root_exists",
+        "source_of_truth",
+        "git_present",
+        "actual_checkout_mutation_allowed_now",
+        "command_execution_allowed_now",
+        "raw_material_copy_allowed_now",
+        "secret_read_allowed_now"
+      ],
+      "properties": {
+        "schema_version": { "const": "zendd-actual-checkout-identity.v1" },
+        "phase_slot": { "const": "P1001" },
+        "project_id": { "const": "project.zendd" },
+        "source_of_truth": { "const": "external_zendd_checkout" },
+        "project_root_exists": { "const": true },
+        "git_present": { "const": true },
+        "actual_checkout_mutation_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "raw_material_copy_allowed_now": { "const": false },
+        "secret_read_allowed_now": { "const": false }
+      }
+    },
+    "actual_checkout_read_only_probe": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "checkout_mutation_performed",
+        "protected_command_executed",
+        "package_install_performed",
+        "database_migration_performed",
+        "server_started",
+        "raw_vdr_or_client_material_read",
+        "raw_log_read_performed",
+        "secret_file_opened",
+        "dirty_path_values_stored"
+      ],
+      "properties": {
+        "schema_version": { "const": "zendd-actual-read-only-probe.v1" },
+        "checkout_mutation_performed": { "const": false },
+        "protected_command_executed": { "const": false },
+        "package_install_performed": { "const": false },
+        "database_migration_performed": { "const": false },
+        "server_started": { "const": false },
+        "raw_vdr_or_client_material_read": { "const": false },
+        "raw_log_read_performed": { "const": false },
+        "secret_file_opened": { "const": false },
+        "dirty_path_values_stored": { "const": false }
+      }
+    },
+    "actual_checkout_preflight_policy": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "phase_range",
+        "phase_slot",
+        "actual_checkout_mutation_allowed_now",
+        "command_execution_allowed_now",
+        "protected_action_execution_allowed_now",
+        "package_install_allowed_now",
+        "database_migration_allowed_now",
+        "release_or_build_allowed_now",
+        "server_start_allowed_now",
+        "git_write_allowed_now",
+        "raw_vdr_or_client_material_copy_allowed_now",
+        "raw_log_read_allowed_now",
+        "raw_log_storage_allowed_now",
+        "secret_read_allowed_now",
+        "env_file_open_allowed_now",
+        "manifest_script_values_stored",
+        "dirty_path_values_stored"
+      ],
+      "properties": {
+        "schema_version": { "const": "zendd-actual-checkout-preflight-policy.v1" },
+        "phase_range": { "const": "P1001-P1040" },
+        "phase_slot": { "const": "P1001" },
+        "actual_checkout_mutation_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "protected_action_execution_allowed_now": { "const": false },
+        "package_install_allowed_now": { "const": false },
+        "database_migration_allowed_now": { "const": false },
+        "release_or_build_allowed_now": { "const": false },
+        "server_start_allowed_now": { "const": false },
+        "git_write_allowed_now": { "const": false },
+        "raw_vdr_or_client_material_copy_allowed_now": { "const": false },
+        "raw_log_read_allowed_now": { "const": false },
+        "raw_log_storage_allowed_now": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "env_file_open_allowed_now": { "const": false },
+        "manifest_script_values_stored": { "const": false },
+        "dirty_path_values_stored": { "const": false }
+      }
+    },
+    "actual_checkout_command_candidate_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "command_candidate_id", "current_verdict", "block_reason", "responsible_owner", "evidence_ref", "reviewer_ref", "hard_gate_ref", "rollback_target_ref", "command_execution_allowed_now", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-actual-command-candidate-row.v1" },
+          "current_verdict": { "const": "blocked" },
+          "command_execution_allowed_now": { "const": false }
+        }
+      }
+    },
+    "actual_checkout_protected_action_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "action_id", "current_verdict", "block_reason", "responsible_owner", "evidence_ref", "reviewer_ref", "hard_gate_ref", "human_receipt_ref", "rollback_target_ref", "action_execution_allowed_now", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-actual-protected-action-row.v1" },
+          "current_verdict": { "const": "blocked" },
+          "action_execution_allowed_now": { "const": false }
+        }
+      }
+    },
+    "actual_checkout_boundary_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "boundary_id", "current_verdict", "block_reason", "responsible_owner", "evidence_ref", "reviewer_ref", "hard_gate_ref", "rollback_target_ref", "content_read_performed", "raw_payload_stored", "next_allowed_action"],
+        "properties": {
+          "schema_version": { "const": "zendd-actual-boundary-row.v1" },
+          "current_verdict": { "const": "blocked" },
+          "content_read_performed": { "const": false },
+          "raw_payload_stored": { "const": false }
+        }
+      }
+    },
+    "actual_checkout_claim_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "claim_id", "source_type", "source_ref", "claim_type", "evidence_ref", "reviewer_ref", "hard_gate_ref", "rollback_target_ref", "verdict", "responsible_owner", "next_allowed_action", "unsafe_flag"],
+        "properties": {
+          "schema_version": { "const": "zendd-actual-claim-row.v1" },
+          "unsafe_flag": { "const": false },
+          "verdict": { "enum": ["pass", "blocked"] }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "phase_range",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "command_name",
+        "zendd_actual_checkout_preflight_status",
+        "zendd_project_root_exists",
+        "stack_marker_count",
+        "command_candidate_count",
+        "protected_action_candidate_count",
+        "claim_count",
+        "pass_claim_count",
+        "blocked_claim_count",
+        "zendd_mutation_allowed_now",
+        "command_execution_allowed_now",
+        "raw_material_copy_allowed_now",
+        "secret_read_allowed_now",
+        "validation_error_count"
+      ],
+      "properties": {
+        "phase_range": { "const": "P1001-P1040" },
+        "phase_slot": { "const": "P1001" },
+        "previous_phase_slot": { "const": "P1000" },
+        "next_phase_slot": { "const": "P1041" },
+        "command_name": { "const": "project:zendd-actual-checkout-preflight" },
+        "zendd_actual_checkout_preflight_status": {
+          "enum": ["ready_for_zendd_actual_checkout_preflight", "documented_block_pending_actual_checkout_preflight"]
+        },
+        "zendd_project_root_exists": { "const": true },
+        "zendd_mutation_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "raw_material_copy_allowed_now": { "const": false },
+        "secret_read_allowed_now": { "const": false }
+      }
+    }
+  }
+}

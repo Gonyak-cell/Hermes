@@ -64,19 +64,53 @@ must remain documented BLOCK.
 
 ## P1141-P1150 Isolated Install Packet v2
 
-Future command: `platform:agent-install-packet -- --check`.
+`platform:agent-install-packet -- --check` prepares install packet plans for the
+repo-local venv, pipx, and Docker candidates. The command consumes both the
+P1057-P1064 isolated install gate and the P1133-P1140 runtime receipt contract,
+then turns install readiness into metadata-only packets.
 
-The install packet will prepare repo-local venv, pipx, and Docker candidate
-packets with rollback targets. Package download and install execution remain
-BLOCK until a validated human receipt exists.
+Acceptance for P1141-P1150:
+
+- P1141 consumes `platform:agent-runtime-receipt-contract -- --check` and
+  `platform:agent-isolated-install-gate -- --check`.
+- P1142 prepares three install packet rows: repo-local venv, pipx, and Docker.
+- P1143 records version pin, provenance, rollback, receipt, and no-secret
+  evidence refs without materializing packet files.
+- P1144 blocks packet materialization until a validated human receipt exists.
+- P1145 blocks package download and install execution.
+- P1146 carries rollback targets without executing rollback commands.
+- P1147 projects doctor smoke preflight rows without running commands.
+- P1148 records PASS/BLOCK claims with evidence, reviewer, gate, owner, and next
+  action fields.
+- P1149 keeps provider secrets, raw material, terminal execution, runtime start,
+  MCP, API, cron, protected actions, and Agent final PASS disabled.
+- P1150 closes the install packet as ready-for-pilot metadata, not as an
+  installed Agent runtime.
 
 ## P1151-P1160 Doctor/Smoke Evidence Bridge
 
-Future command: `platform:agent-doctor-evidence-bridge -- --check`.
+`platform:agent-doctor-evidence-bridge -- --check` converts the install packet
+doctor preflight into future evidence templates, probe gates, output bindings,
+and safety rules.
 
-The doctor bridge will model version, doctor, config-check, help, and tool
-policy probe outputs as evidence packets. Commands remain candidates only and
-are not executed in this tranche.
+Acceptance for P1151-P1160:
+
+- P1151 consumes `platform:agent-install-packet -- --check`.
+- P1152 creates templates for version, doctor, config-check, help, and
+  tool-policy probes.
+- P1153 requires redacted summaries plus stdout/stderr hashes for any future
+  probe output.
+- P1154 keeps all doctor probe commands BLOCK until an approved install packet
+  has actually executed.
+- P1155 keeps output bindings BLOCK while no doctor output payload exists.
+- P1156 rejects raw stdout/stderr storage as durable evidence.
+- P1157 forbids provider secret, raw secret, raw client, or raw VDR material in
+  doctor evidence.
+- P1158 forbids runtime start, tool enablement, protected action execution, and
+  Agent-created final PASS from doctor evidence.
+- P1159 records every doctor claim as PASS template/safety or documented BLOCK.
+- P1160 closes doctor evidence bridge as ready-for-future-output, not as a
+  successful doctor run.
 
 ## P1161-P1170 Tool Policy And Sandbox Matrix
 

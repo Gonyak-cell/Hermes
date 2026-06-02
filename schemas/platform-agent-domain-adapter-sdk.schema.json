@@ -1,0 +1,346 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-agent-domain-adapter-sdk.schema.json",
+  "title": "Platform Agent Domain Adapter SDK",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_agent_domain_adapter_sdk_id",
+    "capability_id",
+    "inputs",
+    "agent_domain_adapter_sdk_anchor",
+    "source_agent_tool_policy_matrix_summary",
+    "source_agent_capability_registry_summary",
+    "agent_domain_adapter_contract_rows",
+    "agent_domain_adapter_method_rows",
+    "agent_domain_adapter_output_contract_rows",
+    "agent_domain_adapter_protected_block_rows",
+    "agent_domain_adapter_claim_rows",
+    "agent_domain_adapter_closeout_rows",
+    "agent_domain_adapter_gate_rows",
+    "agent_domain_adapter_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-agent-domain-adapter-sdk.v1" },
+    "capability_id": { "const": "platform.agent_runtime_pilot.domain_adapter_sdk" },
+    "agent_domain_adapter_sdk_anchor": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "phase_range",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "command_name",
+        "source_command_name",
+        "registry_command_name",
+        "package_script_registered",
+        "validation_chain_registered",
+        "runtime_pilot_ledger_present",
+        "source_tool_policy_matrix_status",
+        "source_capability_registry_status",
+        "adapter_contract_count",
+        "method_count",
+        "output_contract_count",
+        "protected_block_count",
+        "claim_count",
+        "closeout_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "platform-agent-domain-adapter-sdk-anchor.v1" },
+        "program_range": { "const": "P1122-P1200" },
+        "phase_range": { "const": "P1171-P1180" },
+        "phase_slot": { "const": "P1171" },
+        "previous_phase_slot": { "const": "P1170" },
+        "next_phase_slot": { "const": "P1181" },
+        "command_name": { "const": "platform:agent-domain-adapter-sdk" },
+        "source_command_name": { "const": "platform:agent-tool-policy-matrix" },
+        "registry_command_name": { "const": "platform:agent-capability-registry" },
+        "package_script_registered": { "const": true },
+        "validation_chain_registered": { "const": true },
+        "runtime_pilot_ledger_present": { "const": true },
+        "source_tool_policy_matrix_status": { "const": "ready_for_agent_tool_policy_matrix" },
+        "source_capability_registry_status": { "const": "ready_for_agent_capability_registry" },
+        "adapter_contract_count": { "const": 7 },
+        "method_count": { "const": 56 },
+        "output_contract_count": { "const": 7 },
+        "protected_block_count": { "const": 8 },
+        "claim_count": { "const": 78 },
+        "closeout_count": { "const": 7 }
+      }
+    },
+    "source_agent_tool_policy_matrix_summary": {
+      "type": "object",
+      "required": [
+        "platform_agent_tool_policy_matrix_status",
+        "terminal_execution_allowed_now",
+        "validation_error_count"
+      ],
+      "properties": {
+        "platform_agent_tool_policy_matrix_status": { "const": "ready_for_agent_tool_policy_matrix" },
+        "terminal_execution_allowed_now": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "source_agent_capability_registry_summary": {
+      "type": "object",
+      "required": [
+        "platform_agent_capability_registry_status",
+        "runtime_execution_allowed_now"
+      ],
+      "properties": {
+        "platform_agent_capability_registry_status": { "const": "ready_for_agent_capability_registry" },
+        "runtime_execution_allowed_now": { "const": false }
+      }
+    },
+    "agent_domain_adapter_contract_rows": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "row_id",
+          "adapter_sdk_id",
+          "domain_id",
+          "current_verdict",
+          "required_methods",
+          "required_input_shape_fields",
+          "required_output_shape_fields",
+          "forbidden_input_fields",
+          "forbidden_output_fields",
+          "tool_policy_matrix_required",
+          "claim_binding_required",
+          "evidence_binding_required",
+          "reviewer_gate_binding_required",
+          "protected_receipt_binding_required",
+          "rollback_binding_required",
+          "operator_surface_binding_required",
+          "direct_domain_mutation_allowed_now",
+          "adapter_execution_allowed_now",
+          "evidence_ref",
+          "reviewer_ref",
+          "hard_gate_ref",
+          "responsible_owner",
+          "next_allowed_action",
+          "unsafe_flags_false",
+          "verdict_authority"
+        ],
+        "properties": {
+          "schema_version": { "const": "agent-domain-adapter-contract-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "tool_policy_matrix_required": { "const": true },
+          "claim_binding_required": { "const": true },
+          "evidence_binding_required": { "const": true },
+          "reviewer_gate_binding_required": { "const": true },
+          "protected_receipt_binding_required": { "const": true },
+          "rollback_binding_required": { "const": true },
+          "operator_surface_binding_required": { "const": true },
+          "direct_domain_mutation_allowed_now": { "const": false },
+          "adapter_execution_allowed_now": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_domain_adapter_method_rows": {
+      "type": "array",
+      "minItems": 56,
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "row_id",
+          "adapter_sdk_id",
+          "domain_id",
+          "method_id",
+          "current_verdict",
+          "method_status",
+          "deterministic_wrapper_required",
+          "raw_input_allowed",
+          "raw_output_allowed",
+          "direct_mutation_allowed_now",
+          "protected_action_execution_allowed_now",
+          "evidence_ref",
+          "reviewer_ref",
+          "hard_gate_ref",
+          "responsible_owner",
+          "next_allowed_action",
+          "unsafe_flags_false",
+          "verdict_authority"
+        ],
+        "properties": {
+          "schema_version": { "const": "agent-domain-adapter-method-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "method_status": { "const": "contract_required_not_executed" },
+          "deterministic_wrapper_required": { "const": true },
+          "raw_input_allowed": { "const": false },
+          "raw_output_allowed": { "const": false },
+          "direct_mutation_allowed_now": { "const": false },
+          "protected_action_execution_allowed_now": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_domain_adapter_output_contract_rows": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "row_id",
+          "adapter_sdk_id",
+          "domain_id",
+          "current_verdict",
+          "required_claim_fields",
+          "blocked_claim_outputs",
+          "sanitized_output_required",
+          "operator_surface_binding_required",
+          "human_receipt_required_for_protected_output",
+          "rollback_target_required_for_mutation_candidate",
+          "raw_secret_output_allowed",
+          "raw_client_or_vdr_output_allowed",
+          "final_pass_output_allowed_now",
+          "evidence_ref",
+          "reviewer_ref",
+          "hard_gate_ref",
+          "responsible_owner",
+          "next_allowed_action",
+          "unsafe_flags_false",
+          "verdict_authority"
+        ],
+        "properties": {
+          "schema_version": { "const": "agent-domain-adapter-output-contract-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "sanitized_output_required": { "const": true },
+          "operator_surface_binding_required": { "const": true },
+          "human_receipt_required_for_protected_output": { "const": true },
+          "rollback_target_required_for_mutation_candidate": { "const": true },
+          "raw_secret_output_allowed": { "const": false },
+          "raw_client_or_vdr_output_allowed": { "const": false },
+          "final_pass_output_allowed_now": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_domain_adapter_protected_block_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "row_id",
+          "protected_block_id",
+          "current_verdict",
+          "block_reason",
+          "adapter_execution_allowed_now",
+          "direct_domain_mutation_allowed_now",
+          "raw_secret_exposed",
+          "raw_client_or_vdr_exposed",
+          "final_pass_output_allowed_now",
+          "evidence_ref",
+          "reviewer_ref",
+          "hard_gate_ref",
+          "responsible_owner",
+          "next_allowed_action",
+          "unsafe_flags_false",
+          "verdict_authority"
+        ],
+        "properties": {
+          "schema_version": { "const": "agent-domain-adapter-protected-block-row.v1" },
+          "current_verdict": { "const": "blocked" },
+          "adapter_execution_allowed_now": { "const": false },
+          "direct_domain_mutation_allowed_now": { "const": false },
+          "raw_secret_exposed": { "const": false },
+          "raw_client_or_vdr_exposed": { "const": false },
+          "final_pass_output_allowed_now": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_domain_adapter_boundary": {
+      "type": "object",
+      "required": [
+        "adapter_execution_allowed_now",
+        "adapter_execution_performed",
+        "direct_domain_mutation_allowed_now",
+        "direct_domain_mutation_performed",
+        "direct_zendd_mutation_allowed_now",
+        "raw_secret_input_allowed",
+        "raw_secret_output_allowed",
+        "raw_secret_exposed",
+        "raw_client_or_vdr_input_allowed",
+        "raw_client_or_vdr_output_allowed",
+        "raw_client_or_vdr_exposed",
+        "protected_action_execution_allowed_now",
+        "final_pass_output_allowed_now",
+        "final_pass_created_by_agent",
+        "human_receipt_applied_by_agent"
+      ],
+      "properties": {
+        "adapter_execution_allowed_now": { "const": false },
+        "adapter_execution_performed": { "const": false },
+        "direct_domain_mutation_allowed_now": { "const": false },
+        "direct_domain_mutation_performed": { "const": false },
+        "direct_zendd_mutation_allowed_now": { "const": false },
+        "raw_secret_input_allowed": { "const": false },
+        "raw_secret_output_allowed": { "const": false },
+        "raw_secret_exposed": { "const": false },
+        "raw_client_or_vdr_input_allowed": { "const": false },
+        "raw_client_or_vdr_output_allowed": { "const": false },
+        "raw_client_or_vdr_exposed": { "const": false },
+        "protected_action_execution_allowed_now": { "const": false },
+        "final_pass_output_allowed_now": { "const": false },
+        "final_pass_created_by_agent": { "const": false },
+        "human_receipt_applied_by_agent": { "const": false }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "platform_agent_domain_adapter_sdk_status",
+        "adapter_contract_count",
+        "method_count",
+        "output_contract_count",
+        "protected_block_count",
+        "claim_count",
+        "pass_claim_count",
+        "blocked_claim_count",
+        "adapter_execution_allowed_now",
+        "direct_domain_mutation_allowed_now",
+        "raw_secret_exposed",
+        "raw_client_or_vdr_exposed",
+        "final_pass_created_by_agent",
+        "unsafe_flag_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "platform_agent_domain_adapter_sdk_status": { "const": "ready_for_agent_domain_adapter_sdk" },
+        "adapter_contract_count": { "const": 7 },
+        "method_count": { "const": 56 },
+        "output_contract_count": { "const": 7 },
+        "protected_block_count": { "const": 8 },
+        "claim_count": { "const": 78 },
+        "pass_claim_count": { "const": 70 },
+        "blocked_claim_count": { "const": 8 },
+        "adapter_execution_allowed_now": { "const": false },
+        "direct_domain_mutation_allowed_now": { "const": false },
+        "raw_secret_exposed": { "const": false },
+        "raw_client_or_vdr_exposed": { "const": false },
+        "final_pass_created_by_agent": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

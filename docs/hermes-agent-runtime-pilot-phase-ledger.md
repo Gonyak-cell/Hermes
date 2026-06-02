@@ -114,20 +114,50 @@ Acceptance for P1151-P1160:
 
 ## P1161-P1170 Tool Policy And Sandbox Matrix
 
-Future command: `platform:agent-tool-policy-matrix -- --check`.
+`platform:agent-tool-policy-matrix -- --check` maps Agent tool classes across
+all registered domains and emits per-domain sandbox profiles.
 
-The tool policy matrix will map terminal, MCP, browser, file write, package
-install, secret, raw material, and domain mutation policies by domain and
-rollout level. Unsafe classes remain documented BLOCK.
+Acceptance for P1161-P1170:
+
+- P1161 consumes `platform:agent-doctor-evidence-bridge -- --check` and the
+  Agent capability registry.
+- P1162 maps terminal, MCP, browser, file write, package install,
+  secret-handle reference, raw material access, and domain mutation for each
+  domain.
+- P1163 records browser and secret-handle rows as policy-defined PASS only,
+  with execution still disabled.
+- P1164 documents terminal, MCP, file write, package install, raw material, and
+  domain mutation rows as BLOCK.
+- P1165 emits sandbox profiles for all registered domains.
+- P1166 keeps raw secret, raw client/VDR, direct Zendd mutation, and Agent final
+  PASS as unsafe BLOCK rows.
+- P1167 requires human receipt before any execution-capable tool request.
+- P1168 keeps provider secret configuration and package install disabled.
+- P1169 records claims with evidence, reviewer, gate, owner, and next action.
+- P1170 closes the matrix as policy-ready only; no tool, browser, MCP, package,
+  file, secret, raw material, or domain mutation action is executed.
 
 ## P1171-P1180 Domain Adapter SDK v1
 
-Future command: `platform:agent-domain-adapter-sdk -- --check`.
+`platform:agent-domain-adapter-sdk -- --check` standardizes adapter contracts
+for all registered domains without executing adapters or mutating domain data.
 
-The adapter SDK will standardize input normalization, prompt packet drafting,
-output sanitization, claim/evidence binding, reviewer/gate binding, human
-receipt binding, rollback binding, and operator-surface binding across all
-domain packs.
+Acceptance for P1171-P1180:
+
+- P1171 consumes `platform:agent-tool-policy-matrix -- --check` and the Agent
+  capability registry.
+- P1172 emits adapter contracts for every registered domain.
+- P1173 requires input normalization and forbidden-input enforcement.
+- P1174 requires prompt packet drafting from refs and policy rows only.
+- P1175 requires output sanitization before any operator surface row exists.
+- P1176 binds every adapter claim to evidence, reviewer, hard gate, owner, and
+  next action.
+- P1177 attaches human receipt requirements for protected outputs.
+- P1178 attaches rollback targets for future mutation or execution packets.
+- P1179 blocks raw secret, raw client/VDR, direct mutation, direct Zendd write,
+  missing reviewer/gate, missing receipt, and Agent final PASS outputs.
+- P1180 closes the SDK as contract-ready only; no adapter execution, raw
+  material exposure, receipt application, domain mutation, or final PASS occurs.
 
 ## P1181-P1188 Zendd Agent Candidate Bridge
 

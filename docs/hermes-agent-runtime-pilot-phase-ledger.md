@@ -209,11 +209,27 @@ Acceptance for P1189-P1194:
 
 ## P1195-P1198 Dry-run Runtime Simulation
 
-Future command: `platform:agent-dry-run-simulation -- --check`.
+Command: `platform:agent-dry-run-simulation -- --check`.
 
 The simulation will create would-run evidence without running Hermes Agent. It
 must prove runtime, terminal, MCP, API, cron, secret, raw material, Zendd write,
 and protected action paths remain disabled.
+
+Acceptance for P1195-P1198:
+
+- P1195 consumes delegation, install packet, doctor evidence, tool policy, and
+  runtime receipt contract sources as evidence.
+- P1196 emits would-run scenario rows for install, doctor, terminal/MCP,
+  API/cron, secret setup, domain adapter, Zendd delegation, protected action,
+  and final freeze paths.
+- P1197 emits redacted dry-run evidence packets only; no raw stdout/stderr,
+  raw secret, raw client/VDR material, command execution, runtime start, or
+  service startup occurs.
+- P1198 documents runtime, terminal, MCP, API, cron, package download/install,
+  provider secret setup, raw material access, cross-domain forwarding, direct
+  Zendd mutation, protected action execution, receipt application, Agent final
+  authority, legal final judgment, and release decision as BLOCK until the final
+  readiness freeze and required human receipt.
 
 ## P1199-P1200 Agent Runtime Pilot Readiness Freeze
 

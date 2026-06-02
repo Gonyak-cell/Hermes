@@ -161,12 +161,25 @@ Acceptance for P1171-P1180:
 
 ## P1181-P1188 Zendd Agent Candidate Bridge
 
-Future command: `platform:agent-zendd-candidate-bridge -- --check`.
+`platform:agent-zendd-candidate-bridge -- --check` projects Zendd external
+adapter outputs into Agent-visible candidate packets.
 
-The Zendd bridge will produce work-order, patch-plan, command-evidence, VDR/LDD,
-and release-sandbox candidate packets while keeping Zendd as an external
-adapter. Direct Zendd writes, source tree movement, command execution, raw
-client/VDR exposure, and protected output finalization remain BLOCK.
+Acceptance for P1181-P1188:
+
+- P1181 consumes `platform:agent-domain-adapter-sdk -- --check` and the Zendd
+  external adapter chain.
+- P1182 emits work-order candidate packets from Zendd work order intake.
+- P1183 emits patch-plan candidate packets from the safe patch lane.
+- P1184 emits command-evidence candidate packets without executing commands.
+- P1185 emits VDR/LDD candidate packets through source-span refs only.
+- P1186 emits release-sandbox candidate packets without artifact materializing,
+  publishing, or client delivery.
+- P1187 binds every candidate packet to the `project.zendd` adapter contract,
+  human receipt requirement, rollback target, and operator row.
+- P1188 keeps direct Zendd writes, source tree movement, terminal/command
+  execution, raw client/VDR exposure, protected output finalization, release
+  publish, receipt application, package/build artifacts, and Agent final PASS as
+  documented BLOCK.
 
 ## P1189-P1194 Delegation/Subagent Contract
 

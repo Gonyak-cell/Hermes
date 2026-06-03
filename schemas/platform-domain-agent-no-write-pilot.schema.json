@@ -1,0 +1,273 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-domain-agent-no-write-pilot.schema.json",
+  "title": "Platform Domain Agent No-Write Pilot",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_domain_agent_no_write_pilot_id",
+    "capability_id",
+    "inputs",
+    "domain_agent_no_write_pilot_anchor",
+    "source_agent_runtime_activation_bridge_summary",
+    "domain_agent_no_write_phase_rows",
+    "domain_agent_no_write_domain_rows",
+    "domain_agent_no_write_capability_rows",
+    "domain_agent_no_write_human_gate_rows",
+    "domain_agent_no_write_boundary_rows",
+    "domain_agent_no_write_protected_block_rows",
+    "domain_agent_no_write_freeze_rows",
+    "domain_agent_no_write_claim_rows",
+    "domain_agent_no_write_gate_rows",
+    "domain_agent_no_write_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-domain-agent-no-write-pilot.v1" },
+    "capability_id": { "const": "platform.agent_domain.no_write_pilot" },
+    "domain_agent_no_write_pilot_anchor": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "phase_range",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "command_name",
+        "source_command_name",
+        "package_script_registered",
+        "validation_chain_registered",
+        "activation_bridge_ledger_present",
+        "domain_pilot_ledger_present",
+        "source_activation_bridge_status",
+        "phase_count",
+        "domain_count",
+        "capability_candidate_count",
+        "human_gate_count",
+        "boundary_row_count",
+        "protected_block_count",
+        "freeze_count",
+        "claim_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "domain-agent-no-write-pilot-anchor.v1" },
+        "program_range": { "const": "P1321-P1440" },
+        "phase_range": { "const": "P1321-P1440" },
+        "phase_slot": { "const": "P1321" },
+        "previous_phase_slot": { "const": "P1320" },
+        "next_phase_slot": { "const": "P1441" },
+        "command_name": { "const": "platform:domain-agent-no-write-pilot" },
+        "source_command_name": { "const": "platform:agent-runtime-activation-bridge" },
+        "package_script_registered": { "const": true },
+        "validation_chain_registered": { "const": true },
+        "activation_bridge_ledger_present": { "const": true },
+        "domain_pilot_ledger_present": { "const": true },
+        "source_activation_bridge_status": { "const": "ready_for_agent_runtime_activation_bridge" },
+        "phase_count": { "const": 6 },
+        "domain_count": { "const": 6 },
+        "capability_candidate_count": { "const": 32 },
+        "human_gate_count": { "const": 6 },
+        "boundary_row_count": { "const": 6 },
+        "protected_block_count": { "const": 20 },
+        "freeze_count": { "const": 12 },
+        "claim_count": { "const": 88 }
+      }
+    },
+    "domain_agent_no_write_phase_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/pass_row" }
+    },
+    "domain_agent_no_write_domain_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["domain_id", "pilot_status", "rollout_level", "human_review_required", "runtime_execution_allowed_now", "write_action_allowed_now", "raw_secret_allowed_now", "raw_client_or_vdr_material_allowed_now", "protected_action_allowed_now", "final_pass_by_agent_allowed_now", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "current_verdict": { "const": "pass" },
+          "pilot_status": { "const": "ready_as_no_write_candidate" },
+          "rollout_level": { "const": "L0_no_write" },
+          "runtime_execution_allowed_now": { "const": false },
+          "write_action_allowed_now": { "const": false },
+          "raw_secret_allowed_now": { "const": false },
+          "raw_client_or_vdr_material_allowed_now": { "const": false },
+          "protected_action_allowed_now": { "const": false },
+          "final_pass_by_agent_allowed_now": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "domain_agent_no_write_capability_rows": {
+      "type": "array",
+      "minItems": 32,
+      "items": {
+        "type": "object",
+        "required": ["domain_id", "capability_id", "candidate_status", "allowed_inputs", "allowed_outputs", "receipt_payload_present", "human_receipt_required_before_action", "runtime_execution_allowed_now", "file_write_allowed_now", "connector_write_allowed_now", "direct_zendd_mutation_allowed_now", "legal_final_judgment_allowed_now", "release_decision_allowed_now", "live_trading_action_allowed_now", "final_pass_by_agent_allowed_now", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "current_verdict": { "const": "pass" },
+          "candidate_status": { "const": "draft_or_review_packet_only" },
+          "receipt_payload_present": { "const": false },
+          "human_receipt_required_before_action": { "const": true },
+          "runtime_execution_allowed_now": { "const": false },
+          "file_write_allowed_now": { "const": false },
+          "connector_write_allowed_now": { "const": false },
+          "direct_zendd_mutation_allowed_now": { "const": false },
+          "legal_final_judgment_allowed_now": { "const": false },
+          "release_decision_allowed_now": { "const": false },
+          "live_trading_action_allowed_now": { "const": false },
+          "final_pass_by_agent_allowed_now": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "domain_agent_no_write_human_gate_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["domain_id", "human_gate_ref", "human_review_required", "receipt_required_before_action", "receipt_payload_present", "receipt_applied", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "current_verdict": { "const": "pass" },
+          "human_review_required": { "const": true },
+          "receipt_required_before_action": { "const": true },
+          "receipt_payload_present": { "const": false },
+          "receipt_applied": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "domain_agent_no_write_boundary_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["domain_id", "no_write_boundary_status", "runtime_execution_allowed_now", "file_write_allowed_now", "connector_write_allowed_now", "direct_zendd_mutation_allowed_now", "protected_action_execution_allowed_now", "legal_final_judgment_allowed_now", "release_decision_allowed_now", "live_trading_action_allowed_now", "final_pass_by_agent_allowed_now", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "current_verdict": { "const": "pass" },
+          "no_write_boundary_status": { "const": "active" },
+          "runtime_execution_allowed_now": { "const": false },
+          "file_write_allowed_now": { "const": false },
+          "connector_write_allowed_now": { "const": false },
+          "direct_zendd_mutation_allowed_now": { "const": false },
+          "protected_action_execution_allowed_now": { "const": false },
+          "legal_final_judgment_allowed_now": { "const": false },
+          "release_decision_allowed_now": { "const": false },
+          "live_trading_action_allowed_now": { "const": false },
+          "final_pass_by_agent_allowed_now": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "domain_agent_no_write_protected_block_rows": {
+      "type": "array",
+      "minItems": 20,
+      "items": { "$ref": "#/$defs/blocked_row" }
+    },
+    "domain_agent_no_write_freeze_rows": {
+      "type": "array",
+      "minItems": 12,
+      "items": { "$ref": "#/$defs/pass_row" }
+    },
+    "domain_agent_no_write_claim_rows": {
+      "type": "array",
+      "minItems": 88,
+      "items": {
+        "type": "object",
+        "required": ["claim_type", "claim_id", "domain_id", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "current_verdict": { "enum": ["pass", "blocked"] },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "domain_agent_no_write_gate_rows": {
+      "type": "array",
+      "minItems": 13,
+      "items": {
+        "type": "object",
+        "required": ["gate_id", "gate_status", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "gate_status": { "const": "ready" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "domain_agent_no_write_boundary": {
+      "type": "object",
+      "required": [
+        "domain_no_write_pilot_ready_for_operator_visibility",
+        "source_activation_bridge_status",
+        "receipt_payload_present",
+        "receipt_applied",
+        "agent_runtime_execution_allowed_now",
+        "write_action_allowed_now",
+        "direct_zendd_mutation_allowed_now",
+        "protected_action_execution_allowed_now",
+        "legal_final_judgment_allowed_now",
+        "release_decision_allowed_now",
+        "live_trading_action_allowed_now",
+        "agent_final_pass_allowed_now",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "domain_no_write_pilot_ready_for_operator_visibility": { "const": true },
+        "source_activation_bridge_status": { "const": "ready_for_agent_runtime_activation_bridge" },
+        "receipt_payload_present": { "const": false },
+        "receipt_applied": { "const": false },
+        "agent_runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "direct_zendd_mutation_allowed_now": { "const": false },
+        "protected_action_execution_allowed_now": { "const": false },
+        "legal_final_judgment_allowed_now": { "const": false },
+        "release_decision_allowed_now": { "const": false },
+        "live_trading_action_allowed_now": { "const": false },
+        "agent_final_pass_allowed_now": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["platform_domain_agent_no_write_pilot_status", "program_range", "phase_range", "source_activation_bridge_status", "domain_count", "capability_candidate_count", "validation_error_count"],
+      "properties": {
+        "platform_domain_agent_no_write_pilot_status": { "const": "ready_for_agent_domain_no_write_pilot_freeze" },
+        "program_range": { "const": "P1321-P1440" },
+        "phase_range": { "const": "P1321-P1440" },
+        "source_activation_bridge_status": { "const": "ready_for_agent_runtime_activation_bridge" },
+        "domain_count": { "const": 6 },
+        "capability_candidate_count": { "const": 32 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "pass_row": {
+      "type": "object",
+      "required": ["current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "current_verdict": { "const": "pass" },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_only" }
+      }
+    },
+    "blocked_row": {
+      "type": "object",
+      "required": ["current_verdict", "block_reason", "documented_human_gate_ref", "action_allowed_now", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "current_verdict": { "const": "blocked" },
+        "action_allowed_now": { "const": false },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_only" }
+      }
+    }
+  }
+}

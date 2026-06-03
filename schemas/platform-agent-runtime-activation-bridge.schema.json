@@ -1,0 +1,290 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-agent-runtime-activation-bridge.schema.json",
+  "title": "Platform Agent Runtime Activation Bridge",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_agent_runtime_activation_bridge_id",
+    "capability_id",
+    "inputs",
+    "agent_runtime_activation_bridge_anchor",
+    "source_agent_runtime_pilot_freeze_summary",
+    "agent_runtime_activation_phase_rows",
+    "agent_runtime_activation_receipt_template_rows",
+    "agent_runtime_activation_receipt_quarantine_rows",
+    "agent_runtime_activation_install_lane_rows",
+    "agent_runtime_activation_doctor_evidence_rows",
+    "agent_runtime_activation_l0_adapter_rows",
+    "agent_runtime_activation_zendd_no_write_rows",
+    "agent_runtime_activation_protected_block_rows",
+    "agent_runtime_activation_freeze_rows",
+    "agent_runtime_activation_claim_rows",
+    "agent_runtime_activation_gate_rows",
+    "agent_runtime_activation_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-agent-runtime-activation-bridge.v1" },
+    "capability_id": { "const": "platform.agent_runtime_activation.bridge" },
+    "agent_runtime_activation_bridge_anchor": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "phase_range",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "command_name",
+        "source_command_name",
+        "package_script_registered",
+        "validation_chain_registered",
+        "source_runtime_pilot_freeze_status",
+        "phase_count",
+        "receipt_template_count",
+        "install_lane_count",
+        "doctor_evidence_count",
+        "l0_adapter_count",
+        "zendd_no_write_packet_count",
+        "protected_block_count",
+        "freeze_count",
+        "claim_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "platform-agent-runtime-activation-bridge-anchor.v1" },
+        "program_range": { "const": "P1201-P1320" },
+        "phase_range": { "const": "P1201-P1320" },
+        "phase_slot": { "const": "P1201" },
+        "previous_phase_slot": { "const": "P1200" },
+        "next_phase_slot": { "const": "P1321" },
+        "command_name": { "const": "platform:agent-runtime-activation-bridge" },
+        "source_command_name": { "const": "platform:agent-runtime-pilot-freeze" },
+        "package_script_registered": { "const": true },
+        "validation_chain_registered": { "const": true },
+        "source_runtime_pilot_freeze_status": { "const": "ready_for_human_approved_agent_runtime_pilot" },
+        "phase_count": { "const": 6 },
+        "receipt_template_count": { "const": 14 },
+        "install_lane_count": { "const": 6 },
+        "doctor_evidence_count": { "const": 5 },
+        "l0_adapter_count": { "const": 7 },
+        "zendd_no_write_packet_count": { "const": 6 },
+        "protected_block_count": { "const": 15 },
+        "freeze_count": { "const": 12 }
+      }
+    },
+    "agent_runtime_activation_phase_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": { "$ref": "#/$defs/pass_row" }
+    },
+    "agent_runtime_activation_receipt_template_rows": {
+      "type": "array",
+      "minItems": 14,
+      "maxItems": 14,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/pass_row" },
+          {
+            "type": "object",
+            "required": ["receipt_class_id", "human_receipt_required", "receipt_payload_present", "receipt_validated", "receipt_applied", "execution_allowed_without_receipt"],
+            "properties": {
+              "human_receipt_required": { "const": true },
+              "receipt_payload_present": { "const": false },
+              "receipt_validated": { "const": false },
+              "receipt_applied": { "const": false },
+              "execution_allowed_without_receipt": { "const": false }
+            }
+          }
+        ]
+      }
+    },
+    "agent_runtime_activation_receipt_quarantine_rows": {
+      "type": "array",
+      "minItems": 9,
+      "items": { "$ref": "#/$defs/blocked_row" }
+    },
+    "agent_runtime_activation_install_lane_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["install_mode_id", "current_verdict", "human_receipt_required", "package_download_performed", "package_install_performed", "install_execution_allowed_now", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "verdict_authority"],
+        "properties": {
+          "current_verdict": { "enum": ["pass", "blocked"] },
+          "human_receipt_required": { "const": true },
+          "package_download_performed": { "const": false },
+          "package_install_performed": { "const": false },
+          "install_execution_allowed_now": { "const": false },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_runtime_activation_doctor_evidence_rows": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/pass_row" },
+          {
+            "type": "object",
+            "required": ["command_execution_performed", "raw_stdout_stored", "raw_stderr_stored", "raw_secret_stored", "raw_client_or_vdr_material_stored"],
+            "properties": {
+              "command_execution_performed": { "const": false },
+              "raw_stdout_stored": { "const": false },
+              "raw_stderr_stored": { "const": false },
+              "raw_secret_stored": { "const": false },
+              "raw_client_or_vdr_material_stored": { "const": false }
+            }
+          }
+        ]
+      }
+    },
+    "agent_runtime_activation_l0_adapter_rows": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/pass_row" },
+          {
+            "type": "object",
+            "required": ["rollout_level", "terminal_execution_allowed_now", "file_write_allowed_now", "protected_action_allowed_now"],
+            "properties": {
+              "rollout_level": { "const": "L0" },
+              "terminal_execution_allowed_now": { "const": false },
+              "file_write_allowed_now": { "const": false },
+              "protected_action_allowed_now": { "const": false }
+            }
+          }
+        ]
+      }
+    },
+    "agent_runtime_activation_zendd_no_write_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/pass_row" },
+          {
+            "type": "object",
+            "required": ["external_project_adapter_selected", "source_refs_only", "raw_vdr_or_client_material_accessed", "file_write_performed", "terminal_command_executed", "protected_action_executed", "receipt_applied"],
+            "properties": {
+              "external_project_adapter_selected": { "const": true },
+              "source_refs_only": { "const": true },
+              "raw_vdr_or_client_material_accessed": { "const": false },
+              "file_write_performed": { "const": false },
+              "terminal_command_executed": { "const": false },
+              "protected_action_executed": { "const": false },
+              "receipt_applied": { "const": false }
+            }
+          }
+        ]
+      }
+    },
+    "agent_runtime_activation_protected_block_rows": {
+      "type": "array",
+      "minItems": 15,
+      "maxItems": 15,
+      "items": { "$ref": "#/$defs/blocked_row" }
+    },
+    "agent_runtime_activation_freeze_rows": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": { "$ref": "#/$defs/pass_row" }
+    },
+    "agent_runtime_activation_claim_rows": {
+      "type": "array",
+      "minItems": 50,
+      "items": {
+        "type": "object",
+        "required": ["claim_type", "claim_id", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "verdict_authority"],
+        "properties": {
+          "current_verdict": { "enum": ["pass", "blocked"] },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_runtime_activation_gate_rows": {
+      "type": "array",
+      "minItems": 15,
+      "items": {
+        "type": "object",
+        "required": ["gate_id", "gate_status", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "verdict_authority"],
+        "properties": {
+          "gate_status": { "const": "ready" },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_runtime_activation_boundary": {
+      "type": "object",
+      "required": [
+        "activation_bridge_ready_for_future_receipt",
+        "receipt_payload_present",
+        "validated_human_receipt_present",
+        "receipt_applied",
+        "package_download_performed",
+        "package_install_performed",
+        "doctor_smoke_execution_performed",
+        "agent_runtime_execution_allowed_now",
+        "direct_zendd_mutation_allowed_now",
+        "protected_action_execution_allowed_now",
+        "agent_final_pass_allowed_now",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "activation_bridge_ready_for_future_receipt": { "const": true },
+        "receipt_payload_present": { "const": false },
+        "validated_human_receipt_present": { "const": false },
+        "receipt_applied": { "const": false },
+        "package_download_performed": { "const": false },
+        "package_install_performed": { "const": false },
+        "doctor_smoke_execution_performed": { "const": false },
+        "agent_runtime_execution_allowed_now": { "const": false },
+        "direct_zendd_mutation_allowed_now": { "const": false },
+        "protected_action_execution_allowed_now": { "const": false },
+        "agent_final_pass_allowed_now": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["platform_agent_runtime_activation_bridge_status", "program_range", "phase_range", "source_runtime_pilot_freeze_status", "validation_error_count"],
+      "properties": {
+        "platform_agent_runtime_activation_bridge_status": { "const": "ready_for_agent_runtime_activation_bridge" },
+        "program_range": { "const": "P1201-P1320" },
+        "phase_range": { "const": "P1201-P1320" },
+        "source_runtime_pilot_freeze_status": { "const": "ready_for_human_approved_agent_runtime_pilot" },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "pass_row": {
+      "type": "object",
+      "required": ["current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "current_verdict": { "const": "pass" },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_only" }
+      }
+    },
+    "blocked_row": {
+      "type": "object",
+      "required": ["current_verdict", "block_reason", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "verdict_authority"],
+      "properties": {
+        "current_verdict": { "const": "blocked" },
+        "verdict_authority": { "const": "harness_only" }
+      }
+    }
+  }
+}

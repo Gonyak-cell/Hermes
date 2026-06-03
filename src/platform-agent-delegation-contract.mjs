@@ -65,7 +65,7 @@ export async function buildPlatformAgentDelegationContract(options = {}) {
   const inputs = normalizeInputs(options);
   const packageJson = await readJsonSource(inputs.package_path);
   const runtimePilotLedger = await readTextSource(inputs.agent_runtime_pilot_ledger_path);
-  const zenddCandidateBridge = await buildPlatformAgentZenddCandidateBridge({
+  const zenddCandidateBridge = options.sourceAgentZenddCandidateBridge ?? await buildPlatformAgentZenddCandidateBridge({
     runAt: generatedAt,
     packagePath: inputs.package_path,
     agentOperationsPhaseLedgerPath: inputs.agent_operations_phase_ledger_path,
@@ -74,7 +74,7 @@ export async function buildPlatformAgentDelegationContract(options = {}) {
     developmentPhaseLedgerPath: inputs.development_phase_ledger_path,
     write: false,
   });
-  const capabilityRegistry = await buildPlatformAgentCapabilityRegistry({
+  const capabilityRegistry = options.sourceAgentCapabilityRegistry ?? await buildPlatformAgentCapabilityRegistry({
     runAt: generatedAt,
     packagePath: inputs.package_path,
     agentOperationsPhaseLedgerPath: inputs.agent_operations_phase_ledger_path,

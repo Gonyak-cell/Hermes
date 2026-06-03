@@ -1,0 +1,284 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-kernel-spec-status-reconciliation.schema.json",
+  "title": "Platform Kernel Spec Status Reconciliation",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_kernel_spec_status_reconciliation_id",
+    "capability_id",
+    "inputs",
+    "kernel_spec_status_reconciliation_anchor",
+    "source_kernel_contract_baseline_summary",
+    "kernel_spec_rows",
+    "kernel_status_rows",
+    "kernel_reconciliation_rows",
+    "kernel_drift_rows",
+    "kernel_invariant_rows",
+    "kernel_reconciliation_protected_block_rows",
+    "kernel_api_projection_rows",
+    "kernel_reconciliation_freeze_rows",
+    "kernel_reconciliation_gate_rows",
+    "kernel_reconciliation_claim_rows",
+    "kernel_reconciliation_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-kernel-spec-status-reconciliation.v1" },
+    "capability_id": { "const": "platform.kernel.spec_status_reconciliation" },
+    "kernel_spec_status_reconciliation_anchor": {
+      "type": "object",
+      "required": ["schema_version", "program_range", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "source_command_name", "package_script_registered", "validation_chain_registered", "kernel_baseline_ledger_present", "reconciliation_ledger_present", "source_kernel_baseline_status", "spec_row_count", "status_row_count", "reconciliation_row_count", "drift_row_count", "invariant_row_count", "protected_block_count", "api_route_count", "freeze_count"],
+      "properties": {
+        "schema_version": { "const": "kernel-spec-status-reconciliation-anchor.v1" },
+        "program_range": { "const": "P1501-P2040" },
+        "phase_range": { "const": "P1561-P1640" },
+        "phase_slot": { "const": "P1561" },
+        "previous_phase_slot": { "const": "P1560" },
+        "next_phase_slot": { "const": "P1641" },
+        "command_name": { "const": "platform:kernel-spec-status-reconciliation" },
+        "source_command_name": { "const": "platform:kernel-contract-baseline" },
+        "package_script_registered": { "const": true },
+        "validation_chain_registered": { "const": true },
+        "kernel_baseline_ledger_present": { "const": true },
+        "reconciliation_ledger_present": { "const": true },
+        "source_kernel_baseline_status": { "const": "ready_for_platform_kernel_contract_baseline" },
+        "spec_row_count": { "const": 17 },
+        "status_row_count": { "const": 17 },
+        "reconciliation_row_count": { "const": 17 },
+        "drift_row_count": { "const": 10 },
+        "invariant_row_count": { "const": 8 },
+        "protected_block_count": { "const": 20 },
+        "api_route_count": { "const": 4 },
+        "freeze_count": { "const": 8 }
+      }
+    },
+    "source_kernel_contract_baseline_summary": {
+      "type": "object",
+      "required": ["platform_kernel_contract_baseline_status", "primitive_count", "contract_count", "block_projection_count", "validation_error_count"],
+      "properties": {
+        "platform_kernel_contract_baseline_status": { "const": "ready_for_platform_kernel_contract_baseline" },
+        "primitive_count": { "const": 6 },
+        "contract_count": { "const": 8 },
+        "block_projection_count": { "const": 20 },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "kernel_spec_rows": {
+      "type": "array",
+      "minItems": 17,
+      "maxItems": 17,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "spec_type", "spec_id", "expected_ref", "desired_status", "spec_required", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-spec-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "desired_status": { "const": "declared" },
+          "spec_required": { "const": true },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_status_rows": {
+      "type": "array",
+      "minItems": 17,
+      "maxItems": 17,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "spec_row_ref", "spec_type", "spec_id", "current_status", "observed_ref", "status_source_ref", "drift_status", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-status-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "current_status": { "const": "observed" },
+          "drift_status": { "const": "none" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_reconciliation_rows": {
+      "type": "array",
+      "minItems": 17,
+      "maxItems": 17,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "spec_row_ref", "status_row_ref", "spec_type", "spec_id", "reconciliation_status", "current_status", "drift_status", "mutation_required", "execution_allowed_now", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-reconciliation-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "reconciliation_status": { "const": "reconciled" },
+          "current_status": { "const": "observed" },
+          "drift_status": { "const": "none" },
+          "mutation_required": { "const": false },
+          "execution_allowed_now": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_drift_rows": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "drift_id", "source_check_ref", "drift_status", "drift_detected", "mutation_required", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-drift-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "drift_status": { "const": "none" },
+          "drift_detected": { "const": false },
+          "mutation_required": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_invariant_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "invariant_id", "invariant_status", "unsafe_value_observed", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-invariant-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "invariant_status": { "const": "safe" },
+          "unsafe_value_observed": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_reconciliation_protected_block_rows": {
+      "type": "array",
+      "minItems": 20,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "source_block_projection_ref", "protected_block_id", "domain_id", "current_verdict", "reconciliation_status", "block_reason", "action_allowed_now", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-reconciliation-protected-block-row.v1" },
+          "current_verdict": { "const": "blocked" },
+          "reconciliation_status": { "const": "blocked_preserved" },
+          "action_allowed_now": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_api_projection_rows": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "route_path", "method", "route_status", "response_collection", "server_started", "mutation_route", "protected_action_route", "receipt_application_route", "raw_material_route", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-api-projection-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "method": { "const": "GET" },
+          "route_status": { "const": "ready_for_read_only_projection" },
+          "server_started": { "const": false },
+          "mutation_route": { "const": false },
+          "protected_action_route": { "const": false },
+          "receipt_application_route": { "const": false },
+          "raw_material_route": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_reconciliation_freeze_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "freeze_id", "freeze_status", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-reconciliation-freeze-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "freeze_status": { "const": "ready" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_reconciliation_gate_rows": {
+      "type": "array",
+      "minItems": 13,
+      "maxItems": 13,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "gate_id", "gate_status", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-reconciliation-gate-row.v1" },
+          "gate_status": { "const": "ready" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_reconciliation_claim_rows": {
+      "type": "array",
+      "minItems": 101,
+      "maxItems": 101,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "claim_type", "claim_id", "domain_id", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-reconciliation-claim-row.v1" },
+          "current_verdict": { "enum": ["pass", "blocked"] },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_reconciliation_boundary": {
+      "type": "object",
+      "required": ["kernel_spec_status_reconciliation_ready_for_engine_extraction", "source_kernel_baseline_status", "read_only_reconciliation", "server_started", "api_projection_only", "mutation_performed", "agent_runtime_execution_allowed_now", "write_action_allowed_now", "protected_action_execution_allowed_now", "receipt_application_allowed_now", "raw_secret_read_allowed_now", "raw_client_or_vdr_access_allowed_now", "direct_zendd_mutation_allowed_now", "legal_final_judgment_allowed_now", "release_decision_allowed_now", "live_trading_action_allowed_now", "agent_final_pass_allowed_now", "unsafe_flag_count"],
+      "properties": {
+        "kernel_spec_status_reconciliation_ready_for_engine_extraction": { "const": true },
+        "source_kernel_baseline_status": { "const": "ready_for_platform_kernel_contract_baseline" },
+        "read_only_reconciliation": { "const": true },
+        "server_started": { "const": false },
+        "api_projection_only": { "const": true },
+        "mutation_performed": { "const": false },
+        "agent_runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "protected_action_execution_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "raw_secret_read_allowed_now": { "const": false },
+        "raw_client_or_vdr_access_allowed_now": { "const": false },
+        "direct_zendd_mutation_allowed_now": { "const": false },
+        "legal_final_judgment_allowed_now": { "const": false },
+        "release_decision_allowed_now": { "const": false },
+        "live_trading_action_allowed_now": { "const": false },
+        "agent_final_pass_allowed_now": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["platform_kernel_spec_status_reconciliation_status", "program_range", "phase_range", "source_kernel_baseline_status", "spec_row_count", "status_row_count", "reconciliation_row_count", "claim_count", "validation_error_count"],
+      "properties": {
+        "platform_kernel_spec_status_reconciliation_status": { "const": "ready_for_platform_kernel_spec_status_reconciliation" },
+        "program_range": { "const": "P1501-P2040" },
+        "phase_range": { "const": "P1561-P1640" },
+        "source_kernel_baseline_status": { "const": "ready_for_platform_kernel_contract_baseline" },
+        "spec_row_count": { "const": 17 },
+        "status_row_count": { "const": 17 },
+        "reconciliation_row_count": { "const": 17 },
+        "claim_count": { "const": 101 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

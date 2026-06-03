@@ -1,0 +1,290 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-agent-operator-console-v0.schema.json",
+  "title": "Platform Agent Operator Console v0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_agent_operator_console_v0_id",
+    "capability_id",
+    "inputs",
+    "agent_operator_console_v0_anchor",
+    "source_domain_agent_no_write_pilot_summary",
+    "agent_console_capability_rows",
+    "agent_console_block_rows",
+    "agent_console_receipt_rows",
+    "agent_console_next_action_rows",
+    "agent_console_api_route_rows",
+    "agent_console_closeout_rows",
+    "agent_console_gate_rows",
+    "agent_console_claim_rows",
+    "agent_console_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-agent-operator-console-v0.v1" },
+    "capability_id": { "const": "platform.agent_operator.console_v0" },
+    "agent_operator_console_v0_anchor": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "phase_range",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "command_name",
+        "source_command_name",
+        "package_script_registered",
+        "validation_chain_registered",
+        "domain_pilot_ledger_present",
+        "console_ledger_present",
+        "source_domain_pilot_status",
+        "capability_row_count",
+        "block_row_count",
+        "receipt_row_count",
+        "next_action_row_count",
+        "api_route_count",
+        "closeout_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "agent-operator-console-v0-anchor.v1" },
+        "program_range": { "const": "P1441-P1500" },
+        "phase_range": { "const": "P1441-P1500" },
+        "phase_slot": { "const": "P1441" },
+        "previous_phase_slot": { "const": "P1440" },
+        "next_phase_slot": { "const": "P1501" },
+        "command_name": { "const": "platform:agent-operator-console-v0" },
+        "source_command_name": { "const": "platform:domain-agent-no-write-pilot" },
+        "package_script_registered": { "const": true },
+        "validation_chain_registered": { "const": true },
+        "domain_pilot_ledger_present": { "const": true },
+        "console_ledger_present": { "const": true },
+        "source_domain_pilot_status": { "const": "ready_for_agent_domain_no_write_pilot_freeze" },
+        "capability_row_count": { "const": 32 },
+        "block_row_count": { "const": 20 },
+        "receipt_row_count": { "const": 26 },
+        "next_action_row_count": { "const": 26 },
+        "api_route_count": { "const": 4 },
+        "closeout_count": { "const": 8 }
+      }
+    },
+    "source_domain_agent_no_write_pilot_summary": {
+      "type": "object",
+      "required": ["platform_domain_agent_no_write_pilot_status", "capability_candidate_count", "blocked_claim_count", "validation_error_count"],
+      "properties": {
+        "platform_domain_agent_no_write_pilot_status": { "const": "ready_for_agent_domain_no_write_pilot_freeze" },
+        "capability_candidate_count": { "const": 32 },
+        "blocked_claim_count": { "const": 20 },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "agent_console_capability_rows": {
+      "type": "array",
+      "minItems": 32,
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "source_row_ref", "domain_id", "capability_id", "rollout_level", "console_status", "missing_receipt", "runtime_execution_allowed_now", "write_action_allowed_now", "final_pass_by_agent_allowed_now", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "agent-console-capability-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "rollout_level": { "const": "L0_no_write" },
+          "console_status": { "const": "visible_no_write_candidate" },
+          "missing_receipt": { "const": true },
+          "runtime_execution_allowed_now": { "const": false },
+          "write_action_allowed_now": { "const": false },
+          "final_pass_by_agent_allowed_now": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_console_block_rows": {
+      "type": "array",
+      "minItems": 20,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "source_row_ref", "protected_block_id", "domain_id", "current_verdict", "console_status", "block_reason", "receipt_required_before_action", "receipt_payload_present", "action_allowed_now", "protected_action_execution_allowed_now", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "agent-console-block-row.v1" },
+          "current_verdict": { "const": "blocked" },
+          "console_status": { "const": "visible_block" },
+          "receipt_required_before_action": { "const": true },
+          "receipt_payload_present": { "const": false },
+          "action_allowed_now": { "const": false },
+          "protected_action_execution_allowed_now": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_console_receipt_rows": {
+      "type": "array",
+      "minItems": 26,
+      "maxItems": 26,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "receipt_scope", "source_row_ref", "domain_id", "receipt_status", "receipt_required_before_action", "receipt_payload_present", "receipt_applied", "action_allowed_now", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "agent-console-receipt-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "receipt_status": { "const": "missing" },
+          "receipt_required_before_action": { "const": true },
+          "receipt_payload_present": { "const": false },
+          "receipt_applied": { "const": false },
+          "action_allowed_now": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_console_next_action_rows": {
+      "type": "array",
+      "minItems": 26,
+      "maxItems": 26,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "source_receipt_row_ref", "domain_id", "next_action_status", "blocked_until_receipt", "execution_allowed_now", "next_allowed_action", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "agent-console-next-action-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "next_action_status": { "const": "visible_for_operator" },
+          "blocked_until_receipt": { "const": true },
+          "execution_allowed_now": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_console_api_route_rows": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "route_path", "method", "route_status", "route_mode", "response_collection", "server_started", "mutation_route", "protected_action_route", "receipt_application_route", "raw_material_route", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "agent-console-api-route-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "method": { "const": "GET" },
+          "route_status": { "const": "ready_for_read_only_projection" },
+          "route_mode": { "const": "artifact_projection_only" },
+          "server_started": { "const": false },
+          "mutation_route": { "const": false },
+          "protected_action_route": { "const": false },
+          "receipt_application_route": { "const": false },
+          "raw_material_route": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_console_closeout_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": { "$ref": "#/$defs/pass_row" }
+    },
+    "agent_console_gate_rows": {
+      "type": "array",
+      "minItems": 13,
+      "maxItems": 13,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "gate_id", "gate_status", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "agent-console-gate-row.v1" },
+          "gate_status": { "const": "ready" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_console_claim_rows": {
+      "type": "array",
+      "minItems": 116,
+      "maxItems": 116,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "claim_type", "claim_id", "domain_id", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "agent-console-claim-row.v1" },
+          "current_verdict": { "enum": ["pass", "blocked"] },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "agent_console_boundary": {
+      "type": "object",
+      "required": [
+        "operator_console_v0_ready_for_kernel_cutover",
+        "source_domain_pilot_status",
+        "read_only_console",
+        "server_started",
+        "api_projection_only",
+        "receipt_payload_present",
+        "receipt_applied",
+        "agent_runtime_execution_allowed_now",
+        "write_action_allowed_now",
+        "direct_zendd_mutation_allowed_now",
+        "protected_action_execution_allowed_now",
+        "legal_final_judgment_allowed_now",
+        "release_decision_allowed_now",
+        "live_trading_action_allowed_now",
+        "agent_final_pass_allowed_now",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "operator_console_v0_ready_for_kernel_cutover": { "const": true },
+        "source_domain_pilot_status": { "const": "ready_for_agent_domain_no_write_pilot_freeze" },
+        "read_only_console": { "const": true },
+        "server_started": { "const": false },
+        "api_projection_only": { "const": true },
+        "receipt_payload_present": { "const": false },
+        "receipt_applied": { "const": false },
+        "agent_runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "direct_zendd_mutation_allowed_now": { "const": false },
+        "protected_action_execution_allowed_now": { "const": false },
+        "legal_final_judgment_allowed_now": { "const": false },
+        "release_decision_allowed_now": { "const": false },
+        "live_trading_action_allowed_now": { "const": false },
+        "agent_final_pass_allowed_now": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["platform_agent_operator_console_v0_status", "program_range", "phase_range", "source_domain_pilot_status", "capability_row_count", "block_row_count", "missing_receipt_count", "api_route_count", "claim_count", "validation_error_count"],
+      "properties": {
+        "platform_agent_operator_console_v0_status": { "const": "ready_for_agent_operator_console_v0_freeze" },
+        "program_range": { "const": "P1441-P1500" },
+        "phase_range": { "const": "P1441-P1500" },
+        "source_domain_pilot_status": { "const": "ready_for_agent_domain_no_write_pilot_freeze" },
+        "capability_row_count": { "const": 32 },
+        "block_row_count": { "const": 20 },
+        "missing_receipt_count": { "const": 26 },
+        "api_route_count": { "const": 4 },
+        "claim_count": { "const": 116 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "pass_row": {
+      "type": "object",
+      "required": ["current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "current_verdict": { "const": "pass" },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_only" }
+      }
+    }
+  }
+}

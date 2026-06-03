@@ -70,14 +70,14 @@ export async function buildPlatformAgentZenddCandidateBridge(options = {}) {
   const inputs = normalizeInputs(options);
   const packageJson = await readJsonSource(inputs.package_path);
   const runtimePilotLedger = await readTextSource(inputs.agent_runtime_pilot_ledger_path);
-  const adapterSdk = await buildPlatformAgentDomainAdapterSdk({
+  const adapterSdk = options.sourceAgentDomainAdapterSdk ?? await buildPlatformAgentDomainAdapterSdk({
     runAt: generatedAt,
     packagePath: inputs.package_path,
     agentOperationsPhaseLedgerPath: inputs.agent_operations_phase_ledger_path,
     agentRuntimePilotLedgerPath: inputs.agent_runtime_pilot_ledger_path,
     write: false,
   });
-  const zenddSources = await buildZenddSources({ generatedAt, inputs });
+  const zenddSources = options.sourceZenddSources ?? await buildZenddSources({ generatedAt, inputs });
 
   const bridgePolicy = buildBridgePolicy(generatedAt, adapterSdk, zenddSources);
   const candidatePacketRows = buildCandidatePacketRows({ adapterSdk, zenddSources });
@@ -185,12 +185,21 @@ async function buildZenddSources({ generatedAt, inputs }) {
     developmentPhaseLedgerPath: inputs.development_phase_ledger_path,
     write: false,
   };
-  const workOrderIntake = await buildZenddWorkOrderIntake(sourceOptions);
-  const safePatchLane = await buildZenddSafePatchLane(sourceOptions);
-  const commandBridge = await buildZenddCommandEvidenceExecutionBridge(sourceOptions);
-  const releaseCandidateSandbox = await buildZenddReleaseCandidateSandbox(sourceOptions);
-  const vdrLddWorkflowAdapter = await buildZenddVdrLddWorkflowAdapter(sourceOptions);
-  const actualCheckoutPreflight = await buildZenddActualCheckoutPreflight(sourceOptions);
+  const [
+    workOrderIntake,
+    safePatchLane,
+    commandBridge,
+    releaseCandidateSandbox,
+    vdrLddWorkflowAdapter,
+    actualCheckoutPreflight,
+  ] = await Promise.all([
+    buildZenddWorkOrderIntake(sourceOptions),
+    buildZenddSafePatchLane(sourceOptions),
+    buildZenddCommandEvidenceExecutionBridge(sourceOptions),
+    buildZenddReleaseCandidateSandbox(sourceOptions),
+    buildZenddVdrLddWorkflowAdapter(sourceOptions),
+    buildZenddActualCheckoutPreflight(sourceOptions),
+  ]);
   return {
     workOrderIntake,
     safePatchLane,

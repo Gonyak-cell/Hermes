@@ -1,0 +1,295 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-harness-native-cutover-adapter.schema.json",
+  "title": "Platform Harness Native Cutover Adapter",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_harness_native_cutover_adapter_id",
+    "capability_id",
+    "inputs",
+    "harness_native_cutover_anchor",
+    "source_kernel_projection_freeze_summary",
+    "harness_native_cutover_manifest",
+    "harness_native_component_rows",
+    "harness_native_lane_rows",
+    "harness_native_adapter_rows",
+    "harness_native_domain_cutover_rows",
+    "harness_native_api_route_rows",
+    "harness_native_guard_rows",
+    "harness_native_freeze_rows",
+    "harness_native_gate_rows",
+    "harness_native_claim_rows",
+    "harness_native_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-harness-native-cutover-adapter.v1" },
+    "capability_id": { "const": "platform.harness_native.cutover_adapter" },
+    "harness_native_cutover_anchor": {
+      "type": "object",
+      "required": ["schema_version", "program_range", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "source_command_name", "package_script_registered", "validation_chain_registered", "projection_freeze_ledger_present", "harness_native_cutover_ledger_present", "source_projection_freeze_status", "component_count", "lane_count", "adapter_count", "domain_cutover_count", "api_route_count", "guard_count", "freeze_count"],
+      "properties": {
+        "schema_version": { "const": "harness-native-cutover-anchor.v1" },
+        "program_range": { "const": "P1501-P2040" },
+        "phase_range": { "const": "P1881-P1960" },
+        "phase_slot": { "const": "P1881" },
+        "previous_phase_slot": { "const": "P1880" },
+        "next_phase_slot": { "const": "P1961" },
+        "command_name": { "const": "platform:harness-native-cutover-adapter" },
+        "source_command_name": { "const": "platform:kernel-projection-freeze" },
+        "package_script_registered": { "const": true },
+        "validation_chain_registered": { "const": true },
+        "projection_freeze_ledger_present": { "const": true },
+        "harness_native_cutover_ledger_present": { "const": true },
+        "source_projection_freeze_status": { "const": "ready_for_platform_kernel_projection_freeze" },
+        "component_count": { "const": 6 },
+        "lane_count": { "const": 8 },
+        "adapter_count": { "const": 8 },
+        "domain_cutover_count": { "const": 7 },
+        "api_route_count": { "const": 6 },
+        "guard_count": { "const": 10 },
+        "freeze_count": { "const": 8 }
+      }
+    },
+    "source_kernel_projection_freeze_summary": {
+      "type": "object",
+      "required": ["platform_kernel_projection_freeze_status", "source_collection_count", "api_route_count", "operator_row_count", "claim_count", "validation_error_count"],
+      "properties": {
+        "platform_kernel_projection_freeze_status": { "const": "ready_for_platform_kernel_projection_freeze" },
+        "source_collection_count": { "const": 10 },
+        "api_route_count": { "const": 6 },
+        "operator_row_count": { "const": 8 },
+        "claim_count": { "const": 63 },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "harness_native_cutover_manifest": {
+      "type": "object",
+      "required": ["schema_version", "program_range", "phase_range", "source_projection_freeze_status", "component_count", "lane_count", "adapter_count", "domain_cutover_count", "api_route_count", "guard_count", "freeze_count", "gate_count", "claim_count", "harness_native_cutover_ready", "next_allowed_action"],
+      "properties": {
+        "schema_version": { "const": "harness-native-cutover-manifest.v1" },
+        "program_range": { "const": "P1501-P2040" },
+        "phase_range": { "const": "P1881-P1960" },
+        "source_projection_freeze_status": { "const": "ready_for_platform_kernel_projection_freeze" },
+        "component_count": { "const": 6 },
+        "lane_count": { "const": 8 },
+        "adapter_count": { "const": 8 },
+        "domain_cutover_count": { "const": 7 },
+        "api_route_count": { "const": 6 },
+        "guard_count": { "const": 10 },
+        "freeze_count": { "const": 8 },
+        "gate_count": { "const": 12 },
+        "claim_count": { "const": 73 },
+        "harness_native_cutover_ready": { "const": true }
+      }
+    },
+    "harness_native_component_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "component_id", "component_status", "harness_native_only", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "harness-native-component-row.v1" },
+          "component_status": { "const": "ready_for_cutover_adapter" },
+          "harness_native_only": { "const": true },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "harness_native_lane_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "lane_id", "primitive_refs", "lane_status", "source_projection_status", "execution_allowed_now", "write_allowed_now", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "harness-native-lane-row.v1" },
+          "lane_status": { "const": "ready_for_harness_native_cutover" },
+          "source_projection_status": { "const": "ready_for_platform_kernel_projection_freeze" },
+          "execution_allowed_now": { "const": false },
+          "write_allowed_now": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "harness_native_adapter_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "adapter_id", "lane_ref", "adapter_status", "route_binding_required", "operator_projection_required", "direct_tool_execution_allowed_now", "mutation_allowed_now", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "harness-native-adapter-row.v1" },
+          "adapter_status": { "const": "ready_no_execution" },
+          "route_binding_required": { "const": true },
+          "operator_projection_required": { "const": true },
+          "direct_tool_execution_allowed_now": { "const": false },
+          "mutation_allowed_now": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "harness_native_domain_cutover_rows": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "domain_id", "domain_cutover_status", "source_projection_status", "protected_action_allowed_now", "legal_or_release_final_authority_allowed_now", "raw_material_access_allowed_now", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "harness-native-domain-cutover-row.v1" },
+          "domain_cutover_status": { "const": "ready_for_no_write_harness_native_cutover" },
+          "source_projection_status": { "const": "ready_for_platform_kernel_projection_freeze" },
+          "protected_action_allowed_now": { "const": false },
+          "legal_or_release_final_authority_allowed_now": { "const": false },
+          "raw_material_access_allowed_now": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "harness_native_api_route_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "route_path", "method", "response_collection", "route_status", "server_started", "mutation_route", "protected_action_route", "receipt_application_route", "raw_material_route", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "harness-native-api-route-row.v1" },
+          "method": { "const": "GET" },
+          "route_status": { "const": "ready_for_read_only_projection" },
+          "server_started": { "const": false },
+          "mutation_route": { "const": false },
+          "protected_action_route": { "const": false },
+          "receipt_application_route": { "const": false },
+          "raw_material_route": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "harness_native_guard_rows": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "guard_id", "guard_status", "source_projection_status", "action_allowed_now", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "harness-native-guard-row.v1" },
+          "guard_status": { "const": "closed" },
+          "source_projection_status": { "const": "ready_for_platform_kernel_projection_freeze" },
+          "action_allowed_now": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "harness_native_freeze_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "freeze_id", "freeze_status", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "harness-native-freeze-row.v1" },
+          "freeze_status": { "const": "ready" },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "harness_native_gate_rows": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "gate_id", "gate_status", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "harness-native-gate-row.v1" },
+          "gate_status": { "const": "ready" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "harness_native_claim_rows": {
+      "type": "array",
+      "minItems": 73,
+      "maxItems": 73,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "claim_type", "claim_id", "domain_id", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "harness-native-claim-row.v1" },
+          "current_verdict": { "enum": ["pass", "blocked"] },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "harness_native_boundary": {
+      "type": "object",
+      "required": ["harness_native_cutover_adapter_ready_for_kernel_freeze", "source_projection_freeze_status", "harness_native_cutover_only", "read_only_projection", "server_started", "mutation_performed", "raw_material_exposed", "receipt_payload_present", "receipt_applied", "agent_runtime_execution_allowed_now", "write_action_allowed_now", "protected_action_execution_allowed_now", "receipt_application_allowed_now", "raw_secret_read_allowed_now", "raw_client_or_vdr_access_allowed_now", "direct_zendd_mutation_allowed_now", "legal_final_judgment_allowed_now", "release_decision_allowed_now", "live_trading_action_allowed_now", "agent_final_pass_allowed_now", "unsafe_flag_count"],
+      "properties": {
+        "harness_native_cutover_adapter_ready_for_kernel_freeze": { "const": true },
+        "source_projection_freeze_status": { "const": "ready_for_platform_kernel_projection_freeze" },
+        "harness_native_cutover_only": { "const": true },
+        "read_only_projection": { "const": true },
+        "server_started": { "const": false },
+        "mutation_performed": { "const": false },
+        "raw_material_exposed": { "const": false },
+        "receipt_payload_present": { "const": false },
+        "receipt_applied": { "const": false },
+        "agent_runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "protected_action_execution_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "raw_secret_read_allowed_now": { "const": false },
+        "raw_client_or_vdr_access_allowed_now": { "const": false },
+        "direct_zendd_mutation_allowed_now": { "const": false },
+        "legal_final_judgment_allowed_now": { "const": false },
+        "release_decision_allowed_now": { "const": false },
+        "live_trading_action_allowed_now": { "const": false },
+        "agent_final_pass_allowed_now": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["platform_harness_native_cutover_adapter_status", "program_range", "phase_range", "source_projection_freeze_status", "lane_count", "adapter_count", "domain_cutover_count", "claim_count", "validation_error_count"],
+      "properties": {
+        "platform_harness_native_cutover_adapter_status": { "const": "ready_for_platform_harness_native_cutover_adapter" },
+        "program_range": { "const": "P1501-P2040" },
+        "phase_range": { "const": "P1881-P1960" },
+        "source_projection_freeze_status": { "const": "ready_for_platform_kernel_projection_freeze" },
+        "lane_count": { "const": 8 },
+        "adapter_count": { "const": 8 },
+        "domain_cutover_count": { "const": 7 },
+        "claim_count": { "const": 73 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

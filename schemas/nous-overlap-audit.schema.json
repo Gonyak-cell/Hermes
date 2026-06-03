@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/nous-overlap-audit.schema.json",
+  "title": "Nous Overlap Audit",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "nous_overlap_audit_id",
+    "capability_id",
+    "inputs",
+    "nous_overlap_audit_anchor",
+    "source_p2040_freeze_summary",
+    "nous_source_rows",
+    "harness_surface_classification_rows",
+    "blocked_next_phase_rows",
+    "nous_overlap_policy",
+    "nous_overlap_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "nous-overlap-audit.v1" },
+    "capability_id": { "const": "platform.nous_overlap_audit" },
+    "nous_overlap_audit_anchor": {
+      "type": "object",
+      "required": ["schema_version", "program_range", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "source_command_name", "package_script_registered", "validation_chain_registered", "p2040_freeze_ledger_present", "p2040_freeze_suspension_declared", "overlap_audit_ledger_present", "source_p2040_freeze_status", "source_count", "surface_count", "blocked_next_phase_count"],
+      "properties": {
+        "schema_version": { "const": "nous-overlap-audit-anchor.v1" },
+        "program_range": { "const": "P2041-P2120" },
+        "phase_range": { "const": "P2041-P2120" },
+        "phase_slot": { "const": "P2041" },
+        "previous_phase_slot": { "const": "P2040" },
+        "next_phase_slot": { "const": "P2121" },
+        "command_name": { "const": "platform:nous-overlap-audit" },
+        "source_command_name": { "const": "platform:kernel-harness-native-cutover-freeze" },
+        "package_script_registered": { "const": true },
+        "validation_chain_registered": { "const": true },
+        "p2040_freeze_ledger_present": { "const": true },
+        "p2040_freeze_suspension_declared": { "const": true },
+        "overlap_audit_ledger_present": { "const": true },
+        "source_p2040_freeze_status": { "const": "ready_for_platform_kernel_harness_native_cutover_freeze" },
+        "source_count": { "const": 8 },
+        "surface_count": { "const": 12 },
+        "blocked_next_phase_count": { "const": 4 }
+      }
+    },
+    "source_p2040_freeze_summary": {
+      "type": "object",
+      "required": ["platform_kernel_harness_native_cutover_freeze_status", "p2041_suspended_pending_nous_overlap_audit", "validation_error_count"],
+      "properties": {
+        "platform_kernel_harness_native_cutover_freeze_status": { "const": "ready_for_platform_kernel_harness_native_cutover_freeze" },
+        "p2041_suspended_pending_nous_overlap_audit": { "const": true },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "nous_source_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "source_id", "source_url", "source_label", "documented_surfaces", "overlap_domain", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "nous-source-row.v1" },
+          "source_url": { "type": "string", "pattern": "^https://hermes-agent\\.nousresearch\\.com/" },
+          "documented_surfaces": { "type": "array", "minItems": 1 },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "harness_surface_classification_rows": {
+      "type": "array",
+      "minItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "surface_id", "phase_range", "surface_name", "original_intent", "overlap_source_ids", "overlap_level", "classification", "decision_reason", "implementation_allowed_now", "nous_runtime_reimplementation_allowed", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "harness-surface-classification-row.v1" },
+          "overlap_source_ids": { "type": "array" },
+          "overlap_level": { "enum": ["none", "partial", "direct"] },
+          "classification": { "enum": ["keep_harness_native", "adapter_boundary", "deprecate_into_governance", "drop_suspended"] },
+          "nous_runtime_reimplementation_allowed": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "blocked_next_phase_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "blocked_phase_id", "phase_range", "execution_allowed_now", "write_action_allowed_now", "runtime_reimplementation_allowed", "current_verdict", "block_reason", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "blocked-next-phase-row.v1" },
+          "execution_allowed_now": { "const": false },
+          "write_action_allowed_now": { "const": false },
+          "runtime_reimplementation_allowed": { "const": false },
+          "current_verdict": { "const": "blocked" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "nous_overlap_policy": {
+      "type": "object",
+      "required": ["schema_version", "p2041_suspended_pending_nous_overlap_audit", "p2041_limited_execution_allowed_now", "direct_nous_runtime_call_allowed_now", "runtime_execution_allowed_now", "write_action_allowed_now", "protected_action_execution_allowed_now", "receipt_application_allowed_now", "nous_runtime_reimplementation_allowed", "nous_mcp_gateway_reimplementation_allowed", "nous_memory_store_reimplementation_allowed", "nous_jobs_scheduler_reimplementation_allowed", "nous_dashboard_reimplementation_allowed", "source_p2040_freeze_suspended", "drop_or_deprecate_count", "blocked_next_phase_count", "next_allowed_action"],
+      "properties": {
+        "schema_version": { "const": "nous-overlap-policy.v1" },
+        "p2041_suspended_pending_nous_overlap_audit": { "const": true },
+        "p2041_limited_execution_allowed_now": { "const": false },
+        "direct_nous_runtime_call_allowed_now": { "const": false },
+        "runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "protected_action_execution_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "nous_runtime_reimplementation_allowed": { "const": false },
+        "nous_mcp_gateway_reimplementation_allowed": { "const": false },
+        "nous_memory_store_reimplementation_allowed": { "const": false },
+        "nous_jobs_scheduler_reimplementation_allowed": { "const": false },
+        "nous_dashboard_reimplementation_allowed": { "const": false },
+        "source_p2040_freeze_suspended": { "const": true },
+        "drop_or_deprecate_count": { "const": 5 },
+        "blocked_next_phase_count": { "const": 4 }
+      }
+    },
+    "nous_overlap_boundary": {
+      "type": "object",
+      "required": ["schema_version", "source_p2040_freeze_status", "p2041_suspended_pending_nous_overlap_audit", "p2041_limited_execution_allowed_now", "server_started", "mutation_performed", "direct_nous_runtime_call_allowed_now", "runtime_execution_allowed_now", "write_action_allowed_now", "protected_action_execution_allowed_now", "receipt_application_allowed_now", "raw_material_exposed", "nous_runtime_reimplementation_allowed", "nous_mcp_gateway_reimplementation_allowed", "nous_memory_store_reimplementation_allowed", "nous_jobs_scheduler_reimplementation_allowed", "nous_dashboard_reimplementation_allowed", "unsafe_flag_count"],
+      "properties": {
+        "schema_version": { "const": "nous-overlap-boundary.v1" },
+        "source_p2040_freeze_status": { "const": "ready_for_platform_kernel_harness_native_cutover_freeze" },
+        "p2041_suspended_pending_nous_overlap_audit": { "const": true },
+        "p2041_limited_execution_allowed_now": { "const": false },
+        "server_started": { "const": false },
+        "mutation_performed": { "const": false },
+        "direct_nous_runtime_call_allowed_now": { "const": false },
+        "runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "protected_action_execution_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "raw_material_exposed": { "const": false },
+        "nous_runtime_reimplementation_allowed": { "const": false },
+        "nous_mcp_gateway_reimplementation_allowed": { "const": false },
+        "nous_memory_store_reimplementation_allowed": { "const": false },
+        "nous_jobs_scheduler_reimplementation_allowed": { "const": false },
+        "nous_dashboard_reimplementation_allowed": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["nous_overlap_audit_status", "program_range", "phase_range", "source_p2040_freeze_status", "source_count", "surface_count", "keep_harness_native_count", "adapter_boundary_count", "deprecate_into_governance_count", "drop_suspended_count", "blocked_next_phase_count", "p2041_suspended_pending_nous_overlap_audit", "p2041_limited_execution_allowed_now", "direct_nous_runtime_call_allowed_now", "runtime_execution_allowed_now", "write_action_allowed_now", "nous_runtime_reimplementation_allowed", "unsafe_flag_count", "validation_error_count"],
+      "properties": {
+        "nous_overlap_audit_status": { "const": "ready_for_nous_overlap_audit" },
+        "program_range": { "const": "P2041-P2120" },
+        "phase_range": { "const": "P2041-P2120" },
+        "source_p2040_freeze_status": { "const": "ready_for_platform_kernel_harness_native_cutover_freeze" },
+        "source_count": { "const": 8 },
+        "surface_count": { "const": 12 },
+        "keep_harness_native_count": { "const": 5 },
+        "adapter_boundary_count": { "const": 2 },
+        "deprecate_into_governance_count": { "const": 4 },
+        "drop_suspended_count": { "const": 1 },
+        "blocked_next_phase_count": { "const": 4 },
+        "p2041_suspended_pending_nous_overlap_audit": { "const": true },
+        "p2041_limited_execution_allowed_now": { "const": false },
+        "direct_nous_runtime_call_allowed_now": { "const": false },
+        "runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "nous_runtime_reimplementation_allowed": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

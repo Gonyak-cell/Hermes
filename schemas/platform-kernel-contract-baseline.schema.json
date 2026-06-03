@@ -1,0 +1,250 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-kernel-contract-baseline.schema.json",
+  "title": "Platform Kernel Contract Baseline",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_kernel_contract_baseline_id",
+    "capability_id",
+    "inputs",
+    "kernel_contract_baseline_anchor",
+    "source_agent_operator_console_v0_summary",
+    "kernel_manifest",
+    "kernel_primitive_rows",
+    "kernel_source_binding_rows",
+    "kernel_contract_rows",
+    "kernel_block_projection_rows",
+    "kernel_check_rows",
+    "kernel_cutover_rows",
+    "kernel_gate_rows",
+    "kernel_claim_rows",
+    "kernel_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-kernel-contract-baseline.v1" },
+    "capability_id": { "const": "platform.kernel.contract_baseline" },
+    "kernel_contract_baseline_anchor": {
+      "type": "object",
+      "required": ["schema_version", "program_range", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "source_command_name", "package_script_registered", "validation_chain_registered", "console_ledger_present", "kernel_ledger_present", "source_console_status", "primitive_count", "source_binding_count", "contract_count", "block_projection_count", "check_count", "cutover_count"],
+      "properties": {
+        "schema_version": { "const": "kernel-contract-baseline-anchor.v1" },
+        "program_range": { "const": "P1501-P2040" },
+        "phase_range": { "const": "P1501-P1560" },
+        "phase_slot": { "const": "P1501" },
+        "previous_phase_slot": { "const": "P1500" },
+        "next_phase_slot": { "const": "P1561" },
+        "command_name": { "const": "platform:kernel-contract-baseline" },
+        "source_command_name": { "const": "platform:agent-operator-console-v0" },
+        "package_script_registered": { "const": true },
+        "validation_chain_registered": { "const": true },
+        "console_ledger_present": { "const": true },
+        "kernel_ledger_present": { "const": true },
+        "source_console_status": { "const": "ready_for_agent_operator_console_v0_freeze" },
+        "primitive_count": { "const": 6 },
+        "source_binding_count": { "const": 3 },
+        "contract_count": { "const": 8 },
+        "block_projection_count": { "const": 20 },
+        "check_count": { "const": 10 },
+        "cutover_count": { "const": 7 }
+      }
+    },
+    "source_agent_operator_console_v0_summary": {
+      "type": "object",
+      "required": ["platform_agent_operator_console_v0_status", "capability_row_count", "block_row_count", "missing_receipt_count", "validation_error_count"],
+      "properties": {
+        "platform_agent_operator_console_v0_status": { "const": "ready_for_agent_operator_console_v0_freeze" },
+        "capability_row_count": { "const": 32 },
+        "block_row_count": { "const": 20 },
+        "missing_receipt_count": { "const": 26 },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "kernel_manifest": {
+      "type": "object",
+      "required": ["schema_version", "program_range", "phase_range", "primitive_count", "source_binding_count", "contract_count", "block_projection_count", "check_count", "cutover_count", "gate_count", "claim_count", "primitive_ids", "next_allowed_action"],
+      "properties": {
+        "schema_version": { "const": "kernel-manifest.v1" },
+        "program_range": { "const": "P1501-P2040" },
+        "phase_range": { "const": "P1501-P1560" },
+        "primitive_count": { "const": 6 },
+        "source_binding_count": { "const": 3 },
+        "contract_count": { "const": 8 },
+        "block_projection_count": { "const": 20 },
+        "check_count": { "const": 10 },
+        "cutover_count": { "const": 7 },
+        "gate_count": { "const": 13 },
+        "claim_count": { "const": 54 }
+      }
+    },
+    "kernel_primitive_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "primitive_id", "kernel_status", "required_fields", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-primitive-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "kernel_status": { "const": "baseline_ready" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_source_binding_rows": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "source_id", "command_name", "phase_range", "source_status", "source_ref", "artifact_projection_only", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-source-binding-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "artifact_projection_only": { "const": true },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_contract_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "contract_id", "source_collection", "primitive_refs", "source_item_count", "contract_status", "deterministic_projection", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-contract-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "contract_status": { "const": "baseline_ready" },
+          "deterministic_projection": { "const": true },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_block_projection_rows": {
+      "type": "array",
+      "minItems": 20,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "source_row_ref", "protected_block_id", "domain_id", "current_verdict", "kernel_projection_status", "block_reason", "primitive_refs", "action_allowed_now", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-block-projection-row.v1" },
+          "current_verdict": { "const": "blocked" },
+          "kernel_projection_status": { "const": "blocked_claim_preserved" },
+          "action_allowed_now": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_check_rows": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "check_id", "check_status", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-check-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "check_status": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_cutover_rows": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "cutover_id", "cutover_status", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-cutover-row.v1" },
+          "current_verdict": { "const": "pass" },
+          "cutover_status": { "const": "ready" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_gate_rows": {
+      "type": "array",
+      "minItems": 13,
+      "maxItems": 13,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "gate_id", "gate_status", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-gate-row.v1" },
+          "gate_status": { "const": "ready" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_claim_rows": {
+      "type": "array",
+      "minItems": 54,
+      "maxItems": 54,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "claim_type", "claim_id", "domain_id", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-claim-row.v1" },
+          "current_verdict": { "enum": ["pass", "blocked"] },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_boundary": {
+      "type": "object",
+      "required": ["kernel_contract_baseline_ready_for_reconciliation", "source_console_status", "read_only_kernel_baseline", "manifest_projection_only", "agent_runtime_execution_allowed_now", "write_action_allowed_now", "protected_action_execution_allowed_now", "receipt_application_allowed_now", "raw_secret_read_allowed_now", "raw_client_or_vdr_access_allowed_now", "direct_zendd_mutation_allowed_now", "legal_final_judgment_allowed_now", "release_decision_allowed_now", "live_trading_action_allowed_now", "agent_final_pass_allowed_now", "unsafe_flag_count"],
+      "properties": {
+        "kernel_contract_baseline_ready_for_reconciliation": { "const": true },
+        "source_console_status": { "const": "ready_for_agent_operator_console_v0_freeze" },
+        "read_only_kernel_baseline": { "const": true },
+        "manifest_projection_only": { "const": true },
+        "agent_runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "protected_action_execution_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "raw_secret_read_allowed_now": { "const": false },
+        "raw_client_or_vdr_access_allowed_now": { "const": false },
+        "direct_zendd_mutation_allowed_now": { "const": false },
+        "legal_final_judgment_allowed_now": { "const": false },
+        "release_decision_allowed_now": { "const": false },
+        "live_trading_action_allowed_now": { "const": false },
+        "agent_final_pass_allowed_now": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["platform_kernel_contract_baseline_status", "program_range", "phase_range", "source_console_status", "primitive_count", "contract_count", "block_projection_count", "claim_count", "validation_error_count"],
+      "properties": {
+        "platform_kernel_contract_baseline_status": { "const": "ready_for_platform_kernel_contract_baseline" },
+        "program_range": { "const": "P1501-P2040" },
+        "phase_range": { "const": "P1501-P1560" },
+        "source_console_status": { "const": "ready_for_agent_operator_console_v0_freeze" },
+        "primitive_count": { "const": 6 },
+        "contract_count": { "const": 8 },
+        "block_projection_count": { "const": 20 },
+        "claim_count": { "const": 54 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

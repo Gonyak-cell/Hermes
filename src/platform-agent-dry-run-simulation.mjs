@@ -88,7 +88,7 @@ export async function buildPlatformAgentDryRunSimulation(options = {}) {
   const inputs = normalizeInputs(options);
   const packageJson = await readJsonSource(inputs.package_path);
   const runtimePilotLedger = await readTextSource(inputs.agent_runtime_pilot_ledger_path);
-  const sources = await buildSources({ generatedAt, inputs });
+  const sources = await buildSources({ generatedAt, inputs, options });
 
   const scenarioRows = buildScenarioRows(sources);
   const evidenceRows = buildEvidencePacketRows(scenarioRows);
@@ -181,7 +181,7 @@ export async function runPlatformAgentDryRunSimulationCli(argv = process.argv.sl
   }
 }
 
-async function buildSources({ generatedAt, inputs }) {
+async function buildSources({ generatedAt, inputs, options }) {
   const sourceOptions = {
     runAt: generatedAt,
     packagePath: inputs.package_path,
@@ -189,15 +189,15 @@ async function buildSources({ generatedAt, inputs }) {
     agentRuntimePilotLedgerPath: inputs.agent_runtime_pilot_ledger_path,
     write: false,
   };
-  const delegationContract = await buildPlatformAgentDelegationContract({
+  const delegationContract = options.sourceAgentDelegationContract ?? await buildPlatformAgentDelegationContract({
     ...sourceOptions,
     integrationPhaseLedgerPath: inputs.integration_phase_ledger_path,
     developmentPhaseLedgerPath: inputs.development_phase_ledger_path,
   });
-  const installPacket = await buildPlatformAgentInstallPacket(sourceOptions);
-  const doctorEvidenceBridge = await buildPlatformAgentDoctorEvidenceBridge(sourceOptions);
-  const toolPolicyMatrix = await buildPlatformAgentToolPolicyMatrix(sourceOptions);
-  const runtimeReceiptContract = await buildPlatformAgentRuntimeReceiptContract(sourceOptions);
+  const installPacket = options.sourceAgentInstallPacket ?? await buildPlatformAgentInstallPacket(sourceOptions);
+  const doctorEvidenceBridge = options.sourceAgentDoctorEvidenceBridge ?? await buildPlatformAgentDoctorEvidenceBridge(sourceOptions);
+  const toolPolicyMatrix = options.sourceAgentToolPolicyMatrix ?? await buildPlatformAgentToolPolicyMatrix(sourceOptions);
+  const runtimeReceiptContract = options.sourceAgentRuntimeReceiptContract ?? await buildPlatformAgentRuntimeReceiptContract(sourceOptions);
   return {
     delegationContract,
     installPacket,

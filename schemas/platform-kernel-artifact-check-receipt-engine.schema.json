@@ -1,0 +1,283 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-kernel-artifact-check-receipt-engine.schema.json",
+  "title": "Platform Kernel Artifact Check Receipt Engine",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_kernel_artifact_check_receipt_engine_id",
+    "capability_id",
+    "inputs",
+    "kernel_artifact_check_receipt_engine_anchor",
+    "source_kernel_claim_evidence_gate_engine_summary",
+    "kernel_artifact_check_receipt_component_rows",
+    "kernel_artifact_rows",
+    "kernel_check_rows",
+    "kernel_receipt_rows",
+    "kernel_artifact_check_receipt_evaluation_rows",
+    "kernel_artifact_check_receipt_protected_block_rows",
+    "kernel_artifact_check_receipt_api_projection_rows",
+    "kernel_artifact_check_receipt_freeze_rows",
+    "kernel_artifact_check_receipt_gate_rows",
+    "kernel_artifact_check_receipt_claim_rows",
+    "kernel_artifact_check_receipt_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-kernel-artifact-check-receipt-engine.v1" },
+    "capability_id": { "const": "platform.kernel.artifact_check_receipt_engine" },
+    "kernel_artifact_check_receipt_engine_anchor": {
+      "type": "object",
+      "required": ["schema_version", "program_range", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "source_command_name", "package_script_registered", "validation_chain_registered", "claim_engine_ledger_present", "artifact_check_receipt_ledger_present", "source_claim_engine_status", "component_count", "artifact_row_count", "check_row_count", "receipt_row_count", "evaluation_count", "protected_block_count", "api_route_count", "freeze_count"],
+      "properties": {
+        "schema_version": { "const": "kernel-artifact-check-receipt-engine-anchor.v1" },
+        "program_range": { "const": "P1501-P2040" },
+        "phase_range": { "const": "P1721-P1800" },
+        "phase_slot": { "const": "P1721" },
+        "previous_phase_slot": { "const": "P1720" },
+        "next_phase_slot": { "const": "P1801" },
+        "command_name": { "const": "platform:kernel-artifact-check-receipt-engine" },
+        "source_command_name": { "const": "platform:kernel-claim-evidence-gate-engine" },
+        "package_script_registered": { "const": true },
+        "validation_chain_registered": { "const": true },
+        "claim_engine_ledger_present": { "const": true },
+        "artifact_check_receipt_ledger_present": { "const": true },
+        "source_claim_engine_status": { "const": "ready_for_platform_kernel_claim_evidence_gate_engine" },
+        "component_count": { "const": 6 },
+        "artifact_row_count": { "const": 18 },
+        "check_row_count": { "const": 23 },
+        "receipt_row_count": { "const": 20 },
+        "evaluation_count": { "const": 61 },
+        "protected_block_count": { "const": 20 },
+        "api_route_count": { "const": 4 },
+        "freeze_count": { "const": 8 }
+      }
+    },
+    "source_kernel_claim_evidence_gate_engine_summary": {
+      "type": "object",
+      "required": ["platform_kernel_claim_evidence_gate_engine_status", "claim_input_count", "evidence_binding_count", "gate_binding_count", "validation_error_count"],
+      "properties": {
+        "platform_kernel_claim_evidence_gate_engine_status": { "const": "ready_for_platform_kernel_claim_evidence_gate_engine" },
+        "claim_input_count": { "const": 101 },
+        "evidence_binding_count": { "const": 101 },
+        "gate_binding_count": { "const": 101 },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "kernel_artifact_check_receipt_component_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": { "$ref": "#/$defs/pass_row" }
+    },
+    "kernel_artifact_rows": {
+      "type": "array",
+      "minItems": 18,
+      "maxItems": 18,
+      "items": {
+        "type": "object",
+        "required": ["current_verdict", "artifact_type", "artifact_id", "source_row_ref", "artifact_status", "write_performed", "raw_material_exposed", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "current_verdict": { "const": "pass" },
+          "artifact_status": { "const": "projected" },
+          "write_performed": { "const": false },
+          "raw_material_exposed": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_check_rows": {
+      "type": "array",
+      "minItems": 23,
+      "maxItems": 23,
+      "items": {
+        "type": "object",
+        "required": ["current_verdict", "check_type", "check_id", "source_row_ref", "check_status", "execution_allowed_now", "mutation_required", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "current_verdict": { "const": "pass" },
+          "check_status": { "const": "pass" },
+          "execution_allowed_now": { "const": false },
+          "mutation_required": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_receipt_rows": {
+      "type": "array",
+      "minItems": 20,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "required": ["current_verdict", "protected_block_id", "domain_id", "receipt_status", "receipt_required_before_action", "receipt_payload_present", "receipt_applied", "action_allowed_now", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "current_verdict": { "const": "pass" },
+          "receipt_status": { "const": "missing" },
+          "receipt_required_before_action": { "const": true },
+          "receipt_payload_present": { "const": false },
+          "receipt_applied": { "const": false },
+          "action_allowed_now": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_artifact_check_receipt_evaluation_rows": {
+      "type": "array",
+      "minItems": 61,
+      "maxItems": 61,
+      "items": {
+        "type": "object",
+        "required": ["current_verdict", "evaluation_type", "evaluation_id", "source_row_ref", "evaluation_status", "evaluation_passed", "execution_allowed_now", "mutation_required", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "current_verdict": { "const": "pass" },
+          "evaluation_status": { "const": "supported" },
+          "evaluation_passed": { "const": true },
+          "execution_allowed_now": { "const": false },
+          "mutation_required": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_artifact_check_receipt_protected_block_rows": {
+      "type": "array",
+      "minItems": 20,
+      "maxItems": 20,
+      "items": { "$ref": "#/$defs/blocked_row" }
+    },
+    "kernel_artifact_check_receipt_api_projection_rows": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["current_verdict", "route_path", "method", "route_status", "server_started", "mutation_route", "protected_action_route", "receipt_application_route", "raw_material_route", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "current_verdict": { "const": "pass" },
+          "method": { "const": "GET" },
+          "route_status": { "const": "ready_for_read_only_projection" },
+          "server_started": { "const": false },
+          "mutation_route": { "const": false },
+          "protected_action_route": { "const": false },
+          "receipt_application_route": { "const": false },
+          "raw_material_route": { "const": false },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_artifact_check_receipt_freeze_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["current_verdict", "freeze_id", "freeze_status", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "current_verdict": { "const": "pass" },
+          "freeze_status": { "const": "ready" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_artifact_check_receipt_gate_rows": {
+      "type": "array",
+      "minItems": 13,
+      "maxItems": 13,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "gate_id", "gate_status", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-artifact-check-receipt-gate-row.v1" },
+          "gate_status": { "const": "ready" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_artifact_check_receipt_claim_rows": {
+      "type": "array",
+      "minItems": 160,
+      "maxItems": 160,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "claim_type", "claim_id", "domain_id", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-artifact-check-receipt-claim-row.v1" },
+          "current_verdict": { "enum": ["pass", "blocked"] },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_artifact_check_receipt_boundary": {
+      "type": "object",
+      "required": ["kernel_artifact_check_receipt_engine_ready_for_projection_freeze", "source_claim_engine_status", "read_only_engine", "server_started", "api_projection_only", "mutation_performed", "raw_material_exposed", "receipt_payload_present", "receipt_applied", "agent_runtime_execution_allowed_now", "write_action_allowed_now", "protected_action_execution_allowed_now", "receipt_application_allowed_now", "raw_secret_read_allowed_now", "raw_client_or_vdr_access_allowed_now", "direct_zendd_mutation_allowed_now", "legal_final_judgment_allowed_now", "release_decision_allowed_now", "live_trading_action_allowed_now", "agent_final_pass_allowed_now", "unsafe_flag_count"],
+      "properties": {
+        "kernel_artifact_check_receipt_engine_ready_for_projection_freeze": { "const": true },
+        "source_claim_engine_status": { "const": "ready_for_platform_kernel_claim_evidence_gate_engine" },
+        "read_only_engine": { "const": true },
+        "server_started": { "const": false },
+        "api_projection_only": { "const": true },
+        "mutation_performed": { "const": false },
+        "raw_material_exposed": { "const": false },
+        "receipt_payload_present": { "const": false },
+        "receipt_applied": { "const": false },
+        "agent_runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "protected_action_execution_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "raw_secret_read_allowed_now": { "const": false },
+        "raw_client_or_vdr_access_allowed_now": { "const": false },
+        "direct_zendd_mutation_allowed_now": { "const": false },
+        "legal_final_judgment_allowed_now": { "const": false },
+        "release_decision_allowed_now": { "const": false },
+        "live_trading_action_allowed_now": { "const": false },
+        "agent_final_pass_allowed_now": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["platform_kernel_artifact_check_receipt_engine_status", "program_range", "phase_range", "source_claim_engine_status", "artifact_row_count", "check_row_count", "receipt_row_count", "claim_count", "validation_error_count"],
+      "properties": {
+        "platform_kernel_artifact_check_receipt_engine_status": { "const": "ready_for_platform_kernel_artifact_check_receipt_engine" },
+        "program_range": { "const": "P1501-P2040" },
+        "phase_range": { "const": "P1721-P1800" },
+        "source_claim_engine_status": { "const": "ready_for_platform_kernel_claim_evidence_gate_engine" },
+        "artifact_row_count": { "const": 18 },
+        "check_row_count": { "const": 23 },
+        "receipt_row_count": { "const": 20 },
+        "claim_count": { "const": 160 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "pass_row": {
+      "type": "object",
+      "required": ["current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "current_verdict": { "const": "pass" },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_only" }
+      }
+    },
+    "blocked_row": {
+      "type": "object",
+      "required": ["current_verdict", "block_reason", "action_allowed_now", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "current_verdict": { "const": "blocked" },
+        "action_allowed_now": { "const": false },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_only" }
+      }
+    }
+  }
+}

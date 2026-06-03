@@ -81,7 +81,7 @@ export async function buildPlatformAgentRuntimePilotFreeze(options = {}) {
   const inputs = normalizeInputs(options);
   const packageJson = await readJsonSource(inputs.package_path);
   const runtimePilotLedger = await readTextSource(inputs.agent_runtime_pilot_ledger_path);
-  const sourceResults = await buildSources({ generatedAt, inputs });
+  const sourceResults = await buildSources({ generatedAt, inputs, options });
 
   const sourceRows = buildSourceRows(sourceResults);
   const claimAuditRows = buildClaimAuditRows(sourceResults);
@@ -166,7 +166,7 @@ export async function runPlatformAgentRuntimePilotFreezeCli(argv = process.argv.
   }
 }
 
-async function buildSources({ generatedAt, inputs }) {
+async function buildSources({ generatedAt, inputs, options }) {
   const sourceOptions = {
     runAt: generatedAt,
     packagePath: inputs.package_path,
@@ -177,11 +177,40 @@ async function buildSources({ generatedAt, inputs }) {
     write: false,
   };
   const results = [];
+  const cache = new Map();
   for (const [sourceId, phaseRange, commandName, builder, statusKey, readyStatus, claimRowsKey] of SOURCE_SPECS) {
-    const result = await builder(sourceOptions);
-    results.push({ sourceId, phaseRange, commandName, statusKey, readyStatus, claimRowsKey, result });
+    const injectedOptions = sourceOptionsForRuntimePilotFreezeSource(sourceId, sourceOptions, cache, options);
+    const result = await builder(injectedOptions);
+    const sourceRecord = { sourceId, phaseRange, commandName, statusKey, readyStatus, claimRowsKey, result };
+    results.push(sourceRecord);
+    cache.set(sourceId, result);
   }
   return results;
+}
+
+function sourceOptionsForRuntimePilotFreezeSource(sourceId, sourceOptions, cache, options) {
+  if (sourceId === "zendd_candidate_bridge" && options.sourceAgentZenddCandidateBridge) {
+    return { ...sourceOptions, sourceAgentZenddCandidateBridge: options.sourceAgentZenddCandidateBridge };
+  }
+  if (sourceId === "delegation_contract") {
+    return {
+      ...sourceOptions,
+      sourceAgentZenddCandidateBridge: options.sourceAgentZenddCandidateBridge ?? cache.get("zendd_candidate_bridge"),
+      sourceAgentDelegationContract: options.sourceAgentDelegationContract,
+    };
+  }
+  if (sourceId === "dry_run_simulation") {
+    return {
+      ...sourceOptions,
+      sourceAgentDelegationContract: options.sourceAgentDelegationContract ?? cache.get("delegation_contract"),
+      sourceAgentInstallPacket: options.sourceAgentInstallPacket ?? cache.get("install_packet"),
+      sourceAgentDoctorEvidenceBridge: options.sourceAgentDoctorEvidenceBridge ?? cache.get("doctor_evidence_bridge"),
+      sourceAgentToolPolicyMatrix: options.sourceAgentToolPolicyMatrix ?? cache.get("tool_policy_matrix"),
+      sourceAgentRuntimeReceiptContract: options.sourceAgentRuntimeReceiptContract ?? cache.get("runtime_receipt_contract"),
+      sourceAgentDryRunSimulation: options.sourceAgentDryRunSimulation,
+    };
+  }
+  return sourceOptions;
 }
 
 function buildSourceRows(sourceResults) {

@@ -1,0 +1,271 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-kernel-projection-freeze.schema.json",
+  "title": "Platform Kernel Projection Freeze",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_kernel_projection_freeze_id",
+    "capability_id",
+    "inputs",
+    "kernel_projection_freeze_anchor",
+    "source_kernel_artifact_check_receipt_engine_summary",
+    "kernel_projection_manifest",
+    "kernel_projection_component_rows",
+    "kernel_projection_source_rows",
+    "kernel_projection_api_route_rows",
+    "kernel_projection_operator_rows",
+    "kernel_projection_compatibility_rows",
+    "kernel_projection_freeze_rows",
+    "kernel_projection_gate_rows",
+    "kernel_projection_claim_rows",
+    "kernel_projection_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-kernel-projection-freeze.v1" },
+    "capability_id": { "const": "platform.kernel.projection_freeze" },
+    "kernel_projection_freeze_anchor": {
+      "type": "object",
+      "required": ["schema_version", "program_range", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "source_command_name", "package_script_registered", "validation_chain_registered", "artifact_check_receipt_ledger_present", "projection_freeze_ledger_present", "source_artifact_check_receipt_status", "component_count", "source_collection_count", "api_route_count", "operator_row_count", "compatibility_row_count", "freeze_count"],
+      "properties": {
+        "schema_version": { "const": "kernel-projection-freeze-anchor.v1" },
+        "program_range": { "const": "P1501-P2040" },
+        "phase_range": { "const": "P1801-P1880" },
+        "phase_slot": { "const": "P1801" },
+        "previous_phase_slot": { "const": "P1800" },
+        "next_phase_slot": { "const": "P1881" },
+        "command_name": { "const": "platform:kernel-projection-freeze" },
+        "source_command_name": { "const": "platform:kernel-artifact-check-receipt-engine" },
+        "package_script_registered": { "const": true },
+        "validation_chain_registered": { "const": true },
+        "artifact_check_receipt_ledger_present": { "const": true },
+        "projection_freeze_ledger_present": { "const": true },
+        "source_artifact_check_receipt_status": { "const": "ready_for_platform_kernel_artifact_check_receipt_engine" },
+        "component_count": { "const": 6 },
+        "source_collection_count": { "const": 10 },
+        "api_route_count": { "const": 6 },
+        "operator_row_count": { "const": 8 },
+        "compatibility_row_count": { "const": 5 },
+        "freeze_count": { "const": 8 }
+      }
+    },
+    "source_kernel_artifact_check_receipt_engine_summary": {
+      "type": "object",
+      "required": ["platform_kernel_artifact_check_receipt_engine_status", "artifact_row_count", "check_row_count", "receipt_row_count", "claim_count", "validation_error_count"],
+      "properties": {
+        "platform_kernel_artifact_check_receipt_engine_status": { "const": "ready_for_platform_kernel_artifact_check_receipt_engine" },
+        "artifact_row_count": { "const": 18 },
+        "check_row_count": { "const": 23 },
+        "receipt_row_count": { "const": 20 },
+        "claim_count": { "const": 160 },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "kernel_projection_manifest": {
+      "type": "object",
+      "required": ["schema_version", "program_range", "phase_range", "source_engine_status", "component_count", "source_collection_count", "api_route_count", "operator_row_count", "compatibility_row_count", "freeze_count", "gate_count", "claim_count", "projection_only", "next_allowed_action"],
+      "properties": {
+        "schema_version": { "const": "kernel-projection-manifest.v1" },
+        "program_range": { "const": "P1501-P2040" },
+        "phase_range": { "const": "P1801-P1880" },
+        "source_engine_status": { "const": "ready_for_platform_kernel_artifact_check_receipt_engine" },
+        "component_count": { "const": 6 },
+        "source_collection_count": { "const": 10 },
+        "api_route_count": { "const": 6 },
+        "operator_row_count": { "const": 8 },
+        "compatibility_row_count": { "const": 5 },
+        "freeze_count": { "const": 8 },
+        "gate_count": { "const": 12 },
+        "claim_count": { "const": 63 },
+        "projection_only": { "const": true }
+      }
+    },
+    "kernel_projection_component_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "component_id", "component_status", "projection_only", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-projection-component-row.v1" },
+          "component_status": { "const": "ready_for_projection_freeze" },
+          "projection_only": { "const": true },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_projection_source_rows": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "source_collection_id", "source_collection_name", "source_item_count", "projection_status", "source_engine_status", "raw_material_exposed", "mutation_performed", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-projection-source-row.v1" },
+          "projection_status": { "const": "projected_read_only" },
+          "source_engine_status": { "const": "ready_for_platform_kernel_artifact_check_receipt_engine" },
+          "raw_material_exposed": { "const": false },
+          "mutation_performed": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_projection_api_route_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "route_path", "method", "response_collection", "route_status", "server_started", "mutation_route", "protected_action_route", "receipt_application_route", "raw_material_route", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-projection-api-route-row.v1" },
+          "method": { "const": "GET" },
+          "route_status": { "const": "ready_for_read_only_projection" },
+          "server_started": { "const": false },
+          "mutation_route": { "const": false },
+          "protected_action_route": { "const": false },
+          "receipt_application_route": { "const": false },
+          "raw_material_route": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_projection_operator_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "operator_projection_id", "operator_projection_status", "source_claim_count", "source_protected_block_count", "action_button_enabled", "receipt_payload_visible", "raw_material_visible", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-projection-operator-row.v1" },
+          "operator_projection_status": { "const": "visible_read_only" },
+          "source_claim_count": { "const": 160 },
+          "source_protected_block_count": { "const": 20 },
+          "action_button_enabled": { "const": false },
+          "receipt_payload_visible": { "const": false },
+          "raw_material_visible": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_projection_compatibility_rows": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "program_id", "phase_range", "expected_status", "observed_status", "compatibility_status", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-projection-compatibility-row.v1" },
+          "compatibility_status": { "const": "compatible" },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_projection_freeze_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "freeze_id", "freeze_status", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-projection-freeze-row.v1" },
+          "freeze_status": { "const": "ready" },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_projection_gate_rows": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "gate_id", "gate_status", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-projection-gate-row.v1" },
+          "gate_status": { "const": "ready" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_projection_claim_rows": {
+      "type": "array",
+      "minItems": 63,
+      "maxItems": 63,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "claim_type", "claim_id", "domain_id", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "kernel-projection-claim-row.v1" },
+          "current_verdict": { "enum": ["pass", "blocked"] },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "kernel_projection_boundary": {
+      "type": "object",
+      "required": ["kernel_projection_freeze_ready_for_harness_native_cutover", "source_artifact_check_receipt_status", "read_only_projection", "projection_only", "server_started", "mutation_performed", "raw_material_exposed", "receipt_payload_present", "receipt_applied", "agent_runtime_execution_allowed_now", "write_action_allowed_now", "protected_action_execution_allowed_now", "receipt_application_allowed_now", "raw_secret_read_allowed_now", "raw_client_or_vdr_access_allowed_now", "direct_zendd_mutation_allowed_now", "legal_final_judgment_allowed_now", "release_decision_allowed_now", "live_trading_action_allowed_now", "agent_final_pass_allowed_now", "unsafe_flag_count"],
+      "properties": {
+        "kernel_projection_freeze_ready_for_harness_native_cutover": { "const": true },
+        "source_artifact_check_receipt_status": { "const": "ready_for_platform_kernel_artifact_check_receipt_engine" },
+        "read_only_projection": { "const": true },
+        "projection_only": { "const": true },
+        "server_started": { "const": false },
+        "mutation_performed": { "const": false },
+        "raw_material_exposed": { "const": false },
+        "receipt_payload_present": { "const": false },
+        "receipt_applied": { "const": false },
+        "agent_runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "protected_action_execution_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "raw_secret_read_allowed_now": { "const": false },
+        "raw_client_or_vdr_access_allowed_now": { "const": false },
+        "direct_zendd_mutation_allowed_now": { "const": false },
+        "legal_final_judgment_allowed_now": { "const": false },
+        "release_decision_allowed_now": { "const": false },
+        "live_trading_action_allowed_now": { "const": false },
+        "agent_final_pass_allowed_now": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["platform_kernel_projection_freeze_status", "program_range", "phase_range", "source_artifact_check_receipt_status", "source_collection_count", "api_route_count", "operator_row_count", "claim_count", "validation_error_count"],
+      "properties": {
+        "platform_kernel_projection_freeze_status": { "const": "ready_for_platform_kernel_projection_freeze" },
+        "program_range": { "const": "P1501-P2040" },
+        "phase_range": { "const": "P1801-P1880" },
+        "source_artifact_check_receipt_status": { "const": "ready_for_platform_kernel_artifact_check_receipt_engine" },
+        "source_collection_count": { "const": 10 },
+        "api_route_count": { "const": 6 },
+        "operator_row_count": { "const": 8 },
+        "claim_count": { "const": 63 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

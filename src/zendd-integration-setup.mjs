@@ -8,7 +8,8 @@ import { validateAgainstSchema } from "./core-contract-validator.mjs";
 const execFileAsync = promisify(execFile);
 
 export const DEFAULT_ZENDD_INTEGRATION_SETUP_OUT_DIR = "artifacts/zendd-integration-setup/latest";
-export const DEFAULT_ZENDD_PROJECT_ROOT = "/Users/jws/Library/CloudStorage/GoogleDrive-sweatqoo@gmail.com/내 드라이브/05_CODING/01_CODING/03_Zendd";
+export const DEFAULT_ZENDD_PROJECT_ROOT = process.env.HERMES_ZENDD_PROJECT_ROOT
+  ?? "/Users/jws/Library/CloudStorage/GoogleDrive-sweatqoo@gmail.com/내 드라이브/05_CODING/01_CODING/03_Zendd";
 export const DEFAULT_ZENDD_INTEGRATION_SETUP_INPUTS = {
   schemaPath: "schemas/zendd-integration-setup.schema.json",
   phaseLedgerPath: "docs/zendd-hermes-integration-phase-ledger.md",

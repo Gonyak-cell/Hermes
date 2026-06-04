@@ -17,6 +17,8 @@ jobs:
   hermes-verification-trust:
     name: Hermes verification trust
     runs-on: ubuntu-latest
+    env:
+      HERMES_ZENDD_PROJECT_ROOT: ${{ github.workspace }}/.ci/zendd-fixture
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,18 +35,88 @@ jobs:
       - name: Validate core contracts
         run: npm run validate:core
 
+      - name: Create Zendd no-write fixture checkout
+        run: |
+          mkdir -p "$HERMES_ZENDD_PROJECT_ROOT/frontend/src"
+          mkdir -p "$HERMES_ZENDD_PROJECT_ROOT/backend/tests"
+          mkdir -p "$HERMES_ZENDD_PROJECT_ROOT/backend/migrations"
+          mkdir -p "$HERMES_ZENDD_PROJECT_ROOT/backend/app/routers"
+          mkdir -p "$HERMES_ZENDD_PROJECT_ROOT/backend/app/services/ldd_fact_engine"
+          mkdir -p "$HERMES_ZENDD_PROJECT_ROOT/electron"
+          cat > "$HERMES_ZENDD_PROJECT_ROOT/package.json" <<'JSON'
+          {
+            "name": "zendd-ci-no-write-fixture",
+            "private": true,
+            "scripts": {
+              "dev": "echo no-write-fixture",
+              "build": "echo no-write-fixture",
+              "build:frontend": "echo no-write-fixture",
+              "lint:frontend": "echo no-write-fixture",
+              "dev:backend": "echo no-write-fixture",
+              "dev:electron": "echo no-write-fixture",
+              "dist:win": "echo no-write-fixture",
+              "setup": "echo no-write-fixture"
+            }
+          }
+          JSON
+          cat > "$HERMES_ZENDD_PROJECT_ROOT/frontend/package.json" <<'JSON'
+          {
+            "name": "zendd-ci-no-write-fixture-frontend",
+            "private": true,
+            "scripts": {
+              "lint": "echo no-write-fixture",
+              "test": "echo no-write-fixture",
+              "test:coverage": "echo no-write-fixture",
+              "test:e2e": "echo no-write-fixture",
+              "build": "echo no-write-fixture",
+              "preview": "echo no-write-fixture"
+            }
+          }
+          JSON
+          cat > "$HERMES_ZENDD_PROJECT_ROOT/frontend/vite.config.ts" <<'EOF'
+          export default {};
+          EOF
+          cat > "$HERMES_ZENDD_PROJECT_ROOT/frontend/src/index.tsx" <<'EOF'
+          export const fixture = "zendd-ci-no-write-fixture";
+          EOF
+          cat > "$HERMES_ZENDD_PROJECT_ROOT/backend/pyproject.toml" <<'TOML'
+          [project]
+          name = "zendd-ci-no-write-fixture-backend"
+          version = "0.0.0"
+          requires-python = ">=3.11"
+          TOML
+          cat > "$HERMES_ZENDD_PROJECT_ROOT/backend/alembic.ini" <<'EOF'
+          [alembic]
+          script_location = migrations
+          EOF
+          touch "$HERMES_ZENDD_PROJECT_ROOT/backend/tests/.keep"
+          touch "$HERMES_ZENDD_PROJECT_ROOT/backend/migrations/.keep"
+          cat > "$HERMES_ZENDD_PROJECT_ROOT/electron/main.cjs" <<'EOF'
+          module.exports = {};
+          EOF
+          cat > "$HERMES_ZENDD_PROJECT_ROOT/backend/app/routers/vdr.py" <<'EOF'
+          ROUTER_MARKER = "fixture"
+          EOF
+          cat > "$HERMES_ZENDD_PROJECT_ROOT/backend/app/routers/ldd_fact_engine.py" <<'EOF'
+          ROUTER_MARKER = "fixture"
+          EOF
+          cat > "$HERMES_ZENDD_PROJECT_ROOT/backend/app/services/vdr_classification_service.py" <<'EOF'
+          SERVICE_MARKER = "fixture"
+          EOF
+          cat > "$HERMES_ZENDD_PROJECT_ROOT/backend/app/services/ldd_source_controls.py" <<'EOF'
+          SERVICE_MARKER = "fixture"
+          EOF
+          cat > "$HERMES_ZENDD_PROJECT_ROOT/backend/app/services/ldd_fact_engine/client_output_gate.py" <<'EOF'
+          SERVICE_MARKER = "fixture"
+          EOF
+          git -C "$HERMES_ZENDD_PROJECT_ROOT" init -q
+          git -C "$HERMES_ZENDD_PROJECT_ROOT" config user.name "Hermes CI"
+          git -C "$HERMES_ZENDD_PROJECT_ROOT" config user.email "hermes-ci@example.invalid"
+          git -C "$HERMES_ZENDD_PROJECT_ROOT" add .
+          git -C "$HERMES_ZENDD_PROJECT_ROOT" commit -q -m "Create Zendd fixture checkout"
+
       - name: Validate kernel cutover prerequisites
         run: |
-          node --input-type=module <<'NODE'
-          import { buildPlatformAgentRuntimePilotFreeze } from "./src/platform-agent-runtime-pilot-freeze.mjs";
-          const result = await buildPlatformAgentRuntimePilotFreeze({ write: false });
-          console.log(JSON.stringify(result.agent_runtime_pilot_freeze_source_rows.map((row) => ({
-            source_id: row.source_id,
-            source_status: row.source_status,
-            source_validation_error_count: row.source_validation_error_count,
-          })), null, 2));
-          console.log(JSON.stringify(result.validation.errors, null, 2));
-          NODE
           npm run platform:agent-runtime-pilot-freeze -- --check
           npm run platform:agent-runtime-activation-bridge -- --check
           npm run platform:domain-agent-no-write-pilot -- --check

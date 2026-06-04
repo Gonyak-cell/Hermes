@@ -220,6 +220,8 @@ export async function runPlatformExternalVerificationEnforcementCli(argv = proce
     console.log(`Status: ${result.summary.platform_external_verification_enforcement_status}`);
     console.log(`Claude Code available now: ${result.summary.claude_code_available_now}`);
     console.log(`GitHub remote configured now: ${result.summary.github_remote_configured_now}`);
+    console.log(`Branch rules query available now: ${result.summary.branch_rules_query_available_now}`);
+    console.log(`Branch rules count: ${result.summary.branch_rules_count}`);
     console.log(`Required status check enforced now: ${result.summary.required_status_check_enforced_now}`);
     console.log(`Signed attestation verified now: ${result.summary.attestation_verification_passed_now}`);
     console.log(`Independent review completed now: ${result.summary.independent_review_completed_now}`);
@@ -265,7 +267,12 @@ async function detectLivePreflight(options = {}) {
     ? await runShellCommand("gh_branch_protection", `gh api repos/${repositoryFullName}/branches/${quotePathPart(branchName)}/protection`, cwd)
     : skippedCommand("gh_branch_protection", "gh api repos/{owner}/{repo}/branches/{branch}/protection", repositoryFullName ? "gh_not_authenticated_or_unavailable" : "github_remote_not_configured");
   commands.push(protection);
+  const branchRules = ghPath.exit_code === 0 && ghAuth.exit_code === 0 && repositoryFullName
+    ? await runShellCommand("gh_branch_rules", `gh api repos/${repositoryFullName}/rules/branches/${quotePathPart(branchName)}`, cwd)
+    : skippedCommand("gh_branch_rules", "gh api repos/{owner}/{repo}/rules/branches/{branch}", repositoryFullName ? "gh_not_authenticated_or_unavailable" : "github_remote_not_configured");
+  commands.push(branchRules);
   const protectionJson = parseJsonMaybe(protection.stdout);
+  const branchRulesJson = parseJsonMaybe(branchRules.stdout);
   const requiredContexts = protectionJson?.required_status_checks?.contexts ?? [];
   const prReviews = protectionJson?.required_pull_request_reviews ?? {};
   const forcePushDisabled = protectionJson?.allow_force_pushes?.enabled === false;
@@ -287,6 +294,9 @@ async function detectLivePreflight(options = {}) {
     claude_code_version: claudeVersion.exit_code === 0 ? claudeVersion.stdout.trim() : null,
     branch_protection_query_available_now: protection.exit_code === 0,
     branch_protection_configured_now: branchProtectionConfigured,
+    branch_rules_query_available_now: branchRules.exit_code === 0,
+    branch_rules_observed_now: branchRules.exit_code === 0 && Array.isArray(branchRulesJson),
+    branch_rules_count: Array.isArray(branchRulesJson) ? branchRulesJson.length : null,
     required_status_check_enforced_now: requiredContexts.includes("Hermes verification trust"),
     required_pr_review_enforced_now: Number(prReviews.required_approving_review_count ?? 0) >= 1,
     stale_review_dismissal_enforced_now: prReviews.dismiss_stale_reviews === true,
@@ -381,6 +391,7 @@ function buildBranchProtectionRows({ livePreflight }) {
     ["gh_cli_available", livePreflight.gh_cli_available_now, "GitHub CLI is available for live enforcement checks"],
     ["gh_auth_available", livePreflight.gh_auth_available_now, "GitHub CLI authentication is available"],
     ["branch_protection_query_available", livePreflight.branch_protection_query_available_now, "Branch protection can be queried"],
+    ["branch_rules_query_available", livePreflight.branch_rules_query_available_now, "Branch rules/rulesets can be queried"],
     ["branch_protection_configured", livePreflight.branch_protection_configured_now, "Protected branch/ruleset is configured"],
     ["required_status_check_enforced", livePreflight.required_status_check_enforced_now, "Hermes verification trust check is required"],
     ["required_pr_review_enforced", livePreflight.required_pr_review_enforced_now, "Pull request review is required"],
@@ -639,6 +650,7 @@ function buildGuardRows({ sourceActivation, reviewerProfileRows, reviewPacketRow
 
 function buildBoundary({ livePreflight, reviewerProfileRows, branchProtectionRows, requiredStatusCheckRows, attestationRows, independentReviewRows, guardRows }) {
   const branchProtectionConfigured = branchProtectionRows.find((row) => row.control_id === "branch_protection_configured")?.observed_now === true;
+  const branchRulesQueryAvailable = branchProtectionRows.find((row) => row.control_id === "branch_rules_query_available")?.observed_now === true;
   const requiredStatusCheckEnforced = requiredStatusCheckRows.some((row) => row.required_status_check_enforced_now === true);
   const actionsRunSuccess = livePreflight.actions_run_success_now === true;
   const requiredPrReviewEnforced = branchProtectionRows.find((row) => row.control_id === "required_pr_review_enforced")?.observed_now === true;
@@ -648,6 +660,7 @@ function buildBoundary({ livePreflight, reviewerProfileRows, branchProtectionRow
   const independentReviewCompleted = independentReviewRows.every((row) => row.observed_now === true) && independentReviewRows.some((row) => row.control_id === "human_adjudication_receipt_present");
   const humanAdjudicationReceiptPresent = independentReviewRows.find((row) => row.control_id === "human_adjudication_receipt_present")?.observed_now === true;
   const externalControlsComplete = branchProtectionConfigured
+    && branchRulesQueryAvailable
     && requiredStatusCheckEnforced
     && actionsRunSuccess
     && requiredPrReviewEnforced
@@ -669,6 +682,8 @@ function buildBoundary({ livePreflight, reviewerProfileRows, branchProtectionRow
     gh_cli_available_now: livePreflight.gh_cli_available_now,
     gh_auth_available_now: livePreflight.gh_auth_available_now,
     branch_protection_configured_now: branchProtectionConfigured,
+    branch_rules_query_available_now: branchRulesQueryAvailable,
+    branch_rules_count: livePreflight.branch_rules_count ?? null,
     required_status_check_enforced_now: requiredStatusCheckEnforced,
     actions_run_success_now: actionsRunSuccess,
     required_pr_review_enforced_now: requiredPrReviewEnforced,
@@ -687,6 +702,7 @@ function buildBoundary({ livePreflight, reviewerProfileRows, branchProtectionRow
     p3681_ready_as_next_goal: externalControlsComplete,
     blocked_control_count: [
       branchProtectionConfigured,
+      branchRulesQueryAvailable,
       requiredStatusCheckEnforced,
       actionsRunSuccess,
       requiredPrReviewEnforced,
@@ -767,7 +783,7 @@ function buildValidationItems({ packageJson, packageLock, activationLedger, enfo
     validationItem("reviewer.profile", "reviewer", reviewerProfileRows.length === 1 && reviewerProfileRows[0].reviewer_id === "reviewer.claude_code.opus_max" && reviewerProfileRows[0].write_permission_allowed === false && reviewerProfileRows[0].final_authority_allowed === false, "Claude Code Opus max reviewer profile must be registered without write or final authority"),
     validationItem("review_packet.count", "review_packet", reviewPacketRows.length === 6 && reviewPacketRows.every((row) => row.primary_conclusion_hidden_by_default === true), "review packet rows must exist and default to blind independent mode"),
     validationItem("finding_schema.count", "finding_schema", findingSchemaRows.length === FINDING_REQUIRED_FIELDS.length && findingSchemaRows.every((row) => row.field_required === true), "finding schema rows must require all fields"),
-    validationItem("branch.not_overclaimed", "branch_protection", branchProtectionRows.length === 9 && branchProtectionRows.every((row) => row.observed_now || row.current_verdict === "blocked"), "branch protection rows must be observed or safely blocked"),
+    validationItem("branch.not_overclaimed", "branch_protection", branchProtectionRows.length === 10 && branchProtectionRows.every((row) => row.observed_now || row.current_verdict === "blocked"), "branch protection/ruleset rows must be observed or safely blocked"),
     validationItem("checks.workflow_defined", "required_status_checks", requiredStatusCheckRows.length === 7 && requiredStatusCheckRows.every((row) => row.workflow_defined_now || row.check_id === "attestation_step"), "required check rows must be workflow-defined where applicable"),
     validationItem("attestation.not_overclaimed", "attestation", attestationRows.length === 5 && attestationRows.every((row) => row.observed_now || row.current_verdict === "blocked"), "attestation rows must be observed or safely blocked"),
     validationItem("review.not_overclaimed", "independent_review", independentReviewRows.length === 6 && independentReviewRows.every((row) => row.observed_now || row.current_verdict === "blocked"), "independent review rows must be observed or safely blocked"),
@@ -818,6 +834,8 @@ function buildSummary({ sourceActivation, componentRows, reviewerProfileRows, re
     gh_cli_available_now: boundary.gh_cli_available_now,
     gh_auth_available_now: boundary.gh_auth_available_now,
     branch_protection_configured_now: boundary.branch_protection_configured_now,
+    branch_rules_query_available_now: boundary.branch_rules_query_available_now,
+    branch_rules_count: boundary.branch_rules_count,
     required_status_check_enforced_now: boundary.required_status_check_enforced_now,
     actions_run_success_now: boundary.actions_run_success_now,
     required_pr_review_enforced_now: boundary.required_pr_review_enforced_now,
@@ -879,6 +897,9 @@ function mergeLivePreflightWithReceipts(livePreflight, { remoteBindingReceipt, b
     gh_auth_available_now: livePreflight.gh_auth_available_now || (githubRemoteObserved && remote.gh_auth_available_now === true),
     branch_protection_query_available_now: livePreflight.branch_protection_query_available_now || (branchObserved && branch.branch_protection_query_available_now === true),
     branch_protection_configured_now: livePreflight.branch_protection_configured_now || (branchObserved && branch.branch_protection_configured_now === true),
+    branch_rules_query_available_now: livePreflight.branch_rules_query_available_now || (branchObserved && branch.branch_rules_query_available_now === true),
+    branch_rules_observed_now: livePreflight.branch_rules_observed_now || (branchObserved && branch.branch_rules_observed_now === true),
+    branch_rules_count: Number.isInteger(livePreflight.branch_rules_count) ? livePreflight.branch_rules_count : (branchObserved ? branch.branch_rules_count ?? null : null),
     required_status_check_enforced_now: livePreflight.required_status_check_enforced_now || (requiredObserved && required.required_status_check_enforced_now === true),
     required_pr_review_enforced_now: livePreflight.required_pr_review_enforced_now || (branchObserved && branch.required_pr_review_enforced_now === true),
     stale_review_dismissal_enforced_now: livePreflight.stale_review_dismissal_enforced_now || (branchObserved && branch.stale_review_dismissal_enforced_now === true),
@@ -979,6 +1000,8 @@ function renderMarkdown(result) {
     `GitHub CLI available now: ${result.summary.gh_cli_available_now}`,
     `GitHub auth available now: ${result.summary.gh_auth_available_now}`,
     `Branch protection configured now: ${result.summary.branch_protection_configured_now}`,
+    `Branch rules query available now: ${result.summary.branch_rules_query_available_now}`,
+    `Branch rules count: ${result.summary.branch_rules_count}`,
     `Required status check enforced now: ${result.summary.required_status_check_enforced_now}`,
     `Actions run success now: ${result.summary.actions_run_success_now}`,
     `Required PR review enforced now: ${result.summary.required_pr_review_enforced_now}`,

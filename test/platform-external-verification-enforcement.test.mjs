@@ -126,7 +126,7 @@ test("External verification enforcement does not overclaim GitHub branch protect
   const attestationGenerated = result.signed_attestation_rows.find((row) => row.control_id === "signed_attestation_generated");
   const attestationVerified = result.signed_attestation_rows.find((row) => row.control_id === "attestation_verification_passed");
 
-  assert.equal(result.branch_protection_rows.length, 9);
+  assert.equal(result.branch_protection_rows.length, 10);
   assert.equal(branchConfigured.observed_now, false);
   assert.equal(branchConfigured.current_verdict, "blocked");
   assert.equal(statusEnforced.workflow_defined_now, true);
@@ -223,6 +223,8 @@ test("Live external verification evidence capture creates the seven concrete rec
     assert.equal(result.receipts.required_check_receipt.receipt_path, paths.requiredCheckReceiptPath);
     assert.equal(result.receipts.actions_run_receipt.receipt_path, paths.actionsRunReceiptPath);
     assert.equal(result.receipts.branch_protection_receipt.branch_name, "main");
+    assert.equal("branch_rules_query_available_now" in result.receipts.branch_protection_receipt, true);
+    assert.equal("branch_rules_count" in result.receipts.branch_protection_receipt, true);
     assert.equal(result.receipts.required_check_receipt.actions_branch_name, "codex/test-actions-branch");
     assert.equal(result.receipts.actions_run_receipt.branch_name, "codex/test-actions-branch");
     assert.equal(result.receipts.actions_run_receipt.protected_branch_name, "main");
@@ -487,6 +489,8 @@ test("External verification enforcement turns controls true only when observed r
     assert.equal(result.summary.github_remote_configured_now, true);
     assert.equal(result.summary.gh_auth_available_now, true);
     assert.equal(result.summary.branch_protection_configured_now, true);
+    assert.equal(result.summary.branch_rules_query_available_now, true);
+    assert.equal(result.summary.branch_rules_count, 0);
     assert.equal(result.summary.required_status_check_enforced_now, true);
     assert.equal(result.summary.actions_run_success_now, true);
     assert.equal(result.summary.required_pr_review_enforced_now, true);
@@ -607,6 +611,9 @@ async function writeObservedReceipts(paths) {
     repository_full_name: "example/hermes",
     branch_protection_query_available_now: true,
     branch_protection_configured_now: true,
+    branch_rules_query_available_now: true,
+    branch_rules_observed_now: true,
+    branch_rules_count: 0,
     required_pr_review_enforced_now: true,
     stale_review_dismissal_enforced_now: true,
     force_push_disabled_now: true,

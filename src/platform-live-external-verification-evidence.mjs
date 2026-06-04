@@ -69,6 +69,9 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
   const protection = ghPath.exit_code === 0 && ghAuth.exit_code === 0 && repositoryFullName
     ? await runShellCommand("gh_branch_protection", `gh api repos/${repositoryFullName}/branches/${quotePathPart(branchName)}/protection`, cwd)
     : skippedCommand("gh_branch_protection", "gh api repos/{owner}/{repo}/branches/{branch}/protection", missingGitHubReason({ ghPath, ghAuth, repositoryFullName }));
+  const branchRules = ghPath.exit_code === 0 && ghAuth.exit_code === 0 && repositoryFullName
+    ? await runShellCommand("gh_branch_rules", `gh api repos/${repositoryFullName}/rules/branches/${quotePathPart(branchName)}`, cwd)
+    : skippedCommand("gh_branch_rules", "gh api repos/{owner}/{repo}/rules/branches/{branch}", missingGitHubReason({ ghPath, ghAuth, repositoryFullName }));
   const actionsRun = ghPath.exit_code === 0 && ghAuth.exit_code === 0 && repositoryFullName
     ? await runShellCommand("gh_actions_run", `gh run list${repoFlag} --workflow ${quoteShell(REQUIRED_WORKFLOW_NAME)} --branch ${quoteShell(actionsBranchName)} --limit 1 --json databaseId,headSha,status,conclusion,workflowName,displayTitle,url,createdAt,updatedAt`, cwd)
     : skippedCommand("gh_actions_run", "gh run list --workflow Hermes Verification Trust", missingGitHubReason({ ghPath, ghAuth, repositoryFullName }));
@@ -77,6 +80,7 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
     : skippedCommand("gh_attestation_verify", "gh attestation verify <subject> --repo {owner}/{repo}", options.attestationSubject ? missingGitHubReason({ ghPath, ghAuth, repositoryFullName }) : "attestation_subject_not_provided");
 
   const protectionJson = parseJsonMaybe(protection.stdout);
+  const branchRulesJson = parseJsonMaybe(branchRules.stdout);
   const repoViewJson = parseJsonMaybe(repoView.stdout);
   const repoMetadataJson = parseJsonMaybe(repoMetadata.stdout);
   const actionsRunJson = parseJsonMaybe(actionsRun.stdout);
@@ -84,7 +88,7 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
   const requiredContexts = protectionJson?.required_status_checks?.contexts ?? [];
   const prReviews = protectionJson?.required_pull_request_reviews ?? {};
 
-  const commandObservations = [gitRemote, gitHubRemote, gitBranch, gitHead, ghPath, ghAuth, repoView, repoMetadata, protection, actionsRun, attestationVerify];
+  const commandObservations = [gitRemote, gitHubRemote, gitBranch, gitHead, ghPath, ghAuth, repoView, repoMetadata, protection, branchRules, actionsRun, attestationVerify];
   const remoteBindingReceipt = buildRemoteBindingReceipt({
     generatedAt,
     cwd,
@@ -109,6 +113,8 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
     branchName,
     protection,
     protectionJson,
+    branchRules,
+    branchRulesJson,
   });
   const requiredCheckReceipt = buildRequiredCheckReceipt({
     generatedAt,
@@ -223,6 +229,8 @@ export async function runPlatformLiveExternalVerificationEvidenceCli(argv = proc
     console.log(`GitHub remote configured: ${result.summary.github_remote_configured_now}`);
     console.log(`GitHub auth available: ${result.summary.gh_auth_available_now}`);
     console.log(`Branch protection configured: ${result.summary.branch_protection_configured_now}`);
+    console.log(`Branch rules query available: ${result.summary.branch_rules_query_available_now}`);
+    console.log(`Branch rules count: ${result.summary.branch_rules_count}`);
     console.log(`Required check enforced: ${result.summary.required_status_check_enforced_now}`);
     console.log(`Actions run success: ${result.summary.actions_run_success_now}`);
     console.log(`Attestation verified: ${result.summary.attestation_verification_passed_now}`);
@@ -271,10 +279,11 @@ function buildRemoteBindingReceipt({ generatedAt, cwd, receiptPath, gitRemote, g
   });
 }
 
-function buildBranchProtectionReceipt({ generatedAt, receiptPath, repositoryFullName, branchName, protection, protectionJson }) {
+function buildBranchProtectionReceipt({ generatedAt, receiptPath, repositoryFullName, branchName, protection, protectionJson, branchRules, branchRulesJson }) {
   const requiredContexts = protectionJson?.required_status_checks?.contexts ?? [];
   const prReviews = protectionJson?.required_pull_request_reviews ?? {};
   const observed = protection.exit_code === 0 && Boolean(protectionJson);
+  const branchRulesObserved = branchRules.exit_code === 0 && Array.isArray(branchRulesJson);
   return receipt({
     schema_version: "github-branch-protection-receipt.v1",
     receipt_path: receiptPath,
@@ -286,13 +295,17 @@ function buildBranchProtectionReceipt({ generatedAt, receiptPath, repositoryFull
     branch_name: branchName,
     branch_protection_query_available_now: protection.exit_code === 0,
     branch_protection_configured_now: observed,
+    branch_rules_query_available_now: branchRules.exit_code === 0,
+    branch_rules_observed_now: branchRulesObserved,
+    branch_rules_count: Array.isArray(branchRulesJson) ? branchRulesJson.length : null,
     required_status_check_contexts: requiredContexts,
     required_pr_review_enforced_now: Number(prReviews.required_approving_review_count ?? 0) >= 1,
     stale_review_dismissal_enforced_now: prReviews.dismiss_stale_reviews === true,
     force_push_disabled_now: protectionJson?.allow_force_pushes?.enabled === false,
     protection_response_hash: observed ? sha256(protection.stdout) : null,
+    branch_rules_response_hash: branchRulesObserved ? sha256(branchRules.stdout) : null,
     raw_payload_inlined: false,
-    command_observations: [protection],
+    command_observations: [protection, branchRules],
     next_allowed_action: observed ? "preserve branch protection evidence" : "configure branch protection/ruleset and rerun evidence capture",
   });
 }
@@ -692,6 +705,8 @@ function buildSummary({ receipts, validation }) {
     gh_cli_available_now: receipts.remote_binding_receipt.gh_cli_available_now,
     gh_auth_available_now: receipts.remote_binding_receipt.gh_auth_available_now,
     branch_protection_configured_now: receipts.branch_protection_receipt.branch_protection_configured_now,
+    branch_rules_query_available_now: receipts.branch_protection_receipt.branch_rules_query_available_now,
+    branch_rules_count: receipts.branch_protection_receipt.branch_rules_count,
     required_status_check_enforced_now: receipts.required_check_receipt.required_status_check_enforced_now,
     actions_run_success_now: receipts.actions_run_receipt.actions_run_success_now,
     signed_attestation_generated_now: receipts.attestation_verify_receipt.signed_attestation_generated_now,
@@ -813,6 +828,8 @@ function renderMarkdown(result) {
     `GitHub remote configured: ${result.summary.github_remote_configured_now}`,
     `GitHub auth available: ${result.summary.gh_auth_available_now}`,
     `Branch protection configured: ${result.summary.branch_protection_configured_now}`,
+    `Branch rules query available: ${result.summary.branch_rules_query_available_now}`,
+    `Branch rules count: ${result.summary.branch_rules_count}`,
     `Required check enforced: ${result.summary.required_status_check_enforced_now}`,
     `Actions run success: ${result.summary.actions_run_success_now}`,
     `Attestation verified: ${result.summary.attestation_verification_passed_now}`,

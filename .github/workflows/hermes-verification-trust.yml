@@ -33,8 +33,19 @@ jobs:
       - name: Validate core contracts
         run: npm run validate:core
 
-      - name: Generate production governance prerequisite
-        run: npm run platform:production-governance-work-os-freeze
+      - name: Generate long-range platform prerequisites
+        run: |
+          npm run platform:hue-keynote-roadmap-alignment
+          npm run platform:nous-overlap-audit
+          npm run platform:nous-non-adoption-reversal
+          npm run platform:runtime-governance-restore
+          npm run platform:human-approved-limited-execution
+          npm run platform:controlled-write-operator-console-v2
+          npm run platform:memory-event-observability-plane
+          npm run platform:connectors-data-governance
+          npm run platform:domain-pack-ecosystem
+          npm run platform:production-governance-work-os-freeze
+          npm run platform:production-governance-work-os-freeze -- --check
 
       - name: Validate source trust kernel
         run: |

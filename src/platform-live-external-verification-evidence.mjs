@@ -16,6 +16,7 @@ export const DEFAULT_PLATFORM_LIVE_EXTERNAL_VERIFICATION_RECEIPTS = {
   attestationVerifyReceiptPath: "artifacts/platform-external-verification-enforcement/attestation/attestation-verify-receipt.json",
   claudeReviewReceiptPath: "artifacts/platform-external-verification-enforcement/review/claude-review-receipt.json",
   humanAdjudicationReceiptPath: "artifacts/platform-external-verification-enforcement/review/human-adjudication-receipt.json",
+  singleOwnerExceptionReceiptPath: "artifacts/platform-external-verification-enforcement/review/single-owner-exception-receipt.json",
 };
 
 const COMMAND_NAME = "platform:live-external-verification-evidence";
@@ -77,7 +78,7 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
     ? await runShellCommand("gh_actions_run", `gh run list${repoFlag} --workflow ${quoteShell(REQUIRED_WORKFLOW_NAME)} --branch ${quoteShell(actionsBranchName)} --limit 1 --json databaseId,headSha,status,conclusion,workflowName,displayTitle,url,createdAt,updatedAt`, cwd)
     : skippedCommand("gh_actions_run", "gh run list --workflow Hermes Verification Trust", missingGitHubReason({ ghPath, ghAuth, repositoryFullName }));
   const pullRequestReview = ghPath.exit_code === 0 && ghAuth.exit_code === 0 && repositoryFullName
-    ? await runShellCommand("gh_pull_request_review", `gh pr view ${quoteShell(actionsBranchName)}${repoFlag} --json number,url,state,mergeable,reviewDecision,headRefName,baseRefName,headRefOid,baseRefOid,latestReviews`, cwd)
+    ? await runShellCommand("gh_pull_request_review", `gh pr view ${quoteShell(actionsBranchName)}${repoFlag} --json number,url,state,mergeable,reviewDecision,headRefName,baseRefName,headRefOid,baseRefOid,author,latestReviews`, cwd)
     : skippedCommand("gh_pull_request_review", "gh pr view <branch> --json reviewDecision", missingGitHubReason({ ghPath, ghAuth, repositoryFullName }));
   const attestationVerify = ghPath.exit_code === 0 && ghAuth.exit_code === 0 && repositoryFullName && options.attestationSubject
     ? await runShellCommand("gh_attestation_verify", `gh attestation verify ${quoteShell(options.attestationSubject)} --repo ${quoteShell(repositoryFullName)}`, cwd)
@@ -172,6 +173,17 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
     inputReceipt: humanAdjudicationInput,
     claudeReviewReceipt: existingClaudeReviewReceipt,
   });
+  const singleOwnerExceptionReceipt = buildSingleOwnerExceptionReceipt({
+    generatedAt,
+    receiptPath: receiptPaths.single_owner_exception_receipt_path,
+    repositoryFullName,
+    repoMetadataJson,
+    protectedBranchName: branchName,
+    actionsBranchName,
+    protectionJson,
+    pullRequestReview,
+    pullRequestReviewJson,
+  });
 
   const receipts = {
     remote_binding_receipt: remoteBindingReceipt,
@@ -182,6 +194,7 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
     attestation_verify_receipt: attestationVerifyReceipt,
     claude_review_receipt: claudeReviewReceipt,
     human_adjudication_receipt: humanAdjudicationReceipt,
+    single_owner_exception_receipt: singleOwnerExceptionReceipt,
   };
   const humanAdjudicationInputTemplate = options.humanAdjudicationTemplatePath
     ? buildHumanAdjudicationInputTemplate({
@@ -252,6 +265,7 @@ export async function runPlatformLiveExternalVerificationEvidenceCli(argv = proc
     console.log(`Attestation verified: ${result.summary.attestation_verification_passed_now}`);
     console.log(`Claude review completed: ${result.summary.claude_review_completed_now}`);
     console.log(`Human adjudication present: ${result.summary.human_adjudication_receipt_present_now}`);
+    console.log(`Single-owner exception observed: ${result.summary.single_owner_exception_observed_now}`);
     console.log(`Human adjudication readiness: ${result.human_adjudication_readiness.readiness_status}`);
     if (result.human_adjudication_input_template) console.log(`Human adjudication template: ${result.human_adjudication_input_template.template_path}`);
     console.log(`Validation errors: ${result.summary.validation_error_count}`);
@@ -408,6 +422,54 @@ function buildPullRequestReviewReceipt({ generatedAt, receiptPath, repositoryFul
     raw_payload_inlined: false,
     command_observations: [pullRequestReview],
     next_allowed_action: reviewCompleted ? "preserve GitHub pull request review evidence" : "complete required GitHub pull request review before external enforcement completion",
+  });
+}
+
+function buildSingleOwnerExceptionReceipt({ generatedAt, receiptPath, repositoryFullName, repoMetadataJson, protectedBranchName, actionsBranchName, protectionJson, pullRequestReview, pullRequestReviewJson }) {
+  const queryAvailable = pullRequestReview.exit_code === 0 && Boolean(pullRequestReviewJson);
+  const prReviews = protectionJson?.required_pull_request_reviews ?? {};
+  const requiredApprovalCount = Number(prReviews.required_approving_review_count ?? 0);
+  const repositoryOwnerType = repoMetadataJson?.owner?.type ?? null;
+  const repositoryOwnerLogin = repoMetadataJson?.owner?.login ?? null;
+  const pullRequestAuthorLogin = pullRequestReviewJson?.author?.login ?? null;
+  const latestReviews = Array.isArray(pullRequestReviewJson?.latestReviews) ? pullRequestReviewJson.latestReviews : [];
+  const latestApprovalCount = latestReviews.filter((review) => review?.state === "APPROVED").length;
+  const reviewCompleted = queryAvailable && pullRequestReviewJson?.reviewDecision === "APPROVED" && latestApprovalCount > 0;
+  const selfApprovalUnavailable = queryAvailable
+    && repositoryOwnerType === "User"
+    && Boolean(repositoryOwnerLogin)
+    && repositoryOwnerLogin === pullRequestAuthorLogin
+    && requiredApprovalCount >= 1
+    && reviewCompleted === false;
+  return receipt({
+    schema_version: "single-owner-exception-receipt.v1",
+    receipt_path: receiptPath,
+    generated_at: generatedAt,
+    receipt_id: `single_owner.exception.${dateStamp(generatedAt)}`,
+    receipt_status: selfApprovalUnavailable ? "observed" : "blocked_missing_external_evidence",
+    program_range: PROGRAM_RANGE,
+    repository_full_name: repositoryFullName,
+    repository_owner_login: repositoryOwnerLogin,
+    repository_owner_type: repositoryOwnerType,
+    pull_request_number: pullRequestReviewJson?.number ?? null,
+    pull_request_url: pullRequestReviewJson?.url ?? null,
+    pull_request_author_login: pullRequestAuthorLogin,
+    protected_branch_name: protectedBranchName,
+    branch_name: actionsBranchName,
+    required_approving_review_count: requiredApprovalCount,
+    pull_request_review_query_available_now: queryAvailable,
+    pull_request_review_completed_now: reviewCompleted,
+    pull_request_review_decision: pullRequestReviewJson?.reviewDecision ?? null,
+    independent_github_review_completed_now: false,
+    single_owner_exception_observed_now: selfApprovalUnavailable,
+    single_owner_mode_applicable_now: selfApprovalUnavailable,
+    single_owner_exception_policy_ref: "github_docs.pull_request_authors_cannot_approve_own_pull_requests",
+    enterprise_trust_claim_allowed_now: false,
+    raw_payload_inlined: false,
+    command_observations: [pullRequestReview],
+    next_allowed_action: selfApprovalUnavailable
+      ? "allow single-owner merge readiness only; keep independent GitHub review and enterprise trust false"
+      : "complete independent GitHub approval or satisfy single-owner exception preconditions",
   });
 }
 
@@ -745,6 +807,7 @@ function buildValidationItems({ receiptPaths, receipts }) {
     validationItem("receipt.attestation.path", "receipt_path", receipts.attestation_verify_receipt.receipt_path === receiptPaths.attestation_verify_receipt_path, "attestation verify receipt path must match contract"),
     validationItem("receipt.claude_review.path", "receipt_path", receipts.claude_review_receipt.receipt_path === receiptPaths.claude_review_receipt_path, "Claude review receipt path must match contract"),
     validationItem("receipt.human_adjudication.path", "receipt_path", receipts.human_adjudication_receipt.receipt_path === receiptPaths.human_adjudication_receipt_path, "human adjudication receipt path must match contract"),
+    validationItem("receipt.single_owner_exception.path", "receipt_path", receipts.single_owner_exception_receipt.receipt_path === receiptPaths.single_owner_exception_receipt_path, "single-owner exception receipt path must match contract"),
     validationItem("receipt.raw_not_inlined", "receipt_safety", Object.values(receipts).every((item) => item.raw_payload_inlined === false), "receipts must not inline raw external payloads"),
     validationItem("receipt.unsafe_false", "receipt_safety", Object.values(receipts).every((item) => item.unsafe_flags_false === true), "receipts must keep unsafe flags false"),
   ];
@@ -769,6 +832,8 @@ function buildSummary({ receipts, validation }) {
     attestation_verification_passed_now: receipts.attestation_verify_receipt.attestation_verification_passed_now,
     claude_review_completed_now: receipts.claude_review_receipt.review_completed_now,
     human_adjudication_receipt_present_now: receipts.human_adjudication_receipt.human_adjudication_receipt_present_now,
+    single_owner_exception_observed_now: receipts.single_owner_exception_receipt.single_owner_exception_observed_now,
+    single_owner_mode_applicable_now: receipts.single_owner_exception_receipt.single_owner_mode_applicable_now,
     observed_receipt_count: Object.values(receipts).filter((item) => item.receipt_status === "observed").length,
     blocked_receipt_count: Object.values(receipts).filter((item) => item.receipt_status !== "observed").length,
     validation_error_count: validation.errors.length,
@@ -896,6 +961,7 @@ function renderMarkdown(result) {
     `Attestation block reason: ${result.receipts.attestation_verify_receipt.attestation_block_reason}`,
     `Claude review completed: ${result.summary.claude_review_completed_now}`,
     `Human adjudication present: ${result.summary.human_adjudication_receipt_present_now}`,
+    `Single-owner exception observed: ${result.summary.single_owner_exception_observed_now}`,
     `Human adjudication readiness: ${result.human_adjudication_readiness.readiness_status}`,
     `Human adjudication missing findings: ${result.human_adjudication_readiness.missing_finding_ids.join(", ") || "none"}`,
     `Observed receipts: ${result.summary.observed_receipt_count}`,
@@ -920,6 +986,7 @@ function normalizeReceiptPaths(options) {
     attestation_verify_receipt_path: options.attestationVerifyReceiptPath ?? defaults.attestationVerifyReceiptPath,
     claude_review_receipt_path: options.claudeReviewReceiptPath ?? defaults.claudeReviewReceiptPath,
     human_adjudication_receipt_path: options.humanAdjudicationReceiptPath ?? defaults.humanAdjudicationReceiptPath,
+    single_owner_exception_receipt_path: options.singleOwnerExceptionReceiptPath ?? defaults.singleOwnerExceptionReceiptPath,
   };
 }
 
@@ -935,6 +1002,7 @@ function parseArgs(argv) {
     attestationSubject: undefined,
     humanAdjudicationInputPath: undefined,
     humanAdjudicationTemplatePath: undefined,
+    singleOwnerExceptionReceiptPath: undefined,
     help: false,
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -966,6 +1034,9 @@ function parseArgs(argv) {
     } else if (arg === "--human-adjudication-template") {
       args.humanAdjudicationTemplatePath = argv[index + 1];
       index += 1;
+    } else if (arg === "--single-owner-exception-receipt") {
+      args.singleOwnerExceptionReceiptPath = argv[index + 1];
+      index += 1;
     } else if (arg === "--help" || arg === "-h") {
       args.help = true;
     }
@@ -987,6 +1058,8 @@ Options:
                                   Human owner decision input JSON.
   --human-adjudication-template <path>
                                   Write a draft input JSON template from the Claude review receipt.
+  --single-owner-exception-receipt <path>
+                                  Override single-owner exception receipt path.
   --help                          Show this help.
 `);
 }

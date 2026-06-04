@@ -89,6 +89,7 @@ capture order is:
 | `artifacts/platform-external-verification-enforcement/attestation/attestation-verify-receipt.json` | Signed attestation verification result |
 | `artifacts/platform-external-verification-enforcement/review/claude-review-receipt.json` | Claude Code Opus max independent review evidence |
 | `artifacts/platform-external-verification-enforcement/review/human-adjudication-receipt.json` | Human owner adjudication decisions |
+| `artifacts/platform-external-verification-enforcement/review/single-owner-exception-receipt.json` | Single-owner exception evidence when GitHub independent approval is structurally unavailable |
 
 The capture command is:
 
@@ -170,6 +171,74 @@ finding ids keep the receipt at `blocked_missing_external_evidence`.
 The template command only writes a draft. Empty decisions are intentionally not
 valid receipt evidence and must remain blocked until a human owner completes
 every finding decision.
+
+### Single-Owner Mode
+
+If the repository is owned and authored by the same individual account, GitHub
+does not allow the pull request author to approve their own pull request. Hermes
+must not treat admin bypass, relaxed branch protection, or self-approval failure
+as an independent GitHub review.
+
+In that case, the live evidence command writes:
+
+```text
+artifacts/platform-external-verification-enforcement/review/single-owner-exception-receipt.json
+```
+
+The receipt may become `observed` only when:
+
+- branch protection still requires at least one approving review
+- the PR review query is available
+- the PR author matches the user repository owner
+- `pull_request_review_completed_now = false`
+- `independent_github_review_completed_now = false`
+- `enterprise_trust_claim_allowed_now = false`
+
+This receipt opens only a lower-trust signal:
+
+```text
+single_owner_merge_readiness_now = true
+```
+
+It does not satisfy:
+
+```text
+pull_request_review_completed_now
+independent_github_review_completed_now
+independent_review_completed_now
+p3680_external_controls_complete
+enterprise_trust_claim_allowed_now
+```
+
+Single-owner readiness means the human owner can proceed with a consciously
+lower-trust merge path after CI, signed attestation, Claude review, and human
+adjudication are all observed. It is not an enterprise-ready independent review.
+
+## P3841-P4000 Review Process Upgrade
+
+`P3841-P4000` productizes the Codex-primary, Claude-independent, human-authority
+review process instead of relying on ad hoc prompts.
+
+| Range | Slice | Goal |
+|---|---|---|
+| `P3841-P3860` | Role Authority Contract | Codex is primary developer, Claude Code is independent reviewer, human owner is final authority |
+| `P3861-P3880` | Work Intake Spec | Capture purpose, success criteria, non-goals, forbidden areas, risk tier, test bar, rollback needs |
+| `P3881-P3900` | Codex Plan-Only Lane | Codex submits related files, change candidates, non-change targets, test plan, risk points, split recommendation without editing files |
+| `P3901-P3920` | Claude Plan Review Lane | Claude reviews Codex's plan as `proceed`, `revise`, or `block` before implementation |
+| `P3921-P3940` | Codex Implementation Packet | Codex implementation must include changed files, reasons, tests, failures, risks, PR description, rollback notes |
+| `P3941-P3960` | Codex Self-Review Non-Authority | Codex self-review removes obvious noise but cannot approve or complete a gate |
+| `P3961-P3970` | Claude Multi-Pass Review | Claude passes are split into full-context, security, test, migration, fix verification, and regression review |
+| `P3971-P3980` | Finding Fix Loop | Codex applies minimal fixes; Claude verifies fixed, partially fixed, not fixed, or false positive |
+| `P3981-P3990` | PR Type Policy | Feature, bugfix, refactor, security/auth, dependency, and large AI-generated PRs use different evidence bars |
+| `P3991-P4000` | Review Instruction Freeze | `AGENTS.md`, `CLAUDE.md`, `REVIEW.md`, prompt templates, PR description contract, and single-owner mode policy freeze |
+
+The invariant is:
+
+```text
+Codex-created implementation cannot be finally approved by Codex.
+Claude review cannot replace human adjudication.
+Single-owner exception cannot replace independent GitHub approval for enterprise trust.
+```
 
 ### Attestation Availability
 

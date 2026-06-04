@@ -184,14 +184,17 @@ test("External verification enforcement requires Claude review receipts plus hum
   const claudeReceipt = result.independent_review_completion_rows.find((row) => row.control_id === "claude_review_receipt_present");
   const prReceipt = result.independent_review_completion_rows.find((row) => row.control_id === "github_pull_request_review_completed");
   const humanReceipt = result.independent_review_completion_rows.find((row) => row.control_id === "human_adjudication_receipt_present");
+  const singleOwnerReceipt = result.independent_review_completion_rows.find((row) => row.control_id === "single_owner_exception_observed");
 
-  assert.equal(result.independent_review_completion_rows.length, 7);
+  assert.equal(result.independent_review_completion_rows.length, 8);
   assert.equal(claudeReceipt.observed_now, false);
   assert.equal(claudeReceipt.current_verdict, "blocked");
   assert.equal(prReceipt.observed_now, false);
   assert.equal(prReceipt.current_verdict, "blocked");
   assert.equal(humanReceipt.observed_now, false);
   assert.equal(humanReceipt.current_verdict, "blocked");
+  assert.equal(singleOwnerReceipt.observed_now, false);
+  assert.equal(singleOwnerReceipt.required_for_enterprise_trust, false);
   assert.equal(result.summary.independent_review_completed_now, false);
   assert.equal(result.summary.human_adjudication_receipt_present_now, false);
 });
@@ -199,14 +202,14 @@ test("External verification enforcement requires Claude review receipts plus hum
 test("External verification enforcement keeps provenance hash-bound and validation ledger chained", async () => {
   const result = await resultPromise;
 
-  assert.equal(result.evidence_provenance_rows.length, 16);
+  assert.equal(result.evidence_provenance_rows.length, 17);
   assert.equal(result.evidence_provenance_rows.every((row) => row.raw_payload_inlined === false), true);
   assert.equal(result.evidence_provenance_rows.filter((row) => row.provenance_status === "hash_bound").length >= 8, true);
   assert.equal(result.validation_result_ledger_rows.length, 8);
   assert.equal(result.validation_result_ledger_rows.every((row, index) => row.chain_hash.startsWith("sha256:") && (index === 0 || row.previous_hash === result.validation_result_ledger_rows[index - 1].chain_hash)), true);
 });
 
-test("Live external verification evidence capture creates the eight concrete receipt contracts", async () => {
+test("Live external verification evidence capture creates the nine concrete receipt contracts", async () => {
   const outDir = await mkdtemp(path.join(os.tmpdir(), "platform-live-external-evidence-"));
   const paths = receiptPaths(outDir);
 
@@ -220,7 +223,7 @@ test("Live external verification evidence capture creates the eight concrete rec
     });
 
     assert.equal(result.validation.valid, true);
-    assert.equal(Object.keys(result.receipts).length, 8);
+    assert.equal(Object.keys(result.receipts).length, 9);
     assert.equal(result.receipts.remote_binding_receipt.receipt_path, paths.remoteBindingReceiptPath);
     assert.equal(result.receipts.branch_protection_receipt.receipt_path, paths.branchProtectionReceiptPath);
     assert.equal(result.receipts.required_check_receipt.receipt_path, paths.requiredCheckReceiptPath);
@@ -237,6 +240,7 @@ test("Live external verification evidence capture creates the eight concrete rec
     assert.equal(result.receipts.attestation_verify_receipt.receipt_path, paths.attestationVerifyReceiptPath);
     assert.equal(result.receipts.claude_review_receipt.receipt_path, paths.claudeReviewReceiptPath);
     assert.equal(result.receipts.human_adjudication_receipt.receipt_path, paths.humanAdjudicationReceiptPath);
+    assert.equal(result.receipts.single_owner_exception_receipt.receipt_path, paths.singleOwnerExceptionReceiptPath);
     assert.equal(await readJson(paths.claudeReviewReceiptPath).then((data) => data.review_completed_now), false);
     assert.equal(await readJson(paths.humanAdjudicationReceiptPath).then((data) => data.human_adjudication_receipt_present_now), false);
   } finally {
@@ -548,6 +552,69 @@ test("External verification enforcement requires observed Actions run success be
   }
 });
 
+test("External verification enforcement supports single-owner readiness without overclaiming independent GitHub review", async () => {
+  const outDir = await mkdtemp(path.join(os.tmpdir(), "platform-single-owner-exception-"));
+  const paths = receiptPaths(outDir);
+
+  try {
+    await writeObservedReceipts(paths);
+    await writeReceipt(paths.pullRequestReviewReceiptPath, {
+      schema_version: "github-pull-request-review-receipt.v1",
+      receipt_status: "blocked_missing_external_evidence",
+      pull_request_review_query_available_now: true,
+      pull_request_review_completed_now: false,
+      review_decision: "REVIEW_REQUIRED",
+      latest_review_count: 0,
+      latest_approval_count: 0,
+      raw_payload_inlined: false,
+    });
+    await writeReceipt(paths.singleOwnerExceptionReceiptPath, {
+      schema_version: "single-owner-exception-receipt.v1",
+      receipt_status: "observed",
+      repository_full_name: "example/hermes",
+      repository_owner_login: "solo-owner",
+      repository_owner_type: "User",
+      pull_request_author_login: "solo-owner",
+      required_approving_review_count: 1,
+      pull_request_review_query_available_now: true,
+      pull_request_review_completed_now: false,
+      pull_request_review_decision: "REVIEW_REQUIRED",
+      independent_github_review_completed_now: false,
+      single_owner_exception_observed_now: true,
+      single_owner_mode_applicable_now: true,
+      enterprise_trust_claim_allowed_now: false,
+      raw_payload_inlined: false,
+    });
+    const base = await resultPromise;
+    const result = await buildPlatformExternalVerificationEnforcement({
+      runAt: RUN_AT,
+      write: false,
+      livePreflight: BLOCKED_PREFLIGHT,
+      sourceActivation: { summary: base.source_verification_trust_activation_summary },
+      ...paths.options,
+    });
+    const prReview = result.independent_review_completion_rows.find((row) => row.control_id === "github_pull_request_review_completed");
+    const singleOwner = result.independent_review_completion_rows.find((row) => row.control_id === "single_owner_exception_observed");
+
+    assert.equal(result.validation.valid, true);
+    assert.equal(prReview.observed_now, false);
+    assert.equal(prReview.current_verdict, "blocked");
+    assert.equal(singleOwner.observed_now, true);
+    assert.equal(singleOwner.required_for_enterprise_trust, false);
+    assert.equal(result.summary.independent_github_review_completed_now, false);
+    assert.equal(result.summary.pull_request_review_completed_now, false);
+    assert.equal(result.summary.pull_request_review_decision, "REVIEW_REQUIRED");
+    assert.equal(result.summary.single_owner_exception_observed_now, true);
+    assert.equal(result.summary.single_owner_merge_readiness_now, true);
+    assert.equal(result.summary.independent_review_completed_now, false);
+    assert.equal(result.summary.p3680_external_controls_complete, false);
+    assert.equal(result.summary.enterprise_trust_claim_allowed_now, false);
+    assert.equal(result.summary.platform_external_verification_enforcement_status, "blocked_pending_external_verification_enforcement");
+  } finally {
+    await rm(outDir, { recursive: true, force: true });
+  }
+});
+
 test("External verification enforcement --check does not overwrite artifacts", async () => {
   const outDir = await mkdtemp(path.join(os.tmpdir(), "platform-external-verification-enforcement-"));
   const sentinelPath = path.join(outDir, "platform-external-verification-enforcement.json");
@@ -579,6 +646,7 @@ function receiptPaths(root) {
   const attestationVerifyReceiptPath = path.join(root, "attestation", "attestation-verify-receipt.json");
   const claudeReviewReceiptPath = path.join(root, "review", "claude-review-receipt.json");
   const humanAdjudicationReceiptPath = path.join(root, "review", "human-adjudication-receipt.json");
+  const singleOwnerExceptionReceiptPath = path.join(root, "review", "single-owner-exception-receipt.json");
   return {
     remoteBindingReceiptPath,
     branchProtectionReceiptPath,
@@ -588,6 +656,7 @@ function receiptPaths(root) {
     attestationVerifyReceiptPath,
     claudeReviewReceiptPath,
     humanAdjudicationReceiptPath,
+    singleOwnerExceptionReceiptPath,
     options: {
       remoteBindingReceiptPath,
       branchProtectionReceiptPath,
@@ -597,6 +666,7 @@ function receiptPaths(root) {
       attestationVerifyReceiptPath,
       claudeReviewReceiptPath,
       humanAdjudicationReceiptPath,
+      singleOwnerExceptionReceiptPath,
     },
   };
 }

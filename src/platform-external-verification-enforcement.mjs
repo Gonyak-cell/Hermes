@@ -24,6 +24,7 @@ export const DEFAULT_PLATFORM_EXTERNAL_VERIFICATION_ENFORCEMENT_INPUTS = {
   pullRequestReviewReceiptPath: "artifacts/platform-external-verification-enforcement/github/pull-request-review-receipt.json",
   claudeReviewReceiptPath: "artifacts/platform-external-verification-enforcement/review/claude-review-receipt.json",
   humanAdjudicationReceiptPath: "artifacts/platform-external-verification-enforcement/review/human-adjudication-receipt.json",
+  singleOwnerExceptionReceiptPath: "artifacts/platform-external-verification-enforcement/review/single-owner-exception-receipt.json",
   attestationVerificationReceiptPath: "artifacts/platform-external-verification-enforcement/attestation/attestation-verify-receipt.json",
 };
 
@@ -111,6 +112,7 @@ export async function buildPlatformExternalVerificationEnforcement(options = {})
   const pullRequestReviewReceipt = await readOptionalJsonSource(inputs.pull_request_review_receipt_path);
   const claudeReviewReceipt = await readOptionalJsonSource(inputs.claude_review_receipt_path);
   const humanAdjudicationReceipt = await readOptionalJsonSource(inputs.human_adjudication_receipt_path);
+  const singleOwnerExceptionReceipt = await readOptionalJsonSource(inputs.single_owner_exception_receipt_path);
   const attestationVerificationReceipt = await readOptionalJsonSource(inputs.attestation_verification_receipt_path);
   const livePreflight = mergeLivePreflightWithReceipts(options.livePreflight ?? await detectLivePreflight(options), {
     remoteBindingReceipt,
@@ -135,8 +137,8 @@ export async function buildPlatformExternalVerificationEnforcement(options = {})
   const branchProtectionRows = buildBranchProtectionRows({ livePreflight });
   const requiredStatusCheckRows = buildRequiredStatusCheckRows({ workflow, branchProtectionRows });
   const attestationRows = buildAttestationRows({ workflow, attestationVerificationReceipt, livePreflight });
-  const independentReviewRows = buildIndependentReviewRows({ claudeReviewReceipt, humanAdjudicationReceipt, pullRequestReviewReceipt, livePreflight });
-  const evidenceRows = buildEvidenceRows({ generatedAt, packageJson, packageLock, activationLedger, enforcementLedger, workflow, sourceModule, sourceActivation, livePreflight, remoteBindingReceipt, branchProtectionReceipt, requiredCheckReceipt, actionsRunReceipt, pullRequestReviewReceipt, claudeReviewReceipt, humanAdjudicationReceipt, attestationVerificationReceipt });
+  const independentReviewRows = buildIndependentReviewRows({ claudeReviewReceipt, humanAdjudicationReceipt, singleOwnerExceptionReceipt, pullRequestReviewReceipt, livePreflight });
+  const evidenceRows = buildEvidenceRows({ generatedAt, packageJson, packageLock, activationLedger, enforcementLedger, workflow, sourceModule, sourceActivation, livePreflight, remoteBindingReceipt, branchProtectionReceipt, requiredCheckReceipt, actionsRunReceipt, pullRequestReviewReceipt, claudeReviewReceipt, humanAdjudicationReceipt, singleOwnerExceptionReceipt, attestationVerificationReceipt });
   const validationLedgerRows = buildValidationLedgerRows({ generatedAt, sourceActivation, reviewerProfileRows, reviewPacketRows, branchProtectionRows, requiredStatusCheckRows, attestationRows, independentReviewRows, evidenceRows });
   const enforcementCoverageRows = buildEnforcementCoverageRows({ reviewerProfileRows, reviewPacketRows, branchProtectionRows, requiredStatusCheckRows, attestationRows, independentReviewRows, evidenceRows, validationLedgerRows });
   const guardRows = buildGuardRows({ sourceActivation, reviewerProfileRows, reviewPacketRows, branchProtectionRows, requiredStatusCheckRows, attestationRows, independentReviewRows, evidenceRows, validationLedgerRows, enforcementCoverageRows });
@@ -228,6 +230,8 @@ export async function runPlatformExternalVerificationEnforcementCli(argv = proce
     console.log(`Required status check enforced now: ${result.summary.required_status_check_enforced_now}`);
     console.log(`Pull request review completed now: ${result.summary.pull_request_review_completed_now}`);
     console.log(`Pull request review decision: ${result.summary.pull_request_review_decision}`);
+    console.log(`Single-owner exception observed now: ${result.summary.single_owner_exception_observed_now}`);
+    console.log(`Single-owner merge readiness now: ${result.summary.single_owner_merge_readiness_now}`);
     console.log(`Signed attestation verified now: ${result.summary.attestation_verification_passed_now}`);
     console.log(`Independent review completed now: ${result.summary.independent_review_completed_now}`);
     console.log(`Human adjudication receipt present now: ${result.summary.human_adjudication_receipt_present_now}`);
@@ -281,7 +285,7 @@ async function detectLivePreflight(options = {}) {
   const protectionJson = parseJsonMaybe(protection.stdout);
   const branchRulesJson = parseJsonMaybe(branchRules.stdout);
   const pullRequestReview = ghPath.exit_code === 0 && ghAuth.exit_code === 0 && repositoryFullName && reviewBranchName
-    ? await runShellCommand("gh_pull_request_review", `gh pr view ${quoteShell(reviewBranchName)} -R ${quoteShell(repositoryFullName)} --json number,url,state,mergeable,reviewDecision,headRefName,baseRefName,headRefOid,baseRefOid,latestReviews`, cwd)
+    ? await runShellCommand("gh_pull_request_review", `gh pr view ${quoteShell(reviewBranchName)} -R ${quoteShell(repositoryFullName)} --json number,url,state,mergeable,reviewDecision,headRefName,baseRefName,headRefOid,baseRefOid,author,latestReviews`, cwd)
     : skippedCommand("gh_pull_request_review", "gh pr view <branch> --json reviewDecision", repositoryFullName ? "gh_not_authenticated_or_unavailable" : "github_remote_not_configured");
   commands.push(pullRequestReview);
   const pullRequestReviewJson = parseJsonMaybe(pullRequestReview.stdout);
@@ -318,6 +322,7 @@ async function detectLivePreflight(options = {}) {
     pull_request_review_query_available_now: pullRequestReview.exit_code === 0 && Boolean(pullRequestReviewJson),
     pull_request_review_completed_now: pullRequestReviewCompleted,
     pull_request_review_decision: pullRequestReviewJson?.reviewDecision ?? null,
+    pull_request_author_login: pullRequestReviewJson?.author?.login ?? null,
     pull_request_number: pullRequestReviewJson?.number ?? null,
     required_status_check_enforced_now: requiredContexts.includes("Hermes verification trust"),
     required_pr_review_enforced_now: Number(prReviews.required_approving_review_count ?? 0) >= 1,
@@ -491,7 +496,7 @@ function buildAttestationRows({ workflow, attestationVerificationReceipt, livePr
   }));
 }
 
-function buildIndependentReviewRows({ claudeReviewReceipt, humanAdjudicationReceipt, pullRequestReviewReceipt, livePreflight }) {
+function buildIndependentReviewRows({ claudeReviewReceipt, humanAdjudicationReceipt, singleOwnerExceptionReceipt, pullRequestReviewReceipt, livePreflight }) {
   const claudeReceiptPresent = isObservedReceipt(claudeReviewReceipt.data) || claudeReviewReceipt.data?.review_completed_now === true;
   const resolvedModelCaptured = claudeReceiptPresent && Boolean(claudeReviewReceipt.data?.resolved_model_id);
   const findingsNormalized = claudeReceiptPresent
@@ -503,26 +508,34 @@ function buildIndependentReviewRows({ claudeReviewReceipt, humanAdjudicationRece
   const prReviewCompleted = (prReviewObserved && pullRequestReviewReceipt.data?.pull_request_review_completed_now === true)
     || livePreflight.pull_request_review_completed_now === true;
   const prReviewDecision = pullRequestReviewReceipt.data?.review_decision ?? livePreflight.pull_request_review_decision ?? null;
+  const singleOwnerExceptionObserved = isObservedReceipt(singleOwnerExceptionReceipt.data)
+    && singleOwnerExceptionReceipt.data?.single_owner_exception_observed_now === true
+    && singleOwnerExceptionReceipt.data?.independent_github_review_completed_now === false
+    && singleOwnerExceptionReceipt.data?.enterprise_trust_claim_allowed_now === false;
   const rows = [
-    ["reviewer_profile_registered", true, "Claude Code Opus max reviewer profile is registered"],
-    ["claude_code_available", livePreflight.claude_code_available_now, "Claude Code is installed locally"],
-    ["claude_review_receipt_present", claudeReceiptPresent, "Claude review receipt exists"],
-    ["resolved_model_id_captured", resolvedModelCaptured, "Resolved model id and timestamp are captured"],
-    ["findings_normalized", findingsNormalized, "Claude findings satisfy the finding schema"],
-    ["github_pull_request_review_completed", prReviewCompleted, "GitHub pull request review decision is APPROVED"],
-    ["human_adjudication_receipt_present", adjudicationPresent, "Human adjudication receipt exists"],
+    ["reviewer_profile_registered", true, true, "Claude Code Opus max reviewer profile is registered"],
+    ["claude_code_available", livePreflight.claude_code_available_now, true, "Claude Code is installed locally"],
+    ["claude_review_receipt_present", claudeReceiptPresent, true, "Claude review receipt exists"],
+    ["resolved_model_id_captured", resolvedModelCaptured, true, "Resolved model id and timestamp are captured"],
+    ["findings_normalized", findingsNormalized, true, "Claude findings satisfy the finding schema"],
+    ["github_pull_request_review_completed", prReviewCompleted, true, "GitHub pull request review decision is APPROVED"],
+    ["human_adjudication_receipt_present", adjudicationPresent, true, "Human adjudication receipt exists"],
+    ["single_owner_exception_observed", singleOwnerExceptionObserved, false, "Single-owner exception is observed without satisfying independent GitHub review"],
   ];
-  return rows.map(([controlId, observed, description], index) => controlRow({
+  return rows.map(([controlId, observed, requiredForEnterpriseTrust, description], index) => controlRow({
     schema_version: "independent-review-completion-row.v1",
     row_id: `independent.review.completion.row.${String(index + 1).padStart(2, "0")}`,
     control_id: controlId,
     description,
     observed_now: Boolean(observed),
-    required_for_enterprise_trust: true,
+    required_for_enterprise_trust: Boolean(requiredForEnterpriseTrust),
     review_completed_now: claudeReceiptPresent && resolvedModelCaptured && findingsNormalized,
     pull_request_review_completed_now: prReviewCompleted,
     pull_request_review_decision: prReviewDecision,
     human_adjudication_receipt_present_now: adjudicationPresent,
+    single_owner_exception_observed_now: singleOwnerExceptionObserved,
+    single_owner_mode_applicable_now: singleOwnerExceptionReceipt.data?.single_owner_mode_applicable_now === true,
+    independent_github_review_completed_now: prReviewCompleted,
     evidence_ref: `evidence.platform.external_verification.independent_review.${controlId}`,
     reviewer_ref: "reviewer.platform_independent_review",
     hard_gate_ref: `gate.platform.external_verification.independent_review.${controlId}`,
@@ -531,7 +544,7 @@ function buildIndependentReviewRows({ claudeReviewReceipt, humanAdjudicationRece
   }));
 }
 
-function buildEvidenceRows({ generatedAt, packageJson, packageLock, activationLedger, enforcementLedger, workflow, sourceModule, sourceActivation, livePreflight, remoteBindingReceipt, branchProtectionReceipt, requiredCheckReceipt, actionsRunReceipt, pullRequestReviewReceipt, claudeReviewReceipt, humanAdjudicationReceipt, attestationVerificationReceipt }) {
+function buildEvidenceRows({ generatedAt, packageJson, packageLock, activationLedger, enforcementLedger, workflow, sourceModule, sourceActivation, livePreflight, remoteBindingReceipt, branchProtectionReceipt, requiredCheckReceipt, actionsRunReceipt, pullRequestReviewReceipt, claudeReviewReceipt, humanAdjudicationReceipt, singleOwnerExceptionReceipt, attestationVerificationReceipt }) {
   const sources = [
     ["package_json", packageJson.path, packageJson.raw, packageJson.available],
     ["package_lock", packageLock.path, packageLock.raw, packageLock.available],
@@ -548,6 +561,7 @@ function buildEvidenceRows({ generatedAt, packageJson, packageLock, activationLe
     ["github_pull_request_review_receipt", pullRequestReviewReceipt.path, pullRequestReviewReceipt.raw, pullRequestReviewReceipt.available],
     ["claude_review_receipt", claudeReviewReceipt.path, claudeReviewReceipt.raw, claudeReviewReceipt.available],
     ["human_adjudication_receipt", humanAdjudicationReceipt.path, humanAdjudicationReceipt.raw, humanAdjudicationReceipt.available],
+    ["single_owner_exception_receipt", singleOwnerExceptionReceipt.path, singleOwnerExceptionReceipt.raw, singleOwnerExceptionReceipt.available],
     ["attestation_verification_receipt", attestationVerificationReceipt.path, attestationVerificationReceipt.raw, attestationVerificationReceipt.available],
   ];
   return sources.map(([evidenceId, sourceUri, payload, sourceAvailable], index) => safePassRow({
@@ -616,7 +630,7 @@ function buildEnforcementCoverageRows({ reviewerProfileRows, reviewPacketRows, b
   const branchCoverageActive = branchProtectionRows.every((row) => row.observed_now === true);
   const requiredStatusCoverageActive = requiredStatusCheckRows.every((row) => row.required_status_check_enforced_now === true || row.required_for_enterprise_trust === false);
   const signedAttestationCoverageActive = attestationRows.every((row) => row.observed_now === true);
-  const independentReviewCoverageActive = independentReviewRows.every((row) => row.observed_now === true);
+  const independentReviewCoverageActive = independentReviewRows.every((row) => row.observed_now === true || row.required_for_enterprise_trust === false);
   const specs = [
     ["reviewer_profile_coverage", "active", reviewerProfileRows.length, "Reviewer profile exists"],
     ["review_packet_coverage", "active", reviewPacketRows.length, "Review packet contract exists"],
@@ -688,9 +702,12 @@ function buildBoundary({ livePreflight, reviewerProfileRows, branchProtectionRow
   const pullRequestReviewRow = independentReviewRows.find((row) => row.control_id === "github_pull_request_review_completed");
   const pullRequestReviewCompleted = pullRequestReviewRow?.observed_now === true;
   const pullRequestReviewDecision = pullRequestReviewRow?.pull_request_review_decision ?? null;
+  const singleOwnerExceptionRow = independentReviewRows.find((row) => row.control_id === "single_owner_exception_observed");
+  const singleOwnerExceptionObserved = singleOwnerExceptionRow?.observed_now === true;
   const signedAttestationGenerated = attestationRows.find((row) => row.control_id === "signed_attestation_generated")?.observed_now === true;
   const attestationVerificationPassed = attestationRows.find((row) => row.control_id === "attestation_verification_passed")?.observed_now === true;
-  const independentReviewCompleted = independentReviewRows.every((row) => row.observed_now === true) && independentReviewRows.some((row) => row.control_id === "human_adjudication_receipt_present");
+  const requiredIndependentRows = independentReviewRows.filter((row) => row.required_for_enterprise_trust !== false);
+  const independentReviewCompleted = requiredIndependentRows.every((row) => row.observed_now === true) && independentReviewRows.some((row) => row.control_id === "human_adjudication_receipt_present");
   const humanAdjudicationReceiptPresent = independentReviewRows.find((row) => row.control_id === "human_adjudication_receipt_present")?.observed_now === true;
   const externalControlsComplete = branchProtectionConfigured
     && branchRulesQueryAvailable
@@ -703,6 +720,20 @@ function buildBoundary({ livePreflight, reviewerProfileRows, branchProtectionRow
     && attestationVerificationPassed
     && independentReviewCompleted
     && humanAdjudicationReceiptPresent;
+  const singleOwnerMergeReadiness = branchProtectionConfigured
+    && branchRulesQueryAvailable
+    && requiredStatusCheckEnforced
+    && actionsRunSuccess
+    && requiredPrReviewEnforced
+    && forcePushDisabled
+    && pullRequestReviewCompleted === false
+    && singleOwnerExceptionObserved
+    && signedAttestationGenerated
+    && attestationVerificationPassed
+    && humanAdjudicationReceiptPresent
+    && requiredIndependentRows
+      .filter((row) => row.control_id !== "github_pull_request_review_completed")
+      .every((row) => row.observed_now === true);
   const unsafeFlags = [
     reviewerProfileRows[0]?.final_authority_allowed,
     externalControlsComplete && guardRows.some((row) => row.guard_status !== "ready"),
@@ -724,6 +755,9 @@ function buildBoundary({ livePreflight, reviewerProfileRows, branchProtectionRow
     force_push_disabled_now: forcePushDisabled,
     pull_request_review_completed_now: pullRequestReviewCompleted,
     pull_request_review_decision: pullRequestReviewDecision,
+    independent_github_review_completed_now: pullRequestReviewCompleted,
+    single_owner_exception_observed_now: singleOwnerExceptionObserved,
+    single_owner_merge_readiness_now: singleOwnerMergeReadiness,
     signed_attestation_generated_now: signedAttestationGenerated,
     attestation_verification_passed_now: attestationVerificationPassed,
     independent_review_completed_now: independentReviewCompleted,
@@ -823,8 +857,8 @@ function buildValidationItems({ packageJson, packageLock, activationLedger, enfo
     validationItem("branch.not_overclaimed", "branch_protection", branchProtectionRows.length === 10 && branchProtectionRows.every((row) => row.observed_now || row.current_verdict === "blocked"), "branch protection/ruleset rows must be observed or safely blocked"),
     validationItem("checks.workflow_defined", "required_status_checks", requiredStatusCheckRows.length === 7 && requiredStatusCheckRows.every((row) => row.workflow_defined_now || row.check_id === "attestation_step"), "required check rows must be workflow-defined where applicable"),
     validationItem("attestation.not_overclaimed", "attestation", attestationRows.length === 5 && attestationRows.every((row) => row.observed_now || row.current_verdict === "blocked"), "attestation rows must be observed or safely blocked"),
-    validationItem("review.not_overclaimed", "independent_review", independentReviewRows.length === 7 && independentReviewRows.every((row) => row.observed_now || row.current_verdict === "blocked"), "independent review rows must be observed or safely blocked"),
-    validationItem("evidence.count", "evidence", evidenceRows.length === 16 && evidenceRows.every((row) => row.raw_payload_inlined === false), "evidence rows must exist without raw payloads"),
+    validationItem("review.not_overclaimed", "independent_review", independentReviewRows.length === 8 && independentReviewRows.every((row) => row.observed_now || row.current_verdict === "blocked"), "independent review rows must be observed or safely blocked"),
+    validationItem("evidence.count", "evidence", evidenceRows.length === 17 && evidenceRows.every((row) => row.raw_payload_inlined === false), "evidence rows must exist without raw payloads"),
     validationItem("ledger.hash_chain", "validation_ledger", validationLedgerRows.length === 8 && validationLedgerRows.every((row, index) => row.chain_hash?.startsWith("sha256:") && (index === 0 || row.previous_hash === validationLedgerRows[index - 1].chain_hash)), "validation ledger must be hash chained"),
     validationItem("coverage.visible_gaps", "coverage", enforcementCoverageRows.every((row) => row.coverage_status !== "blocked" || row.enterprise_blocking_gap === true), "external enforcement gaps must remain visible until closed"),
     validationItem("guards.safe", "guards", guardRows.every((row) => row.guard_status === "ready"), "all safety guards must be ready"),
@@ -879,6 +913,9 @@ function buildSummary({ sourceActivation, componentRows, reviewerProfileRows, re
     force_push_disabled_now: boundary.force_push_disabled_now,
     pull_request_review_completed_now: boundary.pull_request_review_completed_now,
     pull_request_review_decision: boundary.pull_request_review_decision,
+    independent_github_review_completed_now: boundary.independent_github_review_completed_now,
+    single_owner_exception_observed_now: boundary.single_owner_exception_observed_now,
+    single_owner_merge_readiness_now: boundary.single_owner_merge_readiness_now,
     signed_attestation_generated_now: boundary.signed_attestation_generated_now,
     attestation_verification_passed_now: boundary.attestation_verification_passed_now,
     independent_review_completed_now: boundary.independent_review_completed_now,
@@ -1057,6 +1094,8 @@ function renderMarkdown(result) {
     `Force push disabled now: ${result.summary.force_push_disabled_now}`,
     `Pull request review completed now: ${result.summary.pull_request_review_completed_now}`,
     `Pull request review decision: ${result.summary.pull_request_review_decision}`,
+    `Single-owner exception observed now: ${result.summary.single_owner_exception_observed_now}`,
+    `Single-owner merge readiness now: ${result.summary.single_owner_merge_readiness_now}`,
     `Signed attestation generated now: ${result.summary.signed_attestation_generated_now}`,
     `Attestation verification passed now: ${result.summary.attestation_verification_passed_now}`,
     `Attestation support status: ${result.summary.attestation_support_status}`,
@@ -1070,7 +1109,7 @@ function renderMarkdown(result) {
     "",
     "## Boundary",
     "",
-    "This tranche opens external enforcement preflight. Missing GitHub branch protection, signed attestation verification, Claude review receipts, and human adjudication remain BLOCK rather than being treated as PASS.",
+    "This tranche opens external enforcement preflight. Missing GitHub branch protection, signed attestation verification, Claude review receipts, and human adjudication remain BLOCK rather than being treated as PASS. Single-owner mode may permit a lower-trust merge readiness signal, but it does not satisfy independent GitHub review or enterprise trust.",
     "",
   ].join("\n");
 }
@@ -1092,6 +1131,7 @@ function normalizeInputs(options) {
     pull_request_review_receipt_path: options.pullRequestReviewReceiptPath ?? defaults.pullRequestReviewReceiptPath,
     claude_review_receipt_path: options.claudeReviewReceiptPath ?? defaults.claudeReviewReceiptPath,
     human_adjudication_receipt_path: options.humanAdjudicationReceiptPath ?? defaults.humanAdjudicationReceiptPath,
+    single_owner_exception_receipt_path: options.singleOwnerExceptionReceiptPath ?? defaults.singleOwnerExceptionReceiptPath,
     attestation_verification_receipt_path: options.attestationVerificationReceiptPath ?? options.attestationVerifyReceiptPath ?? defaults.attestationVerificationReceiptPath,
   };
 }
@@ -1191,6 +1231,7 @@ function parseArgs(argv) {
     repositoryFullName: undefined,
     branch: undefined,
     reviewBranch: undefined,
+    singleOwnerExceptionReceiptPath: undefined,
     help: false,
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -1225,6 +1266,9 @@ function parseArgs(argv) {
     } else if (arg === "--review-branch") {
       args.reviewBranch = argv[index + 1];
       index += 1;
+    } else if (arg === "--single-owner-exception-receipt") {
+      args.singleOwnerExceptionReceiptPath = argv[index + 1];
+      index += 1;
     } else if (arg === "--help" || arg === "-h") {
       args.help = true;
     }
@@ -1246,6 +1290,8 @@ Options:
   --repo <owner/repo>             GitHub repository full name.
   --branch <branch>               Branch to inspect.
   --review-branch <branch>        Pull request branch to inspect for reviewDecision.
+  --single-owner-exception-receipt <path>
+                                  Override single-owner exception receipt path.
   --help                          Show this help.
 `);
 }

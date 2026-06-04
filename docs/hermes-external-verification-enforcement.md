@@ -126,6 +126,7 @@ hash-bound receipt:
 ```bash
 npm run platform:live-external-verification-evidence -- \
   --branch main \
+  --actions-branch codex/p3840-review-hardening \
   --human-adjudication-input artifacts/platform-external-verification-enforcement/review/human-adjudication-input.json
 ```
 

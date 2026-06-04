@@ -170,6 +170,8 @@ test("Live external verification evidence capture creates the seven concrete rec
     const result = await runPlatformLiveExternalVerificationEvidence({
       runAt: RUN_AT,
       write: true,
+      branch: "main",
+      actionsBranch: "codex/test-actions-branch",
       ...paths.options,
     });
 
@@ -179,6 +181,10 @@ test("Live external verification evidence capture creates the seven concrete rec
     assert.equal(result.receipts.branch_protection_receipt.receipt_path, paths.branchProtectionReceiptPath);
     assert.equal(result.receipts.required_check_receipt.receipt_path, paths.requiredCheckReceiptPath);
     assert.equal(result.receipts.actions_run_receipt.receipt_path, paths.actionsRunReceiptPath);
+    assert.equal(result.receipts.branch_protection_receipt.branch_name, "main");
+    assert.equal(result.receipts.required_check_receipt.actions_branch_name, "codex/test-actions-branch");
+    assert.equal(result.receipts.actions_run_receipt.branch_name, "codex/test-actions-branch");
+    assert.equal(result.receipts.actions_run_receipt.protected_branch_name, "main");
     assert.equal(result.receipts.attestation_verify_receipt.receipt_path, paths.attestationVerifyReceiptPath);
     assert.equal(result.receipts.claude_review_receipt.receipt_path, paths.claudeReviewReceiptPath);
     assert.equal(result.receipts.human_adjudication_receipt.receipt_path, paths.humanAdjudicationReceiptPath);

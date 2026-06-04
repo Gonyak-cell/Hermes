@@ -56,6 +56,7 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
   const selectedRemoteUrl = options.githubRepoUrl ?? firstGithubRemoteUrl([gitHubRemote.stdout.trim(), gitRemote.stdout.trim()]);
   const parsedRemote = parseGithubRemote(selectedRemoteUrl);
   const branchName = options.branch ?? (gitBranch.stdout.trim() || "main");
+  const actionsBranchName = options.actionsBranch ?? branchName;
   const repositoryFullName = options.repositoryFullName ?? (parsedRemote ? `${parsedRemote.owner}/${parsedRemote.repo}` : null);
   const repoFlag = repositoryFullName ? ` -R ${quoteShell(repositoryFullName)}` : "";
 
@@ -66,7 +67,7 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
     ? await runShellCommand("gh_branch_protection", `gh api repos/${repositoryFullName}/branches/${quotePathPart(branchName)}/protection`, cwd)
     : skippedCommand("gh_branch_protection", "gh api repos/{owner}/{repo}/branches/{branch}/protection", missingGitHubReason({ ghPath, ghAuth, repositoryFullName }));
   const actionsRun = ghPath.exit_code === 0 && ghAuth.exit_code === 0 && repositoryFullName
-    ? await runShellCommand("gh_actions_run", `gh run list${repoFlag} --workflow ${quoteShell(REQUIRED_WORKFLOW_NAME)} --branch ${quoteShell(branchName)} --limit 1 --json databaseId,headSha,status,conclusion,workflowName,displayTitle,url,createdAt,updatedAt`, cwd)
+    ? await runShellCommand("gh_actions_run", `gh run list${repoFlag} --workflow ${quoteShell(REQUIRED_WORKFLOW_NAME)} --branch ${quoteShell(actionsBranchName)} --limit 1 --json databaseId,headSha,status,conclusion,workflowName,displayTitle,url,createdAt,updatedAt`, cwd)
     : skippedCommand("gh_actions_run", "gh run list --workflow Hermes Verification Trust", missingGitHubReason({ ghPath, ghAuth, repositoryFullName }));
   const attestationVerify = ghPath.exit_code === 0 && ghAuth.exit_code === 0 && repositoryFullName && options.attestationSubject
     ? await runShellCommand("gh_attestation_verify", `gh attestation verify ${quoteShell(options.attestationSubject)} --repo ${quoteShell(repositoryFullName)}`, cwd)
@@ -109,6 +110,7 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
     receiptPath: receiptPaths.required_check_receipt_path,
     repositoryFullName,
     branchName,
+    actionsBranchName,
     requiredContexts,
     latestRun,
     protectionJson,
@@ -118,6 +120,7 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
     receiptPath: receiptPaths.actions_run_receipt_path,
     repositoryFullName,
     branchName,
+    actionsBranchName,
     gitHead,
     actionsRun,
     latestRun,
@@ -260,7 +263,7 @@ function buildBranchProtectionReceipt({ generatedAt, receiptPath, repositoryFull
   });
 }
 
-function buildRequiredCheckReceipt({ generatedAt, receiptPath, repositoryFullName, branchName, requiredContexts, latestRun, protectionJson }) {
+function buildRequiredCheckReceipt({ generatedAt, receiptPath, repositoryFullName, branchName, actionsBranchName, requiredContexts, latestRun, protectionJson }) {
   const requiredStatusCheckEnforced = requiredContexts.includes(REQUIRED_CHECK_NAME);
   return receipt({
     schema_version: "github-required-check-receipt.v1",
@@ -271,6 +274,7 @@ function buildRequiredCheckReceipt({ generatedAt, receiptPath, repositoryFullNam
     program_range: PROGRAM_RANGE,
     repository_full_name: repositoryFullName,
     branch_name: branchName,
+    actions_branch_name: actionsBranchName,
     required_check_name: REQUIRED_CHECK_NAME,
     required_status_check_enforced_now: requiredStatusCheckEnforced,
     required_status_check_contexts: requiredContexts,
@@ -283,7 +287,7 @@ function buildRequiredCheckReceipt({ generatedAt, receiptPath, repositoryFullNam
   });
 }
 
-function buildActionsRunReceipt({ generatedAt, receiptPath, repositoryFullName, branchName, gitHead, actionsRun, latestRun }) {
+function buildActionsRunReceipt({ generatedAt, receiptPath, repositoryFullName, branchName, actionsBranchName, gitHead, actionsRun, latestRun }) {
   const runSuccess = latestRun?.conclusion === "success";
   return receipt({
     schema_version: "github-actions-run-receipt.v1",
@@ -293,7 +297,8 @@ function buildActionsRunReceipt({ generatedAt, receiptPath, repositoryFullName, 
     receipt_status: runSuccess ? "observed" : "blocked_missing_external_evidence",
     program_range: PROGRAM_RANGE,
     repository_full_name: repositoryFullName,
-    branch_name: branchName,
+    branch_name: actionsBranchName,
+    protected_branch_name: branchName,
     workflow_name: REQUIRED_WORKFLOW_NAME,
     commit_sha: latestRun?.headSha ?? gitHead.stdout.trim() ?? null,
     actions_run_id: latestRun?.databaseId ?? null,
@@ -654,6 +659,7 @@ function parseArgs(argv) {
     githubRepoUrl: undefined,
     repositoryFullName: undefined,
     branch: undefined,
+    actionsBranch: undefined,
     attestationSubject: undefined,
     humanAdjudicationInputPath: undefined,
     help: false,
@@ -675,6 +681,9 @@ function parseArgs(argv) {
     } else if (arg === "--branch") {
       args.branch = argv[index + 1];
       index += 1;
+    } else if (arg === "--actions-branch") {
+      args.actionsBranch = argv[index + 1];
+      index += 1;
     } else if (arg === "--attestation-subject") {
       args.attestationSubject = argv[index + 1];
       index += 1;
@@ -695,7 +704,8 @@ Options:
   --check                         Validate without writing receipt artifacts.
   --repo <owner/repo>             GitHub repository full name.
   --github-repo-url <url>         GitHub repository URL.
-  --branch <branch>               Branch to inspect.
+  --branch <branch>               Protected branch to inspect.
+  --actions-branch <branch>       Branch to inspect for the latest Actions run.
   --attestation-subject <path>    Artifact path or subject for gh attestation verify.
   --human-adjudication-input <path>
                                   Human owner decision input JSON.

@@ -35,6 +35,16 @@ jobs:
 
       - name: Validate kernel cutover prerequisites
         run: |
+          node --input-type=module <<'NODE'
+          import { buildPlatformAgentRuntimePilotFreeze } from "./src/platform-agent-runtime-pilot-freeze.mjs";
+          const result = await buildPlatformAgentRuntimePilotFreeze({ write: false });
+          console.log(JSON.stringify(result.agent_runtime_pilot_freeze_source_rows.map((row) => ({
+            source_id: row.source_id,
+            source_status: row.source_status,
+            source_validation_error_count: row.source_validation_error_count,
+          })), null, 2));
+          console.log(JSON.stringify(result.validation.errors, null, 2));
+          NODE
           npm run platform:agent-runtime-pilot-freeze -- --check
           npm run platform:agent-runtime-activation-bridge -- --check
           npm run platform:domain-agent-no-write-pilot -- --check

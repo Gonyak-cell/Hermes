@@ -35,6 +35,7 @@ jobs:
 
       - name: Validate kernel cutover prerequisites
         run: |
+          npm run platform:agent-runtime-pilot-freeze -- --check
           npm run platform:agent-runtime-activation-bridge -- --check
           npm run platform:domain-agent-no-write-pilot -- --check
           npm run platform:agent-operator-console-v0 -- --check

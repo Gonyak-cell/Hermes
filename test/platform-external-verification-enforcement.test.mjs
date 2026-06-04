@@ -9,6 +9,7 @@ import {
 } from "../src/platform-external-verification-enforcement.mjs";
 import {
   buildPlatformLiveExternalVerificationEvidence,
+  classifyAttestationSupport,
   runPlatformLiveExternalVerificationEvidence,
 } from "../src/platform-live-external-verification-evidence.mjs";
 
@@ -136,6 +137,46 @@ test("External verification enforcement does not overclaim GitHub branch protect
   assert.equal(attestationGenerated.current_verdict, "blocked");
   assert.equal(attestationVerified.observed_now, false);
   assert.equal(attestationVerified.current_verdict, "blocked");
+});
+
+test("External verification enforcement surfaces attestation block reason from receipt evidence", async () => {
+  const outDir = await mkdtemp(path.join(os.tmpdir(), "platform-attestation-block-reason-"));
+  const paths = receiptPaths(outDir);
+
+  try {
+    await writeReceipt(paths.attestationVerifyReceiptPath, {
+      schema_version: "attestation-verify-receipt.v1",
+      receipt_status: "blocked_missing_external_evidence",
+      repository_full_name: "example/hermes",
+      repository_visibility: "private",
+      repository_is_private: true,
+      repository_owner_type: "User",
+      signed_attestation_generated_now: false,
+      attestation_verification_passed_now: false,
+      attestation_support_status: "blocked_private_or_internal_repository",
+      attestation_block_reason: "github_private_user_repository_requires_enterprise_cloud_for_artifact_attestations",
+      attestation_policy_ref: "github_docs.artifact_attestations.private_internal_requires_enterprise_cloud",
+      raw_payload_inlined: false,
+    });
+    const base = await resultPromise;
+    const result = await buildPlatformExternalVerificationEnforcement({
+      runAt: RUN_AT,
+      write: false,
+      livePreflight: BLOCKED_PREFLIGHT,
+      sourceActivation: { summary: base.source_verification_trust_activation_summary },
+      ...paths.options,
+    });
+    const attestationRow = result.signed_attestation_rows.find((row) => row.control_id === "attestation_verification_passed");
+
+    assert.equal(result.validation.valid, true);
+    assert.equal(result.summary.attestation_support_status, "blocked_private_or_internal_repository");
+    assert.equal(result.summary.attestation_block_reason, "github_private_user_repository_requires_enterprise_cloud_for_artifact_attestations");
+    assert.equal(result.summary.attestation_policy_ref, "github_docs.artifact_attestations.private_internal_requires_enterprise_cloud");
+    assert.equal(attestationRow.attestation_support_status, "blocked_private_or_internal_repository");
+    assert.equal(result.summary.p3680_external_controls_complete, false);
+  } finally {
+    await rm(outDir, { recursive: true, force: true });
+  }
 });
 
 test("External verification enforcement requires Claude review receipts plus human adjudication before completion", async () => {
@@ -278,6 +319,47 @@ test("Live external verification evidence blocks incomplete human adjudication i
   } finally {
     await rm(outDir, { recursive: true, force: true });
   }
+});
+
+test("Live external verification evidence classifies private user repo attestations as externally blocked", () => {
+  const support = classifyAttestationSupport({
+    verified: false,
+    attestationSubject: "/tmp/hermes-verification-trust-artifacts.tgz",
+    repositoryVisibility: "private",
+    repositoryIsPrivate: true,
+    repositoryOwnerType: "User",
+    attestationVerify: {
+      executed: true,
+      exit_code: 1,
+      stderr: "Error: HTTP 404: Not Found",
+      stdout: "",
+    },
+  });
+
+  assert.equal(support.status, "blocked_private_or_internal_repository");
+  assert.equal(support.blockReason, "github_private_user_repository_requires_enterprise_cloud_for_artifact_attestations");
+  assert.equal(support.policyRef, "github_docs.artifact_attestations.private_internal_requires_enterprise_cloud");
+  assert.equal(support.nextActionCode, "move_to_enterprise_cloud_or_public_attestation_lane");
+});
+
+test("Live external verification evidence classifies verified attestations as preserved evidence", () => {
+  const support = classifyAttestationSupport({
+    verified: true,
+    attestationSubject: "/tmp/hermes-verification-trust-artifacts.tgz",
+    repositoryVisibility: "public",
+    repositoryIsPrivate: false,
+    repositoryOwnerType: "Organization",
+    attestationVerify: {
+      executed: true,
+      exit_code: 0,
+      stderr: "",
+      stdout: "[{\"verificationResult\":\"ok\"}]",
+    },
+  });
+
+  assert.equal(support.status, "verified");
+  assert.equal(support.blockReason, null);
+  assert.equal(support.nextActionCode, "preserve_verified_attestation");
 });
 
 test("External verification enforcement keeps blocked placeholder receipts from becoming completed review evidence", async () => {

@@ -196,4 +196,4 @@ jobs:
 
       - name: Record artifact attestation unavailable
         if: ${{ github.event.repository.visibility == 'private' }}
-        run: echo "GitHub artifact attestations are unavailable for user-owned private repositories; attestation evidence remains BLOCK."
+        run: echo "GitHub artifact attestations for private/internal repositories require GitHub Enterprise Cloud; attestation evidence remains BLOCK."

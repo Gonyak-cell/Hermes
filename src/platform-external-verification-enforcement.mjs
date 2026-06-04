@@ -428,6 +428,9 @@ function buildAttestationRows({ workflow, attestationVerificationReceipt, livePr
     && workflow.text.includes("attestations: write");
   const attestationObserved = isObservedReceipt(attestationVerificationReceipt.data);
   const verifyPassed = attestationObserved && attestationVerificationReceipt.data?.attestation_verification_passed_now === true;
+  const supportStatus = attestationVerificationReceipt.data?.attestation_support_status ?? null;
+  const blockReason = attestationVerificationReceipt.data?.attestation_block_reason ?? null;
+  const policyRef = attestationVerificationReceipt.data?.attestation_policy_ref ?? null;
   const rows = [
     ["workflow_permissions_declared", workflowDeclaresPermissions, "Workflow declares OIDC and attestation permissions"],
     ["actions_attest_step_declared", workflowDeclaresAttest, "Workflow declares actions/attest@v4"],
@@ -444,6 +447,9 @@ function buildAttestationRows({ workflow, attestationVerificationReceipt, livePr
     required_for_enterprise_trust: true,
     external_signed_attestation_present_now: attestationObserved && attestationVerificationReceipt.data?.signed_attestation_generated_now === true,
     attestation_verification_passed_now: verifyPassed,
+    attestation_support_status: supportStatus,
+    attestation_block_reason: blockReason,
+    attestation_policy_ref: policyRef,
     evidence_ref: `evidence.platform.external_verification.attestation.${controlId}`,
     reviewer_ref: "reviewer.platform_attestation",
     hard_gate_ref: `gate.platform.external_verification.attestation.${controlId}`,
@@ -789,6 +795,9 @@ function buildSummary({ sourceActivation, componentRows, reviewerProfileRows, re
     workflow_defined_required_check_count: requiredStatusCheckRows.filter((row) => row.workflow_defined_now).length,
     signed_attestation_count: attestationRows.length,
     observed_signed_attestation_count: attestationRows.filter((row) => row.observed_now).length,
+    attestation_support_status: attestationRows.find((row) => row.attestation_support_status)?.attestation_support_status ?? null,
+    attestation_block_reason: attestationRows.find((row) => row.attestation_block_reason)?.attestation_block_reason ?? null,
+    attestation_policy_ref: attestationRows.find((row) => row.attestation_policy_ref)?.attestation_policy_ref ?? null,
     independent_review_count: independentReviewRows.length,
     observed_independent_review_count: independentReviewRows.filter((row) => row.observed_now).length,
     evidence_provenance_count: evidenceRows.length,
@@ -970,6 +979,8 @@ function renderMarkdown(result) {
     `Force push disabled now: ${result.summary.force_push_disabled_now}`,
     `Signed attestation generated now: ${result.summary.signed_attestation_generated_now}`,
     `Attestation verification passed now: ${result.summary.attestation_verification_passed_now}`,
+    `Attestation support status: ${result.summary.attestation_support_status}`,
+    `Attestation block reason: ${result.summary.attestation_block_reason}`,
     `Independent review completed now: ${result.summary.independent_review_completed_now}`,
     `Human adjudication receipt present now: ${result.summary.human_adjudication_receipt_present_now}`,
     `Enterprise trust claim allowed now: ${result.summary.enterprise_trust_claim_allowed_now}`,

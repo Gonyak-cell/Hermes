@@ -161,3 +161,23 @@ Allowed decisions are `ACCEPT`, `ACCEPT_WITH_MODIFICATION`, `REJECT`, and
 `HOLD`. The generated receipt stores the input file hash and hashes of rationale
 or owner note fields, not the raw narrative text. Missing, duplicate, or unknown
 finding ids keep the receipt at `blocked_missing_external_evidence`.
+
+### Attestation Availability
+
+The attestation receipt records repository visibility and owner type before
+promoting signed attestation evidence. A failed `gh attestation verify` is not
+enough by itself to explain the gate state.
+
+For private or internal repositories, GitHub artifact attestations require a
+GitHub Enterprise Cloud-capable lane. If the current repository is private and
+verification cannot find a signed attestation, the receipt remains
+`blocked_missing_external_evidence` with:
+
+```text
+attestation_support_status = blocked_private_or_internal_repository
+attestation_policy_ref = github_docs.artifact_attestations.private_internal_requires_enterprise_cloud
+```
+
+The next safe actions are to move the attestation lane to a GitHub Enterprise
+Cloud repository, use a public/release artifact attestation lane, or keep the
+enterprise trust claim blocked.

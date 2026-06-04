@@ -61,8 +61,11 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
   const repoFlag = repositoryFullName ? ` -R ${quoteShell(repositoryFullName)}` : "";
 
   const repoView = ghPath.exit_code === 0 && ghAuth.exit_code === 0 && repositoryFullName
-    ? await runShellCommand("gh_repo_view", `gh repo view${repoFlag} --json nameWithOwner,defaultBranchRef,url`, cwd)
-    : skippedCommand("gh_repo_view", "gh repo view --json nameWithOwner,defaultBranchRef,url", missingGitHubReason({ ghPath, ghAuth, repositoryFullName }));
+    ? await runShellCommand("gh_repo_view", `gh repo view${repoFlag} --json nameWithOwner,defaultBranchRef,url,visibility,isPrivate,owner`, cwd)
+    : skippedCommand("gh_repo_view", "gh repo view --json nameWithOwner,defaultBranchRef,url,visibility,isPrivate,owner", missingGitHubReason({ ghPath, ghAuth, repositoryFullName }));
+  const repoMetadata = ghPath.exit_code === 0 && ghAuth.exit_code === 0 && repositoryFullName
+    ? await runShellCommand("gh_repo_metadata", `gh api repos/${quoteRepoApiPath(repositoryFullName)}`, cwd)
+    : skippedCommand("gh_repo_metadata", "gh api repos/{owner}/{repo}", missingGitHubReason({ ghPath, ghAuth, repositoryFullName }));
   const protection = ghPath.exit_code === 0 && ghAuth.exit_code === 0 && repositoryFullName
     ? await runShellCommand("gh_branch_protection", `gh api repos/${repositoryFullName}/branches/${quotePathPart(branchName)}/protection`, cwd)
     : skippedCommand("gh_branch_protection", "gh api repos/{owner}/{repo}/branches/{branch}/protection", missingGitHubReason({ ghPath, ghAuth, repositoryFullName }));
@@ -75,12 +78,13 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
 
   const protectionJson = parseJsonMaybe(protection.stdout);
   const repoViewJson = parseJsonMaybe(repoView.stdout);
+  const repoMetadataJson = parseJsonMaybe(repoMetadata.stdout);
   const actionsRunJson = parseJsonMaybe(actionsRun.stdout);
   const latestRun = Array.isArray(actionsRunJson) ? actionsRunJson[0] ?? null : null;
   const requiredContexts = protectionJson?.required_status_checks?.contexts ?? [];
   const prReviews = protectionJson?.required_pull_request_reviews ?? {};
 
-  const commandObservations = [gitRemote, gitHubRemote, gitBranch, gitHead, ghPath, ghAuth, repoView, protection, actionsRun, attestationVerify];
+  const commandObservations = [gitRemote, gitHubRemote, gitBranch, gitHead, ghPath, ghAuth, repoView, repoMetadata, protection, actionsRun, attestationVerify];
   const remoteBindingReceipt = buildRemoteBindingReceipt({
     generatedAt,
     cwd,
@@ -93,9 +97,10 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
     ghPath,
     ghAuth,
     repoViewJson,
+    repoMetadataJson,
     repositoryFullName,
     parsedRemote,
-    commandObservations: [gitRemote, gitHubRemote, gitBranch, gitHead, ghPath, ghAuth, repoView],
+    commandObservations: [gitRemote, gitHubRemote, gitBranch, gitHead, ghPath, ghAuth, repoView, repoMetadata],
   });
   const branchProtectionReceipt = buildBranchProtectionReceipt({
     generatedAt,
@@ -132,6 +137,8 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
     attestationSubject: options.attestationSubject ?? null,
     attestationVerify,
     existingReceipt: existingAttestationReceipt,
+    repoViewJson,
+    repoMetadataJson,
   });
   const claudeReviewReceipt = buildClaudeReviewReceipt({
     generatedAt,
@@ -208,7 +215,7 @@ export async function runPlatformLiveExternalVerificationEvidenceCli(argv = proc
   }
 }
 
-function buildRemoteBindingReceipt({ generatedAt, cwd, receiptPath, gitRemote, gitHubRemote, selectedRemoteUrl, gitBranch, gitHead, ghPath, ghAuth, repoViewJson, repositoryFullName, parsedRemote, commandObservations }) {
+function buildRemoteBindingReceipt({ generatedAt, cwd, receiptPath, gitRemote, gitHubRemote, selectedRemoteUrl, gitBranch, gitHead, ghPath, ghAuth, repoViewJson, repoMetadataJson, repositoryFullName, parsedRemote, commandObservations }) {
   const githubRemoteConfigured = Boolean(parsedRemote);
   const ghAvailable = ghPath.exit_code === 0;
   const ghAuthAvailable = ghAuth.exit_code === 0;
@@ -223,6 +230,10 @@ function buildRemoteBindingReceipt({ generatedAt, cwd, receiptPath, gitRemote, g
     cwd,
     repository_full_name: repositoryFullName,
     repository_url: repoViewJson?.url ?? (parsedRemote ? `https://github.com/${parsedRemote.owner}/${parsedRemote.repo}` : null),
+    repository_visibility: normalizeVisibility(repoMetadataJson?.visibility ?? repoViewJson?.visibility),
+    repository_is_private: repoMetadataJson?.private ?? repoViewJson?.isPrivate ?? null,
+    repository_owner_login: repoMetadataJson?.owner?.login ?? repoViewJson?.owner?.login ?? null,
+    repository_owner_type: repoMetadataJson?.owner?.type ?? null,
     remote_url: selectedRemoteUrl ?? null,
     origin_remote_url: gitRemote.stdout.trim(),
     github_remote_url: gitHubRemote.stdout.trim(),
@@ -312,11 +323,22 @@ function buildActionsRunReceipt({ generatedAt, receiptPath, repositoryFullName, 
   });
 }
 
-function buildAttestationVerifyReceipt({ generatedAt, receiptPath, repositoryFullName, attestationSubject, attestationVerify, existingReceipt }) {
+function buildAttestationVerifyReceipt({ generatedAt, receiptPath, repositoryFullName, attestationSubject, attestationVerify, existingReceipt, repoViewJson, repoMetadataJson }) {
   if (isObservedReceipt(existingReceipt.data)) {
     return { ...existingReceipt.data, preserved_existing_receipt: true };
   }
   const verified = attestationVerify.exit_code === 0;
+  const repositoryVisibility = normalizeVisibility(repoMetadataJson?.visibility ?? repoViewJson?.visibility);
+  const repositoryIsPrivate = repoMetadataJson?.private ?? repoViewJson?.isPrivate ?? null;
+  const repositoryOwnerType = repoMetadataJson?.owner?.type ?? null;
+  const support = classifyAttestationSupport({
+    verified,
+    attestationSubject,
+    repositoryVisibility,
+    repositoryIsPrivate,
+    repositoryOwnerType,
+    attestationVerify,
+  });
   return receipt({
     schema_version: "attestation-verify-receipt.v1",
     receipt_path: receiptPath,
@@ -325,14 +347,69 @@ function buildAttestationVerifyReceipt({ generatedAt, receiptPath, repositoryFul
     receipt_status: verified ? "observed" : "blocked_missing_external_evidence",
     program_range: PROGRAM_RANGE,
     repository_full_name: repositoryFullName,
+    repository_visibility: repositoryVisibility,
+    repository_is_private: repositoryIsPrivate,
+    repository_owner_type: repositoryOwnerType,
     attestation_subject: attestationSubject,
     signed_attestation_generated_now: verified,
     attestation_verification_passed_now: verified,
+    attestation_support_status: support.status,
+    attestation_block_reason: support.blockReason,
+    attestation_policy_ref: support.policyRef,
+    attestation_next_action_code: support.nextActionCode,
     verification_output_hash: verified ? sha256(attestationVerify.stdout) : null,
     raw_payload_inlined: false,
     command_observations: [attestationVerify],
-    next_allowed_action: verified ? "preserve signed attestation verification evidence" : "provide CI-generated attestation subject and rerun gh attestation verify",
+    next_allowed_action: support.nextAllowedAction,
   });
+}
+
+export function classifyAttestationSupport({ verified, attestationSubject, repositoryVisibility, repositoryIsPrivate, repositoryOwnerType, attestationVerify }) {
+  if (verified) {
+    return {
+      status: "verified",
+      blockReason: null,
+      policyRef: "github_docs.artifact_attestations.gh_cli_verify",
+      nextActionCode: "preserve_verified_attestation",
+      nextAllowedAction: "preserve signed attestation verification evidence",
+    };
+  }
+  if (!attestationSubject) {
+    return {
+      status: "blocked_subject_missing",
+      blockReason: "attestation_subject_not_provided",
+      policyRef: "github_docs.artifact_attestations.gh_cli_verify",
+      nextActionCode: "provide_attestation_subject",
+      nextAllowedAction: "provide CI-generated attestation subject and rerun gh attestation verify",
+    };
+  }
+  if (repositoryIsPrivate === true || repositoryVisibility === "private" || repositoryVisibility === "internal") {
+    return {
+      status: "blocked_private_or_internal_repository",
+      blockReason: repositoryOwnerType === "User"
+        ? "github_private_user_repository_requires_enterprise_cloud_for_artifact_attestations"
+        : "github_private_internal_repository_requires_enterprise_cloud_for_artifact_attestations",
+      policyRef: "github_docs.artifact_attestations.private_internal_requires_enterprise_cloud",
+      nextActionCode: "move_to_enterprise_cloud_or_public_attestation_lane",
+      nextAllowedAction: "use a GitHub Enterprise Cloud repository or a public/release artifact attestation lane, then rerun gh attestation verify",
+    };
+  }
+  if (attestationVerify?.executed && attestationVerify.exit_code !== 0 && /HTTP 404|Not Found/i.test(`${attestationVerify.stderr}\n${attestationVerify.stdout}`)) {
+    return {
+      status: "blocked_attestation_not_found",
+      blockReason: "github_attestation_lookup_returned_404",
+      policyRef: "github_docs.artifact_attestations.gh_cli_verify",
+      nextActionCode: "generate_ci_attestation_for_subject",
+      nextAllowedAction: "generate an attestation for the exact CI artifact subject and rerun gh attestation verify",
+    };
+  }
+  return {
+    status: "blocked_verification_failed",
+    blockReason: attestationVerify?.executed ? "gh_attestation_verify_failed" : (attestationVerify?.skip_reason ?? "gh_attestation_verify_not_executed"),
+    policyRef: "github_docs.artifact_attestations.gh_cli_verify",
+    nextActionCode: "repair_attestation_verify_preconditions",
+    nextAllowedAction: "repair attestation verification preconditions and rerun gh attestation verify",
+  };
 }
 
 function buildClaudeReviewReceipt({ generatedAt, receiptPath, existingReceipt }) {
@@ -585,6 +662,10 @@ function parseJsonMaybe(value) {
   }
 }
 
+function normalizeVisibility(value) {
+  return typeof value === "string" ? value.toLowerCase() : null;
+}
+
 async function readOptionalJson(filePath) {
   try {
     const raw = await readFile(filePath, "utf8");
@@ -625,6 +706,8 @@ function renderMarkdown(result) {
     `Required check enforced: ${result.summary.required_status_check_enforced_now}`,
     `Actions run success: ${result.summary.actions_run_success_now}`,
     `Attestation verified: ${result.summary.attestation_verification_passed_now}`,
+    `Attestation support status: ${result.receipts.attestation_verify_receipt.attestation_support_status}`,
+    `Attestation block reason: ${result.receipts.attestation_verify_receipt.attestation_block_reason}`,
     `Claude review completed: ${result.summary.claude_review_completed_now}`,
     `Human adjudication present: ${result.summary.human_adjudication_receipt_present_now}`,
     `Observed receipts: ${result.summary.observed_receipt_count}`,
@@ -723,6 +806,10 @@ function quoteShell(value) {
 
 function quotePathPart(value) {
   return encodeURIComponent(String(value));
+}
+
+function quoteRepoApiPath(value) {
+  return String(value).split("/").map((part) => quotePathPart(part)).join("/");
 }
 
 function redactOutput(value) {

@@ -12,6 +12,7 @@ export const DEFAULT_PLATFORM_LIVE_EXTERNAL_VERIFICATION_RECEIPTS = {
   branchProtectionReceiptPath: "artifacts/platform-external-verification-enforcement/github/branch-protection-receipt.json",
   requiredCheckReceiptPath: "artifacts/platform-external-verification-enforcement/github/required-check-receipt.json",
   actionsRunReceiptPath: "artifacts/platform-external-verification-enforcement/github/actions-run-receipt.json",
+  pullRequestReviewReceiptPath: "artifacts/platform-external-verification-enforcement/github/pull-request-review-receipt.json",
   attestationVerifyReceiptPath: "artifacts/platform-external-verification-enforcement/attestation/attestation-verify-receipt.json",
   claudeReviewReceiptPath: "artifacts/platform-external-verification-enforcement/review/claude-review-receipt.json",
   humanAdjudicationReceiptPath: "artifacts/platform-external-verification-enforcement/review/human-adjudication-receipt.json",
@@ -75,6 +76,9 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
   const actionsRun = ghPath.exit_code === 0 && ghAuth.exit_code === 0 && repositoryFullName
     ? await runShellCommand("gh_actions_run", `gh run list${repoFlag} --workflow ${quoteShell(REQUIRED_WORKFLOW_NAME)} --branch ${quoteShell(actionsBranchName)} --limit 1 --json databaseId,headSha,status,conclusion,workflowName,displayTitle,url,createdAt,updatedAt`, cwd)
     : skippedCommand("gh_actions_run", "gh run list --workflow Hermes Verification Trust", missingGitHubReason({ ghPath, ghAuth, repositoryFullName }));
+  const pullRequestReview = ghPath.exit_code === 0 && ghAuth.exit_code === 0 && repositoryFullName
+    ? await runShellCommand("gh_pull_request_review", `gh pr view ${quoteShell(actionsBranchName)}${repoFlag} --json number,url,state,mergeable,reviewDecision,headRefName,baseRefName,headRefOid,baseRefOid,latestReviews`, cwd)
+    : skippedCommand("gh_pull_request_review", "gh pr view <branch> --json reviewDecision", missingGitHubReason({ ghPath, ghAuth, repositoryFullName }));
   const attestationVerify = ghPath.exit_code === 0 && ghAuth.exit_code === 0 && repositoryFullName && options.attestationSubject
     ? await runShellCommand("gh_attestation_verify", `gh attestation verify ${quoteShell(options.attestationSubject)} --repo ${quoteShell(repositoryFullName)}`, cwd)
     : skippedCommand("gh_attestation_verify", "gh attestation verify <subject> --repo {owner}/{repo}", options.attestationSubject ? missingGitHubReason({ ghPath, ghAuth, repositoryFullName }) : "attestation_subject_not_provided");
@@ -84,11 +88,12 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
   const repoViewJson = parseJsonMaybe(repoView.stdout);
   const repoMetadataJson = parseJsonMaybe(repoMetadata.stdout);
   const actionsRunJson = parseJsonMaybe(actionsRun.stdout);
+  const pullRequestReviewJson = parseJsonMaybe(pullRequestReview.stdout);
   const latestRun = Array.isArray(actionsRunJson) ? actionsRunJson[0] ?? null : null;
   const requiredContexts = protectionJson?.required_status_checks?.contexts ?? [];
   const prReviews = protectionJson?.required_pull_request_reviews ?? {};
 
-  const commandObservations = [gitRemote, gitHubRemote, gitBranch, gitHead, ghPath, ghAuth, repoView, repoMetadata, protection, branchRules, actionsRun, attestationVerify];
+  const commandObservations = [gitRemote, gitHubRemote, gitBranch, gitHead, ghPath, ghAuth, repoView, repoMetadata, protection, branchRules, actionsRun, pullRequestReview, attestationVerify];
   const remoteBindingReceipt = buildRemoteBindingReceipt({
     generatedAt,
     cwd,
@@ -136,6 +141,15 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
     actionsRun,
     latestRun,
   });
+  const pullRequestReviewReceipt = buildPullRequestReviewReceipt({
+    generatedAt,
+    receiptPath: receiptPaths.pull_request_review_receipt_path,
+    repositoryFullName,
+    protectedBranchName: branchName,
+    actionsBranchName,
+    pullRequestReview,
+    pullRequestReviewJson,
+  });
   const attestationVerifyReceipt = buildAttestationVerifyReceipt({
     generatedAt,
     receiptPath: receiptPaths.attestation_verify_receipt_path,
@@ -164,6 +178,7 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
     branch_protection_receipt: branchProtectionReceipt,
     required_check_receipt: requiredCheckReceipt,
     actions_run_receipt: actionsRunReceipt,
+    pull_request_review_receipt: pullRequestReviewReceipt,
     attestation_verify_receipt: attestationVerifyReceipt,
     claude_review_receipt: claudeReviewReceipt,
     human_adjudication_receipt: humanAdjudicationReceipt,
@@ -233,6 +248,7 @@ export async function runPlatformLiveExternalVerificationEvidenceCli(argv = proc
     console.log(`Branch rules count: ${result.summary.branch_rules_count}`);
     console.log(`Required check enforced: ${result.summary.required_status_check_enforced_now}`);
     console.log(`Actions run success: ${result.summary.actions_run_success_now}`);
+    console.log(`Pull request review completed: ${result.summary.pull_request_review_completed_now}`);
     console.log(`Attestation verified: ${result.summary.attestation_verification_passed_now}`);
     console.log(`Claude review completed: ${result.summary.claude_review_completed_now}`);
     console.log(`Human adjudication present: ${result.summary.human_adjudication_receipt_present_now}`);
@@ -356,6 +372,42 @@ function buildActionsRunReceipt({ generatedAt, receiptPath, repositoryFullName, 
     raw_payload_inlined: false,
     command_observations: [actionsRun],
     next_allowed_action: runSuccess ? "preserve GitHub Actions run evidence" : "push branch and wait for Hermes Verification Trust workflow success",
+  });
+}
+
+function buildPullRequestReviewReceipt({ generatedAt, receiptPath, repositoryFullName, protectedBranchName, actionsBranchName, pullRequestReview, pullRequestReviewJson }) {
+  const queryAvailable = pullRequestReview.exit_code === 0 && Boolean(pullRequestReviewJson);
+  const reviewDecision = pullRequestReviewJson?.reviewDecision ?? null;
+  const latestReviews = Array.isArray(pullRequestReviewJson?.latestReviews) ? pullRequestReviewJson.latestReviews : [];
+  const latestApprovalCount = latestReviews.filter((review) => review?.state === "APPROVED").length;
+  const reviewCompleted = queryAvailable && reviewDecision === "APPROVED" && latestApprovalCount > 0;
+  return receipt({
+    schema_version: "github-pull-request-review-receipt.v1",
+    receipt_path: receiptPath,
+    generated_at: generatedAt,
+    receipt_id: `github.pull_request_review.${dateStamp(generatedAt)}`,
+    receipt_status: reviewCompleted ? "observed" : "blocked_missing_external_evidence",
+    program_range: PROGRAM_RANGE,
+    repository_full_name: repositoryFullName,
+    pull_request_number: pullRequestReviewJson?.number ?? null,
+    pull_request_url: pullRequestReviewJson?.url ?? null,
+    pull_request_state: pullRequestReviewJson?.state ?? null,
+    mergeable_state: pullRequestReviewJson?.mergeable ?? null,
+    review_decision: reviewDecision,
+    protected_branch_name: protectedBranchName,
+    branch_name: actionsBranchName,
+    head_ref_name: pullRequestReviewJson?.headRefName ?? null,
+    base_ref_name: pullRequestReviewJson?.baseRefName ?? null,
+    head_ref_oid: pullRequestReviewJson?.headRefOid ?? null,
+    base_ref_oid: pullRequestReviewJson?.baseRefOid ?? null,
+    pull_request_review_query_available_now: queryAvailable,
+    pull_request_review_completed_now: reviewCompleted,
+    latest_review_count: latestReviews.length,
+    latest_approval_count: latestApprovalCount,
+    pr_response_hash: queryAvailable ? sha256(pullRequestReview.stdout) : null,
+    raw_payload_inlined: false,
+    command_observations: [pullRequestReview],
+    next_allowed_action: reviewCompleted ? "preserve GitHub pull request review evidence" : "complete required GitHub pull request review before external enforcement completion",
   });
 }
 
@@ -689,6 +741,7 @@ function buildValidationItems({ receiptPaths, receipts }) {
     validationItem("receipt.branch_protection.path", "receipt_path", receipts.branch_protection_receipt.receipt_path === receiptPaths.branch_protection_receipt_path, "branch protection receipt path must match contract"),
     validationItem("receipt.required_check.path", "receipt_path", receipts.required_check_receipt.receipt_path === receiptPaths.required_check_receipt_path, "required check receipt path must match contract"),
     validationItem("receipt.actions_run.path", "receipt_path", receipts.actions_run_receipt.receipt_path === receiptPaths.actions_run_receipt_path, "actions run receipt path must match contract"),
+    validationItem("receipt.pull_request_review.path", "receipt_path", receipts.pull_request_review_receipt.receipt_path === receiptPaths.pull_request_review_receipt_path, "pull request review receipt path must match contract"),
     validationItem("receipt.attestation.path", "receipt_path", receipts.attestation_verify_receipt.receipt_path === receiptPaths.attestation_verify_receipt_path, "attestation verify receipt path must match contract"),
     validationItem("receipt.claude_review.path", "receipt_path", receipts.claude_review_receipt.receipt_path === receiptPaths.claude_review_receipt_path, "Claude review receipt path must match contract"),
     validationItem("receipt.human_adjudication.path", "receipt_path", receipts.human_adjudication_receipt.receipt_path === receiptPaths.human_adjudication_receipt_path, "human adjudication receipt path must match contract"),
@@ -709,6 +762,9 @@ function buildSummary({ receipts, validation }) {
     branch_rules_count: receipts.branch_protection_receipt.branch_rules_count,
     required_status_check_enforced_now: receipts.required_check_receipt.required_status_check_enforced_now,
     actions_run_success_now: receipts.actions_run_receipt.actions_run_success_now,
+    pull_request_review_query_available_now: receipts.pull_request_review_receipt.pull_request_review_query_available_now,
+    pull_request_review_completed_now: receipts.pull_request_review_receipt.pull_request_review_completed_now,
+    pull_request_review_decision: receipts.pull_request_review_receipt.review_decision,
     signed_attestation_generated_now: receipts.attestation_verify_receipt.signed_attestation_generated_now,
     attestation_verification_passed_now: receipts.attestation_verify_receipt.attestation_verification_passed_now,
     claude_review_completed_now: receipts.claude_review_receipt.review_completed_now,
@@ -832,6 +888,9 @@ function renderMarkdown(result) {
     `Branch rules count: ${result.summary.branch_rules_count}`,
     `Required check enforced: ${result.summary.required_status_check_enforced_now}`,
     `Actions run success: ${result.summary.actions_run_success_now}`,
+    `Pull request review query available: ${result.summary.pull_request_review_query_available_now}`,
+    `Pull request review completed: ${result.summary.pull_request_review_completed_now}`,
+    `Pull request review decision: ${result.summary.pull_request_review_decision}`,
     `Attestation verified: ${result.summary.attestation_verification_passed_now}`,
     `Attestation support status: ${result.receipts.attestation_verify_receipt.attestation_support_status}`,
     `Attestation block reason: ${result.receipts.attestation_verify_receipt.attestation_block_reason}`,
@@ -857,6 +916,7 @@ function normalizeReceiptPaths(options) {
     branch_protection_receipt_path: options.branchProtectionReceiptPath ?? defaults.branchProtectionReceiptPath,
     required_check_receipt_path: options.requiredCheckReceiptPath ?? defaults.requiredCheckReceiptPath,
     actions_run_receipt_path: options.actionsRunReceiptPath ?? defaults.actionsRunReceiptPath,
+    pull_request_review_receipt_path: options.pullRequestReviewReceiptPath ?? defaults.pullRequestReviewReceiptPath,
     attestation_verify_receipt_path: options.attestationVerifyReceiptPath ?? defaults.attestationVerifyReceiptPath,
     claude_review_receipt_path: options.claudeReviewReceiptPath ?? defaults.claudeReviewReceiptPath,
     human_adjudication_receipt_path: options.humanAdjudicationReceiptPath ?? defaults.humanAdjudicationReceiptPath,

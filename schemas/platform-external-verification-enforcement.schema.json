@@ -82,8 +82,8 @@
         "branch_protection_count": { "const": 10 },
         "required_status_check_count": { "const": 7 },
         "signed_attestation_count": { "const": 5 },
-        "independent_review_count": { "const": 6 },
-        "evidence_provenance_count": { "const": 15 },
+        "independent_review_count": { "const": 7 },
+        "evidence_provenance_count": { "const": 16 },
         "validation_ledger_count": { "const": 8 },
         "enforcement_coverage_count": { "const": 8 }
       }
@@ -144,8 +144,8 @@
         "branch_protection_count": { "const": 10 },
         "required_status_check_count": { "const": 7 },
         "signed_attestation_count": { "const": 5 },
-        "independent_review_count": { "const": 6 },
-        "evidence_provenance_count": { "const": 15 },
+        "independent_review_count": { "const": 7 },
+        "evidence_provenance_count": { "const": 16 },
         "validation_ledger_count": { "const": 8 },
         "enforcement_coverage_count": { "const": 8 },
         "enterprise_trust_claim_allowed_now": { "const": false }
@@ -290,8 +290,8 @@
     },
     "independent_review_completion_rows": {
       "type": "array",
-      "minItems": 6,
-      "maxItems": 6,
+      "minItems": 7,
+      "maxItems": 7,
       "items": {
         "type": "object",
         "required": ["schema_version", "control_id", "observed_now", "required_for_enterprise_trust", "review_completed_now", "human_adjudication_receipt_present_now", "current_verdict", "unsafe_flags_false"],
@@ -305,8 +305,8 @@
     },
     "evidence_provenance_rows": {
       "type": "array",
-      "minItems": 15,
-      "maxItems": 15,
+      "minItems": 16,
+      "maxItems": 16,
       "items": {
         "type": "object",
         "required": ["schema_version", "source_available", "hash_algorithm", "raw_payload_inlined", "provenance_status", "current_verdict"],
@@ -462,8 +462,8 @@
         "branch_protection_count": { "const": 10 },
         "required_status_check_count": { "const": 7 },
         "signed_attestation_count": { "const": 5 },
-        "independent_review_count": { "const": 6 },
-        "evidence_provenance_count": { "const": 15 },
+        "independent_review_count": { "const": 7 },
+        "evidence_provenance_count": { "const": 16 },
         "validation_ledger_count": { "const": 8 },
         "enforcement_coverage_count": { "const": 8 },
         "guard_count": { "const": 13 },

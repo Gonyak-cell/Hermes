@@ -182,11 +182,14 @@ test("External verification enforcement surfaces attestation block reason from r
 test("External verification enforcement requires Claude review receipts plus human adjudication before completion", async () => {
   const result = await resultPromise;
   const claudeReceipt = result.independent_review_completion_rows.find((row) => row.control_id === "claude_review_receipt_present");
+  const prReceipt = result.independent_review_completion_rows.find((row) => row.control_id === "github_pull_request_review_completed");
   const humanReceipt = result.independent_review_completion_rows.find((row) => row.control_id === "human_adjudication_receipt_present");
 
-  assert.equal(result.independent_review_completion_rows.length, 6);
+  assert.equal(result.independent_review_completion_rows.length, 7);
   assert.equal(claudeReceipt.observed_now, false);
   assert.equal(claudeReceipt.current_verdict, "blocked");
+  assert.equal(prReceipt.observed_now, false);
+  assert.equal(prReceipt.current_verdict, "blocked");
   assert.equal(humanReceipt.observed_now, false);
   assert.equal(humanReceipt.current_verdict, "blocked");
   assert.equal(result.summary.independent_review_completed_now, false);
@@ -196,14 +199,14 @@ test("External verification enforcement requires Claude review receipts plus hum
 test("External verification enforcement keeps provenance hash-bound and validation ledger chained", async () => {
   const result = await resultPromise;
 
-  assert.equal(result.evidence_provenance_rows.length, 15);
+  assert.equal(result.evidence_provenance_rows.length, 16);
   assert.equal(result.evidence_provenance_rows.every((row) => row.raw_payload_inlined === false), true);
   assert.equal(result.evidence_provenance_rows.filter((row) => row.provenance_status === "hash_bound").length >= 8, true);
   assert.equal(result.validation_result_ledger_rows.length, 8);
   assert.equal(result.validation_result_ledger_rows.every((row, index) => row.chain_hash.startsWith("sha256:") && (index === 0 || row.previous_hash === result.validation_result_ledger_rows[index - 1].chain_hash)), true);
 });
 
-test("Live external verification evidence capture creates the seven concrete receipt contracts", async () => {
+test("Live external verification evidence capture creates the eight concrete receipt contracts", async () => {
   const outDir = await mkdtemp(path.join(os.tmpdir(), "platform-live-external-evidence-"));
   const paths = receiptPaths(outDir);
 
@@ -217,17 +220,20 @@ test("Live external verification evidence capture creates the seven concrete rec
     });
 
     assert.equal(result.validation.valid, true);
-    assert.equal(Object.keys(result.receipts).length, 7);
+    assert.equal(Object.keys(result.receipts).length, 8);
     assert.equal(result.receipts.remote_binding_receipt.receipt_path, paths.remoteBindingReceiptPath);
     assert.equal(result.receipts.branch_protection_receipt.receipt_path, paths.branchProtectionReceiptPath);
     assert.equal(result.receipts.required_check_receipt.receipt_path, paths.requiredCheckReceiptPath);
     assert.equal(result.receipts.actions_run_receipt.receipt_path, paths.actionsRunReceiptPath);
+    assert.equal(result.receipts.pull_request_review_receipt.receipt_path, paths.pullRequestReviewReceiptPath);
     assert.equal(result.receipts.branch_protection_receipt.branch_name, "main");
     assert.equal("branch_rules_query_available_now" in result.receipts.branch_protection_receipt, true);
     assert.equal("branch_rules_count" in result.receipts.branch_protection_receipt, true);
     assert.equal(result.receipts.required_check_receipt.actions_branch_name, "codex/test-actions-branch");
     assert.equal(result.receipts.actions_run_receipt.branch_name, "codex/test-actions-branch");
     assert.equal(result.receipts.actions_run_receipt.protected_branch_name, "main");
+    assert.equal(result.receipts.pull_request_review_receipt.branch_name, "codex/test-actions-branch");
+    assert.equal(result.receipts.pull_request_review_receipt.pull_request_review_completed_now, false);
     assert.equal(result.receipts.attestation_verify_receipt.receipt_path, paths.attestationVerifyReceiptPath);
     assert.equal(result.receipts.claude_review_receipt.receipt_path, paths.claudeReviewReceiptPath);
     assert.equal(result.receipts.human_adjudication_receipt.receipt_path, paths.humanAdjudicationReceiptPath);
@@ -494,6 +500,7 @@ test("External verification enforcement turns controls true only when observed r
     assert.equal(result.summary.required_status_check_enforced_now, true);
     assert.equal(result.summary.actions_run_success_now, true);
     assert.equal(result.summary.required_pr_review_enforced_now, true);
+    assert.equal(result.independent_review_completion_rows.find((row) => row.control_id === "github_pull_request_review_completed").observed_now, true);
     assert.equal(result.summary.force_push_disabled_now, true);
     assert.equal(result.summary.signed_attestation_generated_now, true);
     assert.equal(result.summary.attestation_verification_passed_now, true);
@@ -568,6 +575,7 @@ function receiptPaths(root) {
   const branchProtectionReceiptPath = path.join(root, "github", "branch-protection-receipt.json");
   const requiredCheckReceiptPath = path.join(root, "github", "required-check-receipt.json");
   const actionsRunReceiptPath = path.join(root, "github", "actions-run-receipt.json");
+  const pullRequestReviewReceiptPath = path.join(root, "github", "pull-request-review-receipt.json");
   const attestationVerifyReceiptPath = path.join(root, "attestation", "attestation-verify-receipt.json");
   const claudeReviewReceiptPath = path.join(root, "review", "claude-review-receipt.json");
   const humanAdjudicationReceiptPath = path.join(root, "review", "human-adjudication-receipt.json");
@@ -576,6 +584,7 @@ function receiptPaths(root) {
     branchProtectionReceiptPath,
     requiredCheckReceiptPath,
     actionsRunReceiptPath,
+    pullRequestReviewReceiptPath,
     attestationVerifyReceiptPath,
     claudeReviewReceiptPath,
     humanAdjudicationReceiptPath,
@@ -584,6 +593,7 @@ function receiptPaths(root) {
       branchProtectionReceiptPath,
       requiredCheckReceiptPath,
       actionsRunReceiptPath,
+      pullRequestReviewReceiptPath,
       attestationVerifyReceiptPath,
       claudeReviewReceiptPath,
       humanAdjudicationReceiptPath,
@@ -632,6 +642,16 @@ async function writeObservedReceipts(paths) {
     actions_run_id: 12345,
     actions_run_conclusion: "success",
     actions_run_success_now: true,
+    raw_payload_inlined: false,
+  });
+  await writeReceipt(paths.pullRequestReviewReceiptPath, {
+    schema_version: "github-pull-request-review-receipt.v1",
+    receipt_status: "observed",
+    pull_request_review_query_available_now: true,
+    pull_request_review_completed_now: true,
+    review_decision: "APPROVED",
+    latest_review_count: 1,
+    latest_approval_count: 1,
     raw_payload_inlined: false,
   });
   await writeReceipt(paths.attestationVerifyReceiptPath, {

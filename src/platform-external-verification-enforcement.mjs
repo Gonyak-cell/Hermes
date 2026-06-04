@@ -21,6 +21,7 @@ export const DEFAULT_PLATFORM_EXTERNAL_VERIFICATION_ENFORCEMENT_INPUTS = {
   branchProtectionReceiptPath: "artifacts/platform-external-verification-enforcement/github/branch-protection-receipt.json",
   requiredCheckReceiptPath: "artifacts/platform-external-verification-enforcement/github/required-check-receipt.json",
   actionsRunReceiptPath: "artifacts/platform-external-verification-enforcement/github/actions-run-receipt.json",
+  pullRequestReviewReceiptPath: "artifacts/platform-external-verification-enforcement/github/pull-request-review-receipt.json",
   claudeReviewReceiptPath: "artifacts/platform-external-verification-enforcement/review/claude-review-receipt.json",
   humanAdjudicationReceiptPath: "artifacts/platform-external-verification-enforcement/review/human-adjudication-receipt.json",
   attestationVerificationReceiptPath: "artifacts/platform-external-verification-enforcement/attestation/attestation-verify-receipt.json",
@@ -107,6 +108,7 @@ export async function buildPlatformExternalVerificationEnforcement(options = {})
   const branchProtectionReceipt = await readOptionalJsonSource(inputs.branch_protection_receipt_path);
   const requiredCheckReceipt = await readOptionalJsonSource(inputs.required_check_receipt_path);
   const actionsRunReceipt = await readOptionalJsonSource(inputs.actions_run_receipt_path);
+  const pullRequestReviewReceipt = await readOptionalJsonSource(inputs.pull_request_review_receipt_path);
   const claudeReviewReceipt = await readOptionalJsonSource(inputs.claude_review_receipt_path);
   const humanAdjudicationReceipt = await readOptionalJsonSource(inputs.human_adjudication_receipt_path);
   const attestationVerificationReceipt = await readOptionalJsonSource(inputs.attestation_verification_receipt_path);
@@ -115,6 +117,7 @@ export async function buildPlatformExternalVerificationEnforcement(options = {})
     branchProtectionReceipt,
     requiredCheckReceipt,
     actionsRunReceipt,
+    pullRequestReviewReceipt,
   });
   const sourceActivation = options.sourceActivation ?? await buildPlatformVerificationTrustActivation({
     runAt: generatedAt,
@@ -132,8 +135,8 @@ export async function buildPlatformExternalVerificationEnforcement(options = {})
   const branchProtectionRows = buildBranchProtectionRows({ livePreflight });
   const requiredStatusCheckRows = buildRequiredStatusCheckRows({ workflow, branchProtectionRows });
   const attestationRows = buildAttestationRows({ workflow, attestationVerificationReceipt, livePreflight });
-  const independentReviewRows = buildIndependentReviewRows({ claudeReviewReceipt, humanAdjudicationReceipt, livePreflight });
-  const evidenceRows = buildEvidenceRows({ generatedAt, packageJson, packageLock, activationLedger, enforcementLedger, workflow, sourceModule, sourceActivation, livePreflight, remoteBindingReceipt, branchProtectionReceipt, requiredCheckReceipt, actionsRunReceipt, claudeReviewReceipt, humanAdjudicationReceipt, attestationVerificationReceipt });
+  const independentReviewRows = buildIndependentReviewRows({ claudeReviewReceipt, humanAdjudicationReceipt, pullRequestReviewReceipt, livePreflight });
+  const evidenceRows = buildEvidenceRows({ generatedAt, packageJson, packageLock, activationLedger, enforcementLedger, workflow, sourceModule, sourceActivation, livePreflight, remoteBindingReceipt, branchProtectionReceipt, requiredCheckReceipt, actionsRunReceipt, pullRequestReviewReceipt, claudeReviewReceipt, humanAdjudicationReceipt, attestationVerificationReceipt });
   const validationLedgerRows = buildValidationLedgerRows({ generatedAt, sourceActivation, reviewerProfileRows, reviewPacketRows, branchProtectionRows, requiredStatusCheckRows, attestationRows, independentReviewRows, evidenceRows });
   const enforcementCoverageRows = buildEnforcementCoverageRows({ reviewerProfileRows, reviewPacketRows, branchProtectionRows, requiredStatusCheckRows, attestationRows, independentReviewRows, evidenceRows, validationLedgerRows });
   const guardRows = buildGuardRows({ sourceActivation, reviewerProfileRows, reviewPacketRows, branchProtectionRows, requiredStatusCheckRows, attestationRows, independentReviewRows, evidenceRows, validationLedgerRows, enforcementCoverageRows });
@@ -223,6 +226,8 @@ export async function runPlatformExternalVerificationEnforcementCli(argv = proce
     console.log(`Branch rules query available now: ${result.summary.branch_rules_query_available_now}`);
     console.log(`Branch rules count: ${result.summary.branch_rules_count}`);
     console.log(`Required status check enforced now: ${result.summary.required_status_check_enforced_now}`);
+    console.log(`Pull request review completed now: ${result.summary.pull_request_review_completed_now}`);
+    console.log(`Pull request review decision: ${result.summary.pull_request_review_decision}`);
     console.log(`Signed attestation verified now: ${result.summary.attestation_verification_passed_now}`);
     console.log(`Independent review completed now: ${result.summary.independent_review_completed_now}`);
     console.log(`Human adjudication receipt present now: ${result.summary.human_adjudication_receipt_present_now}`);
@@ -258,7 +263,9 @@ async function detectLivePreflight(options = {}) {
   ]);
   const parsedRemote = parseGithubRemote(selectedRemoteUrl);
   const repositoryFullName = options.repositoryFullName ?? (parsedRemote ? `${parsedRemote.owner}/${parsedRemote.repo}` : null);
-  const branchName = options.branch ?? (branch.stdout.trim() || "main");
+  const currentBranchName = branch.stdout.trim();
+  const branchName = options.branch ?? (currentBranchName || "main");
+  const reviewBranchName = options.reviewBranch ?? process.env.GITHUB_HEAD_REF ?? (currentBranchName || branchName);
   const ghAuth = ghPath.exit_code === 0
     ? await runShellCommand("gh_auth_status", "gh auth status", cwd)
     : skippedCommand("gh_auth_status", "gh auth status", "gh_not_available");
@@ -273,6 +280,16 @@ async function detectLivePreflight(options = {}) {
   commands.push(branchRules);
   const protectionJson = parseJsonMaybe(protection.stdout);
   const branchRulesJson = parseJsonMaybe(branchRules.stdout);
+  const pullRequestReview = ghPath.exit_code === 0 && ghAuth.exit_code === 0 && repositoryFullName && reviewBranchName
+    ? await runShellCommand("gh_pull_request_review", `gh pr view ${quoteShell(reviewBranchName)} -R ${quoteShell(repositoryFullName)} --json number,url,state,mergeable,reviewDecision,headRefName,baseRefName,headRefOid,baseRefOid,latestReviews`, cwd)
+    : skippedCommand("gh_pull_request_review", "gh pr view <branch> --json reviewDecision", repositoryFullName ? "gh_not_authenticated_or_unavailable" : "github_remote_not_configured");
+  commands.push(pullRequestReview);
+  const pullRequestReviewJson = parseJsonMaybe(pullRequestReview.stdout);
+  const latestReviews = Array.isArray(pullRequestReviewJson?.latestReviews) ? pullRequestReviewJson.latestReviews : [];
+  const latestApprovalCount = latestReviews.filter((review) => review?.state === "APPROVED").length;
+  const pullRequestReviewCompleted = pullRequestReview.exit_code === 0
+    && pullRequestReviewJson?.reviewDecision === "APPROVED"
+    && latestApprovalCount > 0;
   const requiredContexts = protectionJson?.required_status_checks?.contexts ?? [];
   const prReviews = protectionJson?.required_pull_request_reviews ?? {};
   const forcePushDisabled = protectionJson?.allow_force_pushes?.enabled === false;
@@ -285,6 +302,7 @@ async function detectLivePreflight(options = {}) {
     git_remote_github: githubRemote.stdout.trim(),
     git_remote_url: selectedRemoteUrl ?? "",
     git_branch: branchName,
+    review_branch: reviewBranchName,
     github_remote_configured_now: Boolean(parsedRemote),
     github_owner: parsedRemote?.owner ?? parseRepositoryFullName(repositoryFullName)?.owner ?? null,
     github_repo: parsedRemote?.repo ?? parseRepositoryFullName(repositoryFullName)?.repo ?? null,
@@ -297,6 +315,10 @@ async function detectLivePreflight(options = {}) {
     branch_rules_query_available_now: branchRules.exit_code === 0,
     branch_rules_observed_now: branchRules.exit_code === 0 && Array.isArray(branchRulesJson),
     branch_rules_count: Array.isArray(branchRulesJson) ? branchRulesJson.length : null,
+    pull_request_review_query_available_now: pullRequestReview.exit_code === 0 && Boolean(pullRequestReviewJson),
+    pull_request_review_completed_now: pullRequestReviewCompleted,
+    pull_request_review_decision: pullRequestReviewJson?.reviewDecision ?? null,
+    pull_request_number: pullRequestReviewJson?.number ?? null,
     required_status_check_enforced_now: requiredContexts.includes("Hermes verification trust"),
     required_pr_review_enforced_now: Number(prReviews.required_approving_review_count ?? 0) >= 1,
     stale_review_dismissal_enforced_now: prReviews.dismiss_stale_reviews === true,
@@ -469,7 +491,7 @@ function buildAttestationRows({ workflow, attestationVerificationReceipt, livePr
   }));
 }
 
-function buildIndependentReviewRows({ claudeReviewReceipt, humanAdjudicationReceipt, livePreflight }) {
+function buildIndependentReviewRows({ claudeReviewReceipt, humanAdjudicationReceipt, pullRequestReviewReceipt, livePreflight }) {
   const claudeReceiptPresent = isObservedReceipt(claudeReviewReceipt.data) || claudeReviewReceipt.data?.review_completed_now === true;
   const resolvedModelCaptured = claudeReceiptPresent && Boolean(claudeReviewReceipt.data?.resolved_model_id);
   const findingsNormalized = claudeReceiptPresent
@@ -477,12 +499,17 @@ function buildIndependentReviewRows({ claudeReviewReceipt, humanAdjudicationRece
     && claudeReviewReceipt.data.findings.length > 0
     && claudeReviewReceipt.data.findings.every((finding) => FINDING_REQUIRED_FIELDS.every((field) => field in finding));
   const adjudicationPresent = isObservedReceipt(humanAdjudicationReceipt.data) || humanAdjudicationReceipt.data?.human_adjudication_receipt_present_now === true;
+  const prReviewObserved = isObservedReceipt(pullRequestReviewReceipt.data);
+  const prReviewCompleted = (prReviewObserved && pullRequestReviewReceipt.data?.pull_request_review_completed_now === true)
+    || livePreflight.pull_request_review_completed_now === true;
+  const prReviewDecision = pullRequestReviewReceipt.data?.review_decision ?? livePreflight.pull_request_review_decision ?? null;
   const rows = [
     ["reviewer_profile_registered", true, "Claude Code Opus max reviewer profile is registered"],
     ["claude_code_available", livePreflight.claude_code_available_now, "Claude Code is installed locally"],
     ["claude_review_receipt_present", claudeReceiptPresent, "Claude review receipt exists"],
     ["resolved_model_id_captured", resolvedModelCaptured, "Resolved model id and timestamp are captured"],
     ["findings_normalized", findingsNormalized, "Claude findings satisfy the finding schema"],
+    ["github_pull_request_review_completed", prReviewCompleted, "GitHub pull request review decision is APPROVED"],
     ["human_adjudication_receipt_present", adjudicationPresent, "Human adjudication receipt exists"],
   ];
   return rows.map(([controlId, observed, description], index) => controlRow({
@@ -493,6 +520,8 @@ function buildIndependentReviewRows({ claudeReviewReceipt, humanAdjudicationRece
     observed_now: Boolean(observed),
     required_for_enterprise_trust: true,
     review_completed_now: claudeReceiptPresent && resolvedModelCaptured && findingsNormalized,
+    pull_request_review_completed_now: prReviewCompleted,
+    pull_request_review_decision: prReviewDecision,
     human_adjudication_receipt_present_now: adjudicationPresent,
     evidence_ref: `evidence.platform.external_verification.independent_review.${controlId}`,
     reviewer_ref: "reviewer.platform_independent_review",
@@ -502,7 +531,7 @@ function buildIndependentReviewRows({ claudeReviewReceipt, humanAdjudicationRece
   }));
 }
 
-function buildEvidenceRows({ generatedAt, packageJson, packageLock, activationLedger, enforcementLedger, workflow, sourceModule, sourceActivation, livePreflight, remoteBindingReceipt, branchProtectionReceipt, requiredCheckReceipt, actionsRunReceipt, claudeReviewReceipt, humanAdjudicationReceipt, attestationVerificationReceipt }) {
+function buildEvidenceRows({ generatedAt, packageJson, packageLock, activationLedger, enforcementLedger, workflow, sourceModule, sourceActivation, livePreflight, remoteBindingReceipt, branchProtectionReceipt, requiredCheckReceipt, actionsRunReceipt, pullRequestReviewReceipt, claudeReviewReceipt, humanAdjudicationReceipt, attestationVerificationReceipt }) {
   const sources = [
     ["package_json", packageJson.path, packageJson.raw, packageJson.available],
     ["package_lock", packageLock.path, packageLock.raw, packageLock.available],
@@ -516,6 +545,7 @@ function buildEvidenceRows({ generatedAt, packageJson, packageLock, activationLe
     ["github_branch_protection_receipt", branchProtectionReceipt.path, branchProtectionReceipt.raw, branchProtectionReceipt.available],
     ["github_required_check_receipt", requiredCheckReceipt.path, requiredCheckReceipt.raw, requiredCheckReceipt.available],
     ["github_actions_run_receipt", actionsRunReceipt.path, actionsRunReceipt.raw, actionsRunReceipt.available],
+    ["github_pull_request_review_receipt", pullRequestReviewReceipt.path, pullRequestReviewReceipt.raw, pullRequestReviewReceipt.available],
     ["claude_review_receipt", claudeReviewReceipt.path, claudeReviewReceipt.raw, claudeReviewReceipt.available],
     ["human_adjudication_receipt", humanAdjudicationReceipt.path, humanAdjudicationReceipt.raw, humanAdjudicationReceipt.available],
     ["attestation_verification_receipt", attestationVerificationReceipt.path, attestationVerificationReceipt.raw, attestationVerificationReceipt.available],
@@ -655,6 +685,9 @@ function buildBoundary({ livePreflight, reviewerProfileRows, branchProtectionRow
   const actionsRunSuccess = livePreflight.actions_run_success_now === true;
   const requiredPrReviewEnforced = branchProtectionRows.find((row) => row.control_id === "required_pr_review_enforced")?.observed_now === true;
   const forcePushDisabled = branchProtectionRows.find((row) => row.control_id === "force_push_disabled")?.observed_now === true;
+  const pullRequestReviewRow = independentReviewRows.find((row) => row.control_id === "github_pull_request_review_completed");
+  const pullRequestReviewCompleted = pullRequestReviewRow?.observed_now === true;
+  const pullRequestReviewDecision = pullRequestReviewRow?.pull_request_review_decision ?? null;
   const signedAttestationGenerated = attestationRows.find((row) => row.control_id === "signed_attestation_generated")?.observed_now === true;
   const attestationVerificationPassed = attestationRows.find((row) => row.control_id === "attestation_verification_passed")?.observed_now === true;
   const independentReviewCompleted = independentReviewRows.every((row) => row.observed_now === true) && independentReviewRows.some((row) => row.control_id === "human_adjudication_receipt_present");
@@ -665,6 +698,7 @@ function buildBoundary({ livePreflight, reviewerProfileRows, branchProtectionRow
     && actionsRunSuccess
     && requiredPrReviewEnforced
     && forcePushDisabled
+    && pullRequestReviewCompleted
     && signedAttestationGenerated
     && attestationVerificationPassed
     && independentReviewCompleted
@@ -688,6 +722,8 @@ function buildBoundary({ livePreflight, reviewerProfileRows, branchProtectionRow
     actions_run_success_now: actionsRunSuccess,
     required_pr_review_enforced_now: requiredPrReviewEnforced,
     force_push_disabled_now: forcePushDisabled,
+    pull_request_review_completed_now: pullRequestReviewCompleted,
+    pull_request_review_decision: pullRequestReviewDecision,
     signed_attestation_generated_now: signedAttestationGenerated,
     attestation_verification_passed_now: attestationVerificationPassed,
     independent_review_completed_now: independentReviewCompleted,
@@ -707,6 +743,7 @@ function buildBoundary({ livePreflight, reviewerProfileRows, branchProtectionRow
       actionsRunSuccess,
       requiredPrReviewEnforced,
       forcePushDisabled,
+      pullRequestReviewCompleted,
       signedAttestationGenerated,
       attestationVerificationPassed,
       independentReviewCompleted,
@@ -786,8 +823,8 @@ function buildValidationItems({ packageJson, packageLock, activationLedger, enfo
     validationItem("branch.not_overclaimed", "branch_protection", branchProtectionRows.length === 10 && branchProtectionRows.every((row) => row.observed_now || row.current_verdict === "blocked"), "branch protection/ruleset rows must be observed or safely blocked"),
     validationItem("checks.workflow_defined", "required_status_checks", requiredStatusCheckRows.length === 7 && requiredStatusCheckRows.every((row) => row.workflow_defined_now || row.check_id === "attestation_step"), "required check rows must be workflow-defined where applicable"),
     validationItem("attestation.not_overclaimed", "attestation", attestationRows.length === 5 && attestationRows.every((row) => row.observed_now || row.current_verdict === "blocked"), "attestation rows must be observed or safely blocked"),
-    validationItem("review.not_overclaimed", "independent_review", independentReviewRows.length === 6 && independentReviewRows.every((row) => row.observed_now || row.current_verdict === "blocked"), "independent review rows must be observed or safely blocked"),
-    validationItem("evidence.count", "evidence", evidenceRows.length === 15 && evidenceRows.every((row) => row.raw_payload_inlined === false), "evidence rows must exist without raw payloads"),
+    validationItem("review.not_overclaimed", "independent_review", independentReviewRows.length === 7 && independentReviewRows.every((row) => row.observed_now || row.current_verdict === "blocked"), "independent review rows must be observed or safely blocked"),
+    validationItem("evidence.count", "evidence", evidenceRows.length === 16 && evidenceRows.every((row) => row.raw_payload_inlined === false), "evidence rows must exist without raw payloads"),
     validationItem("ledger.hash_chain", "validation_ledger", validationLedgerRows.length === 8 && validationLedgerRows.every((row, index) => row.chain_hash?.startsWith("sha256:") && (index === 0 || row.previous_hash === validationLedgerRows[index - 1].chain_hash)), "validation ledger must be hash chained"),
     validationItem("coverage.visible_gaps", "coverage", enforcementCoverageRows.every((row) => row.coverage_status !== "blocked" || row.enterprise_blocking_gap === true), "external enforcement gaps must remain visible until closed"),
     validationItem("guards.safe", "guards", guardRows.every((row) => row.guard_status === "ready"), "all safety guards must be ready"),
@@ -840,6 +877,8 @@ function buildSummary({ sourceActivation, componentRows, reviewerProfileRows, re
     actions_run_success_now: boundary.actions_run_success_now,
     required_pr_review_enforced_now: boundary.required_pr_review_enforced_now,
     force_push_disabled_now: boundary.force_push_disabled_now,
+    pull_request_review_completed_now: boundary.pull_request_review_completed_now,
+    pull_request_review_decision: boundary.pull_request_review_decision,
     signed_attestation_generated_now: boundary.signed_attestation_generated_now,
     attestation_verification_passed_now: boundary.attestation_verification_passed_now,
     independent_review_completed_now: boundary.independent_review_completed_now,
@@ -879,15 +918,17 @@ function safePassRow(fields) {
   };
 }
 
-function mergeLivePreflightWithReceipts(livePreflight, { remoteBindingReceipt, branchProtectionReceipt, requiredCheckReceipt, actionsRunReceipt }) {
+function mergeLivePreflightWithReceipts(livePreflight, { remoteBindingReceipt, branchProtectionReceipt, requiredCheckReceipt, actionsRunReceipt, pullRequestReviewReceipt }) {
   const remote = remoteBindingReceipt.data ?? {};
   const branch = branchProtectionReceipt.data ?? {};
   const required = requiredCheckReceipt.data ?? {};
   const actions = actionsRunReceipt.data ?? {};
+  const pullRequestReview = pullRequestReviewReceipt.data ?? {};
   const githubRemoteObserved = isObservedReceipt(remote);
   const branchObserved = isObservedReceipt(branch);
   const requiredObserved = isObservedReceipt(required);
   const actionsObserved = isObservedReceipt(actions);
+  const pullRequestReviewAvailable = pullRequestReviewReceipt.available;
   return {
     ...livePreflight,
     github_remote_configured_now: livePreflight.github_remote_configured_now || (githubRemoteObserved && remote.github_remote_configured_now === true),
@@ -900,6 +941,10 @@ function mergeLivePreflightWithReceipts(livePreflight, { remoteBindingReceipt, b
     branch_rules_query_available_now: livePreflight.branch_rules_query_available_now || (branchObserved && branch.branch_rules_query_available_now === true),
     branch_rules_observed_now: livePreflight.branch_rules_observed_now || (branchObserved && branch.branch_rules_observed_now === true),
     branch_rules_count: Number.isInteger(livePreflight.branch_rules_count) ? livePreflight.branch_rules_count : (branchObserved ? branch.branch_rules_count ?? null : null),
+    pull_request_review_query_available_now: livePreflight.pull_request_review_query_available_now || (pullRequestReviewAvailable && pullRequestReview.pull_request_review_query_available_now === true),
+    pull_request_review_completed_now: livePreflight.pull_request_review_completed_now || (pullRequestReviewAvailable && pullRequestReview.pull_request_review_completed_now === true),
+    pull_request_review_decision: livePreflight.pull_request_review_decision ?? (pullRequestReviewAvailable ? pullRequestReview.review_decision ?? null : null),
+    pull_request_number: livePreflight.pull_request_number ?? (pullRequestReviewAvailable ? pullRequestReview.pull_request_number ?? null : null),
     required_status_check_enforced_now: livePreflight.required_status_check_enforced_now || (requiredObserved && required.required_status_check_enforced_now === true),
     required_pr_review_enforced_now: livePreflight.required_pr_review_enforced_now || (branchObserved && branch.required_pr_review_enforced_now === true),
     stale_review_dismissal_enforced_now: livePreflight.stale_review_dismissal_enforced_now || (branchObserved && branch.stale_review_dismissal_enforced_now === true),
@@ -971,6 +1016,10 @@ function quotePathPart(value) {
   return encodeURIComponent(String(value));
 }
 
+function quoteShell(value) {
+  return `'${String(value).replaceAll("'", "'\\''")}'`;
+}
+
 function parseJsonMaybe(value) {
   try {
     return JSON.parse(value);
@@ -1006,6 +1055,8 @@ function renderMarkdown(result) {
     `Actions run success now: ${result.summary.actions_run_success_now}`,
     `Required PR review enforced now: ${result.summary.required_pr_review_enforced_now}`,
     `Force push disabled now: ${result.summary.force_push_disabled_now}`,
+    `Pull request review completed now: ${result.summary.pull_request_review_completed_now}`,
+    `Pull request review decision: ${result.summary.pull_request_review_decision}`,
     `Signed attestation generated now: ${result.summary.signed_attestation_generated_now}`,
     `Attestation verification passed now: ${result.summary.attestation_verification_passed_now}`,
     `Attestation support status: ${result.summary.attestation_support_status}`,
@@ -1038,6 +1089,7 @@ function normalizeInputs(options) {
     branch_protection_receipt_path: options.branchProtectionReceiptPath ?? defaults.branchProtectionReceiptPath,
     required_check_receipt_path: options.requiredCheckReceiptPath ?? defaults.requiredCheckReceiptPath,
     actions_run_receipt_path: options.actionsRunReceiptPath ?? defaults.actionsRunReceiptPath,
+    pull_request_review_receipt_path: options.pullRequestReviewReceiptPath ?? defaults.pullRequestReviewReceiptPath,
     claude_review_receipt_path: options.claudeReviewReceiptPath ?? defaults.claudeReviewReceiptPath,
     human_adjudication_receipt_path: options.humanAdjudicationReceiptPath ?? defaults.humanAdjudicationReceiptPath,
     attestation_verification_receipt_path: options.attestationVerificationReceiptPath ?? options.attestationVerifyReceiptPath ?? defaults.attestationVerificationReceiptPath,
@@ -1138,6 +1190,7 @@ function parseArgs(argv) {
     githubRepoUrl: undefined,
     repositoryFullName: undefined,
     branch: undefined,
+    reviewBranch: undefined,
     help: false,
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -1169,6 +1222,9 @@ function parseArgs(argv) {
     } else if (arg === "--branch") {
       args.branch = argv[index + 1];
       index += 1;
+    } else if (arg === "--review-branch") {
+      args.reviewBranch = argv[index + 1];
+      index += 1;
     } else if (arg === "--help" || arg === "-h") {
       args.help = true;
     }
@@ -1189,6 +1245,7 @@ Options:
   --github-repo-url <url>         GitHub repository URL.
   --repo <owner/repo>             GitHub repository full name.
   --branch <branch>               Branch to inspect.
+  --review-branch <branch>        Pull request branch to inspect for reviewDecision.
   --help                          Show this help.
 `);
 }

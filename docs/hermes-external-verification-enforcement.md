@@ -116,3 +116,47 @@ capture human adjudication receipt
 npm run platform:live-external-verification-evidence
 npm run platform:external-verification-enforcement
 ```
+
+### Human Adjudication Input
+
+Human adjudication is not inferred from a PR comment or a Claude review result.
+It must be captured as an explicit owner input and then converted into a
+hash-bound receipt:
+
+```bash
+npm run platform:live-external-verification-evidence -- \
+  --branch main \
+  --human-adjudication-input artifacts/platform-external-verification-enforcement/review/human-adjudication-input.json
+```
+
+The input file must cover every Claude finding id from
+`claude-review-receipt.json`:
+
+```json
+{
+  "schema_version": "human-adjudication-input.v1",
+  "adjudicator_id": "human.owner",
+  "adjudicator_role": "human_owner",
+  "adjudicated_at": "2026-06-04T00:00:00.000Z",
+  "raw_payload_inlined": false,
+  "final_authority_allowed_now": false,
+  "decisions": [
+    {
+      "finding_id": "F-001",
+      "decision": "ACCEPT_WITH_MODIFICATION",
+      "rationale_summary": "Accepted with narrower implementation scope.",
+      "follow_up_required": true
+    },
+    {
+      "finding_id": "F-002",
+      "decision": "HOLD",
+      "owner_note": "Needs a separate review lane."
+    }
+  ]
+}
+```
+
+Allowed decisions are `ACCEPT`, `ACCEPT_WITH_MODIFICATION`, `REJECT`, and
+`HOLD`. The generated receipt stores the input file hash and hashes of rationale
+or owner note fields, not the raw narrative text. Missing, duplicate, or unknown
+finding ids keep the receipt at `blocked_missing_external_evidence`.

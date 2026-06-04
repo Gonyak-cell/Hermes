@@ -41,6 +41,9 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
   const existingAttestationReceipt = await readOptionalJson(receiptPaths.attestation_verify_receipt_path);
   const existingClaudeReviewReceipt = await readOptionalJson(receiptPaths.claude_review_receipt_path);
   const existingHumanAdjudicationReceipt = await readOptionalJson(receiptPaths.human_adjudication_receipt_path);
+  const humanAdjudicationInput = options.humanAdjudicationInputPath
+    ? await readOptionalJson(options.humanAdjudicationInputPath)
+    : { available: false, path: null, raw: "", data: null };
 
   const gitRemote = await runShellCommand("git_remote_origin", "git config --get remote.origin.url", cwd);
   const gitHubRemote = await runShellCommand("git_remote_github", "git config --get remote.github.url", cwd);
@@ -136,6 +139,8 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
     generatedAt,
     receiptPath: receiptPaths.human_adjudication_receipt_path,
     existingReceipt: existingHumanAdjudicationReceipt,
+    inputReceipt: humanAdjudicationInput,
+    claudeReviewReceipt: existingClaudeReviewReceipt,
   });
 
   const receipts = {
@@ -350,9 +355,40 @@ function buildClaudeReviewReceipt({ generatedAt, receiptPath, existingReceipt })
   });
 }
 
-function buildHumanAdjudicationReceipt({ generatedAt, receiptPath, existingReceipt }) {
+function buildHumanAdjudicationReceipt({ generatedAt, receiptPath, existingReceipt, inputReceipt, claudeReviewReceipt }) {
   if (isObservedReceipt(existingReceipt.data) || existingReceipt.data?.human_adjudication_receipt_present_now === true) {
     return { ...existingReceipt.data, preserved_existing_receipt: true };
+  }
+  const inputValidation = validateHumanAdjudicationInput(inputReceipt, claudeReviewReceipt);
+  if (inputValidation.valid) {
+    const inputData = inputReceipt.data;
+    const decisionSummary = summarizeDecisionCounts(inputData.decisions);
+    return receipt({
+      schema_version: "human-adjudication-receipt.v1",
+      receipt_path: receiptPath,
+      generated_at: generatedAt,
+      receipt_id: `human.adjudication.${dateStamp(generatedAt)}`,
+      receipt_status: "observed",
+      program_range: PROGRAM_RANGE,
+      human_adjudication_receipt_present_now: true,
+      adjudicator_id: inputData.adjudicator_id,
+      adjudicator_role: inputData.adjudicator_role ?? "human_owner",
+      adjudicated_at: inputData.adjudicated_at ?? generatedAt,
+      adjudication_input_path: inputReceipt.path,
+      adjudication_input_hash: sha256(inputReceipt.raw),
+      reviewed_reviewer_id: claudeReviewReceipt.data?.reviewer_id ?? REVIEWER_ID,
+      reviewed_model_id: claudeReviewReceipt.data?.resolved_model_id ?? null,
+      reviewed_findings_count: inputValidation.requiredFindingIds.length,
+      adjudicated_findings_count: inputValidation.decisions.length,
+      decision_summary: decisionSummary,
+      allowed_decisions: ["ACCEPT", "ACCEPT_WITH_MODIFICATION", "REJECT", "HOLD"],
+      decisions: inputValidation.decisions,
+      final_authority_allowed_now: false,
+      raw_payload_inlined: false,
+      adjudication_input_valid_now: true,
+      validation_errors: [],
+      next_allowed_action: "preserve human adjudication receipt and rerun external verification enforcement",
+    });
   }
   return receipt({
     schema_version: "human-adjudication-receipt.v1",
@@ -367,8 +403,70 @@ function buildHumanAdjudicationReceipt({ generatedAt, receiptPath, existingRecei
     decisions: [],
     final_authority_allowed_now: false,
     raw_payload_inlined: false,
-    next_allowed_action: "human owner must adjudicate Claude findings with ACCEPT/MODIFY/REJECT/HOLD decisions",
+    adjudication_input_path: inputReceipt?.path ?? null,
+    adjudication_input_valid_now: false,
+    validation_errors: inputValidation.errors,
+    next_allowed_action: "human owner must adjudicate every Claude finding with ACCEPT/ACCEPT_WITH_MODIFICATION/REJECT/HOLD decisions",
   });
+}
+
+function validateHumanAdjudicationInput(inputReceipt, claudeReviewReceipt) {
+  const errors = [];
+  const allowedDecisions = new Set(["ACCEPT", "ACCEPT_WITH_MODIFICATION", "REJECT", "HOLD"]);
+  const claudeData = claudeReviewReceipt?.data;
+  const claudeObserved = isObservedReceipt(claudeData) || claudeData?.review_completed_now === true;
+  const requiredFindingIds = Array.isArray(claudeData?.findings)
+    ? claudeData.findings.map((finding) => finding.finding_id).filter((findingId) => typeof findingId === "string" && findingId.length > 0)
+    : [];
+
+  if (!inputReceipt?.available) errors.push("human_adjudication_input_missing");
+  const data = inputReceipt?.data;
+  if (!data || typeof data !== "object" || Array.isArray(data)) errors.push("human_adjudication_input_not_object");
+  if (!claudeObserved) errors.push("claude_review_receipt_not_observed");
+  if (requiredFindingIds.length === 0) errors.push("claude_review_findings_missing");
+  if (data?.schema_version !== "human-adjudication-input.v1") errors.push("schema_version_must_be_human_adjudication_input_v1");
+  if (!nonEmptyString(data?.adjudicator_id)) errors.push("adjudicator_id_required");
+  if (data?.raw_payload_inlined !== false) errors.push("raw_payload_inlined_must_be_false");
+  if (data?.final_authority_allowed_now === true) errors.push("final_authority_allowed_now_must_not_be_true");
+  if (!Array.isArray(data?.decisions) || data.decisions.length === 0) errors.push("decisions_required");
+
+  const decisions = Array.isArray(data?.decisions)
+    ? data.decisions.map((decision) => normalizeHumanDecision(decision)).filter(Boolean)
+    : [];
+  const decisionIds = new Set(decisions.map((decision) => decision.finding_id));
+  const missingFindingIds = requiredFindingIds.filter((findingId) => !decisionIds.has(findingId));
+  const unknownDecisionIds = decisions.map((decision) => decision.finding_id).filter((findingId) => !requiredFindingIds.includes(findingId));
+  if (decisions.length !== data?.decisions?.length) errors.push("decision_shape_invalid");
+  if (decisions.some((decision) => !allowedDecisions.has(decision.decision))) errors.push("decision_value_invalid");
+  if (new Set(decisions.map((decision) => decision.finding_id)).size !== decisions.length) errors.push("duplicate_finding_decision");
+  if (missingFindingIds.length > 0) errors.push(`missing_finding_decisions:${missingFindingIds.join(",")}`);
+  if (unknownDecisionIds.length > 0) errors.push(`unknown_finding_decisions:${unknownDecisionIds.join(",")}`);
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    requiredFindingIds,
+    decisions,
+  };
+}
+
+function normalizeHumanDecision(decision) {
+  if (!decision || typeof decision !== "object" || Array.isArray(decision)) return null;
+  if (!nonEmptyString(decision.finding_id) || !nonEmptyString(decision.decision)) return null;
+  return {
+    finding_id: decision.finding_id,
+    decision: decision.decision,
+    rationale_summary_hash: nonEmptyString(decision.rationale_summary) ? sha256(decision.rationale_summary) : null,
+    follow_up_required: decision.follow_up_required === true,
+    owner_note_hash: nonEmptyString(decision.owner_note) ? sha256(decision.owner_note) : null,
+  };
+}
+
+function summarizeDecisionCounts(decisions) {
+  return decisions.reduce((summary, decision) => {
+    summary[decision.decision] = (summary[decision.decision] ?? 0) + 1;
+    return summary;
+  }, { ACCEPT: 0, ACCEPT_WITH_MODIFICATION: 0, REJECT: 0, HOLD: 0 });
 }
 
 function receipt(fields) {
@@ -557,6 +655,7 @@ function parseArgs(argv) {
     repositoryFullName: undefined,
     branch: undefined,
     attestationSubject: undefined,
+    humanAdjudicationInputPath: undefined,
     help: false,
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -579,6 +678,9 @@ function parseArgs(argv) {
     } else if (arg === "--attestation-subject") {
       args.attestationSubject = argv[index + 1];
       index += 1;
+    } else if (arg === "--human-adjudication-input") {
+      args.humanAdjudicationInputPath = argv[index + 1];
+      index += 1;
     } else if (arg === "--help" || arg === "-h") {
       args.help = true;
     }
@@ -595,8 +697,14 @@ Options:
   --github-repo-url <url>         GitHub repository URL.
   --branch <branch>               Branch to inspect.
   --attestation-subject <path>    Artifact path or subject for gh attestation verify.
+  --human-adjudication-input <path>
+                                  Human owner decision input JSON.
   --help                          Show this help.
 `);
+}
+
+function nonEmptyString(value) {
+  return typeof value === "string" && value.trim().length > 0;
 }
 
 function quoteShell(value) {

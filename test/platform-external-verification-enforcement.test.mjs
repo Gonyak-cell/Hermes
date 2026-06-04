@@ -189,6 +189,91 @@ test("Live external verification evidence capture creates the seven concrete rec
   }
 });
 
+test("Live external verification evidence promotes complete human adjudication input to observed receipt", async () => {
+  const outDir = await mkdtemp(path.join(os.tmpdir(), "platform-human-adjudication-input-"));
+  const paths = receiptPaths(outDir);
+  const inputPath = path.join(outDir, "human-adjudication-input.json");
+
+  try {
+    await writeObservedClaudeReviewReceipt(paths.claudeReviewReceiptPath, ["F-001", "F-002"]);
+    await writeFile(inputPath, `${JSON.stringify({
+      schema_version: "human-adjudication-input.v1",
+      adjudicator_id: "human.owner",
+      adjudicator_role: "human_owner",
+      adjudicated_at: RUN_AT,
+      raw_payload_inlined: false,
+      final_authority_allowed_now: false,
+      decisions: [
+        {
+          finding_id: "F-001",
+          decision: "ACCEPT_WITH_MODIFICATION",
+          rationale_summary: "Owner accepts the finding but will apply a narrower change.",
+          follow_up_required: true,
+        },
+        {
+          finding_id: "F-002",
+          decision: "HOLD",
+          owner_note: "Needs a separate review lane.",
+        },
+      ],
+    }, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformLiveExternalVerificationEvidence({
+      runAt: RUN_AT,
+      write: true,
+      humanAdjudicationInputPath: inputPath,
+      ...paths.options,
+    });
+    const receipt = result.receipts.human_adjudication_receipt;
+
+    assert.equal(result.validation.valid, true);
+    assert.equal(receipt.receipt_status, "observed");
+    assert.equal(receipt.human_adjudication_receipt_present_now, true);
+    assert.equal(receipt.adjudication_input_hash.startsWith("sha256:"), true);
+    assert.equal(receipt.reviewed_findings_count, 2);
+    assert.equal(receipt.adjudicated_findings_count, 2);
+    assert.equal(receipt.decision_summary.ACCEPT_WITH_MODIFICATION, 1);
+    assert.equal(receipt.decision_summary.HOLD, 1);
+    assert.equal(receipt.decisions.every((decision) => !("rationale_summary" in decision) && !("owner_note" in decision)), true);
+    assert.equal(await readJson(paths.humanAdjudicationReceiptPath).then((data) => data.receipt_status), "observed");
+  } finally {
+    await rm(outDir, { recursive: true, force: true });
+  }
+});
+
+test("Live external verification evidence blocks incomplete human adjudication input", async () => {
+  const outDir = await mkdtemp(path.join(os.tmpdir(), "platform-human-adjudication-incomplete-"));
+  const paths = receiptPaths(outDir);
+  const inputPath = path.join(outDir, "human-adjudication-input.json");
+
+  try {
+    await writeObservedClaudeReviewReceipt(paths.claudeReviewReceiptPath, ["F-001", "F-002"]);
+    await writeFile(inputPath, `${JSON.stringify({
+      schema_version: "human-adjudication-input.v1",
+      adjudicator_id: "human.owner",
+      raw_payload_inlined: false,
+      final_authority_allowed_now: false,
+      decisions: [{ finding_id: "F-001", decision: "ACCEPT" }],
+    }, null, 2)}\n`, "utf8");
+
+    const result = await runPlatformLiveExternalVerificationEvidence({
+      runAt: RUN_AT,
+      write: true,
+      humanAdjudicationInputPath: inputPath,
+      ...paths.options,
+    });
+    const receipt = result.receipts.human_adjudication_receipt;
+
+    assert.equal(result.validation.valid, true);
+    assert.equal(receipt.receipt_status, "blocked_missing_external_evidence");
+    assert.equal(receipt.human_adjudication_receipt_present_now, false);
+    assert.equal(receipt.adjudication_input_valid_now, false);
+    assert.equal(receipt.validation_errors.includes("missing_finding_decisions:F-002"), true);
+  } finally {
+    await rm(outDir, { recursive: true, force: true });
+  }
+});
+
 test("External verification enforcement keeps blocked placeholder receipts from becoming completed review evidence", async () => {
   const outDir = await mkdtemp(path.join(os.tmpdir(), "platform-blocked-receipts-"));
   const paths = receiptPaths(outDir);
@@ -413,6 +498,30 @@ async function writeObservedReceipts(paths) {
     adjudicator_id: "human.owner",
     decisions: [{ finding_id: "F-001", decision: "ACCEPT" }],
     final_authority_allowed_now: false,
+    raw_payload_inlined: false,
+  });
+}
+
+async function writeObservedClaudeReviewReceipt(filePath, findingIds = ["F-001"]) {
+  await writeReceipt(filePath, {
+    schema_version: "claude-review-receipt.v1",
+    receipt_status: "observed",
+    reviewer_id: "reviewer.claude_code.opus_max",
+    resolved_model_id: "claude-opus-test",
+    model_resolution_timestamp: RUN_AT,
+    review_completed_now: true,
+    findings: findingIds.map((findingId) => ({
+      finding_id: findingId,
+      severity: "info",
+      category: "verification",
+      location: "test/platform-external-verification-enforcement.test.mjs",
+      evidence: "observed receipt regression",
+      issue: "no issue",
+      proposed_change: "preserve behavior",
+      confidence: "high",
+      risk_if_accepted: "low",
+      risk_if_rejected: "low",
+    })),
     raw_payload_inlined: false,
   });
 }

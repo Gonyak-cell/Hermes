@@ -1,0 +1,373 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-review-process-upgrade.schema.json",
+  "title": "Platform Review Process Upgrade",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_review_process_upgrade_id",
+    "capability_id",
+    "inputs",
+    "source_review_authority_contract_summary",
+    "review_process_anchor",
+    "review_process_manifest",
+    "work_intake_field_rows",
+    "codex_plan_only_lane_rows",
+    "claude_plan_review_lane_rows",
+    "codex_implementation_packet_rows",
+    "codex_self_review_rows",
+    "claude_multi_pass_review_rows",
+    "finding_fix_loop_rows",
+    "pr_type_policy_rows",
+    "instruction_freeze_rows",
+    "evidence_provenance_rows",
+    "review_process_gate_rows",
+    "review_process_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-review-process-upgrade.v1" },
+    "capability_id": { "const": "platform.review_process.upgrade" },
+    "review_process_anchor": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "phase_range",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "command_name",
+        "source_command_name",
+        "package_script_registered",
+        "source_authority_contract_ready",
+        "external_verification_ledger_registered",
+        "work_intake_field_count",
+        "codex_plan_only_lane_count",
+        "claude_plan_review_lane_count",
+        "implementation_packet_count",
+        "codex_self_review_count",
+        "claude_multi_pass_review_count",
+        "finding_fix_loop_count",
+        "pr_type_policy_count",
+        "instruction_freeze_count",
+        "evidence_provenance_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "review-process-anchor.v1" },
+        "program_range": { "const": "P3841-P4000" },
+        "phase_range": { "const": "P3861-P4000" },
+        "phase_slot": { "const": "P3861" },
+        "previous_phase_slot": { "const": "P3860" },
+        "next_phase_slot": { "const": "P4001" },
+        "command_name": { "const": "platform:review-process-upgrade" },
+        "source_command_name": { "const": "platform:review-authority-contract" },
+        "package_script_registered": { "const": true },
+        "source_authority_contract_ready": { "const": true },
+        "external_verification_ledger_registered": { "const": true },
+        "work_intake_field_count": { "const": 8 },
+        "codex_plan_only_lane_count": { "const": 6 },
+        "claude_plan_review_lane_count": { "const": 5 },
+        "implementation_packet_count": { "const": 7 },
+        "codex_self_review_count": { "const": 4 },
+        "claude_multi_pass_review_count": { "const": 6 },
+        "finding_fix_loop_count": { "const": 5 },
+        "pr_type_policy_count": { "const": 6 },
+        "instruction_freeze_count": { "const": 5 },
+        "evidence_provenance_count": { "const": 8 }
+      }
+    },
+    "review_process_manifest": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "phase_range",
+        "review_process_upgrade_status",
+        "work_intake_field_count",
+        "codex_plan_only_lane_count",
+        "claude_plan_review_lane_count",
+        "implementation_packet_count",
+        "codex_self_review_count",
+        "claude_multi_pass_review_count",
+        "finding_fix_loop_count",
+        "pr_type_policy_count",
+        "instruction_freeze_count",
+        "evidence_provenance_count",
+        "p4000_review_process_upgrade_ready"
+      ],
+      "properties": {
+        "schema_version": { "const": "review-process-manifest.v1" },
+        "program_range": { "const": "P3841-P4000" },
+        "phase_range": { "const": "P3861-P4000" },
+        "review_process_upgrade_status": { "const": "ready_for_review_process_upgrade" },
+        "work_intake_field_count": { "const": 8 },
+        "codex_plan_only_lane_count": { "const": 6 },
+        "claude_plan_review_lane_count": { "const": 5 },
+        "implementation_packet_count": { "const": 7 },
+        "codex_self_review_count": { "const": 4 },
+        "claude_multi_pass_review_count": { "const": 6 },
+        "finding_fix_loop_count": { "const": 5 },
+        "pr_type_policy_count": { "const": 6 },
+        "instruction_freeze_count": { "const": 5 },
+        "evidence_provenance_count": { "const": 8 },
+        "p4000_review_process_upgrade_ready": { "const": true }
+      }
+    },
+    "work_intake_field_rows": { "$ref": "#/$defs/passRows8" },
+    "codex_plan_only_lane_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "file_edit_allowed_before_plan_review", "missing_field_blocks_implementation", "required_for_p4000_freeze", "current_verdict"],
+        "properties": {
+          "schema_version": { "const": "codex-plan-only-lane-row.v1" },
+          "file_edit_allowed_before_plan_review": { "const": false },
+          "missing_field_blocks_implementation": { "const": true },
+          "required_for_p4000_freeze": { "const": true },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "claude_plan_review_lane_rows": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "required_before_implementation", "allowed_verdicts", "required_for_p4000_freeze", "current_verdict"],
+        "properties": {
+          "schema_version": { "const": "claude-plan-review-lane-row.v1" },
+          "required_before_implementation": { "const": true },
+          "allowed_verdicts": { "type": "array", "minItems": 3, "maxItems": 3 },
+          "required_for_p4000_freeze": { "const": true },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "codex_implementation_packet_rows": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "required_before_claude_review", "missing_field_blocks_review_closeout", "required_for_p4000_freeze", "current_verdict"],
+        "properties": {
+          "schema_version": { "const": "codex-implementation-packet-row.v1" },
+          "required_before_claude_review": { "const": true },
+          "missing_field_blocks_review_closeout": { "const": true },
+          "required_for_p4000_freeze": { "const": true },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "codex_self_review_rows": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "final_approval_allowed", "independent_review_credit_allowed", "required_for_p4000_freeze", "current_verdict"],
+        "properties": {
+          "schema_version": { "const": "codex-self-review-row.v1" },
+          "final_approval_allowed": { "const": false },
+          "independent_review_credit_allowed": { "const": false },
+          "required_for_p4000_freeze": { "const": true },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "claude_multi_pass_review_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "review_mode", "required_for_high_risk_pr", "resolved_model_id_required", "required_for_p4000_freeze", "current_verdict"],
+        "properties": {
+          "schema_version": { "const": "claude-multi-pass-review-row.v1" },
+          "review_mode": { "type": "string", "minLength": 1 },
+          "required_for_high_risk_pr": { "const": true },
+          "resolved_model_id_required": { "const": true },
+          "required_for_p4000_freeze": { "const": true },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "finding_fix_loop_rows": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "resolution", "finding_id_required", "required_for_p4000_freeze", "current_verdict"],
+        "properties": {
+          "schema_version": { "const": "finding-fix-loop-row.v1" },
+          "resolution": { "type": "string", "minLength": 1 },
+          "finding_id_required": { "const": true },
+          "required_for_p4000_freeze": { "const": true },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "pr_type_policy_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "pr_type", "evidence_bar_required", "required_for_p4000_freeze", "current_verdict"],
+        "properties": {
+          "schema_version": { "const": "pr-type-policy-row.v1" },
+          "pr_type": { "type": "string", "minLength": 1 },
+          "evidence_bar_required": { "const": true },
+          "required_for_p4000_freeze": { "const": true },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "instruction_freeze_rows": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "source_id", "source_uri", "available_now", "required_for_p4000_freeze", "current_verdict"],
+        "properties": {
+          "schema_version": { "const": "instruction-freeze-row.v1" },
+          "source_id": { "type": "string", "minLength": 1 },
+          "source_uri": { "type": "string", "minLength": 1 },
+          "available_now": { "const": true },
+          "required_for_p4000_freeze": { "const": true },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "evidence_provenance_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "source_id", "source_uri", "available_now", "required_for_p4000_freeze", "current_verdict"],
+        "properties": {
+          "schema_version": { "const": "review-process-evidence-row.v1" },
+          "source_id": { "type": "string", "minLength": 1 },
+          "source_uri": { "type": "string", "minLength": 1 },
+          "available_now": { "const": true },
+          "required_for_p4000_freeze": { "const": true },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "review_process_gate_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "gate_id", "gate_status", "required_for_p4000_freeze", "current_verdict"],
+        "properties": {
+          "schema_version": { "const": "review-process-gate-row.v1" },
+          "gate_id": { "type": "string", "minLength": 1 },
+          "gate_status": { "const": "ready" },
+          "required_for_p4000_freeze": { "const": true },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "review_process_boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "phase_range",
+        "source_authority_contract_ready_now",
+        "instruction_freeze_ready_now",
+        "codex_plan_only_before_edit_required_now",
+        "claude_plan_review_required_before_implementation_now",
+        "codex_self_review_independent_credit_allowed_now",
+        "unresolved_high_findings_block_closeout_now",
+        "single_owner_exception_enterprise_trust_allowed_now",
+        "p4000_review_process_upgrade_ready"
+      ],
+      "properties": {
+        "schema_version": { "const": "review-process-boundary.v1" },
+        "program_range": { "const": "P3841-P4000" },
+        "phase_range": { "const": "P3861-P4000" },
+        "source_authority_contract_ready_now": { "const": true },
+        "instruction_freeze_ready_now": { "const": true },
+        "codex_plan_only_before_edit_required_now": { "const": true },
+        "claude_plan_review_required_before_implementation_now": { "const": true },
+        "codex_self_review_independent_credit_allowed_now": { "const": false },
+        "unresolved_high_findings_block_closeout_now": { "const": true },
+        "single_owner_exception_enterprise_trust_allowed_now": { "const": false },
+        "p4000_review_process_upgrade_ready": { "const": true }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "errors": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "phase_range",
+        "review_process_upgrade_status",
+        "source_authority_contract_ready_now",
+        "instruction_freeze_ready_now",
+        "codex_plan_only_before_edit_required_now",
+        "claude_plan_review_required_before_implementation_now",
+        "codex_self_review_independent_credit_allowed_now",
+        "unresolved_high_findings_block_closeout_now",
+        "single_owner_exception_enterprise_trust_allowed_now",
+        "p4000_review_process_upgrade_ready",
+        "validation_error_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "review-process-summary.v1" },
+        "program_range": { "const": "P3841-P4000" },
+        "phase_range": { "const": "P3861-P4000" },
+        "review_process_upgrade_status": { "const": "ready_for_review_process_upgrade" },
+        "source_authority_contract_ready_now": { "const": true },
+        "instruction_freeze_ready_now": { "const": true },
+        "codex_plan_only_before_edit_required_now": { "const": true },
+        "claude_plan_review_required_before_implementation_now": { "const": true },
+        "codex_self_review_independent_credit_allowed_now": { "const": false },
+        "unresolved_high_findings_block_closeout_now": { "const": true },
+        "single_owner_exception_enterprise_trust_allowed_now": { "const": false },
+        "p4000_review_process_upgrade_ready": { "const": true },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "passRows8": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "field_name", "required_for_p4000_freeze", "current_verdict"],
+        "properties": {
+          "schema_version": { "const": "work-intake-field-row.v1" },
+          "field_name": { "type": "string", "minLength": 1 },
+          "required_for_p4000_freeze": { "const": true },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

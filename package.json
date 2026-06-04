@@ -583,6 +583,8 @@
     "platform:verification-trust-kernel": "node scripts/platform-verification-trust-kernel.mjs",
     "platform:verification-trust-activation": "node scripts/platform-verification-trust-activation.mjs",
     "platform:external-verification-enforcement": "node scripts/platform-external-verification-enforcement.mjs",
+    "platform:review-authority-contract": "node scripts/platform-review-authority-contract.mjs",
+    "platform:review-process-upgrade": "node scripts/platform-review-process-upgrade.mjs",
     "platform:live-external-verification-evidence": "node scripts/platform-live-external-verification-evidence.mjs"
   },
   "engines": {

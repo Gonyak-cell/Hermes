@@ -232,6 +232,53 @@ review process instead of relying on ad hoc prompts.
 | `P3981-P3990` | PR Type Policy | Feature, bugfix, refactor, security/auth, dependency, and large AI-generated PRs use different evidence bars |
 | `P3991-P4000` | Review Instruction Freeze | `AGENTS.md`, `CLAUDE.md`, `REVIEW.md`, prompt templates, PR description contract, and single-owner mode policy freeze |
 
+### P3841-P3860 Role Authority Contract
+
+The first P4000 slice is implemented by:
+
+```text
+npm run platform:review-authority-contract -- --check
+```
+
+The command writes deterministic authority evidence to:
+
+```text
+artifacts/platform-review-authority-contract/latest/
+```
+
+It freezes these authority boundaries:
+
+- `actor.codex.primary_developer` can plan and implement, but cannot finally
+  approve, self-approve, or complete enterprise trust.
+- `actor.claude_code.opus_max_reviewer` can review findings, but cannot mutate
+  source, replace human adjudication, or finally approve.
+- `actor.human.owner_adjudicator` can make final adjudication, but still cannot
+  turn single-owner mode into enterprise independent review.
+- `actor.github.independent_reviewer` is the only role that can satisfy the
+  independent GitHub review portion of enterprise trust when observed.
+- `actor.github.single_owner_exception` can expose lower-trust merge readiness,
+  but cannot complete independent GitHub review or enterprise trust.
+
+### P3861-P4000 Review Process Upgrade
+
+The remaining P4000 slices are implemented by:
+
+```text
+npm run platform:review-process-upgrade -- --check
+```
+
+The command writes deterministic process evidence to:
+
+```text
+artifacts/platform-review-process-upgrade/latest/
+```
+
+It freezes the work intake fields, Codex plan-only lane, Claude plan review
+lane, Codex implementation packet, Codex self-review non-authority rule, Claude
+multi-pass review modes, finding fix loop, PR type policy, and instruction
+sources (`AGENTS.md`, `CLAUDE.md`, `REVIEW.md`, prompt templates, and PR
+template).
+
 The invariant is:
 
 ```text

@@ -859,9 +859,9 @@ function mergeLivePreflightWithReceipts(livePreflight, { remoteBindingReceipt, b
   return {
     ...livePreflight,
     github_remote_configured_now: livePreflight.github_remote_configured_now || (githubRemoteObserved && remote.github_remote_configured_now === true),
-    github_owner: livePreflight.github_owner ?? parseRepositoryFullName(remote.repository_full_name)?.owner ?? null,
-    github_repo: livePreflight.github_repo ?? parseRepositoryFullName(remote.repository_full_name)?.repo ?? null,
-    gh_cli_available_now: livePreflight.gh_cli_available_now || remote.gh_cli_available_now === true,
+    github_owner: livePreflight.github_owner ?? (githubRemoteObserved ? parseRepositoryFullName(remote.repository_full_name)?.owner : null) ?? null,
+    github_repo: livePreflight.github_repo ?? (githubRemoteObserved ? parseRepositoryFullName(remote.repository_full_name)?.repo : null) ?? null,
+    gh_cli_available_now: livePreflight.gh_cli_available_now || (githubRemoteObserved && remote.gh_cli_available_now === true),
     gh_auth_available_now: livePreflight.gh_auth_available_now || (githubRemoteObserved && remote.gh_auth_available_now === true),
     branch_protection_query_available_now: livePreflight.branch_protection_query_available_now || (branchObserved && branch.branch_protection_query_available_now === true),
     branch_protection_configured_now: livePreflight.branch_protection_configured_now || (branchObserved && branch.branch_protection_configured_now === true),

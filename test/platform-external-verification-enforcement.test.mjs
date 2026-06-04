@@ -34,11 +34,13 @@ const BLOCKED_PREFLIGHT = {
   force_push_disabled_now: false,
   command_observations: [],
 };
+const MISSING_RECEIPT_OPTIONS = receiptPaths(path.join(os.tmpdir(), `platform-missing-receipts-${process.pid}`)).options;
 
 const resultPromise = buildPlatformExternalVerificationEnforcement({
   runAt: RUN_AT,
   write: false,
   livePreflight: BLOCKED_PREFLIGHT,
+  ...MISSING_RECEIPT_OPTIONS,
 });
 
 test("External verification enforcement consumes P3361-P3520 activation and stays blocked without external controls", async () => {
@@ -78,6 +80,7 @@ test("External verification enforcement treats missing Claude Code as blocked ev
       claude_code_available_now: false,
       claude_code_version: null,
     },
+    ...MISSING_RECEIPT_OPTIONS,
   });
   const [reviewer] = result.reviewer_profile_rows;
   const claudeAvailability = result.independent_review_completion_rows.find((row) => row.control_id === "claude_code_available");
@@ -217,6 +220,40 @@ test("External verification enforcement keeps blocked placeholder receipts from 
   }
 });
 
+test("External verification enforcement does not promote gh CLI evidence from a blocked remote receipt", async () => {
+  const outDir = await mkdtemp(path.join(os.tmpdir(), "platform-blocked-remote-receipt-"));
+  const paths = receiptPaths(outDir);
+
+  try {
+    await writeReceipt(paths.remoteBindingReceiptPath, {
+      schema_version: "github-remote-binding-receipt.v1",
+      receipt_status: "blocked_missing_external_evidence",
+      repository_full_name: "example/hermes",
+      github_remote_configured_now: false,
+      gh_cli_available_now: true,
+      gh_auth_available_now: false,
+      raw_payload_inlined: false,
+    });
+    const base = await resultPromise;
+    const result = await buildPlatformExternalVerificationEnforcement({
+      runAt: RUN_AT,
+      write: false,
+      livePreflight: {
+        ...BLOCKED_PREFLIGHT,
+        gh_cli_available_now: false,
+      },
+      sourceActivation: { summary: base.source_verification_trust_activation_summary },
+      ...paths.options,
+    });
+
+    assert.equal(result.validation.valid, true);
+    assert.equal(result.summary.gh_cli_available_now, false);
+    assert.equal(result.summary.github_remote_configured_now, false);
+  } finally {
+    await rm(outDir, { recursive: true, force: true });
+  }
+});
+
 test("External verification enforcement turns controls true only when observed receipts prove them", async () => {
   const outDir = await mkdtemp(path.join(os.tmpdir(), "platform-observed-receipts-"));
   const paths = receiptPaths(outDir);
@@ -264,6 +301,7 @@ test("External verification enforcement --check does not overwrite artifacts", a
       check: true,
       write: false,
       livePreflight: BLOCKED_PREFLIGHT,
+      ...MISSING_RECEIPT_OPTIONS,
     });
     assert.equal(result.validation.valid, true);
     assert.equal(await readFile(sentinelPath, "utf8"), sentinel);

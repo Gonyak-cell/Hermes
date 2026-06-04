@@ -171,9 +171,16 @@ jobs:
       - name: Generate verification artifact
         run: |
           npm run platform:verification-trust-activation
+          npm run platform:live-external-verification-evidence
           npm run platform:external-verification-enforcement
           mkdir -p dist
-          tar -czf dist/hermes-verification-trust-artifacts.tgz artifacts/platform-verification-trust-activation/latest artifacts/platform-external-verification-enforcement/latest
+          tar -czf dist/hermes-verification-trust-artifacts.tgz \
+            artifacts/platform-verification-trust-activation/latest \
+            artifacts/platform-external-verification-enforcement/latest \
+            artifacts/platform-external-verification-enforcement/live-evidence/latest \
+            artifacts/platform-external-verification-enforcement/github \
+            artifacts/platform-external-verification-enforcement/attestation \
+            artifacts/platform-external-verification-enforcement/review
 
       - name: Upload verification artifact
         uses: actions/upload-artifact@v4
@@ -182,11 +189,11 @@ jobs:
           path: dist/hermes-verification-trust-artifacts.tgz
 
       - name: Generate artifact attestation
-        if: ${{ github.event.repository.private == false }}
+        if: ${{ github.event.repository.visibility != 'private' }}
         uses: actions/attest@v4
         with:
           subject-path: dist/hermes-verification-trust-artifacts.tgz
 
       - name: Record artifact attestation unavailable
-        if: ${{ github.event.repository.private == true }}
+        if: ${{ github.event.repository.visibility == 'private' }}
         run: echo "GitHub artifact attestations are unavailable for user-owned private repositories; attestation evidence remains BLOCK."

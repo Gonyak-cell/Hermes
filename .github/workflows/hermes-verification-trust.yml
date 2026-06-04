@@ -1,6 +1,7 @@
 name: Hermes Verification Trust
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main

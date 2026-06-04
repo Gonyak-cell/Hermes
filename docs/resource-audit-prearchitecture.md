@@ -6,8 +6,8 @@
 
 대상 폴더:
 
-- `/Users/jws/Library/CloudStorage/OneDrive-개인/02_Template`
-- `/Users/jws/Library/CloudStorage/OneDrive-개인/02_Template/플러그인`
+- `$HERMES_RESOURCE_AUDIT_ROOT`
+- `$HERMES_RESOURCE_AUDIT_ROOT/플러그인`
 
 실행 절차 문서: `docs/full-resource-audit-runbook.md`
 

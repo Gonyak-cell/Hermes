@@ -37,7 +37,7 @@ const OFFICE_EXTENSIONS = new Set(["doc", "docx", "hwp", "msg", "pdf", "pptx", "
 const MEDIA_EXTENSIONS = new Set(["ico", "jpg", "jpeg", "mp4", "png", "webp"]);
 
 export const DEFAULT_RESOURCE_ROOTS = [
-  "/Users/jws/Library/CloudStorage/OneDrive-개인/02_Template",
+  process.env.HERMES_RESOURCE_AUDIT_ROOT ?? path.resolve(".local/resource-audit-root"),
 ];
 
 export async function buildResourceAudit(options = {}) {

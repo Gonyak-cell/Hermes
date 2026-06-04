@@ -1,6 +1,6 @@
 # Full Resource Audit Runbook
 
-목표: `02_Template`와 `플러그인`의 모든 파일을 실제 본문 기준으로 점검하고, 그 결과를 Hermes Harness 사전 설계에 반영한다.
+목표: `$HERMES_RESOURCE_AUDIT_ROOT`와 `플러그인`의 모든 파일을 실제 본문 기준으로 점검하고, 그 결과를 Hermes Harness 사전 설계에 반영한다.
 
 ## 1. 현재 상태 확인
 
@@ -30,8 +30,8 @@ OneDrive File Provider 항목은 macOS에서 `dataless` placeholder로 존재할
 
 필수 조치:
 
-1. Finder에서 `/Users/jws/Library/CloudStorage/OneDrive-개인/02_Template` 폴더를 연다.
-2. `02_Template` 폴더를 우클릭한다.
+1. Finder에서 `$HERMES_RESOURCE_AUDIT_ROOT` 폴더를 연다.
+2. 대상 리소스 루트 폴더를 우클릭한다.
 3. OneDrive 메뉴에서 `Always Keep on This Device` 또는 한국어 UI의 `항상 이 장치에 유지`를 선택한다.
 4. OneDrive 동기화가 끝날 때까지 기다린다.
 5. 아래 명령으로 `Needs materialization`이 0에 가까워졌는지 확인한다.

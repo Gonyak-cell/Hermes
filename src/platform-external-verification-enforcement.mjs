@@ -640,6 +640,7 @@ function buildGuardRows({ sourceActivation, reviewerProfileRows, reviewPacketRow
 function buildBoundary({ livePreflight, reviewerProfileRows, branchProtectionRows, requiredStatusCheckRows, attestationRows, independentReviewRows, guardRows }) {
   const branchProtectionConfigured = branchProtectionRows.find((row) => row.control_id === "branch_protection_configured")?.observed_now === true;
   const requiredStatusCheckEnforced = requiredStatusCheckRows.some((row) => row.required_status_check_enforced_now === true);
+  const actionsRunSuccess = livePreflight.actions_run_success_now === true;
   const requiredPrReviewEnforced = branchProtectionRows.find((row) => row.control_id === "required_pr_review_enforced")?.observed_now === true;
   const forcePushDisabled = branchProtectionRows.find((row) => row.control_id === "force_push_disabled")?.observed_now === true;
   const signedAttestationGenerated = attestationRows.find((row) => row.control_id === "signed_attestation_generated")?.observed_now === true;
@@ -648,6 +649,7 @@ function buildBoundary({ livePreflight, reviewerProfileRows, branchProtectionRow
   const humanAdjudicationReceiptPresent = independentReviewRows.find((row) => row.control_id === "human_adjudication_receipt_present")?.observed_now === true;
   const externalControlsComplete = branchProtectionConfigured
     && requiredStatusCheckEnforced
+    && actionsRunSuccess
     && requiredPrReviewEnforced
     && forcePushDisabled
     && signedAttestationGenerated
@@ -668,6 +670,7 @@ function buildBoundary({ livePreflight, reviewerProfileRows, branchProtectionRow
     gh_auth_available_now: livePreflight.gh_auth_available_now,
     branch_protection_configured_now: branchProtectionConfigured,
     required_status_check_enforced_now: requiredStatusCheckEnforced,
+    actions_run_success_now: actionsRunSuccess,
     required_pr_review_enforced_now: requiredPrReviewEnforced,
     force_push_disabled_now: forcePushDisabled,
     signed_attestation_generated_now: signedAttestationGenerated,
@@ -685,6 +688,7 @@ function buildBoundary({ livePreflight, reviewerProfileRows, branchProtectionRow
     blocked_control_count: [
       branchProtectionConfigured,
       requiredStatusCheckEnforced,
+      actionsRunSuccess,
       requiredPrReviewEnforced,
       forcePushDisabled,
       signedAttestationGenerated,
@@ -815,6 +819,7 @@ function buildSummary({ sourceActivation, componentRows, reviewerProfileRows, re
     gh_auth_available_now: boundary.gh_auth_available_now,
     branch_protection_configured_now: boundary.branch_protection_configured_now,
     required_status_check_enforced_now: boundary.required_status_check_enforced_now,
+    actions_run_success_now: boundary.actions_run_success_now,
     required_pr_review_enforced_now: boundary.required_pr_review_enforced_now,
     force_push_disabled_now: boundary.force_push_disabled_now,
     signed_attestation_generated_now: boundary.signed_attestation_generated_now,
@@ -975,6 +980,7 @@ function renderMarkdown(result) {
     `GitHub auth available now: ${result.summary.gh_auth_available_now}`,
     `Branch protection configured now: ${result.summary.branch_protection_configured_now}`,
     `Required status check enforced now: ${result.summary.required_status_check_enforced_now}`,
+    `Actions run success now: ${result.summary.actions_run_success_now}`,
     `Required PR review enforced now: ${result.summary.required_pr_review_enforced_now}`,
     `Force push disabled now: ${result.summary.force_push_disabled_now}`,
     `Signed attestation generated now: ${result.summary.signed_attestation_generated_now}`,

@@ -125,6 +125,11 @@ hash-bound receipt:
 
 ```bash
 npm run platform:live-external-verification-evidence -- \
+  --human-adjudication-template artifacts/platform-external-verification-enforcement/review/human-adjudication-input.json
+```
+
+```bash
+npm run platform:live-external-verification-evidence -- \
   --branch main \
   --actions-branch codex/p3840-review-hardening \
   --human-adjudication-input artifacts/platform-external-verification-enforcement/review/human-adjudication-input.json
@@ -161,6 +166,10 @@ Allowed decisions are `ACCEPT`, `ACCEPT_WITH_MODIFICATION`, `REJECT`, and
 `HOLD`. The generated receipt stores the input file hash and hashes of rationale
 or owner note fields, not the raw narrative text. Missing, duplicate, or unknown
 finding ids keep the receipt at `blocked_missing_external_evidence`.
+
+The template command only writes a draft. Empty decisions are intentionally not
+valid receipt evidence and must remain blocked until a human owner completes
+every finding decision.
 
 ### Attestation Availability
 

@@ -162,6 +162,13 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
     claude_review_receipt: claudeReviewReceipt,
     human_adjudication_receipt: humanAdjudicationReceipt,
   };
+  const humanAdjudicationInputTemplate = options.humanAdjudicationTemplatePath
+    ? buildHumanAdjudicationInputTemplate({
+      generatedAt,
+      templatePath: options.humanAdjudicationTemplatePath,
+      claudeReviewReceipt,
+    })
+    : null;
   const validationItems = buildValidationItems({ receiptPaths, receipts });
   const validation = summarizeValidation(validationItems);
   return {
@@ -172,6 +179,7 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
     cwd,
     receipt_paths: receiptPaths,
     receipts,
+    human_adjudication_input_template: humanAdjudicationInputTemplate,
     command_observations: commandObservations,
     validation_items: validationItems,
     validation,
@@ -183,6 +191,10 @@ export async function writePlatformLiveExternalVerificationEvidence(result) {
   for (const receipt of Object.values(result.receipts)) {
     await mkdir(path.dirname(receipt.receipt_path), { recursive: true });
     await writeJson(receipt.receipt_path, receipt);
+  }
+  if (result.human_adjudication_input_template) {
+    await mkdir(path.dirname(result.human_adjudication_input_template.template_path), { recursive: true });
+    await writeJson(result.human_adjudication_input_template.template_path, result.human_adjudication_input_template);
   }
   const latestDir = path.join(DEFAULT_PLATFORM_LIVE_EXTERNAL_VERIFICATION_EVIDENCE_ROOT, "live-evidence/latest");
   await mkdir(latestDir, { recursive: true });
@@ -207,6 +219,7 @@ export async function runPlatformLiveExternalVerificationEvidenceCli(argv = proc
     console.log(`Attestation verified: ${result.summary.attestation_verification_passed_now}`);
     console.log(`Claude review completed: ${result.summary.claude_review_completed_now}`);
     console.log(`Human adjudication present: ${result.summary.human_adjudication_receipt_present_now}`);
+    if (result.human_adjudication_input_template) console.log(`Human adjudication template: ${result.human_adjudication_input_template.template_path}`);
     console.log(`Validation errors: ${result.summary.validation_error_count}`);
   } catch (error) {
     console.error(error.message);
@@ -492,6 +505,44 @@ function buildHumanAdjudicationReceipt({ generatedAt, receiptPath, existingRecei
   });
 }
 
+export function buildHumanAdjudicationInputTemplate({ generatedAt, templatePath, claudeReviewReceipt }) {
+  const claudeData = claudeReviewReceipt?.data ?? claudeReviewReceipt ?? null;
+  const findings = Array.isArray(claudeData?.findings) ? claudeData.findings : [];
+  const template = {
+    schema_version: "human-adjudication-input.v1",
+    template_status: "draft_requires_human_completion",
+    template_path: templatePath,
+    generated_at: generatedAt,
+    source_claude_review_receipt_path: claudeReviewReceipt?.path ?? claudeData?.receipt_path ?? null,
+    source_claude_review_receipt_status: claudeData?.receipt_status ?? null,
+    source_claude_review_hash: claudeReviewReceipt?.raw ? sha256(claudeReviewReceipt.raw) : (claudeData?.content_hash ?? null),
+    reviewer_id: claudeData?.reviewer_id ?? REVIEWER_ID,
+    resolved_model_id: claudeData?.resolved_model_id ?? null,
+    adjudicator_id: "",
+    adjudicator_role: "human_owner",
+    adjudicated_at: null,
+    raw_payload_inlined: false,
+    final_authority_allowed_now: false,
+    allowed_decisions: ["ACCEPT", "ACCEPT_WITH_MODIFICATION", "REJECT", "HOLD"],
+    required_finding_count: findings.length,
+    decisions: findings.map((finding) => ({
+      finding_id: finding.finding_id,
+      severity: finding.severity ?? null,
+      category: finding.category ?? null,
+      location: finding.location ?? null,
+      finding_hash: sha256(JSON.stringify(canonicalize(finding))),
+      decision: "",
+      rationale_summary: "",
+      follow_up_required: false,
+    })),
+    next_allowed_action: "human owner must fill adjudicator_id and every decision before using this file as --human-adjudication-input",
+  };
+  return {
+    ...template,
+    template_hash: sha256(JSON.stringify(canonicalize({ ...template, template_hash: undefined }))),
+  };
+}
+
 function validateHumanAdjudicationInput(inputReceipt, claudeReviewReceipt) {
   const errors = [];
   const allowedDecisions = new Set(["ACCEPT", "ACCEPT_WITH_MODIFICATION", "REJECT", "HOLD"]);
@@ -745,6 +796,7 @@ function parseArgs(argv) {
     actionsBranch: undefined,
     attestationSubject: undefined,
     humanAdjudicationInputPath: undefined,
+    humanAdjudicationTemplatePath: undefined,
     help: false,
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -773,6 +825,9 @@ function parseArgs(argv) {
     } else if (arg === "--human-adjudication-input") {
       args.humanAdjudicationInputPath = argv[index + 1];
       index += 1;
+    } else if (arg === "--human-adjudication-template") {
+      args.humanAdjudicationTemplatePath = argv[index + 1];
+      index += 1;
     } else if (arg === "--help" || arg === "-h") {
       args.help = true;
     }
@@ -792,6 +847,8 @@ Options:
   --attestation-subject <path>    Artifact path or subject for gh attestation verify.
   --human-adjudication-input <path>
                                   Human owner decision input JSON.
+  --human-adjudication-template <path>
+                                  Write a draft input JSON template from the Claude review receipt.
   --help                          Show this help.
 `);
 }

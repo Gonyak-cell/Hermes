@@ -321,6 +321,36 @@ test("Live external verification evidence blocks incomplete human adjudication i
   }
 });
 
+test("Live external verification evidence writes a non-promoting human adjudication template", async () => {
+  const outDir = await mkdtemp(path.join(os.tmpdir(), "platform-human-adjudication-template-"));
+  const paths = receiptPaths(outDir);
+  const templatePath = path.join(outDir, "review", "human-adjudication-input.json");
+
+  try {
+    await writeObservedClaudeReviewReceipt(paths.claudeReviewReceiptPath, ["F-001", "F-002", "F-003"]);
+    const result = await runPlatformLiveExternalVerificationEvidence({
+      runAt: RUN_AT,
+      write: true,
+      humanAdjudicationTemplatePath: templatePath,
+      ...paths.options,
+    });
+    const template = await readJson(templatePath);
+
+    assert.equal(result.validation.valid, true);
+    assert.equal(result.receipts.human_adjudication_receipt.receipt_status, "blocked_missing_external_evidence");
+    assert.equal(template.schema_version, "human-adjudication-input.v1");
+    assert.equal(template.template_status, "draft_requires_human_completion");
+    assert.equal(template.raw_payload_inlined, false);
+    assert.equal(template.final_authority_allowed_now, false);
+    assert.equal(template.required_finding_count, 3);
+    assert.deepEqual(template.decisions.map((decision) => decision.finding_id), ["F-001", "F-002", "F-003"]);
+    assert.equal(template.decisions.every((decision) => decision.decision === ""), true);
+    assert.equal(template.template_hash.startsWith("sha256:"), true);
+  } finally {
+    await rm(outDir, { recursive: true, force: true });
+  }
+});
+
 test("Live external verification evidence classifies private user repo attestations as externally blocked", () => {
   const support = classifyAttestationSupport({
     verified: false,
@@ -447,6 +477,7 @@ test("External verification enforcement turns controls true only when observed r
     assert.equal(result.summary.gh_auth_available_now, true);
     assert.equal(result.summary.branch_protection_configured_now, true);
     assert.equal(result.summary.required_status_check_enforced_now, true);
+    assert.equal(result.summary.actions_run_success_now, true);
     assert.equal(result.summary.required_pr_review_enforced_now, true);
     assert.equal(result.summary.force_push_disabled_now, true);
     assert.equal(result.summary.signed_attestation_generated_now, true);
@@ -456,6 +487,40 @@ test("External verification enforcement turns controls true only when observed r
     assert.equal(result.summary.p3680_external_controls_complete, true);
     assert.equal(result.summary.platform_external_verification_enforcement_status, "ready_for_platform_external_verification_enforcement");
     assert.equal(result.summary.enterprise_trust_claim_allowed_now, false);
+  } finally {
+    await rm(outDir, { recursive: true, force: true });
+  }
+});
+
+test("External verification enforcement requires observed Actions run success before completion", async () => {
+  const outDir = await mkdtemp(path.join(os.tmpdir(), "platform-observed-without-actions-"));
+  const paths = receiptPaths(outDir);
+
+  try {
+    await writeObservedReceipts(paths);
+    await writeReceipt(paths.actionsRunReceiptPath, {
+      schema_version: "github-actions-run-receipt.v1",
+      receipt_status: "blocked_missing_external_evidence",
+      actions_run_id: null,
+      actions_run_conclusion: null,
+      actions_run_success_now: false,
+      raw_payload_inlined: false,
+    });
+    const base = await resultPromise;
+    const result = await buildPlatformExternalVerificationEnforcement({
+      runAt: RUN_AT,
+      write: false,
+      livePreflight: BLOCKED_PREFLIGHT,
+      sourceActivation: { summary: base.source_verification_trust_activation_summary },
+      ...paths.options,
+    });
+
+    assert.equal(result.validation.valid, true);
+    assert.equal(result.summary.actions_run_success_now, false);
+    assert.equal(result.summary.attestation_verification_passed_now, true);
+    assert.equal(result.summary.independent_review_completed_now, true);
+    assert.equal(result.summary.p3680_external_controls_complete, false);
+    assert.equal(result.summary.platform_external_verification_enforcement_status, "blocked_pending_external_verification_enforcement");
   } finally {
     await rm(outDir, { recursive: true, force: true });
   }

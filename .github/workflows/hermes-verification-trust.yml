@@ -33,11 +33,18 @@ jobs:
       - name: Validate core contracts
         run: npm run validate:core
 
+      - name: Generate production governance prerequisite
+        run: npm run platform:production-governance-work-os-freeze
+
       - name: Validate source trust kernel
-        run: npm run platform:verification-trust-kernel -- --check
+        run: |
+          npm run platform:verification-trust-kernel
+          npm run platform:verification-trust-kernel -- --check
 
       - name: Validate activation trust
-        run: npm run platform:verification-trust-activation -- --check
+        run: |
+          npm run platform:verification-trust-activation
+          npm run platform:verification-trust-activation -- --check
 
       - name: Validate live external evidence capture
         run: npm run platform:live-external-verification-evidence -- --check

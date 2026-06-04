@@ -69,6 +69,29 @@ test("External verification enforcement registers Claude Code Opus max as indepe
   assert.equal(reviewer.final_authority_allowed, false);
 });
 
+test("External verification enforcement treats missing Claude Code as blocked evidence, not invalid schema", async () => {
+  const result = await buildPlatformExternalVerificationEnforcement({
+    runAt: RUN_AT,
+    write: false,
+    livePreflight: {
+      ...BLOCKED_PREFLIGHT,
+      claude_code_available_now: false,
+      claude_code_version: null,
+    },
+  });
+  const [reviewer] = result.reviewer_profile_rows;
+  const claudeAvailability = result.independent_review_completion_rows.find((row) => row.control_id === "claude_code_available");
+  const availabilityGuard = result.external_verification_guard_rows.find((row) => row.guard_id === "claude_code_availability_not_overclaimed");
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(reviewer.claude_code_available_now, false);
+  assert.equal(reviewer.current_verdict, "pass");
+  assert.equal(claudeAvailability.observed_now, false);
+  assert.equal(claudeAvailability.current_verdict, "blocked");
+  assert.equal(availabilityGuard.guard_status, "ready");
+  assert.equal(result.summary.p3680_external_controls_complete, false);
+});
+
 test("External verification enforcement defines blind review packets and normalized finding fields", async () => {
   const result = await resultPromise;
   const findingFields = result.finding_schema_rows.map((row) => row.field_name);

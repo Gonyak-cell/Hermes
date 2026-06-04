@@ -597,10 +597,11 @@ function buildEnforcementCoverageRows({ reviewerProfileRows, reviewPacketRows, b
 }
 
 function buildGuardRows({ sourceActivation, reviewerProfileRows, reviewPacketRows, branchProtectionRows, requiredStatusCheckRows, attestationRows, independentReviewRows, evidenceRows, validationLedgerRows, enforcementCoverageRows }) {
+  const claudeAvailabilityRow = independentReviewRows.find((row) => row.control_id === "claude_code_available");
   const guards = [
     ["source_activation_ready", sourceActivation.summary.platform_verification_trust_activation_status === SOURCE_READY_STATUS, "Source activation must be ready"],
     ["reviewer_profile_registered", reviewerProfileRows.length === 1 && reviewerProfileRows[0].reviewer_id === "reviewer.claude_code.opus_max", "Claude reviewer profile must be registered"],
-    ["claude_code_available", reviewerProfileRows[0]?.claude_code_available_now === true, "Claude Code must be available for this reviewer policy"],
+    ["claude_code_availability_not_overclaimed", claudeAvailabilityRow?.observed_now === true || claudeAvailabilityRow?.current_verdict === "blocked", "Claude Code availability must be observed or blocked, never assumed"],
     ["review_packet_contract_ready", reviewPacketRows.length === 6 && reviewPacketRows.every((row) => row.packet_status === "contract_ready"), "Review packet contract must be ready"],
     ["finding_schema_ready", true, "Finding normalization schema must be ready"],
     ["branch_protection_not_overclaimed", branchProtectionRows.every((row) => row.observed_now || row.current_verdict === "blocked"), "Missing branch protection controls must remain blocked"],
@@ -753,7 +754,7 @@ function buildValidationItems({ packageJson, packageLock, activationLedger, enfo
     validationItem("workflow.command", "workflow", workflow.available && workflow.text.includes(COMMAND_NAME), "workflow must include external enforcement command"),
     validationItem("workflow.attest", "workflow", workflow.available && workflow.text.includes("actions/attest@v4") && workflow.text.includes("id-token: write") && workflow.text.includes("attestations: write"), "workflow must declare attestation permissions and action"),
     validationItem("components.count", "component_rows", componentRows.length === 8, "all component rows must exist"),
-    validationItem("reviewer.profile", "reviewer", reviewerProfileRows.length === 1 && reviewerProfileRows[0].reviewer_id === "reviewer.claude_code.opus_max" && reviewerProfileRows[0].claude_code_available_now === true, "Claude Code Opus max reviewer profile must be registered and available"),
+    validationItem("reviewer.profile", "reviewer", reviewerProfileRows.length === 1 && reviewerProfileRows[0].reviewer_id === "reviewer.claude_code.opus_max" && reviewerProfileRows[0].write_permission_allowed === false && reviewerProfileRows[0].final_authority_allowed === false, "Claude Code Opus max reviewer profile must be registered without write or final authority"),
     validationItem("review_packet.count", "review_packet", reviewPacketRows.length === 6 && reviewPacketRows.every((row) => row.primary_conclusion_hidden_by_default === true), "review packet rows must exist and default to blind independent mode"),
     validationItem("finding_schema.count", "finding_schema", findingSchemaRows.length === FINDING_REQUIRED_FIELDS.length && findingSchemaRows.every((row) => row.field_required === true), "finding schema rows must require all fields"),
     validationItem("branch.not_overclaimed", "branch_protection", branchProtectionRows.length === 9 && branchProtectionRows.every((row) => row.observed_now || row.current_verdict === "blocked"), "branch protection rows must be observed or safely blocked"),

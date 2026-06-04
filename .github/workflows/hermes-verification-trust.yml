@@ -182,6 +182,11 @@ jobs:
           path: dist/hermes-verification-trust-artifacts.tgz
 
       - name: Generate artifact attestation
+        if: ${{ github.event.repository.private == false }}
         uses: actions/attest@v4
         with:
           subject-path: dist/hermes-verification-trust-artifacts.tgz
+
+      - name: Record artifact attestation unavailable
+        if: ${{ github.event.repository.private == true }}
+        run: echo "GitHub artifact attestations are unavailable for user-owned private repositories; attestation evidence remains BLOCK."

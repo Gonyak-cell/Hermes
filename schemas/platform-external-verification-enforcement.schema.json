@@ -1,0 +1,482 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-external-verification-enforcement.schema.json",
+  "title": "Platform External Verification Enforcement",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_external_verification_enforcement_id",
+    "capability_id",
+    "inputs",
+    "live_preflight",
+    "external_verification_enforcement_anchor",
+    "source_verification_trust_activation_summary",
+    "external_verification_enforcement_manifest",
+    "external_verification_component_rows",
+    "reviewer_profile_rows",
+    "review_packet_rows",
+    "finding_schema_rows",
+    "branch_protection_rows",
+    "required_status_check_rows",
+    "signed_attestation_rows",
+    "independent_review_completion_rows",
+    "evidence_provenance_rows",
+    "validation_result_ledger_rows",
+    "enforcement_coverage_rows",
+    "external_verification_guard_rows",
+    "external_verification_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-external-verification-enforcement.v1" },
+    "capability_id": { "const": "platform.external_verification_enforcement" },
+    "external_verification_enforcement_anchor": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "phase_range",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "command_name",
+        "source_command_name",
+        "package_script_registered",
+        "validation_chain_registered",
+        "package_lock_present",
+        "workflow_file_present",
+        "source_activation_status",
+        "component_count",
+        "reviewer_profile_count",
+        "review_packet_count",
+        "finding_schema_count",
+        "branch_protection_count",
+        "required_status_check_count",
+        "signed_attestation_count",
+        "independent_review_count",
+        "evidence_provenance_count",
+        "validation_ledger_count",
+        "enforcement_coverage_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "external-verification-anchor.v1" },
+        "program_range": { "const": "P3521-P3680" },
+        "phase_range": { "const": "P3521-P3680" },
+        "phase_slot": { "const": "P3521" },
+        "previous_phase_slot": { "const": "P3520" },
+        "next_phase_slot": { "const": "P3681" },
+        "command_name": { "const": "platform:external-verification-enforcement" },
+        "source_command_name": { "const": "platform:verification-trust-activation" },
+        "package_script_registered": { "const": true },
+        "validation_chain_registered": { "const": true },
+        "package_lock_present": { "const": true },
+        "workflow_file_present": { "const": true },
+        "source_activation_status": { "const": "ready_for_platform_verification_trust_activation" },
+        "component_count": { "const": 8 },
+        "reviewer_profile_count": { "const": 1 },
+        "review_packet_count": { "const": 6 },
+        "finding_schema_count": { "const": 10 },
+        "branch_protection_count": { "const": 9 },
+        "required_status_check_count": { "const": 7 },
+        "signed_attestation_count": { "const": 5 },
+        "independent_review_count": { "const": 6 },
+        "evidence_provenance_count": { "const": 15 },
+        "validation_ledger_count": { "const": 8 },
+        "enforcement_coverage_count": { "const": 8 }
+      }
+    },
+    "source_verification_trust_activation_summary": {
+      "type": "object",
+      "required": [
+        "platform_verification_trust_activation_status",
+        "standard_validator_dual_run_active_now",
+        "ci_workflow_defined_now",
+        "branch_protection_configured_now",
+        "external_signed_attestation_present_now",
+        "independent_review_lane_active_now",
+        "enterprise_trust_claim_allowed_now",
+        "validation_error_count"
+      ],
+      "properties": {
+        "platform_verification_trust_activation_status": { "const": "ready_for_platform_verification_trust_activation" },
+        "standard_validator_dual_run_active_now": { "const": true },
+        "ci_workflow_defined_now": { "const": true },
+        "branch_protection_configured_now": { "const": false },
+        "external_signed_attestation_present_now": { "const": false },
+        "independent_review_lane_active_now": { "const": true },
+        "enterprise_trust_claim_allowed_now": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "external_verification_enforcement_manifest": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "phase_range",
+        "source_activation_status",
+        "component_count",
+        "reviewer_profile_count",
+        "review_packet_count",
+        "finding_schema_count",
+        "branch_protection_count",
+        "required_status_check_count",
+        "signed_attestation_count",
+        "independent_review_count",
+        "evidence_provenance_count",
+        "validation_ledger_count",
+        "enforcement_coverage_count",
+        "p3680_external_controls_complete",
+        "enterprise_trust_claim_allowed_now"
+      ],
+      "properties": {
+        "schema_version": { "const": "external-verification-enforcement-manifest.v1" },
+        "program_range": { "const": "P3521-P3680" },
+        "phase_range": { "const": "P3521-P3680" },
+        "source_activation_status": { "const": "ready_for_platform_verification_trust_activation" },
+        "component_count": { "const": 8 },
+        "reviewer_profile_count": { "const": 1 },
+        "review_packet_count": { "const": 6 },
+        "finding_schema_count": { "const": 10 },
+        "branch_protection_count": { "const": 9 },
+        "required_status_check_count": { "const": 7 },
+        "signed_attestation_count": { "const": 5 },
+        "independent_review_count": { "const": 6 },
+        "evidence_provenance_count": { "const": 15 },
+        "validation_ledger_count": { "const": 8 },
+        "enforcement_coverage_count": { "const": 8 },
+        "enterprise_trust_claim_allowed_now": { "const": false }
+      }
+    },
+    "external_verification_component_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "component_status", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "external-verification-component-row.v1" },
+          "component_status": { "const": "contract_ready" },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "reviewer_profile_rows": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "reviewer_id",
+          "tool",
+          "preferred_model_alias",
+          "required_reasoning_tier",
+          "model_selection_policy",
+          "resolved_model_id_required",
+          "fallback_without_human_receipt_allowed",
+          "write_permission_allowed",
+          "final_authority_allowed",
+          "current_verdict"
+        ],
+        "properties": {
+          "schema_version": { "const": "reviewer-profile-row.v1" },
+          "reviewer_id": { "const": "reviewer.claude_code.opus_max" },
+          "tool": { "const": "claude_code" },
+          "preferred_model_alias": { "const": "opus" },
+          "required_reasoning_tier": { "const": "max" },
+          "model_selection_policy": { "const": "latest_available_opus" },
+          "resolved_model_id_required": { "const": true },
+          "fallback_without_human_receipt_allowed": { "const": false },
+          "write_permission_allowed": { "const": false },
+          "final_authority_allowed": { "const": false },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "review_packet_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "packet_status",
+          "default_review_mode",
+          "primary_conclusion_hidden_by_default",
+          "raw_source_mutation_allowed",
+          "external_transfer_requires_classification",
+          "current_verdict"
+        ],
+        "properties": {
+          "schema_version": { "const": "review-packet-row.v1" },
+          "packet_status": { "const": "contract_ready" },
+          "default_review_mode": { "const": "independent" },
+          "primary_conclusion_hidden_by_default": { "const": true },
+          "raw_source_mutation_allowed": { "const": false },
+          "external_transfer_requires_classification": { "const": true },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "finding_schema_rows": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "field_name", "field_required", "normalization_required", "missing_field_blocks_acceptance", "current_verdict"],
+        "properties": {
+          "schema_version": { "const": "finding-schema-row.v1" },
+          "field_required": { "const": true },
+          "normalization_required": { "const": true },
+          "missing_field_blocks_acceptance": { "const": true },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "branch_protection_rows": {
+      "type": "array",
+      "minItems": 9,
+      "maxItems": 9,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "control_id", "observed_now", "required_for_enterprise_trust", "control_status", "current_verdict", "unsafe_flags_false"],
+        "properties": {
+          "schema_version": { "const": "branch-protection-row.v1" },
+          "required_for_enterprise_trust": { "const": true },
+          "control_status": { "enum": ["observed", "blocked_missing_external_evidence"] },
+          "current_verdict": { "enum": ["pass", "blocked"] },
+          "unsafe_flags_false": { "const": true }
+        }
+      }
+    },
+    "required_status_check_rows": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "check_id", "workflow_defined_now", "required_status_check_enforced_now", "required_for_enterprise_trust", "current_verdict", "unsafe_flags_false"],
+        "properties": {
+          "schema_version": { "const": "required-status-check-row.v1" },
+          "current_verdict": { "enum": ["pass", "blocked"] },
+          "unsafe_flags_false": { "const": true }
+        }
+      }
+    },
+    "signed_attestation_rows": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "control_id", "observed_now", "required_for_enterprise_trust", "external_signed_attestation_present_now", "attestation_verification_passed_now", "current_verdict", "unsafe_flags_false"],
+        "properties": {
+          "schema_version": { "const": "signed-attestation-row.v1" },
+          "required_for_enterprise_trust": { "const": true },
+          "current_verdict": { "enum": ["pass", "blocked"] },
+          "unsafe_flags_false": { "const": true }
+        }
+      }
+    },
+    "independent_review_completion_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "control_id", "observed_now", "required_for_enterprise_trust", "review_completed_now", "human_adjudication_receipt_present_now", "current_verdict", "unsafe_flags_false"],
+        "properties": {
+          "schema_version": { "const": "independent-review-completion-row.v1" },
+          "required_for_enterprise_trust": { "const": true },
+          "current_verdict": { "enum": ["pass", "blocked"] },
+          "unsafe_flags_false": { "const": true }
+        }
+      }
+    },
+    "evidence_provenance_rows": {
+      "type": "array",
+      "minItems": 15,
+      "maxItems": 15,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "source_available", "hash_algorithm", "raw_payload_inlined", "provenance_status", "current_verdict"],
+        "properties": {
+          "schema_version": { "const": "external-enforcement-evidence-provenance-row.v1" },
+          "hash_algorithm": { "const": "sha256" },
+          "raw_payload_inlined": { "const": false },
+          "provenance_status": { "enum": ["hash_bound", "blocked_missing_source"] },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "validation_result_ledger_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "stage_status", "validation_passed", "previous_hash", "row_hash", "chain_hash", "append_only_required", "current_verdict"],
+        "properties": {
+          "schema_version": { "const": "external-enforcement-validation-result-ledger-row.v1" },
+          "stage_status": { "enum": ["pass", "blocked"] },
+          "previous_hash": { "pattern": "^sha256:" },
+          "row_hash": { "pattern": "^sha256:" },
+          "chain_hash": { "pattern": "^sha256:" },
+          "append_only_required": { "const": true },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "enforcement_coverage_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "coverage_status", "enterprise_blocking_gap", "current_verdict", "unsafe_flags_false"],
+        "properties": {
+          "schema_version": { "const": "enforcement-coverage-row.v1" },
+          "coverage_status": { "enum": ["active", "blocked"] },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true }
+        }
+      }
+    },
+    "external_verification_guard_rows": {
+      "type": "array",
+      "minItems": 13,
+      "maxItems": 13,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "guard_status", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "external-verification-guard-row.v1" },
+          "guard_status": { "const": "ready" },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "external_verification_boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "external_enforcement_preflight_ready",
+        "enterprise_trust_claim_allowed_now",
+        "production_ready_claimed_now",
+        "runtime_execution_allowed_now",
+        "write_action_allowed_now",
+        "connector_write_allowed_now",
+        "final_authority_allowed_now",
+        "p3680_external_controls_complete",
+        "blocked_control_count",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "external-verification-boundary.v1" },
+        "external_enforcement_preflight_ready": { "const": true },
+        "enterprise_trust_claim_allowed_now": { "const": false },
+        "production_ready_claimed_now": { "const": false },
+        "runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "final_authority_allowed_now": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "errors": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 0
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "platform_external_verification_enforcement_status",
+        "program_range",
+        "phase_range",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "source_activation_status",
+        "component_count",
+        "reviewer_profile_count",
+        "review_packet_count",
+        "finding_schema_count",
+        "branch_protection_count",
+        "required_status_check_count",
+        "signed_attestation_count",
+        "independent_review_count",
+        "evidence_provenance_count",
+        "validation_ledger_count",
+        "enforcement_coverage_count",
+        "guard_count",
+        "ready_guard_count",
+        "enterprise_trust_claim_allowed_now",
+        "production_ready_claimed_now",
+        "runtime_execution_allowed_now",
+        "write_action_allowed_now",
+        "connector_write_allowed_now",
+        "final_authority_allowed_now",
+        "p3680_external_controls_complete",
+        "unsafe_flag_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "platform-external-verification-enforcement-summary.v1" },
+        "platform_external_verification_enforcement_status": {
+          "enum": [
+            "ready_for_platform_external_verification_enforcement",
+            "blocked_pending_external_verification_enforcement"
+          ]
+        },
+        "program_range": { "const": "P3521-P3680" },
+        "phase_range": { "const": "P3521-P3680" },
+        "phase_slot": { "const": "P3521" },
+        "previous_phase_slot": { "const": "P3520" },
+        "next_phase_slot": { "const": "P3681" },
+        "source_activation_status": { "const": "ready_for_platform_verification_trust_activation" },
+        "component_count": { "const": 8 },
+        "reviewer_profile_count": { "const": 1 },
+        "review_packet_count": { "const": 6 },
+        "finding_schema_count": { "const": 10 },
+        "branch_protection_count": { "const": 9 },
+        "required_status_check_count": { "const": 7 },
+        "signed_attestation_count": { "const": 5 },
+        "independent_review_count": { "const": 6 },
+        "evidence_provenance_count": { "const": 15 },
+        "validation_ledger_count": { "const": 8 },
+        "enforcement_coverage_count": { "const": 8 },
+        "guard_count": { "const": 13 },
+        "ready_guard_count": { "const": 13 },
+        "enterprise_trust_claim_allowed_now": { "const": false },
+        "production_ready_claimed_now": { "const": false },
+        "runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "final_authority_allowed_now": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

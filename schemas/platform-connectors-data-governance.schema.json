@@ -1,0 +1,366 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-connectors-data-governance.schema.json",
+  "title": "Platform Connectors and Data Governance",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_connectors_data_governance_id",
+    "capability_id",
+    "inputs",
+    "connectors_data_governance_anchor",
+    "source_memory_event_observability_plane_summary",
+    "connectors_data_governance_manifest",
+    "connectors_governance_component_rows",
+    "connector_registry_rows",
+    "connector_preflight_rows",
+    "ingestion_quarantine_rows",
+    "classification_policy_rows",
+    "evidence_span_rows",
+    "retrieval_policy_rows",
+    "connector_action_block_rows",
+    "connectors_governance_handoff_rows",
+    "connectors_governance_guard_rows",
+    "connectors_governance_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-connectors-data-governance.v1" },
+    "capability_id": { "const": "platform.connectors_data_governance" },
+    "connectors_data_governance_anchor": {
+      "type": "object",
+      "required": ["schema_version", "program_range", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "source_command_name", "package_script_registered", "validation_chain_registered", "memory_event_ledger_present", "connectors_governance_ledger_present", "roadmap_doc_present", "source_memory_event_status", "source_connector_ingestion_allowed_now", "source_raw_material_access_allowed_now", "component_count", "connector_registry_count", "preflight_count", "quarantine_count", "classification_count", "evidence_span_count", "retrieval_policy_count", "action_block_count", "handoff_count"],
+      "properties": {
+        "schema_version": { "const": "connectors-data-governance-anchor.v1" },
+        "program_range": { "const": "P2721-P2880" },
+        "phase_range": { "const": "P2721-P2880" },
+        "phase_slot": { "const": "P2721" },
+        "previous_phase_slot": { "const": "P2720" },
+        "next_phase_slot": { "const": "P2881" },
+        "command_name": { "const": "platform:connectors-data-governance" },
+        "source_command_name": { "const": "platform:memory-event-observability-plane" },
+        "package_script_registered": { "const": true },
+        "validation_chain_registered": { "const": true },
+        "memory_event_ledger_present": { "const": true },
+        "connectors_governance_ledger_present": { "const": true },
+        "roadmap_doc_present": { "const": true },
+        "source_memory_event_status": { "const": "ready_for_platform_memory_event_observability_plane" },
+        "source_connector_ingestion_allowed_now": { "const": false },
+        "source_raw_material_access_allowed_now": { "const": false },
+        "component_count": { "const": 8 },
+        "connector_registry_count": { "const": 6 },
+        "preflight_count": { "const": 6 },
+        "quarantine_count": { "const": 6 },
+        "classification_count": { "const": 6 },
+        "evidence_span_count": { "const": 6 },
+        "retrieval_policy_count": { "const": 5 },
+        "action_block_count": { "const": 5 },
+        "handoff_count": { "const": 3 }
+      }
+    },
+    "source_memory_event_observability_plane_summary": {
+      "type": "object",
+      "required": ["platform_memory_event_observability_plane_status", "connector_ingestion_allowed_now", "raw_material_access_allowed_now", "validation_error_count"],
+      "properties": {
+        "platform_memory_event_observability_plane_status": { "const": "ready_for_platform_memory_event_observability_plane" },
+        "connector_ingestion_allowed_now": { "const": false },
+        "raw_material_access_allowed_now": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "connectors_data_governance_manifest": {
+      "type": "object",
+      "required": ["schema_version", "program_range", "phase_range", "source_memory_event_status", "component_count", "connector_registry_count", "preflight_count", "quarantine_count", "classification_count", "evidence_span_count", "retrieval_policy_count", "action_block_count", "handoff_count", "connectors_governance_contract_ready", "retrieval_first_contract_ready", "quarantine_contract_ready", "next_allowed_action"],
+      "properties": {
+        "schema_version": { "const": "connectors-data-governance-manifest.v1" },
+        "program_range": { "const": "P2721-P2880" },
+        "phase_range": { "const": "P2721-P2880" },
+        "source_memory_event_status": { "const": "ready_for_platform_memory_event_observability_plane" },
+        "component_count": { "const": 8 },
+        "connector_registry_count": { "const": 6 },
+        "preflight_count": { "const": 6 },
+        "quarantine_count": { "const": 6 },
+        "classification_count": { "const": 6 },
+        "evidence_span_count": { "const": 6 },
+        "retrieval_policy_count": { "const": 5 },
+        "action_block_count": { "const": 5 },
+        "handoff_count": { "const": 3 },
+        "connectors_governance_contract_ready": { "const": true },
+        "retrieval_first_contract_ready": { "const": true },
+        "quarantine_contract_ready": { "const": true }
+      }
+    },
+    "connectors_governance_component_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "component_status", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "connectors-governance-component-row.v1" },
+          "component_status": { "const": "contract_ready" },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "connector_registry_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "connector_status", "connection_opened_now", "ingestion_started_now", "connector_write_allowed_now", "secret_read_allowed_now", "raw_export_allowed_now", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "connector-registry-row.v1" },
+          "connector_status": { "const": "registry_contract" },
+          "connection_opened_now": { "const": false },
+          "ingestion_started_now": { "const": false },
+          "connector_write_allowed_now": { "const": false },
+          "secret_read_allowed_now": { "const": false },
+          "raw_export_allowed_now": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "connector_preflight_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "preflight_status", "preflight_required", "preflight_run_now", "auth_handle_required", "scope_required", "raw_material_policy_required", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "connector-preflight-row.v1" },
+          "preflight_status": { "const": "required_before_connection" },
+          "preflight_required": { "const": true },
+          "preflight_run_now": { "const": false },
+          "auth_handle_required": { "const": true },
+          "scope_required": { "const": true },
+          "raw_material_policy_required": { "const": true },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "ingestion_quarantine_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "quarantine_status", "ingestion_started_now", "quarantine_required", "redacted_summary_required", "release_requires_human_review", "raw_material_released_now", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "ingestion-quarantine-row.v1" },
+          "quarantine_status": { "const": "required_before_release" },
+          "ingestion_started_now": { "const": false },
+          "quarantine_required": { "const": true },
+          "redacted_summary_required": { "const": true },
+          "release_requires_human_review": { "const": true },
+          "raw_material_released_now": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "classification_policy_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "classification_status", "classification_required", "sensitivity_required", "retention_required", "domain_boundary_required", "classified_now", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "classification-policy-row.v1" },
+          "classification_status": { "const": "required_before_retrieval" },
+          "classification_required": { "const": true },
+          "sensitivity_required": { "const": true },
+          "retention_required": { "const": true },
+          "domain_boundary_required": { "const": true },
+          "classified_now": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "evidence_span_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "span_status", "evidence_span_required", "citation_required", "freshness_required", "confidence_required", "raw_excerpt_allowed", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "evidence-span-row.v1" },
+          "span_status": { "const": "required_for_connector_evidence" },
+          "evidence_span_required": { "const": true },
+          "citation_required": { "const": true },
+          "freshness_required": { "const": true },
+          "confidence_required": { "const": true },
+          "raw_excerpt_allowed": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "retrieval_policy_rows": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "policy_status", "retrieval_first_required", "grounded_recall_required", "bulk_raw_export_allowed", "result_redaction_required", "reviewer_gate_required", "retrieval_performed_now", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "retrieval-policy-row.v1" },
+          "policy_status": { "const": "required_before_recall" },
+          "retrieval_first_required": { "const": true },
+          "grounded_recall_required": { "const": true },
+          "bulk_raw_export_allowed": { "const": false },
+          "result_redaction_required": { "const": true },
+          "reviewer_gate_required": { "const": true },
+          "retrieval_performed_now": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "connector_action_block_rows": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "block_status", "blocked_now", "human_receipt_required_to_reconsider", "connector_write_allowed_now", "secret_read_allowed_now", "raw_export_allowed_now", "cross_domain_transfer_allowed_now", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "connector-action-block-row.v1" },
+          "block_status": { "const": "blocked_by_default" },
+          "blocked_now": { "const": true },
+          "human_receipt_required_to_reconsider": { "const": true },
+          "connector_write_allowed_now": { "const": false },
+          "secret_read_allowed_now": { "const": false },
+          "raw_export_allowed_now": { "const": false },
+          "cross_domain_transfer_allowed_now": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "connectors_governance_handoff_rows": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "handoff_status", "domain_pack_install_enabled_by_handoff", "production_ready_enabled_by_handoff", "connector_write_enabled_by_handoff", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "connectors-governance-handoff-row.v1" },
+          "handoff_status": { "const": "ready_as_input" },
+          "domain_pack_install_enabled_by_handoff": { "const": false },
+          "production_ready_enabled_by_handoff": { "const": false },
+          "connector_write_enabled_by_handoff": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "connectors_governance_guard_rows": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "guard_status", "block_reason", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "connectors-governance-guard-row.v1" },
+          "guard_status": { "const": "ready" },
+          "block_reason": { "type": "null" },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "connectors_governance_boundary": {
+      "type": "object",
+      "required": ["schema_version", "source_memory_event_status", "connectors_governance_contract_ready", "retrieval_first_contract_ready", "quarantine_contract_ready", "connector_connection_opened_now", "preflight_run_now", "ingestion_started_now", "classification_performed_now", "retrieval_performed_now", "raw_export_performed_now", "connector_write_allowed_now", "secret_read_allowed_now", "cross_domain_transfer_allowed_now", "raw_material_access_allowed_now", "domain_pack_install_allowed_now", "production_ready_allowed_now", "p2881_ready_as_next_goal", "unsafe_flag_count"],
+      "properties": {
+        "schema_version": { "const": "connectors-governance-boundary.v1" },
+        "source_memory_event_status": { "const": "ready_for_platform_memory_event_observability_plane" },
+        "connectors_governance_contract_ready": { "const": true },
+        "retrieval_first_contract_ready": { "const": true },
+        "quarantine_contract_ready": { "const": true },
+        "connector_connection_opened_now": { "const": false },
+        "preflight_run_now": { "const": false },
+        "ingestion_started_now": { "const": false },
+        "classification_performed_now": { "const": false },
+        "retrieval_performed_now": { "const": false },
+        "raw_export_performed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "cross_domain_transfer_allowed_now": { "const": false },
+        "raw_material_access_allowed_now": { "const": false },
+        "domain_pack_install_allowed_now": { "const": false },
+        "production_ready_allowed_now": { "const": false },
+        "p2881_ready_as_next_goal": { "const": true },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["schema_version", "platform_connectors_data_governance_status", "program_range", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "source_memory_event_status", "component_count", "connector_registry_count", "preflight_count", "quarantine_count", "classification_count", "evidence_span_count", "retrieval_policy_count", "action_block_count", "handoff_count", "guard_count", "ready_guard_count", "connectors_governance_contract_ready", "retrieval_first_contract_ready", "quarantine_contract_ready", "p2881_ready_as_next_goal", "connector_connection_opened_now", "preflight_run_now", "ingestion_started_now", "classification_performed_now", "retrieval_performed_now", "raw_export_performed_now", "connector_write_allowed_now", "secret_read_allowed_now", "cross_domain_transfer_allowed_now", "raw_material_access_allowed_now", "domain_pack_install_allowed_now", "production_ready_allowed_now", "unsafe_flag_count", "validation_error_count"],
+      "properties": {
+        "schema_version": { "const": "platform-connectors-data-governance-summary.v1" },
+        "platform_connectors_data_governance_status": { "const": "ready_for_platform_connectors_data_governance" },
+        "program_range": { "const": "P2721-P2880" },
+        "phase_range": { "const": "P2721-P2880" },
+        "phase_slot": { "const": "P2721" },
+        "previous_phase_slot": { "const": "P2720" },
+        "next_phase_slot": { "const": "P2881" },
+        "source_memory_event_status": { "const": "ready_for_platform_memory_event_observability_plane" },
+        "component_count": { "const": 8 },
+        "connector_registry_count": { "const": 6 },
+        "preflight_count": { "const": 6 },
+        "quarantine_count": { "const": 6 },
+        "classification_count": { "const": 6 },
+        "evidence_span_count": { "const": 6 },
+        "retrieval_policy_count": { "const": 5 },
+        "action_block_count": { "const": 5 },
+        "handoff_count": { "const": 3 },
+        "guard_count": { "const": 12 },
+        "ready_guard_count": { "const": 12 },
+        "connectors_governance_contract_ready": { "const": true },
+        "retrieval_first_contract_ready": { "const": true },
+        "quarantine_contract_ready": { "const": true },
+        "p2881_ready_as_next_goal": { "const": true },
+        "connector_connection_opened_now": { "const": false },
+        "preflight_run_now": { "const": false },
+        "ingestion_started_now": { "const": false },
+        "classification_performed_now": { "const": false },
+        "retrieval_performed_now": { "const": false },
+        "raw_export_performed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "cross_domain_transfer_allowed_now": { "const": false },
+        "raw_material_access_allowed_now": { "const": false },
+        "domain_pack_install_allowed_now": { "const": false },
+        "production_ready_allowed_now": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

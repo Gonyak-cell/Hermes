@@ -6,6 +6,12 @@ Hermes Project Operations Harness는 개발 프로젝트와 domain-specific 업�
 
 이 시스템은 AI가 최종 결론을 내리는 제품이 아니라, 사람이 놓치기 쉬운 업무 흐름을 계속 정리하고 경고하며 검토 가능한 산출물을 만드는 운영 계층입니다.
 
+## Hue Keynote 검증 루프 원칙
+
+`Hue_Keynote.pdf`의 운영 원칙은 [Hue Keynote Harness Operating Loop](hue-keynote-harness-operating-loop.md)와 [Hermes Long Range Roadmap P1200-P3200](hermes-long-range-roadmap-p1200-p3200.md)에 반영한다.
+
+Hermes에서 completion claim은 evidence가 아니다. completion claim이 PASS가 되려면 `evidence_ref`, `reviewer_ref`, `hard_gate_ref`, 책임 owner, block reason 또는 next allowed action이 함께 있어야 한다. Memory Bank는 단순 저장소가 아니라 다음 실행 조건을 바꾸는 grounded recall 계층이며, 실패는 사과나 재시도가 아니라 scaffold, receipt, rollback, hard gate, memory 중 하나를 바꾸는 상태 변경으로 이어져야 한다.
+
 핵심 산출물은 다음입니다.
 
 - development daily brief

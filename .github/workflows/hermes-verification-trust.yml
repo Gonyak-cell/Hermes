@@ -1,0 +1,72 @@
+name: Hermes Verification Trust
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+
+jobs:
+  hermes-verification-trust:
+    name: Hermes verification trust
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate core contracts
+        run: npm run validate:core
+
+      - name: Validate source trust kernel
+        run: npm run platform:verification-trust-kernel -- --check
+
+      - name: Validate activation trust
+        run: npm run platform:verification-trust-activation -- --check
+
+      - name: Validate live external evidence capture
+        run: npm run platform:live-external-verification-evidence -- --check
+
+      - name: Validate external enforcement
+        run: npm run platform:external-verification-enforcement -- --check
+
+      - name: Run activation tests
+        run: node --test test/platform-verification-trust-activation.test.mjs
+
+      - name: Run external enforcement tests
+        run: node --test test/platform-external-verification-enforcement.test.mjs
+
+      - name: Check diff whitespace
+        run: git diff --check
+
+      - name: Generate verification artifact
+        run: |
+          npm run platform:verification-trust-activation
+          npm run platform:external-verification-enforcement
+          mkdir -p dist
+          tar -czf dist/hermes-verification-trust-artifacts.tgz artifacts/platform-verification-trust-activation/latest artifacts/platform-external-verification-enforcement/latest
+
+      - name: Upload verification artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hermes-verification-trust-artifacts
+          path: dist/hermes-verification-trust-artifacts.tgz
+
+      - name: Generate artifact attestation
+        uses: actions/attest@v4
+        with:
+          subject-path: dist/hermes-verification-trust-artifacts.tgz

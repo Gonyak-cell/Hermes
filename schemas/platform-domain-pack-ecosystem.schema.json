@@ -1,0 +1,364 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-domain-pack-ecosystem.schema.json",
+  "title": "Platform Domain Pack Ecosystem",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_domain_pack_ecosystem_id",
+    "capability_id",
+    "inputs",
+    "domain_pack_ecosystem_anchor",
+    "source_connectors_data_governance_summary",
+    "domain_pack_ecosystem_manifest",
+    "domain_pack_ecosystem_component_rows",
+    "domain_pack_rows",
+    "pack_sdk_rows",
+    "pack_compatibility_gate_rows",
+    "pack_contribution_model_rows",
+    "pack_registry_rows",
+    "domain_ontology_rows",
+    "domain_pass_owner_rows",
+    "domain_pack_handoff_rows",
+    "domain_pack_guard_rows",
+    "domain_pack_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-domain-pack-ecosystem.v1" },
+    "capability_id": { "const": "platform.domain_pack_ecosystem" },
+    "domain_pack_ecosystem_anchor": {
+      "type": "object",
+      "required": ["schema_version", "program_range", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "source_command_name", "package_script_registered", "validation_chain_registered", "connectors_governance_ledger_present", "domain_pack_ecosystem_ledger_present", "roadmap_doc_present", "source_connectors_governance_status", "source_domain_pack_install_allowed_now", "source_production_ready_allowed_now", "component_count", "domain_pack_count", "sdk_count", "compatibility_gate_count", "contribution_count", "registry_count", "ontology_count", "pass_owner_count", "handoff_count"],
+      "properties": {
+        "schema_version": { "const": "domain-pack-ecosystem-anchor.v1" },
+        "program_range": { "const": "P2881-P3040" },
+        "phase_range": { "const": "P2881-P3040" },
+        "phase_slot": { "const": "P2881" },
+        "previous_phase_slot": { "const": "P2880" },
+        "next_phase_slot": { "const": "P3041" },
+        "command_name": { "const": "platform:domain-pack-ecosystem" },
+        "source_command_name": { "const": "platform:connectors-data-governance" },
+        "package_script_registered": { "const": true },
+        "validation_chain_registered": { "const": true },
+        "connectors_governance_ledger_present": { "const": true },
+        "domain_pack_ecosystem_ledger_present": { "const": true },
+        "roadmap_doc_present": { "const": true },
+        "source_connectors_governance_status": { "const": "ready_for_platform_connectors_data_governance" },
+        "source_domain_pack_install_allowed_now": { "const": false },
+        "source_production_ready_allowed_now": { "const": false },
+        "component_count": { "const": 8 },
+        "domain_pack_count": { "const": 6 },
+        "sdk_count": { "const": 6 },
+        "compatibility_gate_count": { "const": 6 },
+        "contribution_count": { "const": 5 },
+        "registry_count": { "const": 5 },
+        "ontology_count": { "const": 6 },
+        "pass_owner_count": { "const": 5 },
+        "handoff_count": { "const": 3 }
+      }
+    },
+    "source_connectors_data_governance_summary": {
+      "type": "object",
+      "required": ["platform_connectors_data_governance_status", "domain_pack_install_allowed_now", "production_ready_allowed_now", "validation_error_count"],
+      "properties": {
+        "platform_connectors_data_governance_status": { "const": "ready_for_platform_connectors_data_governance" },
+        "domain_pack_install_allowed_now": { "const": false },
+        "production_ready_allowed_now": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "domain_pack_ecosystem_manifest": {
+      "type": "object",
+      "required": ["schema_version", "program_range", "phase_range", "source_connectors_governance_status", "component_count", "domain_pack_count", "sdk_count", "compatibility_gate_count", "contribution_count", "registry_count", "ontology_count", "pass_owner_count", "handoff_count", "domain_pack_ecosystem_contract_ready", "pack_sdk_contract_ready", "compatibility_gate_contract_ready", "next_allowed_action"],
+      "properties": {
+        "schema_version": { "const": "domain-pack-ecosystem-manifest.v1" },
+        "program_range": { "const": "P2881-P3040" },
+        "phase_range": { "const": "P2881-P3040" },
+        "source_connectors_governance_status": { "const": "ready_for_platform_connectors_data_governance" },
+        "component_count": { "const": 8 },
+        "domain_pack_count": { "const": 6 },
+        "sdk_count": { "const": 6 },
+        "compatibility_gate_count": { "const": 6 },
+        "contribution_count": { "const": 5 },
+        "registry_count": { "const": 5 },
+        "ontology_count": { "const": 6 },
+        "pass_owner_count": { "const": 5 },
+        "handoff_count": { "const": 3 },
+        "domain_pack_ecosystem_contract_ready": { "const": true },
+        "pack_sdk_contract_ready": { "const": true },
+        "compatibility_gate_contract_ready": { "const": true }
+      }
+    },
+    "domain_pack_ecosystem_component_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "component_status", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "domain-pack-ecosystem-component-row.v1" },
+          "component_status": { "const": "contract_ready" },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "domain_pack_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "pack_status", "pack_manifest_required", "compatibility_check_required", "pass_owner_required", "pack_install_allowed_now", "compatibility_checked_now", "final_authority_allowed_now", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "domain-pack-row.v1" },
+          "pack_status": { "const": "registered_contract" },
+          "pack_manifest_required": { "const": true },
+          "compatibility_check_required": { "const": true },
+          "pass_owner_required": { "const": true },
+          "pack_install_allowed_now": { "const": false },
+          "compatibility_checked_now": { "const": false },
+          "final_authority_allowed_now": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "pack_sdk_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "sdk_status", "manifest_required", "adapter_required", "fixture_required", "sdk_generated_now", "pack_install_allowed_now", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "pack-sdk-row.v1" },
+          "sdk_status": { "const": "contract_ready" },
+          "manifest_required": { "const": true },
+          "adapter_required": { "const": true },
+          "fixture_required": { "const": true },
+          "sdk_generated_now": { "const": false },
+          "pack_install_allowed_now": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "pack_compatibility_gate_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "gate_status", "compatibility_check_required", "reviewer_required", "rollback_required", "gate_run_now", "rollout_allowed_now", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "pack-compatibility-gate-row.v1" },
+          "gate_status": { "const": "required_before_pack_rollout" },
+          "compatibility_check_required": { "const": true },
+          "reviewer_required": { "const": true },
+          "rollback_required": { "const": true },
+          "gate_run_now": { "const": false },
+          "rollout_allowed_now": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "pack_contribution_model_rows": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "contribution_status", "proposal_required", "review_required", "test_evidence_required", "contribution_merged_now", "registry_publish_allowed_now", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "pack-contribution-model-row.v1" },
+          "contribution_status": { "const": "review_contract" },
+          "proposal_required": { "const": true },
+          "review_required": { "const": true },
+          "test_evidence_required": { "const": true },
+          "contribution_merged_now": { "const": false },
+          "registry_publish_allowed_now": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "pack_registry_rows": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "registry_status", "registry_entry_required", "version_required", "dependency_check_required", "registry_published_now", "pack_install_allowed_now", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "pack-registry-row.v1" },
+          "registry_status": { "const": "registry_contract" },
+          "registry_entry_required": { "const": true },
+          "version_required": { "const": true },
+          "dependency_check_required": { "const": true },
+          "registry_published_now": { "const": false },
+          "pack_install_allowed_now": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "domain_ontology_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "ontology_status", "ontology_required", "compatibility_required", "conflict_resolution_required", "ontology_published_now", "cross_domain_merge_allowed_now", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "domain-ontology-row.v1" },
+          "ontology_status": { "const": "taxonomy_contract" },
+          "ontology_required": { "const": true },
+          "compatibility_required": { "const": true },
+          "conflict_resolution_required": { "const": true },
+          "ontology_published_now": { "const": false },
+          "cross_domain_merge_allowed_now": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "domain_pass_owner_rows": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "pass_owner_status", "owner_required", "human_final_authority_required", "agent_final_pass_allowed", "domain_final_authority_allowed_now", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "domain-pass-owner-row.v1" },
+          "pass_owner_status": { "const": "required_for_domain_rollout" },
+          "owner_required": { "const": true },
+          "human_final_authority_required": { "const": true },
+          "agent_final_pass_allowed": { "const": false },
+          "domain_final_authority_allowed_now": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "domain_pack_handoff_rows": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "handoff_status", "production_ready_enabled_by_handoff", "runtime_pack_install_enabled_by_handoff", "final_work_os_claim_enabled_by_handoff", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "domain-pack-handoff-row.v1" },
+          "handoff_status": { "const": "ready_as_input" },
+          "production_ready_enabled_by_handoff": { "const": false },
+          "runtime_pack_install_enabled_by_handoff": { "const": false },
+          "final_work_os_claim_enabled_by_handoff": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "domain_pack_guard_rows": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "guard_status", "block_reason", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "domain-pack-guard-row.v1" },
+          "guard_status": { "const": "ready" },
+          "block_reason": { "type": "null" },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "domain_pack_boundary": {
+      "type": "object",
+      "required": ["schema_version", "source_connectors_governance_status", "domain_pack_ecosystem_contract_ready", "pack_sdk_contract_ready", "compatibility_gate_contract_ready", "pack_install_performed_now", "sdk_generated_now", "compatibility_gate_run_now", "contribution_merged_now", "pack_registry_published_now", "ontology_published_now", "domain_rollout_allowed_now", "domain_final_authority_allowed_now", "legal_final_authority_allowed_now", "release_final_authority_allowed_now", "trading_live_authority_allowed_now", "production_ready_allowed_now", "p3041_ready_as_next_goal", "unsafe_flag_count"],
+      "properties": {
+        "schema_version": { "const": "domain-pack-boundary.v1" },
+        "source_connectors_governance_status": { "const": "ready_for_platform_connectors_data_governance" },
+        "domain_pack_ecosystem_contract_ready": { "const": true },
+        "pack_sdk_contract_ready": { "const": true },
+        "compatibility_gate_contract_ready": { "const": true },
+        "pack_install_performed_now": { "const": false },
+        "sdk_generated_now": { "const": false },
+        "compatibility_gate_run_now": { "const": false },
+        "contribution_merged_now": { "const": false },
+        "pack_registry_published_now": { "const": false },
+        "ontology_published_now": { "const": false },
+        "domain_rollout_allowed_now": { "const": false },
+        "domain_final_authority_allowed_now": { "const": false },
+        "legal_final_authority_allowed_now": { "const": false },
+        "release_final_authority_allowed_now": { "const": false },
+        "trading_live_authority_allowed_now": { "const": false },
+        "production_ready_allowed_now": { "const": false },
+        "p3041_ready_as_next_goal": { "const": true },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["schema_version", "platform_domain_pack_ecosystem_status", "program_range", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "source_connectors_governance_status", "component_count", "domain_pack_count", "sdk_count", "compatibility_gate_count", "contribution_count", "registry_count", "ontology_count", "pass_owner_count", "handoff_count", "guard_count", "ready_guard_count", "domain_pack_ecosystem_contract_ready", "pack_sdk_contract_ready", "compatibility_gate_contract_ready", "p3041_ready_as_next_goal", "pack_install_performed_now", "sdk_generated_now", "compatibility_gate_run_now", "contribution_merged_now", "pack_registry_published_now", "ontology_published_now", "domain_rollout_allowed_now", "domain_final_authority_allowed_now", "legal_final_authority_allowed_now", "release_final_authority_allowed_now", "trading_live_authority_allowed_now", "production_ready_allowed_now", "unsafe_flag_count", "validation_error_count"],
+      "properties": {
+        "schema_version": { "const": "platform-domain-pack-ecosystem-summary.v1" },
+        "platform_domain_pack_ecosystem_status": { "const": "ready_for_platform_domain_pack_ecosystem" },
+        "program_range": { "const": "P2881-P3040" },
+        "phase_range": { "const": "P2881-P3040" },
+        "phase_slot": { "const": "P2881" },
+        "previous_phase_slot": { "const": "P2880" },
+        "next_phase_slot": { "const": "P3041" },
+        "source_connectors_governance_status": { "const": "ready_for_platform_connectors_data_governance" },
+        "component_count": { "const": 8 },
+        "domain_pack_count": { "const": 6 },
+        "sdk_count": { "const": 6 },
+        "compatibility_gate_count": { "const": 6 },
+        "contribution_count": { "const": 5 },
+        "registry_count": { "const": 5 },
+        "ontology_count": { "const": 6 },
+        "pass_owner_count": { "const": 5 },
+        "handoff_count": { "const": 3 },
+        "guard_count": { "const": 12 },
+        "ready_guard_count": { "const": 12 },
+        "domain_pack_ecosystem_contract_ready": { "const": true },
+        "pack_sdk_contract_ready": { "const": true },
+        "compatibility_gate_contract_ready": { "const": true },
+        "p3041_ready_as_next_goal": { "const": true },
+        "pack_install_performed_now": { "const": false },
+        "sdk_generated_now": { "const": false },
+        "compatibility_gate_run_now": { "const": false },
+        "contribution_merged_now": { "const": false },
+        "pack_registry_published_now": { "const": false },
+        "ontology_published_now": { "const": false },
+        "domain_rollout_allowed_now": { "const": false },
+        "domain_final_authority_allowed_now": { "const": false },
+        "legal_final_authority_allowed_now": { "const": false },
+        "release_final_authority_allowed_now": { "const": false },
+        "trading_live_authority_allowed_now": { "const": false },
+        "production_ready_allowed_now": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

@@ -1,0 +1,370 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-controlled-write-operator-console-v2.schema.json",
+  "title": "Platform Controlled Write and Operator Console v2",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_controlled_write_operator_console_v2_id",
+    "capability_id",
+    "inputs",
+    "controlled_write_operator_console_anchor",
+    "source_human_approved_limited_execution_summary",
+    "controlled_write_operator_console_manifest",
+    "controlled_write_component_rows",
+    "patch_candidate_rows",
+    "diff_review_packet_rows",
+    "patch_apply_receipt_rows",
+    "post_apply_validation_rows",
+    "rollback_target_rows",
+    "operator_console_action_rows",
+    "pass_owner_rows",
+    "controlled_write_handoff_rows",
+    "controlled_write_guard_rows",
+    "controlled_write_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-controlled-write-operator-console-v2.v1" },
+    "capability_id": { "const": "platform.controlled_write_operator_console_v2" },
+    "controlled_write_operator_console_anchor": {
+      "type": "object",
+      "required": ["schema_version", "program_range", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "source_command_name", "package_script_registered", "validation_chain_registered", "limited_execution_ledger_present", "controlled_write_ledger_present", "roadmap_doc_present", "source_limited_execution_status", "source_runtime_execution_allowed_now", "source_write_action_allowed_now", "component_count", "patch_candidate_count", "diff_review_packet_count", "patch_apply_receipt_count", "post_apply_validation_count", "rollback_target_count", "operator_console_action_count", "pass_owner_count", "handoff_count"],
+      "properties": {
+        "schema_version": { "const": "controlled-write-operator-console-anchor.v1" },
+        "program_range": { "const": "P2401-P2560" },
+        "phase_range": { "const": "P2401-P2560" },
+        "phase_slot": { "const": "P2401" },
+        "previous_phase_slot": { "const": "P2400" },
+        "next_phase_slot": { "const": "P2561" },
+        "command_name": { "const": "platform:controlled-write-operator-console-v2" },
+        "source_command_name": { "const": "platform:human-approved-limited-execution" },
+        "package_script_registered": { "const": true },
+        "validation_chain_registered": { "const": true },
+        "limited_execution_ledger_present": { "const": true },
+        "controlled_write_ledger_present": { "const": true },
+        "roadmap_doc_present": { "const": true },
+        "source_limited_execution_status": { "const": "ready_for_platform_human_approved_limited_execution" },
+        "source_runtime_execution_allowed_now": { "const": false },
+        "source_write_action_allowed_now": { "const": false },
+        "component_count": { "const": 8 },
+        "patch_candidate_count": { "const": 7 },
+        "diff_review_packet_count": { "const": 6 },
+        "patch_apply_receipt_count": { "const": 6 },
+        "post_apply_validation_count": { "const": 6 },
+        "rollback_target_count": { "const": 5 },
+        "operator_console_action_count": { "const": 7 },
+        "pass_owner_count": { "const": 5 },
+        "handoff_count": { "const": 3 }
+      }
+    },
+    "source_human_approved_limited_execution_summary": {
+      "type": "object",
+      "required": ["platform_human_approved_limited_execution_status", "command_executed_now", "runtime_execution_allowed_now", "write_action_allowed_now", "validation_error_count"],
+      "properties": {
+        "platform_human_approved_limited_execution_status": { "const": "ready_for_platform_human_approved_limited_execution" },
+        "command_executed_now": { "const": false },
+        "runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "controlled_write_operator_console_manifest": {
+      "type": "object",
+      "required": ["schema_version", "program_range", "phase_range", "source_limited_execution_status", "component_count", "patch_candidate_count", "diff_review_packet_count", "patch_apply_receipt_count", "post_apply_validation_count", "rollback_target_count", "operator_console_action_count", "pass_owner_count", "handoff_count", "controlled_write_contract_ready", "operator_console_v2_projection_ready", "patch_candidate_generation_allowed_with_receipt", "next_allowed_action"],
+      "properties": {
+        "schema_version": { "const": "controlled-write-operator-console-manifest.v1" },
+        "program_range": { "const": "P2401-P2560" },
+        "phase_range": { "const": "P2401-P2560" },
+        "source_limited_execution_status": { "const": "ready_for_platform_human_approved_limited_execution" },
+        "component_count": { "const": 8 },
+        "patch_candidate_count": { "const": 7 },
+        "diff_review_packet_count": { "const": 6 },
+        "patch_apply_receipt_count": { "const": 6 },
+        "post_apply_validation_count": { "const": 6 },
+        "rollback_target_count": { "const": 5 },
+        "operator_console_action_count": { "const": 7 },
+        "pass_owner_count": { "const": 5 },
+        "handoff_count": { "const": 3 },
+        "controlled_write_contract_ready": { "const": true },
+        "operator_console_v2_projection_ready": { "const": true },
+        "patch_candidate_generation_allowed_with_receipt": { "const": true }
+      }
+    },
+    "controlled_write_component_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "component_id", "component_status", "description", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "controlled-write-component-row.v1" },
+          "component_status": { "const": "contract_ready" },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "patch_candidate_rows": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "patch_candidate_id", "patch_candidate_status", "description", "generated_patch_required", "patch_generated_now", "direct_apply_allowed_now", "write_action_allowed_now", "human_receipt_required_for_apply", "diff_review_required", "rollback_binding_required", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "patch-candidate-row.v1" },
+          "patch_candidate_status": { "const": "candidate_contract" },
+          "generated_patch_required": { "const": true },
+          "patch_generated_now": { "const": false },
+          "direct_apply_allowed_now": { "const": false },
+          "write_action_allowed_now": { "const": false },
+          "human_receipt_required_for_apply": { "const": true },
+          "diff_review_required": { "const": true },
+          "rollback_binding_required": { "const": true },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "diff_review_packet_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "diff_review_id", "diff_review_status", "description", "review_required", "reviewer_verdict_required", "review_completed_now", "apply_allowed_without_review", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "diff-review-packet-row.v1" },
+          "diff_review_status": { "const": "required_before_apply" },
+          "review_required": { "const": true },
+          "reviewer_verdict_required": { "const": true },
+          "review_completed_now": { "const": false },
+          "apply_allowed_without_review": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "patch_apply_receipt_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "receipt_type", "receipt_status", "description", "human_receipt_required", "receipt_applied_now", "apply_enabled_by_receipt_now", "protected_action_allowed_now", "receipt_expiry_required", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "patch-apply-receipt-row.v1" },
+          "receipt_status": { "const": "required_before_patch_apply" },
+          "human_receipt_required": { "const": true },
+          "receipt_applied_now": { "const": false },
+          "apply_enabled_by_receipt_now": { "const": false },
+          "protected_action_allowed_now": { "const": false },
+          "receipt_expiry_required": { "const": true },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "post_apply_validation_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "validation_id", "validation_status", "description", "post_apply_required", "validation_run_now", "pass_required_for_closeout", "raw_output_allowed", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "post-apply-validation-row.v1" },
+          "validation_status": { "const": "required_after_patch_apply" },
+          "post_apply_required": { "const": true },
+          "validation_run_now": { "const": false },
+          "pass_required_for_closeout": { "const": true },
+          "raw_output_allowed": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "rollback_target_rows": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "rollback_id", "rollback_status", "description", "rollback_target_required", "inverse_patch_required", "rollback_executed_now", "rollback_requires_receipt", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "rollback-target-row.v1" },
+          "rollback_status": { "const": "required_before_patch_apply" },
+          "rollback_target_required": { "const": true },
+          "inverse_patch_required": { "const": true },
+          "rollback_executed_now": { "const": false },
+          "rollback_requires_receipt": { "const": true },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "operator_console_action_rows": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "route_path", "method", "response_collection", "route_status", "action_inbox_visible", "mutation_route", "patch_apply_route", "receipt_application_route", "protected_action_route", "server_started", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "operator-console-action-row.v1" },
+          "method": { "const": "GET" },
+          "route_status": { "const": "read_only_projection_contract" },
+          "action_inbox_visible": { "const": true },
+          "mutation_route": { "const": false },
+          "patch_apply_route": { "const": false },
+          "receipt_application_route": { "const": false },
+          "protected_action_route": { "const": false },
+          "server_started": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "pass_owner_rows": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "pass_owner_id", "pass_owner_status", "description", "owner_required", "agent_final_pass_allowed", "human_final_authority_required", "pass_visible_in_console", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "pass-owner-row.v1" },
+          "pass_owner_status": { "const": "required_for_final_pass" },
+          "owner_required": { "const": true },
+          "agent_final_pass_allowed": { "const": false },
+          "human_final_authority_required": { "const": true },
+          "pass_visible_in_console": { "const": true },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "controlled_write_handoff_rows": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "handoff_id", "phase_range", "handoff_status", "description", "event_plane_enabled_by_handoff", "connector_write_enabled_by_handoff", "production_ready_enabled_by_handoff", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "controlled-write-handoff-row.v1" },
+          "handoff_status": { "const": "ready_as_input" },
+          "event_plane_enabled_by_handoff": { "const": false },
+          "connector_write_enabled_by_handoff": { "const": false },
+          "production_ready_enabled_by_handoff": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "controlled_write_guard_rows": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "guard_id", "guard_status", "description", "block_reason", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "controlled-write-guard-row.v1" },
+          "guard_status": { "const": "ready" },
+          "block_reason": { "type": "null" },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "controlled_write_boundary": {
+      "type": "object",
+      "required": ["schema_version", "source_limited_execution_status", "controlled_write_contract_ready", "operator_console_v2_projection_ready", "patch_candidate_generation_allowed_with_receipt", "patch_generated_now", "patch_applied_now", "mutation_performed", "receipt_applied_now", "post_apply_validation_run_now", "rollback_executed_now", "operator_mutation_route_enabled", "server_started", "runtime_execution_allowed_now", "write_action_allowed_now", "direct_write_allowed_now", "protected_action_execution_allowed_now", "receipt_application_allowed_now", "raw_material_access_allowed_now", "agent_final_pass_allowed_now", "p2561_ready_as_next_goal", "unsafe_flag_count"],
+      "properties": {
+        "schema_version": { "const": "controlled-write-boundary.v1" },
+        "source_limited_execution_status": { "const": "ready_for_platform_human_approved_limited_execution" },
+        "controlled_write_contract_ready": { "const": true },
+        "operator_console_v2_projection_ready": { "const": true },
+        "patch_candidate_generation_allowed_with_receipt": { "const": true },
+        "patch_generated_now": { "const": false },
+        "patch_applied_now": { "const": false },
+        "mutation_performed": { "const": false },
+        "receipt_applied_now": { "const": false },
+        "post_apply_validation_run_now": { "const": false },
+        "rollback_executed_now": { "const": false },
+        "operator_mutation_route_enabled": { "const": false },
+        "server_started": { "const": false },
+        "runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "direct_write_allowed_now": { "const": false },
+        "protected_action_execution_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "raw_material_access_allowed_now": { "const": false },
+        "agent_final_pass_allowed_now": { "const": false },
+        "p2561_ready_as_next_goal": { "const": true },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["schema_version", "platform_controlled_write_operator_console_v2_status", "program_range", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "source_limited_execution_status", "component_count", "patch_candidate_count", "diff_review_packet_count", "patch_apply_receipt_count", "post_apply_validation_count", "rollback_target_count", "operator_console_action_count", "pass_owner_count", "handoff_count", "guard_count", "ready_guard_count", "controlled_write_contract_ready", "operator_console_v2_projection_ready", "patch_candidate_generation_allowed_with_receipt", "p2561_ready_as_next_goal", "patch_generated_now", "patch_applied_now", "mutation_performed", "receipt_applied_now", "post_apply_validation_run_now", "rollback_executed_now", "operator_mutation_route_enabled", "runtime_execution_allowed_now", "write_action_allowed_now", "direct_write_allowed_now", "protected_action_execution_allowed_now", "receipt_application_allowed_now", "raw_material_access_allowed_now", "agent_final_pass_allowed_now", "unsafe_flag_count", "validation_error_count"],
+      "properties": {
+        "schema_version": { "const": "platform-controlled-write-operator-console-v2-summary.v1" },
+        "platform_controlled_write_operator_console_v2_status": { "const": "ready_for_platform_controlled_write_operator_console_v2" },
+        "program_range": { "const": "P2401-P2560" },
+        "phase_range": { "const": "P2401-P2560" },
+        "phase_slot": { "const": "P2401" },
+        "previous_phase_slot": { "const": "P2400" },
+        "next_phase_slot": { "const": "P2561" },
+        "source_limited_execution_status": { "const": "ready_for_platform_human_approved_limited_execution" },
+        "component_count": { "const": 8 },
+        "patch_candidate_count": { "const": 7 },
+        "diff_review_packet_count": { "const": 6 },
+        "patch_apply_receipt_count": { "const": 6 },
+        "post_apply_validation_count": { "const": 6 },
+        "rollback_target_count": { "const": 5 },
+        "operator_console_action_count": { "const": 7 },
+        "pass_owner_count": { "const": 5 },
+        "handoff_count": { "const": 3 },
+        "guard_count": { "const": 12 },
+        "ready_guard_count": { "const": 12 },
+        "controlled_write_contract_ready": { "const": true },
+        "operator_console_v2_projection_ready": { "const": true },
+        "patch_candidate_generation_allowed_with_receipt": { "const": true },
+        "p2561_ready_as_next_goal": { "const": true },
+        "patch_generated_now": { "const": false },
+        "patch_applied_now": { "const": false },
+        "mutation_performed": { "const": false },
+        "receipt_applied_now": { "const": false },
+        "post_apply_validation_run_now": { "const": false },
+        "rollback_executed_now": { "const": false },
+        "operator_mutation_route_enabled": { "const": false },
+        "runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "direct_write_allowed_now": { "const": false },
+        "protected_action_execution_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "raw_material_access_allowed_now": { "const": false },
+        "agent_final_pass_allowed_now": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

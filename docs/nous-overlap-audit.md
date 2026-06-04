@@ -2,6 +2,10 @@
 
 이 ledger는 `P2041-P2120` 구간을 다룹니다. 목적은 새 실행 기능을 여는 것이 아니라, `P1201-P2040`에서 만든 Hermes Harness 표면이 Nous Hermes Agent의 공개 런타임/API/툴/메모리/대시보드 표면과 어디서 겹치는지 먼저 분류하는 것입니다.
 
+## Supersession Note
+
+`platform:nous-overlap-audit` remains valid as historical overlap evidence. Its future-facing adapter-only policy is superseded by `platform:nous-non-adoption-reversal` because the product decision is now `Nous adopted = false`.
+
 ## Objective
 
 `P2041` limited execution은 `platform:nous-overlap-audit`가 통과하고 별도 Nous adapter-only spec이 승인될 때까지 suspended 상태입니다. 이 구간에서는 Hermes가 Nous Agent 런타임, MCP gateway, session memory, jobs scheduler, dashboard, tool runner를 재구현하지 않는다는 결정을 데이터 계약으로 남깁니다.

@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-hue-keynote-roadmap-alignment.schema.json",
+  "title": "Platform Hue Keynote Roadmap Alignment",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_hue_keynote_roadmap_alignment_id",
+    "capability_id",
+    "inputs",
+    "source_reference",
+    "keynote_principle_rows",
+    "roadmap_phase_alignment_rows",
+    "roadmap_document_rows",
+    "roadmap_gate_rows",
+    "roadmap_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-hue-keynote-roadmap-alignment.v1" },
+    "capability_id": { "const": "platform.hue_keynote_roadmap_alignment" },
+    "source_reference": {
+      "type": "object",
+      "required": ["schema_version", "file_name", "reviewed_page_count", "reviewed_on", "extraction_note"],
+      "properties": {
+        "schema_version": { "const": "hue-keynote-source-reference.v1" },
+        "file_name": { "const": "Hue_Keynote.pdf" },
+        "reviewed_page_count": { "const": 50 }
+      }
+    },
+    "keynote_principle_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "principle_id", "principle_status", "required_terms", "matched_terms", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "keynote-principle-row.v1" },
+          "principle_status": { "const": "reflected" },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "roadmap_phase_alignment_rows": {
+      "type": "array",
+      "minItems": 16,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "phase_range", "phase_name", "phase_alignment_status", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "roadmap-phase-alignment-row.v1" },
+          "phase_alignment_status": { "const": "reflected" },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "roadmap_document_rows": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "document_id", "document_path", "document_available", "document_status", "required_terms", "matched_terms", "current_verdict", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "roadmap-document-row.v1" },
+          "document_available": { "const": true },
+          "document_status": { "const": "aligned" },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "roadmap_gate_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "gate_id", "gate_status", "description", "block_reason", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "roadmap-gate-row.v1" },
+          "gate_status": { "const": "ready" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "roadmap_boundary": {
+      "type": "object",
+      "required": ["schema_version", "source_reference", "reviewed_page_count", "program_range", "keynote_alignment_ready", "runtime_execution_enabled", "write_action_enabled", "protected_action_enabled", "receipt_application_enabled", "raw_material_access_enabled", "agent_final_pass_enabled", "work_os_claim_enabled", "unsafe_flag_count"],
+      "properties": {
+        "schema_version": { "const": "roadmap-alignment-boundary.v1" },
+        "source_reference": { "const": "Hue_Keynote.pdf" },
+        "reviewed_page_count": { "const": 50 },
+        "program_range": { "const": "P1200-P3200" },
+        "keynote_alignment_ready": { "const": true },
+        "runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "receipt_application_enabled": { "const": false },
+        "raw_material_access_enabled": { "const": false },
+        "agent_final_pass_enabled": { "const": false },
+        "work_os_claim_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["schema_version", "platform_hue_keynote_roadmap_alignment_status", "source_reference", "reviewed_page_count", "program_range", "principle_count", "pass_principle_count", "phase_count", "pass_phase_count", "document_count", "pass_document_count", "gate_count", "pass_gate_count", "runtime_execution_enabled", "write_action_enabled", "protected_action_enabled", "agent_final_pass_enabled", "work_os_claim_enabled", "unsafe_flag_count", "validation_error_count"],
+      "properties": {
+        "schema_version": { "const": "platform-hue-keynote-roadmap-alignment-summary.v1" },
+        "platform_hue_keynote_roadmap_alignment_status": { "const": "ready_for_platform_hue_keynote_roadmap_alignment" },
+        "source_reference": { "const": "Hue_Keynote.pdf" },
+        "reviewed_page_count": { "const": 50 },
+        "program_range": { "const": "P1200-P3200" },
+        "principle_count": { "const": 10 },
+        "pass_principle_count": { "const": 10 },
+        "phase_count": { "const": 16 },
+        "pass_phase_count": { "const": 16 },
+        "document_count": { "const": 3 },
+        "pass_document_count": { "const": 3 },
+        "gate_count": { "const": 6 },
+        "pass_gate_count": { "const": 6 },
+        "runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "agent_final_pass_enabled": { "const": false },
+        "work_os_claim_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

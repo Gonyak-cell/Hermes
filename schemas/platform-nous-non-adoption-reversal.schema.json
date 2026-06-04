@@ -1,0 +1,218 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-nous-non-adoption-reversal.schema.json",
+  "title": "Platform Nous Non-Adoption Reversal",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_nous_non_adoption_reversal_id",
+    "capability_id",
+    "inputs",
+    "reversal_anchor",
+    "source_nous_overlap_audit_summary",
+    "nous_non_adoption_decision",
+    "surface_restoration_rows",
+    "restored_capability_rows",
+    "next_phase_handoff_rows",
+    "reversal_guard_rows",
+    "reversal_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-nous-non-adoption-reversal.v1" },
+    "capability_id": { "const": "platform.nous_non_adoption_reversal" },
+    "reversal_anchor": {
+      "type": "object",
+      "required": ["schema_version", "program_range", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "source_command_name", "package_script_registered", "validation_chain_registered", "overlap_audit_ledger_present", "reversal_ledger_present", "roadmap_doc_present", "source_nous_overlap_audit_status", "source_surface_count", "source_blocked_next_phase_count"],
+      "properties": {
+        "schema_version": { "const": "nous-non-adoption-reversal-anchor.v1" },
+        "program_range": { "const": "P2041-P2120" },
+        "phase_range": { "const": "P2041-P2120" },
+        "phase_slot": { "const": "P2041" },
+        "previous_phase_slot": { "const": "P2040" },
+        "next_phase_slot": { "const": "P2121" },
+        "command_name": { "const": "platform:nous-non-adoption-reversal" },
+        "source_command_name": { "const": "platform:nous-overlap-audit" },
+        "package_script_registered": { "const": true },
+        "validation_chain_registered": { "const": true },
+        "overlap_audit_ledger_present": { "const": true },
+        "reversal_ledger_present": { "const": true },
+        "roadmap_doc_present": { "const": true },
+        "source_nous_overlap_audit_status": { "const": "ready_for_nous_overlap_audit" },
+        "source_surface_count": { "const": 12 },
+        "source_blocked_next_phase_count": { "const": 4 }
+      }
+    },
+    "source_nous_overlap_audit_summary": {
+      "type": "object",
+      "required": ["nous_overlap_audit_status", "surface_count", "blocked_next_phase_count", "p2041_suspended_pending_nous_overlap_audit", "runtime_execution_allowed_now", "write_action_allowed_now", "validation_error_count"],
+      "properties": {
+        "nous_overlap_audit_status": { "const": "ready_for_nous_overlap_audit" },
+        "surface_count": { "const": 12 },
+        "blocked_next_phase_count": { "const": 4 },
+        "p2041_suspended_pending_nous_overlap_audit": { "const": true },
+        "runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "nous_non_adoption_decision": {
+      "type": "object",
+      "required": ["schema_version", "nous_adopted", "source_nous_overlap_audit_status", "source_p2041_suspension_was_true", "source_audit_future_policy_status", "hermes_native_runtime_restore_planned", "hermes_native_runtime_restore_allowed_now", "p2041_reopened_as_hermes_native_planning", "runtime_execution_allowed_now", "write_action_allowed_now", "protected_action_execution_allowed_now", "receipt_application_allowed_now", "agent_final_pass_allowed_now", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "schema_version": { "const": "nous-non-adoption-decision.v1" },
+        "nous_adopted": { "const": false },
+        "source_nous_overlap_audit_status": { "const": "ready_for_nous_overlap_audit" },
+        "source_p2041_suspension_was_true": { "const": true },
+        "source_audit_future_policy_status": { "const": "superseded_by_nous_non_adoption" },
+        "hermes_native_runtime_restore_planned": { "const": true },
+        "hermes_native_runtime_restore_allowed_now": { "const": true },
+        "p2041_reopened_as_hermes_native_planning": { "const": true },
+        "runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "protected_action_execution_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "agent_final_pass_allowed_now": { "const": false },
+        "current_verdict": { "const": "pass" },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_only" }
+      }
+    },
+    "surface_restoration_rows": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "surface_id", "phase_range", "surface_name", "previous_classification", "restore_decision", "restored_function", "restore_reason", "nous_adopted", "hermes_native_owner", "execution_allowed_now", "write_action_allowed_now", "protected_action_allowed_now", "requires_evidence", "requires_reviewer", "requires_hard_gate", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "surface-restoration-row.v1" },
+          "restore_decision": { "enum": ["restore_hermes_native", "preserve_harness_native", "reopen_as_planning_input"] },
+          "nous_adopted": { "const": false },
+          "execution_allowed_now": { "const": false },
+          "write_action_allowed_now": { "const": false },
+          "protected_action_allowed_now": { "const": false },
+          "requires_evidence": { "const": true },
+          "requires_reviewer": { "const": true },
+          "requires_hard_gate": { "const": true },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "restored_capability_rows": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "capability_id", "target_phase_range", "restore_status", "restore_reason", "nous_adopted", "hermes_native_owner", "requires_receipt", "requires_rollback", "requires_evidence", "requires_reviewer", "requires_hard_gate", "runtime_execution_allowed_now", "write_action_allowed_now", "protected_action_allowed_now", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "restored-capability-row.v1" },
+          "restore_status": { "const": "planned_not_enabled" },
+          "nous_adopted": { "const": false },
+          "requires_evidence": { "const": true },
+          "requires_reviewer": { "const": true },
+          "requires_hard_gate": { "const": true },
+          "runtime_execution_allowed_now": { "const": false },
+          "write_action_allowed_now": { "const": false },
+          "protected_action_allowed_now": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "next_phase_handoff_rows": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "handoff_id", "phase_range", "handoff_status", "description", "execution_enabled_by_handoff", "write_enabled_by_handoff", "protected_action_enabled_by_handoff", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "next-phase-handoff-row.v1" },
+          "handoff_status": { "const": "planned_not_enabled" },
+          "execution_enabled_by_handoff": { "const": false },
+          "write_enabled_by_handoff": { "const": false },
+          "protected_action_enabled_by_handoff": { "const": false },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "reversal_guard_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "row_id", "guard_id", "guard_status", "description", "block_reason", "evidence_ref", "reviewer_ref", "hard_gate_ref", "responsible_owner", "next_allowed_action", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "reversal-guard-row.v1" },
+          "guard_status": { "const": "ready" },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "reversal_boundary": {
+      "type": "object",
+      "required": ["schema_version", "source_nous_overlap_audit_status", "nous_adopted", "source_p2041_suspension_superseded", "hermes_native_runtime_restore_planned", "p2041_reopened_as_hermes_native_planning", "p2121_ready_as_next_goal", "server_started", "mutation_performed", "runtime_execution_allowed_now", "write_action_allowed_now", "protected_action_execution_allowed_now", "receipt_application_allowed_now", "raw_material_access_allowed_now", "agent_final_pass_allowed_now", "unsafe_flag_count"],
+      "properties": {
+        "schema_version": { "const": "nous-non-adoption-reversal-boundary.v1" },
+        "source_nous_overlap_audit_status": { "const": "ready_for_nous_overlap_audit" },
+        "nous_adopted": { "const": false },
+        "source_p2041_suspension_superseded": { "const": true },
+        "hermes_native_runtime_restore_planned": { "const": true },
+        "p2041_reopened_as_hermes_native_planning": { "const": true },
+        "p2121_ready_as_next_goal": { "const": true },
+        "server_started": { "const": false },
+        "mutation_performed": { "const": false },
+        "runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "protected_action_execution_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "raw_material_access_allowed_now": { "const": false },
+        "agent_final_pass_allowed_now": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["schema_version", "platform_nous_non_adoption_reversal_status", "program_range", "phase_range", "source_nous_overlap_audit_status", "source_p2041_suspension_superseded", "nous_adopted", "hermes_native_runtime_restore_planned", "p2041_reopened_as_hermes_native_planning", "surface_restoration_count", "restored_surface_count", "preserved_surface_count", "reopened_surface_count", "restored_capability_count", "next_phase_handoff_count", "guard_count", "ready_guard_count", "runtime_execution_allowed_now", "write_action_allowed_now", "protected_action_execution_allowed_now", "receipt_application_allowed_now", "agent_final_pass_allowed_now", "unsafe_flag_count", "validation_error_count"],
+      "properties": {
+        "schema_version": { "const": "platform-nous-non-adoption-reversal-summary.v1" },
+        "platform_nous_non_adoption_reversal_status": { "const": "ready_for_platform_nous_non_adoption_reversal" },
+        "program_range": { "const": "P2041-P2120" },
+        "phase_range": { "const": "P2041-P2120" },
+        "source_nous_overlap_audit_status": { "const": "ready_for_nous_overlap_audit" },
+        "source_p2041_suspension_superseded": { "const": true },
+        "nous_adopted": { "const": false },
+        "hermes_native_runtime_restore_planned": { "const": true },
+        "p2041_reopened_as_hermes_native_planning": { "const": true },
+        "surface_restoration_count": { "const": 12 },
+        "restored_surface_count": { "const": 6 },
+        "preserved_surface_count": { "const": 5 },
+        "reopened_surface_count": { "const": 1 },
+        "restored_capability_count": { "const": 10 },
+        "next_phase_handoff_count": { "const": 7 },
+        "guard_count": { "const": 8 },
+        "ready_guard_count": { "const": 8 },
+        "runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "protected_action_execution_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "agent_final_pass_allowed_now": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

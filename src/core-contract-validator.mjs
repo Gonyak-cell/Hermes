@@ -207,6 +207,9 @@ export function validateAgainstSchema(value, schema, schemas, dataPath = "$", ro
     if (Number.isFinite(resolved.minItems) && value.length < resolved.minItems) {
       errors.push({ path: dataPath, message: `Expected at least ${resolved.minItems} items` });
     }
+    if (Number.isFinite(resolved.maxItems) && value.length > resolved.maxItems) {
+      errors.push({ path: dataPath, message: `Expected at most ${resolved.maxItems} items` });
+    }
     if (resolved.items) {
       value.forEach((item, index) => {
         errors.push(...validateAgainstSchema(item, resolved.items, schemas, `${dataPath}[${index}]`, resolvedRootSchema));

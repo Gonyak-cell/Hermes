@@ -1,0 +1,296 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-verification-trust-kernel.schema.json",
+  "title": "Platform Verification Trust Kernel",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_verification_trust_kernel_id",
+    "capability_id",
+    "inputs",
+    "verification_trust_anchor",
+    "source_production_governance_summary",
+    "verification_trust_manifest",
+    "verification_trust_component_rows",
+    "standard_schema_validator_rows",
+    "negative_fixture_rows",
+    "evidence_provenance_rows",
+    "validation_result_ledger_rows",
+    "trust_coverage_rows",
+    "independent_review_rows",
+    "verification_trust_guard_rows",
+    "verification_trust_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-verification-trust-kernel.v1" },
+    "capability_id": { "const": "platform.verification_trust_kernel" },
+    "verification_trust_anchor": {
+      "type": "object",
+      "required": ["schema_version", "program_range", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "command_name", "source_command_name", "package_script_registered", "validation_chain_registered", "production_governance_ledger_present", "verification_trust_kernel_ledger_present", "roadmap_doc_present", "source_production_governance_status", "source_production_ready_claimed_now", "source_work_os_claim_finalized_now", "component_count", "standard_schema_row_count", "negative_fixture_count", "evidence_provenance_count", "validation_ledger_count", "trust_coverage_count", "independent_review_count"],
+      "properties": {
+        "schema_version": { "const": "verification-trust-anchor.v1" },
+        "program_range": { "const": "P3201-P3360" },
+        "phase_range": { "const": "P3201-P3360" },
+        "phase_slot": { "const": "P3201" },
+        "previous_phase_slot": { "const": "P3200" },
+        "next_phase_slot": { "const": "P3361" },
+        "command_name": { "const": "platform:verification-trust-kernel" },
+        "source_command_name": { "const": "platform:production-governance-work-os-freeze" },
+        "package_script_registered": { "const": true },
+        "validation_chain_registered": { "const": true },
+        "production_governance_ledger_present": { "const": true },
+        "verification_trust_kernel_ledger_present": { "const": true },
+        "roadmap_doc_present": { "const": true },
+        "source_production_governance_status": { "const": "ready_for_platform_production_governance_work_os_freeze" },
+        "source_production_ready_claimed_now": { "const": false },
+        "source_work_os_claim_finalized_now": { "const": false },
+        "component_count": { "const": 8 },
+        "standard_schema_row_count": { "const": 6 },
+        "negative_fixture_count": { "const": 7 },
+        "evidence_provenance_count": { "const": 8 },
+        "validation_ledger_count": { "const": 6 },
+        "trust_coverage_count": { "const": 7 },
+        "independent_review_count": { "const": 4 }
+      }
+    },
+    "source_production_governance_summary": {
+      "type": "object",
+      "required": ["platform_production_governance_work_os_freeze_status", "production_ready_claimed_now", "work_os_claim_finalized_now", "validation_error_count"],
+      "properties": {
+        "platform_production_governance_work_os_freeze_status": { "const": "ready_for_platform_production_governance_work_os_freeze" },
+        "production_ready_claimed_now": { "const": false },
+        "work_os_claim_finalized_now": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "verification_trust_manifest": {
+      "type": "object",
+      "required": ["schema_version", "program_range", "phase_range", "source_production_governance_status", "component_count", "standard_schema_row_count", "negative_fixture_count", "evidence_provenance_count", "validation_ledger_count", "trust_coverage_count", "independent_review_count", "verification_trust_kernel_contract_ready", "evidence_provenance_contract_ready", "enterprise_trust_claim_allowed_now"],
+      "properties": {
+        "schema_version": { "const": "verification-trust-manifest.v1" },
+        "program_range": { "const": "P3201-P3360" },
+        "phase_range": { "const": "P3201-P3360" },
+        "source_production_governance_status": { "const": "ready_for_platform_production_governance_work_os_freeze" },
+        "component_count": { "const": 8 },
+        "standard_schema_row_count": { "const": 6 },
+        "negative_fixture_count": { "const": 7 },
+        "evidence_provenance_count": { "const": 8 },
+        "validation_ledger_count": { "const": 6 },
+        "trust_coverage_count": { "const": 7 },
+        "independent_review_count": { "const": 4 },
+        "verification_trust_kernel_contract_ready": { "const": true },
+        "evidence_provenance_contract_ready": { "const": true },
+        "enterprise_trust_claim_allowed_now": { "const": false }
+      }
+    },
+    "verification_trust_component_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "component_status", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "verification-trust-component-row.v1" },
+          "component_status": { "const": "contract_ready" },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "standard_schema_validator_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "standard_validator_required", "standard_validator_active_now", "current_subset_validator_declared", "core_validator_max_items_supported_now", "gap_documented", "enterprise_schema_trust_allowed_now", "current_verdict"],
+        "properties": {
+          "schema_version": { "const": "standard-schema-validator-row.v1" },
+          "standard_validator_required": { "const": true },
+          "standard_validator_active_now": { "const": false },
+          "current_subset_validator_declared": { "const": true },
+          "core_validator_max_items_supported_now": { "const": true },
+          "gap_documented": { "const": true },
+          "enterprise_schema_trust_allowed_now": { "const": false },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "negative_fixture_rows": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "expected_blocked", "observed_blocked", "detection_error_count", "current_verdict"],
+        "properties": {
+          "schema_version": { "const": "negative-fixture-row.v1" },
+          "expected_blocked": { "const": true },
+          "observed_blocked": { "const": true },
+          "detection_error_count": { "minimum": 1 },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "evidence_provenance_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "source_available", "hash_algorithm", "content_hash", "captured_at", "captured_by", "redaction_policy", "raw_payload_inlined", "provenance_status", "current_verdict"],
+        "properties": {
+          "schema_version": { "const": "evidence-provenance-row.v1" },
+          "source_available": { "const": true },
+          "hash_algorithm": { "const": "sha256" },
+          "content_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "captured_by": { "const": "platform:verification-trust-kernel" },
+          "redaction_policy": { "const": "raw_not_inlined" },
+          "raw_payload_inlined": { "const": false },
+          "provenance_status": { "const": "hash_bound" },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "validation_result_ledger_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "stage_status", "validation_passed", "previous_hash", "row_hash", "chain_hash", "append_only_required", "ledger_written_now", "current_verdict"],
+        "properties": {
+          "schema_version": { "const": "validation-result-ledger-row.v1" },
+          "stage_status": { "const": "pass" },
+          "validation_passed": { "const": true },
+          "previous_hash": { "type": "string", "pattern": "^sha256:" },
+          "row_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "chain_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "append_only_required": { "const": true },
+          "ledger_written_now": { "const": false },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "trust_coverage_rows": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "coverage_status", "gap_documented", "enterprise_blocking_gap", "current_verdict"],
+        "properties": {
+          "schema_version": { "const": "trust-coverage-row.v1" },
+          "coverage_status": { "enum": ["complete", "partial", "gap"] },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "independent_review_rows": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "review_required", "review_completed_now", "enterprise_trust_claim_allowed_now", "current_verdict"],
+        "properties": {
+          "schema_version": { "const": "independent-review-row.v1" },
+          "review_required": { "const": true },
+          "enterprise_trust_claim_allowed_now": { "const": false },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "verification_trust_guard_rows": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "guard_status", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+        "properties": {
+          "schema_version": { "const": "verification-trust-guard-row.v1" },
+          "guard_status": { "const": "ready" },
+          "current_verdict": { "const": "pass" },
+          "unsafe_flags_false": { "const": true },
+          "verdict_authority": { "const": "harness_only" }
+        }
+      }
+    },
+    "verification_trust_boundary": {
+      "type": "object",
+      "required": ["schema_version", "source_production_governance_status", "verification_trust_kernel_contract_ready", "evidence_provenance_contract_ready", "negative_fixture_pack_ready", "validation_ledger_hash_chained", "p3361_ready_as_next_goal", "standard_validator_active_now", "ci_required_check_configured_now", "external_attestation_present_now", "independent_review_completed_now", "enterprise_trust_claim_allowed_now", "production_ready_claimed_now", "runtime_execution_allowed_now", "write_action_allowed_now", "connector_write_allowed_now", "final_authority_allowed_now", "unsafe_flag_count"],
+      "properties": {
+        "schema_version": { "const": "verification-trust-boundary.v1" },
+        "source_production_governance_status": { "const": "ready_for_platform_production_governance_work_os_freeze" },
+        "verification_trust_kernel_contract_ready": { "const": true },
+        "evidence_provenance_contract_ready": { "const": true },
+        "negative_fixture_pack_ready": { "const": true },
+        "validation_ledger_hash_chained": { "const": true },
+        "p3361_ready_as_next_goal": { "const": true },
+        "standard_validator_active_now": { "const": false },
+        "ci_required_check_configured_now": { "const": false },
+        "external_attestation_present_now": { "const": false },
+        "independent_review_completed_now": { "const": false },
+        "enterprise_trust_claim_allowed_now": { "const": false },
+        "production_ready_claimed_now": { "const": false },
+        "runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "final_authority_allowed_now": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["schema_version", "platform_verification_trust_kernel_status", "program_range", "phase_range", "phase_slot", "previous_phase_slot", "next_phase_slot", "source_production_governance_status", "component_count", "standard_schema_row_count", "negative_fixture_count", "blocked_negative_fixture_count", "evidence_provenance_count", "hash_bound_evidence_count", "validation_ledger_count", "hash_chained_validation_ledger_count", "trust_coverage_count", "enterprise_blocking_gap_count", "independent_review_count", "completed_independent_review_count", "guard_count", "ready_guard_count", "verification_trust_kernel_contract_ready", "evidence_provenance_contract_ready", "negative_fixture_pack_ready", "validation_ledger_hash_chained", "p3361_ready_as_next_goal", "standard_validator_active_now", "ci_required_check_configured_now", "external_attestation_present_now", "independent_review_completed_now", "enterprise_trust_claim_allowed_now", "production_ready_claimed_now", "runtime_execution_allowed_now", "write_action_allowed_now", "connector_write_allowed_now", "final_authority_allowed_now", "unsafe_flag_count", "validation_error_count"],
+      "properties": {
+        "schema_version": { "const": "platform-verification-trust-kernel-summary.v1" },
+        "platform_verification_trust_kernel_status": { "const": "ready_for_platform_verification_trust_kernel" },
+        "program_range": { "const": "P3201-P3360" },
+        "phase_range": { "const": "P3201-P3360" },
+        "phase_slot": { "const": "P3201" },
+        "previous_phase_slot": { "const": "P3200" },
+        "next_phase_slot": { "const": "P3361" },
+        "source_production_governance_status": { "const": "ready_for_platform_production_governance_work_os_freeze" },
+        "component_count": { "const": 8 },
+        "standard_schema_row_count": { "const": 6 },
+        "negative_fixture_count": { "const": 7 },
+        "blocked_negative_fixture_count": { "const": 7 },
+        "evidence_provenance_count": { "const": 8 },
+        "hash_bound_evidence_count": { "const": 8 },
+        "validation_ledger_count": { "const": 6 },
+        "hash_chained_validation_ledger_count": { "const": 6 },
+        "trust_coverage_count": { "const": 7 },
+        "enterprise_blocking_gap_count": { "minimum": 3 },
+        "independent_review_count": { "const": 4 },
+        "completed_independent_review_count": { "const": 1 },
+        "guard_count": { "const": 12 },
+        "ready_guard_count": { "const": 12 },
+        "verification_trust_kernel_contract_ready": { "const": true },
+        "evidence_provenance_contract_ready": { "const": true },
+        "negative_fixture_pack_ready": { "const": true },
+        "validation_ledger_hash_chained": { "const": true },
+        "p3361_ready_as_next_goal": { "const": true },
+        "standard_validator_active_now": { "const": false },
+        "ci_required_check_configured_now": { "const": false },
+        "external_attestation_present_now": { "const": false },
+        "independent_review_completed_now": { "const": false },
+        "enterprise_trust_claim_allowed_now": { "const": false },
+        "production_ready_claimed_now": { "const": false },
+        "runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "final_authority_allowed_now": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

@@ -33,6 +33,19 @@ jobs:
       - name: Validate core contracts
         run: npm run validate:core
 
+      - name: Validate kernel cutover prerequisites
+        run: |
+          npm run platform:agent-runtime-activation-bridge -- --check
+          npm run platform:domain-agent-no-write-pilot -- --check
+          npm run platform:agent-operator-console-v0 -- --check
+          npm run platform:kernel-contract-baseline -- --check
+          npm run platform:kernel-spec-status-reconciliation -- --check
+          npm run platform:kernel-claim-evidence-gate-engine -- --check
+          npm run platform:kernel-artifact-check-receipt-engine -- --check
+          npm run platform:kernel-projection-freeze -- --check
+          npm run platform:harness-native-cutover-adapter -- --check
+          npm run platform:kernel-harness-native-cutover-freeze -- --check
+
       - name: Generate long-range platform prerequisites
         run: |
           npm run platform:hue-keynote-roadmap-alignment

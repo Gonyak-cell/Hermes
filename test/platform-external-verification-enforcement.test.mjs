@@ -281,6 +281,9 @@ test("Live external verification evidence promotes complete human adjudication i
     assert.equal(receipt.adjudicated_findings_count, 2);
     assert.equal(receipt.decision_summary.ACCEPT_WITH_MODIFICATION, 1);
     assert.equal(receipt.decision_summary.HOLD, 1);
+    assert.equal(result.human_adjudication_readiness.readiness_status, "ready_human_adjudication_observed");
+    assert.equal(result.human_adjudication_readiness.missing_finding_count, 0);
+    assert.deepEqual(result.human_adjudication_readiness.missing_finding_ids, []);
     assert.equal(receipt.decisions.every((decision) => !("rationale_summary" in decision) && !("owner_note" in decision)), true);
     assert.equal(await readJson(paths.humanAdjudicationReceiptPath).then((data) => data.receipt_status), "observed");
   } finally {
@@ -346,6 +349,14 @@ test("Live external verification evidence writes a non-promoting human adjudicat
     assert.deepEqual(template.decisions.map((decision) => decision.finding_id), ["F-001", "F-002", "F-003"]);
     assert.equal(template.decisions.every((decision) => decision.decision === ""), true);
     assert.equal(template.template_hash.startsWith("sha256:"), true);
+    assert.equal(result.human_adjudication_readiness.readiness_status, "blocked_pending_human_adjudication");
+    assert.equal(result.human_adjudication_readiness.required_finding_count, 3);
+    assert.deepEqual(result.human_adjudication_readiness.missing_finding_ids, ["F-001", "F-002", "F-003"]);
+    assert.equal(result.human_adjudication_readiness.raw_payload_inlined, false);
+    assert.equal(result.human_adjudication_readiness.unsafe_flags_false, true);
+    assert.equal(result.human_adjudication_readiness.verdict_authority, "harness_only");
+    assert.equal(result.human_adjudication_readiness.content_hash.startsWith("sha256:"), true);
+    assert.match(result.human_adjudication_readiness.human_adjudication_input_command, /--human-adjudication-input/);
   } finally {
     await rm(outDir, { recursive: true, force: true });
   }

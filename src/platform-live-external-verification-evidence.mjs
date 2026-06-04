@@ -169,6 +169,13 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
       claudeReviewReceipt,
     })
     : null;
+  const humanAdjudicationReadiness = buildHumanAdjudicationReadiness({
+    generatedAt,
+    receiptPaths,
+    claudeReviewReceipt,
+    humanAdjudicationReceipt,
+    humanAdjudicationInputTemplate,
+  });
   const validationItems = buildValidationItems({ receiptPaths, receipts });
   const validation = summarizeValidation(validationItems);
   return {
@@ -180,6 +187,7 @@ export async function buildPlatformLiveExternalVerificationEvidence(options = {}
     receipt_paths: receiptPaths,
     receipts,
     human_adjudication_input_template: humanAdjudicationInputTemplate,
+    human_adjudication_readiness: humanAdjudicationReadiness,
     command_observations: commandObservations,
     validation_items: validationItems,
     validation,
@@ -199,6 +207,7 @@ export async function writePlatformLiveExternalVerificationEvidence(result) {
   const latestDir = path.join(DEFAULT_PLATFORM_LIVE_EXTERNAL_VERIFICATION_EVIDENCE_ROOT, "live-evidence/latest");
   await mkdir(latestDir, { recursive: true });
   await writeJson(path.join(latestDir, "platform-live-external-verification-evidence.json"), serializableResult(result));
+  await writeJson(path.join(latestDir, "human-adjudication-readiness.json"), result.human_adjudication_readiness);
   await writeFile(path.join(latestDir, "summary.md"), renderMarkdown(result), "utf8");
 }
 
@@ -219,6 +228,7 @@ export async function runPlatformLiveExternalVerificationEvidenceCli(argv = proc
     console.log(`Attestation verified: ${result.summary.attestation_verification_passed_now}`);
     console.log(`Claude review completed: ${result.summary.claude_review_completed_now}`);
     console.log(`Human adjudication present: ${result.summary.human_adjudication_receipt_present_now}`);
+    console.log(`Human adjudication readiness: ${result.human_adjudication_readiness.readiness_status}`);
     if (result.human_adjudication_input_template) console.log(`Human adjudication template: ${result.human_adjudication_input_template.template_path}`);
     console.log(`Validation errors: ${result.summary.validation_error_count}`);
   } catch (error) {
@@ -543,6 +553,55 @@ export function buildHumanAdjudicationInputTemplate({ generatedAt, templatePath,
   };
 }
 
+export function buildHumanAdjudicationReadiness({ generatedAt, receiptPaths, claudeReviewReceipt, humanAdjudicationReceipt, humanAdjudicationInputTemplate }) {
+  const claudeData = claudeReviewReceipt?.data ?? claudeReviewReceipt ?? null;
+  const humanData = humanAdjudicationReceipt?.data ?? humanAdjudicationReceipt ?? null;
+  const findings = Array.isArray(claudeData?.findings) ? claudeData.findings : [];
+  const requiredFindingIds = findings.map((finding) => finding.finding_id).filter((findingId) => typeof findingId === "string" && findingId.length > 0);
+  const observed = isObservedReceipt(humanData) || humanData?.human_adjudication_receipt_present_now === true;
+  const decisions = observed && Array.isArray(humanData?.decisions) ? humanData.decisions : [];
+  const adjudicatedFindingIds = decisions.map((decision) => decision.finding_id).filter((findingId) => typeof findingId === "string" && findingId.length > 0);
+  const missingFindingIds = requiredFindingIds.filter((findingId) => !adjudicatedFindingIds.includes(findingId));
+  const complete = observed && missingFindingIds.length === 0 && requiredFindingIds.length > 0;
+  const templatePath = humanAdjudicationInputTemplate?.template_path ?? "artifacts/platform-external-verification-enforcement/review/human-adjudication-input.json";
+  const templateCommand = `npm run platform:live-external-verification-evidence -- --human-adjudication-template ${quoteShell(templatePath)}`;
+  const inputCommand = `npm run platform:live-external-verification-evidence -- --human-adjudication-input ${quoteShell(templatePath)}`;
+  return receipt({
+    schema_version: "human-adjudication-readiness.v1",
+    generated_at: generatedAt,
+    readiness_status: complete ? "ready_human_adjudication_observed" : "blocked_pending_human_adjudication",
+    source_claude_review_receipt_status: claudeData?.receipt_status ?? null,
+    source_human_adjudication_receipt_status: humanData?.receipt_status ?? null,
+    reviewer_id: claudeData?.reviewer_id ?? REVIEWER_ID,
+    resolved_model_id: claudeData?.resolved_model_id ?? null,
+    required_finding_count: requiredFindingIds.length,
+    adjudicated_finding_count: adjudicatedFindingIds.length,
+    missing_finding_count: missingFindingIds.length,
+    required_finding_ids: requiredFindingIds,
+    adjudicated_finding_ids: adjudicatedFindingIds,
+    missing_finding_ids: missingFindingIds,
+    allowed_decisions: ["ACCEPT", "ACCEPT_WITH_MODIFICATION", "REJECT", "HOLD"],
+    human_adjudication_template_path: templatePath,
+    human_adjudication_receipt_path: receiptPaths.human_adjudication_receipt_path,
+    raw_payload_inlined: false,
+    human_adjudication_template_command: templateCommand,
+    human_adjudication_input_command: inputCommand,
+    next_allowed_action: complete
+      ? "preserve human adjudication receipt evidence"
+      : "complete every missing finding decision, then rerun live evidence with --human-adjudication-input",
+    next_command: complete
+      ? null
+      : inputCommand,
+    readiness_hash: sha256(JSON.stringify(canonicalize({
+      requiredFindingIds,
+      adjudicatedFindingIds,
+      missingFindingIds,
+      humanAdjudicationReceiptPath: receiptPaths.human_adjudication_receipt_path,
+      templatePath,
+    }))),
+  });
+}
+
 function validateHumanAdjudicationInput(inputReceipt, claudeReviewReceipt) {
   const errors = [];
   const allowedDecisions = new Set(["ACCEPT", "ACCEPT_WITH_MODIFICATION", "REJECT", "HOLD"]);
@@ -761,6 +820,8 @@ function renderMarkdown(result) {
     `Attestation block reason: ${result.receipts.attestation_verify_receipt.attestation_block_reason}`,
     `Claude review completed: ${result.summary.claude_review_completed_now}`,
     `Human adjudication present: ${result.summary.human_adjudication_receipt_present_now}`,
+    `Human adjudication readiness: ${result.human_adjudication_readiness.readiness_status}`,
+    `Human adjudication missing findings: ${result.human_adjudication_readiness.missing_finding_ids.join(", ") || "none"}`,
     `Observed receipts: ${result.summary.observed_receipt_count}`,
     `Blocked receipts: ${result.summary.blocked_receipt_count}`,
     `Validation errors: ${result.summary.validation_error_count}`,

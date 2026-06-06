@@ -350,7 +350,7 @@ export async function runMultiProjectSaasControlPlaneCli(argv = process.argv.sli
   }
   const result = await runMultiProjectSaasControlPlane({
     check: args.check,
-    write: !args.check,
+    write: args.write,
     outDir: args.outDir,
     runAt: args.runAt,
   });
@@ -1284,6 +1284,7 @@ function serializableResult(result) {
 function parseArgs(argv) {
   const args = {
     check: false,
+    write: true,
     serve: false,
     outDir: DEFAULT_MULTI_PROJECT_SAAS_CONTROL_PLANE_OUT_DIR,
     host: DEFAULT_MULTI_PROJECT_SAAS_CONTROL_PLANE_HOST,
@@ -1293,7 +1294,10 @@ function parseArgs(argv) {
   };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
-    if (arg === "--check") args.check = true;
+    if (arg === "--check") {
+      args.check = true;
+      args.write = false;
+    }
     else if (arg === "--serve") args.serve = true;
     else if (arg === "--out-dir") args.outDir = argv[++index];
     else if (arg === "--host") args.host = argv[++index];

@@ -52,6 +52,8 @@ P9201-P9400 Work OS Goal Execution API Binding and Project Drilldown Surface는 
 
 P9401-P9600 Multi-Project SaaS Control Plane은 P9400 drilldown artifact를 source로 읽어 여러 SaaS/project의 registry, repo metadata, current goal risk, validation/review state, blocker/next action matrix, domain boundary guard, operator control summary를 read-only control plane으로 묶는다. Hermes는 여전히 특정 SaaS나 domain pack 자체가 아니라 여러 SaaS 개발을 통제하는 범용 harness다. 이 단계는 multi-project visibility와 boundary guard를 강화하지만 API write, repo git write, connector write, cross-project data mixing, domain pack product promotion, Human gate completion, Codex final approval, Claude final approval, production PASS, enterprise PASS, runtime execution, write action은 계속 false다.
 
+P9601-P9800 Requirement Traceability Kernel은 P9600 multi-project control artifact를 source로 읽어 requirement, PRD, spec, issue, test, evidence, claim, gate, check, release note, closeout state를 read-only trace graph로 연결한다. 이 단계는 evidence trust에 직접 영향을 주므로 Claude Code Opus 4.8 max 또는 최신 Opus equivalent의 read-only closeout review receipt가 P9800 freeze의 required evidence다. Coverage gap, missing requirement id, missing PRD/spec/issue, missing test/evidence, missing claim/gate/check, missing release/closeout, missing Claude review, blocking Claude finding은 BLOCK이며, Codex/Claude final approval, production PASS, enterprise PASS, runtime execution, write action, connector write는 계속 false다.
+
 핵심 산출물은 다음입니다.
 
 - development daily brief

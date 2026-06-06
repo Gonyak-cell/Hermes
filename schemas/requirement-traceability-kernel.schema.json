@@ -1,0 +1,363 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/requirement-traceability-kernel.schema.json",
+  "title": "Hermes Requirement Traceability Kernel",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "requirement_traceability_contract",
+    "requirement_traceability_phase_rows",
+    "p9600_source_binding_rows",
+    "trace_api_route_rows",
+    "requirement_source_registry_rows",
+    "prd_spec_issue_link_rows",
+    "test_evidence_coverage_rows",
+    "claim_gate_check_trace_rows",
+    "release_closeout_link_rows",
+    "coverage_gap_blocker_rows",
+    "claude_review_packet_rows",
+    "trace_api_smoke_rows",
+    "trace_browser_smoke_rows",
+    "trace_negative_fixture_rows",
+    "p9800_freeze_rows",
+    "trace_gate_rows",
+    "requirement_traceability_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "requirement-traceability-kernel.v1" },
+    "capability_id": { "const": "platform.requirement_traceability_kernel" },
+    "program_range": { "const": "P9601-P9800" },
+    "source_program_range": { "const": "P9401-P9600" },
+    "requirement_traceability_contract": {
+      "type": "object",
+      "required": [
+        "trace_graph_required",
+        "requirement_id_required",
+        "prd_spec_issue_link_required",
+        "test_evidence_link_required",
+        "claim_gate_check_link_required",
+        "release_closeout_link_required",
+        "coverage_gap_blocks_closeout",
+        "claude_review_required_now",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled"
+      ],
+      "properties": {
+        "trace_graph_required": { "const": true },
+        "requirement_id_required": { "const": true },
+        "prd_spec_issue_link_required": { "const": true },
+        "test_evidence_link_required": { "const": true },
+        "claim_gate_check_link_required": { "const": true },
+        "release_closeout_link_required": { "const": true },
+        "coverage_gap_blocks_closeout": { "const": true },
+        "claude_review_required_now": { "const": true },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    },
+    "requirement_traceability_phase_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "p9600_source_binding_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "trace_api_route_rows": {
+      "type": "array",
+      "minItems": 9,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/verdictRow" },
+          {
+            "type": "object",
+            "required": ["method_allowlist", "write_methods_enabled", "mutates_state"],
+            "properties": {
+              "method_allowlist": { "type": "array", "contains": { "const": "GET" } },
+              "write_methods_enabled": { "const": false },
+              "mutates_state": { "const": false }
+            }
+          }
+        ]
+      }
+    },
+    "requirement_source_registry_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/verdictRow" },
+          {
+            "type": "object",
+            "required": ["requirement_id", "project_id", "stable_id", "requirement_status"],
+            "properties": {
+              "requirement_id": { "type": "string", "minLength": 6 },
+              "stable_id": { "const": true },
+              "requirement_status": { "const": "covered" }
+            }
+          }
+        ]
+      }
+    },
+    "prd_spec_issue_link_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/verdictRow" },
+          {
+            "type": "object",
+            "required": ["requirement_id", "prd_link_present", "spec_link_present", "issue_link_present", "cross_project_data_mixed"],
+            "properties": {
+              "prd_link_present": { "const": true },
+              "spec_link_present": { "const": true },
+              "issue_link_present": { "const": true },
+              "cross_project_data_mixed": { "const": false }
+            }
+          }
+        ]
+      }
+    },
+    "test_evidence_coverage_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/verdictRow" },
+          {
+            "type": "object",
+            "required": ["test_link_present", "evidence_link_present", "validator_link_present", "coverage_status"],
+            "properties": {
+              "test_link_present": { "const": true },
+              "evidence_link_present": { "const": true },
+              "validator_link_present": { "const": true },
+              "coverage_status": { "const": "covered" }
+            }
+          }
+        ]
+      }
+    },
+    "claim_gate_check_trace_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/verdictRow" },
+          {
+            "type": "object",
+            "required": ["claim_link_present", "gate_link_present", "check_link_present", "auto_pass_allowed"],
+            "properties": {
+              "claim_link_present": { "const": true },
+              "gate_link_present": { "const": true },
+              "check_link_present": { "const": true },
+              "auto_pass_allowed": { "const": false }
+            }
+          }
+        ]
+      }
+    },
+    "release_closeout_link_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/verdictRow" },
+          {
+            "type": "object",
+            "required": ["release_note_link_present", "closeout_link_present", "production_release_allowed", "enterprise_release_allowed"],
+            "properties": {
+              "release_note_link_present": { "const": true },
+              "closeout_link_present": { "const": true },
+              "production_release_allowed": { "const": false },
+              "enterprise_release_allowed": { "const": false }
+            }
+          }
+        ]
+      }
+    },
+    "coverage_gap_blocker_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/verdictRow" },
+          {
+            "type": "object",
+            "required": ["missing_trace_link_count", "blocks_p9800_closeout"],
+            "properties": {
+              "missing_trace_link_count": { "const": 0 },
+              "blocks_p9800_closeout": { "const": false }
+            }
+          }
+        ]
+      }
+    },
+    "claude_review_packet_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/verdictRow" },
+          {
+            "type": "object",
+            "required": [
+              "review_packet_prepared",
+              "review_required_now",
+              "review_receipt_present",
+              "review_completed_now",
+              "blocking_finding_count",
+              "reviewer_mutation_allowed",
+              "claude_final_approval_allowed"
+            ],
+            "properties": {
+              "review_packet_prepared": { "const": true },
+              "review_required_now": { "const": true },
+              "review_receipt_present": { "const": true },
+              "review_completed_now": { "const": true },
+              "blocking_finding_count": { "const": 0 },
+              "reviewer_mutation_allowed": { "const": false },
+              "claude_final_approval_allowed": { "const": false }
+            }
+          }
+        ]
+      }
+    },
+    "trace_api_smoke_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "trace_browser_smoke_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "trace_negative_fixture_rows": {
+      "type": "array",
+      "minItems": 11,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/verdictRow" },
+          {
+            "type": "object",
+            "required": ["unsafe_claim_allowed", "fixture_status"],
+            "properties": {
+              "unsafe_claim_allowed": { "const": false },
+              "fixture_status": { "const": "PASS_BLOCKED_AS_EXPECTED" }
+            }
+          }
+        ]
+      }
+    },
+    "p9800_freeze_rows": {
+      "type": "array",
+      "minItems": 16,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "trace_gate_rows": {
+      "type": "array",
+      "minItems": 21,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "requirement_traceability_boundary": {
+      "type": "object",
+      "required": [
+        "ready_for_p9801_handoff",
+        "coverage_gaps_clear",
+        "claude_review_required_now",
+        "claude_review_completed_now",
+        "claude_review_blocking_finding_count",
+        "api_write_methods_enabled",
+        "raw_transcript_body_visible",
+        "secret_keys_returned",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "ready_for_p9801_handoff": { "const": true },
+        "coverage_gaps_clear": { "const": true },
+        "claude_review_required_now": { "const": true },
+        "claude_review_completed_now": { "const": true },
+        "claude_review_blocking_finding_count": { "const": 0 },
+        "api_write_methods_enabled": { "const": false },
+        "raw_transcript_body_visible": { "const": false },
+        "secret_keys_returned": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": { "const": "pass" }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count"],
+      "properties": {
+        "valid": { "const": true },
+        "error_count": { "const": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "requirement_traceability_kernel_status",
+        "source_p9600_ready",
+        "coverage_gap_count",
+        "claude_review_required_now",
+        "claude_review_completed_now",
+        "claude_review_blocking_finding_count",
+        "ready_for_p9801_handoff",
+        "validation_error_count"
+      ],
+      "properties": {
+        "requirement_traceability_kernel_status": { "const": "ready_for_requirement_traceability_kernel" },
+        "source_p9600_ready": { "const": true },
+        "coverage_gap_count": { "const": 0 },
+        "claude_review_required_now": { "const": true },
+        "claude_review_completed_now": { "const": true },
+        "claude_review_blocking_finding_count": { "const": 0 },
+        "ready_for_p9801_handoff": { "const": true },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "verdictRow": {
+      "type": "object",
+      "required": ["current_verdict", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "current_verdict": { "const": "pass" },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_deterministic_validator" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

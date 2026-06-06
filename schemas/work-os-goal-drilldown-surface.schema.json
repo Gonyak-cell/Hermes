@@ -1,0 +1,516 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/work-os-goal-drilldown-surface.schema.json",
+  "title": "Work OS Goal Drilldown Surface",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "work_os_goal_drilldown_surface_id",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "inputs",
+    "source_work_os_goal_execution_view_summary",
+    "work_os_goal_drilldown_contract",
+    "work_os_goal_drilldown_phase_rows",
+    "p9200_source_binding_rows",
+    "drilldown_api_route_rows",
+    "drilldown_ui_binding_rows",
+    "goal_api_projection_rows",
+    "next_action_api_projection_rows",
+    "commit_checkpoint_api_projection_rows",
+    "session_handoff_api_projection_rows",
+    "project_drilldown_rows",
+    "goal_detail_rows",
+    "combined_status_rows",
+    "drilldown_api_smoke_rows",
+    "browser_drilldown_smoke_rows",
+    "work_os_goal_drilldown_negative_fixture_rows",
+    "p9400_freeze_rows",
+    "work_os_goal_drilldown_gate_rows",
+    "work_os_goal_drilldown_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "work-os-goal-drilldown-surface.v1" },
+    "capability_id": { "const": "platform.work_os_goal_drilldown_surface" },
+    "program_range": { "const": "P9201-P9400" },
+    "source_program_range": { "const": "P9001-P9200" },
+    "work_os_goal_drilldown_contract": {
+      "type": "object",
+      "required": [
+        "program_range",
+        "source_program_range",
+        "source_ready_status_required",
+        "api_get_head_only",
+        "api_write_methods_enabled",
+        "raw_transcript_body_visible",
+        "secret_keys_returned",
+        "domain_pack_as_product_allowed",
+        "human_gate_completion_enabled",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "reviewer_mutation_allowed",
+        "single_owner_enterprise_trust_allowed",
+        "protected_closeout_enabled",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "runtime_execution_enabled",
+        "write_action_enabled",
+        "external_connector_write_enabled",
+        "ui_git_write_enabled"
+      ],
+      "properties": {
+        "program_range": { "const": "P9201-P9400" },
+        "source_program_range": { "const": "P9001-P9200" },
+        "source_ready_status_required": { "const": "ready_for_work_os_goal_execution_view" },
+        "api_get_head_only": { "const": true },
+        "api_write_methods_enabled": { "const": false },
+        "raw_transcript_body_visible": { "const": false },
+        "secret_keys_returned": { "const": false },
+        "domain_pack_as_product_allowed": { "const": false },
+        "human_gate_completion_enabled": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "reviewer_mutation_allowed": { "const": false },
+        "single_owner_enterprise_trust_allowed": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "external_connector_write_enabled": { "const": false },
+        "ui_git_write_enabled": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "work_os_goal_drilldown_phase_rows": { "type": "array", "minItems": 10, "items": { "$ref": "#/$defs/row" } },
+    "p9200_source_binding_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": ["source_program_range", "source_ready_for_p9201", "read_only", "mutates_source"],
+            "properties": {
+              "source_program_range": { "const": "P9001-P9200" },
+              "source_ready_for_p9201": { "const": true },
+              "read_only": { "const": true },
+              "mutates_source": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "drilldown_api_route_rows": {
+      "type": "array",
+      "minItems": 9,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": [
+              "api_path",
+              "method_allowlist",
+              "read_only",
+              "write_methods_enabled",
+              "mutates_state",
+              "protected_action_enabled",
+              "raw_transcript_body_visible",
+              "secret_keys_returned"
+            ],
+            "properties": {
+              "method_allowlist": { "type": "array", "contains": { "const": "GET" } },
+              "read_only": { "const": true },
+              "write_methods_enabled": { "const": false },
+              "mutates_state": { "const": false },
+              "protected_action_enabled": { "const": false },
+              "raw_transcript_body_visible": { "const": false },
+              "secret_keys_returned": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "drilldown_ui_binding_rows": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": [
+              "surface_id",
+              "consumes_api_path",
+              "binding_mode",
+              "read_only",
+              "raw_transcript_body_visible",
+              "secret_embedded",
+              "protected_action_controls_enabled",
+              "git_write_controls_enabled",
+              "mutation_allowed"
+            ],
+            "properties": {
+              "consumes_api_path": { "pattern": "^/api/work-os" },
+              "binding_mode": { "const": "browser_fetch_read_only_json" },
+              "read_only": { "const": true },
+              "raw_transcript_body_visible": { "const": false },
+              "secret_embedded": { "const": false },
+              "protected_action_controls_enabled": { "const": false },
+              "git_write_controls_enabled": { "const": false },
+              "mutation_allowed": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "goal_api_projection_rows": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/goalRow" } },
+    "next_action_api_projection_rows": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/nextActionRow" } },
+    "commit_checkpoint_api_projection_rows": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/commitRow" } },
+    "session_handoff_api_projection_rows": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/sessionRow" } },
+    "project_drilldown_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": [
+              "project_id",
+              "domain_pack_scope",
+              "domain_pack_is_whole_product",
+              "hermes_product_identity",
+              "read_only",
+              "protected_action_enabled",
+              "runtime_execution_enabled",
+              "write_action_enabled"
+            ],
+            "properties": {
+              "domain_pack_scope": { "const": "project_workflow_context" },
+              "domain_pack_is_whole_product": { "const": false },
+              "hermes_product_identity": { "const": "general_project_workflow_control_plane" },
+              "read_only": { "const": true },
+              "protected_action_enabled": { "const": false },
+              "runtime_execution_enabled": { "const": false },
+              "write_action_enabled": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "goal_detail_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/goalRow" },
+          {
+            "type": "object",
+            "required": [
+              "claim_ref",
+              "evidence_ref",
+              "gate_ref",
+              "check_ref",
+              "review_receipt_ref",
+              "codex_final_approval_allowed",
+              "claude_final_approval_allowed",
+              "human_gate_completion_enabled"
+            ],
+            "properties": {
+              "codex_final_approval_allowed": { "const": false },
+              "claude_final_approval_allowed": { "const": false },
+              "human_gate_completion_enabled": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "combined_status_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": [
+              "project_id",
+              "validation_ready",
+              "review_boundary_ready",
+              "next_actions_ready",
+              "commit_checkpoint_ready",
+              "session_handoff_ready",
+              "production_pass_enabled",
+              "enterprise_pass_enabled",
+              "read_only"
+            ],
+            "properties": {
+              "production_pass_enabled": { "const": false },
+              "enterprise_pass_enabled": { "const": false },
+              "read_only": { "const": true }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "drilldown_api_smoke_rows": { "type": "array", "minItems": 10, "items": { "$ref": "#/$defs/apiSmokeRow" } },
+    "browser_drilldown_smoke_rows": { "type": "array", "minItems": 6, "items": { "$ref": "#/$defs/browserSmokeRow" } },
+    "work_os_goal_drilldown_negative_fixture_rows": {
+      "type": "array",
+      "minItems": 11,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": ["fixture_id", "expected_blocked", "observed_blocked", "unsafe_claim_allowed"],
+            "properties": {
+              "expected_blocked": { "const": true },
+              "observed_blocked": { "const": true },
+              "unsafe_claim_allowed": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "p9400_freeze_rows": { "type": "array", "minItems": 13, "items": { "$ref": "#/$defs/row" } },
+    "work_os_goal_drilldown_gate_rows": { "type": "array", "minItems": 20, "items": { "$ref": "#/$defs/row" } },
+    "work_os_goal_drilldown_boundary": {
+      "type": "object",
+      "required": [
+        "program_range",
+        "source_program_range",
+        "source_p9200_ready",
+        "ready_for_p9401_handoff",
+        "api_write_methods_enabled",
+        "raw_transcript_body_visible",
+        "secret_keys_returned",
+        "domain_pack_as_product_allowed",
+        "human_gate_completion_enabled",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "reviewer_mutation_allowed",
+        "single_owner_enterprise_trust_allowed",
+        "protected_closeout_enabled",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "runtime_execution_enabled",
+        "write_action_enabled",
+        "external_connector_write_enabled",
+        "ui_git_write_enabled",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "program_range": { "const": "P9201-P9400" },
+        "source_program_range": { "const": "P9001-P9200" },
+        "source_p9200_ready": { "const": true },
+        "ready_for_p9401_handoff": { "const": true },
+        "api_write_methods_enabled": { "const": false },
+        "raw_transcript_body_visible": { "const": false },
+        "secret_keys_returned": { "const": false },
+        "domain_pack_as_product_allowed": { "const": false },
+        "human_gate_completion_enabled": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "reviewer_mutation_allowed": { "const": false },
+        "single_owner_enterprise_trust_allowed": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "external_connector_write_enabled": { "const": false },
+        "ui_git_write_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validationItem" } },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "work_os_goal_drilldown_surface_status",
+        "program_range",
+        "source_program_range",
+        "ready_for_p9401_handoff",
+        "validation_error_count"
+      ],
+      "properties": {
+        "work_os_goal_drilldown_surface_status": { "const": "ready_for_work_os_goal_drilldown_surface" },
+        "program_range": { "const": "P9201-P9400" },
+        "source_program_range": { "const": "P9001-P9200" },
+        "ready_for_p9401_handoff": { "const": true },
+        "validation_error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "row": {
+      "type": "object",
+      "required": ["schema_version", "row_id", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "current_verdict": { "const": "pass" },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_deterministic_validator" }
+      },
+      "additionalProperties": true
+    },
+    "goalRow": {
+      "allOf": [
+        { "$ref": "#/$defs/row" },
+        {
+          "type": "object",
+          "required": [
+            "project_id",
+            "goal_id",
+            "goal_name",
+            "phase_range",
+            "claim_ref",
+            "evidence_ref",
+            "gate_ref",
+            "check_ref",
+            "review_receipt_ref",
+            "read_only",
+            "protected_action_enabled",
+            "codex_final_approval_allowed",
+            "claude_final_approval_allowed"
+          ],
+          "properties": {
+            "read_only": { "const": true },
+            "protected_action_enabled": { "const": false },
+            "codex_final_approval_allowed": { "const": false },
+            "claude_final_approval_allowed": { "const": false }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "nextActionRow": {
+      "allOf": [
+        { "$ref": "#/$defs/row" },
+        {
+          "type": "object",
+          "required": ["action_id", "protected_action", "mutates_state", "requires_human_gate_completion", "read_only"],
+          "properties": {
+            "protected_action": { "const": false },
+            "mutates_state": { "const": false },
+            "requires_human_gate_completion": { "const": false },
+            "read_only": { "const": true }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "commitRow": {
+      "allOf": [
+        { "$ref": "#/$defs/row" },
+        {
+          "type": "object",
+          "required": ["checkpoint_id", "read_only", "git_write_enabled", "commit_created_by_ui", "push_enabled", "merge_enabled"],
+          "properties": {
+            "read_only": { "const": true },
+            "git_write_enabled": { "const": false },
+            "commit_created_by_ui": { "const": false },
+            "push_enabled": { "const": false },
+            "merge_enabled": { "const": false }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "sessionRow": {
+      "allOf": [
+        { "$ref": "#/$defs/row" },
+        {
+          "type": "object",
+          "required": [
+            "source_id",
+            "engine_id",
+            "session_id",
+            "transcript_ref",
+            "redacted_summary_ref",
+            "raw_body_visible",
+            "full_transcript_body_visible",
+            "source_cited",
+            "read_only",
+            "mutates_source_store",
+            "mutates_plan_state"
+          ],
+          "properties": {
+            "raw_body_visible": { "const": false },
+            "full_transcript_body_visible": { "const": false },
+            "source_cited": { "const": true },
+            "read_only": { "const": true },
+            "mutates_source_store": { "const": false },
+            "mutates_plan_state": { "const": false }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "apiSmokeRow": {
+      "allOf": [
+        { "$ref": "#/$defs/row" },
+        {
+          "type": "object",
+          "required": ["api_path", "method", "observed_status", "expected_status", "raw_transcript_body_present", "secret_keys_present"],
+          "properties": {
+            "raw_transcript_body_present": { "const": false },
+            "secret_keys_present": { "const": false }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "browserSmokeRow": {
+      "allOf": [
+        { "$ref": "#/$defs/row" },
+        {
+          "type": "object",
+          "required": ["smoke_id", "raw_transcript_body_present", "secret_keys_present", "protected_action_token_present", "post_fetch_present"],
+          "properties": {
+            "raw_transcript_body_present": { "const": false },
+            "secret_keys_present": { "const": false },
+            "protected_action_token_present": { "const": false },
+            "post_fetch_present": { "const": false }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "validationItem": {
+      "type": "object",
+      "required": ["schema_version", "path", "category", "status", "message"],
+      "properties": {
+        "status": { "const": "pass" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

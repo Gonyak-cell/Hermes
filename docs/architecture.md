@@ -66,6 +66,8 @@ P10601-P10800 Context Recall And Drift Guard는 P10600 local session capture art
 
 P10801-P11800 Global Operator Console Design System은 P10800 recall/drift guard 다음에 UI reference pack을 Hermes 전체 operator console design evidence로 승격한다. 이 단계는 `hermes-operator-console-2026-06-06`을 P9000 전용 화면으로 쓰지 않고, Global Operator Queue, Object Inspector Panel, Trace Spine, Evidence Timeline, Review Gate Detail, Readiness Rule Matrix, Review Evidence Trace, negative UI fixture, visual/accessibility regression 계약으로 재구성한다. UI는 Source -> Claim -> Requirement -> Evidence -> Gate -> Review -> Verdict -> Next Action spine을 공통 언어로 사용하며, raw/full body 노출, write/protected action, Codex/Claude final approval, production PASS, enterprise PASS, domain pack product identity는 계속 false다.
 
+P11001-P11200 Global UI Contract는 P10801-P11000 reference intake artifact를 source로 읽어 실제 UI가 따라야 할 전역 object model, navigation IA, Object Inspector Panel, Review/Gate Boundary, Conversation Source Detail, Domain Pack Context, UI Negative Invariants, GET/HEAD-only API Projection, Accessibility/Density contract를 고정한다. 이 단계는 token/component 구현이나 제품 화면 구현이 아니라 UI 계약 freeze다. P11200이 ready여도 raw/full body 노출, secret key 노출, write/protected action, Codex/Claude final approval, production PASS, enterprise PASS, domain pack product identity, phase/tranche top navigation은 계속 false다.
+
 핵심 산출물은 다음입니다.
 
 - development daily brief

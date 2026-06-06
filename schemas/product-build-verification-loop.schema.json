@@ -1,0 +1,311 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/product-build-verification-loop.schema.json",
+  "title": "Hermes Product Build Verification Loop",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "product_build_verification_contract",
+    "product_build_verification_phase_rows",
+    "p9800_source_binding_rows",
+    "feature_implementation_packet_rows",
+    "build_test_evidence_binding_rows",
+    "build_review_packet_rows",
+    "claude_review_receipt_rows",
+    "finding_normalization_rows",
+    "revalidation_evidence_rows",
+    "closeout_readiness_rows",
+    "build_api_route_rows",
+    "build_api_smoke_rows",
+    "build_browser_smoke_rows",
+    "build_negative_fixture_rows",
+    "p10000_freeze_rows",
+    "build_gate_rows",
+    "product_build_verification_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "product-build-verification-loop.v1" },
+    "capability_id": { "const": "platform.product_build_verification_loop" },
+    "program_range": { "const": "P9801-P10000" },
+    "source_program_range": { "const": "P9601-P9800" },
+    "product_build_verification_contract": {
+      "type": "object",
+      "required": [
+        "source_traceability_required",
+        "feature_implementation_packet_required",
+        "test_evidence_binding_required",
+        "review_packet_required",
+        "claude_review_required_now",
+        "finding_loop_required",
+        "revalidation_required_for_findings",
+        "closeout_requires_all_gates",
+        "api_projection_read_only",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled"
+      ],
+      "properties": {
+        "source_traceability_required": { "const": true },
+        "feature_implementation_packet_required": { "const": true },
+        "test_evidence_binding_required": { "const": true },
+        "review_packet_required": { "const": true },
+        "claude_review_required_now": { "const": true },
+        "finding_loop_required": { "const": true },
+        "revalidation_required_for_findings": { "const": true },
+        "closeout_requires_all_gates": { "const": true },
+        "api_projection_read_only": { "const": true },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    },
+    "product_build_verification_phase_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "p9800_source_binding_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "feature_implementation_packet_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "feature_id",
+          "requirement_id",
+          "project_id",
+          "implementation_packet_ref",
+          "protected_write_enabled",
+          "direct_deploy_enabled",
+          "current_verdict"
+        ],
+        "properties": {
+          "protected_write_enabled": { "const": false },
+          "direct_deploy_enabled": { "const": false },
+          "current_verdict": { "enum": ["pass", "block"] }
+        }
+      }
+    },
+    "build_test_evidence_binding_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "feature_id",
+          "requirement_id",
+          "test_ref",
+          "evidence_ref",
+          "gate_ref",
+          "current_verdict"
+        ],
+        "properties": {
+          "test_present": { "type": "boolean" },
+          "evidence_present": { "type": "boolean" },
+          "gate_present": { "type": "boolean" },
+          "current_verdict": { "enum": ["pass", "block"] }
+        }
+      }
+    },
+    "build_review_packet_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "feature_id",
+          "requirement_id",
+          "review_packet_ref",
+          "diff_summary_ref",
+          "release_note_ref",
+          "closeout_ref",
+          "claude_review_required_now",
+          "reviewer_mutation_allowed",
+          "current_verdict"
+        ],
+        "properties": {
+          "claude_review_required_now": { "const": true },
+          "reviewer_mutation_allowed": { "const": false },
+          "current_verdict": { "enum": ["pass", "block"] }
+        }
+      }
+    },
+    "claude_review_receipt_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "finding_normalization_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "finding_id",
+          "severity",
+          "blocking",
+          "normalized",
+          "disposition",
+          "revalidation_required",
+          "current_verdict"
+        ],
+        "properties": {
+          "blocking": { "type": "boolean" },
+          "normalized": { "const": true },
+          "current_verdict": { "enum": ["pass", "block"] }
+        }
+      }
+    },
+    "revalidation_evidence_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "finding_id",
+          "revalidation_required",
+          "current_verdict"
+        ],
+        "properties": {
+          "revalidation_required": { "type": "boolean" },
+          "current_verdict": { "enum": ["pass", "block"] }
+        }
+      }
+    },
+    "closeout_readiness_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "build_api_route_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "build_api_smoke_rows": {
+      "type": "array",
+      "minItems": 9,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "build_browser_smoke_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "build_negative_fixture_rows": {
+      "type": "array",
+      "minItems": 11,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "p10000_freeze_rows": {
+      "type": "array",
+      "minItems": 13,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "build_gate_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "product_build_verification_boundary": {
+      "type": "object",
+      "required": [
+        "p10000_freeze_ready",
+        "claude_review_required_now",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "runtime_execution_enabled",
+        "write_action_enabled",
+        "api_write_methods_enabled",
+        "raw_material_visible",
+        "secret_keys_returned"
+      ],
+      "properties": {
+        "claude_review_required_now": { "const": true },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "api_write_methods_enabled": { "const": false },
+        "raw_material_visible": { "const": false },
+        "secret_keys_returned": { "const": false }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["validation_id", "category", "status", "message"],
+        "properties": {
+          "status": { "enum": ["pass", "fail"] }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "product_build_verification_status",
+        "program_range",
+        "feature_count",
+        "claude_review_completed_now",
+        "p10000_freeze_ready",
+        "production_pass_enabled",
+        "enterprise_pass_enabled"
+      ],
+      "properties": {
+        "program_range": { "const": "P9801-P10000" },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "verdictRow": {
+      "type": "object",
+      "required": [
+        "row_id",
+        "category",
+        "label",
+        "description",
+        "required",
+        "observed",
+        "current_verdict",
+        "block_reason",
+        "evidence_ref",
+        "generated_at"
+      ],
+      "properties": {
+        "required": { "type": "boolean" },
+        "observed": { "type": "boolean" },
+        "current_verdict": { "enum": ["pass", "block", "review_pending"] }
+      }
+    }
+  }
+}

@@ -84,6 +84,8 @@ P12401-P12600 Patch Candidate Lane은 P12400 Controlled Execution Sandbox artifa
 
 P12601-P12800 Human/Owner Adjudication Option은 P12600 Patch Candidate Lane artifact를 source로 읽어 owner adjudication receipt schema, protected closeout mapping, independent review separation, single-owner trust downgrade, adjudication queue, finding disposition, read-only operator/API projection, authority guard를 고정한다. 이 단계는 owner receipt를 protected closeout input으로만 다루며, independent GitHub review, enterprise-independent review, production PASS, enterprise PASS, Codex/Claude final approval을 대체하지 않는다. P12600 source가 blocked이거나 owner adjudication receipt가 없으면 P12800도 blocked 상태와 source/receipt blocker를 보존하고 `ready_for_p12801_handoff=false`로 남긴다.
 
+P12801-P13000 Release Readiness Control Plane은 P12800 Human/Owner Adjudication Option artifact를 source로 읽어 release candidate, migration readiness, rollback/restore plan, incident response plan, production checklist, signed provenance/attestation gate, Claude Code Opus max release review gate, read-only release projection, release authority guard, release freeze state를 고정한다. 이 단계는 release 후보와 blocker를 운영 표면에 보여주지만 deployment, migration execution, rollback execution, release approval, protected action, production PASS, enterprise PASS, Codex/Claude final approval을 열지 않는다. P12800 source가 blocked이거나 signed provenance evidence 또는 Claude release review receipt가 없으면 P13000도 blocked 상태와 source/provenance/review blocker를 보존하고 `ready_for_p13001_handoff=false`로 남긴다.
+
 핵심 산출물은 다음입니다.
 
 - development daily brief

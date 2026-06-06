@@ -56,6 +56,8 @@ P9601-P9800 Requirement Traceability Kernel은 P9600 multi-project control artif
 
 P9801-P10000 Product Build Verification Loop는 P9800 requirement trace graph를 source로 읽어 traced requirement를 feature implementation packet, test/evidence binding, review packet, Claude review receipt, normalized finding loop, revalidation evidence, closeout readiness, read-only API/UI projection으로 연결한다. 이 단계는 "기능을 만들었다"는 주장을 검증 가능한 build packet으로 재구성하는 루프이며, missing P9800 source, missing feature packet, missing test evidence, missing review packet, missing Claude receipt, blocking Claude finding, missing revalidation, unsafe authority expansion은 BLOCK이다. Codex는 implementation packet과 review packet을 준비할 수 있지만 최종 승인자가 아니며, Claude도 read-only reviewer evidence일 뿐 source mutation, final approval, protected closeout, production PASS, enterprise PASS, runtime execution, write action, connector write를 열 수 없다.
 
+P10001-P10200 Claude Review Integration Lane은 P10000 product build verification artifact와 P10000 Claude receipt를 source로 읽어 Claude Code Opus max 또는 최신 Opus equivalent review를 Hermes의 표준 reviewer evidence lane으로 정식화한다. 이 단계는 review request packet, model/effort evidence, receipt intake, finding normalization, unresolved finding blocker, revalidation binding, read-only API/UI projection, authority boundary를 고정한다. Missing P10000 source, missing source review receipt, missing review request, missing model/effort evidence, missing completed P10200 receipt, unresolved finding, blocking finding, missing revalidation, reviewer mutation, Claude final approval, production PASS, enterprise PASS는 BLOCK이다. Claude review는 여전히 최종 승인이나 GitHub independent approval, human owner adjudication, protected closeout을 대체하지 않는다.
+
 핵심 산출물은 다음입니다.
 
 - development daily brief

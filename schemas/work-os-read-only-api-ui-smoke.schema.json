@@ -1,0 +1,327 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/work-os-read-only-api-ui-smoke.schema.json",
+  "title": "Work OS Read-Only API UI Smoke",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "work_os_read_only_api_ui_smoke_id",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "inputs",
+    "source_work_os_live_control_surface_summary",
+    "work_os_read_only_api_ui_smoke_contract",
+    "work_os_read_only_api_ui_phase_rows",
+    "read_only_api_route_projection_rows",
+    "ui_data_binding_adapter_rows",
+    "api_projection_smoke_rows",
+    "browser_smoke_evidence_rows",
+    "p9000_freeze_rows",
+    "work_os_read_only_negative_fixture_rows",
+    "work_os_read_only_gate_rows",
+    "work_os_read_only_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "work-os-read-only-api-ui-smoke.v1" },
+    "capability_id": { "const": "platform.work_os_read_only_api_ui_smoke" },
+    "program_range": { "const": "P8801-P9000" },
+    "source_program_range": { "const": "P8601-P8800" },
+    "work_os_read_only_api_ui_smoke_contract": {
+      "type": "object",
+      "required": [
+        "program_range",
+        "source_program_range",
+        "api_source_artifact_required",
+        "read_only_api_server_required",
+        "ui_data_binding_adapter_required",
+        "api_get_head_only",
+        "api_write_methods_enabled",
+        "raw_payload_keys_returned",
+        "secret_keys_returned",
+        "ui_embeds_raw_material",
+        "ui_protected_action_controls_enabled",
+        "refresh_mutates_state",
+        "human_gate_in_scope",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "protected_closeout_enabled",
+        "runtime_execution_enabled",
+        "write_action_enabled",
+        "external_connector_write_enabled"
+      ],
+      "properties": {
+        "program_range": { "const": "P8801-P9000" },
+        "source_program_range": { "const": "P8601-P8800" },
+        "api_source_artifact_required": { "const": true },
+        "read_only_api_server_required": { "const": true },
+        "ui_data_binding_adapter_required": { "const": true },
+        "api_get_head_only": { "const": true },
+        "api_write_methods_enabled": { "const": false },
+        "raw_payload_keys_returned": { "const": false },
+        "secret_keys_returned": { "const": false },
+        "ui_embeds_raw_material": { "const": false },
+        "ui_protected_action_controls_enabled": { "const": false },
+        "refresh_mutates_state": { "const": false },
+        "human_gate_in_scope": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "external_connector_write_enabled": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "work_os_read_only_api_ui_phase_rows": { "type": "array", "minItems": 10, "items": { "$ref": "#/$defs/row" } },
+    "read_only_api_route_projection_rows": {
+      "type": "array",
+      "minItems": 11,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": [
+              "api_path",
+              "method_allowlist",
+              "artifact_backed",
+              "read_only",
+              "write_methods_enabled",
+              "mutates_state",
+              "protected_action_enabled",
+              "raw_payload_keys_returned",
+              "secret_keys_returned"
+            ],
+            "properties": {
+              "method_allowlist": {
+                "type": "array",
+                "contains": { "const": "GET" }
+              },
+              "artifact_backed": { "const": true },
+              "read_only": { "const": true },
+              "write_methods_enabled": { "const": false },
+              "mutates_state": { "const": false },
+              "protected_action_enabled": { "const": false },
+              "raw_payload_keys_returned": { "const": false },
+              "secret_keys_returned": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "ui_data_binding_adapter_rows": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": [
+              "surface_id",
+              "consumes_api_path",
+              "binding_mode",
+              "bounded_snapshot",
+              "read_only",
+              "raw_material_embedded",
+              "secret_embedded",
+              "protected_action_controls_enabled",
+              "mutation_allowed"
+            ],
+            "properties": {
+              "consumes_api_path": { "pattern": "^/api/work-os" },
+              "binding_mode": { "const": "browser_fetch_read_only_json" },
+              "bounded_snapshot": { "const": true },
+              "read_only": { "const": true },
+              "raw_material_embedded": { "const": false },
+              "secret_embedded": { "const": false },
+              "protected_action_controls_enabled": { "const": false },
+              "mutation_allowed": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "api_projection_smoke_rows": {
+      "type": "array",
+      "minItems": 12,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": [
+              "api_path",
+              "method",
+              "observed_status",
+              "expected_status",
+              "raw_payload_keys_present",
+              "secret_keys_present",
+              "refresh_mutates_state"
+            ],
+            "properties": {
+              "raw_payload_keys_present": { "const": false },
+              "secret_keys_present": { "const": false },
+              "refresh_mutates_state": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "browser_smoke_evidence_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": [
+              "smoke_id",
+              "raw_payload_keys_present",
+              "secret_keys_present",
+              "protected_action_token_present",
+              "post_fetch_present"
+            ],
+            "properties": {
+              "raw_payload_keys_present": { "const": false },
+              "secret_keys_present": { "const": false },
+              "protected_action_token_present": { "const": false },
+              "post_fetch_present": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "p9000_freeze_rows": { "type": "array", "minItems": 9, "items": { "$ref": "#/$defs/row" } },
+    "work_os_read_only_negative_fixture_rows": {
+      "type": "array",
+      "minItems": 12,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": ["fixture_id", "expected_blocked", "observed_blocked", "unsafe_claim_allowed"],
+            "properties": {
+              "expected_blocked": { "const": true },
+              "observed_blocked": { "const": true },
+              "unsafe_claim_allowed": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "work_os_read_only_gate_rows": { "type": "array", "minItems": 21, "items": { "$ref": "#/$defs/row" } },
+    "work_os_read_only_boundary": {
+      "type": "object",
+      "required": [
+        "ready_for_p9001_handoff",
+        "source_p8800_ready",
+        "read_only_api_ready",
+        "ui_binding_ready",
+        "api_smoke_ready",
+        "browser_smoke_ready",
+        "p9000_freeze_ready",
+        "raw_payload_keys_returned",
+        "secret_keys_returned",
+        "api_write_methods_enabled",
+        "ui_protected_action_controls_enabled",
+        "refresh_mutates_state",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "runtime_execution_enabled",
+        "write_action_enabled",
+        "external_connector_write_enabled",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "ready_for_p9001_handoff": { "type": "boolean" },
+        "source_p8800_ready": { "type": "boolean" },
+        "raw_payload_keys_returned": { "const": false },
+        "secret_keys_returned": { "const": false },
+        "api_write_methods_enabled": { "const": false },
+        "ui_protected_action_controls_enabled": { "const": false },
+        "refresh_mutates_state": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "external_connector_write_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "work_os_read_only_api_ui_smoke_status",
+        "program_range",
+        "source_p8800_ready",
+        "api_route_count",
+        "ui_binding_count",
+        "api_smoke_count",
+        "browser_smoke_count",
+        "ready_for_p9001_handoff",
+        "validation_error_count"
+      ],
+      "properties": {
+        "work_os_read_only_api_ui_smoke_status": {
+          "enum": ["ready_for_work_os_read_only_api_ui_smoke", "blocked"]
+        },
+        "program_range": { "const": "P8801-P9000" },
+        "source_p8800_ready": { "type": "boolean" },
+        "ready_for_p9001_handoff": { "type": "boolean" },
+        "raw_payload_keys_returned": { "const": false },
+        "secret_keys_returned": { "const": false },
+        "api_write_methods_enabled": { "const": false },
+        "ui_protected_action_controls_enabled": { "const": false },
+        "refresh_mutates_state": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "external_connector_write_enabled": { "const": false }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "row": {
+      "type": "object",
+      "required": ["schema_version", "row_id", "current_verdict"],
+      "properties": {
+        "current_verdict": { "enum": ["pass", "blocked"] }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

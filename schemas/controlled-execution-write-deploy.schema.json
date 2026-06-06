@@ -1,0 +1,510 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/controlled-execution-write-deploy.schema.json",
+  "title": "Controlled Execution Write Deploy",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "controlled_execution_write_deploy_id",
+    "capability_id",
+    "program_range",
+    "inputs",
+    "source_product_domain_saas_factory_summary",
+    "controlled_execution_write_deploy_contract",
+    "controlled_execution_write_deploy_phase_rows",
+    "execution_allowlist_rows",
+    "sandbox_timeout_policy_rows",
+    "redaction_secret_scanner_rows",
+    "patch_candidate_lane_rows",
+    "receipt_gated_apply_boundary_rows",
+    "deploy_receipt_contract_rows",
+    "rollback_binding_rows",
+    "post_apply_validation_rows",
+    "execution_negative_fixture_rows",
+    "controlled_execution_write_deploy_freeze_rows",
+    "controlled_execution_write_deploy_gate_rows",
+    "controlled_execution_write_deploy_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "controlled-execution-write-deploy.v1" },
+    "capability_id": { "const": "platform.controlled_execution_write_deploy" },
+    "program_range": { "const": "P6601-P7000" },
+    "controlled_execution_write_deploy_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "contract_id",
+        "program_range",
+        "execution_allowlist_contract_required",
+        "sandbox_timeout_policy_required",
+        "redaction_secret_scanner_required",
+        "patch_candidate_lane_required",
+        "receipt_gated_apply_boundary_required",
+        "deploy_receipt_contract_required",
+        "rollback_binding_required",
+        "post_apply_validation_required",
+        "negative_fixtures_required",
+        "allowlisted_execution_contract_ready",
+        "patch_candidate_generation_ready",
+        "command_execution_enabled",
+        "patch_apply_enabled",
+        "deploy_enabled",
+        "external_project_write_enabled",
+        "raw_sensitive_data_access_enabled",
+        "human_adjudication_in_milestone_gate",
+        "protected_closeout_enabled",
+        "protected_final_decision_enabled",
+        "enterprise_trust_claim_enabled",
+        "agent_runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled",
+        "work_os_claim_enabled"
+      ],
+      "properties": {
+        "schema_version": { "const": "controlled-execution-write-deploy-contract.v1" },
+        "program_range": { "const": "P6601-P7000" },
+        "execution_allowlist_contract_required": { "const": true },
+        "sandbox_timeout_policy_required": { "const": true },
+        "redaction_secret_scanner_required": { "const": true },
+        "patch_candidate_lane_required": { "const": true },
+        "receipt_gated_apply_boundary_required": { "const": true },
+        "deploy_receipt_contract_required": { "const": true },
+        "rollback_binding_required": { "const": true },
+        "post_apply_validation_required": { "const": true },
+        "negative_fixtures_required": { "const": true },
+        "allowlisted_execution_contract_ready": { "const": true },
+        "patch_candidate_generation_ready": { "const": true },
+        "command_execution_enabled": { "const": false },
+        "patch_apply_enabled": { "const": false },
+        "deploy_enabled": { "const": false },
+        "external_project_write_enabled": { "const": false },
+        "raw_sensitive_data_access_enabled": { "const": false },
+        "human_adjudication_in_milestone_gate": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "protected_final_decision_enabled": { "const": false },
+        "enterprise_trust_claim_enabled": { "const": false },
+        "agent_runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "work_os_claim_enabled": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "controlled_execution_write_deploy_phase_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/verdict_row" }
+    },
+    "execution_allowlist_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/$defs/allowlist_row" }
+    },
+    "sandbox_timeout_policy_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/$defs/sandbox_row" }
+    },
+    "redaction_secret_scanner_rows": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/$defs/redaction_row" }
+    },
+    "patch_candidate_lane_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/patch_candidate_row" }
+    },
+    "receipt_gated_apply_boundary_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/apply_boundary_row" }
+    },
+    "deploy_receipt_contract_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/deploy_row" }
+    },
+    "rollback_binding_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/rollback_row" }
+    },
+    "post_apply_validation_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/$defs/post_apply_row" }
+    },
+    "execution_negative_fixture_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": { "$ref": "#/$defs/negative_fixture_row" }
+    },
+    "controlled_execution_write_deploy_freeze_rows": {
+      "type": "array",
+      "minItems": 9,
+      "items": { "$ref": "#/$defs/freeze_row" }
+    },
+    "controlled_execution_write_deploy_gate_rows": {
+      "type": "array",
+      "minItems": 21,
+      "items": { "$ref": "#/$defs/gate_row" }
+    },
+    "controlled_execution_write_deploy_boundary": { "$ref": "#/$defs/boundary" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "controlled_execution_write_deploy_status",
+        "program_range",
+        "product_domain_saas_factory_status",
+        "execution_allowlist_count",
+        "sandbox_policy_count",
+        "redaction_secret_scanner_count",
+        "patch_candidate_lane_count",
+        "deploy_receipt_count",
+        "post_apply_validation_count",
+        "allowlisted_execution_contract_ready",
+        "sandbox_timeout_policy_ready",
+        "redaction_secret_scanner_ready",
+        "patch_candidate_lane_ready",
+        "receipt_gated_apply_boundary_ready",
+        "deploy_receipt_contract_ready",
+        "rollback_binding_ready",
+        "post_apply_validation_ready",
+        "command_execution_enabled",
+        "patch_apply_enabled",
+        "protected_apply_enabled",
+        "deploy_enabled",
+        "external_project_write_enabled",
+        "raw_sensitive_data_access_enabled",
+        "human_adjudication_in_milestone_gate",
+        "protected_closeout_enabled",
+        "protected_final_decision_enabled",
+        "enterprise_trust_claim_enabled",
+        "agent_runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled",
+        "work_os_claim_enabled",
+        "unsafe_flag_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "controlled-execution-write-deploy-summary.v1" },
+        "controlled_execution_write_deploy_status": { "const": "ready_for_controlled_execution_write_deploy_v0" },
+        "program_range": { "const": "P6601-P7000" },
+        "product_domain_saas_factory_status": { "const": "ready_for_product_domain_saas_factory_v0" },
+        "execution_allowlist_count": { "minimum": 5 },
+        "sandbox_policy_count": { "minimum": 4 },
+        "redaction_secret_scanner_count": { "minimum": 3 },
+        "patch_candidate_lane_count": { "minimum": 1 },
+        "deploy_receipt_count": { "minimum": 2 },
+        "post_apply_validation_count": { "minimum": 5 },
+        "allowlisted_execution_contract_ready": { "const": true },
+        "sandbox_timeout_policy_ready": { "const": true },
+        "redaction_secret_scanner_ready": { "const": true },
+        "patch_candidate_lane_ready": { "const": true },
+        "receipt_gated_apply_boundary_ready": { "const": true },
+        "deploy_receipt_contract_ready": { "const": true },
+        "rollback_binding_ready": { "const": true },
+        "post_apply_validation_ready": { "const": true },
+        "command_execution_enabled": { "const": false },
+        "patch_apply_enabled": { "const": false },
+        "protected_apply_enabled": { "const": false },
+        "deploy_enabled": { "const": false },
+        "external_project_write_enabled": { "const": false },
+        "raw_sensitive_data_access_enabled": { "const": false },
+        "human_adjudication_in_milestone_gate": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "protected_final_decision_enabled": { "const": false },
+        "enterprise_trust_claim_enabled": { "const": false },
+        "agent_runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "work_os_claim_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "item_count", "error_count", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "error_count": { "const": 0 },
+        "errors": { "type": "array", "maxItems": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "base_row": { "type": "object", "required": ["schema_version", "row_id"], "additionalProperties": true },
+    "verdict_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["phase_range", "phase_name", "current_verdict", "reviewer_ref", "hard_gate_ref"],
+          "properties": {
+            "current_verdict": { "const": "pass" },
+            "unsafe_flags_false": { "const": true },
+            "verdict_authority": { "const": "harness_only" }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "allowlist_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["allowlist_id", "allowlist_contract_ready", "command_execution_enabled_now", "requires_receipt_before_execution", "redaction_required", "timeout_required", "rollback_binding_required"],
+          "properties": {
+            "allowlist_contract_ready": { "const": true },
+            "command_execution_enabled_now": { "const": false },
+            "requires_receipt_before_execution": { "const": true },
+            "redaction_required": { "const": true },
+            "timeout_required": { "const": true },
+            "rollback_binding_required": { "const": true }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "sandbox_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["policy_id", "policy_contract_ready", "timeout_required", "network_disabled_by_default", "raw_secret_env_disabled", "execution_enabled_now"],
+          "properties": {
+            "policy_contract_ready": { "const": true },
+            "timeout_required": { "const": true },
+            "network_disabled_by_default": { "const": true },
+            "raw_secret_env_disabled": { "const": true },
+            "execution_enabled_now": { "const": false }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "redaction_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["scanner_id", "scanner_contract_ready", "raw_secret_allowed", "raw_sensitive_data_allowed", "scan_required_before_receipt_closeout", "leak_blocks_execution_or_apply"],
+          "properties": {
+            "scanner_contract_ready": { "const": true },
+            "raw_secret_allowed": { "const": false },
+            "raw_sensitive_data_allowed": { "const": false },
+            "scan_required_before_receipt_closeout": { "const": true },
+            "leak_blocks_execution_or_apply": { "const": true }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "patch_candidate_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["patch_candidate_generation_ready", "generated_patch_only", "direct_apply_allowed", "diff_review_packet_required", "claude_review_receipt_required", "rollback_binding_required", "post_apply_validation_required"],
+          "properties": {
+            "patch_candidate_generation_ready": { "const": true },
+            "generated_patch_only": { "const": true },
+            "direct_apply_allowed": { "const": false },
+            "diff_review_packet_required": { "const": true },
+            "claude_review_receipt_required": { "const": true },
+            "rollback_binding_required": { "const": true },
+            "post_apply_validation_required": { "const": true }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "apply_boundary_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["receipt_gated_apply_boundary_ready", "apply_receipt_required", "no_human_mode_blocks_apply", "patch_apply_enabled", "protected_apply_enabled", "external_project_write_enabled"],
+          "properties": {
+            "receipt_gated_apply_boundary_ready": { "const": true },
+            "apply_receipt_required": { "const": true },
+            "no_human_mode_blocks_apply": { "const": true },
+            "patch_apply_enabled": { "const": false },
+            "protected_apply_enabled": { "const": false },
+            "external_project_write_enabled": { "const": false }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "deploy_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["deploy_id", "deploy_receipt_contract_ready", "deploy_enabled_now", "commit_sha_binding_required", "environment_binding_required", "rollback_binding_required", "post_deploy_validation_required"],
+          "properties": {
+            "deploy_receipt_contract_ready": { "const": true },
+            "deploy_enabled_now": { "const": false },
+            "commit_sha_binding_required": { "const": true },
+            "environment_binding_required": { "const": true },
+            "rollback_binding_required": { "const": true },
+            "post_deploy_validation_required": { "const": true }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "rollback_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["rollback_binding_ready", "rollback_target_required", "restore_instructions_required", "owner_required", "validation_after_rollback_required", "write_or_deploy_without_rollback_allowed"],
+          "properties": {
+            "rollback_binding_ready": { "const": true },
+            "rollback_target_required": { "const": true },
+            "restore_instructions_required": { "const": true },
+            "owner_required": { "const": true },
+            "validation_after_rollback_required": { "const": true },
+            "write_or_deploy_without_rollback_allowed": { "const": false }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "post_apply_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["validation_id", "validation_contract_ready", "required_after_apply", "can_be_skipped"],
+          "properties": {
+            "validation_contract_ready": { "const": true },
+            "required_after_apply": { "const": true },
+            "can_be_skipped": { "const": false }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "negative_fixture_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["fixture_id", "expected_block", "actual_result", "fixture_status", "unsafe_execution_claim_allowed"],
+          "properties": {
+            "fixture_status": { "const": "PASS_BLOCKED_AS_EXPECTED" },
+            "unsafe_execution_claim_allowed": { "const": false }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "freeze_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["freeze_id", "freeze_status", "reviewer_ref", "hard_gate_ref"],
+          "properties": {
+            "freeze_status": { "const": "ready" },
+            "unsafe_flags_false": { "const": true },
+            "verdict_authority": { "const": "harness_only" }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "gate_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["gate_id", "gate_status", "evidence_ref", "reviewer_ref", "hard_gate_ref"],
+          "properties": {
+            "gate_status": { "const": "ready" },
+            "unsafe_flags_false": { "const": true },
+            "verdict_authority": { "const": "harness_only" }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "controlled_execution_write_deploy_ready",
+        "product_domain_saas_factory_ready",
+        "allowlisted_execution_contract_ready",
+        "sandbox_timeout_policy_ready",
+        "redaction_secret_scanner_ready",
+        "patch_candidate_lane_ready",
+        "receipt_gated_apply_boundary_ready",
+        "deploy_receipt_contract_ready",
+        "rollback_binding_ready",
+        "post_apply_validation_ready",
+        "command_execution_enabled",
+        "patch_apply_enabled",
+        "protected_apply_enabled",
+        "deploy_enabled",
+        "external_project_write_enabled",
+        "raw_sensitive_data_access_enabled",
+        "human_adjudication_in_milestone_gate",
+        "protected_closeout_enabled",
+        "protected_final_decision_enabled",
+        "enterprise_trust_claim_enabled",
+        "agent_runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled",
+        "work_os_claim_enabled",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "controlled-execution-write-deploy-boundary.v1" },
+        "program_range": { "const": "P6601-P7000" },
+        "controlled_execution_write_deploy_ready": { "const": true },
+        "product_domain_saas_factory_ready": { "const": true },
+        "allowlisted_execution_contract_ready": { "const": true },
+        "sandbox_timeout_policy_ready": { "const": true },
+        "redaction_secret_scanner_ready": { "const": true },
+        "patch_candidate_lane_ready": { "const": true },
+        "receipt_gated_apply_boundary_ready": { "const": true },
+        "deploy_receipt_contract_ready": { "const": true },
+        "rollback_binding_ready": { "const": true },
+        "post_apply_validation_ready": { "const": true },
+        "command_execution_enabled": { "const": false },
+        "patch_apply_enabled": { "const": false },
+        "protected_apply_enabled": { "const": false },
+        "deploy_enabled": { "const": false },
+        "external_project_write_enabled": { "const": false },
+        "raw_sensitive_data_access_enabled": { "const": false },
+        "human_adjudication_in_milestone_gate": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "protected_final_decision_enabled": { "const": false },
+        "enterprise_trust_claim_enabled": { "const": false },
+        "agent_runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "work_os_claim_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

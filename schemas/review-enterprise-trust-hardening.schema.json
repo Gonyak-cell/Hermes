@@ -1,0 +1,483 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/review-enterprise-trust-hardening.schema.json",
+  "title": "Review and Enterprise Trust Hardening",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "review_enterprise_trust_hardening_id",
+    "capability_id",
+    "program_range",
+    "inputs",
+    "source_multi_engine_orchestration_qa_summary",
+    "review_enterprise_trust_contract",
+    "review_enterprise_trust_phase_rows",
+    "github_review_lane_rows",
+    "branch_ruleset_evidence_rows",
+    "required_status_check_rows",
+    "signed_attestation_hardening_rows",
+    "claude_review_receipt_hardening_rows",
+    "single_owner_exception_rows",
+    "no_human_protected_closeout_boundary_rows",
+    "enterprise_trust_decision_rows",
+    "trust_negative_fixture_rows",
+    "review_enterprise_trust_freeze_rows",
+    "review_enterprise_trust_gate_rows",
+    "review_enterprise_trust_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "review-enterprise-trust-hardening.v1" },
+    "capability_id": { "const": "platform.review_enterprise_trust_hardening" },
+    "program_range": { "const": "P5801-P6200" },
+    "review_enterprise_trust_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "contract_id",
+        "program_range",
+        "github_review_lane_required",
+        "branch_ruleset_evidence_required",
+        "required_status_check_evidence_required",
+        "signed_attestation_verification_required",
+        "claude_review_receipt_required",
+        "single_owner_exception_classification_required",
+        "no_human_protected_closeout_boundary_required",
+        "enterprise_trust_decision_matrix_required",
+        "trust_negative_fixtures_required",
+        "independent_github_review_completed_now",
+        "branch_ruleset_enforced_now",
+        "required_status_checks_passed_now",
+        "attestation_verification_passed_now",
+        "claude_review_completed_now",
+        "human_adjudication_in_milestone_gate",
+        "single_owner_lower_trust_mode",
+        "enterprise_trust_claim_enabled",
+        "protected_closeout_enabled",
+        "agent_runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled",
+        "work_os_claim_enabled"
+      ],
+      "properties": {
+        "schema_version": { "const": "review-enterprise-trust-contract.v1" },
+        "program_range": { "const": "P5801-P6200" },
+        "github_review_lane_required": { "const": true },
+        "branch_ruleset_evidence_required": { "const": true },
+        "required_status_check_evidence_required": { "const": true },
+        "signed_attestation_verification_required": { "const": true },
+        "claude_review_receipt_required": { "const": true },
+        "single_owner_exception_classification_required": { "const": true },
+        "no_human_protected_closeout_boundary_required": { "const": true },
+        "enterprise_trust_decision_matrix_required": { "const": true },
+        "trust_negative_fixtures_required": { "const": true },
+        "independent_github_review_completed_now": { "const": false },
+        "branch_ruleset_enforced_now": { "const": false },
+        "required_status_checks_passed_now": { "const": false },
+        "attestation_verification_passed_now": { "const": false },
+        "claude_review_completed_now": { "const": false },
+        "human_adjudication_in_milestone_gate": { "const": false },
+        "single_owner_lower_trust_mode": { "const": true },
+        "enterprise_trust_claim_enabled": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "agent_runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "work_os_claim_enabled": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "review_enterprise_trust_phase_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/verdict_row" }
+    },
+    "github_review_lane_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/github_review_row" }
+    },
+    "branch_ruleset_evidence_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/branch_ruleset_row" }
+    },
+    "required_status_check_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/status_check_row" }
+    },
+    "signed_attestation_hardening_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/attestation_row" }
+    },
+    "claude_review_receipt_hardening_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/claude_review_row" }
+    },
+    "single_owner_exception_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/single_owner_row" }
+    },
+    "no_human_protected_closeout_boundary_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/no_human_row" }
+    },
+    "enterprise_trust_decision_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/enterprise_decision_row" }
+    },
+    "trust_negative_fixture_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/negative_fixture_row" }
+    },
+    "review_enterprise_trust_freeze_rows": {
+      "type": "array",
+      "minItems": 9,
+      "items": { "$ref": "#/$defs/freeze_row" }
+    },
+    "review_enterprise_trust_gate_rows": {
+      "type": "array",
+      "minItems": 20,
+      "items": { "$ref": "#/$defs/gate_row" }
+    },
+    "review_enterprise_trust_boundary": { "$ref": "#/$defs/boundary" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "review_enterprise_trust_hardening_status",
+        "program_range",
+        "multi_engine_orchestration_qa_status",
+        "independent_github_review_completed_now",
+        "branch_ruleset_enforced_now",
+        "required_status_checks_passed_now",
+        "attestation_verification_passed_now",
+        "claude_review_completed_now",
+        "durable_claude_raw_json_present_now",
+        "single_owner_lower_trust_mode",
+        "human_adjudication_in_milestone_gate",
+        "no_human_blocks_protected_closeout",
+        "enterprise_trust_ready",
+        "enterprise_trust_claim_enabled",
+        "p6200_milestone_closeout_ready",
+        "lower_trust_readiness_allowed",
+        "protected_closeout_enabled",
+        "protected_final_decision_enabled",
+        "agent_runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled",
+        "work_os_claim_enabled",
+        "unsafe_flag_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "review-enterprise-trust-hardening-summary.v1" },
+        "review_enterprise_trust_hardening_status": { "const": "ready_for_review_enterprise_trust_hardening_v0" },
+        "program_range": { "const": "P5801-P6200" },
+        "multi_engine_orchestration_qa_status": { "const": "ready_for_multi_engine_orchestration_qa_v0" },
+        "independent_github_review_completed_now": { "const": false },
+        "branch_ruleset_enforced_now": { "const": false },
+        "required_status_checks_passed_now": { "const": false },
+        "attestation_verification_passed_now": { "const": false },
+        "claude_review_completed_now": { "const": false },
+        "durable_claude_raw_json_present_now": { "const": false },
+        "single_owner_lower_trust_mode": { "const": true },
+        "human_adjudication_in_milestone_gate": { "const": false },
+        "no_human_blocks_protected_closeout": { "const": true },
+        "enterprise_trust_ready": { "const": false },
+        "enterprise_trust_claim_enabled": { "const": false },
+        "p6200_milestone_closeout_ready": { "const": false },
+        "lower_trust_readiness_allowed": { "const": true },
+        "protected_closeout_enabled": { "const": false },
+        "protected_final_decision_enabled": { "const": false },
+        "agent_runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "work_os_claim_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "item_count", "error_count", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "error_count": { "const": 0 },
+        "errors": { "type": "array", "maxItems": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "base_row": {
+      "type": "object",
+      "required": ["schema_version", "row_id"],
+      "additionalProperties": true
+    },
+    "verdict_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["phase_range", "phase_name", "current_verdict", "reviewer_ref", "hard_gate_ref"],
+          "properties": {
+            "current_verdict": { "const": "pass" },
+            "unsafe_flags_false": { "const": true },
+            "verdict_authority": { "const": "harness_only" }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "github_review_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["independent_github_review_required", "independent_github_review_completed_now", "self_review_attempt_blocked", "same_account_approval_allowed", "review_state"],
+          "properties": {
+            "independent_github_review_required": { "const": true },
+            "independent_github_review_completed_now": { "const": false },
+            "self_review_attempt_blocked": { "const": true },
+            "same_account_approval_allowed": { "const": false },
+            "review_state": { "const": "BLOCKED_PENDING_INDEPENDENT_GITHUB_REVIEW" }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "branch_ruleset_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["branch_ruleset_evidence_required", "branch_ruleset_observed_now", "branch_protection_enforced_now", "evidence_status"],
+          "properties": {
+            "branch_ruleset_evidence_required": { "const": true },
+            "branch_ruleset_observed_now": { "const": false },
+            "branch_protection_enforced_now": { "const": false },
+            "evidence_status": { "const": "BLOCKED_PENDING_BRANCH_RULESET_EVIDENCE" }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "status_check_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["required_status_check_evidence_required", "required_status_checks_configured_now", "required_status_checks_passed_now", "evidence_status"],
+          "properties": {
+            "required_status_check_evidence_required": { "const": true },
+            "required_status_checks_configured_now": { "const": false },
+            "required_status_checks_passed_now": { "const": false },
+            "evidence_status": { "const": "BLOCKED_PENDING_REQUIRED_STATUS_CHECK_EVIDENCE" }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "attestation_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["signed_attestation_required", "signed_attestation_present_now", "attestation_verification_passed_now", "subject_digest_bound_now", "evidence_status"],
+          "properties": {
+            "signed_attestation_required": { "const": true },
+            "signed_attestation_present_now": { "const": false },
+            "attestation_verification_passed_now": { "const": false },
+            "subject_digest_bound_now": { "const": false },
+            "evidence_status": { "const": "BLOCKED_PENDING_SIGNED_ATTESTATION_VERIFY" }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "claude_review_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["reviewer_ref", "claude_review_receipt_required", "completed_claude_review_receipt_present_now", "durable_raw_json_present_now", "reviewer_mutation_allowed", "evidence_status"],
+          "properties": {
+            "reviewer_ref": { "const": "reviewer.claude_code_opus_max" },
+            "claude_review_receipt_required": { "const": true },
+            "completed_claude_review_receipt_present_now": { "const": false },
+            "durable_raw_json_present_now": { "const": false },
+            "reviewer_mutation_allowed": { "const": false },
+            "evidence_status": { "const": "BLOCKED_PENDING_CLAUDE_REVIEW_RECEIPT" }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "single_owner_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["single_owner_exception_observed_now", "single_owner_lower_trust_mode", "independent_github_review_completed_now", "single_owner_can_claim_enterprise_trust", "merge_readiness_tier"],
+          "properties": {
+            "single_owner_exception_observed_now": { "const": true },
+            "single_owner_lower_trust_mode": { "const": true },
+            "independent_github_review_completed_now": { "const": false },
+            "single_owner_can_claim_enterprise_trust": { "const": false },
+            "merge_readiness_tier": { "const": "LOWER_TRUST_INTERNAL_ONLY" }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "no_human_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["human_adjudication_in_milestone_gate", "protected_closeout_enabled", "protected_final_decision_enabled", "no_human_can_claim_protected_final_decision", "no_human_can_claim_enterprise_trust"],
+          "properties": {
+            "human_adjudication_in_milestone_gate": { "const": false },
+            "protected_closeout_enabled": { "const": false },
+            "protected_final_decision_enabled": { "const": false },
+            "no_human_can_claim_protected_final_decision": { "const": false },
+            "no_human_can_claim_enterprise_trust": { "const": false }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "enterprise_decision_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["external_trust_evidence_ready", "no_human_blocks_protected_closeout", "p6200_milestone_closeout_ready", "lower_trust_readiness_allowed", "enterprise_trust_ready", "enterprise_trust_claim_allowed", "human_adjudication_required"],
+          "properties": {
+            "external_trust_evidence_ready": { "const": false },
+            "no_human_blocks_protected_closeout": { "const": true },
+            "p6200_milestone_closeout_ready": { "const": false },
+            "lower_trust_readiness_allowed": { "const": true },
+            "enterprise_trust_ready": { "const": false },
+            "enterprise_trust_claim_allowed": { "const": false },
+            "human_adjudication_required": { "const": false }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "negative_fixture_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["fixture_id", "expected_block", "actual_result", "fixture_status", "unsafe_trust_claim_allowed"],
+          "properties": {
+            "fixture_status": { "const": "PASS_BLOCKED_AS_EXPECTED" },
+            "unsafe_trust_claim_allowed": { "const": false }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "freeze_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["freeze_id", "freeze_status", "reviewer_ref", "hard_gate_ref"],
+          "properties": {
+            "freeze_status": { "const": "ready" },
+            "unsafe_flags_false": { "const": true },
+            "verdict_authority": { "const": "harness_only" }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "gate_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["gate_id", "gate_status", "evidence_ref", "reviewer_ref", "hard_gate_ref"],
+          "properties": {
+            "gate_status": { "const": "ready" },
+            "unsafe_flags_false": { "const": true },
+            "verdict_authority": { "const": "harness_only" }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "review_enterprise_trust_hardening_ready",
+        "multi_engine_orchestration_qa_ready",
+        "independent_github_review_completed_now",
+        "branch_ruleset_enforced_now",
+        "required_status_checks_passed_now",
+        "attestation_verification_passed_now",
+        "claude_review_completed_now",
+        "durable_claude_raw_json_present_now",
+        "single_owner_lower_trust_mode",
+        "human_adjudication_in_milestone_gate",
+        "no_human_blocks_protected_closeout",
+        "enterprise_trust_ready",
+        "enterprise_trust_claim_enabled",
+        "p6200_milestone_closeout_ready",
+        "lower_trust_readiness_allowed",
+        "protected_closeout_enabled",
+        "protected_final_decision_enabled",
+        "agent_runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled",
+        "work_os_claim_enabled",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "review-enterprise-trust-boundary.v1" },
+        "program_range": { "const": "P5801-P6200" },
+        "review_enterprise_trust_hardening_ready": { "const": true },
+        "multi_engine_orchestration_qa_ready": { "const": true },
+        "independent_github_review_completed_now": { "const": false },
+        "branch_ruleset_enforced_now": { "const": false },
+        "required_status_checks_passed_now": { "const": false },
+        "attestation_verification_passed_now": { "const": false },
+        "claude_review_completed_now": { "const": false },
+        "durable_claude_raw_json_present_now": { "const": false },
+        "single_owner_lower_trust_mode": { "const": true },
+        "human_adjudication_in_milestone_gate": { "const": false },
+        "no_human_blocks_protected_closeout": { "const": true },
+        "enterprise_trust_ready": { "const": false },
+        "enterprise_trust_claim_enabled": { "const": false },
+        "p6200_milestone_closeout_ready": { "const": false },
+        "lower_trust_readiness_allowed": { "const": true },
+        "protected_closeout_enabled": { "const": false },
+        "protected_final_decision_enabled": { "const": false },
+        "agent_runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "work_os_claim_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

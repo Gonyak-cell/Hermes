@@ -1,0 +1,454 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/work-os-live-control-surface.schema.json",
+  "title": "Work OS Live Control Surface",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "work_os_live_control_surface_id",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "inputs",
+    "source_live_session_handoff_summary",
+    "work_os_live_control_surface_contract",
+    "work_os_live_control_phase_rows",
+    "artifact_source_binding_rows",
+    "read_only_api_server_rows",
+    "session_ingestion_adapter_rows",
+    "redacted_timeline_projection_rows",
+    "project_control_surface_rows",
+    "phase_detail_surface_rows",
+    "review_finding_surface_rows",
+    "live_progress_refresh_rows",
+    "ui_handoff_runtime_contract_rows",
+    "p8800_freeze_rows",
+    "work_os_live_negative_fixture_rows",
+    "work_os_live_gate_rows",
+    "work_os_live_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "work-os-live-control-surface.v1" },
+    "capability_id": { "const": "platform.work_os_live_control_surface" },
+    "program_range": { "const": "P8601-P8800" },
+    "source_program_range": { "const": "P8401-P8600" },
+    "work_os_live_control_surface_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "source_program_range",
+        "required_phases",
+        "required_api_paths",
+        "required_ui_runtime_surfaces",
+        "artifact_backed_api_server_required",
+        "session_ingestion_adapter_required",
+        "redacted_timeline_projection_required",
+        "project_control_surface_required",
+        "phase_detail_surface_required",
+        "review_finding_surface_required",
+        "live_progress_refresh_required",
+        "ui_handoff_runtime_contract_required",
+        "api_get_only_required",
+        "artifact_source_citation_required",
+        "stale_context_visible",
+        "missing_validation_visible",
+        "raw_transcript_body_default_visible",
+        "raw_transcript_api_visible",
+        "full_transcript_api_visible",
+        "redacted_summary_ui_visible",
+        "api_write_methods_enabled",
+        "session_ingestion_mutates_source",
+        "refresh_mutates_state",
+        "ui_protected_actions_enabled",
+        "human_gate_in_scope",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "reviewer_mutation_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "protected_closeout_enabled",
+        "runtime_execution_enabled",
+        "write_action_enabled",
+        "external_connector_write_enabled"
+      ],
+      "properties": {
+        "schema_version": { "const": "work-os-live-control-surface-contract.v1" },
+        "program_range": { "const": "P8601-P8800" },
+        "source_program_range": { "const": "P8401-P8600" },
+        "required_phases": { "type": "array", "minItems": 10 },
+        "required_api_paths": { "type": "array", "minItems": 7 },
+        "required_ui_runtime_surfaces": { "type": "array", "minItems": 5 },
+        "artifact_backed_api_server_required": { "const": true },
+        "session_ingestion_adapter_required": { "const": true },
+        "redacted_timeline_projection_required": { "const": true },
+        "project_control_surface_required": { "const": true },
+        "phase_detail_surface_required": { "const": true },
+        "review_finding_surface_required": { "const": true },
+        "live_progress_refresh_required": { "const": true },
+        "ui_handoff_runtime_contract_required": { "const": true },
+        "api_get_only_required": { "const": true },
+        "artifact_source_citation_required": { "const": true },
+        "stale_context_visible": { "const": true },
+        "missing_validation_visible": { "const": true },
+        "raw_transcript_body_default_visible": { "const": false },
+        "raw_transcript_api_visible": { "const": false },
+        "full_transcript_api_visible": { "const": false },
+        "redacted_summary_ui_visible": { "const": true },
+        "api_write_methods_enabled": { "const": false },
+        "session_ingestion_mutates_source": { "const": false },
+        "refresh_mutates_state": { "const": false },
+        "ui_protected_actions_enabled": { "const": false },
+        "human_gate_in_scope": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "reviewer_mutation_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "external_connector_write_enabled": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "work_os_live_control_phase_rows": { "type": "array", "minItems": 10, "items": { "$ref": "#/$defs/row" } },
+    "artifact_source_binding_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": ["binding_id", "artifact_path", "source_cited", "artifact_backed", "read_only", "mutation_allowed"],
+            "properties": {
+              "source_cited": { "const": true },
+              "artifact_backed": { "const": true },
+              "read_only": { "const": true },
+              "mutation_allowed": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "read_only_api_server_rows": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": ["api_path", "method", "artifact_backed", "read_only", "write_enabled", "mutates_state", "raw_body_returns", "full_body_returns"],
+            "properties": {
+              "method": { "const": "GET" },
+              "artifact_backed": { "const": true },
+              "read_only": { "const": true },
+              "write_enabled": { "const": false },
+              "mutates_state": { "const": false },
+              "raw_body_returns": { "const": false },
+              "full_body_returns": { "const": false },
+              "protected_action_enabled": { "const": false },
+              "server_start_required": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "session_ingestion_adapter_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": ["source_id", "engine_id", "session_id", "run_id", "phase_id", "transcript_ref", "ingestion_mode", "source_cited"],
+            "properties": {
+              "ingestion_mode": { "const": "metadata_and_redacted_summary_only" },
+              "normalized_for_ui": { "const": true },
+              "raw_body_ingested_visible": { "const": false },
+              "full_body_ingested_visible": { "const": false },
+              "raw_body_api_visible": { "const": false },
+              "append_only_source_preserved": { "const": true },
+              "mutates_source_store": { "const": false },
+              "mutates_plan_state": { "const": false },
+              "source_cited": { "const": true }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "redacted_timeline_projection_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": ["event_type", "citation_ref", "redacted_summary_visible", "source_cited"],
+            "properties": {
+              "raw_transcript_body_visible": { "const": false },
+              "full_transcript_body_visible": { "const": false },
+              "redacted_summary_visible": { "const": true },
+              "source_citation_required": { "const": true },
+              "source_cited": { "const": true },
+              "may_update_plan_directly": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "project_control_surface_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": ["project_id", "project_name", "active_goal_ref", "current_phase_ref", "read_only", "source_cited"],
+            "properties": {
+              "surface_visible": { "const": true },
+              "read_only": { "const": true },
+              "source_cited": { "const": true },
+              "raw_material_visible": { "const": false },
+              "protected_action_enabled": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "phase_detail_surface_rows": { "type": "array", "minItems": 10, "items": { "$ref": "#/$defs/row" } },
+    "review_finding_surface_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": ["review_id", "claude_review_receipt_required", "finding_loop_visible", "unresolved_findings_visible", "final_approval_allowed"],
+            "properties": {
+              "claude_review_receipt_required": { "const": true },
+              "finding_loop_visible": { "const": true },
+              "unresolved_findings_visible": { "const": true },
+              "source_cited": { "const": true },
+              "reviewer_mutation_allowed": { "const": false },
+              "final_approval_allowed": { "const": false },
+              "protected_closeout_allowed": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "live_progress_refresh_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": ["refresh_id", "refresh_type", "source_cited", "stale_context_visible", "missing_validation_visible", "refresh_mutates_state"],
+            "properties": {
+              "source_cited": { "const": true },
+              "stale_context_visible": { "const": true },
+              "missing_validation_visible": { "const": true },
+              "missing_review_visible": { "const": true },
+              "refresh_mutates_state": { "const": false },
+              "auto_plan_update_enabled": { "const": false },
+              "protected_action_enabled": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "ui_handoff_runtime_contract_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": ["surface_id", "consumes_api_path", "bounded_snapshot", "read_only", "protected_action_controls_enabled"],
+            "properties": {
+              "bounded_snapshot": { "const": true },
+              "read_only": { "const": true },
+              "raw_material_embedded": { "const": false },
+              "full_transcript_embedded": { "const": false },
+              "raw_secret_embedded": { "const": false },
+              "source_citation_visible": { "const": true },
+              "stale_context_badge_visible": { "const": true },
+              "missing_validation_badge_visible": { "const": true },
+              "unresolved_review_badge_visible": { "const": true },
+              "protected_action_controls_enabled": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "p8800_freeze_rows": { "type": "array", "minItems": 8, "items": { "$ref": "#/$defs/row" } },
+    "work_os_live_negative_fixture_rows": { "type": "array", "minItems": 13, "items": { "$ref": "#/$defs/row" } },
+    "work_os_live_gate_rows": { "type": "array", "minItems": 25, "items": { "$ref": "#/$defs/row" } },
+    "work_os_live_boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "source_program_range",
+        "source_live_session_handoff_ready",
+        "artifact_source_binding_ready",
+        "read_only_api_server_ready",
+        "session_ingestion_adapter_ready",
+        "redacted_timeline_projection_ready",
+        "project_control_surface_ready",
+        "phase_detail_surface_ready",
+        "review_finding_surface_ready",
+        "live_progress_refresh_ready",
+        "ui_handoff_runtime_contract_ready",
+        "p8800_freeze_ready",
+        "negative_fixtures_block_unsafe_claims",
+        "ready_for_p8801_handoff",
+        "human_gate_in_scope",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "reviewer_mutation_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "protected_closeout_enabled",
+        "runtime_execution_enabled",
+        "write_action_enabled",
+        "external_connector_write_enabled",
+        "raw_transcript_api_visible",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "work-os-live-boundary.v1" },
+        "program_range": { "const": "P8601-P8800" },
+        "source_program_range": { "const": "P8401-P8600" },
+        "ready_for_p8801_handoff": { "type": "boolean" },
+        "human_gate_in_scope": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "reviewer_mutation_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "external_connector_write_enabled": { "const": false },
+        "raw_transcript_api_visible": { "const": false },
+        "unsafe_flag_count": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "work_os_live_control_surface_status",
+        "program_range",
+        "source_program_range",
+        "source_live_session_handoff_ready",
+        "api_server_route_count",
+        "session_ingestion_count",
+        "timeline_projection_count",
+        "project_surface_count",
+        "phase_detail_count",
+        "review_finding_count",
+        "live_progress_refresh_count",
+        "ui_runtime_count",
+        "p8800_freeze_count",
+        "ready_for_p8801_handoff",
+        "human_gate_in_scope",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "reviewer_mutation_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "protected_closeout_enabled",
+        "runtime_execution_enabled",
+        "write_action_enabled",
+        "external_connector_write_enabled",
+        "raw_transcript_api_visible",
+        "unsafe_flag_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "work-os-live-control-surface-summary.v1" },
+        "work_os_live_control_surface_status": {
+          "enum": ["ready_for_work_os_live_control_surface", "blocked"]
+        },
+        "program_range": { "const": "P8601-P8800" },
+        "source_program_range": { "const": "P8401-P8600" },
+        "source_live_session_handoff_ready": { "type": "boolean" },
+        "api_server_route_count": { "type": "number", "minimum": 7 },
+        "session_ingestion_count": { "type": "number", "minimum": 4 },
+        "timeline_projection_count": { "type": "number", "minimum": 5 },
+        "project_surface_count": { "type": "number", "minimum": 5 },
+        "phase_detail_count": { "type": "number", "minimum": 10 },
+        "review_finding_count": { "type": "number", "minimum": 5 },
+        "live_progress_refresh_count": { "type": "number", "minimum": 6 },
+        "ui_runtime_count": { "type": "number", "minimum": 5 },
+        "p8800_freeze_count": { "type": "number", "minimum": 8 },
+        "ready_for_p8801_handoff": { "type": "boolean" },
+        "human_gate_in_scope": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "reviewer_mutation_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "external_connector_write_enabled": { "const": false },
+        "raw_transcript_api_visible": { "const": false },
+        "unsafe_flag_count": { "type": "number", "minimum": 0 },
+        "validation_error_count": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "item_count", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "item_count": { "type": "number", "minimum": 1 },
+        "error_count": { "type": "number", "minimum": 0 },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "row": {
+      "type": "object",
+      "required": ["schema_version", "row_id"],
+      "properties": {
+        "schema_version": { "type": "string", "minLength": 1 },
+        "row_id": { "type": "string", "minLength": 1 },
+        "current_verdict": { "enum": ["pass", "blocked"] },
+        "unsafe_flags_false": { "type": "boolean" },
+        "verdict_authority": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

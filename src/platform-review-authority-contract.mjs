@@ -505,7 +505,10 @@ function parseArgs(argv) {
   const args = {};
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
-    if (arg === "--check") args.check = true;
+    if (arg === "--check") {
+      args.check = true;
+      args.write = false;
+    }
     else if (arg === "--no-write") args.write = false;
     else if (arg === "--help" || arg === "-h") args.help = true;
     else if (arg === "--out-dir") args.outDir = argv[++index];

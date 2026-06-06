@@ -6763,7 +6763,7 @@ function buildAgentInstructionRegistryStage(agentInstructionRegistry, source) {
     || summary.repo_profile_detector_status !== "complete"
     || summary.instruction_source_count < 3
     || summary.present_instruction_source_count < 1
-    || summary.derived_instruction_source_count < 2
+    || summary.present_instruction_source_count + summary.derived_instruction_source_count < 3
     || summary.missing_instruction_source_count !== 0
     || summary.instruction_version_count < 3
     || summary.locked_instruction_version_count !== summary.instruction_version_count

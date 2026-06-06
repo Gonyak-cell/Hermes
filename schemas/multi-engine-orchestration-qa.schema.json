@@ -1,0 +1,422 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/multi-engine-orchestration-qa.schema.json",
+  "title": "Multi-Engine Orchestration QA",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "multi_engine_orchestration_qa_id",
+    "capability_id",
+    "program_range",
+    "inputs",
+    "source_verification_orchestration_runtime_summary",
+    "multi_engine_orchestration_contract",
+    "multi_engine_phase_rows",
+    "engine_registry_rows",
+    "role_assignment_rows",
+    "cross_model_qa_packet_rows",
+    "model_upgrade_receipt_rows",
+    "engine_conflict_resolution_rows",
+    "reviewer_boundary_rows",
+    "cross_review_finding_loop_rows",
+    "multi_engine_trust_decision_rows",
+    "multi_engine_qa_freeze_rows",
+    "multi_engine_qa_gate_rows",
+    "multi_engine_qa_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "multi-engine-orchestration-qa.v1" },
+    "capability_id": { "const": "platform.multi_engine_orchestration_qa" },
+    "program_range": { "const": "P5401-P5800" },
+    "multi_engine_orchestration_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "contract_id",
+        "program_range",
+        "primary_engine_required",
+        "reviewer_engine_required",
+        "planner_evidence_role_split_required",
+        "cross_model_qa_packet_required",
+        "model_upgrade_receipt_required",
+        "engine_conflict_resolution_required",
+        "reviewer_no_mutation_boundary_required",
+        "finding_loop_required",
+        "one_engine_self_approval_allowed",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "reviewer_source_mutation_allowed",
+        "model_upgrade_applied_now",
+        "p5800_closeout_requires_completed_review_receipt",
+        "human_adjudication_in_milestone_gate",
+        "protected_closeout_enabled",
+        "enterprise_trust_claim_enabled",
+        "agent_runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled",
+        "work_os_claim_enabled"
+      ],
+      "properties": {
+        "schema_version": { "const": "multi-engine-orchestration-contract.v1" },
+        "program_range": { "const": "P5401-P5800" },
+        "primary_engine_required": { "const": true },
+        "reviewer_engine_required": { "const": true },
+        "planner_evidence_role_split_required": { "const": true },
+        "cross_model_qa_packet_required": { "const": true },
+        "model_upgrade_receipt_required": { "const": true },
+        "engine_conflict_resolution_required": { "const": true },
+        "reviewer_no_mutation_boundary_required": { "const": true },
+        "finding_loop_required": { "const": true },
+        "one_engine_self_approval_allowed": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "reviewer_source_mutation_allowed": { "const": false },
+        "model_upgrade_applied_now": { "const": false },
+        "p5800_closeout_requires_completed_review_receipt": { "const": true },
+        "human_adjudication_in_milestone_gate": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "enterprise_trust_claim_enabled": { "const": false },
+        "agent_runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "work_os_claim_enabled": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "multi_engine_phase_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/verdict_row" }
+    },
+    "engine_registry_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/$defs/engine_row" }
+    },
+    "role_assignment_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/role_row" }
+    },
+    "cross_model_qa_packet_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/qa_packet_row" }
+    },
+    "model_upgrade_receipt_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/model_upgrade_row" }
+    },
+    "engine_conflict_resolution_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/$defs/conflict_row" }
+    },
+    "reviewer_boundary_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/$defs/reviewer_boundary_row" }
+    },
+    "cross_review_finding_loop_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/finding_loop_row" }
+    },
+    "multi_engine_trust_decision_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/trust_decision_row" }
+    },
+    "multi_engine_qa_freeze_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": { "$ref": "#/$defs/freeze_row" }
+    },
+    "multi_engine_qa_gate_rows": {
+      "type": "array",
+      "minItems": 20,
+      "items": { "$ref": "#/$defs/gate_row" }
+    },
+    "multi_engine_qa_boundary": { "$ref": "#/$defs/boundary" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "multi_engine_orchestration_qa_status",
+        "program_range",
+        "verification_orchestration_runtime_status",
+        "engine_count",
+        "role_assignment_count",
+        "cross_model_qa_packet_count",
+        "model_upgrade_receipt_count",
+        "primary_engine_registered",
+        "reviewer_engine_registered",
+        "role_split_ready",
+        "cross_model_qa_packet_ready",
+        "model_upgrade_receipt_contract_ready",
+        "reviewer_no_mutation_boundary_ready",
+        "self_approval_allowed",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "reviewer_mutation_allowed",
+        "completed_cross_model_review_ready",
+        "p5800_milestone_closeout_ready",
+        "lower_trust_readiness_allowed",
+        "human_adjudication_in_milestone_gate",
+        "protected_closeout_enabled",
+        "enterprise_trust_claim_enabled",
+        "agent_runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled",
+        "work_os_claim_enabled",
+        "unsafe_flag_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "multi-engine-orchestration-qa-summary.v1" },
+        "multi_engine_orchestration_qa_status": { "const": "ready_for_multi_engine_orchestration_qa_v0" },
+        "program_range": { "const": "P5401-P5800" },
+        "verification_orchestration_runtime_status": { "const": "ready_for_verification_orchestration_runtime_v0" },
+        "engine_count": { "minimum": 5 },
+        "role_assignment_count": { "minimum": 6 },
+        "cross_model_qa_packet_count": { "minimum": 1 },
+        "model_upgrade_receipt_count": { "minimum": 1 },
+        "primary_engine_registered": { "const": true },
+        "reviewer_engine_registered": { "const": true },
+        "role_split_ready": { "const": true },
+        "cross_model_qa_packet_ready": { "const": true },
+        "model_upgrade_receipt_contract_ready": { "const": true },
+        "reviewer_no_mutation_boundary_ready": { "const": true },
+        "self_approval_allowed": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "reviewer_mutation_allowed": { "const": false },
+        "completed_cross_model_review_ready": { "const": false },
+        "p5800_milestone_closeout_ready": { "const": false },
+        "lower_trust_readiness_allowed": { "const": true },
+        "human_adjudication_in_milestone_gate": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "enterprise_trust_claim_enabled": { "const": false },
+        "agent_runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "work_os_claim_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "item_count", "error_count", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "error_count": { "const": 0 },
+        "errors": { "type": "array", "maxItems": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "verdict_row": {
+      "type": "object",
+      "required": ["row_id", "phase_range", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "current_verdict": { "const": "pass" },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_only" }
+      },
+      "additionalProperties": true
+    },
+    "engine_row": {
+      "type": "object",
+      "required": ["engine_id", "engine_role", "can_review_own_work", "can_finally_approve", "can_claim_enterprise_trust", "unsafe_flags_false"],
+      "properties": {
+        "can_review_own_work": { "const": false },
+        "can_finally_approve": { "const": false },
+        "can_claim_enterprise_trust": { "const": false },
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "role_row": {
+      "type": "object",
+      "required": ["role_id", "engine_ref", "role_status", "final_approval_allowed", "self_approval_allowed", "human_adjudication_required", "unsafe_flags_false"],
+      "properties": {
+        "role_status": { "const": "ASSIGNED" },
+        "final_approval_allowed": { "const": false },
+        "self_approval_allowed": { "const": false },
+        "human_adjudication_required": { "const": false },
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "qa_packet_row": {
+      "type": "object",
+      "required": ["qa_packet_id", "qa_packet_status", "qa_packet_completed_now", "claude_review_receipt_required", "durable_raw_json_required", "self_approval_allowed", "reviewer_mutation_allowed", "human_adjudication_required", "protected_closeout_enabled", "unsafe_flags_false"],
+      "properties": {
+        "qa_packet_status": { "const": "READY_FOR_CLAUDE_REVIEW" },
+        "qa_packet_completed_now": { "const": false },
+        "claude_review_receipt_required": { "const": true },
+        "durable_raw_json_required": { "const": true },
+        "self_approval_allowed": { "const": false },
+        "reviewer_mutation_allowed": { "const": false },
+        "human_adjudication_required": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "model_upgrade_row": {
+      "type": "object",
+      "required": ["model_upgrade_receipt_id", "latest_model_monitor_required", "upgrade_applied_now", "upgrade_allowed_without_receipt", "compatibility_review_required", "unsafe_flags_false"],
+      "properties": {
+        "latest_model_monitor_required": { "const": true },
+        "upgrade_applied_now": { "const": false },
+        "upgrade_allowed_without_receipt": { "const": false },
+        "compatibility_review_required": { "const": true },
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "conflict_row": {
+      "type": "object",
+      "required": ["conflict_id", "resolution_policy", "conflict_status", "auto_pass_allowed", "self_approval_allowed", "requires_harness_normalization", "unsafe_flags_false"],
+      "properties": {
+        "conflict_status": { "const": "POLICY_READY" },
+        "auto_pass_allowed": { "const": false },
+        "self_approval_allowed": { "const": false },
+        "requires_harness_normalization": { "const": true },
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "reviewer_boundary_row": {
+      "type": "object",
+      "required": ["boundary_id", "allowed", "boundary_status", "unsafe_flags_false"],
+      "properties": {
+        "allowed": { "const": false },
+        "boundary_status": { "const": "ENFORCED_BY_CONTRACT" },
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "finding_loop_row": {
+      "type": "object",
+      "required": ["finding_loop_id", "finding_loop_status", "revalidation_required_after_findings", "revalidation_completed_now", "loop_can_close_now", "self_approval_allowed", "unsafe_flags_false"],
+      "properties": {
+        "finding_loop_status": { "const": "WAITING_FOR_CLAUDE_REVIEW_RECEIPT" },
+        "revalidation_required_after_findings": { "const": true },
+        "revalidation_completed_now": { "const": false },
+        "loop_can_close_now": { "const": false },
+        "self_approval_allowed": { "const": false },
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "trust_decision_row": {
+      "type": "object",
+      "required": ["milestone_id", "p5800_milestone_closeout_ready", "single_owner_claude_reviewed_mode", "lower_trust_readiness_allowed", "self_approval_allowed", "enterprise_trust_claim_allowed", "human_adjudication_required", "protected_closeout_enabled", "unsafe_flags_false"],
+      "properties": {
+        "milestone_id": { "const": "milestone.p5800" },
+        "p5800_milestone_closeout_ready": { "const": false },
+        "single_owner_claude_reviewed_mode": { "const": true },
+        "lower_trust_readiness_allowed": { "const": true },
+        "self_approval_allowed": { "const": false },
+        "enterprise_trust_claim_allowed": { "const": false },
+        "human_adjudication_required": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "freeze_row": {
+      "type": "object",
+      "required": ["freeze_id", "freeze_status", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "freeze_status": { "const": "ready" },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_only" }
+      },
+      "additionalProperties": true
+    },
+    "gate_row": {
+      "type": "object",
+      "required": ["gate_id", "gate_status", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "gate_status": { "const": "ready" },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_only" }
+      },
+      "additionalProperties": true
+    },
+    "boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "multi_engine_orchestration_qa_ready",
+        "verification_orchestration_runtime_ready",
+        "primary_engine_registered",
+        "reviewer_engine_registered",
+        "role_split_ready",
+        "cross_model_qa_packet_ready",
+        "model_upgrade_receipt_contract_ready",
+        "reviewer_no_mutation_boundary_ready",
+        "self_approval_allowed",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "reviewer_mutation_allowed",
+        "completed_cross_model_review_ready",
+        "p5800_milestone_closeout_ready",
+        "single_owner_claude_reviewed_mode",
+        "lower_trust_readiness_allowed",
+        "human_adjudication_in_milestone_gate",
+        "protected_closeout_enabled",
+        "protected_final_decision_enabled",
+        "enterprise_trust_claim_enabled",
+        "agent_runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled",
+        "work_os_claim_enabled",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "multi-engine-qa-boundary.v1" },
+        "program_range": { "const": "P5401-P5800" },
+        "multi_engine_orchestration_qa_ready": { "const": true },
+        "verification_orchestration_runtime_ready": { "const": true },
+        "primary_engine_registered": { "const": true },
+        "reviewer_engine_registered": { "const": true },
+        "role_split_ready": { "const": true },
+        "cross_model_qa_packet_ready": { "const": true },
+        "model_upgrade_receipt_contract_ready": { "const": true },
+        "reviewer_no_mutation_boundary_ready": { "const": true },
+        "self_approval_allowed": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "reviewer_mutation_allowed": { "const": false },
+        "completed_cross_model_review_ready": { "const": false },
+        "p5800_milestone_closeout_ready": { "const": false },
+        "single_owner_claude_reviewed_mode": { "const": true },
+        "lower_trust_readiness_allowed": { "const": true },
+        "human_adjudication_in_milestone_gate": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "protected_final_decision_enabled": { "const": false },
+        "enterprise_trust_claim_enabled": { "const": false },
+        "agent_runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "work_os_claim_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

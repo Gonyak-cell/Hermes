@@ -1,0 +1,470 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/product-domain-saas-factory.schema.json",
+  "title": "Product and Domain SaaS Factory",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "product_domain_saas_factory_id",
+    "capability_id",
+    "program_range",
+    "inputs",
+    "source_review_enterprise_trust_hardening_summary",
+    "product_domain_saas_factory_contract",
+    "product_domain_saas_factory_phase_rows",
+    "saas_project_intake_rows",
+    "requirement_traceability_rows",
+    "domain_pack_factory_rows",
+    "control_plan_rows",
+    "review_process_binding_rows",
+    "factory_ui_surface_rows",
+    "factory_trust_boundary_rows",
+    "factory_negative_fixture_rows",
+    "product_domain_saas_factory_freeze_rows",
+    "product_domain_saas_factory_gate_rows",
+    "product_domain_saas_factory_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "product-domain-saas-factory.v1" },
+    "capability_id": { "const": "platform.product_domain_saas_factory" },
+    "program_range": { "const": "P6201-P6600" },
+    "product_domain_saas_factory_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "contract_id",
+        "program_range",
+        "saas_project_intake_required",
+        "requirement_traceability_required",
+        "domain_pack_factory_registry_required",
+        "hr_saas_control_plan_required",
+        "law_firm_saas_control_plan_required",
+        "personal_dev_control_plan_required",
+        "creative_document_control_plan_required",
+        "connector_resource_control_plan_required",
+        "codex_harness_claude_review_process_required",
+        "milestone_claude_review_receipt_required",
+        "hermes_as_control_harness_not_vertical_saas",
+        "hermes_vertical_saas_claim_enabled",
+        "saas_product_launch_enabled",
+        "external_project_write_enabled",
+        "raw_sensitive_data_ingestion_enabled",
+        "human_adjudication_in_milestone_gate",
+        "protected_closeout_enabled",
+        "enterprise_trust_claim_enabled",
+        "agent_runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled",
+        "work_os_claim_enabled"
+      ],
+      "properties": {
+        "schema_version": { "const": "product-domain-saas-factory-contract.v1" },
+        "program_range": { "const": "P6201-P6600" },
+        "saas_project_intake_required": { "const": true },
+        "requirement_traceability_required": { "const": true },
+        "domain_pack_factory_registry_required": { "const": true },
+        "hr_saas_control_plan_required": { "const": true },
+        "law_firm_saas_control_plan_required": { "const": true },
+        "personal_dev_control_plan_required": { "const": true },
+        "creative_document_control_plan_required": { "const": true },
+        "connector_resource_control_plan_required": { "const": true },
+        "codex_harness_claude_review_process_required": { "const": true },
+        "milestone_claude_review_receipt_required": { "const": true },
+        "hermes_as_control_harness_not_vertical_saas": { "const": true },
+        "hermes_vertical_saas_claim_enabled": { "const": false },
+        "saas_product_launch_enabled": { "const": false },
+        "external_project_write_enabled": { "const": false },
+        "raw_sensitive_data_ingestion_enabled": { "const": false },
+        "human_adjudication_in_milestone_gate": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "enterprise_trust_claim_enabled": { "const": false },
+        "agent_runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "work_os_claim_enabled": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "product_domain_saas_factory_phase_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/verdict_row" }
+    },
+    "saas_project_intake_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/$defs/project_row" }
+    },
+    "requirement_traceability_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/$defs/traceability_row" }
+    },
+    "domain_pack_factory_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/$defs/domain_pack_row" }
+    },
+    "control_plan_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/$defs/control_plan_row" }
+    },
+    "review_process_binding_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/review_process_row" }
+    },
+    "factory_ui_surface_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": { "$ref": "#/$defs/ui_surface_row" }
+    },
+    "factory_trust_boundary_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/trust_boundary_row" }
+    },
+    "factory_negative_fixture_rows": {
+      "type": "array",
+      "minItems": 7,
+      "items": { "$ref": "#/$defs/negative_fixture_row" }
+    },
+    "product_domain_saas_factory_freeze_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": { "$ref": "#/$defs/freeze_row" }
+    },
+    "product_domain_saas_factory_gate_rows": {
+      "type": "array",
+      "minItems": 21,
+      "items": { "$ref": "#/$defs/gate_row" }
+    },
+    "product_domain_saas_factory_boundary": { "$ref": "#/$defs/boundary" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "product_domain_saas_factory_status",
+        "program_range",
+        "review_enterprise_trust_hardening_status",
+        "saas_project_count",
+        "requirement_traceability_count",
+        "domain_pack_count",
+        "control_plan_count",
+        "review_process_step_count",
+        "factory_ui_surface_count",
+        "multi_project_saas_governance_ready",
+        "hr_saas_control_plan_ready",
+        "law_firm_saas_control_plan_ready",
+        "requirement_traceability_contract_ready",
+        "codex_harness_claude_review_process_bound",
+        "single_owner_lower_trust_mode",
+        "hermes_vertical_saas_claim_enabled",
+        "saas_product_launch_enabled",
+        "external_project_write_enabled",
+        "raw_sensitive_data_ingestion_enabled",
+        "human_adjudication_in_milestone_gate",
+        "protected_closeout_enabled",
+        "protected_final_decision_enabled",
+        "enterprise_trust_claim_enabled",
+        "agent_runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled",
+        "work_os_claim_enabled",
+        "unsafe_flag_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "product-domain-saas-factory-summary.v1" },
+        "product_domain_saas_factory_status": { "const": "ready_for_product_domain_saas_factory_v0" },
+        "program_range": { "const": "P6201-P6600" },
+        "review_enterprise_trust_hardening_status": { "const": "ready_for_review_enterprise_trust_hardening_v0" },
+        "saas_project_count": { "minimum": 4 },
+        "requirement_traceability_count": { "minimum": 4 },
+        "domain_pack_count": { "minimum": 5 },
+        "control_plan_count": { "minimum": 4 },
+        "review_process_step_count": { "const": 6 },
+        "factory_ui_surface_count": { "minimum": 8 },
+        "multi_project_saas_governance_ready": { "const": true },
+        "hr_saas_control_plan_ready": { "const": true },
+        "law_firm_saas_control_plan_ready": { "const": true },
+        "requirement_traceability_contract_ready": { "const": true },
+        "codex_harness_claude_review_process_bound": { "const": true },
+        "single_owner_lower_trust_mode": { "const": true },
+        "hermes_vertical_saas_claim_enabled": { "const": false },
+        "saas_product_launch_enabled": { "const": false },
+        "external_project_write_enabled": { "const": false },
+        "raw_sensitive_data_ingestion_enabled": { "const": false },
+        "human_adjudication_in_milestone_gate": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "protected_final_decision_enabled": { "const": false },
+        "enterprise_trust_claim_enabled": { "const": false },
+        "agent_runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "work_os_claim_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "item_count", "error_count", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "error_count": { "const": 0 },
+        "errors": { "type": "array", "maxItems": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "base_row": {
+      "type": "object",
+      "required": ["schema_version", "row_id"],
+      "additionalProperties": true
+    },
+    "verdict_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["phase_range", "phase_name", "current_verdict", "reviewer_ref", "hard_gate_ref"],
+          "properties": {
+            "current_verdict": { "const": "pass" },
+            "unsafe_flags_false": { "const": true },
+            "verdict_authority": { "const": "harness_only" }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "project_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["project_id", "display_name", "domain", "intake_status", "raw_sensitive_data_allowed", "external_project_write_allowed", "product_launch_allowed"],
+          "properties": {
+            "intake_status": { "const": "READY_FOR_CONTROL_PLAN" },
+            "raw_sensitive_data_allowed": { "const": false },
+            "external_project_write_allowed": { "const": false },
+            "product_launch_allowed": { "const": false }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "traceability_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["trace_id", "project_id", "requirement_inventory_required", "requirement_ids_bound_now", "acceptance_criteria_required", "phase_mapping_required", "evidence_mapping_required", "claude_review_receipt_required", "launch_without_trace_allowed"],
+          "properties": {
+            "requirement_inventory_required": { "const": true },
+            "requirement_ids_bound_now": { "const": false },
+            "acceptance_criteria_required": { "const": true },
+            "phase_mapping_required": { "const": true },
+            "evidence_mapping_required": { "const": true },
+            "claude_review_receipt_required": { "const": true },
+            "launch_without_trace_allowed": { "const": false }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "domain_pack_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["domain_pack_id", "pack_name", "rollout_level", "runtime_execution_allowed", "write_action_allowed", "protected_action_allowed"],
+          "properties": {
+            "rollout_level": { "const": "CONTROL_PLAN_ONLY" },
+            "runtime_execution_allowed": { "const": false },
+            "write_action_allowed": { "const": false },
+            "protected_action_allowed": { "const": false }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "control_plan_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["project_id", "control_plan_id", "plan_registry_ready", "requirement_traceability_required", "codex_harness_claude_review_lane_required", "product_launch_ready", "external_write_ready"],
+          "properties": {
+            "plan_registry_ready": { "const": true },
+            "requirement_traceability_required": { "const": true },
+            "codex_harness_claude_review_lane_required": { "const": true },
+            "product_launch_ready": { "const": false },
+            "external_write_ready": { "const": false }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "review_process_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["step_id", "step_name", "engine_ref", "sequence_index", "applies_to_all_factory_projects", "codex_self_approval_allowed", "claude_final_approval_allowed", "reviewer_mutation_allowed", "human_adjudication_in_milestone_gate"],
+          "properties": {
+            "applies_to_all_factory_projects": { "const": true },
+            "codex_self_approval_allowed": { "const": false },
+            "claude_final_approval_allowed": { "const": false },
+            "reviewer_mutation_allowed": { "const": false },
+            "human_adjudication_in_milestone_gate": { "const": false }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "ui_surface_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["surface_id", "surface_name", "shows_review_process", "shows_block_reason", "shows_next_allowed_action", "writes_product_state", "launches_product"],
+          "properties": {
+            "shows_review_process": { "const": true },
+            "shows_block_reason": { "const": true },
+            "shows_next_allowed_action": { "const": true },
+            "writes_product_state": { "const": false },
+            "launches_product": { "const": false }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "trust_boundary_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["review_enterprise_trust_hardening_ready", "single_owner_lower_trust_mode", "hermes_vertical_saas_claim_enabled", "saas_product_launch_enabled", "external_project_write_enabled", "enterprise_trust_claim_enabled", "protected_closeout_enabled", "work_os_claim_enabled"],
+          "properties": {
+            "review_enterprise_trust_hardening_ready": { "const": true },
+            "single_owner_lower_trust_mode": { "const": true },
+            "hermes_vertical_saas_claim_enabled": { "const": false },
+            "saas_product_launch_enabled": { "const": false },
+            "external_project_write_enabled": { "const": false },
+            "enterprise_trust_claim_enabled": { "const": false },
+            "protected_closeout_enabled": { "const": false },
+            "work_os_claim_enabled": { "const": false }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "negative_fixture_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["fixture_id", "expected_block", "actual_result", "fixture_status", "unsafe_factory_claim_allowed"],
+          "properties": {
+            "fixture_status": { "const": "PASS_BLOCKED_AS_EXPECTED" },
+            "unsafe_factory_claim_allowed": { "const": false }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "freeze_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["freeze_id", "freeze_status", "reviewer_ref", "hard_gate_ref"],
+          "properties": {
+            "freeze_status": { "const": "ready" },
+            "unsafe_flags_false": { "const": true },
+            "verdict_authority": { "const": "harness_only" }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "gate_row": {
+      "allOf": [
+        { "$ref": "#/$defs/base_row" },
+        {
+          "type": "object",
+          "required": ["gate_id", "gate_status", "evidence_ref", "reviewer_ref", "hard_gate_ref"],
+          "properties": {
+            "gate_status": { "const": "ready" },
+            "unsafe_flags_false": { "const": true },
+            "verdict_authority": { "const": "harness_only" }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "product_domain_saas_factory_ready",
+        "review_enterprise_trust_hardening_ready",
+        "multi_project_saas_governance_ready",
+        "hr_saas_control_plan_ready",
+        "law_firm_saas_control_plan_ready",
+        "requirement_traceability_contract_ready",
+        "codex_harness_claude_review_process_bound",
+        "single_owner_lower_trust_mode",
+        "hermes_vertical_saas_claim_enabled",
+        "saas_product_launch_enabled",
+        "external_project_write_enabled",
+        "raw_sensitive_data_ingestion_enabled",
+        "human_adjudication_in_milestone_gate",
+        "protected_closeout_enabled",
+        "protected_final_decision_enabled",
+        "enterprise_trust_claim_enabled",
+        "agent_runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled",
+        "work_os_claim_enabled",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "product-domain-saas-factory-boundary.v1" },
+        "program_range": { "const": "P6201-P6600" },
+        "product_domain_saas_factory_ready": { "const": true },
+        "review_enterprise_trust_hardening_ready": { "const": true },
+        "multi_project_saas_governance_ready": { "const": true },
+        "hr_saas_control_plan_ready": { "const": true },
+        "law_firm_saas_control_plan_ready": { "const": true },
+        "requirement_traceability_contract_ready": { "const": true },
+        "codex_harness_claude_review_process_bound": { "const": true },
+        "single_owner_lower_trust_mode": { "const": true },
+        "hermes_vertical_saas_claim_enabled": { "const": false },
+        "saas_product_launch_enabled": { "const": false },
+        "external_project_write_enabled": { "const": false },
+        "raw_sensitive_data_ingestion_enabled": { "const": false },
+        "human_adjudication_in_milestone_gate": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "protected_final_decision_enabled": { "const": false },
+        "enterprise_trust_claim_enabled": { "const": false },
+        "agent_runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "work_os_claim_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

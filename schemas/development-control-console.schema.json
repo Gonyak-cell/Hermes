@@ -1,0 +1,401 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/development-control-console.schema.json",
+  "title": "Development Control Console",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "development_control_console_id",
+    "capability_id",
+    "program_range",
+    "inputs",
+    "source_conversation_source_plane_summary",
+    "source_conversation_improvement_signal_summary",
+    "development_control_console_contract",
+    "console_phase_rows",
+    "plan_registry_rows",
+    "goal_card_rows",
+    "engine_role_rows",
+    "phase_status_rows",
+    "evidence_card_rows",
+    "review_process_rows",
+    "milestone_review_gate_rows",
+    "transcript_source_link_rows",
+    "next_action_rows",
+    "trust_classification_rows",
+    "gate_card_rows",
+    "development_control_console_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "development-control-console.v1" },
+    "capability_id": { "const": "platform.development_control_console" },
+    "program_range": { "const": "P4601-P5000" },
+    "development_control_console_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "contract_id",
+        "program_range",
+        "required_components",
+        "codex_primary_developer",
+        "harness_deterministic_validator",
+        "claude_code_opus_max_independent_reviewer",
+        "claude_review_receipt_required_for_milestone",
+        "human_adjudication_in_milestone_gate",
+        "protected_closeout_enabled",
+        "enterprise_trust_claim_enabled",
+        "single_owner_claude_reviewed_mode",
+        "chat_system_of_record_allowed",
+        "runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled",
+        "work_os_claim_enabled"
+      ],
+      "properties": {
+        "schema_version": { "const": "development-control-console-contract.v1" },
+        "program_range": { "const": "P4601-P5000" },
+        "codex_primary_developer": { "const": true },
+        "harness_deterministic_validator": { "const": true },
+        "claude_code_opus_max_independent_reviewer": { "const": true },
+        "claude_review_receipt_required_for_milestone": { "const": true },
+        "human_adjudication_in_milestone_gate": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "enterprise_trust_claim_enabled": { "const": false },
+        "single_owner_claude_reviewed_mode": { "const": true },
+        "chat_system_of_record_allowed": { "const": false },
+        "runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "work_os_claim_enabled": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "console_phase_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/verdict_row" }
+    },
+    "plan_registry_rows": {
+      "type": "array",
+      "minItems": 12,
+      "items": { "$ref": "#/$defs/plan_registry_row" }
+    },
+    "goal_card_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/goal_card_row" }
+    },
+    "engine_role_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/$defs/engine_role_row" }
+    },
+    "phase_status_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/phase_status_row" }
+    },
+    "evidence_card_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/$defs/evidence_card_row" }
+    },
+    "review_process_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/review_process_row" }
+    },
+    "milestone_review_gate_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/milestone_review_gate_row" }
+    },
+    "transcript_source_link_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/transcript_source_link_row" }
+    },
+    "next_action_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/$defs/next_action_row" }
+    },
+    "trust_classification_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/trust_classification_row" }
+    },
+    "gate_card_rows": {
+      "type": "array",
+      "minItems": 22,
+      "items": { "$ref": "#/$defs/gate_card_row" }
+    },
+    "development_control_console_boundary": { "$ref": "#/$defs/boundary" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "development_control_console_status",
+        "program_range",
+        "source_plane_status",
+        "improvement_signal_status",
+        "plan_registry_count",
+        "review_process_step_count",
+        "milestone_review_gate_count",
+        "codex_primary_developer",
+        "harness_deterministic_validator",
+        "claude_code_opus_max_independent_reviewer",
+        "claude_review_receipt_required_for_milestone",
+        "human_adjudication_in_milestone_gate",
+        "protected_closeout_enabled",
+        "enterprise_trust_claim_enabled",
+        "single_owner_claude_reviewed_mode",
+        "chat_system_of_record_allowed",
+        "runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled",
+        "work_os_claim_enabled",
+        "unsafe_flag_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "development-control-console-summary.v1" },
+        "development_control_console_status": { "const": "ready_for_development_control_console_v0" },
+        "program_range": { "const": "P4601-P5000" },
+        "source_plane_status": { "const": "ready_for_conversation_source_plane_v0" },
+        "improvement_signal_status": { "const": "ready_for_conversation_improvement_signal_freeze" },
+        "plan_registry_count": { "minimum": 12 },
+        "review_process_step_count": { "minimum": 6 },
+        "milestone_review_gate_count": { "minimum": 10 },
+        "codex_primary_developer": { "const": true },
+        "harness_deterministic_validator": { "const": true },
+        "claude_code_opus_max_independent_reviewer": { "const": true },
+        "claude_review_receipt_required_for_milestone": { "const": true },
+        "human_adjudication_in_milestone_gate": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "enterprise_trust_claim_enabled": { "const": false },
+        "single_owner_claude_reviewed_mode": { "const": true },
+        "chat_system_of_record_allowed": { "const": false },
+        "runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "work_os_claim_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "item_count", "error_count", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "error_count": { "const": 0 },
+        "errors": { "type": "array", "maxItems": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "verdict_row": {
+      "type": "object",
+      "required": ["row_id", "phase_range", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "current_verdict": { "const": "pass" },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_only" }
+      },
+      "additionalProperties": true
+    },
+    "plan_registry_row": {
+      "type": "object",
+      "required": [
+        "plan_id",
+        "phase_range",
+        "program_name",
+        "review_process_ref",
+        "claude_code_opus_max_review_required",
+        "human_adjudication_required",
+        "enterprise_trust_claim_allowed",
+        "protected_closeout_enabled",
+        "harness_ui_source_of_truth",
+        "current_verdict"
+      ],
+      "properties": {
+        "claude_code_opus_max_review_required": { "const": true },
+        "human_adjudication_required": { "const": false },
+        "enterprise_trust_claim_allowed": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "harness_ui_source_of_truth": { "const": true },
+        "current_verdict": { "const": "pass" }
+      },
+      "additionalProperties": true
+    },
+    "goal_card_row": {
+      "type": "object",
+      "required": ["goal_id", "primary_engine_ref", "reviewer_engine_ref", "claude_code_opus_max_review_required", "human_adjudication_required", "protected_closeout_enabled"],
+      "properties": {
+        "claude_code_opus_max_review_required": { "const": true },
+        "human_adjudication_required": { "const": false },
+        "protected_closeout_enabled": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "engine_role_row": {
+      "type": "object",
+      "required": ["engine_id", "role", "can_finally_approve", "can_claim_enterprise_trust", "human_adjudication_required", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "can_finally_approve": { "const": false },
+        "can_claim_enterprise_trust": { "const": false },
+        "human_adjudication_required": { "const": false },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_only" }
+      },
+      "additionalProperties": true
+    },
+    "phase_status_row": {
+      "type": "object",
+      "required": ["phase_range", "visible_status", "review_process_ref", "unsafe_flags_false"],
+      "properties": {
+        "visible_status": { "enum": ["READY_TO_BUILD", "BLOCKED"] },
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "evidence_card_row": {
+      "type": "object",
+      "required": ["evidence_id", "evidence_status", "raw_body_default_visible", "source_citation_required", "human_adjudication_required", "unsafe_flags_false"],
+      "properties": {
+        "evidence_status": { "const": "AVAILABLE" },
+        "raw_body_default_visible": { "const": false },
+        "source_citation_required": { "const": true },
+        "human_adjudication_required": { "const": false },
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "review_process_row": {
+      "type": "object",
+      "required": ["review_process_id", "step_id", "receipt_required", "human_adjudication_required", "protected_closeout_enabled", "enterprise_trust_claim_allowed", "unsafe_flags_false"],
+      "properties": {
+        "receipt_required": { "const": true },
+        "human_adjudication_required": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "enterprise_trust_claim_allowed": { "const": false },
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "milestone_review_gate_row": {
+      "type": "object",
+      "required": ["milestone_id", "milestone_range", "claude_code_opus_max_review_required", "claude_review_receipt_required", "human_adjudication_required", "protected_closeout_enabled", "enterprise_trust_claim_allowed", "trust_classification_ref", "unsafe_flags_false"],
+      "properties": {
+        "claude_code_opus_max_review_required": { "const": true },
+        "claude_review_receipt_required": { "const": true },
+        "human_adjudication_required": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "enterprise_trust_claim_allowed": { "const": false },
+        "trust_classification_ref": { "const": "trust.single_owner_claude_reviewed_lower_trust" },
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "transcript_source_link_row": {
+      "type": "object",
+      "required": ["source_id", "engine", "raw_body_default_visible", "source_citation_ref", "unsafe_flags_false"],
+      "properties": {
+        "raw_body_default_visible": { "const": false },
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "next_action_row": {
+      "type": "object",
+      "required": ["next_action_id", "action_status", "human_adjudication_required", "protected_closeout_enabled", "unsafe_flags_false"],
+      "properties": {
+        "action_status": { "const": "OPEN" },
+        "human_adjudication_required": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "trust_classification_row": {
+      "type": "object",
+      "required": ["trust_tier_id", "trust_status", "claude_code_opus_max_review_required", "human_adjudication_required", "unsafe_flags_false"],
+      "properties": {
+        "claude_code_opus_max_review_required": { "const": true },
+        "human_adjudication_required": { "const": false },
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "gate_card_row": {
+      "type": "object",
+      "required": ["gate_id", "gate_status", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "gate_status": { "const": "ready" },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_only" }
+      },
+      "additionalProperties": true
+    },
+    "boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "development_control_console_ready",
+        "source_plane_ready",
+        "improvement_signal_ready",
+        "harness_ui_source_of_truth",
+        "chat_system_of_record_allowed",
+        "codex_primary_developer",
+        "harness_deterministic_validator",
+        "claude_code_opus_max_independent_reviewer",
+        "claude_review_receipt_required_for_milestone",
+        "human_adjudication_in_milestone_gate",
+        "protected_closeout_enabled",
+        "protected_final_decision_enabled",
+        "enterprise_trust_claim_enabled",
+        "single_owner_claude_reviewed_mode",
+        "raw_transcript_body_default_visible",
+        "runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled",
+        "work_os_claim_enabled",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "development-control-console-boundary.v1" },
+        "program_range": { "const": "P4601-P5000" },
+        "development_control_console_ready": { "const": true },
+        "source_plane_ready": { "const": true },
+        "improvement_signal_ready": { "const": true },
+        "harness_ui_source_of_truth": { "const": true },
+        "chat_system_of_record_allowed": { "const": false },
+        "codex_primary_developer": { "const": true },
+        "harness_deterministic_validator": { "const": true },
+        "claude_code_opus_max_independent_reviewer": { "const": true },
+        "claude_review_receipt_required_for_milestone": { "const": true },
+        "human_adjudication_in_milestone_gate": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "protected_final_decision_enabled": { "const": false },
+        "enterprise_trust_claim_enabled": { "const": false },
+        "single_owner_claude_reviewed_mode": { "const": true },
+        "raw_transcript_body_default_visible": { "const": false },
+        "runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "work_os_claim_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

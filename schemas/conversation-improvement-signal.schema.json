@@ -1,0 +1,390 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/conversation-improvement-signal.schema.json",
+  "title": "Conversation Improvement Signal",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "conversation_improvement_signal_id",
+    "capability_id",
+    "program_range",
+    "inputs",
+    "source_conversation_source_plane_summary",
+    "improvement_signal_contract",
+    "improvement_signal_phase_rows",
+    "improvement_signal_rows",
+    "user_correction_classifier_rows",
+    "assistant_miss_classifier_rows",
+    "plan_amendment_candidate_rows",
+    "soft_rule_promotion_rows",
+    "self_improvement_review_packet_rows",
+    "next_session_context_injection_rows",
+    "improvement_signal_freeze_rows",
+    "improvement_signal_gate_rows",
+    "improvement_signal_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "conversation-improvement-signal.v1" },
+    "capability_id": { "const": "platform.conversation_improvement_signal" },
+    "program_range": { "const": "P4301-P4600" },
+    "improvement_signal_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "contract_id",
+        "program_range",
+        "source_program_range",
+        "required_signal_fields",
+        "signal_type_enum",
+        "root_cause_enum",
+        "user_correction_changes_next_condition",
+        "assistant_miss_has_root_cause",
+        "plan_amendment_requires_reviewer",
+        "soft_rule_promotion_requires_hook_candidate",
+        "review_packet_required_before_self_modification",
+        "next_execution_condition_changes_only_after_review",
+        "unreviewed_self_modification_allowed",
+        "runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled"
+      ],
+      "properties": {
+        "schema_version": { "const": "improvement-signal-contract.v1" },
+        "program_range": { "const": "P4301-P4600" },
+        "source_program_range": { "const": "P4001-P4300" },
+        "user_correction_changes_next_condition": { "const": true },
+        "assistant_miss_has_root_cause": { "const": true },
+        "plan_amendment_requires_reviewer": { "const": true },
+        "soft_rule_promotion_requires_hook_candidate": { "const": true },
+        "review_packet_required_before_self_modification": { "const": true },
+        "next_execution_condition_changes_only_after_review": { "const": true },
+        "unreviewed_self_modification_allowed": { "const": false },
+        "runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "improvement_signal_phase_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": { "$ref": "#/$defs/verdict_row" }
+    },
+    "improvement_signal_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/signal_row" }
+    },
+    "user_correction_classifier_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/user_correction_row" }
+    },
+    "assistant_miss_classifier_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/assistant_miss_row" }
+    },
+    "plan_amendment_candidate_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/plan_amendment_row" }
+    },
+    "soft_rule_promotion_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/soft_rule_row" }
+    },
+    "self_improvement_review_packet_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/review_packet_row" }
+    },
+    "next_session_context_injection_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/next_condition_row" }
+    },
+    "improvement_signal_freeze_rows": {
+      "type": "array",
+      "minItems": 7,
+      "items": { "$ref": "#/$defs/freeze_row" }
+    },
+    "improvement_signal_gate_rows": {
+      "type": "array",
+      "minItems": 16,
+      "items": { "$ref": "#/$defs/gate_row" }
+    },
+    "improvement_signal_boundary": { "$ref": "#/$defs/boundary" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "conversation_improvement_signal_status",
+        "program_range",
+        "source_program_range",
+        "source_plane_status",
+        "signal_count",
+        "signal_type_count",
+        "user_correction_count",
+        "assistant_miss_count",
+        "plan_amendment_candidate_count",
+        "soft_rule_promotion_count",
+        "review_packet_count",
+        "next_condition_update_candidate_count",
+        "next_condition_update_applied_count",
+        "freeze_row_count",
+        "gate_count",
+        "pass_gate_count",
+        "unreviewed_self_modification_allowed",
+        "self_modification_applied_now",
+        "hard_hook_enforced_now",
+        "runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled",
+        "work_os_claim_enabled",
+        "unsafe_flag_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "conversation-improvement-signal-summary.v1" },
+        "conversation_improvement_signal_status": { "const": "ready_for_conversation_improvement_signal_freeze" },
+        "program_range": { "const": "P4301-P4600" },
+        "source_program_range": { "const": "P4001-P4300" },
+        "source_plane_status": { "const": "ready_for_conversation_source_plane_v0" },
+        "signal_count": { "minimum": 6 },
+        "signal_type_count": { "minimum": 6 },
+        "user_correction_count": { "minimum": 1 },
+        "assistant_miss_count": { "minimum": 1 },
+        "plan_amendment_candidate_count": { "minimum": 6 },
+        "soft_rule_promotion_count": { "minimum": 6 },
+        "review_packet_count": { "minimum": 6 },
+        "next_condition_update_candidate_count": { "minimum": 6 },
+        "next_condition_update_applied_count": { "const": 0 },
+        "freeze_row_count": { "minimum": 7 },
+        "gate_count": { "minimum": 16 },
+        "pass_gate_count": { "minimum": 16 },
+        "unreviewed_self_modification_allowed": { "const": false },
+        "self_modification_applied_now": { "const": false },
+        "hard_hook_enforced_now": { "const": false },
+        "runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "work_os_claim_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "item_count", "error_count", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "error_count": { "const": 0 },
+        "errors": { "type": "array", "maxItems": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "verdict_row": {
+      "type": "object",
+      "required": ["schema_version", "row_id", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "current_verdict": { "const": "pass" },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_only" }
+      },
+      "additionalProperties": true
+    },
+    "signal_row": {
+      "type": "object",
+      "required": [
+        "improvement_signal_id",
+        "source_id",
+        "source_turn_ref",
+        "signal_type",
+        "symptom",
+        "root_cause",
+        "affected_gate",
+        "owner",
+        "reviewer_ref",
+        "proposed_change_ref",
+        "next_execution_condition_ref",
+        "source_citation_ref",
+        "source_citation_required",
+        "review_required_before_adoption",
+        "claude_code_opus_max_review_required",
+        "human_adjudication_required",
+        "self_modification_allowed_now",
+        "next_execution_condition_changed_now",
+        "unsafe_flags_false",
+        "verdict_authority"
+      ],
+      "properties": {
+        "signal_type": { "enum": ["USER_CORRECTION", "ASSISTANT_MISS", "REVIEW_CONFLICT", "BLOCKED_COMMAND", "FAILED_VALIDATION", "REPEATED_CONTEXT_LOSS"] },
+        "root_cause": { "enum": ["PLAN_SURFACE_UNDER_SPECIFIED", "COMPLETION_OVERCLAIM", "AUTHORITY_BOUNDARY_CONFUSION", "SOURCE_CITATION_MISSING", "VALIDATION_CONTRACT_DRIFT", "SESSION_CONTEXT_EPHEMERAL"] },
+        "source_citation_required": { "const": true },
+        "review_required_before_adoption": { "const": true },
+        "claude_code_opus_max_review_required": { "const": true },
+        "human_adjudication_required": { "const": false },
+        "self_modification_allowed_now": { "const": false },
+        "next_execution_condition_changed_now": { "const": false },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_only" }
+      },
+      "additionalProperties": true
+    },
+    "user_correction_row": {
+      "type": "object",
+      "required": ["source_turn_ref", "correction_status", "changes_next_execution_condition", "adoption_allowed_without_review"],
+      "properties": {
+        "correction_status": { "const": "classified" },
+        "changes_next_execution_condition": { "const": true },
+        "adoption_allowed_without_review": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "assistant_miss_row": {
+      "type": "object",
+      "required": ["root_cause", "correction_required", "review_required_before_adoption"],
+      "properties": {
+        "correction_required": { "const": true },
+        "review_required_before_adoption": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "plan_amendment_row": {
+      "type": "object",
+      "required": ["plan_amendment_candidate_id", "reviewer_ref", "claude_code_opus_max_review_required", "human_adjudication_required", "adopted", "adopted_without_review"],
+      "properties": {
+        "claude_code_opus_max_review_required": { "const": true },
+        "human_adjudication_required": { "const": false },
+        "adopted": { "const": false },
+        "adopted_without_review": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "soft_rule_row": {
+      "type": "object",
+      "required": ["hook_candidate_ref", "promotion_status", "hard_hook_enforced_now", "exit_2_block_required_when_enforced"],
+      "properties": {
+        "promotion_status": { "const": "HOOK_CANDIDATE" },
+        "hard_hook_enforced_now": { "const": false },
+        "exit_2_block_required_when_enforced": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "review_packet_row": {
+      "type": "object",
+      "required": ["review_packet_id", "review_packet_status", "claude_code_opus_max_review_required", "human_adjudication_required", "self_modification_allowed_now", "policy_rewrite_applied_now", "plan_adoption_applied_now"],
+      "properties": {
+        "review_packet_status": { "const": "READY_FOR_CLAUDE_REVIEW" },
+        "claude_code_opus_max_review_required": { "const": true },
+        "human_adjudication_required": { "const": false },
+        "self_modification_allowed_now": { "const": false },
+        "policy_rewrite_applied_now": { "const": false },
+        "plan_adoption_applied_now": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "next_condition_row": {
+      "type": "object",
+      "required": ["next_execution_condition_ref", "injection_status", "review_required_before_injection", "claude_code_opus_max_review_required", "human_adjudication_required", "next_execution_condition_changed_now", "injected_now", "can_inject_after_review"],
+      "properties": {
+        "injection_status": { "const": "REVIEW_PENDING" },
+        "review_required_before_injection": { "const": true },
+        "claude_code_opus_max_review_required": { "const": true },
+        "human_adjudication_required": { "const": false },
+        "next_execution_condition_changed_now": { "const": false },
+        "injected_now": { "const": false },
+        "can_inject_after_review": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "freeze_row": {
+      "type": "object",
+      "required": ["freeze_id", "freeze_status", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "freeze_status": { "const": "ready" },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_only" }
+      },
+      "additionalProperties": true
+    },
+    "gate_row": {
+      "type": "object",
+      "required": ["gate_id", "gate_status", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "gate_status": { "const": "ready" },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_only" }
+      },
+      "additionalProperties": true
+    },
+    "boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "source_program_range",
+        "conversation_improvement_signal_ready",
+        "source_plane_ready",
+        "conversation_improvement_signal_exists",
+        "user_correction_has_source_turn_ref",
+        "assistant_miss_has_root_cause",
+        "plan_amendment_candidate_has_reviewer",
+        "soft_rule_promotion_has_hook_candidate",
+        "next_execution_condition_changes_only_after_review",
+        "unreviewed_self_modification_allowed",
+        "self_modification_applied_now",
+        "policy_rewrite_applied_now",
+        "plan_adoption_applied_now",
+        "hard_hook_enforced_now",
+        "next_condition_injected_now",
+        "runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled",
+        "receipt_application_enabled",
+        "raw_transcript_body_default_visible",
+        "agent_final_pass_enabled",
+        "work_os_claim_enabled",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "improvement-signal-boundary.v1" },
+        "program_range": { "const": "P4301-P4600" },
+        "source_program_range": { "const": "P4001-P4300" },
+        "conversation_improvement_signal_ready": { "const": true },
+        "source_plane_ready": { "const": true },
+        "conversation_improvement_signal_exists": { "const": true },
+        "user_correction_has_source_turn_ref": { "const": true },
+        "assistant_miss_has_root_cause": { "const": true },
+        "plan_amendment_candidate_has_reviewer": { "const": true },
+        "soft_rule_promotion_has_hook_candidate": { "const": true },
+        "next_execution_condition_changes_only_after_review": { "const": true },
+        "unreviewed_self_modification_allowed": { "const": false },
+        "self_modification_applied_now": { "const": false },
+        "policy_rewrite_applied_now": { "const": false },
+        "plan_adoption_applied_now": { "const": false },
+        "hard_hook_enforced_now": { "const": false },
+        "next_condition_injected_now": { "const": false },
+        "runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "receipt_application_enabled": { "const": false },
+        "raw_transcript_body_default_visible": { "const": false },
+        "agent_final_pass_enabled": { "const": false },
+        "work_os_claim_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

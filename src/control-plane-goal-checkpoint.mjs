@@ -2420,7 +2420,7 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.repo_profile_detector_status === "complete"
       && metrics.instruction_source_count >= 3
       && metrics.present_instruction_source_count >= 1
-      && metrics.derived_instruction_source_count >= 2
+      && metrics.present_instruction_source_count + metrics.derived_instruction_source_count >= 3
       && metrics.missing_instruction_source_count === 0
       && metrics.instruction_version_count >= 3
       && metrics.locked_instruction_version_count === metrics.instruction_version_count
@@ -2443,7 +2443,7 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.ssh_or_cron_control === false
       && metrics.failed_checkpoint_count === 0
     ) {
-      return passedWithOperationalGate(stage, "Agent instruction registry locks AGENTS-derived instruction versions and binds Hermes, Claude Code, Codex, and local_script without writing instruction files or executing runtimes.");
+      return passedWithOperationalGate(stage, "Agent instruction registry locks repository and AGENTS-derived instruction versions and binds Hermes, Claude Code, Codex, and local_script without writing instruction files or executing runtimes.");
     }
   }
 

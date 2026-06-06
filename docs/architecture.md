@@ -92,6 +92,8 @@ P13401-P13800 Observability And Cost Plane은 P13400 Enterprise Trust Hardening 
 
 P13801-P14200 Product Ops Automation은 P13800 Observability And Cost Plane artifact를 source로 읽어 roadmap, sprint, issue, changelog, support feedback, customer request, Harness state link, read-only product ops projection, product ops authority guard를 고정한다. 이 단계는 product ops signal을 Harness state와 evidence에 연결하지만 roadmap write, sprint mutation, issue write, changelog publish, support reply, customer contact, external project write, raw contact/source exposure, protected closeout, deployment, release approval, production PASS, enterprise PASS, enterprise trust claim, Codex/Claude final approval을 열지 않는다. P13800 source가 blocked이면 P14200도 blocked 상태와 source blocker를 보존하고 `ready_for_p14201_handoff=false`로 남긴다.
 
+P14201-P14600 Security And Compliance Maturity는 P14200 Product Ops Automation artifact를 source로 읽어 SOC2-style control, access review, secret scanning, prompt-injection guard, data retention, incident workflow, compliance evidence link, Claude Code Opus max security compliance review gate, security authority guard를 고정한다. 이 단계는 security/compliance maturity signal을 강화하지만 access mutation, secret read, raw secret exposure, destructive delete, incident auto close, compliance PASS, protected closeout, deployment, release approval, production PASS, enterprise PASS, enterprise trust claim, connector write, runtime execution, Codex/Claude final approval을 열지 않는다. P14200 source가 blocked이거나 Claude security compliance review receipt가 없으면 P14600도 blocked 상태와 source/review blocker를 보존하고 `ready_for_p14601_handoff=false`로 남긴다.
+
 핵심 산출물은 다음입니다.
 
 - development daily brief

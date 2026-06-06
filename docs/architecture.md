@@ -82,6 +82,8 @@ P12201-P12400 Controlled Execution Sandbox는 P12200 Domain Pack SDK v2 artifact
 
 P12401-P12600 Patch Candidate Lane은 P12400 Controlled Execution Sandbox artifact를 source로 읽어 generated patch candidate, diff packet, rollback plan, validation ref, Claude Code Opus max patch review receipt gate, protected scope negative fixture, read-only operator/API projection, no-direct-apply authority guard를 고정한다. 이 단계는 patch를 생성하거나 적용하지 않고, P12400 source가 blocked이거나 durable Claude patch candidate review receipt가 없으면 P12600도 blocked 상태와 source/review blocker를 보존하고 `ready_for_p12601_handoff=false`로 남긴다. Patch candidate contract가 ready여도 direct apply, file write, protected action, connector write, runtime execution, Codex/Claude final approval, production PASS, enterprise PASS는 계속 false다.
 
+P12601-P12800 Human/Owner Adjudication Option은 P12600 Patch Candidate Lane artifact를 source로 읽어 owner adjudication receipt schema, protected closeout mapping, independent review separation, single-owner trust downgrade, adjudication queue, finding disposition, read-only operator/API projection, authority guard를 고정한다. 이 단계는 owner receipt를 protected closeout input으로만 다루며, independent GitHub review, enterprise-independent review, production PASS, enterprise PASS, Codex/Claude final approval을 대체하지 않는다. P12600 source가 blocked이거나 owner adjudication receipt가 없으면 P12800도 blocked 상태와 source/receipt blocker를 보존하고 `ready_for_p12801_handoff=false`로 남긴다.
+
 핵심 산출물은 다음입니다.
 
 - development daily brief

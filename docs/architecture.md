@@ -62,6 +62,8 @@ P10201-P10400 CI/GitHub Evidence Bridge는 P10200 Claude review integration arti
 
 P10401-P10600 Local Session Capture And Memory Store는 P10400 CI/GitHub evidence bridge artifact를 source로 읽어 Codex, Claude, Harness validator, UI handoff 세션을 durable local evidence ref로 저장하는 계약을 만든다. 이 단계는 source id, engine id, session id, run id, transcript ref, redacted summary ref, object hash/provenance ref, decision/blocker/validation/review/phase-progress event row, duplicate/stale/uncited/cross-domain drift detector, GET/HEAD-only API projection을 고정한다. Raw/full transcript body는 UI/API에 노출하지 않고, redacted summary와 citation ref만 노출 가능하다. Runtime recall, retrieval truth, source mutation, API write, Codex/Claude final approval, production PASS, enterprise PASS는 계속 false다.
 
+P10601-P10800 Context Recall And Drift Guard는 P10600 local session capture artifact를 source로 읽어 다음 세션 context recall 후보를 citation, freshness, conflict, uncited-memory, cross-domain boundary guard로 감싼다. 이 단계는 goal/decision/blocker/validation/review/phase-progress recall candidate, citation enforcement, stale-as-current block, visible conflict, uncited memory blocker, project/domain/tenant/client/resource boundary, GET/HEAD-only API/UI projection, required Claude Opus review receipt를 고정한다. Recall bundle은 다음 세션 후보일 뿐 truth layer가 아니며 raw/full transcript recall, auto context mutation, runtime recall, API write, Codex/Claude final approval, production PASS, enterprise PASS는 계속 false다.
+
 핵심 산출물은 다음입니다.
 
 - development daily brief

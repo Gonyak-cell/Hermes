@@ -50,6 +50,8 @@ P9001-P9200 Work OS Project Runtime Handoff and Goal Execution View는 P9000 rea
 
 P9201-P9400 Work OS Goal Execution API Binding and Project Drilldown Surface는 P9200 goal execution artifact를 source로 읽어 `/api/work-os/goals`, `/api/work-os/goal-detail`, `/api/work-os/project-drilldown`, `/api/work-os/next-actions`, `/api/work-os/commits`, `/api/work-os/session-handoffs`, `/api/work-os/combined-status` 같은 GET/HEAD-only drilldown route와 browser drilldown shell로 투영한다. 이 단계는 routine read-only projection tranche라 Claude Code Opus 4.8 max review는 기본 생략 대상이며, review/next-action/commit semantics가 read-only projection을 넘어 변경될 때만 closeout review packet을 준비한다. API/UI write, raw/full transcript body display, secret-bearing response key, domain pack product promotion, Human gate completion, Codex final approval, Claude final approval, reviewer mutation, single-owner enterprise trust, protected closeout, production PASS, enterprise PASS, runtime execution, write action, external connector write, UI git write는 계속 false다.
 
+P9401-P9600 Multi-Project SaaS Control Plane은 P9400 drilldown artifact를 source로 읽어 여러 SaaS/project의 registry, repo metadata, current goal risk, validation/review state, blocker/next action matrix, domain boundary guard, operator control summary를 read-only control plane으로 묶는다. Hermes는 여전히 특정 SaaS나 domain pack 자체가 아니라 여러 SaaS 개발을 통제하는 범용 harness다. 이 단계는 multi-project visibility와 boundary guard를 강화하지만 API write, repo git write, connector write, cross-project data mixing, domain pack product promotion, Human gate completion, Codex final approval, Claude final approval, production PASS, enterprise PASS, runtime execution, write action은 계속 false다.
+
 핵심 산출물은 다음입니다.
 
 - development daily brief

@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/global-ui-governance-freeze.schema.json",
+  "title": "Hermes Global UI Governance Freeze",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "design_system_range",
+    "global_ui_governance_freeze_contract",
+    "global_ui_governance_freeze_phase_rows",
+    "ui_governance_source_binding_rows",
+    "negative_ui_fixture_rows",
+    "visual_regression_fixture_rows",
+    "accessibility_regression_rows",
+    "read_only_governance_smoke_rows",
+    "boundary_copy_audit_rows",
+    "claude_review_packet_rows",
+    "claude_finding_loop_rows",
+    "design_system_freeze_matrix_rows",
+    "p11800_freeze_rows",
+    "global_ui_governance_freeze_gate_rows",
+    "global_ui_governance_freeze_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "global-ui-governance-freeze.v1" },
+    "capability_id": { "const": "platform.global_ui_governance_freeze" },
+    "program_range": { "const": "P11601-P11800" },
+    "source_program_range": { "const": "P11401-P11600" },
+    "design_system_range": { "const": "P10801-P11800" },
+    "negative_ui_fixture_rows": { "type": "array", "minItems": 10, "items": { "$ref": "#/$defs/verdictRow" } },
+    "visual_regression_fixture_rows": { "type": "array", "minItems": 8, "items": { "$ref": "#/$defs/verdictRow" } },
+    "accessibility_regression_rows": { "type": "array", "minItems": 8, "items": { "$ref": "#/$defs/verdictRow" } },
+    "read_only_governance_smoke_rows": { "type": "array", "minItems": 8, "items": { "$ref": "#/$defs/verdictRow" } },
+    "boundary_copy_audit_rows": { "type": "array", "minItems": 8, "items": { "$ref": "#/$defs/verdictRow" } },
+    "claude_review_packet_rows": { "type": "array", "minItems": 10, "items": { "$ref": "#/$defs/verdictRow" } },
+    "claude_finding_loop_rows": { "type": "array", "minItems": 6, "items": { "$ref": "#/$defs/verdictRow" } },
+    "design_system_freeze_matrix_rows": { "type": "array", "minItems": 8, "items": { "$ref": "#/$defs/verdictRow" } },
+    "p11800_freeze_rows": { "type": "array", "minItems": 13, "items": { "$ref": "#/$defs/verdictRow" } },
+    "global_ui_governance_freeze_gate_rows": { "type": "array", "minItems": 14, "items": { "$ref": "#/$defs/verdictRow" } },
+    "global_ui_governance_freeze_boundary": {
+      "type": "object",
+      "required": [
+        "global_ui_governance_freeze_ready",
+        "claude_review_ready",
+        "claude_review_block_visible_now",
+        "claude_review_capture_blocked_now",
+        "claude_review_receipt_observed_now",
+        "claude_review_durable_raw_json_present_now",
+        "claude_review_actual_file_refs_observed_now",
+        "claude_review_summary_only_now",
+        "claude_review_self_attestation_only_now",
+        "claude_finding_loop_clear_now",
+        "unresolved_p0_p1_count",
+        "p11800_design_system_freeze_ready",
+        "ready_for_p11801_handoff",
+        "raw_body_exposure_allowed",
+        "write_control_enabled",
+        "final_approval_ui_enabled",
+        "codex_final_approval_ui_enabled",
+        "claude_final_approval_ui_enabled",
+        "production_pass_ui_enabled",
+        "enterprise_pass_ui_enabled",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "global_ui_governance_freeze_ready": { "type": "boolean" },
+        "claude_review_ready": { "type": "boolean" },
+        "claude_review_block_visible_now": { "type": "boolean" },
+        "claude_review_capture_blocked_now": { "type": "boolean" },
+        "claude_review_receipt_observed_now": { "type": "boolean" },
+        "claude_review_durable_raw_json_present_now": { "type": "boolean" },
+        "claude_review_actual_file_refs_observed_now": { "type": "boolean" },
+        "claude_review_summary_only_now": { "type": "boolean" },
+        "claude_review_self_attestation_only_now": { "type": "boolean" },
+        "claude_finding_loop_clear_now": { "type": "boolean" },
+        "unresolved_p0_p1_count": { "type": "integer", "minimum": 0 },
+        "p11800_design_system_freeze_ready": { "type": "boolean" },
+        "ready_for_p11801_handoff": { "type": "boolean" },
+        "raw_body_exposure_allowed": { "const": false },
+        "write_control_enabled": { "const": false },
+        "final_approval_ui_enabled": { "const": false },
+        "codex_final_approval_ui_enabled": { "const": false },
+        "claude_final_approval_ui_enabled": { "const": false },
+        "production_pass_ui_enabled": { "const": false },
+        "enterprise_pass_ui_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "global_ui_governance_freeze_status",
+        "program_range",
+        "claude_review_receipt_observed_now",
+        "claude_review_block_visible_now",
+        "claude_review_capture_blocked_now",
+        "claude_finding_loop_clear_now",
+        "p11800_design_system_freeze_ready",
+        "ready_for_p11801_handoff",
+        "production_pass_ui_enabled",
+        "enterprise_pass_ui_enabled",
+        "validation_error_count"
+      ],
+      "properties": {
+        "global_ui_governance_freeze_status": {
+          "enum": [
+            "ready_for_global_ui_governance_freeze",
+            "blocked_global_ui_governance_freeze"
+          ]
+        },
+        "program_range": { "const": "P11601-P11800" },
+        "claude_review_receipt_observed_now": { "type": "boolean" },
+        "claude_review_block_visible_now": { "type": "boolean" },
+        "claude_review_capture_blocked_now": { "type": "boolean" },
+        "claude_finding_loop_clear_now": { "type": "boolean" },
+        "p11800_design_system_freeze_ready": { "type": "boolean" },
+        "ready_for_p11801_handoff": { "type": "boolean" },
+        "production_pass_ui_enabled": { "const": false },
+        "enterprise_pass_ui_enabled": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "verdictRow": {
+      "type": "object",
+      "required": [
+        "row_id",
+        "category",
+        "label",
+        "required",
+        "observed",
+        "evidence_ref",
+        "current_verdict"
+      ],
+      "properties": {
+        "row_id": { "type": "string", "minLength": 1 },
+        "category": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "required": { "type": "boolean" },
+        "observed": { "type": "boolean" },
+        "evidence_ref": { "type": "string", "minLength": 1 },
+        "current_verdict": { "enum": ["pass", "blocked"] },
+        "block_reason": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

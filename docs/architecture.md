@@ -76,6 +76,8 @@ P11601-P11800 Global UI Governance Freeze는 P11401-P11600 Operator Queue artifa
 
 P11801-P12000 SaaS Quality Gate Packs는 P11800 Global UI Governance Freeze artifact를 source로 읽어 security, permissions, data model, UX, API, performance, docs, deployment, rollback, provenance gate pack을 reusable registry로 고정한다. 이 단계는 여러 SaaS/project 개발에 공통으로 적용할 gate pack 계약을 만드는 것이며, P11800 source가 blocked이면 P12000도 blocked 상태와 source blocker를 보존하고 `ready_for_p12001_handoff=false`로 남긴다. Gate pack registry가 ready여도 raw/full body 노출, secret key 노출, write/protected action, form/button execution, API mutation, Codex/Claude final approval, production PASS, enterprise PASS, release approval, domain pack product identity는 계속 false다.
 
+P12001-P12200 Domain Pack SDK v2는 P12000 SaaS Quality Gate Packs artifact를 source로 읽어 HR, law-firm, CRM, ERP, document, trading, future SaaS context가 같은 reusable domain-pack SDK 계약으로 Hermes에 붙도록 고정한다. 이 단계는 domain pack을 Hermes 제품 identity로 승격하지 않고, pack manifest v2, capability interface, data boundary, review authority, gate pack binding, compatibility/migration, contribution contract를 같은 행 구조로 표준화한다. P12000 source가 blocked이면 SDK contract rows는 준비되어도 P12200은 blocked 상태와 source blocker를 보존하고 `ready_for_p12201_handoff=false`로 남긴다. SDK v2 registry가 ready여도 raw/full body 노출, secret key 노출, write/protected action, connector write, Codex/Claude final approval, production PASS, enterprise PASS, domain pack product identity는 계속 false다.
+
 핵심 산출물은 다음입니다.
 
 - development daily brief

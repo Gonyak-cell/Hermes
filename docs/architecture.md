@@ -88,6 +88,8 @@ P12801-P13000 Release Readiness Control Plane은 P12800 Human/Owner Adjudication
 
 P13001-P13400 Enterprise Trust Hardening Control Plane은 P13000 Release Readiness Control Plane artifact를 source로 읽어 independent review hardening, attestation hardening, SBOM/dependency evidence, supply-chain policy, audit trail hardening, backup/restore posture, recovery posture, Claude Code Opus max enterprise trust review gate, authority guard를 고정한다. 이 단계는 enterprise-grade trust evidence 요구조건을 더 촘촘하게 만들지만 protected closeout, deployment, release approval, production PASS, enterprise PASS, enterprise trust claim, Codex/Claude final approval을 열지 않는다. P13000 source가 blocked이거나 Claude enterprise trust review receipt가 없으면 P13400도 blocked 상태와 source/review blocker를 보존하고 `ready_for_p13401_handoff=false`로 남긴다.
 
+P13401-P13800 Observability And Cost Plane은 P13400 Enterprise Trust Hardening Control Plane artifact를 source로 읽어 test duration, flaky check, review latency, token/cost, evidence freshness, gate failure, validation drift, read-only projection, observability authority guard를 고정한다. 이 단계는 검증 사이클의 운영 품질을 관측 가능하게 만들지만 telemetry collector, metric write, budget mutation, external provider call, raw transcript/source exposure, protected closeout, deployment, release approval, production PASS, enterprise PASS, enterprise trust claim, Codex/Claude final approval을 열지 않는다. P13400 source가 blocked이면 P13800도 blocked 상태와 source blocker를 보존하고 `ready_for_p13801_handoff=false`로 남긴다.
+
 핵심 산출물은 다음입니다.
 
 - development daily brief

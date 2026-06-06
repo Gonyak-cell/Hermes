@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/saas-quality-gate-packs.schema.json",
+  "title": "Hermes SaaS Quality Gate Packs",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "saas_quality_gate_contract",
+    "saas_quality_gate_phase_rows",
+    "saas_quality_gate_source_binding_rows",
+    "saas_quality_gate_pack_rows",
+    "saas_quality_gate_component_rows",
+    "saas_quality_gate_registry_rows",
+    "p12000_freeze_rows",
+    "saas_quality_gate_boundary",
+    "saas_quality_gate_validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "saas-quality-gate-packs.v1" },
+    "capability_id": { "const": "platform.saas_quality_gate_packs" },
+    "program_range": { "const": "P11801-P12000" },
+    "source_program_range": { "const": "P11601-P11800" },
+    "saas_quality_gate_phase_rows": { "type": "array", "minItems": 10, "items": { "$ref": "#/$defs/verdictRow" } },
+    "saas_quality_gate_source_binding_rows": { "type": "array", "minItems": 8, "items": { "$ref": "#/$defs/verdictRow" } },
+    "saas_quality_gate_pack_rows": { "type": "array", "minItems": 10, "items": { "$ref": "#/$defs/verdictRow" } },
+    "saas_quality_gate_component_rows": { "type": "array", "minItems": 50, "items": { "$ref": "#/$defs/verdictRow" } },
+    "saas_quality_gate_registry_rows": { "type": "array", "minItems": 10, "items": { "$ref": "#/$defs/verdictRow" } },
+    "p12000_freeze_rows": { "type": "array", "minItems": 12, "items": { "$ref": "#/$defs/verdictRow" } },
+    "saas_quality_gate_boundary": {
+      "type": "object",
+      "required": [
+        "source_global_ui_governance_freeze_available",
+        "source_ready_for_p11801_handoff",
+        "source_block_visible_now",
+        "quality_gate_packs_ready",
+        "p12000_quality_gate_freeze_ready",
+        "ready_for_p12001_handoff",
+        "raw_body_exposure_allowed",
+        "secret_key_exposure_allowed",
+        "write_control_enabled",
+        "protected_action_enabled",
+        "form_button_execution_enabled",
+        "api_write_methods_enabled",
+        "final_approval_ui_enabled",
+        "codex_final_approval_ui_enabled",
+        "claude_final_approval_ui_enabled",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "release_approval_enabled",
+        "domain_pack_product_identity_enabled",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "source_global_ui_governance_freeze_available": { "type": "boolean" },
+        "source_ready_for_p11801_handoff": { "type": "boolean" },
+        "source_block_visible_now": { "type": "boolean" },
+        "quality_gate_packs_ready": { "type": "boolean" },
+        "p12000_quality_gate_freeze_ready": { "type": "boolean" },
+        "ready_for_p12001_handoff": { "type": "boolean" },
+        "raw_body_exposure_allowed": { "const": false },
+        "secret_key_exposure_allowed": { "const": false },
+        "write_control_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "form_button_execution_enabled": { "const": false },
+        "api_write_methods_enabled": { "const": false },
+        "final_approval_ui_enabled": { "const": false },
+        "codex_final_approval_ui_enabled": { "const": false },
+        "claude_final_approval_ui_enabled": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "release_approval_enabled": { "const": false },
+        "domain_pack_product_identity_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "saas_quality_gate_packs_status",
+        "program_range",
+        "source_ready_for_p11801_handoff",
+        "source_block_visible_now",
+        "quality_gate_pack_count",
+        "quality_gate_component_count",
+        "p12000_quality_gate_freeze_ready",
+        "ready_for_p12001_handoff",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "release_approval_enabled",
+        "validation_error_count"
+      ],
+      "properties": {
+        "saas_quality_gate_packs_status": {
+          "enum": [
+            "ready_for_saas_quality_gate_packs",
+            "blocked_saas_quality_gate_packs"
+          ]
+        },
+        "program_range": { "const": "P11801-P12000" },
+        "source_ready_for_p11801_handoff": { "type": "boolean" },
+        "source_block_visible_now": { "type": "boolean" },
+        "quality_gate_pack_count": { "type": "integer", "minimum": 10 },
+        "quality_gate_component_count": { "type": "integer", "minimum": 50 },
+        "p12000_quality_gate_freeze_ready": { "type": "boolean" },
+        "ready_for_p12001_handoff": { "type": "boolean" },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "release_approval_enabled": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "verdictRow": {
+      "type": "object",
+      "required": [
+        "row_id",
+        "category",
+        "label",
+        "required",
+        "observed",
+        "evidence_ref",
+        "current_verdict"
+      ],
+      "properties": {
+        "row_id": { "type": "string", "minLength": 1 },
+        "category": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "required": { "type": "boolean" },
+        "observed": { "type": "boolean" },
+        "evidence_ref": { "type": "string", "minLength": 1 },
+        "current_verdict": { "enum": ["pass", "blocked"] },
+        "block_reason": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

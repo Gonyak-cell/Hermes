@@ -78,6 +78,8 @@ P11801-P12000 SaaS Quality Gate Packs는 P11800 Global UI Governance Freeze arti
 
 P12001-P12200 Domain Pack SDK v2는 P12000 SaaS Quality Gate Packs artifact를 source로 읽어 HR, law-firm, CRM, ERP, document, trading, future SaaS context가 같은 reusable domain-pack SDK 계약으로 Hermes에 붙도록 고정한다. 이 단계는 domain pack을 Hermes 제품 identity로 승격하지 않고, pack manifest v2, capability interface, data boundary, review authority, gate pack binding, compatibility/migration, contribution contract를 같은 행 구조로 표준화한다. P12000 source가 blocked이면 SDK contract rows는 준비되어도 P12200은 blocked 상태와 source blocker를 보존하고 `ready_for_p12201_handoff=false`로 남긴다. SDK v2 registry가 ready여도 raw/full body 노출, secret key 노출, write/protected action, connector write, Codex/Claude final approval, production PASS, enterprise PASS, domain pack product identity는 계속 false다.
 
+P12201-P12400 Controlled Execution Sandbox는 P12200 Domain Pack SDK v2 artifact를 source로 읽어 receipt-gated command allowlist, repo-local sandbox profile, redaction and secret scan, timeout/heartbeat/kill policy, rollback/evidence binding, dry-run/no-op candidate ledger, high-risk Claude review receipt gate, read-only operator/API projection을 고정한다. 이 단계는 실제 command execution이나 receipt application을 수행하지 않으며, P12200 source가 blocked이거나 durable Claude Code Opus max execution sandbox review receipt가 없으면 P12400도 blocked 상태와 source/review blocker를 보존하고 `ready_for_p12401_handoff=false`로 남긴다. Controlled sandbox contract가 ready여도 raw/full body 노출, secret key 노출, network by default, secret read, write/protected action, connector write, Codex/Claude final approval, production PASS, enterprise PASS는 계속 false다.
+
 핵심 산출물은 다음입니다.
 
 - development daily brief

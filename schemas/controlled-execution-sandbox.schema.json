@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/controlled-execution-sandbox.schema.json",
+  "title": "Hermes Controlled Execution Sandbox",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "controlled_execution_sandbox_contract",
+    "controlled_execution_phase_rows",
+    "controlled_execution_source_binding_rows",
+    "controlled_execution_receipt_rows",
+    "controlled_execution_allowlist_rows",
+    "controlled_execution_sandbox_rows",
+    "controlled_execution_redaction_rows",
+    "controlled_execution_timeout_rows",
+    "controlled_execution_rollback_rows",
+    "controlled_execution_dry_run_rows",
+    "controlled_execution_claude_review_rows",
+    "controlled_execution_operator_projection_rows",
+    "p12400_freeze_rows",
+    "controlled_execution_boundary",
+    "controlled_execution_validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "controlled-execution-sandbox.v1" },
+    "capability_id": { "const": "platform.controlled_execution_sandbox" },
+    "program_range": { "const": "P12201-P12400" },
+    "source_program_range": { "const": "P12001-P12200" },
+    "controlled_execution_phase_rows": { "type": "array", "minItems": 10, "items": { "$ref": "#/$defs/verdictRow" } },
+    "controlled_execution_source_binding_rows": { "type": "array", "minItems": 8, "items": { "$ref": "#/$defs/verdictRow" } },
+    "controlled_execution_receipt_rows": { "type": "array", "minItems": 7, "items": { "$ref": "#/$defs/verdictRow" } },
+    "controlled_execution_allowlist_rows": { "type": "array", "minItems": 8, "items": { "$ref": "#/$defs/verdictRow" } },
+    "controlled_execution_sandbox_rows": { "type": "array", "minItems": 6, "items": { "$ref": "#/$defs/verdictRow" } },
+    "controlled_execution_redaction_rows": { "type": "array", "minItems": 5, "items": { "$ref": "#/$defs/verdictRow" } },
+    "controlled_execution_timeout_rows": { "type": "array", "minItems": 5, "items": { "$ref": "#/$defs/verdictRow" } },
+    "controlled_execution_rollback_rows": { "type": "array", "minItems": 5, "items": { "$ref": "#/$defs/verdictRow" } },
+    "controlled_execution_dry_run_rows": { "type": "array", "minItems": 5, "items": { "$ref": "#/$defs/verdictRow" } },
+    "controlled_execution_claude_review_rows": { "type": "array", "minItems": 5, "items": { "$ref": "#/$defs/verdictRow" } },
+    "controlled_execution_operator_projection_rows": { "type": "array", "minItems": 6, "items": { "$ref": "#/$defs/verdictRow" } },
+    "p12400_freeze_rows": { "type": "array", "minItems": 12, "items": { "$ref": "#/$defs/verdictRow" } },
+    "controlled_execution_boundary": {
+      "type": "object",
+      "required": [
+        "source_domain_pack_sdk_v2_available",
+        "source_ready_for_p12201_handoff",
+        "source_block_visible_now",
+        "claude_execution_review_receipt_present_now",
+        "claude_execution_review_block_visible_now",
+        "controlled_execution_contract_ready",
+        "p12400_controlled_execution_sandbox_freeze_ready",
+        "ready_for_p12401_handoff",
+        "execution_candidate_allowed_with_receipt",
+        "actual_command_executed_now",
+        "receipt_applied_now",
+        "runtime_execution_allowed_now",
+        "write_control_enabled",
+        "protected_action_enabled",
+        "connector_write_enabled",
+        "network_allowed_by_default",
+        "secret_read_allowed_now",
+        "raw_body_exposure_allowed",
+        "final_approval_ui_enabled",
+        "codex_final_approval_ui_enabled",
+        "claude_final_approval_ui_enabled",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "source_domain_pack_sdk_v2_available": { "type": "boolean" },
+        "source_ready_for_p12201_handoff": { "type": "boolean" },
+        "source_block_visible_now": { "type": "boolean" },
+        "claude_execution_review_receipt_present_now": { "type": "boolean" },
+        "claude_execution_review_block_visible_now": { "type": "boolean" },
+        "controlled_execution_contract_ready": { "type": "boolean" },
+        "p12400_controlled_execution_sandbox_freeze_ready": { "type": "boolean" },
+        "ready_for_p12401_handoff": { "type": "boolean" },
+        "execution_candidate_allowed_with_receipt": { "type": "boolean" },
+        "actual_command_executed_now": { "const": false },
+        "receipt_applied_now": { "const": false },
+        "runtime_execution_allowed_now": { "const": false },
+        "write_control_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "connector_write_enabled": { "const": false },
+        "network_allowed_by_default": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "raw_body_exposure_allowed": { "const": false },
+        "final_approval_ui_enabled": { "const": false },
+        "codex_final_approval_ui_enabled": { "const": false },
+        "claude_final_approval_ui_enabled": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "controlled_execution_sandbox_status",
+        "program_range",
+        "source_ready_for_p12201_handoff",
+        "source_block_visible_now",
+        "claude_execution_review_receipt_present_now",
+        "claude_execution_review_block_visible_now",
+        "allowlist_command_count",
+        "sandbox_policy_count",
+        "p12400_controlled_execution_sandbox_freeze_ready",
+        "ready_for_p12401_handoff",
+        "execution_candidate_allowed_with_receipt",
+        "actual_command_executed_now",
+        "runtime_execution_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "validation_error_count"
+      ],
+      "properties": {
+        "controlled_execution_sandbox_status": {
+          "enum": [
+            "ready_for_controlled_execution_sandbox",
+            "blocked_controlled_execution_sandbox"
+          ]
+        },
+        "program_range": { "const": "P12201-P12400" },
+        "source_ready_for_p12201_handoff": { "type": "boolean" },
+        "source_block_visible_now": { "type": "boolean" },
+        "claude_execution_review_receipt_present_now": { "type": "boolean" },
+        "claude_execution_review_block_visible_now": { "type": "boolean" },
+        "allowlist_command_count": { "type": "integer", "minimum": 8 },
+        "sandbox_policy_count": { "type": "integer", "minimum": 6 },
+        "p12400_controlled_execution_sandbox_freeze_ready": { "type": "boolean" },
+        "ready_for_p12401_handoff": { "type": "boolean" },
+        "execution_candidate_allowed_with_receipt": { "type": "boolean" },
+        "actual_command_executed_now": { "const": false },
+        "runtime_execution_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "verdictRow": {
+      "type": "object",
+      "required": [
+        "row_id",
+        "category",
+        "label",
+        "required",
+        "observed",
+        "evidence_ref",
+        "current_verdict"
+      ],
+      "properties": {
+        "row_id": { "type": "string", "minLength": 1 },
+        "category": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "required": { "type": "boolean" },
+        "observed": { "type": "boolean" },
+        "evidence_ref": { "type": "string", "minLength": 1 },
+        "current_verdict": { "enum": ["pass", "blocked"] },
+        "block_reason": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

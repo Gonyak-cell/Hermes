@@ -1,0 +1,254 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/local-session-capture-memory-store.schema.json",
+  "title": "Hermes Local Session Capture Memory Store",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "session_capture_contract",
+    "session_capture_phase_rows",
+    "p10400_source_binding_rows",
+    "session_source_identity_rows",
+    "local_capture_store_rows",
+    "transcript_tier_boundary_rows",
+    "session_event_extraction_rows",
+    "memory_object_ref_rows",
+    "session_drift_detector_rows",
+    "session_capture_api_route_rows",
+    "session_capture_api_smoke_rows",
+    "session_capture_browser_smoke_rows",
+    "session_capture_negative_fixture_rows",
+    "p10600_freeze_rows",
+    "session_capture_gate_rows",
+    "session_capture_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "local-session-capture-memory-store.v1" },
+    "capability_id": { "const": "platform.local_session_capture_memory_store" },
+    "program_range": { "const": "P10401-P10600" },
+    "source_program_range": { "const": "P10201-P10400" },
+    "session_capture_contract": {
+      "type": "object",
+      "required": [
+        "append_only_capture_required",
+        "transcript_ref_required",
+        "object_ref_hash_required",
+        "source_citation_required",
+        "raw_transcript_body_default_visible",
+        "full_transcript_body_default_visible",
+        "api_projection_read_only",
+        "api_write_methods_enabled",
+        "runtime_recall_enabled",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled"
+      ],
+      "properties": {
+        "append_only_capture_required": { "const": true },
+        "transcript_ref_required": { "const": true },
+        "object_ref_hash_required": { "const": true },
+        "source_citation_required": { "const": true },
+        "raw_transcript_body_default_visible": { "const": false },
+        "full_transcript_body_default_visible": { "const": false },
+        "api_projection_read_only": { "const": true },
+        "api_write_methods_enabled": { "const": false },
+        "runtime_recall_enabled": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    },
+    "session_capture_phase_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "p10400_source_binding_rows": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "session_source_identity_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "local_capture_store_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "transcript_tier_boundary_rows": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "session_event_extraction_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "memory_object_ref_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "session_drift_detector_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "session_capture_api_route_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "session_capture_api_smoke_rows": {
+      "type": "array",
+      "minItems": 9,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "session_capture_browser_smoke_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "session_capture_negative_fixture_rows": {
+      "type": "array",
+      "minItems": 13,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "p10600_freeze_rows": {
+      "type": "array",
+      "minItems": 11,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "session_capture_gate_rows": {
+      "type": "array",
+      "minItems": 20,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "session_capture_boundary": {
+      "type": "object",
+      "required": [
+        "source_p10400_ready",
+        "external_closeout_blocker_count_visible",
+        "session_source_identity_ready",
+        "append_only_capture_store_ready",
+        "transcript_tier_boundary_ready",
+        "redacted_event_projection_ready",
+        "object_ref_hash_binding_ready",
+        "drift_detector_ready",
+        "read_only_api_projection_ready",
+        "raw_transcript_body_visible",
+        "full_transcript_body_visible",
+        "raw_transcript_api_visible",
+        "full_transcript_api_visible",
+        "api_write_methods_enabled",
+        "source_mutation_enabled",
+        "runtime_recall_enabled",
+        "retrieval_truth_enabled",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "ready_for_p10601_handoff",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "raw_transcript_body_visible": { "const": false },
+        "full_transcript_body_visible": { "const": false },
+        "raw_transcript_api_visible": { "const": false },
+        "full_transcript_api_visible": { "const": false },
+        "api_write_methods_enabled": { "const": false },
+        "source_mutation_enabled": { "const": false },
+        "runtime_recall_enabled": { "const": false },
+        "retrieval_truth_enabled": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "local_session_capture_memory_store_status",
+        "source_p10400_ready",
+        "session_capture_memory_store_ready",
+        "redacted_event_projection_ready",
+        "object_ref_hash_binding_ready",
+        "drift_detector_ready",
+        "read_only_api_projection_ready",
+        "ready_for_p10601_handoff",
+        "raw_transcript_body_visible",
+        "full_transcript_body_visible",
+        "raw_transcript_api_visible",
+        "full_transcript_api_visible",
+        "runtime_recall_enabled",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "validation_error_count"
+      ],
+      "properties": {
+        "local_session_capture_memory_store_status": {
+          "enum": [
+            "ready_for_local_session_capture_memory_store",
+            "blocked_local_session_capture_memory_store"
+          ]
+        },
+        "raw_transcript_body_visible": { "const": false },
+        "full_transcript_body_visible": { "const": false },
+        "raw_transcript_api_visible": { "const": false },
+        "full_transcript_api_visible": { "const": false },
+        "runtime_recall_enabled": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "verdictRow": {
+      "type": "object",
+      "required": [
+        "row_id",
+        "category",
+        "label",
+        "required",
+        "observed",
+        "current_verdict",
+        "evidence_ref"
+      ],
+      "properties": {
+        "current_verdict": { "enum": ["pass", "blocked"] },
+        "required": { "type": "boolean" },
+        "observed": { "type": "boolean" },
+        "evidence_ref": { "type": "string" }
+      }
+    }
+  }
+}

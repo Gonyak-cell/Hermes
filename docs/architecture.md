@@ -60,6 +60,8 @@ P10001-P10200 Claude Review Integration Lane은 P10000 product build verificatio
 
 P10201-P10400 CI/GitHub Evidence Bridge는 P10200 Claude review integration artifact를 source로 읽어 GitHub remote binding, branch protection/ruleset, required checks, GitHub Actions run, PR review/commit SHA, signed attestation, evidence freshness/provenance를 read-only evidence plane으로 투영한다. 이 단계는 external evidence visibility와 blocker visibility를 만드는 단계이며 GitHub write, merge, branch protection mutation, required check mutation, attestation generation, release closeout, production PASS, enterprise trust는 계속 false다. Missing or stale GitHub evidence, missing PR approval, actions run commit mismatch, attestation without commit binding, raw payload exposure, final approval expansion은 external closeout BLOCK으로 표시되어야 하며, bridge ready가 release 또는 enterprise readiness를 의미하지 않는다.
 
+P10401-P10600 Local Session Capture And Memory Store는 P10400 CI/GitHub evidence bridge artifact를 source로 읽어 Codex, Claude, Harness validator, UI handoff 세션을 durable local evidence ref로 저장하는 계약을 만든다. 이 단계는 source id, engine id, session id, run id, transcript ref, redacted summary ref, object hash/provenance ref, decision/blocker/validation/review/phase-progress event row, duplicate/stale/uncited/cross-domain drift detector, GET/HEAD-only API projection을 고정한다. Raw/full transcript body는 UI/API에 노출하지 않고, redacted summary와 citation ref만 노출 가능하다. Runtime recall, retrieval truth, source mutation, API write, Codex/Claude final approval, production PASS, enterprise PASS는 계속 false다.
+
 핵심 산출물은 다음입니다.
 
 - development daily brief

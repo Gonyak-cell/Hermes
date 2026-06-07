@@ -329,3 +329,9 @@ P20400이 ready여도 이는 다음 control-plane handoff ready일 뿐이며 pro
 P20401-P20800은 P20400 Post-P20000 Operator Handoff 이후의 packet을 다음 실행자가 안전하게 시작할 수 있는 launch envelope로 바꾼다. P20400 source binding, handoff consumption queue, action eligibility matrix, review cadence router, validation launch packet, boundary guard projection, P20800 launch checkpoint를 분리해 read-only/validation action과 protected action을 같은 PASS로 섞지 않도록 한다.
 
 P20800이 ready여도 이는 다음 control-plane handoff ready일 뿐이며 production PASS, enterprise trust, release approval, deployment, runtime execution, write/protected action, connector write, raw exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Claude review와 full npm test는 routine read-only projection에는 요구하지 않고, high-risk authority/freeze/release/write/connector/schema 전환 또는 명시적 closeout 요구가 있을 때만 required condition으로 표시한다.
+
+## P20801-P21200 Validation Runbook Readiness
+
+P20801-P21200은 P20800 Post-P20400 Launch Envelope 이후의 allowed read-only/validation surface를 command execution이 아닌 validation runbook readiness로 투영한다. P20800 source binding, launch evidence queue, command evidence plan, review escalation rules, no-action boundary runbook, runbook operator projection, P21200 clean checkpoint를 분리해 어떤 evidence가 필요한지와 어떤 protected action이 계속 금지되는지 함께 보여준다.
+
+P21200이 ready여도 이는 다음 control-plane handoff ready일 뿐이며 production PASS, enterprise trust, release approval, deployment, runtime execution, write/protected action, connector write, raw exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Command evidence plan은 명령 실행 권한이 아니라 검증 증거 요구사항이며, Claude review와 full npm test는 high-risk 전환 또는 명시적 closeout 요구가 있을 때만 required condition으로 표시한다.

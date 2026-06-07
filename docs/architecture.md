@@ -305,3 +305,9 @@ LLM이 단독으로 해서는 안 되는 일:
 P18801-P19200은 P18800 Check-Mode Scanner Robustness 이후 남은 trust debt를 재계산한다. P18400/P18800이 닫은 no-write scanner debt는 closed debt credit으로 분리하고, production/enterprise trust, independent review, durable validation, release/write/execution/connector/raw/final approval debt는 carried-forward 상태로 남긴다.
 
 Claude Code Opus max review receipt와 full-suite validation receipt는 P19201 handoff 입력이지만 최종 승인이나 enterprise trust가 아니다. receipt가 없으면 P19200 계약은 valid BLOCK으로 유지되고 P19201 handoff만 닫힌다.
+
+## P19201-P19600 Post-Handoff Trust Intake
+
+P19201-P19600은 P19200 Trust Debt Recalibration이 연 P19201 handoff를 다음 control-plane source로 소비한다. 이 단계는 P19200 summary를 그대로 신뢰하지 않고, source artifact, review receipt, full-suite receipt, commit ref, freshness window, authority boundary를 다시 행 단위로 분리해 P19601 handoff를 계산한다.
+
+P19600이 ready여도 production PASS, enterprise trust, release approval, deployment, runtime execution, write/protected action, connector write, raw exposure, secret read, reviewer mutation, final automated approval은 계속 false다. P19601 handoff는 source ready, receipts pass, freshness pass, commit ref present, authority boundary closed일 때만 열린다.

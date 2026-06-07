@@ -299,3 +299,9 @@ LLM이 단독으로 해서는 안 되는 일:
 5. matter별 weekly WIP report 생성
 
 이 범위를 넘기 전에 접근권한, 감사로그, 보존정책, 고객별 동의 범위를 먼저 확정합니다.
+
+## P18801-P19200 Trust Debt Recalibration
+
+P18801-P19200은 P18800 Check-Mode Scanner Robustness 이후 남은 trust debt를 재계산한다. P18400/P18800이 닫은 no-write scanner debt는 closed debt credit으로 분리하고, production/enterprise trust, independent review, durable validation, release/write/execution/connector/raw/final approval debt는 carried-forward 상태로 남긴다.
+
+Claude Code Opus max review receipt와 full-suite validation receipt는 P19201 handoff 입력이지만 최종 승인이나 enterprise trust가 아니다. receipt가 없으면 P19200 계약은 valid BLOCK으로 유지되고 P19201 handoff만 닫힌다.

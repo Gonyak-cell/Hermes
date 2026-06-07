@@ -371,3 +371,9 @@ P23200이 ready여도 이는 read model readiness일 뿐이며 actual receipt co
 P23201-P23600은 P23200 Receipt Workbench API Read Model 이후의 read-only projection을 operator dashboard가 소비할 수 있는 handoff smoke contract로 투영한다. Dashboard consumer contract, API-to-surface adapter smoke matrix, operator visibility rules, no-serve/no-mutation boundary를 분리해 UI가 task, evidence, review, blocker 상태를 잃지 않고 읽을 수 있음을 확인한다.
 
 P23600이 ready여도 이는 dashboard handoff smoke readiness일 뿐이며 actual API service, live fetch, route handler registration, route execution, dashboard mutation, receipt completion, production PASS, enterprise trust, release approval, deployment, runtime execution, write/protected action, connector write, raw exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Smoke case는 ready/empty/blocked/error 상태를 표현하지만 production serving이나 mutation 권한을 의미하지 않는다.
+
+## P23601-P24000 Receipt Workbench Operator Dashboard Screen Contract
+
+P23601-P24000은 P23600 Receipt Workbench Dashboard Handoff Smoke 이후의 handoff rows를 operator dashboard screen contract로 투영한다. Header, summary, task, evidence, review, blocker, detail, next-action slot과 ready/empty/loading/error/blocked/stale/review-pending/redacted-payload 상태를 분리해 화면이 무엇을 보여야 하는지 검증 가능한 형태로 고정한다.
+
+P24000이 ready여도 이는 screen contract readiness일 뿐이며 actual UI route, server start, route handler registration, live fetch, click action, dashboard mutation, receipt completion, production PASS, enterprise trust, release approval, deployment, runtime execution, write/protected action, connector write, raw exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Screen row는 read-only binding과 visibility guard이며 production operator console serving이나 action authority가 아니다.

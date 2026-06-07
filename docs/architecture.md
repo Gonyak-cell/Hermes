@@ -311,3 +311,9 @@ Claude Code Opus max review receipt와 full-suite validation receipt는 P19201 h
 P19201-P19600은 P19200 Trust Debt Recalibration이 연 P19201 handoff를 다음 control-plane source로 소비한다. 이 단계는 P19200 summary를 그대로 신뢰하지 않고, source artifact, review receipt, full-suite receipt, commit ref, freshness window, authority boundary를 다시 행 단위로 분리해 P19601 handoff를 계산한다.
 
 P19600이 ready여도 production PASS, enterprise trust, release approval, deployment, runtime execution, write/protected action, connector write, raw exposure, secret read, reviewer mutation, final automated approval은 계속 false다. P19601 handoff는 source ready, receipts pass, freshness pass, commit ref present, authority boundary closed일 때만 열린다.
+
+## P19601-P20000 Trust Evidence Clean Checkpoint
+
+P19601-P20000은 P19600 Post-Handoff Trust Intake 이후의 trust evidence chain을 clean checkpoint로 묶는다. P16800 이후 freeze, activation, completion, trust delta, check-mode normalization, scanner robustness, trust recalibration, post-handoff intake를 visible chain으로 연결하고, 각 validator가 검증한 것과 검증하지 않은 것을 verification-of-verification matrix로 분리한다.
+
+P20000이 ready여도 이는 다음 control-plane handoff ready일 뿐이며 production PASS, enterprise trust, release approval, deployment, runtime execution, write/protected action, connector write, raw exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Full npm test는 항상 요구하지 않고, broad trust/release/write/schema freeze 또는 명시적 closeout 요구가 있을 때만 required condition으로 표시한다.

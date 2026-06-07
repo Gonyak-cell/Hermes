@@ -365,3 +365,9 @@ P22800이 ready여도 이는 operator workbench readiness일 뿐이며 actual re
 P22801-P23200은 P22800 Receipt Completion Operator Workbench의 task, remediation draft, evidence request, review router 상태를 dashboard-ready read model과 read-only API projection 계약으로 투영한다. Projection은 GET/HEAD-only route row, sanitized field map, UI status summary, no-route boundary를 제공해 operator console이 읽을 수 있는 형태를 만들지만 실제 API server start, route handler registration, route execution은 열지 않는다.
 
 P23200이 ready여도 이는 read model readiness일 뿐이며 actual receipt completion, API write, dashboard mutation, production PASS, enterprise trust, release approval, deployment, runtime execution, write/protected action, connector write, raw exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Raw stdout/stderr, secret material, full transcript, protected payload는 dashboard/API projection에서 금지 필드로 남는다.
+
+## P23201-P23600 Receipt Workbench Dashboard Handoff Smoke
+
+P23201-P23600은 P23200 Receipt Workbench API Read Model 이후의 read-only projection을 operator dashboard가 소비할 수 있는 handoff smoke contract로 투영한다. Dashboard consumer contract, API-to-surface adapter smoke matrix, operator visibility rules, no-serve/no-mutation boundary를 분리해 UI가 task, evidence, review, blocker 상태를 잃지 않고 읽을 수 있음을 확인한다.
+
+P23600이 ready여도 이는 dashboard handoff smoke readiness일 뿐이며 actual API service, live fetch, route handler registration, route execution, dashboard mutation, receipt completion, production PASS, enterprise trust, release approval, deployment, runtime execution, write/protected action, connector write, raw exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Smoke case는 ready/empty/blocked/error 상태를 표현하지만 production serving이나 mutation 권한을 의미하지 않는다.

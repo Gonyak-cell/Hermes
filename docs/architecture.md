@@ -359,3 +359,9 @@ P22400이 ready여도 이는 다음 control-plane handoff ready일 뿐이며 act
 P22401-P22800은 P22400 Validation Receipt Completion Reconciliation Readiness 이후의 completion gap을 receipt completion operator workbench와 read-only remediation planning surface로 투영한다. Operator workbench task queue, remediation plan drafts, evidence request packets, review escalation router, no-apply boundary를 분리해 "무엇을 보완해야 하는지"는 보이지만 "자동으로 적용하거나 승인하는지"는 계속 false로 유지한다.
 
 P22800이 ready여도 이는 operator workbench readiness일 뿐이며 actual receipt completion, final validation pass, production PASS, enterprise trust, release approval, deployment, runtime execution, write/protected action, connector write, raw exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Remediation plan은 advisory draft이고 evidence request는 raw output이 아닌 redacted metadata 요구사항이다.
+
+## P22801-P23200 Receipt Workbench API Read Model
+
+P22801-P23200은 P22800 Receipt Completion Operator Workbench의 task, remediation draft, evidence request, review router 상태를 dashboard-ready read model과 read-only API projection 계약으로 투영한다. Projection은 GET/HEAD-only route row, sanitized field map, UI status summary, no-route boundary를 제공해 operator console이 읽을 수 있는 형태를 만들지만 실제 API server start, route handler registration, route execution은 열지 않는다.
+
+P23200이 ready여도 이는 read model readiness일 뿐이며 actual receipt completion, API write, dashboard mutation, production PASS, enterprise trust, release approval, deployment, runtime execution, write/protected action, connector write, raw exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Raw stdout/stderr, secret material, full transcript, protected payload는 dashboard/API projection에서 금지 필드로 남는다.

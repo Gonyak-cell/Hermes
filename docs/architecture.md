@@ -335,3 +335,9 @@ P20800이 ready여도 이는 다음 control-plane handoff ready일 뿐이며 pro
 P20801-P21200은 P20800 Post-P20400 Launch Envelope 이후의 allowed read-only/validation surface를 command execution이 아닌 validation runbook readiness로 투영한다. P20800 source binding, launch evidence queue, command evidence plan, review escalation rules, no-action boundary runbook, runbook operator projection, P21200 clean checkpoint를 분리해 어떤 evidence가 필요한지와 어떤 protected action이 계속 금지되는지 함께 보여준다.
 
 P21200이 ready여도 이는 다음 control-plane handoff ready일 뿐이며 production PASS, enterprise trust, release approval, deployment, runtime execution, write/protected action, connector write, raw exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Command evidence plan은 명령 실행 권한이 아니라 검증 증거 요구사항이며, Claude review와 full npm test는 high-risk 전환 또는 명시적 closeout 요구가 있을 때만 required condition으로 표시한다.
+
+## P21201-P21600 Validation Evidence Receipt Intake
+
+P21201-P21600은 P21200 Validation Runbook Readiness 이후의 command evidence plan을 validation evidence receipt intake 계약으로 변환한다. P21200 source binding, validation evidence receipt schema, redacted result capture, freshness/completeness guard, operator evidence inbox, no-execution/raw boundary, P21600 clean checkpoint를 분리해 어떤 검증 receipt가 필요하고 어떤 누락/중복/stale/source mismatch 상태가 BLOCK으로 보이는지 행 단위로 고정한다.
+
+P21600이 ready여도 이는 receipt intake structure가 다음 handoff로 넘어갈 수 있다는 뜻이지 실제 receipt 수령, production PASS, enterprise trust, release approval, deployment, runtime execution, write/protected action, connector write, raw exposure, secret read, reviewer mutation, final automated approval을 열었다는 뜻이 아니다. Receipt intake는 raw stdout/stderr, secret material, full transcript를 저장하지 않고 hash, redacted summary, evidence_ref, source commit ref 중심의 redacted evidence surface만 허용한다.

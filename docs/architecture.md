@@ -389,3 +389,9 @@ P24400이 ready여도 이는 dashboard artifact preview readiness일 뿐이며 a
 P24401-P24800은 P24400 Receipt Workbench Dashboard Artifact Preview 이후의 preview surface, snapshot fixture, data projection을 read-only bundle handoff 계약으로 묶는다. Bundle manifest, fixture gallery, handoff payload, operator review affordance를 분리해 dashboard integration이 source refs, blockers, redaction, stale state, no-action notice를 잃지 않고 소비할 수 있게 한다.
 
 P24800이 ready여도 이는 preview bundle handoff readiness일 뿐이며 actual UI serving, route mount, render server, browser preview, screenshot capture, live fetch, click action, state mutation, export, publish, receipt completion, production PASS, enterprise trust, release approval, deployment, runtime execution, write/protected action, connector write, raw exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Bundle row는 dashboard handoff용 bounded metadata이며 production operator console serving이나 action authority가 아니다.
+
+## P24801-P25200 Receipt Workbench Dashboard Consumer Fixture Smoke
+
+P24801-P25200은 P24800 Receipt Workbench Preview Bundle Handoff 이후의 bundle manifest, fixture gallery, handoff payload를 dashboard consumer fixture smoke 계약으로 투영한다. Dashboard consumer fixture contract, fixture smoke case, read-only adapter map, consumer visibility guard를 분리해 operator dashboard integration이 expected state를 잃지 않고 검증할 수 있게 한다.
+
+P25200이 ready여도 이는 dashboard consumer fixture smoke readiness일 뿐이며 actual dashboard serving, route mount, live fetch, rendering, browser run, click action, write/state mutation, export, publish, receipt completion, production PASS, enterprise trust, release approval, deployment, runtime execution, write/protected action, connector write, raw exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Consumer fixture row는 read-only in-memory projection 계약이며 production operator console serving이나 action authority가 아니다.

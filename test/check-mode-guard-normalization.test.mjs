@@ -59,6 +59,61 @@ test("Check-Mode Guard Normalization flags missing write disable and missing bra
   assert.equal(missingBranch.findings[0].finding_type, "missing_check_branch");
 });
 
+test("Check-Mode Guard Normalization covers parser shapes beyond variable-left strict equality", () => {
+  const fixtures = [
+    "if (options.write !== false) await write(); function parseArgs(argv) { const args = {}; for (const arg of argv) { if (\"--check\" === arg) { args.check = true; args.write = false; } } }",
+    "if (options.write !== false) await write(); function parseArgs(argv) { const args = {}; for (const arg of argv) { if (arg == \"--check\") { args.check = true; args.write = false; } } }",
+    "if (options.write !== false) await write(); function parseArgs(argv) { const args = {}; for (const arg of argv) { switch (arg) { case \"--check\": args.check = true; args.write = false; break; default: break; } } }",
+    "if (options.write !== false) await write(); function parseArgs(argv) { const args = {}; for (const arg of argv) { if ([\"--check\"].includes(arg)) { args.check = true; args.write = false; } } }",
+  ];
+
+  for (const [index, source] of fixtures.entries()) {
+    const row = collectCheckModeGuardFindingsFromSource(`fixture/parser-${index}.mjs`, source);
+    assert.equal(row.check_branch_count, 1);
+    assert.deepEqual(row.findings, []);
+  }
+});
+
+test("Check-Mode Guard Normalization scans alternate check handlers even when parseArgs exists", () => {
+  const row = collectCheckModeGuardFindingsFromSource(
+    "fixture/alternate-parser.mjs",
+    "if (options.write !== false) await write(); function parseArgs(argv) { const args = {}; for (const arg of argv) { if (arg === \"--check\") { args.check = true; args.write = false; } } } const parseOptions = (argv) => { const args = {}; for (const arg of argv) { if (arg === \"--check\") { args.check = true; } } };",
+  );
+
+  assert.equal(row.check_branch_count, 2);
+  assert.equal(row.findings.length, 1);
+  assert.equal(row.findings[0].finding_type, "check_without_write_false");
+});
+
+test("Check-Mode Guard Normalization ignores comments strings and mismatched check literals", () => {
+  const commentedWrite = collectCheckModeGuardFindingsFromSource(
+    "fixture/commented-write.mjs",
+    "if (options.write !== false) await write(); function parseArgs(argv) { const args = {}; for (const arg of argv) { if (arg === \"--check\") { args.check = true; // args.write = false;\n } } }",
+  );
+  const stringWrite = collectCheckModeGuardFindingsFromSource(
+    "fixture/string-write.mjs",
+    "if (options.write !== false) await write(); function parseArgs(argv) { const args = {}; for (const arg of argv) { if (arg === \"--check\") { args.check = true; const fake = \"args.write = false\"; } } }",
+  );
+  const stringBrace = collectCheckModeGuardFindingsFromSource(
+    "fixture/string-brace.mjs",
+    "if (options.write !== false) await write(); function parseArgs(argv) { const args = {}; for (const arg of argv) { if (arg === \"--check\") { const sample = \"}\"; args.check = true; args.write = false; } } }",
+  );
+  const mismatchedQuote = collectCheckModeGuardFindingsFromSource(
+    "fixture/mismatched-quote.mjs",
+    "if (options.write !== false) await write(); function parseArgs(argv) { const args = {}; for (const arg of argv) { if (arg === \"--check') { args.check = true; args.write = false; } } }",
+  );
+  const unterminatedTemplate = collectCheckModeGuardFindingsFromSource(
+    "fixture/unterminated-template.mjs",
+    "if (options.write !== false) await write(); function parseArgs(argv) { const args = {}; for (const arg of argv) { if (arg === `--check) { args.check = true; args.write = false; } } }",
+  );
+
+  assert.equal(commentedWrite.findings[0].finding_type, "check_without_write_false");
+  assert.equal(stringWrite.findings[0].finding_type, "check_without_write_false");
+  assert.deepEqual(stringBrace.findings, []);
+  assert.equal(mismatchedQuote.findings[0].finding_type, "unterminated_string_literal");
+  assert.equal(unterminatedTemplate.findings[0].finding_type, "unterminated_template_literal");
+});
+
 test("Check-Mode Guard Normalization builds a ready handoff while preserving protected boundaries", async () => {
   const result = await buildCheckModeGuardNormalization({ runAt: RUN_AT, write: false });
 

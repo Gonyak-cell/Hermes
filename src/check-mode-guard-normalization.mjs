@@ -66,6 +66,46 @@ const SCANNER_FIXTURES = [
     source: "if (options.write !== false) await write(); function printHelp() { console.log(\"--check\"); }",
     expected_offenders: 1,
   },
+  {
+    fixture_id: "reversed_equality_ok",
+    source: "if (options.write !== false) await write(); function parseArgs(argv) { const args = {}; for (const arg of argv) { if (\"--check\" === arg) { args.check = true; args.write = false; } } }",
+    expected_offenders: 0,
+  },
+  {
+    fixture_id: "loose_equality_ok",
+    source: "if (options.write !== false) await write(); function parseArgs(argv) { const args = {}; for (const arg of argv) { if (arg == \"--check\") { args.check = true; args.write = false; } } }",
+    expected_offenders: 0,
+  },
+  {
+    fixture_id: "switch_case_ok",
+    source: "if (options.write !== false) await write(); function parseArgs(argv) { const args = {}; for (const arg of argv) { switch (arg) { case \"--check\": args.check = true; args.write = false; break; default: break; } } }",
+    expected_offenders: 0,
+  },
+  {
+    fixture_id: "array_includes_ok",
+    source: "if (options.write !== false) await write(); function parseArgs(argv) { const args = {}; for (const arg of argv) { if ([\"--check\"].includes(arg)) { args.check = true; args.write = false; } } }",
+    expected_offenders: 0,
+  },
+  {
+    fixture_id: "alternate_parser_missing_write_blocked",
+    source: "if (options.write !== false) await write(); function parseArgs(argv) { const args = {}; for (const arg of argv) { if (arg === \"--check\") { args.check = true; args.write = false; } } } const parseOptions = (argv) => { const args = {}; for (const arg of argv) { if (arg === \"--check\") { args.check = true; } } };",
+    expected_offenders: 1,
+  },
+  {
+    fixture_id: "commented_write_blocked",
+    source: "if (options.write !== false) await write(); function parseArgs(argv) { const args = {}; for (const arg of argv) { if (arg === \"--check\") { args.check = true; // args.write = false;\n } } }",
+    expected_offenders: 1,
+  },
+  {
+    fixture_id: "string_brace_ok",
+    source: "if (options.write !== false) await write(); function parseArgs(argv) { const args = {}; for (const arg of argv) { if (arg === \"--check\") { const sample = \"}\"; args.check = true; args.write = false; } } }",
+    expected_offenders: 0,
+  },
+  {
+    fixture_id: "quote_mismatch_blocked",
+    source: "if (options.write !== false) await write(); function parseArgs(argv) { const args = {}; for (const arg of argv) { if (arg === \"--check') { args.check = true; args.write = false; } } }",
+    expected_offenders: 1,
+  },
 ];
 
 export async function runCheckModeGuardNormalization(options = {}) {
@@ -212,12 +252,12 @@ export function collectCheckModeGuardFindingsFromSource(filePath, source) {
   const guarded = source.includes("options.write !== false") && source.includes("--check");
   const branches = guarded ? extractCheckBranches(source) : [];
   const findings = [];
-  if (guarded && branches.length === 0) {
+  if (guarded && branches.length === 0 && findings.length === 0) {
     findings.push(finding(filePath, "missing_check_branch", "has --check and write guard but no parse branch block"));
   }
   for (const [index, branch] of branches.entries()) {
     if (branch.malformed) {
-      findings.push(finding(filePath, "malformed_check_branch", `check branch ${index + 1} is malformed`));
+      findings.push(finding(filePath, branch.finding_type ?? "malformed_check_branch", branch.message ?? `check branch ${index + 1} is malformed`));
     } else if (!branchDisablesWrite(branch.body)) {
       findings.push(finding(filePath, "check_without_write_false", "sets check without disabling write"));
     }
@@ -231,27 +271,103 @@ export function collectCheckModeGuardFindingsFromSource(filePath, source) {
   };
 }
 
-function extractCheckBranches(source) {
+export function extractCheckBranches(source) {
+  const sections = extractParserSections(source);
+  const scanSources = sections.length > 0 ? sections : [source];
+  return scanSources.flatMap((scanSource) => extractCheckBranchesFromCodeSection(scanSource));
+}
+
+function extractCheckBranchesFromCodeSection(source) {
   const branches = [];
-  const branchPattern = /\b(?:if|else\s+if)\s*\(\s*[A-Za-z_$][\w$]*\s*===\s*["']--check["']\s*\)\s*\{/g;
-  let match;
-  while ((match = branchPattern.exec(source)) !== null) {
-    const openBraceIndex = branchPattern.lastIndex - 1;
-    const closeBraceIndex = findMatchingBrace(source, openBraceIndex);
-    if (closeBraceIndex === -1) {
-      branches.push({ body: "", malformed: true });
-      branchPattern.lastIndex = openBraceIndex + 1;
-    } else {
-      branches.push({ body: source.slice(openBraceIndex + 1, closeBraceIndex), malformed: false });
-      branchPattern.lastIndex = closeBraceIndex + 1;
+
+  for (let index = 0; index < source.length; index += 1) {
+    const skipped = skipNonCode(source, index);
+    if (skipped !== index) {
+      index = skipped - 1;
+      continue;
+    }
+
+    const ifLength = branchKeywordLength(source, index);
+    if (ifLength > 0) {
+      const parenIndex = skipWhitespace(source, index + ifLength);
+      if (source[parenIndex] !== "(") continue;
+      const closeParenIndex = findMatchingDelimiter(source, parenIndex, "(", ")");
+      if (closeParenIndex === -1) {
+        branches.push(malformedBranch(source, parenIndex, "check branch condition is malformed"));
+        continue;
+      }
+      const condition = source.slice(parenIndex + 1, closeParenIndex);
+      const openBraceIndex = skipWhitespace(source, closeParenIndex + 1);
+      if (!conditionMatchesCheck(condition) || source[openBraceIndex] !== "{") continue;
+      const closeBraceIndex = findMatchingBrace(source, openBraceIndex);
+      if (closeBraceIndex === -1) {
+        branches.push(malformedBranch(source, openBraceIndex, "check branch body is malformed"));
+      } else {
+        branches.push({ body: maskNonCode(source.slice(openBraceIndex + 1, closeBraceIndex)), malformed: false });
+        index = closeBraceIndex;
+      }
+      continue;
+    }
+
+    if (keywordAt(source, index, "case")) {
+      const colonIndex = findCaseColon(source, index + "case".length);
+      if (colonIndex === -1) continue;
+      const expression = source.slice(index + "case".length, colonIndex);
+      if (!caseExpressionMatchesCheck(expression)) continue;
+      const bodyStart = colonIndex + 1;
+      const bodyEnd = findSwitchCaseBodyEnd(source, bodyStart);
+      if (bodyEnd === -1) {
+        branches.push({ body: maskNonCode(source.slice(bodyStart)), malformed: true });
+      } else {
+        branches.push({ body: maskNonCode(source.slice(bodyStart, bodyEnd)), malformed: false });
+        index = bodyEnd;
+      }
     }
   }
   return branches;
 }
 
+function extractParserSections(source) {
+  const sections = [];
+  const functionPattern = /\bfunction\s+parse[A-Za-z0-9_$]*\s*\([^)]*\)\s*\{/g;
+  const arrowPattern = /\b(?:const|let|var)\s+parse[A-Za-z0-9_$]*\s*=\s*(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>\s*\{/g;
+  const methodPattern = /(?:^|[\n;{}])\s*parse[A-Za-z0-9_$]*\s*\([^)]*\)\s*\{/g;
+
+  for (const pattern of [functionPattern, arrowPattern, methodPattern]) {
+    let match;
+    while ((match = pattern.exec(source)) !== null) {
+      const openBraceIndex = pattern.lastIndex - 1;
+      const closeBraceIndex = findMatchingBrace(source, openBraceIndex);
+      if (closeBraceIndex !== -1) {
+        sections.push(source.slice(openBraceIndex + 1, closeBraceIndex));
+        pattern.lastIndex = closeBraceIndex + 1;
+      }
+    }
+  }
+  return sections;
+}
+
+function malformedBranch(source, startIndex, fallbackMessage) {
+  const unterminated = unterminatedLiteralFindingType(source, startIndex);
+  if (unterminated) {
+    return {
+      body: "",
+      malformed: true,
+      finding_type: unterminated,
+      message: `${unterminated.replaceAll("_", " ")} blocks check branch parsing`,
+    };
+  }
+  return { body: "", malformed: true, message: fallbackMessage };
+}
+
 function findMatchingBrace(source, openBraceIndex) {
   let depth = 0;
   for (let index = openBraceIndex; index < source.length; index += 1) {
+    const skipped = skipNonCode(source, index);
+    if (skipped !== index) {
+      index = skipped - 1;
+      continue;
+    }
     const char = source[index];
     if (char === "{") depth += 1;
     else if (char === "}") {
@@ -262,8 +378,272 @@ function findMatchingBrace(source, openBraceIndex) {
   return -1;
 }
 
+function findSwitchCaseBodyEnd(source, bodyStart) {
+  let depth = 0;
+  for (let index = bodyStart; index < source.length; index += 1) {
+    const skipped = skipNonCode(source, index);
+    if (skipped !== index) {
+      index = skipped - 1;
+      continue;
+    }
+    const char = source[index];
+    if (char === "{") depth += 1;
+    else if (char === "}") {
+      if (depth === 0) return index;
+      depth -= 1;
+    } else if (depth === 0 && source.startsWith("case ", index)) {
+      return index;
+    } else if (depth === 0 && source.startsWith("default", index)) {
+      return index;
+    }
+  }
+  return source.length;
+}
+
 function branchDisablesWrite(body) {
   return /\.\s*check\s*=\s*true\s*;?/.test(body) && /\.\s*write\s*=\s*false\s*;?/.test(body);
+}
+
+function branchKeywordLength(source, index) {
+  if (keywordAt(source, index, "if")) return 2;
+  if (keywordAt(source, index, "else")) {
+    const nextIndex = skipWhitespace(source, index + "else".length);
+    if (keywordAt(source, nextIndex, "if")) return nextIndex + 2 - index;
+  }
+  return 0;
+}
+
+function conditionMatchesCheck(condition) {
+  const quotedCheck = String.raw`(?:"--check"|'--check')`;
+  const identifier = String.raw`[A-Za-z_$][\w$]*`;
+  const equality = new RegExp(String.raw`(?:^|[^\w$])(?:${identifier}\s*={2,3}\s*${quotedCheck}|${quotedCheck}\s*={2,3}\s*${identifier})(?:$|[^\w$])`);
+  const directIncludes = new RegExp(String.raw`\.includes\s*\(\s*${quotedCheck}\s*\)`);
+  const arrayIncludes = new RegExp(String.raw`\[[^\]]*${quotedCheck}[^\]]*\]\s*\.includes\s*\(`);
+  return equality.test(condition) || directIncludes.test(condition) || arrayIncludes.test(condition);
+}
+
+function caseExpressionMatchesCheck(expression) {
+  return /^\s*(?:"--check"|'--check')\s*$/.test(expression);
+}
+
+function keywordAt(source, index, keyword) {
+  return source.startsWith(keyword, index)
+    && !isIdentifierChar(source[index - 1] ?? "")
+    && !isIdentifierChar(source[index + keyword.length] ?? "");
+}
+
+function isIdentifierChar(char) {
+  return /[A-Za-z0-9_$]/.test(char);
+}
+
+function skipWhitespace(source, index) {
+  let current = index;
+  while (current < source.length && /\s/.test(source[current])) current += 1;
+  return current;
+}
+
+function findMatchingDelimiter(source, openIndex, openChar, closeChar) {
+  let depth = 0;
+  for (let index = openIndex; index < source.length; index += 1) {
+    const skipped = skipNonCode(source, index);
+    if (skipped !== index) {
+      index = skipped - 1;
+      continue;
+    }
+    const char = source[index];
+    if (char === openChar) depth += 1;
+    else if (char === closeChar) {
+      depth -= 1;
+      if (depth === 0) return index;
+    }
+  }
+  return -1;
+}
+
+function findCaseColon(source, startIndex) {
+  for (let index = startIndex; index < source.length; index += 1) {
+    const skipped = skipNonCode(source, index);
+    if (skipped !== index) {
+      index = skipped - 1;
+      continue;
+    }
+    if (source[index] === ":") return index;
+    if (source[index] === "\n" || source[index] === "{") return -1;
+  }
+  return -1;
+}
+
+function skipNonCode(source, index) {
+  const char = source[index];
+  const next = source[index + 1];
+  if (char === "/" && next === "/") return consumeLineComment(source, index);
+  if (char === "/" && next === "*") return consumeBlockComment(source, index);
+  if (char === "'" || char === '"') return consumeQuotedLiteral(source, index, char).end_index;
+  if (char === "`") return consumeTemplateLiteral(source, index).end_index;
+  return index;
+}
+
+function unterminatedLiteralFindingType(source, startIndex = 0) {
+  for (let index = startIndex; index < source.length; index += 1) {
+    const char = source[index];
+    const next = source[index + 1];
+    if (char === "/" && next === "/") {
+      index = consumeLineComment(source, index) - 1;
+    } else if (char === "/" && next === "*") {
+      index = consumeBlockComment(source, index) - 1;
+    } else if (char === "'" || char === '"') {
+      const quoted = consumeQuotedLiteral(source, index, char);
+      if (!quoted.closed) return "unterminated_string_literal";
+      index = quoted.end_index - 1;
+    } else if (char === "`") {
+      const template = consumeTemplateLiteral(source, index);
+      if (!template.closed) return "unterminated_template_literal";
+      index = template.end_index - 1;
+    }
+  }
+  return null;
+}
+
+function consumeLineComment(source, startIndex) {
+  const newlineIndex = source.indexOf("\n", startIndex + 2);
+  return newlineIndex === -1 ? source.length : newlineIndex + 1;
+}
+
+function consumeBlockComment(source, startIndex) {
+  const closeIndex = source.indexOf("*/", startIndex + 2);
+  return closeIndex === -1 ? source.length : closeIndex + 2;
+}
+
+function maskNonCode(source) {
+  let output = "";
+  let index = 0;
+  let state = "code";
+  let templateDepth = 0;
+
+  while (index < source.length) {
+    const char = source[index];
+    const next = source[index + 1];
+
+    if (state === "code") {
+      if (char === "/" && next === "/") {
+        output += "  ";
+        index += 2;
+        state = "line_comment";
+      } else if (char === "/" && next === "*") {
+        output += "  ";
+        index += 2;
+        state = "block_comment";
+      } else if (char === "'" || char === '"') {
+        output += " ";
+        index += 1;
+        state = char === "'" ? "single_quote" : "double_quote";
+      } else if (char === "`") {
+        output += " ";
+        index += 1;
+        state = "template";
+        templateDepth = 0;
+      } else {
+        output += char;
+        index += 1;
+      }
+    } else if (state === "line_comment") {
+      output += char === "\n" ? "\n" : " ";
+      index += 1;
+      if (char === "\n") state = "code";
+    } else if (state === "block_comment") {
+      if (char === "*" && next === "/") {
+        output += "  ";
+        index += 2;
+        state = "code";
+      } else {
+        output += char === "\n" ? "\n" : " ";
+        index += 1;
+      }
+    } else if (state === "single_quote" || state === "double_quote") {
+      if (char === "\\") {
+        output += " ";
+        if (next !== undefined) output += next === "\n" ? "\n" : " ";
+        index += next !== undefined ? 2 : 1;
+      } else {
+        const closing = state === "single_quote" ? "'" : '"';
+        output += char === "\n" ? "\n" : " ";
+        index += 1;
+        if (char === closing) state = "code";
+      }
+    } else if (state === "template") {
+      if (char === "\\") {
+        output += " ";
+        if (next !== undefined) output += next === "\n" ? "\n" : " ";
+        index += next !== undefined ? 2 : 1;
+      } else if (char === "`" && templateDepth === 0) {
+        output += " ";
+        index += 1;
+        state = "code";
+      } else {
+        if (char === "{" && source[index - 1] === "$") templateDepth += 1;
+        else if (char === "}" && templateDepth > 0) templateDepth -= 1;
+        output += char === "\n" ? "\n" : " ";
+        index += 1;
+      }
+    }
+  }
+
+  return output;
+}
+
+function consumeQuotedLiteral(source, startIndex, quote) {
+  let raw = quote;
+  let value = "";
+  let index = startIndex + 1;
+  let closed = false;
+  while (index < source.length) {
+    const char = source[index];
+    const next = source[index + 1];
+    raw += char;
+    if (char === "\\") {
+      if (next !== undefined) {
+        raw += next;
+        value += next;
+        index += 2;
+      } else {
+        index += 1;
+      }
+    } else if (char === quote) {
+      index += 1;
+      closed = true;
+      break;
+    } else {
+      value += char;
+      index += 1;
+    }
+  }
+  return { raw, value, end_index: index, closed };
+}
+
+function consumeTemplateLiteral(source, startIndex) {
+  let raw = "`";
+  let index = startIndex + 1;
+  let closed = false;
+  while (index < source.length) {
+    const char = source[index];
+    const next = source[index + 1];
+    raw += char;
+    if (char === "\\") {
+      if (next !== undefined) {
+        raw += next;
+        index += 2;
+      } else {
+        index += 1;
+      }
+    } else if (char === "`") {
+      index += 1;
+      closed = true;
+      break;
+    } else {
+      index += 1;
+    }
+  }
+  return { raw, end_index: index, closed };
 }
 
 function finding(filePath, findingType, message) {

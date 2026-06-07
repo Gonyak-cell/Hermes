@@ -341,3 +341,9 @@ P21200이 ready여도 이는 다음 control-plane handoff ready일 뿐이며 pro
 P21201-P21600은 P21200 Validation Runbook Readiness 이후의 command evidence plan을 validation evidence receipt intake 계약으로 변환한다. P21200 source binding, validation evidence receipt schema, redacted result capture, freshness/completeness guard, operator evidence inbox, no-execution/raw boundary, P21600 clean checkpoint를 분리해 어떤 검증 receipt가 필요하고 어떤 누락/중복/stale/source mismatch 상태가 BLOCK으로 보이는지 행 단위로 고정한다.
 
 P21600이 ready여도 이는 receipt intake structure가 다음 handoff로 넘어갈 수 있다는 뜻이지 실제 receipt 수령, production PASS, enterprise trust, release approval, deployment, runtime execution, write/protected action, connector write, raw exposure, secret read, reviewer mutation, final automated approval을 열었다는 뜻이 아니다. Receipt intake는 raw stdout/stderr, secret material, full transcript를 저장하지 않고 hash, redacted summary, evidence_ref, source commit ref 중심의 redacted evidence surface만 허용한다.
+
+## P21601-P22000 Validation Receipt Candidate Queue
+
+P21601-P22000은 P21600 Validation Evidence Receipt Intake 이후의 receipt intake contract를 validation receipt candidate queue, redacted result digest index, acceptance decision matrix, operator verification index로 투영한다. 이 단계는 receipt 후보 슬롯과 누락 상태를 operator가 볼 수 있게 만들지만 candidate presence, payload acceptance, final authority를 서로 다른 상태로 분리한다.
+
+P22000이 ready여도 이는 다음 receipt completion/reconciliation handoff ready일 뿐이며 실제 receipt 수령, final validation pass, production PASS, enterprise trust, release approval, deployment, runtime execution, write/protected action, connector write, raw exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Result digest index는 raw stdout/stderr, secret material, full transcript 대신 hash, redacted summary ref, evidence_ref, source commit ref 중심의 metadata만 허용한다.

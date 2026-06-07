@@ -401,3 +401,9 @@ P25200이 ready여도 이는 dashboard consumer fixture smoke readiness일 뿐�
 P25201-P25600은 P25200 Receipt Workbench Dashboard Consumer Fixture Smoke 이후의 consumer fixture, smoke case, adapter map을 fixture acceptance readiness handoff 계약으로 묶는다. Acceptance readiness checklist, smoke evidence index, operator handoff contract, acceptance visibility guard를 분리해 operator가 fixture readiness와 blocker를 읽을 수 있게 하지만 실제 acceptance verdict는 만들지 않는다.
 
 P25600이 ready여도 이는 fixture acceptance readiness handoff일 뿐이며 actual acceptance verdict, approval, closeout, apply, route mount, live fetch, mutation, export, publish, receipt completion, production PASS, enterprise trust, release approval, deployment, runtime execution, write/protected action, connector write, raw exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Acceptance row는 read-only readiness metadata이며 protected closeout이나 production authority가 아니다.
+
+## P25601-P26000 Receipt Workbench Operator Queue Status Projection
+
+P25601-P26000은 P25600 Receipt Workbench Fixture Acceptance Handoff 이후의 readiness checklist, smoke evidence, operator handoff contract를 operator queue status projection으로 투영한다. Operator queue item, queue status summary, read-only filter map, operator attention guard를 분리해 운영자가 무엇을 검토해야 하는지 볼 수 있게 하지만 queue action이나 acceptance authority는 열지 않는다.
+
+P26000이 ready여도 이는 operator queue status projection readiness일 뿐이며 actual queue action, write, route mount, live fetch, mutation, approval, closeout, acceptance verdict, export, publish, final approval, production PASS, enterprise trust, release approval, deployment, runtime execution, write/protected action, connector write, raw exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Queue row는 read-only operator status metadata이며 protected closeout이나 production authority가 아니다.

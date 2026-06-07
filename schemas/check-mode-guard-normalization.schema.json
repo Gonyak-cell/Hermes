@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/check-mode-guard-normalization.schema.json",
+  "title": "Hermes Check-Mode Guard Normalization",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "summary",
+    "check_mode_guard_boundary",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "check-mode-guard-normalization.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "capability_id": { "const": "platform.check_mode_guard_normalization" },
+    "program_range": { "const": "P18001-P18400" },
+    "source_program_range": { "const": "P17601-P18000" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "check_mode_guard_status",
+        "guarded_generator_count",
+        "offender_count",
+        "scanner_fixture_passed_now",
+        "ready_for_p18401_handoff",
+        "production_pass_enabled"
+      ],
+      "properties": {
+        "check_mode_guard_status": { "type": "string" },
+        "guarded_generator_count": { "type": "number" },
+        "offender_count": { "type": "number" },
+        "scanner_fixture_passed_now": { "type": "boolean" },
+        "ready_for_p18401_handoff": { "type": "boolean" },
+        "production_pass_enabled": { "const": false }
+      }
+    },
+    "check_mode_guard_boundary": {
+      "type": "object",
+      "required": [
+        "ready_for_p18401_handoff",
+        "offender_count",
+        "production_pass_enabled",
+        "enterprise_trust_claim_allowed_now",
+        "runtime_execution_allowed_now",
+        "write_action_allowed_now",
+        "connector_write_enabled",
+        "final_automated_approval_allowed"
+      ],
+      "properties": {
+        "ready_for_p18401_handoff": { "type": "boolean" },
+        "offender_count": { "type": "number" },
+        "production_pass_enabled": { "const": false },
+        "enterprise_trust_claim_allowed_now": { "const": false },
+        "runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "connector_write_enabled": { "const": false },
+        "final_automated_approval_allowed": { "const": false }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "number" },
+        "errors": { "type": "array" }
+      }
+    }
+  }
+}

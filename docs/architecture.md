@@ -383,3 +383,9 @@ P24000이 ready여도 이는 screen contract readiness일 뿐이며 actual UI ro
 P24001-P24400은 P24000 Receipt Workbench Operator Dashboard Screen Contract 이후의 screen slot과 read-only binding을 dashboard artifact preview 계약으로 투영한다. Status, summary, task, evidence, review, blocker, detail, next-action preview surface와 ready/empty/loading/error/blocked/stale/review-pending/redacted-payload snapshot fixture를 분리해 operator가 볼 preview data shape을 검증 가능한 형태로 고정한다.
 
 P24400이 ready여도 이는 dashboard artifact preview readiness일 뿐이며 actual UI rendering, render server, browser run, screenshot capture, live fetch, click action, dashboard mutation, export, publish, route mount, receipt completion, production PASS, enterprise trust, release approval, deployment, runtime execution, write/protected action, connector write, raw exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Preview artifact는 bounded read-only snapshot 계약이며 production operator console rendering이나 action authority가 아니다.
+
+## P24401-P24800 Receipt Workbench Preview Bundle Handoff
+
+P24401-P24800은 P24400 Receipt Workbench Dashboard Artifact Preview 이후의 preview surface, snapshot fixture, data projection을 read-only bundle handoff 계약으로 묶는다. Bundle manifest, fixture gallery, handoff payload, operator review affordance를 분리해 dashboard integration이 source refs, blockers, redaction, stale state, no-action notice를 잃지 않고 소비할 수 있게 한다.
+
+P24800이 ready여도 이는 preview bundle handoff readiness일 뿐이며 actual UI serving, route mount, render server, browser preview, screenshot capture, live fetch, click action, state mutation, export, publish, receipt completion, production PASS, enterprise trust, release approval, deployment, runtime execution, write/protected action, connector write, raw exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Bundle row는 dashboard handoff용 bounded metadata이며 production operator console serving이나 action authority가 아니다.

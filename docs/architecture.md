@@ -317,3 +317,9 @@ P19600이 ready여도 production PASS, enterprise trust, release approval, deplo
 P19601-P20000은 P19600 Post-Handoff Trust Intake 이후의 trust evidence chain을 clean checkpoint로 묶는다. P16800 이후 freeze, activation, completion, trust delta, check-mode normalization, scanner robustness, trust recalibration, post-handoff intake를 visible chain으로 연결하고, 각 validator가 검증한 것과 검증하지 않은 것을 verification-of-verification matrix로 분리한다.
 
 P20000이 ready여도 이는 다음 control-plane handoff ready일 뿐이며 production PASS, enterprise trust, release approval, deployment, runtime execution, write/protected action, connector write, raw exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Full npm test는 항상 요구하지 않고, broad trust/release/write/schema freeze 또는 명시적 closeout 요구가 있을 때만 required condition으로 표시한다.
+
+## P20001-P20400 Post-P20000 Operator Handoff
+
+P20001-P20400은 P20000 Trust Evidence Clean Checkpoint 이후의 evidence를 다음 운영자가 소비할 수 있는 handoff packet으로 투영한다. P20000 source binding, trust consumption map, operator handoff packet, boundary debt projection, verification consumption guard, regression adjacent command packet, P20400 clean checkpoint를 분리해 "무엇을 볼 수 있고 무엇을 아직 할 수 없는지"를 행 단위로 고정한다.
+
+P20400이 ready여도 이는 다음 control-plane handoff ready일 뿐이며 production PASS, enterprise trust, release approval, deployment, runtime execution, write/protected action, connector write, raw exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Claude review와 full npm test는 routine read-only projection에는 요구하지 않고, high-risk authority/freeze/release/write/connector/schema 전환 또는 명시적 closeout 요구가 있을 때만 required condition으로 표시한다.

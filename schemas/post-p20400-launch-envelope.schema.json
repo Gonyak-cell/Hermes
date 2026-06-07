@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/post-p20400-launch-envelope.schema.json",
+  "title": "Hermes Post-P20400 Launch Envelope",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "post_p20400_launch_envelope_phase_rows",
+    "p20400_source_binding_rows",
+    "handoff_consumption_queue_rows",
+    "action_eligibility_matrix_rows",
+    "review_cadence_router_rows",
+    "validation_launch_packet_rows",
+    "boundary_guard_projection_rows",
+    "p20800_launch_checkpoint_rows",
+    "post_p20400_launch_envelope_boundary",
+    "post_p20400_launch_envelope_validation_items",
+    "summary",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "post-p20400-launch-envelope.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "capability_id": { "const": "platform.post_p20400_launch_envelope" },
+    "program_range": { "const": "P20401-P20800" },
+    "source_program_range": { "const": "P20001-P20400" },
+    "post_p20400_launch_envelope_phase_rows": { "type": "array", "minItems": 7, "items": { "$ref": "#/$defs/verdictRow" } },
+    "p20400_source_binding_rows": { "type": "array", "minItems": 9, "items": { "$ref": "#/$defs/verdictRow" } },
+    "handoff_consumption_queue_rows": { "type": "array", "minItems": 8, "items": { "$ref": "#/$defs/verdictRow" } },
+    "action_eligibility_matrix_rows": { "type": "array", "minItems": 10, "items": { "$ref": "#/$defs/verdictRow" } },
+    "review_cadence_router_rows": { "type": "array", "minItems": 6, "items": { "$ref": "#/$defs/verdictRow" } },
+    "validation_launch_packet_rows": { "type": "array", "minItems": 6, "items": { "$ref": "#/$defs/verdictRow" } },
+    "boundary_guard_projection_rows": { "type": "array", "minItems": 18, "items": { "$ref": "#/$defs/verdictRow" } },
+    "p20800_launch_checkpoint_rows": { "type": "array", "minItems": 8, "items": { "$ref": "#/$defs/verdictRow" } },
+    "post_p20400_launch_envelope_validation_items": { "type": "array", "minItems": 12, "items": { "$ref": "#/$defs/validationItem" } },
+    "summary": {
+      "type": "object",
+      "required": [
+        "post_p20400_launch_envelope_status",
+        "source_p20400_ready_for_p20401_handoff",
+        "handoff_consumption_queue_count",
+        "allowed_action_count",
+        "blocked_protected_action_count",
+        "review_cadence_router_count",
+        "validation_launch_packet_count",
+        "ready_for_p20801_handoff",
+        "production_pass_enabled"
+      ],
+      "properties": {
+        "post_p20400_launch_envelope_status": {
+          "enum": [
+            "ready_for_post_p20400_launch_envelope",
+            "valid_block_launch_envelope_pending",
+            "blocked_post_p20400_launch_envelope"
+          ]
+        },
+        "source_p20400_ready_for_p20401_handoff": { "type": "boolean" },
+        "handoff_consumption_queue_count": { "type": "number" },
+        "allowed_action_count": { "type": "number" },
+        "blocked_protected_action_count": { "type": "number" },
+        "review_cadence_router_count": { "type": "number" },
+        "validation_launch_packet_count": { "type": "number" },
+        "ready_for_p20801_handoff": { "type": "boolean" },
+        "production_pass_enabled": { "const": false }
+      }
+    },
+    "post_p20400_launch_envelope_boundary": {
+      "type": "object",
+      "required": [
+        "p20800_contract_ready",
+        "ready_for_p20801_handoff",
+        "source_p20400_ready_for_p20401_handoff",
+        "source_validation_valid_now",
+        "handoff_consumption_queue_visible_now",
+        "action_eligibility_matrix_visible_now",
+        "review_cadence_router_visible_now",
+        "validation_launch_packet_visible_now",
+        "boundary_guard_closed_now",
+        "handoff_consumption_queue_count",
+        "action_eligibility_matrix_count",
+        "allowed_action_count",
+        "blocked_protected_action_count",
+        "review_cadence_router_count",
+        "validation_launch_packet_count",
+        "deployment_allowed_now",
+        "release_approval_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "enterprise_trust_claim_allowed_now",
+        "protected_closeout_enabled",
+        "human_gate_bypass_allowed_now",
+        "independent_review_bypass_allowed_now",
+        "single_owner_enterprise_trust_allowed_now",
+        "runtime_execution_allowed_now",
+        "write_action_allowed_now",
+        "protected_action_allowed_now",
+        "connector_write_enabled",
+        "external_service_mutation_allowed_now",
+        "raw_source_exposure_allowed",
+        "secret_read_allowed_now",
+        "reviewer_mutation_allowed_now",
+        "final_automated_approval_allowed"
+      ],
+      "properties": {
+        "p20800_contract_ready": { "type": "boolean" },
+        "ready_for_p20801_handoff": { "type": "boolean" },
+        "source_p20400_ready_for_p20401_handoff": { "type": "boolean" },
+        "source_validation_valid_now": { "type": "boolean" },
+        "handoff_consumption_queue_visible_now": { "type": "boolean" },
+        "action_eligibility_matrix_visible_now": { "type": "boolean" },
+        "review_cadence_router_visible_now": { "type": "boolean" },
+        "validation_launch_packet_visible_now": { "type": "boolean" },
+        "boundary_guard_closed_now": { "type": "boolean" },
+        "handoff_consumption_queue_count": { "type": "number" },
+        "action_eligibility_matrix_count": { "type": "number" },
+        "allowed_action_count": { "type": "number" },
+        "blocked_protected_action_count": { "type": "number" },
+        "review_cadence_router_count": { "type": "number" },
+        "validation_launch_packet_count": { "type": "number" },
+        "deployment_allowed_now": { "const": false },
+        "release_approval_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "enterprise_trust_claim_allowed_now": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "human_gate_bypass_allowed_now": { "const": false },
+        "independent_review_bypass_allowed_now": { "const": false },
+        "single_owner_enterprise_trust_allowed_now": { "const": false },
+        "runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "connector_write_enabled": { "const": false },
+        "external_service_mutation_allowed_now": { "const": false },
+        "raw_source_exposure_allowed": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "reviewer_mutation_allowed_now": { "const": false },
+        "final_automated_approval_allowed": { "const": false }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "number" },
+        "errors": { "type": "array" }
+      }
+    }
+  },
+  "$defs": {
+    "verdictRow": {
+      "type": "object",
+      "required": [
+        "row_id",
+        "category",
+        "label",
+        "observed",
+        "current_verdict",
+        "block_reason",
+        "evidence_ref",
+        "generated_at"
+      ],
+      "properties": {
+        "row_id": { "type": "string", "minLength": 1 },
+        "category": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "observed": { "type": "boolean" },
+        "current_verdict": { "enum": ["pass", "blocked"] },
+        "block_reason": { "type": ["string", "null"] },
+        "evidence_ref": { "type": "string", "minLength": 1 },
+        "generated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "validationItem": {
+      "type": "object",
+      "required": ["item_id", "category", "passed", "message", "evidence_ref"],
+      "properties": {
+        "item_id": { "type": "string", "minLength": 1 },
+        "category": { "type": "string", "minLength": 1 },
+        "passed": { "type": "boolean" },
+        "message": { "type": "string" },
+        "evidence_ref": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

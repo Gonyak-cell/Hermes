@@ -557,3 +557,9 @@ P35600이 ready여도 이는 Work OS plan state handoff readiness일 뿐이며 a
 P35601-P36000은 P35600 Plan Registry Control-Plane Candidate 이후의 Work OS plan state projection이다. Work OS plan state projection, goal/phase/workflow read model, stale/blocker ledger, operator UI/API handoff projection, no-state-mutation boundary를 분리해 Hermes가 operator surface에 읽기용 plan state 후보를 넘길 수 있게 하되 actual state mutation을 열지 못하게 한다.
 
 P36000이 ready여도 이는 operator plan state handoff readiness일 뿐이며 actual plan registry record write, goal/phase status update, workflow registration, task creation, blocker clearance, API write, runtime execution, write action, protected action, connector write, deployment, review completion, final approval, production PASS, enterprise trust, secret read, reviewer mutation, final automated approval은 계속 false다. Work OS plan state row는 future read-model metadata이며 registered workflow, mutable plan state, action authority, or approval authority가 아니다.
+
+## P36001-P36400 Work OS Plan State API Read Model
+
+P36001-P36400은 P36000 Work OS Plan State Projection 이후의 API read model candidate다. Plan state API read model, UI consumer smoke fixture, API route response contract, no-API-write boundary를 분리해 Hermes가 Work OS UI 소비자가 읽을 fixture와 response shape를 볼 수 있게 하되 actual API server, route registration, API write, UI mutation을 열지 못하게 한다.
+
+P36400이 ready여도 이는 UI consumer smoke handoff readiness일 뿐이며 actual API server start, runtime route registration, network call requirement, API POST/PATCH/DELETE, UI mutation, status editing, action button enablement, runtime execution, write action, protected action, connector write, deployment, review completion, final approval, production PASS, enterprise trust, secret read, reviewer mutation, final automated approval은 계속 false다. API read model row는 future UI/route contract metadata이며 running API, mutable UI, action authority, or approval authority가 아니다.

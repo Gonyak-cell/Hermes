@@ -497,3 +497,9 @@ P31600이 ready여도 이는 clarifying question engine handoff readiness일 뿐
 P31601-P32000은 P31600 Ambiguous Request Intake 이후의 question planning and conflict detection contract다. Missing specification slots에서 clarifying question candidate를 만들고, protected action, high-risk ambiguity, authority-boundary gap, threshold 초과를 conflict row로 표시하며, clarification bundle과 priority policy를 생성해 다음 answer capture state machine이 질문 순서와 차단 이유를 잃지 않게 한다.
 
 P32000이 ready여도 이는 answer capture state machine handoff readiness일 뿐이며 actual question send, user answer capture, seed synthesis, seed apply, runtime execution, write action, protected action, connector write, deployment, review completion, final approval, production PASS, enterprise trust, raw prompt exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Question planner row는 read-only planning metadata이며 사용자의 답변을 받았거나 intent가 최종 확정됐다는 의미가 아니다.
+
+## P32001-P32400 Answer Capture and Spec State Machine
+
+P32001-P32400은 P32000 Question Planner and Conflict Detector 이후의 answer capture contract and spec state machine이다. Clarification bundle별 expected answer ref, answer receipt requirement, raw answer redaction boundary, state transition validator를 분리해 다음 seed readiness 단계가 어떤 답변 증거와 redaction 상태를 요구해야 하는지 잃지 않게 한다.
+
+P32400이 ready여도 이는 seed readiness gate handoff readiness일 뿐이며 actual answer capture, raw answer persist/exposure, seed synthesis, seed apply, runtime execution, write action, protected action, connector write, deployment, review completion, final approval, production PASS, enterprise trust, secret read, reviewer mutation, final automated approval은 계속 false다. Answer capture row는 future answer receipt contract metadata이며 사용자의 답변이 현재 존재하거나 최종 spec이 완성됐다는 의미가 아니다.

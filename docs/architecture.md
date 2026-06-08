@@ -503,3 +503,9 @@ P32000이 ready여도 이는 answer capture state machine handoff readiness일 �
 P32001-P32400은 P32000 Question Planner and Conflict Detector 이후의 answer capture contract and spec state machine이다. Clarification bundle별 expected answer ref, answer receipt requirement, raw answer redaction boundary, state transition validator를 분리해 다음 seed readiness 단계가 어떤 답변 증거와 redaction 상태를 요구해야 하는지 잃지 않게 한다.
 
 P32400이 ready여도 이는 seed readiness gate handoff readiness일 뿐이며 actual answer capture, raw answer persist/exposure, seed synthesis, seed apply, runtime execution, write action, protected action, connector write, deployment, review completion, final approval, production PASS, enterprise trust, secret read, reviewer mutation, final automated approval은 계속 false다. Answer capture row는 future answer receipt contract metadata이며 사용자의 답변이 현재 존재하거나 최종 spec이 완성됐다는 의미가 아니다.
+
+## P32401-P32800 Seed Synthesis Candidate and Execution Readiness Gate
+
+P32401-P32800은 P32400 Answer Capture and Spec State Machine 이후의 seed synthesis candidate and execution readiness gate다. Answer receipt가 아직 없는 상태에서도 seed candidate shell, execution readiness gate, seed review packet candidate, seed blocker ledger를 만들어 missing answer receipt, incomplete seed, review packet requirement, no-execution boundary를 operator가 볼 수 있게 한다.
+
+P32800이 ready여도 이는 defaults/no-fake-clarity guard handoff readiness일 뿐이며 actual final seed, seed apply, runtime execution, write action, protected action, connector write, deployment, review completion, final approval, production PASS, enterprise trust, raw answer exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Seed synthesis candidate row는 실행 가능한 seed가 아니라 실행이 왜 아직 불가능한지를 드러내는 blocked metadata다.

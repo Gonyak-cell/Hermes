@@ -527,3 +527,9 @@ P33600이 ready여도 이는 clarification replay capture handoff readiness일 �
 P33601-P34000은 P33600 UI Projection and Replay Ledger 이후의 clarification replay capture contract다. Redacted answer receipt intake, question replay trace binding, replay ledger completion candidate, seed recheck candidate, no-execution/no-raw boundary를 분리해 Hermes가 향후 어떤 답변 증거를 요구하는지 보이게 하되 actual answer capture나 raw answer persistence를 열지 못하게 한다.
 
 P34000이 ready여도 이는 seed recheck validation handoff readiness일 뿐이며 actual answer capture, raw answer persist/exposure, replay receipt auto-accept, replay completion, replay verification PASS, seed recheck execution/PASS, seed unblock, final seed, runtime execution, write action, protected action, connector write, deployment, review completion, final approval, production PASS, enterprise trust, secret read, reviewer mutation, final automated approval은 계속 false다. Clarification replay row는 future evidence contract metadata이며 captured answer, completed replay, executable seed, or approval authority가 아니다.
+
+## P34001-P34400 Seed Recheck Validation Contract
+
+P34001-P34400은 P34000 Clarification Replay Capture Contract 이후의 seed recheck validation contract다. Clarification sufficiency evidence, missing answer blocker rule, seed recheck validator candidate, no-fake-execution gate, operator seed recheck projection을 분리해 Hermes가 ready, candidate, executed, PASS, blocked 상태를 혼동하지 않게 한다.
+
+P34400이 ready여도 이는 commercial spec readiness handoff readiness일 뿐이며 actual clarification sufficiency PASS, replay verification PASS, seed recheck execution/PASS, seed unblock, final seed, runtime execution, write action, protected action, connector write, deployment, review completion, final approval, production PASS, enterprise trust, secret read, reviewer mutation, final automated approval은 계속 false다. Seed recheck validation row는 검증 계약 metadata이며 executable seed, final spec, action authority, or approval authority가 아니다.

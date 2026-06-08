@@ -551,3 +551,9 @@ P35200이 ready여도 이는 plan registry control-plane handoff readiness일 �
 P35201-P35600은 P35200 Commercial Spec Registration Candidate 이후의 plan registry control-plane candidate다. Plan registry candidate, goal/phase manifest binding candidate, project workflow registration candidate, registry blocker ledger, operator plan registry projection, no-registry-mutation boundary를 분리해 Hermes가 Work OS plan state handoff를 보이게 하되 actual registry mutation을 열지 못하게 한다.
 
 P35600이 ready여도 이는 Work OS plan state handoff readiness일 뿐이며 actual plan registry record create, goal/phase manifest write, project workflow registration, registry status PASS, runtime execution, write action, protected action, connector write, deployment, review completion, final approval, production PASS, enterprise trust, secret read, reviewer mutation, final automated approval은 계속 false다. Plan registry row는 future Work OS state metadata이며 registered workflow, written manifest, action authority, or approval authority가 아니다.
+
+## P35601-P36000 Work OS Plan State Projection
+
+P35601-P36000은 P35600 Plan Registry Control-Plane Candidate 이후의 Work OS plan state projection이다. Work OS plan state projection, goal/phase/workflow read model, stale/blocker ledger, operator UI/API handoff projection, no-state-mutation boundary를 분리해 Hermes가 operator surface에 읽기용 plan state 후보를 넘길 수 있게 하되 actual state mutation을 열지 못하게 한다.
+
+P36000이 ready여도 이는 operator plan state handoff readiness일 뿐이며 actual plan registry record write, goal/phase status update, workflow registration, task creation, blocker clearance, API write, runtime execution, write action, protected action, connector write, deployment, review completion, final approval, production PASS, enterprise trust, secret read, reviewer mutation, final automated approval은 계속 false다. Work OS plan state row는 future read-model metadata이며 registered workflow, mutable plan state, action authority, or approval authority가 아니다.

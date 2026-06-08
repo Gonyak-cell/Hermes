@@ -509,3 +509,9 @@ P32400이 ready여도 이는 seed readiness gate handoff readiness일 뿐이며 
 P32401-P32800은 P32400 Answer Capture and Spec State Machine 이후의 seed synthesis candidate and execution readiness gate다. Answer receipt가 아직 없는 상태에서도 seed candidate shell, execution readiness gate, seed review packet candidate, seed blocker ledger를 만들어 missing answer receipt, incomplete seed, review packet requirement, no-execution boundary를 operator가 볼 수 있게 한다.
 
 P32800이 ready여도 이는 defaults/no-fake-clarity guard handoff readiness일 뿐이며 actual final seed, seed apply, runtime execution, write action, protected action, connector write, deployment, review completion, final approval, production PASS, enterprise trust, raw answer exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Seed synthesis candidate row는 실행 가능한 seed가 아니라 실행이 왜 아직 불가능한지를 드러내는 blocked metadata다.
+
+## P32801-P33200 Defaults Assumptions and No-Fake-Clarity Guard
+
+P32801-P33200은 P32800 Seed Synthesis Candidate and Execution Readiness Gate 이후의 defaults assumptions and no-fake-clarity guard다. Defaults assumptions ledger, assumption risk classifier, no-fake-clarity guard, clarification replay precondition, blocked seed handoff를 분리해 Hermes가 missing answer나 assumption을 실제 사용자 답변처럼 취급하지 못하게 한다.
+
+P33200이 ready여도 이는 UI projection and replay ledger handoff readiness일 뿐이며 actual default apply, missing answer replacement, assumption-as-fact, spec clear verdict, seed unblock, final seed, runtime execution, write action, protected action, connector write, deployment, review completion, final approval, production PASS, enterprise trust, raw answer exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Defaults row는 fake clarity를 막기 위한 labeled assumption metadata이며 최종 스펙이나 실행 근거가 아니다.

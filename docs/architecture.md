@@ -515,3 +515,9 @@ P32800이 ready여도 이는 defaults/no-fake-clarity guard handoff readiness일
 P32801-P33200은 P32800 Seed Synthesis Candidate and Execution Readiness Gate 이후의 defaults assumptions and no-fake-clarity guard다. Defaults assumptions ledger, assumption risk classifier, no-fake-clarity guard, clarification replay precondition, blocked seed handoff를 분리해 Hermes가 missing answer나 assumption을 실제 사용자 답변처럼 취급하지 못하게 한다.
 
 P33200이 ready여도 이는 UI projection and replay ledger handoff readiness일 뿐이며 actual default apply, missing answer replacement, assumption-as-fact, spec clear verdict, seed unblock, final seed, runtime execution, write action, protected action, connector write, deployment, review completion, final approval, production PASS, enterprise trust, raw answer exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Defaults row는 fake clarity를 막기 위한 labeled assumption metadata이며 최종 스펙이나 실행 근거가 아니다.
+
+## P33201-P33600 UI Projection and Replay Ledger
+
+P33201-P33600은 P33200 Defaults Assumptions and No-Fake-Clarity Guard 이후의 UI projection and replay ledger contract다. UI projection slot map, replay ledger candidate, operator handoff surface, replay evidence guard, no-action UI boundary를 분리해 Hermes가 blocked clarification replay를 화면에 보여주되 answer capture, replay receipt accept, seed unblock, command dispatch, state mutation, or execution을 열지 못하게 한다.
+
+P33600이 ready여도 이는 clarification replay capture handoff readiness일 뿐이며 actual answer capture, raw answer exposure, replay receipt auto-accept, replay verification PASS, seed recheck, seed unblock, final seed, runtime execution, write action, protected action, connector write, deployment, review completion, final approval, production PASS, enterprise trust, secret read, reviewer mutation, final automated approval은 계속 false다. UI projection row는 operator-visible blocked work metadata이며 action surface, final spec, or execution authority가 아니다.

@@ -569,3 +569,9 @@ P36400이 ready여도 이는 UI consumer smoke handoff readiness일 뿐이며 ac
 P36401-P36800은 P36400 Work OS Plan State API Read Model 이후의 static UI adapter candidate다. Static UI adapter candidate, screen slot binding, static shell fixture, interaction smoke rows, no-live-UI-mutation boundary를 분리해 Hermes가 Work OS UI가 소비할 정적 화면 후보를 볼 수 있게 하되 actual live UI mount나 UI mutation을 열지 못하게 한다.
 
 P36800이 ready여도 이는 static UI handoff readiness일 뿐이며 actual live UI mount, runtime fetch, event-handler mutation, form submit, route navigation, state persistence, generated file write, runtime execution, write action, protected action, connector write, deployment, review completion, final approval, production PASS, enterprise trust, secret read, reviewer mutation, final automated approval은 계속 false다. Static UI adapter row는 future static shell metadata이며 running UI, mutable state, action authority, or approval authority가 아니다.
+
+## P36801-P37200 Work OS Plan State Static Bundle Handoff
+
+P36801-P37200은 P36800 Work OS Plan State Static UI Adapter 이후의 static bundle handoff candidate다. Static bundle manifest candidate, static bundle file plan candidate, static bundle handoff package, operator preview bundle rows, no-generated-file-apply boundary를 분리해 Hermes가 정적 UI bundle 후보를 리뷰 가능한 metadata로 볼 수 있게 하되 actual generated file write/apply를 열지 못하게 한다.
+
+P37200이 ready여도 이는 preview bundle handoff readiness일 뿐이며 actual generated file write, generated file apply, artifact persist, asset copy, shell overwrite, manifest publish, preview server start, live mount, runtime execution, write action, protected action, connector write, deployment, review completion, final approval, production PASS, enterprise trust, secret read, reviewer mutation, final automated approval은 계속 false다. Static bundle row는 future preview metadata이며 written file, applied patch, running preview, action authority, or approval authority가 아니다.

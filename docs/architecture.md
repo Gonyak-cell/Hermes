@@ -491,3 +491,9 @@ P31200이 ready여도 이는 static shell implementation handoff package metadat
 P31201-P31600은 P31200 static shell implementation handoff package 이후의 generic request ambiguity contract다. Prompt source intake, intent parser, task type registry, spec schema selector, slot clarity scoring, ambiguity threshold policy를 분리해 Hermes가 모호한 요구를 곧바로 실행하지 않고 어떤 질문과 스펙 슬롯이 필요한지 판정할 수 있게 한다. 이 단계는 Ouroboros식으로 seed/spec/evaluate/replay를 선명하게 만드는 개념만 흡수하며, Ouroboros나 Nous Hermes를 runtime, approval, deploy, write, or enterprise trust authority로 채택하지 않는다.
 
 P31600이 ready여도 이는 clarifying question engine handoff readiness일 뿐이며 actual user question send, answer capture, seed synthesis, seed apply, runtime execution, write action, protected action, connector write, deployment, review completion, final approval, production PASS, enterprise trust, raw prompt exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Ambiguous request intake row는 metadata-only clarity and threshold evidence이며, 실행 가능한 명령이나 최종 스펙 자체가 아니다.
+
+## P31601-P32000 Question Planner and Conflict Detector
+
+P31601-P32000은 P31600 Ambiguous Request Intake 이후의 question planning and conflict detection contract다. Missing specification slots에서 clarifying question candidate를 만들고, protected action, high-risk ambiguity, authority-boundary gap, threshold 초과를 conflict row로 표시하며, clarification bundle과 priority policy를 생성해 다음 answer capture state machine이 질문 순서와 차단 이유를 잃지 않게 한다.
+
+P32000이 ready여도 이는 answer capture state machine handoff readiness일 뿐이며 actual question send, user answer capture, seed synthesis, seed apply, runtime execution, write action, protected action, connector write, deployment, review completion, final approval, production PASS, enterprise trust, raw prompt exposure, secret read, reviewer mutation, final automated approval은 계속 false다. Question planner row는 read-only planning metadata이며 사용자의 답변을 받았거나 intent가 최종 확정됐다는 의미가 아니다.

@@ -1,0 +1,284 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/post-p64000-focused-remediation-closeout-candidate.schema.json",
+  "title": "Post-P64000 Focused Remediation Closeout Candidate",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "review_event_program_range",
+    "reviewed_program_range",
+    "next_program_range",
+    "post_p64000_focused_remediation_closeout_candidate_contract",
+    "p70400_normalization_source_rows",
+    "focused_remediation_candidate_rows",
+    "focused_re_review_plan_rows",
+    "finding_state_continuity_rows",
+    "closeout_candidate_boundary_rows",
+    "authority_boundary_rows",
+    "negative_fixture_contract_rows",
+    "validation_command_rows",
+    "p70800_wiring_rows",
+    "p70800_closeout_rows",
+    "p70801_handoff_rows",
+    "post_p64000_focused_remediation_closeout_candidate_boundary",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "post-p64000-focused-remediation-closeout-candidate.v1" },
+    "capability_id": { "const": "platform.post_p64000_focused_remediation_closeout_candidate" },
+    "program_range": { "const": "P70401-P70800" },
+    "source_program_range": { "const": "P70001-P70400" },
+    "review_event_program_range": { "const": "P69601-P70000" },
+    "reviewed_program_range": { "const": "P68801-P69200" },
+    "next_program_range": { "const": "P70801-P71200" },
+    "post_p64000_focused_remediation_closeout_candidate_contract": {
+      "type": "object",
+      "required": [
+        "closeout_candidate_only",
+        "re_review_plan_only",
+        "finding_resolution_allowed",
+        "source_mutation_allowed",
+        "patch_apply_allowed",
+        "write_action_allowed",
+        "clean_checkpoint_allowed",
+        "protected_closeout_allowed",
+        "production_pass_allowed",
+        "enterprise_pass_allowed",
+        "final_approval_allowed"
+      ],
+      "properties": {
+        "closeout_candidate_only": { "const": true },
+        "re_review_plan_only": { "const": true },
+        "finding_resolution_allowed": { "const": false },
+        "source_mutation_allowed": { "const": false },
+        "patch_apply_allowed": { "const": false },
+        "write_action_allowed": { "const": false },
+        "clean_checkpoint_allowed": { "const": false },
+        "protected_closeout_allowed": { "const": false },
+        "production_pass_allowed": { "const": false },
+        "enterprise_pass_allowed": { "const": false },
+        "final_approval_allowed": { "const": false }
+      }
+    },
+    "p70400_normalization_source_rows": { "$ref": "#/$defs/rows" },
+    "focused_remediation_candidate_rows": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": [
+              "finding_id",
+              "candidate_status",
+              "finding_state",
+              "blocking",
+              "candidate_claims_fixed_now",
+              "candidate_claims_verified_now",
+              "candidate_claims_resolved_now",
+              "candidate_claims_clean_checkpoint_now",
+              "candidate_claims_write_action_now",
+              "required_evidence_before_resolution"
+            ],
+            "properties": {
+              "finding_id": { "enum": ["HRM-04", "HRM-03", "HRM-01"] },
+              "candidate_status": { "const": "candidate_pending_review" },
+              "finding_state": { "const": "blocking_open" },
+              "blocking": { "const": true },
+              "candidate_claims_fixed_now": { "const": false },
+              "candidate_claims_verified_now": { "const": false },
+              "candidate_claims_resolved_now": { "const": false },
+              "candidate_claims_clean_checkpoint_now": { "const": false },
+              "candidate_claims_write_action_now": { "const": false },
+              "required_evidence_before_resolution": {
+                "type": "array",
+                "minItems": 3,
+                "items": { "type": "string" }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "focused_re_review_plan_rows": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": [
+              "finding_id",
+              "review_scope",
+              "required_reviewer_lane",
+              "required_reviewer",
+              "required_receipt_type",
+              "reviewer_completion_observed_now",
+              "reviewer_completion_claim_allowed_now",
+              "re_review_required_now"
+            ],
+            "properties": {
+              "finding_id": { "enum": ["HRM-04", "HRM-03", "HRM-01"] },
+              "review_scope": { "const": "focused_hrm_finding_re_review" },
+              "required_reviewer_lane": { "const": "independent_read_only" },
+              "required_reviewer": { "const": "claude-code-opus-max" },
+              "required_receipt_type": { "const": "durable_raw_json" },
+              "reviewer_completion_observed_now": { "const": false },
+              "reviewer_completion_claim_allowed_now": { "const": false },
+              "re_review_required_now": { "const": true }
+            }
+          }
+        ]
+      }
+    },
+    "finding_state_continuity_rows": { "$ref": "#/$defs/rows" },
+    "closeout_candidate_boundary_rows": { "$ref": "#/$defs/rows" },
+    "authority_boundary_rows": { "$ref": "#/$defs/rows" },
+    "negative_fixture_contract_rows": { "$ref": "#/$defs/rows" },
+    "validation_command_rows": { "$ref": "#/$defs/rows" },
+    "p70800_wiring_rows": { "$ref": "#/$defs/rows" },
+    "p70800_closeout_rows": { "$ref": "#/$defs/rows" },
+    "p70801_handoff_rows": { "$ref": "#/$defs/rows" },
+    "post_p64000_focused_remediation_closeout_candidate_boundary": {
+      "type": "object",
+      "required": [
+        "p70400_normalization_ready_now",
+        "remediation_candidates_ready_now",
+        "re_review_plan_ready_now",
+        "blocking_findings_preserved_now",
+        "ready_for_p70801_handoff",
+        "clean_checkpoint_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "final_approval_enabled",
+        "runtime_execution_allowed_now",
+        "write_action_allowed_now",
+        "connector_write_allowed_now",
+        "protected_closeout_allowed_now",
+        "deployment_allowed_now",
+        "production_pass_allowed_now",
+        "enterprise_pass_allowed_now",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "final_automated_approval_allowed_now",
+        "remediation_candidate_fixed_claim_allowed_now",
+        "remediation_candidate_verified_claim_allowed_now",
+        "remediation_candidate_resolved_claim_allowed_now",
+        "re_review_completion_claim_allowed_now",
+        "reviewer_mutation_allowed_now",
+        "source_mutation_from_candidate_allowed_now",
+        "finding_resolution_allowed_now",
+        "patch_apply_allowed_now",
+        "write_action_from_candidate_allowed_now",
+        "post_p70800_final_approval_claim_allowed_now"
+      ],
+      "properties": {
+        "p70400_normalization_ready_now": { "type": "boolean" },
+        "remediation_candidates_ready_now": { "type": "boolean" },
+        "re_review_plan_ready_now": { "type": "boolean" },
+        "blocking_findings_preserved_now": { "type": "boolean" },
+        "ready_for_p70801_handoff": { "type": "boolean" },
+        "clean_checkpoint_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "final_approval_enabled": { "const": false },
+        "runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "protected_closeout_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "production_pass_allowed_now": { "const": false },
+        "enterprise_pass_allowed_now": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "final_automated_approval_allowed_now": { "const": false },
+        "remediation_candidate_fixed_claim_allowed_now": { "const": false },
+        "remediation_candidate_verified_claim_allowed_now": { "const": false },
+        "remediation_candidate_resolved_claim_allowed_now": { "const": false },
+        "re_review_completion_claim_allowed_now": { "const": false },
+        "reviewer_mutation_allowed_now": { "const": false },
+        "source_mutation_from_candidate_allowed_now": { "const": false },
+        "finding_resolution_allowed_now": { "const": false },
+        "patch_apply_allowed_now": { "const": false },
+        "write_action_from_candidate_allowed_now": { "const": false },
+        "post_p70800_final_approval_claim_allowed_now": { "const": false }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "post_p64000_focused_remediation_closeout_candidate_status",
+        "program_range",
+        "source_program_range",
+        "next_program_range",
+        "p70400_normalization_ready_now",
+        "remediation_candidates_ready_now",
+        "re_review_plan_ready_now",
+        "blocking_findings_preserved_now",
+        "ready_for_p70801_handoff",
+        "blocking_finding_count",
+        "clean_checkpoint_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "final_approval_enabled",
+        "validation_error_count"
+      ],
+      "properties": {
+        "post_p64000_focused_remediation_closeout_candidate_status": {
+          "enum": ["focused_remediation_closeout_candidate_ready_for_p70801", "blocked"]
+        },
+        "program_range": { "const": "P70401-P70800" },
+        "source_program_range": { "const": "P70001-P70400" },
+        "next_program_range": { "const": "P70801-P71200" },
+        "p70400_normalization_ready_now": { "type": "boolean" },
+        "remediation_candidates_ready_now": { "type": "boolean" },
+        "re_review_plan_ready_now": { "type": "boolean" },
+        "blocking_findings_preserved_now": { "type": "boolean" },
+        "ready_for_p70801_handoff": { "type": "boolean" },
+        "blocking_finding_count": { "type": "integer", "minimum": 3 },
+        "clean_checkpoint_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "final_approval_enabled": { "const": false },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "rows": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/row" }
+    },
+    "row": {
+      "type": "object",
+      "required": ["row_id", "category", "label", "observed", "current_verdict", "generated_at"],
+      "properties": {
+        "row_id": { "type": "string", "minLength": 1 },
+        "category": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "observed": { "type": "boolean" },
+        "current_verdict": { "enum": ["pass", "block"] },
+        "evidence_ref": { "type": ["string", "null"] },
+        "output_ref": { "type": ["string", "null"] },
+        "block_reason": { "type": ["string", "null"] },
+        "next_allowed_action": { "type": ["string", "null"] },
+        "generated_at": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

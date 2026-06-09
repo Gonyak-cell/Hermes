@@ -763,7 +763,8 @@
     "platform:post-p64000-hrm01-review-depth-cap": "node scripts/post-p64000-hrm01-review-depth-cap.mjs",
     "platform:post-p64000-hrm-revalidation-clean-candidate-review": "node scripts/post-p64000-hrm-revalidation-clean-candidate-review.mjs",
     "platform:post-p64000-claude-read-only-review-capture": "node scripts/post-p64000-claude-read-only-review-capture.mjs",
-    "platform:post-p64000-claude-review-receipt-normalization": "node scripts/post-p64000-claude-review-receipt-normalization.mjs"
+    "platform:post-p64000-claude-review-receipt-normalization": "node scripts/post-p64000-claude-review-receipt-normalization.mjs",
+    "platform:post-p64000-focused-hrm-remediation-plan": "node scripts/post-p64000-focused-hrm-remediation-plan.mjs"
   },
   "engines": {
     "node": ">=20 <27",

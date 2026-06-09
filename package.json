@@ -747,7 +747,8 @@
     "platform:hermes-loop-source-binding": "node scripts/hermes-loop-source-binding.mjs",
     "platform:hermes-loop-overlay-contract": "node scripts/hermes-loop-overlay-contract.mjs",
     "platform:hermes-loop-agent-control-contract": "node scripts/hermes-loop-agent-control-contract.mjs",
-    "platform:hermes-loop-run-ledger-projection": "node scripts/hermes-loop-run-ledger-projection.mjs"
+    "platform:hermes-loop-run-ledger-projection": "node scripts/hermes-loop-run-ledger-projection.mjs",
+    "platform:hermes-loop-context-memory-grounding": "node scripts/hermes-loop-context-memory-grounding.mjs"
   },
   "engines": {
     "node": ">=20 <27",

@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/hermes-loop-agent-control-contract.schema.json",
+  "title": "Hermes Loop System v1.1 Agent Control Contract",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "next_program_range",
+    "source_refs",
+    "hermes_loop_agent_control_contract",
+    "p60800_overlay_source_rows",
+    "worker_run_schema_rows",
+    "verifier_run_schema_rows",
+    "model_route_decision_schema_rows",
+    "budget_decision_schema_rows",
+    "gate_result_schema_rows",
+    "authority_boundary_schema_rows",
+    "worker_verifier_separation_rows",
+    "model_budget_control_rows",
+    "authority_boundary_carryover_rows",
+    "negative_fixture_contract_rows",
+    "validation_command_rows",
+    "hermes_loop_agent_control_wiring_rows",
+    "p61200_closeout_rows",
+    "p61201_next_phase_handoff_rows",
+    "hermes_loop_agent_control_boundary",
+    "hermes_loop_agent_control_validation_items",
+    "summary",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "hermes-loop-agent-control-contract.v1" },
+    "capability_id": { "const": "platform.hermes_loop_system_v1_1_agent_control_contract" },
+    "program_range": { "const": "P60801-P61200" },
+    "source_program_range": { "const": "P60401-P60800" },
+    "next_program_range": { "const": "P61201-P61600" },
+    "p60800_overlay_source_rows": { "type": "array", "minItems": 5, "items": { "$ref": "#/$defs/verdictRow" } },
+    "worker_run_schema_rows": { "type": "array", "minItems": 15, "items": { "$ref": "#/$defs/verdictRow" } },
+    "verifier_run_schema_rows": { "type": "array", "minItems": 16, "items": { "$ref": "#/$defs/verdictRow" } },
+    "model_route_decision_schema_rows": { "type": "array", "minItems": 17, "items": { "$ref": "#/$defs/verdictRow" } },
+    "budget_decision_schema_rows": { "type": "array", "minItems": 21, "items": { "$ref": "#/$defs/verdictRow" } },
+    "gate_result_schema_rows": { "type": "array", "minItems": 12, "items": { "$ref": "#/$defs/verdictRow" } },
+    "authority_boundary_schema_rows": { "type": "array", "minItems": 13, "items": { "$ref": "#/$defs/verdictRow" } },
+    "worker_verifier_separation_rows": { "type": "array", "minItems": 6, "items": { "$ref": "#/$defs/verdictRow" } },
+    "model_budget_control_rows": { "type": "array", "minItems": 5, "items": { "$ref": "#/$defs/verdictRow" } },
+    "authority_boundary_carryover_rows": { "type": "array", "minItems": 21, "items": { "$ref": "#/$defs/verdictRow" } },
+    "negative_fixture_contract_rows": { "type": "array", "minItems": 14, "items": { "$ref": "#/$defs/verdictRow" } },
+    "validation_command_rows": { "type": "array", "minItems": 6, "items": { "$ref": "#/$defs/verdictRow" } },
+    "p61200_closeout_rows": { "type": "array", "minItems": 13, "items": { "$ref": "#/$defs/verdictRow" } },
+    "p61201_next_phase_handoff_rows": { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/verdictRow" } },
+    "hermes_loop_agent_control_boundary": {
+      "type": "object",
+      "required": [
+        "p61200_contract_ready",
+        "p60800_source_ready_now",
+        "worker_run_schema_rows_ready_now",
+        "verifier_run_schema_rows_ready_now",
+        "model_route_decision_schema_rows_ready_now",
+        "budget_decision_schema_rows_ready_now",
+        "worker_verifier_separation_ready_now",
+        "model_budget_control_ready_now",
+        "authority_boundary_carryover_closed_now",
+        "ready_for_p61201_handoff",
+        "runtime_execution_allowed_now",
+        "command_execution_allowed_now",
+        "write_action_allowed_now",
+        "connector_write_allowed_now",
+        "protected_action_allowed_now",
+        "deployment_allowed_now",
+        "production_pass_allowed_now",
+        "enterprise_pass_allowed_now",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "final_automated_approval_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "final_approval_enabled"
+      ],
+      "properties": {
+        "p61200_contract_ready": { "type": "boolean" },
+        "p60800_source_ready_now": { "type": "boolean" },
+        "worker_run_schema_rows_ready_now": { "type": "boolean" },
+        "verifier_run_schema_rows_ready_now": { "type": "boolean" },
+        "model_route_decision_schema_rows_ready_now": { "type": "boolean" },
+        "budget_decision_schema_rows_ready_now": { "type": "boolean" },
+        "worker_verifier_separation_ready_now": { "type": "boolean" },
+        "model_budget_control_ready_now": { "type": "boolean" },
+        "authority_boundary_carryover_closed_now": { "type": "boolean" },
+        "ready_for_p61201_handoff": { "type": "boolean" },
+        "runtime_execution_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "production_pass_allowed_now": { "const": false },
+        "enterprise_pass_allowed_now": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "final_automated_approval_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "final_approval_enabled": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "hermes_loop_agent_control_status",
+        "program_range",
+        "source_program_range",
+        "next_program_range",
+        "p60800_source_ready_now",
+        "p61200_contract_ready",
+        "ready_for_p61201_handoff",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "final_approval_enabled"
+      ],
+      "properties": {
+        "hermes_loop_agent_control_status": {
+          "enum": [
+            "ready_for_p61201_handoff",
+            "valid_block_p61201_handoff_pending",
+            "blocked_hermes_loop_agent_control_contract"
+          ]
+        },
+        "program_range": { "const": "P60801-P61200" },
+        "source_program_range": { "const": "P60401-P60800" },
+        "next_program_range": { "const": "P61201-P61600" },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "final_approval_enabled": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "number" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "verdictRow": {
+      "type": "object",
+      "required": [
+        "row_id",
+        "category",
+        "label",
+        "observed",
+        "current_verdict",
+        "evidence_ref",
+        "block_reason",
+        "next_allowed_action",
+        "generated_at"
+      ],
+      "properties": {
+        "row_id": { "type": "string" },
+        "category": { "type": "string" },
+        "label": { "type": "string" },
+        "observed": { "type": "boolean" },
+        "current_verdict": { "enum": ["pass", "block"] },
+        "evidence_ref": { "type": ["string", "null"] },
+        "block_reason": { "type": ["string", "null"] },
+        "next_allowed_action": { "type": "string" },
+        "generated_at": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

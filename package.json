@@ -745,7 +745,8 @@
     "platform:work-os-static-bundle-review-ui-implementation-review-static-shell-implementation-review-static-shell-implementation-review-static-shell-implementation-review-static-shell-implementation-review-api-read-model": "node scripts/work-os-static-bundle-review-ui-implementation-review-static-shell-implementation-review-static-shell-implementation-review-static-shell-implementation-review-static-shell-implementation-review-api-read-model.mjs",
     "platform:work-os-static-bundle-review-ui-implementation-review-static-shell-implementation-review-static-shell-implementation-review-static-shell-implementation-review-static-shell-implementation-review-static-ui-adapter": "node scripts/work-os-static-bundle-review-ui-implementation-review-static-shell-implementation-review-static-shell-implementation-review-static-shell-implementation-review-static-shell-implementation-review-static-ui-adapter.mjs",
     "platform:hermes-loop-source-binding": "node scripts/hermes-loop-source-binding.mjs",
-    "platform:hermes-loop-overlay-contract": "node scripts/hermes-loop-overlay-contract.mjs"
+    "platform:hermes-loop-overlay-contract": "node scripts/hermes-loop-overlay-contract.mjs",
+    "platform:hermes-loop-agent-control-contract": "node scripts/hermes-loop-agent-control-contract.mjs"
   },
   "engines": {
     "node": ">=20 <27",

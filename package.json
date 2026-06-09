@@ -756,7 +756,8 @@
     "platform:hermes-loop-final-freeze": "node scripts/hermes-loop-final-freeze.mjs",
     "platform:post-p64000-claude-review-baseline": "node scripts/post-p64000-claude-review-baseline.mjs",
     "platform:post-p64000-claude-review-execution": "node scripts/post-p64000-claude-review-execution.mjs",
-    "platform:post-p64000-claude-review-normalization": "node scripts/post-p64000-claude-review-normalization.mjs"
+    "platform:post-p64000-claude-review-normalization": "node scripts/post-p64000-claude-review-normalization.mjs",
+    "platform:post-p64000-claude-review-handoff-freeze": "node scripts/post-p64000-claude-review-handoff-freeze.mjs"
   },
   "engines": {
     "node": ">=20 <27",

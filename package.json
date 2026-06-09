@@ -768,7 +768,8 @@
     "platform:post-p64000-focused-hrm-verification-capture": "node scripts/post-p64000-focused-hrm-verification-capture.mjs",
     "platform:post-p64000-focused-hrm-verification-normalization": "node scripts/post-p64000-focused-hrm-verification-normalization.mjs",
     "platform:post-p64000-focused-claude-review-dispatch-metadata": "node scripts/post-p64000-focused-claude-review-dispatch-metadata.mjs",
-    "platform:post-p64000-focused-claude-review-raw-capture": "node scripts/post-p64000-focused-claude-review-raw-capture.mjs"
+    "platform:post-p64000-focused-claude-review-raw-capture": "node scripts/post-p64000-focused-claude-review-raw-capture.mjs",
+    "platform:post-p64000-focused-claude-review-receipt-normalization": "node scripts/post-p64000-focused-claude-review-receipt-normalization.mjs"
   },
   "engines": {
     "node": ">=20 <27",

@@ -24,6 +24,8 @@ P60001-P64000 Hermes Loop System v1.1은 `docs/hermes-loop-system-specification.
 
 P64001-P64400 Post-P64000 Claude Review Baseline은 마지막 durable Claude Code Opus max receipt 이후 변경분을 P64000 final freeze evidence와 묶어 read-only review packet으로 만든다. 이 단계는 Claude review를 실행하거나 승인하지 않고, raw durable receipt anchor, post-review commit/file scope, validation command, negative fixture, authority-false matrix, P64401 handoff만 고정한다.
 
+P64401-P64800 Claude Review Execution은 P64400 packet을 Claude Code Opus max read-only reviewer lane에 전달하고 durable raw JSON을 캡처한다. raw capture가 유효해도 finding normalization, source mutation, protected closeout, production PASS, enterprise PASS, Codex/Claude final approval은 열리지 않으며 blocking findings는 P64801-P65200 finding loop로 넘어간다.
+
 P6201-P6600 Product and Domain SaaS Factory는 Hermes를 여러 SaaS 개발 계획의 control harness로 만든다. HR Solution, Law Firm OS, Hermes Harness, Zendd Bridge 같은 프로젝트를 SaaS project intake와 requirement traceability matrix에 등록하고, personal-dev/law-firm/creative-document/connectors-resource/trading-read-only domain pack을 재사용 가능한 `domain -> goal -> workflow -> evidence -> review -> gate` 계약으로 관리한다. 이 단계는 제품 출시, 외부 repo/service write, raw HR/client/sensitive data ingestion, protected closeout, enterprise trust, Work OS production claim을 열지 않는다.
 
 P6601-P7000 Controlled Execution Write and Deploy는 allowlist, sandbox/timeout, redaction/secret scan, generated patch candidate, receipt-gated apply boundary, deploy receipt, rollback binding, post-apply validation, negative fixture를 준비한다. 현재 no-human milestone mode에서는 command execution, patch apply, deploy, external project write, protected action은 계속 false다. 즉 Hermes는 실행을 준비하는 계약과 UI를 만들지만, 실제 실행 권한은 열지 않는다.

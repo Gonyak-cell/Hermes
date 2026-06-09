@@ -772,7 +772,8 @@
     "platform:post-p64000-focused-claude-review-receipt-normalization": "node scripts/post-p64000-focused-claude-review-receipt-normalization.mjs",
     "platform:post-p64000-focused-remediation-closeout-candidate": "node scripts/post-p64000-focused-remediation-closeout-candidate.mjs",
     "platform:post-p64000-focused-strict-remediation-plan": "node scripts/post-p64000-focused-strict-remediation-plan.mjs",
-    "platform:post-p64000-focused-re-review-dispatch-gate": "node scripts/post-p64000-focused-re-review-dispatch-gate.mjs"
+    "platform:post-p64000-focused-re-review-dispatch-gate": "node scripts/post-p64000-focused-re-review-dispatch-gate.mjs",
+    "platform:post-p64000-focused-re-review-raw-capture-intake": "node scripts/post-p64000-focused-re-review-raw-capture-intake.mjs"
   },
   "engines": {
     "node": ">=20 <27",

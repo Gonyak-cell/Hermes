@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/hermes-loop-model-budget-control.schema.json",
+  "title": "Hermes Loop System v1.1 Model Budget Control",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "next_program_range",
+    "p62400_dag_topology_source_rows",
+    "model_route_decision_contract_rows",
+    "budget_decision_contract_rows",
+    "route_gate_policy_rows",
+    "budget_guardrail_rows",
+    "downgrade_stop_policy_rows",
+    "authority_boundary_carryover_rows",
+    "negative_fixture_contract_rows",
+    "validation_command_rows",
+    "p62800_closeout_rows",
+    "p62801_next_phase_handoff_rows",
+    "hermes_loop_model_budget_boundary",
+    "summary",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "hermes-loop-model-budget-control.v1" },
+    "capability_id": { "const": "platform.hermes_loop_system_v1_1_model_budget_control" },
+    "program_range": { "const": "P62401-P62800" },
+    "source_program_range": { "const": "P62001-P62400" },
+    "next_program_range": { "const": "P62801-P63200" },
+    "p62400_dag_topology_source_rows": { "type": "array", "minItems": 5, "items": { "$ref": "#/$defs/verdictRow" } },
+    "model_route_decision_contract_rows": { "type": "array", "minItems": 17, "items": { "$ref": "#/$defs/verdictRow" } },
+    "budget_decision_contract_rows": { "type": "array", "minItems": 21, "items": { "$ref": "#/$defs/verdictRow" } },
+    "route_gate_policy_rows": { "type": "array", "minItems": 8, "items": { "$ref": "#/$defs/verdictRow" } },
+    "budget_guardrail_rows": { "type": "array", "minItems": 12, "items": { "$ref": "#/$defs/verdictRow" } },
+    "downgrade_stop_policy_rows": { "type": "array", "minItems": 9, "items": { "$ref": "#/$defs/verdictRow" } },
+    "authority_boundary_carryover_rows": { "type": "array", "minItems": 26, "items": { "$ref": "#/$defs/verdictRow" } },
+    "negative_fixture_contract_rows": { "type": "array", "minItems": 12, "items": { "$ref": "#/$defs/verdictRow" } },
+    "validation_command_rows": { "type": "array", "minItems": 6, "items": { "$ref": "#/$defs/verdictRow" } },
+    "p62800_closeout_rows": { "type": "array", "minItems": 10, "items": { "$ref": "#/$defs/verdictRow" } },
+    "p62801_next_phase_handoff_rows": { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/verdictRow" } },
+    "hermes_loop_model_budget_boundary": {
+      "type": "object",
+      "required": [
+        "p62800_contract_ready",
+        "p62400_source_ready_now",
+        "model_route_decision_ready_now",
+        "budget_decision_ready_now",
+        "route_gate_policy_ready_now",
+        "budget_guardrail_ready_now",
+        "downgrade_stop_policy_ready_now",
+        "ready_for_p62801_handoff",
+        "runtime_execution_allowed_now",
+        "write_action_allowed_now",
+        "connector_write_allowed_now",
+        "protected_action_allowed_now",
+        "model_call_allowed_now",
+        "runtime_model_selection_allowed_now",
+        "high_cost_escalation_allowed_now",
+        "budget_spend_allowed_now",
+        "external_model_transfer_allowed_now",
+        "production_pass_allowed_now",
+        "enterprise_pass_allowed_now",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "final_approval_enabled"
+      ],
+      "properties": {
+        "p62800_contract_ready": { "type": "boolean" },
+        "p62400_source_ready_now": { "type": "boolean" },
+        "model_route_decision_ready_now": { "type": "boolean" },
+        "budget_decision_ready_now": { "type": "boolean" },
+        "route_gate_policy_ready_now": { "type": "boolean" },
+        "budget_guardrail_ready_now": { "type": "boolean" },
+        "downgrade_stop_policy_ready_now": { "type": "boolean" },
+        "ready_for_p62801_handoff": { "type": "boolean" },
+        "runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "model_call_allowed_now": { "const": false },
+        "runtime_model_selection_allowed_now": { "const": false },
+        "high_cost_escalation_allowed_now": { "const": false },
+        "budget_spend_allowed_now": { "const": false },
+        "external_model_transfer_allowed_now": { "const": false },
+        "production_pass_allowed_now": { "const": false },
+        "enterprise_pass_allowed_now": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "final_approval_enabled": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "hermes_loop_model_budget_status",
+        "program_range",
+        "source_program_range",
+        "next_program_range",
+        "p62400_source_ready_now",
+        "p62800_contract_ready",
+        "ready_for_p62801_handoff",
+        "model_call_allowed_now",
+        "high_cost_escalation_allowed_now",
+        "budget_spend_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "final_approval_enabled"
+      ],
+      "properties": {
+        "hermes_loop_model_budget_status": {
+          "enum": [
+            "ready_for_p62801_handoff",
+            "valid_block_p62801_handoff_pending",
+            "blocked_hermes_loop_model_budget_control"
+          ]
+        },
+        "program_range": { "const": "P62401-P62800" },
+        "source_program_range": { "const": "P62001-P62400" },
+        "next_program_range": { "const": "P62801-P63200" },
+        "model_call_allowed_now": { "const": false },
+        "high_cost_escalation_allowed_now": { "const": false },
+        "budget_spend_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "final_approval_enabled": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "number" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "verdictRow": {
+      "type": "object",
+      "required": [
+        "row_id",
+        "category",
+        "label",
+        "observed",
+        "current_verdict",
+        "evidence_ref",
+        "block_reason",
+        "next_allowed_action",
+        "generated_at"
+      ],
+      "properties": {
+        "row_id": { "type": "string" },
+        "category": { "type": "string" },
+        "label": { "type": "string" },
+        "observed": { "type": "boolean" },
+        "current_verdict": { "enum": ["pass", "block"] },
+        "evidence_ref": { "type": ["string", "null"] },
+        "block_reason": { "type": ["string", "null"] },
+        "next_allowed_action": { "type": "string" },
+        "generated_at": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

@@ -755,7 +755,8 @@
     "platform:hermes-loop-review-gate-integration": "node scripts/hermes-loop-review-gate-integration.mjs",
     "platform:hermes-loop-final-freeze": "node scripts/hermes-loop-final-freeze.mjs",
     "platform:post-p64000-claude-review-baseline": "node scripts/post-p64000-claude-review-baseline.mjs",
-    "platform:post-p64000-claude-review-execution": "node scripts/post-p64000-claude-review-execution.mjs"
+    "platform:post-p64000-claude-review-execution": "node scripts/post-p64000-claude-review-execution.mjs",
+    "platform:post-p64000-claude-review-normalization": "node scripts/post-p64000-claude-review-normalization.mjs"
   },
   "engines": {
     "node": ">=20 <27",

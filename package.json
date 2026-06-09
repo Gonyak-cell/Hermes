@@ -760,7 +760,8 @@
     "platform:post-p64000-claude-review-handoff-freeze": "node scripts/post-p64000-claude-review-handoff-freeze.mjs",
     "platform:post-p64000-hrm04-review-event-boundary": "node scripts/post-p64000-hrm04-review-event-boundary.mjs",
     "platform:post-p64000-hrm03-review-window-cap": "node scripts/post-p64000-hrm03-review-window-cap.mjs",
-    "platform:post-p64000-hrm01-review-depth-cap": "node scripts/post-p64000-hrm01-review-depth-cap.mjs"
+    "platform:post-p64000-hrm01-review-depth-cap": "node scripts/post-p64000-hrm01-review-depth-cap.mjs",
+    "platform:post-p64000-hrm-revalidation-clean-candidate-review": "node scripts/post-p64000-hrm-revalidation-clean-candidate-review.mjs"
   },
   "engines": {
     "node": ">=20 <27",

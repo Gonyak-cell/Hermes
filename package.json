@@ -750,7 +750,8 @@
     "platform:hermes-loop-run-ledger-projection": "node scripts/hermes-loop-run-ledger-projection.mjs",
     "platform:hermes-loop-context-memory-grounding": "node scripts/hermes-loop-context-memory-grounding.mjs",
     "platform:hermes-loop-dag-topology": "node scripts/hermes-loop-dag-topology.mjs",
-    "platform:hermes-loop-model-budget-control": "node scripts/hermes-loop-model-budget-control.mjs"
+    "platform:hermes-loop-model-budget-control": "node scripts/hermes-loop-model-budget-control.mjs",
+    "platform:hermes-loop-runtime-tool-governance": "node scripts/hermes-loop-runtime-tool-governance.mjs"
   },
   "engines": {
     "node": ">=20 <27",

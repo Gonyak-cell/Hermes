@@ -7,6 +7,7 @@ import {
   readFactoryLedgerFile,
 } from "./factory-product-registry-store.mjs";
 import { buildFactoryStageReadModel } from "./factory-stage-read-model.mjs";
+import { buildFactoryCandidateManifestResolver } from "./factory-candidate-manifest-resolver.mjs";
 
 export const DEFAULT_REVIEW_API_HOST = "127.0.0.1";
 export const DEFAULT_REVIEW_API_PORT = 4177;
@@ -51,6 +52,18 @@ const FACTORY_STAGE_FILTER_KEYS = [
   "freshness_status",
   "stale_badge_required",
   "candidate_manifest_preview_status",
+];
+
+const FACTORY_CANDIDATE_MANIFEST_FILTER_KEYS = [
+  "product_id",
+  "current_product_state",
+  "stage_gate_status",
+  "freshness_status",
+  "resolver_status",
+  "candidate_manifest_id",
+  "candidate_manifest_status",
+  "candidate_manifest_kind",
+  "candidate_manifest_json_available",
 ];
 
 const FACTORY_PRODUCT_AUTHORITY_FLAG_KEYS = [
@@ -104,6 +117,9 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
   if (pathname === "/api/factory/stage" && !isReviewApiReadOnlyMethod(method)) {
     return methodNotAllowedResponse(method);
   }
+  if (pathname === "/api/factory/candidate-manifests" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
 
   if (!isReviewApiReadOnlyMethod(method)) {
     return methodNotAllowedResponse(method);
@@ -131,6 +147,14 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       return jsonResponse(503, buildError("factory_stage_unavailable", `Factory stage read model is not ready: ${factoryStage.validation.errors.length} error(s).`), method);
     }
     return jsonResponse(200, buildFactoryStageResponse(factoryStage, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/candidate-manifests") {
+    const candidateResolver = await buildFactoryCandidateManifestResolver({ ...options, write: false });
+    if (!candidateResolver.validation.valid) {
+      return jsonResponse(503, buildError("factory_candidate_manifests_unavailable", `Factory candidate manifest resolver is not ready: ${candidateResolver.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryCandidateManifestsResponse(candidateResolver, url, generatedAt), method);
   }
 
   if (pathname === "/" || pathname === "/index.html") {
@@ -13434,7 +13458,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/factory/products, /api/factory/stage, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/platform-operations-freezes, /api/platform-claim-registry, /api/platform-claim-gates, /api/platform-claim-boundary, /api/platform-claim-validations, /api/resource-contract-freezes, /api/resource-v2-contracts, /api/resource-version-v2-contracts, /api/resource-contract-validations, /api/evidence-review-drafts, /api/evidence-review-items, /api/policy-matrices, /api/policy-classifications, /api/runtime-policies, /api/model-policies, /api/tool-policies, /api/output-policies, /api/gate-policies, /api/policy-snapshot-ledgers, /api/policy-snapshots, /api/policy-snapshot-instances, /api/policy-decisions, /api/policy-usages, /api/context-packet-ledgers, /api/context-packets, /api/context-items, /api/context-retrieval-filters, /api/model-routing-ledgers, /api/model-routing-decisions, /api/cost-budget-ledgers, /api/cost-budget-decisions, /api/token-usage-ledgers, /api/token-usage-records, /api/cost-attribution-ledgers, /api/cost-attribution-records, /api/cost-record-projections, /api/projected-cost-records, /api/run-cost-rollups, /api/cost-category-rollups, /api/cost-record-projection-validations, /api/token-usage-projections, /api/projected-token-usage-records, /api/capability-token-rollups, /api/runtime-token-rollups, /api/capability-runtime-token-rollups, /api/token-usage-projection-validations, /api/budget-alert-ledgers, /api/budget-alert-records, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/contract-inventories, /api/contract-inventory-items, /api/contract-schemas, /api/contract-artifacts, /api/contract-owner-map, /api/contract-dependency-maps, /api/contract-dependency-nodes, /api/contract-dependency-edges, /api/contract-breaking-change-risks, /api/contract-owner-dependencies, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-review-packet-ledgers, /api/human-review-packets, /api/human-review-items, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
+  console.log("Routes: /, /health, /api, /api/factory/products, /api/factory/stage, /api/factory/candidate-manifests, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/platform-operations-freezes, /api/platform-claim-registry, /api/platform-claim-gates, /api/platform-claim-boundary, /api/platform-claim-validations, /api/resource-contract-freezes, /api/resource-v2-contracts, /api/resource-version-v2-contracts, /api/resource-contract-validations, /api/evidence-review-drafts, /api/evidence-review-items, /api/policy-matrices, /api/policy-classifications, /api/runtime-policies, /api/model-policies, /api/tool-policies, /api/output-policies, /api/gate-policies, /api/policy-snapshot-ledgers, /api/policy-snapshots, /api/policy-snapshot-instances, /api/policy-decisions, /api/policy-usages, /api/context-packet-ledgers, /api/context-packets, /api/context-items, /api/context-retrieval-filters, /api/model-routing-ledgers, /api/model-routing-decisions, /api/cost-budget-ledgers, /api/cost-budget-decisions, /api/token-usage-ledgers, /api/token-usage-records, /api/cost-attribution-ledgers, /api/cost-attribution-records, /api/cost-record-projections, /api/projected-cost-records, /api/run-cost-rollups, /api/cost-category-rollups, /api/cost-record-projection-validations, /api/token-usage-projections, /api/projected-token-usage-records, /api/capability-token-rollups, /api/runtime-token-rollups, /api/capability-runtime-token-rollups, /api/token-usage-projection-validations, /api/budget-alert-ledgers, /api/budget-alert-records, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/contract-inventories, /api/contract-inventory-items, /api/contract-schemas, /api/contract-artifacts, /api/contract-owner-map, /api/contract-dependency-maps, /api/contract-dependency-nodes, /api/contract-dependency-edges, /api/contract-breaking-change-risks, /api/contract-owner-dependencies, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-review-packet-ledgers, /api/human-review-packets, /api/human-review-items, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -13449,6 +13473,7 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api", "Route index"),
       route("GET", "/api/factory/products", "Factory product registry rows"),
       route("GET", "/api/factory/stage", "Factory product PS stage rows"),
+      route("GET", "/api/factory/candidate-manifests", "Factory candidate manifest JSON-only resolver rows"),
       route("GET", "/api/dashboard", "Full review-dashboard.v1 artifact"),
       route("GET", "/api/summary", "Dashboard summary only"),
       route("GET", "/api/stages", "Control Plane stage statuses"),
@@ -15216,6 +15241,27 @@ function buildFactoryStageResponse(factoryStage, url, generatedAt) {
     raw_confidential_material_visible: false,
     validation_error_count: factoryStage.validation.errors.length,
     summary: factoryStage.summary,
+  };
+}
+
+function buildFactoryCandidateManifestsResponse(candidateResolver, url, generatedAt) {
+  const collection = buildCollectionResponse("factory_candidate_manifest_rows", candidateResolver.candidate_manifest_resolver_rows, url, generatedAt, FACTORY_CANDIDATE_MANIFEST_FILTER_KEYS);
+  const visibleManifestIds = new Set(collection.items.map((item) => item.candidate_manifest_id).filter(Boolean));
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    json_only_manifest_generation: true,
+    starter_artifact_corpus_materialized_now: false,
+    candidate_manifest_write_allowed_now: false,
+    apply_allowed_now: false,
+    candidate_manifests: candidateResolver.candidate_manifests.filter((manifest) => visibleManifestIds.has(manifest.candidate_manifest_id)),
+    visible_candidate_manifest_count: visibleManifestIds.size,
+    candidate_manifest_count: candidateResolver.candidate_manifests.length,
+    validation_error_count: candidateResolver.validation.errors.length,
+    summary: candidateResolver.summary,
   };
 }
 

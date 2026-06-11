@@ -48,6 +48,34 @@ Routes: `/api/factory/stage`.
 `GET` and `HEAD` are allowed. Mutation methods return `405
 method_not_allowed`.
 
+## FB.3 Factory Candidate Manifest Routes
+
+Factory Candidate Manifest routes expose the read-only FB.3 instantiation
+resolver. The route returns one resolver row per product and nests generated
+`factory-candidate-manifest.v1` JSON previews for rows that are fresh and already
+at `PS2_receipt_bound`.
+
+The route is JSON-only. It does not materialize starter artifact files, append
+ledgers, advance products to PS3, apply candidates, create projects, write
+repositories, call connectors, deploy, or grant production/enterprise trust.
+
+Default tracked seed state returns 9 blocked resolver rows and 0 candidate
+manifests because seed products are still `PS0_seed`.
+
+Supported filters include `product_id`, `current_product_state`,
+`stage_gate_status`, `freshness_status`, `resolver_status`,
+`candidate_manifest_id`, `candidate_manifest_status`,
+`candidate_manifest_kind`, `candidate_manifest_json_available`, and `limit`.
+
+Routes: `/api/factory/candidate-manifests`.
+
+`visible_candidate_manifest_count` counts candidate manifests visible after
+request filters. `candidate_manifest_count` remains the full resolver manifest
+total before filters.
+
+`GET` and `HEAD` are allowed. Mutation methods return `405
+method_not_allowed`.
+
 ## P511-P515 Platform Claim Registry Routes
 
 Platform Claim Registry routes expose the read-only P500 operations freeze claim

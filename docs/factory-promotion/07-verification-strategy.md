@@ -31,7 +31,7 @@
 | 트랜치 | 실행형 픽스처 |
 |---|---|
 | FA | 스키마 위반 append→거부 / 해시 불일치 append→거부 / 위조 영수증 전이→거부 / 영수증 replay→거부 / PS3 전이→거부 / 교차 `product_id` 읽기→거부 |
-| FB | 신규 GET 라우트 전부에 POST→405 / PS3 전이 append→거부 / 미존재 템플릿 인스턴스화→거부 |
+| FB | 신규 GET 라우트 전부에 POST→405 / PS3 전이 append→거부 / 미존재 템플릿 인스턴스화→거부 / auth·quota·tool-call-shaped·무판정 Claude raw output→review evidence 거부 |
 | FC | 후보 패킷 apply 시도→차단 / 워크트리 외부 경로 쓰기→차단 / 보호 경로 diff 포함→preflight 실패 |
 | FD | 위조 영수증으로 apply→거부 / 바인딩 해시 불일치 apply→거부 / nonce 재사용→거부 / 롤백 후 상태 불일치→실패 보고 |
 | FE | 스코프 없는 인테이크→거부 / 타 제품 요구사항 참조→거부 |
@@ -56,6 +56,8 @@ npm run validate
 ```bash
 npm run platform:factory-product-registry-store -- --check   # FA.2
 npm run factory:stage -- --check                             # FB.1
+npm run factory:candidate-manifests -- --check               # FB.3
+npm run factory:claude-review-evidence -- --check            # FB.3 review-evidence guard
 npm run factory:candidate-lane -- --check                    # FC
 npm run factory:receipt-verify -- --check                    # FD
 npm run factory:intake -- --check                            # FE

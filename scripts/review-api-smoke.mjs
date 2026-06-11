@@ -18,6 +18,7 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/dashboard"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/products"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/stage"));
+  assert.ok(index.routes.some((route) => route.path === "/api/factory/candidate-manifests"));
   assert.ok(index.routes.some((route) => route.path === "/api/packs"));
   assert.ok(index.routes.some((route) => route.path === "/api/capabilities"));
   assert.ok(index.routes.some((route) => route.path === "/api/artifacts"));

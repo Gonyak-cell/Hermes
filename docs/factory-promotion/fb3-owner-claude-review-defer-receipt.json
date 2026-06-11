@@ -1,0 +1,30 @@
+{
+  "schema_version": "owner-claude-review-defer-receipt.v1",
+  "receipt_id": "fb3-owner-claude-review-defer-2026-06-11",
+  "issued_at": "2026-06-11T22:40:00+09:00",
+  "issued_by": "human_owner",
+  "instruction_language": "ko",
+  "instruction_text": "클로드 리뷰는 내가 다시 하라고 할 때까지 생략하고 작업 착수해",
+  "scope": {
+    "program_range": "FCORE-FB.3",
+    "phase": "candidate_manifest_resolver",
+    "applies_until_owner_requests_claude_review_again": true
+  },
+  "decision": {
+    "claude_review_deferred_now": true,
+    "implementation_may_continue_without_current_claude_review": true,
+    "counts_as_independent_claude_review": false,
+    "counts_as_production_or_enterprise_trust": false,
+    "codex_final_approval_allowed": false,
+    "human_protected_closeout_allowed": false
+  },
+  "known_invalid_attempts_preserved": [
+    "fb3-opus-max-invalid-attempt-001",
+    "fb3-opus-max-invalid-attempt-002",
+    "fb3-opus-max-invalid-attempt-003-app-cli-empty"
+  ],
+  "follow_up_required_before_production_or_enterprise_trust": [
+    "valid_independent_claude_review_or_fresh_owner_adjudication",
+    "raw_review_evidence_validation_if_claude_review_is_resumed"
+  ]
+}

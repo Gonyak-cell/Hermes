@@ -1,6 +1,6 @@
 # Factory State Store
 
-Status: FB.2 factory stage control view plus FA.6 read-only factory products API.
+Status: FB.3 candidate manifest resolver plus FB.2 stage control view and FA.6 read-only factory products API.
 Date: 2026-06-11
 
 ## Purpose
@@ -140,17 +140,54 @@ The read model:
   `stage_progress` without opening execution authority
 - applies a seven-day freshness window; stale rows require a stale badge and
   block new adjudication until sources are refreshed
-- exposes candidate/workbench queue depth as `0` and candidate manifest preview
-  as unavailable until the FB.3 instantiation resolver exists
+- exposes candidate/workbench queue depth as `0`; candidate JSON previews are
+  resolved by the separate FB.3 candidate manifest resolver
 
-FB.2 keeps these false:
+FB.2 and FB.3 keep these false:
 
 - `ps3_transition_append_allowed_now`
-- `candidate_manifest_preview_available`
 - `candidate_manifest_write_allowed_now`
 - `apply_allowed_now`
 - all project/repo/connector/deploy/protected-action/production/enterprise
   authority flags
+
+## Candidate Manifest Resolver
+
+FB.3 adds the deterministic JSON-only candidate manifest resolver:
+
+```bash
+npm run factory:candidate-manifests -- --check --require-pass
+```
+
+The resolver:
+
+- reads the FB.2 stage read model as its source of truth
+- returns one resolver row per product
+- creates a `factory-candidate-manifest.v1` JSON preview only for fresh
+  `PS2_receipt_bound` products
+- blocks stale products, PS0/PS1 products, and PS3+ rows from candidate manifest
+  availability
+- exposes `/api/factory/candidate-manifests` as a read-only collection
+- marks responses as `raw_confidential_material_visible: false`
+- keeps starter artifact corpus materialization deferred to FB.4
+- keeps source writes, ledger appends, candidate manifest writes, apply behavior,
+  PS3 transition append, project/repo/connector/deploy/protected-action,
+  production PASS, and enterprise PASS closed
+
+Default tracked seed state still returns 9 resolver rows and 0 candidate
+manifests because all tracked seed products remain `PS0_seed`.
+
+## Claude Review Evidence Validator
+
+Factory promotion review artifacts are classified before they can be counted:
+
+```bash
+npm run factory:claude-review-evidence -- --raw-review <raw.json> --prompt <prompt.md> --review-id <id> --program-range <range> --check --require-valid
+```
+
+The validator rejects auth/login failures, quota or rate-limit output,
+interrupted captures, tool-call-shaped output, missing verdict payloads, final
+approval claims, production/enterprise PASS claims, and source mutation claims.
 
 ## Receipt-Driven State Transitions
 
@@ -277,6 +314,12 @@ Expected result:
   `freshness_status`, `stale_badge_required`,
   `candidate_manifest_preview_status`, blocker IDs, queue depths, and next
   operator actions
+- `factory:candidate-manifests` returns 9 blocked tracked-seed resolver rows and
+  0 candidate manifests by default
+- `factory:claude-review-evidence` rejects the FB.3 429 invalid attempt as
+  `invalid_not_review_evidence`
+- `/api/factory/candidate-manifests` exposes read-only JSON-only candidate
+  resolver rows
 - stale stage rows display a stale badge and block new adjudication
 - PS3+ transition rows block the stage read model before FB promotion
 - projection fallback, if needed, is visible in summary and row fields

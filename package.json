@@ -636,6 +636,8 @@
     "platform:execution-write-authority-maturity": "node scripts/execution-write-authority-maturity.mjs",
     "platform:factory-product-registry-store": "node scripts/factory-product-registry-store.mjs",
     "factory:stage": "node scripts/factory-stage-read-model.mjs",
+    "factory:candidate-manifests": "node scripts/factory-candidate-manifest-resolver.mjs",
+    "factory:claude-review-evidence": "node scripts/claude-review-evidence-validator.mjs",
     "factory:seed-migration": "node scripts/factory-seed-migration.mjs",
     "factory:receipt-preflight": "node scripts/factory-receipt-preflight.mjs",
     "factory:promotion-f0-gate": "node scripts/factory-promotion-f0-gate.mjs",

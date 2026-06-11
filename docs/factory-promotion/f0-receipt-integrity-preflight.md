@@ -50,6 +50,7 @@ The preflight must reject:
 
 - receipt with missing reviewed commit SHA
 - receipt whose model label differs from `engine_resolved_model_id`
+- normalized receipt generated from failed Claude CLI/API output rather than completed review output
 - receipt whose `raw_output_sha256` does not match the raw output body
 - receipt whose `receipt_file_sha256` does not match the normalized receipt file
 - receipt for a different scope

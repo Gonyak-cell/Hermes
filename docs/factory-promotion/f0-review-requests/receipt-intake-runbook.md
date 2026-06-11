@@ -104,8 +104,9 @@ The intake command blocks:
 - label-only model ids such as `claude_code_opus_max`
 - any model id containing `fable`
 - raw output paths under `docs/factory-promotion/`
+- failed Claude CLI result JSON such as auth failures, `api_error_status` 401/403/429, usage exhaustion, or `is_error: true`
 - output paths outside the two F0.1 receipt targets
 - unresolved findings when `--require-pass` is used
 
 These rejections protect F0.1 from treating request packets, planning documents,
-or planning-lane output as independent review evidence.
+failed CLI/API responses, or planning-lane output as independent review evidence.

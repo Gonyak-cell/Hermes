@@ -42,7 +42,7 @@ not copy placeholders into final receipts.
 2. Verify request packet integrity with `npm run factory:f0-review-request-doctor -- --check --require-pass`.
 3. Build the dispatch packet with `npm run factory:f0-review-dispatch-packet -- --check --require-pass`.
 4. Run each request packet in a real Opus-family independent review session.
-5. Save the raw reviewer output and compute its SHA256.
+5. Save the raw reviewer output and compute its SHA256. Failed CLI/API JSON, auth failures, quota failures, or partial planning output are not acceptable raw review output.
 6. Normalize the required receipt JSON with [receipt-intake-runbook.md](receipt-intake-runbook.md).
 7. Run `npm run factory:receipt-preflight -- --check --require-pass`.
 8. Run `npm run factory:promotion-f0-gate -- --check --require-pass`.

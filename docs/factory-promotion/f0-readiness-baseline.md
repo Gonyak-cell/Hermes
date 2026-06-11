@@ -54,9 +54,9 @@ Current F0-specific outputs after Codex implementation:
 | Command | Status | Key point |
 |---|---|---|
 | `npm run factory:f0-review-request-doctor -- --check` | `ready_f0_review_request_doctor` | request packet hashes and target paths are current; packets remain not evidence |
-| `npm run factory:f0-review-dispatch-packet -- --check` | `blocked_f0_review_dispatch_packet` | request doctor true, reviewed commit SHA visible, worktree clean false, validation errors 0 |
+| `npm run factory:f0-review-dispatch-packet -- --check --require-pass` | `ready_f0_review_dispatch_packet` | request doctor true, reviewed commit SHA bound by live dispatch output, worktree clean true, validation errors 0 |
 | `npm run factory:receipt-preflight -- --check` | `blocked_f0_1_receipt_preflight` | owner receipt visible, target receipts passed 0/2, validation errors 0 |
-| `npm run factory:f0-review-receipt-intake -- --help` | help text available | raw Opus output to receipt normalization path is implemented; does not perform review |
+| `npm run factory:f0-review-receipt-intake -- --help` | help text available | raw Opus output to receipt normalization path is implemented; failed Claude CLI JSON, request packets, Fable output, and label-only model ids remain blocked |
 | `npm run platform:saas-factory-mode -- --check` | `blocked_saas_factory_mode` | source handoff false, F0.2 visible waiver true, P15401 handoff false |
 | `npm run factory:promotion-f0-gate -- --check` | `blocked_factory_promotion_f0_gate` | F0 rows passed 4/5, F0.1 false, F0.2 true, FA implementation allowed false, validation errors 0 |
 
@@ -80,8 +80,7 @@ FA implementation allowed: false
 Validation errors: 0
 ```
 
-Before external Opus review dispatch, `factory:f0-review-dispatch-packet -- --check --require-pass` must pass. It currently
-blocks because the working tree contains uncommitted changes, so the reviewed commit SHA cannot yet bind the full F0 package.
+Before external Opus review dispatch, `factory:f0-review-dispatch-packet -- --check --require-pass` must pass. The exact reviewed commit SHA must be taken from the live command output or `artifacts/factory-f0-review-dispatch-packet/latest/dispatch-packet.json`, not hard-coded into this tracked document.
 
 FA implementation may start only when:
 
@@ -109,7 +108,9 @@ Acceptance condition:
 
 Known local limitation:
 
-- Current Claude CLI access in this Codex session reported an org monthly usage limit during a model access probe. F0.1 may require the owner to run or authorize the independent review lane outside this limited session.
+- Claude CLI Opus access is authenticated and the resolved model family was observed as `claude-opus-4-7`.
+- A real connector-governance review attempt on 2026-06-11T18:43 KST failed with `api_error_status: 429` and message `You're out of extra usage · resets 7:40pm (Asia/Seoul)`.
+- That failed raw JSON is not a valid review receipt. `factory:f0-review-receipt-intake -- --check --require-pass` blocks it through `raw_output.completed_review`.
 
 Prepared request packets:
 
@@ -121,7 +122,9 @@ These packets are not review evidence.
 
 ## F0.2 Status
 
-F0.2 remains blocked by a source-chain readiness cascade, not by schema validation errors.
+F0.2 source handoff remains false, but the owner-adjudicated corrective-baseline waiver is now machine-visible and satisfies the F0.2 aggregate gate condition without opening P15401 handoff or any authority flag.
+
+The underlying source-chain readiness cascade is still visible and still requires later remediation; the waiver only allows FCORE to repair the blocked P-chain as a corrective baseline.
 
 Observed chain:
 

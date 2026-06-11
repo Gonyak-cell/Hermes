@@ -25,6 +25,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "factory:receipt-chain-audit",
   "factory:closed-apply-cycle-freeze",
   "factory:prd-intake",
+  "factory:work-packet-decomposition",
   "api:route-inventory",
   "dashboard:ia",
   "approval:queue-ui",

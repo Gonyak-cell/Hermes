@@ -2,7 +2,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 패키지 버전 | v0.1.3 (F0 MACHINE GATED — S0 판정 + F0.1/F0.2 aggregate gate visible) |
+| 패키지 버전 | v0.1.5 (F0 OWNER EXCEPTION — one-time no-Opus FA start, low trust) |
 | 작성일 | 2026-06-11 |
 | 작성 엔진 | Claude Code (Fable 5, resolved model id: `claude-fable-5[1m]`) — 계획/리뷰어 레인 |
 | 문서 지위 | **계획 증거(planning evidence) + S0 소유자 판정 기록이며, 구현 승인/게이트 개방은 아님** |
@@ -35,6 +35,7 @@
 | 6 | [f0-readiness-baseline.md](f0-readiness-baseline.md) | Codex + 소유자 | F0 kickoff 기준선과 source-chain blocker 현황 |
 | 7 | [f0-review-requests/](f0-review-requests/) | 소유자 + 독립 리뷰어 | F0.1 Opus 리뷰 요청 패킷 |
 | 8 | [s0-owner-adjudication-receipt.json](s0-owner-adjudication-receipt.json) | 기계/감사 | S0 판정 묶음 영수증 |
+| 9 | [f0-owner-no-opus-exception-receipt.json](f0-owner-no-opus-exception-receipt.json) | 기계/감사 | 이번 한정 Opus 없는 FA 착수 예외. 독립 리뷰/production/enterprise 승인 아님 |
 | 9 | [03-fcore-program.md](03-fcore-program.md) | Codex 레인 | FCORE 프로그램: 트랜치/phase 상세 |
 | 10 | [04-target-architecture.md](04-target-architecture.md) | Codex 레인 | 목표 아키텍처 + 데이터 계약 초안 |
 | 11 | [05-gate-opening-program.md](05-gate-opening-program.md) | 소유자 + Codex | 권한 게이트 개방 절차 |
@@ -59,6 +60,7 @@
 1. 소유자 판정은 2026-06-11에 권고안대로 채택되었고, [s0-owner-adjudication-receipt.json](s0-owner-adjudication-receipt.json)에 묶었다.
 2. Codex 레인이 패키지를 검토(구현 관점 이의 제기 포함)하고 검토 노트를 남긴다.
 3. Codex 레인이 문서 패키지를 커밋한다 (HRM-03 준수: 계획 문서 커밋은 구현 커밋과 분리).
-4. FCORE F0 트랜치가 개시된다. FA 구현 커밋은 F0.1~F0.5 완료 전 금지.
-   특히 F0.1은 [f0-receipt-integrity-preflight.md](f0-receipt-integrity-preflight.md)를 통과해야 한다.
+4. FCORE F0 트랜치가 개시된다. 이번 run에서는 human owner의 명시 지시에 따라 Opus 리뷰 없이 FA 착수를 허용하되,
+   [f0-owner-no-opus-exception-receipt.json](f0-owner-no-opus-exception-receipt.json)을 통해 낮은 신뢰도 예외로만 표시한다.
 5. FA 구현 착수 전 `npm run factory:promotion-f0-gate -- --check --require-pass`가 현재 repo 상태에서 통과해야 한다.
+   이 통과는 production PASS, enterprise PASS, final approval, protected action, connector write, deployment를 의미하지 않는다.

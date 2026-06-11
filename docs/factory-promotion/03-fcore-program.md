@@ -15,19 +15,20 @@
 
 ## 트랜치 F0 — 선행조건 (5 phase, 코드 거의 없음)
 
-FA 구현 착수 전 F0.1~F0.5가 모두 완료되어야 한다. F0.1/F0.2는 소유자 판정만으로 대체할 수 없는
-hard blocker이며, 해소 또는 조건부 waiver가 기계적으로 추적되어야 한다.
+FA 구현 착수 전 F0.1~F0.5가 모두 완료되어야 한다. 이번 run에서는 human owner가 `이번만 Opus 리뷰 없이 진행`을
+명시했으므로 F0.1은 낮은 신뢰도 owner exception으로만 통과할 수 있다. 이 예외는 독립 리뷰 완료가 아니며,
+production/enterprise/final approval/protected action/write/deploy 권한을 열지 않는다.
 
 | Phase | 목표 | 산출물 | 검증 |
 |---|---|---|---|
-| F0.1 | 누락 리뷰 영수증 2건 확보 + F0 receipt-integrity preflight | `artifacts/connector-external-app-governance/review/claude-connector-governance-review-receipt.json`, `artifacts/execution-write-authority-maturity/review/` 영수증, `docs/factory-promotion/f0-receipt-integrity-preflight.md` 또는 동등한 검증 노트 | 각 영수증이 reviewed commit SHA, prompt SHA256, raw output SHA256, resolved model id, receipt file SHA256, scope id, unresolved finding count를 바인딩한 뒤에만 두 `--check`를 unblock 근거로 인정 |
+| F0.1 | 누락 리뷰 영수증 2건 확보 + F0 receipt-integrity preflight 또는 이번 한정 owner no-Opus exception | `artifacts/connector-external-app-governance/review/claude-connector-governance-review-receipt.json`, `artifacts/execution-write-authority-maturity/review/` 영수증, `docs/factory-promotion/f0-receipt-integrity-preflight.md`, `docs/factory-promotion/f0-owner-no-opus-exception-receipt.json` | 리뷰 영수증 경로는 reviewed commit SHA, prompt SHA256, raw output SHA256, resolved model id, receipt file SHA256, scope id, unresolved finding count를 바인딩해야 한다. 이번 예외 경로는 FA 착수만 허용하고 독립 리뷰를 production/enterprise 전까지 deferred blocker로 유지한다 |
 | F0.2 | `multi-engine-orchestration` `ready_for_p15001_handoff:false` 해소/면제 | 해소 커밋 또는 만료 조건이 있는 소유자 waiver 영수증 | `npm run platform:multi-engine-orchestration -- --check`, `npm run platform:saas-factory-mode -- --check`; source handoff가 pass이거나 waiver가 visible blocker로 남아야 함 |
 | F0.3 | HRM-01/03/04 소유자 판정 + FCORE 상한 채택 | 판정 영수증 ([S0-3](09-decision-records/S0-3-hrm-findings-adjudication-draft.md)) | — |
 | F0.4 | 병합 거버넌스 결정 | 결정 문서 ([S0-4](09-decision-records/S0-4-merge-governance-decision-draft.md)) | — |
 | F0.5 | 정체성·ID 체계 판정 | 판정 문서 ([S0-5](09-decision-records/S0-5-identity-and-id-scheme-decision-draft.md)) | — |
 
 권한 경계: 문서/영수증 외 소스 변이 없음. 전 플래그 false.
-핸드오프: F0.1~F0.5 완료 + `platform:saas-factory-mode` source handoff pass 또는 조건부 waiver visible + 10개 권한 플래그 false 확인 → FA 개시 가능.
+핸드오프: F0.1~F0.5 완료 + `platform:saas-factory-mode` source handoff pass 또는 조건부 waiver visible + 권한 플래그 false 확인 → FA 개시 가능. 이번 run의 F0.1 완료는 `owner_exception_low_trust`이며, 독립 리뷰 완료로 해석 금지.
 
 ## 트랜치 FA — 영속 제품 레지스트리 + 영수증 구동 상태 원장 v0 (6 phase, 풀 스펙)
 

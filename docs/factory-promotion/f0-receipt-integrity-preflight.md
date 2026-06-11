@@ -72,6 +72,14 @@ AND
 reviewed_commit_sha matches the intended F0 review target
 ```
 
+For this run only, the human owner issued
+`docs/factory-promotion/f0-owner-no-opus-exception-receipt.json`. That receipt
+allows FA implementation to start at `owner_exception_low_trust` without
+claiming that this F0.1 receipt preflight passed. The missing independent review
+receipts remain deferred blockers before production PASS, enterprise PASS,
+final approval, protected closeout, connector write, deployment, or release
+approval.
+
 FA implementation may start only after the aggregate F0 gate also passes:
 
 ```bash

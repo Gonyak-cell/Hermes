@@ -51,3 +51,15 @@ CLAUDE.md를 개정한다. 갱신 자체가 Codex 구현 + 독립 리뷰 + 소�
 영수증 ID:   rcpt-s0-1-engine-identity-20260611
 비고:        F0.1 누락 리뷰 2건은 기존 validator와 정합되는 실제 Opus 계열 독립 리뷰로 처리한다. Fable 5 산출물은 계획 증거로만 사용하며 claude_code_opus_max receipt로 등록하지 않는다. FD에서 engine_resolved_model_id 기반 다중 엔진 검증기로 전환한다.
 ```
+
+## 5. 2026-06-11 추가 소유자 예외
+
+```text
+예외:        이번만 Opus 리뷰 없이 진행
+판정자:      jwsuh@amic.kr (human_owner)
+영수증 ID:   rcpt-f0-1-owner-no-opus-exception-20260611
+범위:        FCORE FA 구현 착수 허용에 한정
+신뢰 수준:   owner_exception_low_trust
+만료:        FA.6 freeze 전 재평가
+비고:        이 예외는 독립 리뷰 영수증이 아니며, production PASS, enterprise PASS, final approval, protected action, connector write, deployment를 열지 않는다. 누락 Opus 리뷰 2건은 production/enterprise 신뢰 주장 전까지 deferred blocker로 남긴다.
+```

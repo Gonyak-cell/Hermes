@@ -1,0 +1,51 @@
+{
+  "schema": "factory-owner-no-opus-exception-receipt.v0",
+  "receipt_id": "rcpt-f0-1-owner-no-opus-exception-20260611",
+  "receipt_kind": "human_owner_no_opus_exception",
+  "status": "accepted_limited_low_trust",
+  "issued_at": "2026-06-11T18:50:00+09:00",
+  "issuer": {
+    "role": "human_owner",
+    "owner_id": "jwsuh@amic.kr",
+    "instruction_source": "owner_directive_2026-06-11-no-opus-this-run",
+    "instruction_summary": "이번만 오푸스 리뷰 없이 진행"
+  },
+  "scope": {
+    "program": "Hermes Factory Promotion",
+    "stage": "F0.1",
+    "applies_once": true,
+    "subject_ref": "FCORE FA implementation start only",
+    "related_gate": "factory:promotion-f0-gate",
+    "related_blocker": "F0.1 independent Opus review receipts unavailable before owner override"
+  },
+  "exception": {
+    "skip_opus_review_this_run": true,
+    "allows_fa_implementation_without_opus_now": true,
+    "requires_deferred_independent_review_before_production_or_enterprise": true,
+    "expires_before": "FA.6 freeze",
+    "trust_level": "owner_exception_low_trust",
+    "not_independent_review_evidence": true,
+    "not_production_approval": true,
+    "not_enterprise_trust": true,
+    "not_final_approval": true
+  },
+  "deferred_receipts": [
+    "artifacts/connector-external-app-governance/review/claude-connector-governance-review-receipt.json",
+    "artifacts/execution-write-authority-maturity/review/claude-execution-write-authority-review-receipt.json"
+  ],
+  "authority_flags": {
+    "project_creation_allowed_now": false,
+    "repo_write_allowed_now": false,
+    "connector_write_allowed_now": false,
+    "deployment_allowed_now": false,
+    "protected_action_allowed_now": false,
+    "command_execution_allowed_now": false,
+    "api_write_methods_allowed_now": false,
+    "store_mutation_allowed_now": false,
+    "codex_final_approval_allowed": false,
+    "claude_final_approval_allowed": false,
+    "fable_final_approval_allowed": false,
+    "production_pass_enabled": false,
+    "enterprise_pass_enabled": false
+  }
+}

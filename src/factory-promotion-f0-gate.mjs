@@ -9,6 +9,7 @@ export const DEFAULT_FACTORY_PROMOTION_F0_GATE_INPUTS = {
   schemaPath: "schemas/factory-promotion-f0-gate.schema.json",
   packagePath: "package.json",
   ownerAdjudicationReceiptPath: "docs/factory-promotion/s0-owner-adjudication-receipt.json",
+  ownerNoOpusExceptionReceiptPath: "docs/factory-promotion/f0-owner-no-opus-exception-receipt.json",
   connectorReviewReceiptPath: "artifacts/connector-external-app-governance/review/claude-connector-governance-review-receipt.json",
   executionReviewReceiptPath: "artifacts/execution-write-authority-maturity/review/claude-execution-write-authority-review-receipt.json",
   sourceMultiEnginePath: "artifacts/multi-engine-orchestration/latest/multi-engine-orchestration.json",
@@ -81,6 +82,9 @@ export async function buildFactoryPromotionF0Gate(options = {}) {
   const ownerReceipt = Object.prototype.hasOwnProperty.call(options, "ownerAdjudicationReceipt")
     ? normalizeInlineJsonSource("inline.owner_adjudication_receipt", options.ownerAdjudicationReceipt)
     : await readJsonSource(inputs.owner_adjudication_receipt_path);
+  const ownerNoOpusException = Object.prototype.hasOwnProperty.call(options, "ownerNoOpusExceptionReceipt")
+    ? normalizeInlineJsonSource("inline.owner_no_opus_exception_receipt", options.ownerNoOpusExceptionReceipt)
+    : await readJsonSource(inputs.owner_no_opus_exception_receipt_path);
 
   const receiptPreflight = Object.prototype.hasOwnProperty.call(options, "receiptPreflight")
     ? normalizeInlineJsonSource("inline.factory_receipt_preflight", options.receiptPreflight)
@@ -89,9 +93,10 @@ export async function buildFactoryPromotionF0Gate(options = {}) {
     ? normalizeInlineJsonSource("inline.saas_factory_mode", options.saasFactoryMode)
     : normalizeBuiltSource("built.saas_factory_mode", await buildSaasFactoryModeSource(generatedAt, inputs, ownerReceipt, options));
 
-  const f0PhaseRows = buildF0PhaseRows({ ownerReceipt, receiptPreflight, saasFactoryMode, generatedAt });
-  const boundary = buildBoundary({ ownerReceipt, receiptPreflight, saasFactoryMode, f0PhaseRows });
-  const validationItems = buildValidationItems({ packageJson, ownerReceipt, receiptPreflight, saasFactoryMode, f0PhaseRows, boundary });
+  const noOpusException = buildNoOpusExceptionState(ownerNoOpusException);
+  const f0PhaseRows = buildF0PhaseRows({ ownerReceipt, ownerNoOpusException, noOpusException, receiptPreflight, saasFactoryMode, generatedAt });
+  const boundary = buildBoundary({ ownerReceipt, ownerNoOpusException, noOpusException, receiptPreflight, saasFactoryMode, f0PhaseRows });
+  const validationItems = buildValidationItems({ packageJson, ownerReceipt, ownerNoOpusException, receiptPreflight, saasFactoryMode, f0PhaseRows, boundary });
   const preliminaryValidation = summarizeValidation(validationItems);
   const result = {
     schema_version: SCHEMA_VERSION,
@@ -103,6 +108,7 @@ export async function buildFactoryPromotionF0Gate(options = {}) {
     inputs,
     source_refs: {
       owner_adjudication_receipt_path: ownerReceipt.path,
+      owner_no_opus_exception_receipt_path: ownerNoOpusException.path,
       factory_receipt_preflight_path: receiptPreflight.path,
       saas_factory_mode_path: saasFactoryMode.path,
       connector_review_receipt_path: inputs.connector_review_receipt_path,
@@ -111,6 +117,7 @@ export async function buildFactoryPromotionF0Gate(options = {}) {
     },
     factory_promotion_f0_gate_contract: buildContract(generatedAt),
     owner_adjudication_summary: ownerReceipt.data?.scope ?? null,
+    owner_no_opus_exception_summary: ownerNoOpusException.data?.scope ?? null,
     observed_receipt_preflight_summary: receiptPreflight.data?.summary ?? null,
     observed_saas_factory_mode_summary: saasFactoryMode.data?.summary ?? null,
     f0_phase_rows: f0PhaseRows,
@@ -169,6 +176,7 @@ function buildContract(generatedAt) {
     contract_id: "factory-promotion-f0-gate.contract.v1",
     generated_at: generatedAt,
     f0_1_receipt_preflight_required: true,
+    f0_1_owner_no_opus_exception_allowed_once: true,
     f0_2_source_handoff_or_visible_waiver_required: true,
     s0_owner_decisions_required: EXPECTED_DECISIONS.map(([decisionId]) => decisionId),
     fa_implementation_may_start_only_when_all_f0_rows_pass: true,
@@ -211,22 +219,28 @@ async function buildSaasFactoryModeSource(generatedAt, inputs, ownerReceipt, opt
   return buildSaasFactoryMode(childOptions);
 }
 
-function buildF0PhaseRows({ ownerReceipt, receiptPreflight, saasFactoryMode, generatedAt }) {
+function buildF0PhaseRows({ ownerReceipt, ownerNoOpusException, noOpusException, receiptPreflight, saasFactoryMode, generatedAt }) {
   const decisionMap = new Map((ownerReceipt.data?.adjudicated_decisions ?? []).map((decision) => [decision.decision_id, decision]));
   const s01 = decisionMap.get("S0-1");
   const s02 = decisionMap.get("S0-2");
+  const receiptPreflightPassed = receiptPreflight.data?.summary?.f0_1_receipt_preflight_passed === true && s01?.decision === "A_then_B";
   const rows = [
     gateRow({
       row_id: "F0.1",
-      category: "receipt_preflight",
-      label: "F0.1 missing independent review receipts pass integrity preflight",
-      observed: receiptPreflight.data?.summary?.f0_1_receipt_preflight_passed === true && s01?.decision === "A_then_B",
-      evidence_ref: receiptPreflight.path,
+      category: noOpusException.active ? "owner_exception" : "receipt_preflight",
+      label: "F0.1 independent review receipts pass integrity preflight or owner no-Opus exception is active",
+      observed: receiptPreflightPassed || noOpusException.active,
+      evidence_ref: noOpusException.active ? ownerNoOpusException.path : receiptPreflight.path,
       generated_at: generatedAt,
       blocked_reason: buildReceiptBlockedReason(receiptPreflight.data),
       expected_decision: "A_then_B",
       observed_decision: s01?.decision ?? null,
       decision_receipt_id: s01?.receipt_id ?? null,
+      receipt_preflight_passed: receiptPreflightPassed,
+      owner_no_opus_exception_active: noOpusException.active,
+      owner_no_opus_exception_receipt_id: noOpusException.receipt_id,
+      independent_review_deferred_now: noOpusException.active,
+      fa_implementation_trust_level: noOpusException.active ? "owner_exception_low_trust" : "reviewed_baseline",
     }),
     gateRow({
       row_id: "F0.2",
@@ -262,9 +276,46 @@ function buildF0PhaseRows({ ownerReceipt, receiptPreflight, saasFactoryMode, gen
   return rows;
 }
 
-function buildBoundary({ ownerReceipt, receiptPreflight, saasFactoryMode, f0PhaseRows }) {
+function buildNoOpusExceptionState(ownerNoOpusException) {
+  const data = ownerNoOpusException.data ?? {};
+  const authorityFlags = data.authority_flags ?? {};
+  const active = ownerNoOpusException.available === true
+    && data.receipt_kind === "human_owner_no_opus_exception"
+    && data.status === "accepted_limited_low_trust"
+    && data.scope?.program === "Hermes Factory Promotion"
+    && data.scope?.stage === "F0.1"
+    && data.scope?.applies_once === true
+    && data.exception?.skip_opus_review_this_run === true
+    && data.exception?.allows_fa_implementation_without_opus_now === true
+    && data.exception?.requires_deferred_independent_review_before_production_or_enterprise === true
+    && data.exception?.expires_before === "FA.6 freeze"
+    && data.exception?.trust_level === "owner_exception_low_trust"
+    && [
+      "project_creation_allowed_now",
+      "repo_write_allowed_now",
+      "connector_write_allowed_now",
+      "deployment_allowed_now",
+      "protected_action_allowed_now",
+      "command_execution_allowed_now",
+      "api_write_methods_allowed_now",
+      "store_mutation_allowed_now",
+      "codex_final_approval_allowed",
+      "claude_final_approval_allowed",
+      "fable_final_approval_allowed",
+      "production_pass_enabled",
+      "enterprise_pass_enabled",
+    ].every((key) => authorityFlags[key] === false);
+  return {
+    active,
+    receipt_id: data.receipt_id ?? null,
+    trust_level: data.exception?.trust_level ?? null,
+  };
+}
+
+function buildBoundary({ ownerReceipt, ownerNoOpusException, noOpusException, receiptPreflight, saasFactoryMode, f0PhaseRows }) {
   const unsafeAuthorityTrueCount = countUnsafeAuthorityFields([
     ownerReceipt.data,
+    ownerNoOpusException.data,
     receiptPreflight.data?.factory_receipt_preflight_boundary,
     saasFactoryMode.data?.saas_factory_boundary,
     receiptPreflight.data?.summary,
@@ -275,6 +326,11 @@ function buildBoundary({ ownerReceipt, receiptPreflight, saasFactoryMode, f0Phas
   return {
     owner_adjudication_receipt_present_now: ownerReceipt.available === true,
     owner_adjudication_receipt_id: ownerReceipt.data?.receipt_id ?? null,
+    owner_no_opus_exception_receipt_present_now: ownerNoOpusException.available === true,
+    owner_no_opus_exception_active_now: noOpusException.active,
+    owner_no_opus_exception_receipt_id: noOpusException.receipt_id,
+    independent_review_deferred_now: noOpusException.active,
+    fa_implementation_trust_level: noOpusException.active ? "owner_exception_low_trust" : "reviewed_baseline",
     receipt_preflight_validation_valid: receiptPreflight.data?.validation?.valid === true,
     saas_factory_mode_validation_valid: saasFactoryMode.data?.validation?.valid === true,
     f0_phase_count: f0PhaseRows.length,
@@ -301,10 +357,11 @@ function buildBoundary({ ownerReceipt, receiptPreflight, saasFactoryMode, f0Phas
   };
 }
 
-function buildValidationItems({ packageJson, ownerReceipt, receiptPreflight, saasFactoryMode, f0PhaseRows, boundary }) {
+function buildValidationItems({ packageJson, ownerReceipt, ownerNoOpusException, receiptPreflight, saasFactoryMode, f0PhaseRows, boundary }) {
   return [
     validationItem("package.script", "package", packageJson.data?.scripts?.[COMMAND_NAME] === "node scripts/factory-promotion-f0-gate.mjs", `${COMMAND_NAME} package script missing`),
     validationItem("owner.receipt.available", "owner_adjudication", ownerReceipt.available === true, "S0 owner adjudication receipt missing", ownerReceipt.path),
+    validationItem("owner.no_opus_exception.authority_closed", "owner_adjudication", ownerNoOpusException.available !== true || countUnsafeAuthorityFields(ownerNoOpusException.data) === 0, "Owner no-Opus exception opened forbidden authority", ownerNoOpusException.path),
     validationItem("receipt_preflight.validation", "receipt_preflight", receiptPreflight.data?.validation?.valid === true, "Factory receipt preflight validation is not valid", receiptPreflight.path),
     validationItem("saas_factory_mode.validation", "source_chain", saasFactoryMode.data?.validation?.valid === true, "SaaS Factory mode validation is not valid", saasFactoryMode.path),
     validationItem("f0.rows.present", "contract", f0PhaseRows.length === 5, "F0 gate rows incomplete", "f0_phase_rows"),
@@ -323,6 +380,9 @@ function buildSummary({ boundary, f0PhaseRows, validation }) {
     f0_phase_pass_count: boundary.f0_phase_pass_count,
     f0_all_phases_passed: boundary.f0_all_phases_passed,
     f0_1_receipt_preflight_passed: boundary.f0_1_receipt_preflight_passed,
+    f0_1_owner_no_opus_exception_active_now: boundary.owner_no_opus_exception_active_now,
+    independent_review_deferred_now: boundary.independent_review_deferred_now,
+    fa_implementation_trust_level: boundary.fa_implementation_trust_level,
     f0_2_source_handoff_or_visible_waiver_now: boundary.f0_2_source_handoff_or_visible_waiver_now,
     source_ready_for_p15001_handoff: boundary.source_ready_for_p15001_handoff,
     source_blocker_waived_for_fcore_corrective_baseline_now: boundary.source_blocker_waived_for_fcore_corrective_baseline_now,
@@ -460,6 +520,8 @@ function renderMarkdown(result) {
     "",
     `Valid: ${result.validation.valid}`,
     `Errors: ${result.validation.errors.length}`,
+    `Owner no-Opus exception active: ${result.summary.f0_1_owner_no_opus_exception_active_now}`,
+    `FA implementation trust level: ${result.summary.fa_implementation_trust_level}`,
   );
   return `${lines.join("\n")}\n`;
 }
@@ -526,6 +588,7 @@ function normalizeInputs(options) {
     schema_path: options.schemaPath ?? DEFAULT_FACTORY_PROMOTION_F0_GATE_INPUTS.schemaPath,
     package_path: options.packagePath ?? DEFAULT_FACTORY_PROMOTION_F0_GATE_INPUTS.packagePath,
     owner_adjudication_receipt_path: options.ownerAdjudicationReceiptPath ?? DEFAULT_FACTORY_PROMOTION_F0_GATE_INPUTS.ownerAdjudicationReceiptPath,
+    owner_no_opus_exception_receipt_path: options.ownerNoOpusExceptionReceiptPath ?? DEFAULT_FACTORY_PROMOTION_F0_GATE_INPUTS.ownerNoOpusExceptionReceiptPath,
     connector_review_receipt_path: options.connectorReceiptPath ?? DEFAULT_FACTORY_PROMOTION_F0_GATE_INPUTS.connectorReviewReceiptPath,
     execution_review_receipt_path: options.executionReceiptPath ?? DEFAULT_FACTORY_PROMOTION_F0_GATE_INPUTS.executionReviewReceiptPath,
     source_multi_engine_path: options.sourceMultiEnginePath ?? DEFAULT_FACTORY_PROMOTION_F0_GATE_INPUTS.sourceMultiEnginePath,
@@ -544,6 +607,7 @@ function parseArgs(argv) {
     else if (value === "--out-dir") args.outDir = argv[++index];
     else if (value === "--schema-path") args.schemaPath = argv[++index];
     else if (value === "--owner-adjudication-receipt-path") args.ownerAdjudicationReceiptPath = argv[++index];
+    else if (value === "--owner-no-opus-exception-receipt-path") args.ownerNoOpusExceptionReceiptPath = argv[++index];
     else if (value === "--connector-receipt-path") args.connectorReceiptPath = argv[++index];
     else if (value === "--execution-receipt-path") args.executionReceiptPath = argv[++index];
     else if (value === "--source-multi-engine-path") args.sourceMultiEnginePath = argv[++index];

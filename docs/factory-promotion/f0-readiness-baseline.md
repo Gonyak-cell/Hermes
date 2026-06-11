@@ -7,7 +7,8 @@ Date: 2026-06-11
 
 This file records the first Codex-side F0 kickoff check after the v0.1.2 package corrections and S0 owner adjudication.
 
-FA implementation is still blocked. The package can proceed only through receipt request packets, receipt integrity preflight tooling, source handoff visibility work, and read-only blocker reporting until F0.1/F0.2 are mechanically satisfied or explicitly represented as visible waivers.
+FA implementation may proceed only through the explicit owner no-Opus exception recorded in
+[f0-owner-no-opus-exception-receipt.json](f0-owner-no-opus-exception-receipt.json). This is a low-trust exception for FA implementation start only. It is not independent review evidence and does not open production, enterprise, protected action, connector write, deployment, or final approval authority.
 
 ## S0 Owner Adjudication
 
@@ -16,7 +17,7 @@ S0 owner adjudication is complete as of 2026-06-11 and is recorded in
 
 | Decision | Disposition |
 |---|---|
-| S0-1 | A then B: actual Opus-family independent receipts now; multi-engine receipt validation in FD |
+| S0-1 | A then B, amended by one-time owner no-Opus exception for FA start only; multi-engine receipt validation in FD |
 | S0-2 | Corrective-baseline waiver: FCORE may repair the blocked P-chain without hiding blockers or opening authority |
 | S0-3 | HRM-01/03/04 stay open; FCORE adopts review-depth/window/evidence caps |
 | S0-4 | Backlog merge governance becomes Hermes dogfooding pilot |
@@ -55,10 +56,10 @@ Current F0-specific outputs after Codex implementation:
 |---|---|---|
 | `npm run factory:f0-review-request-doctor -- --check` | `ready_f0_review_request_doctor` | request packet hashes and target paths are current; packets remain not evidence |
 | `npm run factory:f0-review-dispatch-packet -- --check --require-pass` | `ready_f0_review_dispatch_packet` | request doctor true, reviewed commit SHA bound by live dispatch output, worktree clean true, validation errors 0 |
-| `npm run factory:receipt-preflight -- --check` | `blocked_f0_1_receipt_preflight` | owner receipt visible, target receipts passed 0/2, validation errors 0 |
+| `npm run factory:receipt-preflight -- --check` | `blocked_f0_1_receipt_preflight` | owner receipt visible, target receipts passed 0/2, validation errors 0; independent review remains deferred |
 | `npm run factory:f0-review-receipt-intake -- --help` | help text available | raw Opus output to receipt normalization path is implemented; failed Claude CLI JSON, request packets, Fable output, and label-only model ids remain blocked |
 | `npm run platform:saas-factory-mode -- --check` | `blocked_saas_factory_mode` | source handoff false, F0.2 visible waiver true, P15401 handoff false |
-| `npm run factory:promotion-f0-gate -- --check` | `blocked_factory_promotion_f0_gate` | F0 rows passed 4/5, F0.1 false, F0.2 true, FA implementation allowed false, validation errors 0 |
+| `npm run factory:promotion-f0-gate -- --check --require-pass` | `ready_for_fa_implementation` | F0 rows pass through owner no-Opus exception, F0.1 receipt preflight false, F0.2 true, FA implementation allowed true at `owner_exception_low_trust`, validation errors 0 |
 
 ## F0 Aggregate Gate
 
@@ -72,11 +73,13 @@ Current F0-specific outputs after Codex implementation:
 Current live result:
 
 ```text
-Status: blocked_factory_promotion_f0_gate
-F0 phase pass count: 4/5
+Status: ready_for_fa_implementation
+F0 phase pass count: 5/5
 F0.1 receipt preflight passed: false
+F0.1 owner no-Opus exception active: true
 F0.2 source handoff or visible waiver: true
-FA implementation allowed: false
+FA implementation allowed: true
+FA implementation trust level: owner_exception_low_trust
 Validation errors: 0
 ```
 
@@ -92,7 +95,7 @@ passes against current repo state.
 
 ## F0.1 Status
 
-F0.1 remains blocked.
+F0.1 independent review receipt preflight remains blocked, but FA implementation start is allowed once through the owner no-Opus exception.
 
 Missing review receipts:
 
@@ -105,8 +108,16 @@ Acceptance condition:
 - both receipts must pass [f0-receipt-integrity-preflight.md](f0-receipt-integrity-preflight.md)
 - reviewer engine must match the actual resolved model id
 - the Fable planning session that authored this package cannot be used as the independent implementation reviewer
+- until those receipts exist, any FA work remains low-trust and cannot support production PASS, enterprise PASS, protected closeout, final approval, connector write, deployment, or release approval
 
-Known local limitation:
+Owner no-Opus exception:
+
+- `receipt_id`: `rcpt-f0-1-owner-no-opus-exception-20260611`
+- `trust_level`: `owner_exception_low_trust`
+- `expires_before`: `FA.6 freeze`
+- `requires_deferred_independent_review_before_production_or_enterprise`: true
+
+Known local observation:
 
 - Claude CLI Opus access is authenticated and the resolved model family was observed as `claude-opus-4-7`.
 - A real connector-governance review attempt on 2026-06-11T18:43 KST failed with `api_error_status: 429` and message `You're out of extra usage · resets 7:40pm (Asia/Seoul)`.

@@ -36,9 +36,10 @@ Stage 7 파일럿 릴리스 후보 ←─ Stage 6 제한 실행+인테이크 ←
 
 판정 5건: [09-decision-records/](09-decision-records/) S0-1(엔진 정체성), S0-2(상류 블로커),
 S0-3(HRM 판정), S0-4(병합 거버넌스), S0-5(정체성·ID 체계).
-추가 hard gate: F0.1 누락 리뷰 영수증은 [f0-receipt-integrity-preflight.md](f0-receipt-integrity-preflight.md)를 통과해야 하고,
+추가 hard gate: F0.1 누락 리뷰 영수증은 원칙적으로 [f0-receipt-integrity-preflight.md](f0-receipt-integrity-preflight.md)를 통과해야 하고,
 F0.2는 `multi-engine-orchestration` source handoff를 해소하거나 만료 조건이 있는 waiver로 visible blocker를 남겨야 한다.
-**출구 조건:** F0.1~F0.5 전부 완료. 이전에는 어떤 FA 커밋도 금지.
+이번 run은 human owner가 [f0-owner-no-opus-exception-receipt.json](f0-owner-no-opus-exception-receipt.json)으로 낮은 신뢰도 예외를 발행했으므로 FA 착수만 허용한다.
+**출구 조건:** F0.1~F0.5 전부 완료 또는 owner no-Opus exception visible. 이전에는 어떤 FA 커밋도 금지.
 
 ### Stage 1 — 영속 상태 코어 (트랜치 FA, 1~2 리뷰 윈도우)
 
@@ -112,10 +113,7 @@ P9801–P10000 검증 루프의 제품별 인스턴스화, 샌드박스 명령 �
 
 ## 6. 즉시 다음 액션
 
-1. **Codex 레인:** F0 보완사항이 반영된 본 패키지와 [CODEX-REVIEW.md](CODEX-REVIEW.md)를 기준선으로 확정한다.
-2. **소유자:** S0-1 엔진 정체성 판정 (전체 체인의 첫 도미노).
-3. **소유자:** S0-2~S0-5 판정.
-4. **Codex 레인:** F0.1 receipt-integrity preflight와 F0.2 source handoff/waiver를 기계적으로 확인한다.
-5. **Codex 레인:** 패키지 커밋(판정 후, 구현과 분리).
-6. **Codex 레인:** Stage 0 완료 후 FA.1 착수.
-7. **독립 리뷰어 레인:** FA 구현 패킷 리뷰 (본 패키지 작성 엔진 세션 제외).
+1. **Codex 레인:** owner no-Opus exception을 포함한 F0 gate를 현재 repo 상태에서 통과시킨다.
+2. **Codex 레인:** FA.1 착수. 단, 신뢰 수준은 `owner_exception_low_trust`로 표시한다.
+3. **독립 리뷰어 레인:** Opus 사용 가능 시 deferred F0.1 리뷰 영수증 2건을 보강한다.
+4. **Codex 레인:** production/enterprise/final approval/protected/write/deploy 관련 게이트는 deferred 리뷰 영수증 전까지 계속 닫는다.

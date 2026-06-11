@@ -28,7 +28,7 @@
 
 ## 3. 구현 착수 전 체크리스트 (Codex + 소유자)
 
-1. [ ] F0.1~F0.5 완료: 누락 리뷰 영수증 2건의 receipt-integrity preflight, multi-engine source handoff 해소/조건부 waiver, S0-1~S0-5 판정 영수증 완료
+1. [ ] F0.1~F0.5 완료: 누락 리뷰 영수증 2건의 receipt-integrity preflight 또는 이번 한정 owner no-Opus exception, multi-engine source handoff 해소/조건부 waiver, S0-1~S0-5 판정 영수증 완료
 2. [ ] 본 패키지 Codex 레인 검토 노트 존재 (구현 관점 이의 포함)
 3. [ ] split store 정책 확정: tracked `data/factory/seed/` vs local operational ledger, raw/confidential/secret 비추적 보장
 4. [ ] 10개 네거티브 플래그 전부 소스 리터럴 false 확인, 데이터 구동 권한 플립 경로 없음

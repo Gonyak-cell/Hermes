@@ -44,6 +44,39 @@ const OWNER_RECEIPT = {
   },
 };
 
+const OWNER_NO_OPUS_EXCEPTION_RECEIPT = {
+  receipt_id: "rcpt-f0-1-owner-no-opus-exception-20260611",
+  receipt_kind: "human_owner_no_opus_exception",
+  status: "accepted_limited_low_trust",
+  scope: {
+    program: "Hermes Factory Promotion",
+    stage: "F0.1",
+    applies_once: true,
+  },
+  exception: {
+    skip_opus_review_this_run: true,
+    allows_fa_implementation_without_opus_now: true,
+    requires_deferred_independent_review_before_production_or_enterprise: true,
+    expires_before: "FA.6 freeze",
+    trust_level: "owner_exception_low_trust",
+  },
+  authority_flags: {
+    project_creation_allowed_now: false,
+    repo_write_allowed_now: false,
+    connector_write_allowed_now: false,
+    deployment_allowed_now: false,
+    protected_action_allowed_now: false,
+    command_execution_allowed_now: false,
+    api_write_methods_allowed_now: false,
+    store_mutation_allowed_now: false,
+    codex_final_approval_allowed: false,
+    claude_final_approval_allowed: false,
+    fable_final_approval_allowed: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+  },
+};
+
 const P15000_BLOCKED = {
   schema_version: "multi-engine-orchestration.v1",
   program_range: "P14601-P15000",
@@ -115,6 +148,7 @@ function options(overrides = {}) {
     runAt: RUN_AT,
     write: false,
     ownerAdjudicationReceipt: OWNER_RECEIPT,
+    ownerNoOpusExceptionReceipt: null,
     multiEngineOrchestration: P15000_BLOCKED,
     inlineReceipts: {
       "f0_1.connector_external_app_governance": CONNECTOR_RECEIPT,
@@ -157,6 +191,29 @@ test("Factory Promotion F0 Gate keeps FA blocked when independent review receipt
   assert.equal(result.summary.f0_2_source_handoff_or_visible_waiver_now, true);
   assert.equal(result.summary.fa_implementation_allowed_now, false);
   assert.deepEqual(result.summary.blocked_phase_ids, ["F0.1"]);
+});
+
+test("Factory Promotion F0 Gate allows low-trust FA start with one-time owner no-Opus exception", async () => {
+  const result = await buildFactoryPromotionF0Gate(options({
+    ownerNoOpusExceptionReceipt: OWNER_NO_OPUS_EXCEPTION_RECEIPT,
+    inlineReceipts: {
+      "f0_1.connector_external_app_governance": null,
+      "f0_1.execution_write_authority_maturity": null,
+    },
+  }));
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.factory_promotion_f0_gate_status, "ready_for_fa_implementation");
+  assert.equal(result.summary.f0_1_receipt_preflight_passed, false);
+  assert.equal(result.summary.f0_1_owner_no_opus_exception_active_now, true);
+  assert.equal(result.summary.independent_review_deferred_now, true);
+  assert.equal(result.summary.fa_implementation_trust_level, "owner_exception_low_trust");
+  assert.equal(result.summary.fa_implementation_allowed_now, true);
+  assert.equal(result.summary.project_creation_allowed_now, false);
+  assert.equal(result.summary.repo_write_allowed_now, false);
+  assert.equal(result.summary.production_pass_enabled, false);
+  assert.equal(result.summary.enterprise_pass_enabled, false);
+  assert.equal(result.f0_phase_rows.find((row) => row.row_id === "F0.1").owner_no_opus_exception_active, true);
 });
 
 test("Factory Promotion F0 Gate keeps missing owner decisions visible", async () => {

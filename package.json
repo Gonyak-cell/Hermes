@@ -648,6 +648,7 @@
     "factory:receipt-authority-schema-freeze": "node scripts/factory-receipt-authority-schema-freeze.mjs",
     "factory:receipt-chain-audit": "node scripts/factory-receipt-chain-audit.mjs",
     "factory:closed-apply-cycle-freeze": "node scripts/factory-closed-apply-cycle-freeze.mjs",
+    "factory:prd-intake": "node scripts/factory-prd-intake.mjs",
     "factory:claude-review-evidence": "node scripts/claude-review-evidence-validator.mjs",
     "factory:seed-migration": "node scripts/factory-seed-migration.mjs",
     "factory:receipt-preflight": "node scripts/factory-receipt-preflight.mjs",

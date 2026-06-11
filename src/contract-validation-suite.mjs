@@ -24,6 +24,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "factory:receipt-authority-schema-freeze",
   "factory:receipt-chain-audit",
   "factory:closed-apply-cycle-freeze",
+  "factory:prd-intake",
   "api:route-inventory",
   "dashboard:ia",
   "approval:queue-ui",

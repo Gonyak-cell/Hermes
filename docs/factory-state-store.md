@@ -1,6 +1,6 @@
 # Factory State Store
 
-Status: FA.1 schema contract, not runtime write authority.
+Status: FA.2 append ledger, local runtime write only.
 Date: 2026-06-11
 
 ## Purpose
@@ -31,6 +31,30 @@ Rules:
 - tracked seed fixtures are reviewable baselines, not production truth
 - projections are derived views and can be regenerated
 
+## Local Ledger Files
+
+FA.2 defines three local JSONL ledgers:
+
+| File | Row schema | Purpose |
+|---|---|---|
+| `products.jsonl` | `product-record.v1` | product registry rows |
+| `state-transitions.jsonl` | `product-state-transition.v1` | product PS state movement |
+| `receipts-index.jsonl` | `factory-receipt-envelope.v1` | receipt envelopes visible to the factory store |
+
+Each row carries:
+
+- `payload_sha256`: hash of the canonical row payload, excluding chain fields
+- `prev_entry_hash`: previous row hash in the same ledger file, or `null`
+- `entry_hash`: hash of the ledger name and canonical row including
+  `payload_sha256` and `prev_entry_hash`
+
+Append rejects rows when the existing ledger is invalid, the supplied payload
+hash is stale, the previous hash is not the current tail, or the row fails its
+schema.
+
+Recovery is local-only and truncates a damaged JSONL file to the last valid
+prefix. It does not create production or enterprise evidence.
+
 ## Core Schemas
 
 ### `product-record.v1`
@@ -42,10 +66,13 @@ Rules:
 - `workspace_id`
 - `domain_pack_ids`
 - `product_state`
+- `receipt_id`
+- `payload_sha256`
+- `prev_entry_hash`
 - timestamps
 - closed authority flags
 
-Initial FA.1 states are schema-only. FA.2 will add append behavior.
+FA.2 append behavior is local-ledger only.
 
 ### `product-state-transition.v1`
 
@@ -61,7 +88,7 @@ binds:
 - `prev_entry_hash`
 - closed authority flags
 
-FA.1 defines the shape. FA.2 will enforce append-only hash chaining.
+FA.2 enforces append-only hash chaining.
 
 ### `factory-receipt-envelope.v1`
 
@@ -93,7 +120,7 @@ FA.1 does not enable PS3 or later behavior.
 
 ## Authority Boundary
 
-FA.1 keeps these false:
+FA.2 keeps these false:
 
 - `project_creation_allowed_now`
 - `repo_write_allowed_now`
@@ -105,6 +132,13 @@ FA.1 keeps these false:
 
 The owner no-Opus exception allows FA implementation to start at
 `owner_exception_low_trust`; it does not change this authority boundary.
+
+## Scoped Reads
+
+Product reads require an explicit `product_id`. A read with no scope, or a read
+that asks for a different `product_id` than the current scope, is rejected.
+Cross-product mixing is not a projection concern; it is blocked at the store
+read boundary.
 
 ## Verification
 
@@ -121,4 +155,6 @@ Expected result:
 - sample `product-record.v1` validates
 - sample `product-state-transition.v1` validates
 - sample `factory-receipt-envelope.v1` validates
+- existing JSONL ledgers validate when present
+- `--check` does not write ledger or artifact files
 - authority flags remain false

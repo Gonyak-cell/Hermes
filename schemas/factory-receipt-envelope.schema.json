@@ -43,6 +43,7 @@
     },
     "payload_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "prev_entry_hash": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+    "entry_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "authority_flags": {
       "type": "object",
       "required": [

@@ -21,7 +21,7 @@
     "generated_at": { "type": "string", "format": "date-time" },
     "capability_id": { "const": "factory.product_registry_store" },
     "command_name": { "const": "platform:factory-product-registry-store" },
-    "program_range": { "const": "FCORE-FA.1" },
+    "program_range": { "const": "FCORE-FA.2" },
     "store_policy": {
       "type": "object",
       "required": [
@@ -58,9 +58,13 @@
         "factory_product_registry_store_status",
         "program_range",
         "schema_contracts_ready",
+        "append_jsonl_store_ready",
         "tracked_seed_root",
         "local_operational_ledger_root",
         "local_operational_ledger_gitignored",
+        "ledger_dir",
+        "ledger_total_entry_count",
+        "ledger_validation_errors",
         "project_creation_allowed_now",
         "repo_write_allowed_now",
         "connector_write_allowed_now",
@@ -73,13 +77,22 @@
       "properties": {
         "factory_product_registry_store_status": {
           "type": "string",
-          "enum": ["ready_factory_product_registry_store_schema_contracts", "blocked_factory_product_registry_store_schema_contracts"]
+          "enum": [
+            "ready_factory_product_registry_store_schema_contracts",
+            "blocked_factory_product_registry_store_schema_contracts",
+            "ready_factory_product_registry_store_append_ledger",
+            "blocked_factory_product_registry_store_append_ledger"
+          ]
         },
-        "program_range": { "const": "FCORE-FA.1" },
+        "program_range": { "const": "FCORE-FA.2" },
         "schema_contracts_ready": { "type": "boolean" },
+        "append_jsonl_store_ready": { "type": "boolean" },
         "tracked_seed_root": { "const": "data/factory/seed/" },
         "local_operational_ledger_root": { "const": "data/factory/local/" },
         "local_operational_ledger_gitignored": { "type": "boolean" },
+        "ledger_dir": { "type": "string", "minLength": 1 },
+        "ledger_total_entry_count": { "type": "integer", "minimum": 0 },
+        "ledger_validation_errors": { "type": "integer", "minimum": 0 },
         "project_creation_allowed_now": { "const": false },
         "repo_write_allowed_now": { "const": false },
         "connector_write_allowed_now": { "const": false },
@@ -100,6 +113,9 @@
         "workspace_id",
         "domain_pack_ids",
         "product_state",
+        "receipt_id",
+        "payload_sha256",
+        "prev_entry_hash",
         "created_at",
         "updated_at",
         "authority_flags"
@@ -119,6 +135,10 @@
           "type": "string",
           "enum": ["PS0_seed", "PS1_schema_valid", "PS2_receipt_bound", "PS3_candidate_ready", "PS4_apply_ready", "PS5_limited_execution", "PS6_release_candidate", "PS7_deploy_ready"]
         },
+        "receipt_id": { "type": "string", "pattern": "^rcpt-[a-z0-9][a-z0-9._-]+$" },
+        "payload_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "prev_entry_hash": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+        "entry_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
         "created_at": { "type": "string", "format": "date-time" },
         "updated_at": { "type": "string", "format": "date-time" },
         "authority_flags": { "$ref": "#/$defs/authorityBoundary" }
@@ -148,6 +168,7 @@
         "receipt_id": { "type": "string", "pattern": "^rcpt-[a-z0-9][a-z0-9._-]+$" },
         "payload_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
         "prev_entry_hash": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+        "entry_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
         "created_at": { "type": "string", "format": "date-time" },
         "authority_flags": { "$ref": "#/$defs/authorityBoundary" }
       }

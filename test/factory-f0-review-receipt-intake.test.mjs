@@ -11,6 +11,19 @@ import {
 const RUN_AT = "2026-06-11T00:00:00.000Z";
 const COMMIT_SHA = "f3b2ca7f3b2ca7f3b2ca7f3b2ca7f3b2ca7f3b2ca7";
 const RAW_OUTPUT = "Independent Opus review completed. No findings.\n";
+const FAILED_CLAUDE_JSON_OUTPUT = JSON.stringify({
+  type: "result",
+  subtype: "success",
+  is_error: true,
+  api_error_status: 429,
+  result: "You're out of extra usage · resets 7:40pm (Asia/Seoul)",
+  modelUsage: {
+    "claude-opus-4-7": {
+      inputTokens: 43,
+      outputTokens: 2280,
+    },
+  },
+});
 
 function options(overrides = {}) {
   return {
@@ -112,6 +125,19 @@ test("Factory F0 Review Receipt Intake does not accept request packets as raw re
   assert.equal(result.receipt_intake_rows.find((row) => row.row_id === "raw_output.not_request_packet").current_verdict, "blocked");
 });
 
+test("Factory F0 Review Receipt Intake blocks failed Claude CLI raw outputs", async () => {
+  const result = await buildFactoryF0ReviewReceiptIntake(options({
+    rawOutputText: FAILED_CLAUDE_JSON_OUTPUT,
+    engineResolvedModelId: "claude-opus-4-7",
+  }));
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.target_preflight_passed, true);
+  assert.equal(result.summary.intake_rows_passed, false);
+  assert.equal(result.summary.factory_f0_review_receipt_intake_status, "blocked_f0_review_receipt_intake");
+  assert.equal(result.receipt_intake_rows.find((row) => row.row_id === "raw_output.completed_review").current_verdict, "blocked");
+});
+
 test("Factory F0 Review Receipt Intake --check does not overwrite artifacts", async () => {
   const outDir = await mkdtemp(path.join(os.tmpdir(), "factory-f0-review-receipt-intake-"));
   const sentinelPath = path.join(outDir, "factory-f0-review-receipt-intake.json");
@@ -134,5 +160,16 @@ test("Factory F0 Review Receipt Intake --require-pass rejects blocked target pre
       engineResolvedModelId: "claude-fable-5[1m]",
     })),
     /does not pass F0.1 preflight/,
+  );
+});
+
+test("Factory F0 Review Receipt Intake --require-pass rejects blocked intake rows even when target preflight passes", async () => {
+  await assert.rejects(
+    () => runFactoryF0ReviewReceiptIntake(options({
+      requirePass: true,
+      rawOutputText: FAILED_CLAUDE_JSON_OUTPUT,
+      engineResolvedModelId: "claude-opus-4-7",
+    })),
+    /does not pass F0.1 preflight or intake rows/,
   );
 });

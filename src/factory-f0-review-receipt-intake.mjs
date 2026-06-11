@@ -53,8 +53,8 @@ export async function runFactoryF0ReviewReceiptIntake(options = {}) {
     error.validation = result.validation;
     throw error;
   }
-  if (options.requirePass && result.summary.target_preflight_passed !== true) {
-    const error = new Error("Factory F0 Review Receipt Intake target receipt does not pass F0.1 preflight.");
+  if (options.requirePass && result.summary.factory_f0_review_receipt_intake_status !== READY_STATUS) {
+    const error = new Error("Factory F0 Review Receipt Intake target receipt does not pass F0.1 preflight or intake rows.");
     error.summary = result.summary;
     error.validation = result.validation;
     throw error;
@@ -196,6 +196,7 @@ function buildContract(generatedAt) {
     raw_review_output_required: true,
     request_prompt_hash_verified: true,
     receipt_write_target_limited_to_f0_1_review_paths: true,
+    failed_claude_cli_result_allowed: false,
     fable_planning_receipt_allowed: false,
     label_only_engine_id_allowed: false,
     project_creation_allowed_now: false,
@@ -261,6 +262,7 @@ function buildReceiptRows(context) {
     ["raw_output.available", "Raw independent reviewer output is available", context.rawOutput.available === true, context.rawOutput.path],
     ["raw_output.not_request_packet", "Raw output path is not a request packet or factory-promotion planning document", isRawOutputPathAcceptable(context.rawOutput.path), context.rawOutput.path],
     ["raw_output.not_empty", "Raw output body is non-empty", typeof context.rawOutput.text === "string" && context.rawOutput.text.trim().length > 0, context.rawOutput.path],
+    ["raw_output.completed_review", "Raw output is a completed reviewer result, not an auth/API/usage failure", rawOutputCompletedReview(context.rawOutput), context.rawOutput.path],
     ["raw_output.sha256", "Raw output SHA256 can be computed", HEX_64.test(context.rawOutput.sha256 ?? ""), context.rawOutput.path],
     ["reviewed_commit_sha", "Reviewed commit SHA is bound", typeof context.reviewedCommitSha === "string" && GIT_SHA.test(context.reviewedCommitSha), "reviewed_commit_sha"],
     ["engine_resolved_model_id", "Resolved model id is literal and not label-only or Fable", isResolvedModelIdAcceptable(context.engineResolvedModelId), "engine_resolved_model_id"],
@@ -385,6 +387,41 @@ function isResolvedModelIdAcceptable(value) {
   if (LABEL_ONLY_ENGINE_IDS.has(normalized)) return false;
   if (normalized.includes("fable")) return false;
   return true;
+}
+
+function rawOutputCompletedReview(rawOutput) {
+  const text = typeof rawOutput?.text === "string" ? rawOutput.text.trim() : "";
+  if (!text) return false;
+  let parsed = null;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    parsed = null;
+  }
+  if (parsed && typeof parsed === "object" && parsed.type === "result") {
+    return parsed.subtype === "success"
+      && parsed.is_error === false
+      && (parsed.api_error_status === null || parsed.api_error_status === undefined)
+      && typeof parsed.result === "string"
+      && parsed.result.trim().length > 0
+      && containsFailureMarker(parsed.result) === false;
+  }
+  return containsFailureMarker(text) === false;
+}
+
+function containsFailureMarker(text) {
+  const normalized = String(text).toLowerCase();
+  return [
+    "out of extra usage",
+    "not logged in",
+    "please run /login",
+    "workspace trust",
+    "api_error_status\":429",
+    "api_error_status\":401",
+    "api_error_status\":403",
+    "\"is_error\":true",
+    "\"is_error\": true",
+  ].some((marker) => normalized.includes(marker));
 }
 
 function allBoundaryAuthorityFlagsFalse(boundary) {

@@ -16,6 +16,22 @@ Routes: `/api/factory/products`.
 read-only guard and the route-local method guard. `POST`, `PUT`, `PATCH`, and
 `DELETE` return `405 method_not_allowed`.
 
+## FB.1 Factory Stage Routes
+
+Factory Stage routes expose the read-only product PS state read model. The
+route derives current state from the factory product store and local
+state-transition ledger without enabling PS3 transitions, candidate writes, or
+apply behavior. The response is explicitly read-only with
+`mutation_allowed: false` and `raw_confidential_material_visible: false`.
+
+Supported filters include `product_id`, `current_product_state`,
+`base_product_state`, `product_source_tier`, and `limit`.
+
+Routes: `/api/factory/stage`.
+
+`GET` and `HEAD` are allowed. Mutation methods return `405
+method_not_allowed`.
+
 ## P511-P515 Platform Claim Registry Routes
 
 Platform Claim Registry routes expose the read-only P500 operations freeze claim

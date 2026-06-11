@@ -17,6 +17,7 @@ try {
   assert.equal(index.schema_version, "review-api-index.v1");
   assert.ok(index.routes.some((route) => route.path === "/api/dashboard"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/products"));
+  assert.ok(index.routes.some((route) => route.path === "/api/factory/stage"));
   assert.ok(index.routes.some((route) => route.path === "/api/packs"));
   assert.ok(index.routes.some((route) => route.path === "/api/capabilities"));
   assert.ok(index.routes.some((route) => route.path === "/api/artifacts"));
@@ -7211,6 +7212,19 @@ try {
 
   const factoryProductsPost = await fetch(`${url}/api/factory/products`, { method: "POST" });
   assert.equal(factoryProductsPost.status, 405);
+
+  const factoryStage = await fetchJson(`${url}/api/factory/stage?product_id=product.fixture_hermes&limit=5`);
+  assert.equal(factoryStage.collection, "factory_stage_rows");
+  assert.equal(factoryStage.read_only, true);
+  assert.equal(factoryStage.mutation_allowed, false);
+  assert.equal(factoryStage.raw_confidential_material_visible, false);
+  assert.equal(factoryStage.product_source_tier, "tracked_seed");
+  assert.equal(factoryStage.count, 1);
+  assert.equal(factoryStage.items[0].product_id, "product.fixture_hermes");
+  assert.equal(factoryStage.items[0].current_product_state, "PS0_seed");
+  assert.equal(factoryStage.items[0].ps3_transition_append_allowed_now, false);
+  const factoryStagePost = await fetch(`${url}/api/factory/stage`, { method: "POST" });
+  assert.equal(factoryStagePost.status, 405);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

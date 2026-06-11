@@ -1,6 +1,6 @@
 # Factory State Store
 
-Status: FA.6 read-only factory products API plus store-first projection redirection.
+Status: FB.1 factory stage read model plus FA.6 read-only factory products API.
 Date: 2026-06-11
 
 ## Purpose
@@ -114,6 +114,35 @@ fallback projection into factory-store truth.
 
 `POST`, `PUT`, `PATCH`, and `DELETE` on `/api/factory/products` are executable
 negative fixtures and return `405 method_not_allowed`.
+
+## Factory Stage Read Model
+
+FB.1 adds the deterministic stage projection command:
+
+```bash
+npm run factory:stage -- --check --require-pass
+```
+
+The read model:
+
+- reads products from `data/factory/local/products.jsonl` first, then
+  `data/factory/seed/products.jsonl`
+- reads state transitions from the tracked seed and local operational ledger
+- treats products as single-source operational-first truth, while transitions
+  are append events unioned across seed and local tiers
+- computes `current_product_state` from the latest transition for each product
+- exposes `/api/factory/stage` as a read-only collection
+- marks the API response as `raw_confidential_material_visible: false`
+- blocks the read model when PS3 or later transition rows are present before FB
+  promotion
+
+FB.1 keeps these false:
+
+- `ps3_transition_append_allowed_now`
+- `candidate_manifest_write_allowed_now`
+- `apply_allowed_now`
+- all project/repo/connector/deploy/protected-action/production/enterprise
+  authority flags
 
 ## Receipt-Driven State Transitions
 
@@ -234,6 +263,9 @@ Expected result:
 - `/api/factory/products` exposes factory products as a read-only Review API collection
 - `HEAD /api/factory/products` returns a bodyless 200-class read
 - mutating `/api/factory/products` methods are rejected with `405 method_not_allowed`
+- `factory:stage` projects 9 tracked seed products as PS0 stage rows by default
+- `/api/factory/stage` exposes read-only product PS state rows
+- PS3+ transition rows block the stage read model before FB promotion
 - projection fallback, if needed, is visible in summary and row fields
 - sample `product-record.v1` validates
 - sample `product-state-transition.v1` validates

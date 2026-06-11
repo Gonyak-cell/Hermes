@@ -1,6 +1,6 @@
 # Factory State Store
 
-Status: FC.3 candidate review docket plus FC.2 candidate lane proof, FC.1 candidate lane, FB.5 workbench, FB.4 starter artifact corpus, FB.3 candidate manifest resolver, FB.2 stage control view, and FA.6 read-only factory products API.
+Status: FC.4 candidate review docket API plus FC.3 candidate review docket, FC.2 candidate lane proof, FC.1 candidate lane, FB.5 workbench, FB.4 starter artifact corpus, FB.3 candidate manifest resolver, FB.2 stage control view, and FA.6 read-only factory products API.
 Date: 2026-06-11
 
 ## Purpose
@@ -339,6 +339,26 @@ packets. Explicit candidate-lane JSON files are operator-supplied artifacts:
 FC.3 validates required hash fields and manifest-binding flags before a ready
 docket, but it does not convert those files into approval or apply authority.
 
+## Factory Candidate Review Docket API
+
+FC.4 exposes the candidate review docket through the read-only Review API:
+
+```bash
+node scripts/review-api.mjs --once '/api/factory/candidate-review-docket?limit=1'
+```
+
+The route returns `factory_candidate_review_docket_rows` as the primary
+collection and includes visible review packet rows, visible review hash-register
+rows, negative fixture rows, the source candidate-lane summary, and closed
+authority boundary fields. `GET` and `HEAD` are allowed. `POST`, `PUT`,
+`PATCH`, and `DELETE` return `405 method_not_allowed`. A blocked underlying
+candidate review docket returns `503 factory_candidate_review_docket_unavailable`.
+
+The route is a review surface only. It does not decide review outcomes, approve
+candidates, apply patches, create worktrees, write source files, append
+persistent ledgers, write repositories, call connectors, deploy, or grant
+production/enterprise trust.
+
 ## Claude Review Evidence Validator
 
 Factory promotion review artifacts are classified before they can be counted:
@@ -486,6 +506,8 @@ Expected result:
   temporary ledger and cleans that ledger up afterward
 - `factory:candidate-review-docket` binds those 3 candidate packets into review
   docket rows and keeps approval/apply closed
+- `/api/factory/candidate-review-docket` exposes those review docket rows as a
+  read-only Review API collection and blocks mutation methods
 - `factory:starter-artifacts` returns 19 materialized starter refs by default
 - `/api/factory/starter-artifacts` exposes read-only starter artifact rows
 - `factory:workbench` returns 9 stage-only workbench rows and 0 candidate

@@ -136,6 +136,34 @@ Routes: `/api/factory/candidate-lane`.
 `GET` and `HEAD` are allowed. Mutation methods return `405
 method_not_allowed`.
 
+## FC.4 Factory Candidate Review Docket Routes
+
+Factory Candidate Review Docket routes expose the FC.3 candidate review docket
+as a read-only review surface. The route returns review docket rows as the
+primary collection and includes the visible docket rows' review packets, review
+hash-register rows, and negative fixture rows.
+
+The route is for review only. It does not decide review outcomes, approve
+candidates, apply patches, create worktrees, write source files, append
+persistent ledgers, write repositories, call connectors, deploy, or grant
+production/enterprise trust.
+
+Supported filters include `review_docket_id`, `review_status`,
+`candidate_packet_id`, `product_id`, `candidate_manifest_id`,
+`preflight_status`, `next_allowed_action`, and `limit`.
+
+Routes: `/api/factory/candidate-review-docket`.
+
+`GET` and `HEAD` are allowed. Mutation methods return `405
+method_not_allowed`. If the underlying candidate review docket fails validation,
+the route returns `503 factory_candidate_review_docket_unavailable`.
+
+Hash-register rows in a filtered response are a visibility subset for the
+returned candidate packets. Full chain verification uses the unfiltered route
+response or the canonical FC.3 docket artifact. Unexpected build exceptions are
+fail-closed and follow the same process-level handling pattern as the sibling
+factory routes; blocked validation results return the documented `503` envelope.
+
 ## P511-P515 Platform Claim Registry Routes
 
 Platform Claim Registry routes expose the read-only P500 operations freeze claim

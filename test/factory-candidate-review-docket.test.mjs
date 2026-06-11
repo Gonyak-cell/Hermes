@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { buildFactoryCandidateLaneProof } from "../src/factory-candidate-lane-proof.mjs";
+import { buildReviewApiResponse } from "../src/review-api.mjs";
 import {
   buildFactoryCandidateReviewDocket,
   runFactoryCandidateReviewDocket,
@@ -11,6 +12,10 @@ import {
 
 const RUN_AT = "2026-06-11T00:00:00.000Z";
 const HASH_RE = /^[a-f0-9]{64}$/;
+
+function parseJsonResponse(response) {
+  return JSON.parse(response.body);
+}
 
 test("Factory Candidate Review Docket binds three proof candidate packets without opening approval or apply", async () => {
   const result = await buildFactoryCandidateReviewDocket({ runAt: RUN_AT });
@@ -152,4 +157,76 @@ test("Factory Candidate Review Docket check mode rejects blocked source candidat
       return true;
     },
   );
+});
+
+test("Review API exposes factory candidate review docket rows as read-only review data", async () => {
+  const response = await buildReviewApiResponse("/api/factory/candidate-review-docket?limit=2", {
+    runAt: RUN_AT,
+  });
+  const body = parseJsonResponse(response);
+
+  assert.equal(response.status, 200);
+  assert.equal(body.collection, "factory_candidate_review_docket_rows");
+  assert.equal(body.read_only, true);
+  assert.deepEqual(body.method_allowlist, ["GET", "HEAD"]);
+  assert.equal(body.mutation_allowed, false);
+  assert.equal(body.raw_confidential_material_visible, false);
+  assert.equal(body.review_decision_allowed_now, false);
+  assert.equal(body.approval_allowed_now, false);
+  assert.equal(body.apply_allowed_now, false);
+  assert.equal(body.source_file_write_allowed_now, false);
+  assert.equal(body.ledger_append_allowed_now, false);
+  assert.equal(body.persistent_ledger_append_allowed_now, false);
+  assert.equal(body.repo_write_allowed_now, false);
+  assert.equal(body.connector_write_allowed_now, false);
+  assert.equal(body.deployment_allowed_now, false);
+  assert.equal(body.protected_action_allowed_now, false);
+  assert.equal(body.production_pass_enabled, false);
+  assert.equal(body.enterprise_pass_enabled, false);
+  assert.equal(body.count, 2);
+  assert.equal(body.total_count, 3);
+  assert.equal(body.visible_review_docket_row_count, 2);
+  assert.equal(body.candidate_packet_count, 3);
+  assert.equal(body.review_docket_row_count, 3);
+  assert.equal(body.review_packet_row_count, 3);
+  assert.equal(body.review_hash_register_row_count, 3);
+  assert.equal(body.factory_candidate_review_packet_rows.length, 2);
+  assert.equal(body.factory_candidate_review_hash_register_rows.length, 2);
+  assert.equal(body.factory_candidate_review_negative_fixture_rows.length, 3);
+  assert.equal(body.items.every((item) => item.review_status === "review_required_not_approved"), true);
+  assert.equal(body.items.every((item) => item.approval_allowed_now === false && item.apply_allowed_now === false), true);
+  assert.equal(body.source_candidate_lane.source_kind, "fc2_proof_scenario");
+  assert.equal(body.summary.factory_candidate_review_docket_status, "ready_factory_candidate_review_docket");
+  assert.equal(body.validation_error_count, 0);
+});
+
+test("Review API supports HEAD and blocks mutating factory candidate review docket requests", async () => {
+  const headResponse = await buildReviewApiResponse("/api/factory/candidate-review-docket?limit=1", {
+    method: "HEAD",
+    runAt: RUN_AT,
+  });
+  assert.equal(headResponse.status, 200);
+  assert.equal(headResponse.body, "");
+
+  for (const method of ["POST", "PUT", "PATCH", "DELETE"]) {
+    const response = await buildReviewApiResponse("/api/factory/candidate-review-docket", {
+      method,
+      runAt: RUN_AT,
+    });
+    const body = parseJsonResponse(response);
+
+    assert.equal(response.status, 405);
+    assert.equal(body.error, "method_not_allowed");
+  }
+});
+
+test("Review API fails closed when factory candidate review docket source is blocked", async () => {
+  const response = await buildReviewApiResponse("/api/factory/candidate-review-docket", {
+    proofScenario: false,
+    runAt: RUN_AT,
+  });
+  const body = parseJsonResponse(response);
+
+  assert.equal(response.status, 503);
+  assert.equal(body.error, "factory_candidate_review_docket_unavailable");
 });

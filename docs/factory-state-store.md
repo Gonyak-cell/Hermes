@@ -1,6 +1,6 @@
 # Factory State Store
 
-Status: FC.4 candidate review docket API plus FC.3 candidate review docket, FC.2 candidate lane proof, FC.1 candidate lane, FB.5 workbench, FB.4 starter artifact corpus, FB.3 candidate manifest resolver, FB.2 stage control view, and FA.6 read-only factory products API.
+Status: FC.5 candidate freeze handoff plus FC.4 candidate review docket API, FC.3 candidate review docket, FC.2 candidate lane proof, FC.1 candidate lane, FB.5 workbench, FB.4 starter artifact corpus, FB.3 candidate manifest resolver, FB.2 stage control view, and FA.6 read-only factory products API.
 Date: 2026-06-11
 
 ## Purpose
@@ -359,6 +359,25 @@ candidates, apply patches, create worktrees, write source files, append
 persistent ledgers, write repositories, call connectors, deploy, or grant
 production/enterprise trust.
 
+## Factory Candidate Freeze Handoff
+
+FC.5 closes the FC tranche with a deterministic freeze and FD handoff artifact:
+
+```bash
+npm run factory:candidate-freeze-handoff -- --check --require-pass
+```
+
+The artifact binds FC.2 proof, FC.3 review docket, FC.4 Review API smoke,
+FC.1-FC.4 Claude review evidence status, and a chained canonical run hash
+register. It can set `fd_implementation_handoff_allowed_now: true` only when
+candidate packet proof, review docket visibility, API visibility, clean review
+evidence, canonical hash-chain integrity, and authority closure are all ready.
+
+This handoff allows FD implementation planning and code work only. It does not
+enable runtime apply, source writes, persistent ledger appends, repository
+writes, connector writes, deployment, protected action, production PASS, or
+enterprise PASS.
+
 ## Claude Review Evidence Validator
 
 Factory promotion review artifacts are classified before they can be counted:
@@ -508,6 +527,8 @@ Expected result:
   docket rows and keeps approval/apply closed
 - `/api/factory/candidate-review-docket` exposes those review docket rows as a
   read-only Review API collection and blocks mutation methods
+- `factory:candidate-freeze-handoff` freezes FC.1-FC.4 evidence and opens FD
+  implementation handoff while keeping runtime apply/write authority closed
 - `factory:starter-artifacts` returns 19 materialized starter refs by default
 - `/api/factory/starter-artifacts` exposes read-only starter artifact rows
 - `factory:workbench` returns 9 stage-only workbench rows and 0 candidate

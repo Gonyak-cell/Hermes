@@ -650,6 +650,7 @@
     "factory:closed-apply-cycle-freeze": "node scripts/factory-closed-apply-cycle-freeze.mjs",
     "factory:prd-intake": "node scripts/factory-prd-intake.mjs",
     "factory:work-packet-decomposition": "node scripts/factory-work-packet-decomposition.mjs",
+    "factory:validation-loop-instantiation": "node scripts/factory-validation-loop-instantiation.mjs",
     "factory:claude-review-evidence": "node scripts/claude-review-evidence-validator.mjs",
     "factory:seed-migration": "node scripts/factory-seed-migration.mjs",
     "factory:receipt-preflight": "node scripts/factory-receipt-preflight.mjs",

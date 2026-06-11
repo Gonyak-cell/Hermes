@@ -10,6 +10,38 @@ import {
 
 const RUN_AT = "2026-06-06T00:00:00.000Z";
 
+const OWNER_ADJUDICATION_RECEIPT = {
+  receipt_id: "rcpt-s0-owner-adjudication-20260611",
+  receipt_kind: "human_owner_adjudication",
+  adjudicated_decisions: [
+    {
+      decision_id: "S0-2",
+      receipt_id: "rcpt-s0-2-corrective-baseline-waiver-20260611",
+      decision: "corrective_baseline_waiver",
+      expires_before: "FA.6 freeze",
+    },
+  ],
+  authority_flags: {
+    project_creation_allowed_now: false,
+    repo_write_allowed_now: false,
+    connector_write_allowed_now: false,
+    deployment_allowed_now: false,
+    protected_action_allowed_now: false,
+    command_execution_allowed_now: false,
+    api_write_methods_allowed_now: false,
+    store_mutation_allowed_now: false,
+    codex_final_approval_allowed: false,
+    claude_final_approval_allowed: false,
+    fable_final_approval_allowed: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+  },
+  scope: {
+    program: "Hermes Factory Promotion",
+    stage: "S0",
+  },
+};
+
 const P15000_READY = {
   schema_version: "multi-engine-orchestration.v1",
   program_range: "P14601-P15000",
@@ -79,6 +111,7 @@ function options(overrides = {}) {
     runAt: RUN_AT,
     write: false,
     multiEngineOrchestration: P15000_READY,
+    ownerAdjudicationReceipt: OWNER_ADJUDICATION_RECEIPT,
     ...overrides,
   };
 }
@@ -139,10 +172,15 @@ test("SaaS Factory Mode preserves blocked P15000 source without opening P15401 h
   assert.equal(result.summary.saas_factory_mode_status, "blocked_saas_factory_mode");
   assert.equal(result.summary.source_ready_for_p15001_handoff, false);
   assert.equal(result.summary.source_block_visible_now, true);
+  assert.equal(result.summary.fcore_corrective_baseline_waiver_visible_now, true);
+  assert.equal(result.summary.source_blocker_waived_for_fcore_corrective_baseline_now, true);
+  assert.equal(result.summary.f0_2_source_handoff_or_visible_waiver_now, true);
   assert.equal(result.summary.ready_for_p15401_handoff, false);
   assert.equal(result.saas_factory_source_binding_rows.find((row) => row.row_id === "source.handoff").current_verdict, "blocked");
+  assert.equal(result.fcore_corrective_baseline_waiver_rows.every((row) => row.current_verdict === "pass"), true);
   assert.equal(result.p15400_freeze_rows.find((row) => row.row_id === "freeze.source").current_verdict, "blocked");
   assert.equal(result.p15400_freeze_rows.find((row) => row.row_id === "freeze.source_block_visible").current_verdict, "pass");
+  assert.equal(result.p15400_freeze_rows.find((row) => row.row_id === "freeze.fcore_corrective_baseline_waiver_visible").current_verdict, "pass");
 });
 
 test("SaaS Factory Mode fails validation if P15000 source is missing", async () => {

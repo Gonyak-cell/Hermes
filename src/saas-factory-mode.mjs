@@ -10,6 +10,7 @@ export const DEFAULT_SAAS_FACTORY_MODE_INPUTS = {
   roadmapDocPath: "docs/hermes-roadmap-p15001-p15400.md",
   architectureDocPath: "docs/architecture.md",
   sourceMultiEnginePath: "artifacts/multi-engine-orchestration/latest/multi-engine-orchestration.json",
+  ownerAdjudicationReceiptPath: "docs/factory-promotion/s0-owner-adjudication-receipt.json",
 };
 
 const COMMAND_NAME = "platform:saas-factory-mode";
@@ -73,9 +74,13 @@ export async function buildSaasFactoryMode(options = {}) {
   const source = Object.prototype.hasOwnProperty.call(options, "multiEngineOrchestration")
     ? normalizeInlineJsonSource("inline.multi_engine_orchestration", options.multiEngineOrchestration)
     : await readJsonOrBuildMultiEngine(inputs.source_multi_engine_path, generatedAt);
+  const ownerReceipt = Object.prototype.hasOwnProperty.call(options, "ownerAdjudicationReceipt")
+    ? normalizeInlineJsonSource("inline.owner_adjudication_receipt", options.ownerAdjudicationReceipt)
+    : await readJsonSource(inputs.owner_adjudication_receipt_path);
 
   const phaseRows = buildPhaseRows(roadmapDoc.text, generatedAt);
   const sourceRows = buildSourceBindingRows(source, generatedAt);
+  const waiverRows = buildFcoreCorrectiveBaselineWaiverRows({ ownerReceipt, sourceRows, generatedAt });
   const templateRows = buildTermRows("project_template_contract", "Project template", TEMPLATE_TERMS, roadmapDoc.text, "project_template_contract_rows", generatedAt, templateExtras);
   const requirementRows = buildTermRows("requirement_matrix_contract", "Requirement matrix", REQUIREMENT_TERMS, roadmapDoc.text, "requirement_matrix_contract_rows", generatedAt, requirementExtras);
   const validationRows = buildTermRows("validation_plan_contract", "Validation plan", VALIDATION_TERMS, roadmapDoc.text, "validation_plan_contract_rows", generatedAt, validationExtras);
@@ -84,9 +89,9 @@ export async function buildSaasFactoryMode(options = {}) {
   const releaseRows = buildTermRows("release_gate_blueprint", "Release gate blueprint", RELEASE_TERMS, roadmapDoc.text, "release_gate_blueprint_rows", generatedAt, releaseExtras);
   const projectionRows = buildTermRows("bootstrap_projection", "Bootstrap projection", PROJECTION_TERMS, roadmapDoc.text, "bootstrap_projection_rows", generatedAt, projectionExtras);
   const authorityRows = buildTermRows("factory_authority_guard", "Factory authority guard", AUTHORITY_TERMS, roadmapDoc.text, "factory_authority_guard_rows", generatedAt, authorityExtras);
-  const freezeRows = buildFreezeRows({ sourceRows, templateRows, requirementRows, validationRows, reviewRows, domainRows, releaseRows, projectionRows, authorityRows, generatedAt });
-  const boundary = buildBoundary({ source, sourceRows, templateRows, requirementRows, validationRows, reviewRows, domainRows, releaseRows, projectionRows, authorityRows, freezeRows });
-  const validationItems = buildValidationItems({ packageJson, roadmapDoc, architectureDoc, phaseRows, sourceRows, templateRows, requirementRows, validationRows, reviewRows, domainRows, releaseRows, projectionRows, authorityRows, freezeRows, boundary });
+  const freezeRows = buildFreezeRows({ sourceRows, waiverRows, templateRows, requirementRows, validationRows, reviewRows, domainRows, releaseRows, projectionRows, authorityRows, generatedAt });
+  const boundary = buildBoundary({ source, sourceRows, waiverRows, templateRows, requirementRows, validationRows, reviewRows, domainRows, releaseRows, projectionRows, authorityRows, freezeRows });
+  const validationItems = buildValidationItems({ packageJson, roadmapDoc, architectureDoc, phaseRows, sourceRows, waiverRows, templateRows, requirementRows, validationRows, reviewRows, domainRows, releaseRows, projectionRows, authorityRows, freezeRows, boundary });
   const preliminaryValidation = summarizeValidation(validationItems);
   const result = {
     schema_version: SCHEMA_VERSION,
@@ -98,11 +103,14 @@ export async function buildSaasFactoryMode(options = {}) {
     inputs,
     source_refs: {
       multi_engine_orchestration_path: source.path,
+      owner_adjudication_receipt_path: ownerReceipt.path,
     },
     source_multi_engine_summary: source.data?.summary ?? null,
+    owner_adjudication_summary: ownerReceipt.data?.scope ?? null,
     saas_factory_contract: buildContract(generatedAt),
     saas_factory_phase_rows: phaseRows,
     saas_factory_source_binding_rows: sourceRows,
+    fcore_corrective_baseline_waiver_rows: waiverRows,
     project_template_contract_rows: templateRows,
     requirement_matrix_contract_rows: requirementRows,
     validation_plan_contract_rows: validationRows,
@@ -133,6 +141,7 @@ export async function writeSaasFactoryMode(result, outDir = result.output_dir) {
   await writeJson(path.join(outDir, "saas-factory-mode.json"), serializableResult(result));
   await writeJson(path.join(outDir, "saas-factory-phase-rows.json"), collectionEnvelope("saas-factory-phase-rows.v1", "saas_factory_phase_rows", result.saas_factory_phase_rows, result.generated_at));
   await writeJson(path.join(outDir, "saas-factory-source-binding-rows.json"), collectionEnvelope("saas-factory-source-binding-rows.v1", "saas_factory_source_binding_rows", result.saas_factory_source_binding_rows, result.generated_at));
+  await writeJson(path.join(outDir, "fcore-corrective-baseline-waiver-rows.json"), collectionEnvelope("fcore-corrective-baseline-waiver-rows.v1", "fcore_corrective_baseline_waiver_rows", result.fcore_corrective_baseline_waiver_rows, result.generated_at));
   await writeJson(path.join(outDir, "project-template-contract-rows.json"), collectionEnvelope("project-template-contract-rows.v1", "project_template_contract_rows", result.project_template_contract_rows, result.generated_at));
   await writeJson(path.join(outDir, "requirement-matrix-contract-rows.json"), collectionEnvelope("requirement-matrix-contract-rows.v1", "requirement_matrix_contract_rows", result.requirement_matrix_contract_rows, result.generated_at));
   await writeJson(path.join(outDir, "validation-plan-contract-rows.json"), collectionEnvelope("validation-plan-contract-rows.v1", "validation_plan_contract_rows", result.validation_plan_contract_rows, result.generated_at));
@@ -165,6 +174,8 @@ export async function runSaasFactoryModeCli(argv = process.argv.slice(2)) {
     console.log(`Status: ${result.summary.saas_factory_mode_status}`);
     console.log(`Program: ${result.summary.program_range}`);
     console.log(`Source ready for P15001: ${result.summary.source_ready_for_p15001_handoff}`);
+    console.log(`F0.2 source handoff or visible waiver: ${result.summary.f0_2_source_handoff_or_visible_waiver_now}`);
+    console.log(`FCORE corrective-baseline waiver visible: ${result.summary.fcore_corrective_baseline_waiver_visible_now}`);
     console.log(`Ready for P15401 handoff: ${result.summary.ready_for_p15401_handoff}`);
     console.log(`Project creation allowed: ${result.summary.project_creation_allowed_now}`);
     console.log(`Repo write allowed: ${result.summary.repo_write_allowed_now}`);
@@ -184,6 +195,7 @@ function buildContract(generatedAt) {
     contract_id: "saas-factory-mode.contract.v1",
     generated_at: generatedAt,
     source_multi_engine_required: true,
+    fcore_corrective_baseline_waiver_visibility_required: true,
     project_template_contract_required: true,
     requirement_matrix_contract_required: true,
     validation_plan_contract_required: true,
@@ -242,6 +254,51 @@ function buildSourceBindingRows(source, generatedAt) {
   }));
 }
 
+function buildFcoreCorrectiveBaselineWaiverRows({ ownerReceipt, sourceRows, generatedAt }) {
+  const decisions = Array.isArray(ownerReceipt.data?.adjudicated_decisions) ? ownerReceipt.data.adjudicated_decisions : [];
+  const s02 = decisions.find((decision) => decision.decision_id === "S0-2");
+  const authorityFlags = ownerReceipt.data?.authority_flags ?? {};
+  const sourceReady = rowPass(sourceRows, "source.handoff");
+  const sourceBlockVisible = rowPass(sourceRows, "source.block_visible") && sourceReady === false;
+  const authorityClosed = [
+    "project_creation_allowed_now",
+    "repo_write_allowed_now",
+    "connector_write_allowed_now",
+    "deployment_allowed_now",
+    "protected_action_allowed_now",
+    "command_execution_allowed_now",
+    "api_write_methods_allowed_now",
+    "store_mutation_allowed_now",
+    "codex_final_approval_allowed",
+    "claude_final_approval_allowed",
+    "fable_final_approval_allowed",
+    "production_pass_enabled",
+    "enterprise_pass_enabled",
+  ].every((key) => authorityFlags[key] === false);
+  const evidenceRef = ownerReceipt.available ? ownerReceipt.path : DEFAULT_SAAS_FACTORY_MODE_INPUTS.ownerAdjudicationReceiptPath;
+  return [
+    ["fcore_waiver.owner_receipt_available", "S0 owner adjudication receipt available", ownerReceipt.available === true],
+    ["fcore_waiver.s0_2_decision", "S0-2 corrective-baseline waiver decision recorded", s02?.decision === "corrective_baseline_waiver"],
+    ["fcore_waiver.expiry", "S0-2 waiver has FA.6 expiry condition", typeof s02?.expires_before === "string" && s02.expires_before.includes("FA.6")],
+    ["fcore_waiver.source_blocker_visible", "P15000 blocker remains visible when source handoff is false", sourceReady || sourceBlockVisible],
+    ["fcore_waiver.authority_closed", "S0-2 waiver keeps all authority flags closed", authorityClosed],
+    ["fcore_waiver.no_handoff_override", "S0-2 waiver does not mark P15000 handoff ready", sourceReady || sourceBlockVisible],
+  ].map(([rowId, label, observed]) => verdictRow({
+    row_id: rowId,
+    category: "fcore_corrective_baseline_waiver",
+    label,
+    required: true,
+    observed,
+    evidence_ref: evidenceRef,
+    generated_at: generatedAt,
+    owner_receipt_id: ownerReceipt.data?.receipt_id ?? null,
+    s0_2_receipt_id: s02?.receipt_id ?? null,
+    source_ready_for_p15001_handoff: sourceReady,
+    source_block_visible_now: sourceBlockVisible,
+    fcore_corrective_baseline_waiver_opens_authority_now: false,
+  }));
+}
+
 function buildTermRows(category, labelPrefix, terms, roadmapText, outputRef, generatedAt, extraBuilder) {
   return terms.map((term) => verdictRow({
     row_id: `${category}.${slug(term)}`,
@@ -260,9 +317,11 @@ function buildTermRows(category, labelPrefix, terms, roadmapText, outputRef, gen
 function buildFreezeRows(context) {
   const sourceReady = rowPass(context.sourceRows, "source.handoff");
   const sourceBlockVisible = rowPass(context.sourceRows, "source.block_visible");
+  const f0VisibleWaiver = allPass(context.waiverRows) && sourceReady === false && sourceBlockVisible;
   return [
     ["freeze.source", "P15000 source ready for P15001", sourceReady],
     ["freeze.source_block_visible", "P15000 source blocker visible when not ready", sourceReady || sourceBlockVisible],
+    ["freeze.fcore_corrective_baseline_waiver_visible", "FCORE corrective-baseline waiver visible without opening source handoff", sourceReady || f0VisibleWaiver],
     ["freeze.project_template", "project template contract ready", allPass(context.templateRows)],
     ["freeze.requirement_matrix", "requirement matrix contract ready", allPass(context.requirementRows)],
     ["freeze.validation_plan", "validation plan contract ready", allPass(context.validationRows)],
@@ -288,6 +347,8 @@ function buildBoundary(context) {
   const sourceAvailable = context.source.available === true;
   const sourceReady = rowPass(context.sourceRows, "source.handoff");
   const sourceBlockVisible = rowPass(context.sourceRows, "source.block_visible");
+  const waiverVisible = allPass(context.waiverRows);
+  const sourceBlockerWaivedForFcore = waiverVisible && sourceReady === false && sourceBlockVisible;
   const templateReady = allPass(context.templateRows);
   const requirementReady = allPass(context.requirementRows);
   const validationReady = allPass(context.validationRows);
@@ -302,6 +363,10 @@ function buildBoundary(context) {
     source_multi_engine_available: sourceAvailable,
     source_ready_for_p15001_handoff: sourceReady,
     source_block_visible_now: sourceAvailable && sourceReady === false && sourceBlockVisible,
+    fcore_corrective_baseline_waiver_visible_now: waiverVisible,
+    source_blocker_waived_for_fcore_corrective_baseline_now: sourceBlockerWaivedForFcore,
+    f0_2_source_handoff_or_visible_waiver_now: sourceReady || sourceBlockerWaivedForFcore,
+    fcore_corrective_baseline_waiver_opens_authority_now: false,
     project_template_contract_ready: templateReady,
     requirement_matrix_contract_ready: requirementReady,
     validation_plan_contract_ready: validationReady,
@@ -342,6 +407,7 @@ function buildValidationItems(context) {
   add("roadmap.phase.rows", "roadmap", context.phaseRows.length === 10 && allPass(context.phaseRows), "P15001-P15400 phase rows incomplete", "docs/hermes-roadmap-p15001-p15400.md");
   add("architecture.reference", "architecture", context.architectureDoc.available && context.architectureDoc.text.includes("P15001-P15400"), "Architecture doc missing P15001-P15400 reference", "docs/architecture.md");
   add("source.state", "source", context.sourceRows.length >= 9 && context.sourceRows.every((row) => row.row_id === "source.handoff" || row.current_verdict === "pass"), "P15000 source state must be available and blocker-visible", "saas_factory_source_binding_rows");
+  add("fcore.waiver.visibility.rows", "source", context.waiverRows.length >= 6, "FCORE corrective-baseline waiver rows missing", "fcore_corrective_baseline_waiver_rows");
   add("template.ready", "template", context.templateRows.length === TEMPLATE_TERMS.length && allPass(context.templateRows), "Project template rows incomplete", "project_template_contract_rows");
   add("requirement.ready", "requirement", context.requirementRows.length === REQUIREMENT_TERMS.length && allPass(context.requirementRows), "Requirement matrix rows incomplete", "requirement_matrix_contract_rows");
   add("validation.ready", "validation_plan", context.validationRows.length === VALIDATION_TERMS.length && allPass(context.validationRows), "Validation plan rows incomplete", "validation_plan_contract_rows");
@@ -354,6 +420,7 @@ function buildValidationItems(context) {
   add("boundary.no.factory.side.effects", "boundary", context.boundary.project_creation_allowed_now === false && context.boundary.repo_write_allowed_now === false && context.boundary.secret_generation_allowed_now === false && context.boundary.connector_provisioning_allowed_now === false && context.boundary.deployment_allowed_now === false, "SaaS Factory opened project repo secret connector or deployment side effects", "saas_factory_boundary");
   add("boundary.no.trust.release", "boundary", context.boundary.production_pass_enabled === false && context.boundary.enterprise_pass_enabled === false && context.boundary.enterprise_trust_claim_allowed_now === false && context.boundary.protected_closeout_enabled === false && context.boundary.release_approval_allowed_now === false, "SaaS Factory opened release trust or protected closeout", "saas_factory_boundary");
   add("boundary.no.write.final.raw", "boundary", context.boundary.write_action_allowed_now === false && context.boundary.protected_action_allowed_now === false && context.boundary.connector_write_enabled === false && context.boundary.runtime_execution_allowed_now === false && context.boundary.raw_source_exposure_allowed === false && context.boundary.final_approval_ui_enabled === false && context.boundary.codex_final_approval_ui_enabled === false && context.boundary.claude_final_approval_ui_enabled === false, "SaaS Factory opened write runtime raw exposure or final approval", "saas_factory_boundary");
+  add("boundary.fcore.waiver.no.authority", "boundary", context.boundary.fcore_corrective_baseline_waiver_opens_authority_now === false, "FCORE corrective-baseline waiver opened authority", "saas_factory_boundary");
   add("boundary.handoff.state", "boundary", context.boundary.ready_for_p15401_handoff === context.boundary.p15400_saas_factory_freeze_ready, "P15401 handoff state must match P15400 freeze state", "saas_factory_boundary");
   return items;
 }
@@ -365,6 +432,10 @@ function buildSummary(context) {
     source_program_range: SOURCE_PROGRAM_RANGE,
     source_ready_for_p15001_handoff: context.boundary.source_ready_for_p15001_handoff,
     source_block_visible_now: context.boundary.source_block_visible_now,
+    fcore_corrective_baseline_waiver_visible_now: context.boundary.fcore_corrective_baseline_waiver_visible_now,
+    source_blocker_waived_for_fcore_corrective_baseline_now: context.boundary.source_blocker_waived_for_fcore_corrective_baseline_now,
+    f0_2_source_handoff_or_visible_waiver_now: context.boundary.f0_2_source_handoff_or_visible_waiver_now,
+    fcore_corrective_baseline_waiver_opens_authority_now: false,
     project_template_contract_row_count: context.templateRows.length,
     requirement_matrix_contract_row_count: context.requirementRows.length,
     validation_plan_contract_row_count: context.validationRows.length,
@@ -396,6 +467,8 @@ function renderMarkdown(result) {
     `Status: ${result.summary.saas_factory_mode_status}`,
     `Program: ${result.program_range}`,
     `Source ready for P15001: ${result.summary.source_ready_for_p15001_handoff}`,
+    `F0.2 source handoff or visible waiver: ${result.summary.f0_2_source_handoff_or_visible_waiver_now}`,
+    `FCORE corrective-baseline waiver visible: ${result.summary.fcore_corrective_baseline_waiver_visible_now}`,
     `Project template rows: ${result.summary.project_template_contract_row_count}`,
     `Requirement matrix rows: ${result.summary.requirement_matrix_contract_row_count}`,
     `Validation plan rows: ${result.summary.validation_plan_contract_row_count}`,
@@ -514,6 +587,7 @@ function normalizeInputs(options) {
     roadmap_doc_path: options.roadmapDocPath ?? DEFAULT_SAAS_FACTORY_MODE_INPUTS.roadmapDocPath,
     architecture_doc_path: options.architectureDocPath ?? DEFAULT_SAAS_FACTORY_MODE_INPUTS.architectureDocPath,
     source_multi_engine_path: options.sourceMultiEnginePath ?? DEFAULT_SAAS_FACTORY_MODE_INPUTS.sourceMultiEnginePath,
+    owner_adjudication_receipt_path: options.ownerAdjudicationReceiptPath ?? DEFAULT_SAAS_FACTORY_MODE_INPUTS.ownerAdjudicationReceiptPath,
   };
 }
 
@@ -552,6 +626,7 @@ function parseArgs(argv) {
     else if (value === "--roadmap-doc-path") args.roadmapDocPath = argv[++index];
     else if (value === "--architecture-doc-path") args.architectureDocPath = argv[++index];
     else if (value === "--source-multi-engine-path") args.sourceMultiEnginePath = argv[++index];
+    else if (value === "--owner-adjudication-receipt-path") args.ownerAdjudicationReceiptPath = argv[++index];
     else throw new Error(`Unknown argument: ${value}`);
   }
   return args;

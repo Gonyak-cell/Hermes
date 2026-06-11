@@ -1,0 +1,211 @@
+{
+  "$id": "https://hermes.local/schemas/factory-f0-review-request-doctor.schema.json",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "capability_id",
+    "command_name",
+    "program_range",
+    "output_dir",
+    "source_refs",
+    "factory_f0_review_request_doctor_contract",
+    "review_request_rows",
+    "factory_f0_review_request_doctor_boundary",
+    "factory_f0_review_request_doctor_validation_items",
+    "validation",
+    "summary"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": { "const": "factory-f0-review-request-doctor.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "capability_id": { "const": "factory.f0_review_request_doctor" },
+    "command_name": { "const": "factory:f0-review-request-doctor" },
+    "program_range": { "const": "FCORE-F0.1" },
+    "output_dir": { "type": "string", "minLength": 1 },
+    "source_refs": {
+      "type": "object",
+      "required": ["request_index_path", "prompt_paths"],
+      "additionalProperties": true
+    },
+    "factory_f0_review_request_doctor_contract": {
+      "type": "object",
+      "required": [
+        "contract_id",
+        "request_count_required",
+        "prompt_sha256_must_match_index",
+        "request_packets_are_review_evidence",
+        "request_packets_are_validation_substrate",
+        "receipt_targets_limited_to_f0_1_paths",
+        "project_creation_allowed_now",
+        "repo_write_allowed_now",
+        "connector_write_allowed_now",
+        "deployment_allowed_now",
+        "protected_action_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "contract_id": { "const": "factory-f0-review-request-doctor.contract.v1" },
+        "request_count_required": { "const": 2 },
+        "prompt_sha256_must_match_index": { "const": true },
+        "request_packets_are_review_evidence": { "const": false },
+        "request_packets_are_validation_substrate": { "const": false },
+        "receipt_targets_limited_to_f0_1_paths": { "const": true },
+        "project_creation_allowed_now": { "const": false },
+        "repo_write_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    },
+    "review_request_rows": {
+      "type": "array",
+      "minItems": 20,
+      "items": { "$ref": "#/$defs/doctorRow" }
+    },
+    "factory_f0_review_request_doctor_boundary": {
+      "type": "object",
+      "required": [
+        "request_index_available_now",
+        "request_count",
+        "request_pass_count",
+        "review_request_rows_passed",
+        "request_packets_are_review_evidence",
+        "request_packets_are_validation_substrate",
+        "project_creation_allowed_now",
+        "repo_write_allowed_now",
+        "connector_write_allowed_now",
+        "deployment_allowed_now",
+        "protected_action_allowed_now",
+        "command_execution_allowed_now",
+        "api_write_methods_allowed_now",
+        "store_mutation_allowed_now",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "fable_final_approval_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "request_index_available_now": { "type": "boolean" },
+        "request_count": { "const": 2 },
+        "request_pass_count": { "type": "integer", "minimum": 0, "maximum": 2 },
+        "review_request_rows_passed": { "type": "boolean" },
+        "request_packets_are_review_evidence": { "const": false },
+        "request_packets_are_validation_substrate": { "const": false },
+        "project_creation_allowed_now": { "const": false },
+        "repo_write_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "api_write_methods_allowed_now": { "const": false },
+        "store_mutation_allowed_now": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "fable_final_approval_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    },
+    "factory_f0_review_request_doctor_validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validationItem" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "additionalProperties": true,
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "factory_f0_review_request_doctor_status",
+        "program_range",
+        "request_count",
+        "request_pass_count",
+        "f0_review_request_doctor_passed",
+        "request_packets_are_review_evidence",
+        "request_packets_are_validation_substrate",
+        "project_creation_allowed_now",
+        "repo_write_allowed_now",
+        "connector_write_allowed_now",
+        "deployment_allowed_now",
+        "protected_action_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "factory_f0_review_request_doctor_status": {
+          "type": "string",
+          "enum": ["ready_f0_review_request_doctor", "blocked_f0_review_request_doctor"]
+        },
+        "program_range": { "const": "FCORE-F0.1" },
+        "request_count": { "const": 2 },
+        "request_pass_count": { "type": "integer", "minimum": 0, "maximum": 2 },
+        "f0_review_request_doctor_passed": { "type": "boolean" },
+        "request_packets_are_review_evidence": { "const": false },
+        "request_packets_are_validation_substrate": { "const": false },
+        "project_creation_allowed_now": { "const": false },
+        "repo_write_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "doctorRow": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "row_id",
+        "category",
+        "label",
+        "observed",
+        "required",
+        "current_verdict",
+        "evidence_ref",
+        "generated_at"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "schema_version": { "const": "factory-f0-review-request-doctor-row.v1" },
+        "row_id": { "type": "string", "minLength": 1 },
+        "category": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "observed": { "type": "boolean" },
+        "required": { "type": "boolean" },
+        "current_verdict": { "type": "string", "enum": ["pass", "blocked"] },
+        "evidence_ref": { "type": "string", "minLength": 1 },
+        "generated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "validationItem": {
+      "type": "object",
+      "required": ["item_id", "category", "observed", "current_verdict", "message"],
+      "additionalProperties": true,
+      "properties": {
+        "item_id": { "type": "string", "minLength": 1 },
+        "category": { "type": "string", "minLength": 1 },
+        "observed": { "type": "boolean" },
+        "current_verdict": { "type": "string", "enum": ["pass", "fail"] },
+        "message": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

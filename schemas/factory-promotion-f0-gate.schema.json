@@ -1,0 +1,223 @@
+{
+  "$id": "https://hermes.local/schemas/factory-promotion-f0-gate.schema.json",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "capability_id",
+    "command_name",
+    "program_range",
+    "output_dir",
+    "source_refs",
+    "factory_promotion_f0_gate_contract",
+    "f0_phase_rows",
+    "factory_promotion_f0_gate_boundary",
+    "factory_promotion_f0_gate_validation_items",
+    "validation",
+    "summary"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": { "const": "factory-promotion-f0-gate.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "capability_id": { "const": "factory.promotion_f0_gate" },
+    "command_name": { "const": "factory:promotion-f0-gate" },
+    "program_range": { "const": "FCORE-F0" },
+    "output_dir": { "type": "string", "minLength": 1 },
+    "source_refs": {
+      "type": "object",
+      "required": [
+        "owner_adjudication_receipt_path",
+        "factory_receipt_preflight_path",
+        "saas_factory_mode_path",
+        "connector_review_receipt_path",
+        "execution_review_receipt_path",
+        "source_multi_engine_path"
+      ],
+      "additionalProperties": true
+    },
+    "factory_promotion_f0_gate_contract": {
+      "type": "object",
+      "required": [
+        "contract_id",
+        "f0_1_receipt_preflight_required",
+        "f0_2_source_handoff_or_visible_waiver_required",
+        "fa_implementation_may_start_only_when_all_f0_rows_pass",
+        "project_creation_allowed_now",
+        "repo_write_allowed_now",
+        "connector_write_allowed_now",
+        "deployment_allowed_now",
+        "protected_action_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "contract_id": { "const": "factory-promotion-f0-gate.contract.v1" },
+        "f0_1_receipt_preflight_required": { "const": true },
+        "f0_2_source_handoff_or_visible_waiver_required": { "const": true },
+        "fa_implementation_may_start_only_when_all_f0_rows_pass": { "const": true },
+        "project_creation_allowed_now": { "const": false },
+        "repo_write_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    },
+    "f0_phase_rows": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": { "$ref": "#/$defs/gateRow" }
+    },
+    "factory_promotion_f0_gate_boundary": {
+      "type": "object",
+      "required": [
+        "owner_adjudication_receipt_present_now",
+        "receipt_preflight_validation_valid",
+        "saas_factory_mode_validation_valid",
+        "f0_phase_count",
+        "f0_phase_pass_count",
+        "f0_all_phases_passed",
+        "f0_1_receipt_preflight_passed",
+        "f0_2_source_handoff_or_visible_waiver_now",
+        "unsafe_authority_true_count",
+        "project_creation_allowed_now",
+        "repo_write_allowed_now",
+        "connector_write_allowed_now",
+        "deployment_allowed_now",
+        "protected_action_allowed_now",
+        "command_execution_allowed_now",
+        "api_write_methods_allowed_now",
+        "store_mutation_allowed_now",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "fable_final_approval_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "owner_adjudication_receipt_present_now": { "type": "boolean" },
+        "receipt_preflight_validation_valid": { "type": "boolean" },
+        "saas_factory_mode_validation_valid": { "type": "boolean" },
+        "f0_phase_count": { "type": "integer", "minimum": 0 },
+        "f0_phase_pass_count": { "type": "integer", "minimum": 0 },
+        "f0_all_phases_passed": { "type": "boolean" },
+        "f0_1_receipt_preflight_passed": { "type": "boolean" },
+        "f0_2_source_handoff_or_visible_waiver_now": { "type": "boolean" },
+        "unsafe_authority_true_count": { "type": "integer", "minimum": 0 },
+        "project_creation_allowed_now": { "const": false },
+        "repo_write_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "api_write_methods_allowed_now": { "const": false },
+        "store_mutation_allowed_now": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "fable_final_approval_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    },
+    "factory_promotion_f0_gate_validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validationItem" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "additionalProperties": true,
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "factory_promotion_f0_gate_status",
+        "program_range",
+        "f0_phase_count",
+        "f0_phase_pass_count",
+        "f0_all_phases_passed",
+        "f0_1_receipt_preflight_passed",
+        "f0_2_source_handoff_or_visible_waiver_now",
+        "fa_implementation_allowed_now",
+        "project_creation_allowed_now",
+        "repo_write_allowed_now",
+        "connector_write_allowed_now",
+        "deployment_allowed_now",
+        "protected_action_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "factory_promotion_f0_gate_status": {
+          "type": "string",
+          "enum": ["ready_for_fa_implementation", "blocked_factory_promotion_f0_gate"]
+        },
+        "program_range": { "const": "FCORE-F0" },
+        "f0_phase_count": { "type": "integer", "minimum": 0 },
+        "f0_phase_pass_count": { "type": "integer", "minimum": 0 },
+        "f0_all_phases_passed": { "type": "boolean" },
+        "f0_1_receipt_preflight_passed": { "type": "boolean" },
+        "f0_2_source_handoff_or_visible_waiver_now": { "type": "boolean" },
+        "fa_implementation_allowed_now": { "type": "boolean" },
+        "project_creation_allowed_now": { "const": false },
+        "repo_write_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "gateRow": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "row_id",
+        "category",
+        "label",
+        "observed",
+        "required",
+        "current_verdict",
+        "evidence_ref",
+        "generated_at"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "schema_version": { "const": "factory-promotion-f0-gate-row.v1" },
+        "row_id": { "type": "string", "minLength": 1 },
+        "category": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "observed": { "type": "boolean" },
+        "required": { "type": "boolean" },
+        "current_verdict": { "type": "string", "enum": ["pass", "blocked"] },
+        "evidence_ref": { "type": "string", "minLength": 1 },
+        "generated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "validationItem": {
+      "type": "object",
+      "required": ["item_id", "category", "observed", "current_verdict", "message"],
+      "additionalProperties": true,
+      "properties": {
+        "item_id": { "type": "string", "minLength": 1 },
+        "category": { "type": "string", "minLength": 1 },
+        "observed": { "type": "boolean" },
+        "current_verdict": { "type": "string", "enum": ["pass", "fail"] },
+        "message": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

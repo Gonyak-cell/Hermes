@@ -13,6 +13,7 @@ node_modules/
 artifacts/
 audits/
 logs/
+hermes-operator-console-2026-06-06/
 
 # OS/editor noise
 .DS_Store

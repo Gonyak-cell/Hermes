@@ -647,6 +647,7 @@
     "factory:apply-engine-closed": "node scripts/factory-apply-engine-closed.mjs",
     "factory:receipt-authority-schema-freeze": "node scripts/factory-receipt-authority-schema-freeze.mjs",
     "factory:receipt-chain-audit": "node scripts/factory-receipt-chain-audit.mjs",
+    "factory:closed-apply-cycle-freeze": "node scripts/factory-closed-apply-cycle-freeze.mjs",
     "factory:claude-review-evidence": "node scripts/claude-review-evidence-validator.mjs",
     "factory:seed-migration": "node scripts/factory-seed-migration.mjs",
     "factory:receipt-preflight": "node scripts/factory-receipt-preflight.mjs",

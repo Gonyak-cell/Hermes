@@ -91,6 +91,31 @@ Routes: `/api/factory/starter-artifacts`.
 `GET` and `HEAD` are allowed. Mutation methods return `405
 method_not_allowed`.
 
+## FB.5 Factory Workbench Routes
+
+Factory Workbench routes expose the integrated read-only operator view for the
+Factory Promotion FB tranche. The route composes product PS state, gate status,
+freshness, blockers, next actions, candidate manifest preview status, candidate
+manifest hashes, and starter artifact materialization counts into one row per
+product.
+
+Allowed affordances are view-only, for example `view_stage_status`,
+`view_blockers`, `view_next_operator_actions`, and, when eligible,
+`view_candidate_manifest_json`. Forbidden affordances include project creation,
+ledger append, PS3 advancement, candidate manifest writes, apply, merge,
+connector calls, deploy, production PASS, and enterprise PASS.
+
+Supported filters include `product_id`, `current_product_state`,
+`stage_gate_status`, `freshness_status`, `resolver_status`,
+`workbench_view_status`, `workbench_queue_status`,
+`candidate_manifest_json_available`, `starter_artifact_corpus_status`, and
+`limit`.
+
+Routes: `/api/factory/workbench`.
+
+`GET` and `HEAD` are allowed. Mutation methods return `405
+method_not_allowed`.
+
 ## P511-P515 Platform Claim Registry Routes
 
 Platform Claim Registry routes expose the read-only P500 operations freeze claim

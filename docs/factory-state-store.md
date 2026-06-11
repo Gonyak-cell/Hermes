@@ -204,6 +204,34 @@ starter files, and obvious sensitive markers. It returns SHA-256 hashes for all
 materialized starter files. It does not instantiate products, append ledgers,
 write candidate manifests, apply diffs, or open production/enterprise trust.
 
+## Factory Workbench Read Model
+
+FB.5 adds the integrated read-only factory workbench view:
+
+```bash
+npm run factory:workbench -- --check --require-pass
+node scripts/review-api.mjs --once /api/factory/workbench
+```
+
+The workbench reads the candidate manifest resolver, which already binds the
+stage read model and starter artifact corpus. It returns one row per product
+with:
+
+- PS state, stage gate status, freshness, blockers, and next operator actions
+- candidate manifest preview status, id, hash, and JSON preview when a fresh
+  `PS2_receipt_bound` product is eligible
+- starter artifact materialization counts
+- read-only affordances such as `view_stage_status`,
+  `view_candidate_manifest_json`, and `view_candidate_hash`
+- forbidden affordances such as `append_ledger`, `advance_ps3`,
+  `apply_candidate`, `call_connector`, `deploy`, production PASS, and
+  enterprise PASS
+
+The default tracked seed still returns 9 stage-only workbench rows and 0
+candidate previews. A fresh operational PS2 fixture returns 1 candidate preview
+without opening source writes, ledger appends, candidate manifest writes, apply,
+connector, deploy, production, or enterprise authority.
+
 ## Claude Review Evidence Validator
 
 Factory promotion review artifacts are classified before they can be counted:
@@ -347,6 +375,11 @@ Expected result:
   `invalid_not_review_evidence`
 - `/api/factory/candidate-manifests` exposes read-only JSON-only candidate
   resolver rows
+- `factory:starter-artifacts` returns 19 materialized starter refs by default
+- `/api/factory/starter-artifacts` exposes read-only starter artifact rows
+- `factory:workbench` returns 9 stage-only workbench rows and 0 candidate
+  previews by default
+- `/api/factory/workbench` exposes one integrated read-only row per product
 - stale stage rows display a stale badge and block new adjudication
 - PS3+ transition rows block the stage read model before FB promotion
 - projection fallback, if needed, is visible in summary and row fields

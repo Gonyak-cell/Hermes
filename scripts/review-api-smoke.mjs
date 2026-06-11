@@ -20,6 +20,7 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/factory/stage"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/candidate-manifests"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/starter-artifacts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/factory/workbench"));
   assert.ok(index.routes.some((route) => route.path === "/api/packs"));
   assert.ok(index.routes.some((route) => route.path === "/api/capabilities"));
   assert.ok(index.routes.some((route) => route.path === "/api/artifacts"));
@@ -7256,6 +7257,20 @@ try {
   assert.equal(factoryStarterArtifactsHead.status, 200);
   const factoryStarterArtifactsPost = await fetch(`${url}/api/factory/starter-artifacts`, { method: "POST" });
   assert.equal(factoryStarterArtifactsPost.status, 405);
+
+  const factoryWorkbench = await fetchJson(`${url}/api/factory/workbench?limit=5`);
+  assert.equal(factoryWorkbench.collection, "factory_workbench_rows");
+  assert.equal(factoryWorkbench.read_only, true);
+  assert.equal(factoryWorkbench.mutation_allowed, false);
+  assert.equal(factoryWorkbench.raw_confidential_material_visible, false);
+  assert.ok(factoryWorkbench.total_count > 0);
+  assert.ok(factoryWorkbench.count <= 5);
+  assert.equal(factoryWorkbench.items.every((item) => item.apply_allowed_now === false), true);
+  assert.equal(factoryWorkbench.items.every((item) => item.allowed_affordances.every((affordance) => affordance.startsWith("view_"))), true);
+  const factoryWorkbenchHead = await fetch(`${url}/api/factory/workbench`, { method: "HEAD" });
+  assert.equal(factoryWorkbenchHead.status, 200);
+  const factoryWorkbenchPost = await fetch(`${url}/api/factory/workbench`, { method: "POST" });
+  assert.equal(factoryWorkbenchPost.status, 405);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

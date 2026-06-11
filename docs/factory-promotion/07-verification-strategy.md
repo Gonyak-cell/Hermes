@@ -58,6 +58,7 @@ npm run platform:factory-product-registry-store -- --check   # FA.2
 npm run factory:stage -- --check                             # FB.1
 npm run factory:candidate-manifests -- --check               # FB.3
 npm run factory:starter-artifacts -- --check                  # FB.4
+npm run factory:workbench -- --check                          # FB.5
 npm run factory:claude-review-evidence -- --check            # FB.3 review-evidence guard
 npm run factory:candidate-lane -- --check                    # FC
 npm run factory:receipt-verify -- --check                    # FD

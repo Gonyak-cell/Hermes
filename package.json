@@ -638,6 +638,7 @@
     "factory:stage": "node scripts/factory-stage-read-model.mjs",
     "factory:candidate-manifests": "node scripts/factory-candidate-manifest-resolver.mjs",
     "factory:starter-artifacts": "node scripts/factory-starter-artifact-corpus.mjs",
+    "factory:workbench": "node scripts/factory-workbench-read-model.mjs",
     "factory:claude-review-evidence": "node scripts/claude-review-evidence-validator.mjs",
     "factory:seed-migration": "node scripts/factory-seed-migration.mjs",
     "factory:receipt-preflight": "node scripts/factory-receipt-preflight.mjs",

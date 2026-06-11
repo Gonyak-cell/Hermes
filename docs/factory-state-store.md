@@ -1,6 +1,6 @@
 # Factory State Store
 
-Status: FC.5 candidate freeze handoff plus FC.4 candidate review docket API, FC.3 candidate review docket, FC.2 candidate lane proof, FC.1 candidate lane, FB.5 workbench, FB.4 starter artifact corpus, FB.3 candidate manifest resolver, FB.2 stage control view, and FA.6 read-only factory products API.
+Status: FD.1 receipt verification plus FC.5 candidate freeze handoff, FC.4 candidate review docket API, FC.3 candidate review docket, FC.2 candidate lane proof, FC.1 candidate lane, FB.5 workbench, FB.4 starter artifact corpus, FB.3 candidate manifest resolver, FB.2 stage control view, and FA.6 read-only factory products API.
 Date: 2026-06-11
 
 ## Purpose
@@ -378,6 +378,28 @@ enable runtime apply, source writes, persistent ledger appends, repository
 writes, connector writes, deployment, protected action, production PASS, or
 enterprise PASS.
 
+## Factory Receipt Verification
+
+FD.1 verifies receipt integrity for candidate packets without making the apply
+engine reachable:
+
+```bash
+npm run factory:receipt-verify -- --check --require-pass
+```
+
+The verifier consumes the FC.5 freeze handoff, FC.3 review docket, tracked seed
+receipt ledger, and `factory-receipt-envelope.v1`. It creates three
+owner-attestation receipt rows bound to candidate packet hashes as deterministic
+verification fixtures, not final owner approval. It rejects four executable
+negative fixtures: forged candidate hash, missing/forged owner attestation,
+nonce replay, and apply-engine-open attempt.
+
+The apply engine and rollback executor stay contractually closed:
+`receipt_apply_engine_reachable_now`, `apply_engine_runtime_enabled_now`, and
+`rollback_executor_runtime_enabled_now` are false. FD.1 does not write source
+files, append persistent ledgers, write repositories, call connectors, deploy,
+or grant protected/production/enterprise authority.
+
 ## Claude Review Evidence Validator
 
 Factory promotion review artifacts are classified before they can be counted:
@@ -529,6 +551,8 @@ Expected result:
   read-only Review API collection and blocks mutation methods
 - `factory:candidate-freeze-handoff` freezes FC.1-FC.4 evidence and opens FD
   implementation handoff while keeping runtime apply/write authority closed
+- `factory:receipt-verify` verifies candidate-bound owner attestation receipts
+  and keeps apply/rollback runtime unreachable
 - `factory:starter-artifacts` returns 19 materialized starter refs by default
 - `/api/factory/starter-artifacts` exposes read-only starter artifact rows
 - `factory:workbench` returns 9 stage-only workbench rows and 0 candidate

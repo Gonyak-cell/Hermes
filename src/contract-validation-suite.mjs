@@ -19,6 +19,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "contracts:validate",
   "platform:factory-product-registry-store",
   "factory:seed-migration",
+  "factory:receipt-verify",
   "api:route-inventory",
   "dashboard:ia",
   "approval:queue-ui",

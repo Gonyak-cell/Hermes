@@ -9,6 +9,7 @@ import {
   runMultiProjectSaasControlPlane,
   startMultiProjectSaasApiServer,
 } from "../src/multi-project-saas-control-plane.mjs";
+import { writeFactorySeedMigration } from "../src/factory-product-registry-store.mjs";
 import { buildWorkOsGoalDrilldownSurface } from "../src/work-os-goal-drilldown-surface.mjs";
 
 const RUN_AT = "2026-06-06T05:20:00.000Z";
@@ -51,10 +52,54 @@ test("Multi-project SaaS registry keeps domain packs scoped below Hermes", async
   const result = await buildMultiProjectSaasControlPlane(await buildOptions());
 
   assert.equal(result.saas_project_registry_rows.length >= 5, true);
+  assert.equal(result.summary.factory_product_source_tier, "tracked_seed");
+  assert.equal(result.summary.factory_product_source_fallback_used, false);
+  assert.equal(result.summary.factory_product_selected_count, result.saas_project_registry_rows.length);
+  assert.equal(result.saas_project_registry_rows.every((row) => row.factory_product_source_tier === "tracked_seed"), true);
+  assert.equal(result.saas_project_registry_rows.every((row) => row.factory_product_id?.startsWith("product.fixture_")), true);
   assert.equal(result.saas_project_registry_rows.every((row) => row.hermes_product_identity === "general_project_workflow_control_plane"), true);
   assert.equal(result.saas_project_registry_rows.every((row) => row.domain_pack_scope === "project_workflow_context"), true);
   assert.equal(result.saas_project_registry_rows.every((row) => row.domain_pack_is_whole_product === false), true);
   assert.equal(result.saas_project_registry_rows.every((row) => row.cross_project_data_mixed === false), true);
+});
+
+test("Multi-project SaaS registry prefers operational ledger before tracked seed", async () => {
+  const ledgerDir = await mkdtemp(path.join(os.tmpdir(), "multi-project-factory-ledger-"));
+  try {
+    await writeFactorySeedMigration({
+      seedDir: ledgerDir,
+      allowTestSeedRoot: true,
+      runAt: RUN_AT,
+    });
+    const result = await buildMultiProjectSaasControlPlane(await buildOptions({
+      factoryLedgerDir: ledgerDir,
+    }));
+
+    assert.equal(result.validation.valid, true);
+    assert.equal(result.summary.factory_product_source_tier, "operational_ledger");
+    assert.equal(result.summary.factory_product_selected_count, result.saas_project_registry_rows.length);
+    assert.equal(result.saas_project_registry_rows.every((row) => row.factory_product_source_tier === "operational_ledger"), true);
+  } finally {
+    await rm(ledgerDir, { recursive: true, force: true });
+  }
+});
+
+test("Multi-project SaaS registry visibly falls back when factory store is absent", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "multi-project-factory-missing-"));
+  try {
+    const result = await buildMultiProjectSaasControlPlane(await buildOptions({
+      factoryLedgerDir: path.join(root, "local"),
+      factorySeedDir: path.join(root, "seed"),
+    }));
+
+    assert.equal(result.validation.valid, true);
+    assert.equal(result.summary.factory_product_source_tier, "source_projection_fallback");
+    assert.equal(result.summary.factory_product_source_fallback_used, true);
+    assert.equal(result.summary.factory_product_selected_count, result.saas_project_registry_rows.length);
+    assert.equal(result.saas_project_registry_rows.every((row) => row.factory_product_source_fallback_used === true), true);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });
 
 test("Multi-project SaaS repo inventory remains metadata-only and non-mutating", async () => {

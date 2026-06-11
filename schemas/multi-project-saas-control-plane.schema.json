@@ -10,6 +10,7 @@
     "capability_id",
     "program_range",
     "source_program_range",
+    "factory_product_projection_source",
     "multi_project_saas_contract",
     "multi_project_saas_phase_rows",
     "p9400_source_binding_rows",
@@ -105,8 +106,13 @@
           { "$ref": "#/$defs/verdictRow" },
           {
             "type": "object",
-            "required": ["project_id", "domain_pack_scope", "domain_pack_is_whole_product", "hermes_product_identity", "cross_project_data_mixed"],
+            "required": ["project_id", "factory_product_source_tier", "factory_product_source_fallback_used", "fallback_const_preserved", "domain_pack_scope", "domain_pack_is_whole_product", "hermes_product_identity", "cross_project_data_mixed"],
             "properties": {
+              "factory_product_source_tier": {
+                "enum": ["operational_ledger", "tracked_seed", "source_projection_fallback"]
+              },
+              "factory_product_source_fallback_used": { "type": "boolean" },
+              "fallback_const_preserved": { "type": "boolean" },
               "domain_pack_scope": { "const": "project_workflow_context" },
               "domain_pack_is_whole_product": { "const": false },
               "hermes_product_identity": { "const": "general_project_workflow_control_plane" },
@@ -273,6 +279,10 @@
       "type": "object",
       "required": [
         "ready_for_p9601_handoff",
+        "factory_product_projection_source_ready",
+        "factory_product_source_tier",
+        "factory_product_source_fallback_used",
+        "factory_product_selected_count",
         "api_write_methods_enabled",
         "repo_git_write_enabled",
         "raw_transcript_body_visible",
@@ -287,6 +297,12 @@
       ],
       "properties": {
         "ready_for_p9601_handoff": { "const": true },
+        "factory_product_projection_source_ready": { "const": true },
+        "factory_product_source_tier": {
+          "enum": ["operational_ledger", "tracked_seed", "source_projection_fallback"]
+        },
+        "factory_product_source_fallback_used": { "type": "boolean" },
+        "factory_product_selected_count": { "type": "integer", "minimum": 0 },
         "api_write_methods_enabled": { "const": false },
         "repo_git_write_enabled": { "const": false },
         "raw_transcript_body_visible": { "const": false },
@@ -323,6 +339,10 @@
       "required": [
         "multi_project_saas_control_plane_status",
         "source_p9400_ready",
+        "factory_product_projection_source_ready",
+        "factory_product_source_tier",
+        "factory_product_source_fallback_used",
+        "factory_product_selected_count",
         "ready_for_p9601_handoff",
         "claude_review_required_now",
         "claude_review_decision",
@@ -331,6 +351,12 @@
       "properties": {
         "multi_project_saas_control_plane_status": { "const": "ready_for_multi_project_saas_control_plane" },
         "source_p9400_ready": { "const": true },
+        "factory_product_projection_source_ready": { "const": true },
+        "factory_product_source_tier": {
+          "enum": ["operational_ledger", "tracked_seed", "source_projection_fallback"]
+        },
+        "factory_product_source_fallback_used": { "type": "boolean" },
+        "factory_product_selected_count": { "type": "integer", "minimum": 0 },
         "ready_for_p9601_handoff": { "const": true },
         "claude_review_required_now": { "const": false },
         "claude_review_decision": { "const": "skipped_no_authority_expansion" },

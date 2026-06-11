@@ -1,6 +1,6 @@
 # Factory State Store
 
-Status: FA.4 tracked seed migration plus receipt-driven PS0-PS2 transitions.
+Status: FA.5 store-first projection redirection plus tracked seed migration.
 Date: 2026-06-11
 
 ## Purpose
@@ -69,8 +69,28 @@ The command owns writes to `data/factory/seed/`. It migrates:
 - 5 fixture portfolio products from `src/work-os-live-control-surface.mjs`
 - 1 `factory-receipt-envelope.v1` migration receipt
 
-The original `const` arrays stay as fallback fixtures until FA.5 redirects one
-projection to read from the store with fallback.
+The original `const` arrays stay as fallback fixtures. FA.5 redirects
+`multi-project-saas-control-plane` to read from the store first while keeping the
+fallback visible.
+
+## Projection Redirection
+
+FA.5 redirects one projection:
+
+```bash
+npm run platform:multi-project-saas-control-plane -- --check
+```
+
+Read order:
+
+1. `data/factory/local/products.jsonl`
+2. `data/factory/seed/products.jsonl`
+3. existing P9400 source projection fallback
+
+The projection exposes `factory_product_source_tier`,
+`factory_product_source_fallback_used`, and selected product counts in its
+summary and registry rows. The default tracked seed path selects 5
+`fixture_portfolio` rows for the multi-project registry.
 
 ## Receipt-Driven State Transitions
 
@@ -154,7 +174,7 @@ FA.1 does not enable PS3 or later behavior.
 
 ## Authority Boundary
 
-FA.4 keeps these false:
+FA.5 keeps these false:
 
 - `project_creation_allowed_now`
 - `repo_write_allowed_now`
@@ -187,6 +207,8 @@ Expected result:
 - schema contracts ready
 - `data/factory/local/` is gitignored
 - `data/factory/seed/` contains 9 product records and 1 migration receipt
+- `multi-project-saas-control-plane` reads factory products from tracked seed by default
+- projection fallback, if needed, is visible in summary and row fields
 - sample `product-record.v1` validates
 - sample `product-state-transition.v1` validates
 - sample `factory-receipt-envelope.v1` validates

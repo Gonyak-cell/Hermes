@@ -1,6 +1,6 @@
 {
   "package_id": "hermes-factory-promotion-package",
-  "package_version": "v0.1.8-fa4-seed-migration",
+  "package_version": "v0.1.9-fa5-projection-redirection",
   "generated_at": "2026-06-11",
   "author_engine_resolved_model_id": "claude-fable-5[1m]",
   "author_lane": "planner_reviewer",
@@ -79,6 +79,21 @@
     "data/factory/seed/receipts-index.jsonl",
     "data/factory/seed/state-transitions.jsonl"
   ],
+  "fa5_status": "ready_factory_projection_redirection",
+  "fa5_phase_doc": "fa5-projection-redirection.md",
+  "fa5_redirected_projection": "src/multi-project-saas-control-plane.mjs",
+  "fa5_read_order": ["data/factory/local/products.jsonl", "data/factory/seed/products.jsonl", "P9400 source projection fallback"],
+  "fa5_default_source_tier": "tracked_seed",
+  "fa5_default_selected_products": 5,
+  "fa5_validation_command": "npm run platform:multi-project-saas-control-plane -- --check",
+  "fa5_acceptance_commands": [
+    "npm run platform:product-domain-saas-factory -- --check",
+    "npm run platform:product-build-verification-loop -- --check",
+    "npm run platform:saas-factory-mode -- --check",
+    "npm run platform:connector-external-app-governance -- --check",
+    "npm run platform:execution-write-authority-maturity -- --check"
+  ],
+  "fa5_targeted_tests_status": "15/15 pass",
   "remaining_hard_blockers": ["deferred F0.1 independent review receipts before production or enterprise trust"],
   "open_blocking_findings": ["HRM-01", "HRM-03", "HRM-04"],
   "opens_project_creation_now": false,
@@ -156,6 +171,7 @@
     "fa2-storage-module.md",
     "fa3-receipt-driven-transitions.md",
     "fa4-seed-migration.md",
+    "fa5-projection-redirection.md",
     "f0-review-requests/00-README.md",
     "f0-review-requests/connector-external-app-governance-opus-review-request.md",
     "f0-review-requests/execution-write-authority-maturity-opus-review-request.md",

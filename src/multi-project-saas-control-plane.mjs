@@ -2,6 +2,11 @@ import { createServer } from "node:http";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { validateAgainstSchema } from "./core-contract-validator.mjs";
+import {
+  DEFAULT_FACTORY_LEDGER_DIR,
+  DEFAULT_FACTORY_SEED_DIR,
+  readFactoryLedgerFile,
+} from "./factory-product-registry-store.mjs";
 import { buildWorkOsGoalDrilldownSurface } from "./work-os-goal-drilldown-surface.mjs";
 
 export const DEFAULT_MULTI_PROJECT_SAAS_CONTROL_PLANE_OUT_DIR = "artifacts/multi-project-saas-control-plane/latest";
@@ -11,6 +16,8 @@ export const DEFAULT_MULTI_PROJECT_SAAS_CONTROL_PLANE_INPUTS = {
   roadmapDocPath: "docs/hermes-roadmap-p9401-p9600.md",
   architectureDocPath: "docs/architecture.md",
   sourceWorkOsGoalDrilldownPath: "artifacts/work-os-goal-drilldown-surface/latest/work-os-goal-drilldown-surface.json",
+  factoryLedgerDir: DEFAULT_FACTORY_LEDGER_DIR,
+  factorySeedDir: DEFAULT_FACTORY_SEED_DIR,
 };
 
 export const DEFAULT_MULTI_PROJECT_SAAS_CONTROL_PLANE_HOST = "127.0.0.1";
@@ -99,10 +106,11 @@ export async function buildMultiProjectSaasControlPlane(options = {}) {
   const contract = buildContract(generatedAt);
   const phaseRows = buildPhaseRows(roadmapDoc.text, generatedAt);
   const sourceBindingRows = buildSourceBindingRows(source, generatedAt);
-  const derived = deriveControlPlaneCollections(sourceData, generatedAt);
+  const factoryProductSource = await resolveFactoryProductProjectionSource(sourceData, inputs);
+  const derived = deriveControlPlaneCollections(sourceData, generatedAt, factoryProductSource);
   const routeRows = buildApiRouteRows(generatedAt);
-  const apiSmokeRows = await buildApiSmokeRows(sourceData, generatedAt);
-  const browserSmokeRows = await buildBrowserSmokeRows(sourceData, generatedAt);
+  const apiSmokeRows = await buildApiSmokeRows(sourceData, generatedAt, inputs);
+  const browserSmokeRows = await buildBrowserSmokeRows(sourceData, generatedAt, inputs);
   const negativeFixtureRows = buildNegativeFixtureRows(generatedAt);
   const freezeRows = buildFreezeRows({
     source,
@@ -173,6 +181,7 @@ export async function buildMultiProjectSaasControlPlane(options = {}) {
     output_dir: outputDir,
     inputs,
     source_work_os_goal_drilldown_summary: source.data?.summary ?? null,
+    factory_product_projection_source: factoryProductSource,
     multi_project_saas_contract: contract,
     multi_project_saas_phase_rows: phaseRows,
     p9400_source_binding_rows: sourceBindingRows,
@@ -233,6 +242,7 @@ export async function buildMultiProjectSaasControlPlane(options = {}) {
 export async function writeMultiProjectSaasControlPlane(result, outDir = DEFAULT_MULTI_PROJECT_SAAS_CONTROL_PLANE_OUT_DIR) {
   await mkdir(outDir, { recursive: true });
   await writeJson(path.join(outDir, "multi-project-saas-control-plane.json"), serializableResult(result));
+  await writeJson(path.join(outDir, "factory-product-projection-source.json"), result.factory_product_projection_source);
   await writeJson(path.join(outDir, "multi-project-saas-phase-rows.json"), result.multi_project_saas_phase_rows);
   await writeJson(path.join(outDir, "p9400-source-binding-rows.json"), result.p9400_source_binding_rows);
   await writeJson(path.join(outDir, "multi-project-api-route-rows.json"), result.multi_project_api_route_rows);
@@ -297,7 +307,11 @@ export async function buildMultiProjectSaasApiResponse(requestUrl = "/", options
   if (!isSourceReady(source)) {
     return jsonResponse(503, buildError("work_os_goal_drilldown_source_unavailable", source.error ?? "P9400 Work OS goal drilldown source is not ready."), method);
   }
-  const collections = deriveControlPlaneCollections(source.data, generatedAt);
+  const factoryProductSource = await resolveFactoryProductProjectionSource(source.data, {
+    factory_ledger_dir: options.factoryLedgerDir ?? DEFAULT_MULTI_PROJECT_SAAS_CONTROL_PLANE_INPUTS.factoryLedgerDir,
+    factory_seed_dir: options.factorySeedDir ?? DEFAULT_MULTI_PROJECT_SAAS_CONTROL_PLANE_INPUTS.factorySeedDir,
+  });
+  const collections = deriveControlPlaneCollections(source.data, generatedAt, factoryProductSource);
   if (pathname === "/" || pathname === "/index.html" || pathname === "/multi-project-control.html") {
     return htmlResponse(200, renderControlPlaneHtml({
       program_range: PROGRAM_RANGE,
@@ -306,7 +320,9 @@ export async function buildMultiProjectSaasApiResponse(requestUrl = "/", options
       summary: {
         multi_project_saas_control_plane_status: READY_STATUS,
         ready_for_p9601_handoff: true,
+        factory_product_source_tier: factoryProductSource.source_tier,
       },
+      factory_product_projection_source: factoryProductSource,
       ...collections,
     }), method);
   }
@@ -317,6 +333,8 @@ export async function buildMultiProjectSaasApiResponse(requestUrl = "/", options
       status: "ok",
       source_status: source.data?.summary?.work_os_goal_drilldown_surface_status,
       source_ready: true,
+      factory_product_source_tier: factoryProductSource.source_tier,
+      factory_product_source_fallback_used: factoryProductSource.source_projection_fallback_used,
       read_only: true,
       mutation_allowed: false,
     }), method);
@@ -343,6 +361,8 @@ export async function runMultiProjectSaasControlPlaneCli(argv = process.argv.sli
       host: args.host,
       port: args.port,
       runAt: args.runAt,
+      factoryLedgerDir: args.factoryLedgerDir,
+      factorySeedDir: args.factorySeedDir,
     });
     console.log(`Multi-project SaaS control plane API listening at ${started.url}`);
     console.log(`Open ${started.url}/multi-project-control.html`);
@@ -353,11 +373,14 @@ export async function runMultiProjectSaasControlPlaneCli(argv = process.argv.sli
     write: args.write,
     outDir: args.outDir,
     runAt: args.runAt,
+    factoryLedgerDir: args.factoryLedgerDir,
+    factorySeedDir: args.factorySeedDir,
   });
   console.log(`${args.check ? "Multi-project SaaS control plane validated" : "Multi-project SaaS control plane written"} at ${result.output_dir}`);
   console.log(`Status: ${result.summary.multi_project_saas_control_plane_status}`);
   console.log(`Program: ${result.program_range}`);
   console.log(`Projects: ${result.summary.project_count}`);
+  console.log(`Factory product source: ${result.summary.factory_product_source_tier}`);
   console.log(`Repos: ${result.summary.repo_count}`);
   console.log(`P9600 freeze ready: ${result.summary.p9600_freeze_ready}`);
   console.log(`Validation errors: ${result.summary.validation_error_count}`);
@@ -457,15 +480,73 @@ function buildApiRouteRows(generatedAt) {
   }, true));
 }
 
-function deriveControlPlaneCollections(sourceData, generatedAt) {
+async function resolveFactoryProductProjectionSource(sourceData, inputs = {}) {
+  const sourceProjects = asArray(sourceData.project_drilldown_rows);
+  const ledgerDir = path.resolve(inputs.factory_ledger_dir ?? inputs.factoryLedgerDir ?? DEFAULT_FACTORY_LEDGER_DIR);
+  const seedDir = path.resolve(inputs.factory_seed_dir ?? inputs.factorySeedDir ?? DEFAULT_FACTORY_SEED_DIR);
+  const operationalProducts = await readFactoryLedgerFile("products", { ledgerDir });
+  const seedProducts = await readFactoryLedgerFile("products", { ledgerDir: seedDir });
+  const operationalSelected = operationalProducts.validation.valid
+    ? selectFactoryProductsForProjects(operationalProducts.entries, sourceProjects)
+    : [];
+  const seedSelected = seedProducts.validation.valid
+    ? selectFactoryProductsForProjects(seedProducts.entries, sourceProjects)
+    : [];
+  const invalidErrors = [
+    ...(operationalProducts.line_count > 0 && !operationalProducts.validation.valid ? operationalProducts.validation.errors : []),
+    ...(seedProducts.line_count > 0 && !seedProducts.validation.valid ? seedProducts.validation.errors : []),
+  ];
+
+  let sourceTier = "source_projection_fallback";
+  let selectedProducts = [];
+  if (operationalSelected.length > 0) {
+    sourceTier = "operational_ledger";
+    selectedProducts = operationalSelected;
+  } else if (seedSelected.length > 0) {
+    sourceTier = "tracked_seed";
+    selectedProducts = seedSelected;
+  }
+
+  const selectedProjectIds = selectedProducts.map((row) => row.source_project_id ?? inferProjectIdFromProduct(row.product_id));
+  const sourceProjectIds = sourceProjects.map((row) => row.project_id);
+  const selectedCoversSource = sourceProjectIds.every((projectId) => selectedProjectIds.includes(projectId));
+  const sourceProjectionFallbackUsed = selectedProducts.length === 0;
+  const projectionReady = invalidErrors.length === 0 && (sourceProjectionFallbackUsed || selectedCoversSource);
+
+  return {
+    schema_version: "factory-product-projection-source.v1",
+    source_tier: sourceTier,
+    store_read_order: ["operational_ledger", "tracked_seed", "source_projection_fallback"],
+    ledger_dir: ledgerDir,
+    seed_dir: seedDir,
+    operational_product_count: operationalProducts.entries.length,
+    seed_product_count: seedProducts.entries.length,
+    selected_product_count: sourceProjectionFallbackUsed ? sourceProjects.length : selectedProducts.length,
+    selected_product_ids: selectedProducts.map((row) => row.product_id),
+    selected_project_ids: sourceProjectionFallbackUsed ? sourceProjectIds : selectedProjectIds,
+    operational_ledger_valid: operationalProducts.validation.valid,
+    tracked_seed_valid: seedProducts.validation.valid,
+    operational_ledger_used: sourceTier === "operational_ledger",
+    tracked_seed_used: sourceTier === "tracked_seed",
+    source_projection_fallback_used: sourceProjectionFallbackUsed,
+    fallback_visible: sourceProjectionFallbackUsed,
+    projection_ready: projectionReady,
+    validation_error_count: invalidErrors.length,
+    validation_errors: invalidErrors,
+    selected_products: selectedProducts,
+  };
+}
+
+function deriveControlPlaneCollections(sourceData, generatedAt, factoryProductSource = null) {
   const sourceProjects = asArray(sourceData.project_drilldown_rows);
   const sourceGoals = asArray(sourceData.goal_detail_rows);
   const sourceCombined = asArray(sourceData.combined_status_rows);
   const sourceActions = asArray(sourceData.next_action_api_projection_rows);
   const sourceCommits = asArray(sourceData.commit_checkpoint_api_projection_rows);
   const sourceSessions = asArray(sourceData.session_handoff_api_projection_rows);
+  const registryProjectInputs = buildRegistryProjectInputs(sourceProjects, factoryProductSource);
 
-  const registryRows = sourceProjects.map((project, index) => {
+  const registryRows = registryProjectInputs.map((project, index) => {
     const goal = sourceGoals.find((row) => row.project_id === project.project_id);
     const combined = sourceCombined.find((row) => row.project_id === project.project_id);
     const pass = project.domain_pack_is_whole_product === false
@@ -478,6 +559,12 @@ function deriveControlPlaneCollections(sourceData, generatedAt) {
       project_id: project.project_id,
       project_name: project.project_name,
       domain_pack: project.domain_pack,
+      factory_product_id: project.factory_product_id ?? null,
+      factory_product_state: project.factory_product_state ?? null,
+      factory_product_receipt_id: project.factory_product_receipt_id ?? null,
+      factory_product_source_tier: factoryProductSource?.source_tier ?? "source_projection_fallback",
+      factory_product_source_fallback_used: factoryProductSource?.source_projection_fallback_used ?? true,
+      fallback_const_preserved: project.fallback_const_preserved ?? true,
       domain_pack_scope: "project_workflow_context",
       domain_pack_is_whole_product: false,
       hermes_product_identity: "general_project_workflow_control_plane",
@@ -637,6 +724,7 @@ function deriveControlPlaneCollections(sourceData, generatedAt) {
   });
 
   return {
+    factory_product_projection_source: factoryProductSource,
     saas_project_registry_rows: registryRows,
     saas_repo_inventory_rows: repoRows,
     current_goal_risk_rows: riskRows,
@@ -647,13 +735,79 @@ function deriveControlPlaneCollections(sourceData, generatedAt) {
   };
 }
 
-async function buildApiSmokeRows(sourceData, generatedAt) {
+function selectFactoryProductsForProjects(entries, sourceProjects) {
+  const sourceProjectIds = new Set(sourceProjects.map((row) => row.project_id));
+  return sourceProjects
+    .map((project) => {
+      const candidates = entries.filter((entry) => {
+        const sourceProjectId = entry.source_project_id ?? inferProjectIdFromProduct(entry.product_id);
+        return sourceProjectId === project.project_id && sourceProjectIds.has(sourceProjectId);
+      });
+      return candidates.find((entry) => entry.seed_record_kind === "fixture_portfolio")
+        ?? candidates.at(-1)
+        ?? null;
+    })
+    .filter(Boolean);
+}
+
+function buildRegistryProjectInputs(sourceProjects, factoryProductSource) {
+  const selectedProducts = asArray(factoryProductSource?.selected_products);
+  if (selectedProducts.length === 0) {
+    return sourceProjects.map((project) => ({
+      ...project,
+      factory_product_id: null,
+      factory_product_state: null,
+      factory_product_receipt_id: null,
+      fallback_const_preserved: true,
+    }));
+  }
+  return sourceProjects.map((project) => {
+    const product = selectedProducts.find((row) => (row.source_project_id ?? inferProjectIdFromProduct(row.product_id)) === project.project_id);
+    if (!product) {
+      return {
+        ...project,
+        factory_product_id: null,
+        factory_product_state: null,
+        factory_product_receipt_id: null,
+        fallback_const_preserved: true,
+      };
+    }
+    return {
+      ...project,
+      project_name: product.display_name ?? project.project_name,
+      domain_pack: project.domain_pack ?? domainPackFromProduct(product),
+      factory_product_id: product.product_id,
+      factory_product_state: product.product_state,
+      factory_product_receipt_id: product.receipt_id,
+      fallback_const_preserved: product.fallback_const_preserved === true,
+    };
+  });
+}
+
+function domainPackFromProduct(product) {
+  const ids = product.domain_pack_ids ?? [];
+  if (ids.includes("pack.law_firm")) return "law-firm";
+  if (ids.includes("pack.trading")) return "trading";
+  if (ids.includes("pack.human_resources")) return "human-resources";
+  if (ids.includes("pack.external_adapter")) return "external-adapter";
+  return "personal-dev";
+}
+
+function inferProjectIdFromProduct(productId) {
+  if (!productId) return null;
+  if (productId.startsWith("product.fixture_")) return `project.${productId.replace("product.fixture_", "")}`;
+  return `project.${productId.replace(/^product\./, "")}`;
+}
+
+async function buildApiSmokeRows(sourceData, generatedAt, inputs = {}) {
   const rows = [];
   for (const [index, [apiPath]] of API_ROUTE_SPECS.entries()) {
     const response = await buildMultiProjectSaasApiResponse(apiPath, {
       method: "GET",
       runAt: generatedAt,
       workOsGoalDrilldownSurface: sourceData,
+      factoryLedgerDir: inputs.factory_ledger_dir,
+      factorySeedDir: inputs.factory_seed_dir,
     });
     const unsafe = inspectResponseBody(response.body);
     rows.push(verdictRow({
@@ -678,6 +832,8 @@ async function buildApiSmokeRows(sourceData, generatedAt) {
     method: "POST",
     runAt: generatedAt,
     workOsGoalDrilldownSurface: sourceData,
+    factoryLedgerDir: inputs.factory_ledger_dir,
+    factorySeedDir: inputs.factory_seed_dir,
   });
   rows.push(verdictRow({
     schema_version: "multi-project-saas-api-smoke-row.v1",
@@ -699,11 +855,13 @@ async function buildApiSmokeRows(sourceData, generatedAt) {
   return rows;
 }
 
-async function buildBrowserSmokeRows(sourceData, generatedAt) {
+async function buildBrowserSmokeRows(sourceData, generatedAt, inputs = {}) {
   const response = await buildMultiProjectSaasApiResponse("/multi-project-control.html", {
     method: "GET",
     runAt: generatedAt,
     workOsGoalDrilldownSurface: sourceData,
+    factoryLedgerDir: inputs.factory_ledger_dir,
+    factorySeedDir: inputs.factory_seed_dir,
   });
   const html = response.body;
   const unsafe = inspectResponseBody(html);
@@ -740,6 +898,7 @@ function buildNegativeFixtureRows(generatedAt) {
 function buildFreezeRows(context) {
   const rows = [
     ["freeze.source_ready", "P9400 source is ready", isSourceReady(context.source)],
+    ["freeze.factory_product_projection_source", "Factory product projection source is resolved with visible fallback", context.factory_product_projection_source?.projection_ready === true],
     ["freeze.phase_rows", "P9401-P9600 phase rows pass", context.phaseRows.every((row) => row.current_verdict === "pass")],
     ["freeze.source_binding", "P9400 source binding rows pass", context.sourceBindingRows.every((row) => row.current_verdict === "pass")],
     ["freeze.routes", "Multi-project API routes are ready", context.routeRows.every((row) => row.current_verdict === "pass")],
@@ -778,6 +937,7 @@ function buildGateRows(context) {
     ["validate_chain_registered", validateScript.includes(`${COMMAND_NAME} -- --check`), "validate chain includes P9600 command"],
     ["runs_after_p9400", commandIndex > sourceIndex && sourceIndex >= 0, "P9600 command runs after P9400 source command"],
     ["source_p9400_ready", isSourceReady(context.source), "P9400 source is ready"],
+    ["factory_product_projection_source", context.factory_product_projection_source?.projection_ready === true, "factory product projection source resolves operational ledger, tracked seed, or visible fallback"],
     ["roadmap_reflected", context.roadmapDoc.available && includesToken(context.roadmapDoc.text, PROGRAM_RANGE) && includesToken(context.roadmapDoc.text, "SaaS Project Registry"), "P9401-P9600 roadmap is reflected"],
     ["architecture_reflected", context.architectureDoc.available && includesToken(context.architectureDoc.text, "P9401-P9600 Multi-Project SaaS Control Plane"), "architecture reflects P9600"],
     ["phase_rows_pass", context.phaseRows.length === PHASE_SPECS.length && context.phaseRows.every((row) => row.current_verdict === "pass"), "all P9401-P9600 phase rows pass"],
@@ -827,11 +987,16 @@ function buildBoundary(context) {
   const freezeReady = context.freezeRows.every((row) => row.current_verdict === "pass");
   const gatesPass = context.gateRows.every((row) => row.current_verdict === "pass");
   const negativeFixturesBlock = context.negativeFixtureRows.every((row) => row.unsafe_claim_allowed === false);
+  const factoryProductSourceReady = context.factory_product_projection_source?.projection_ready === true;
   return {
     schema_version: "multi-project-saas-boundary.v1",
     program_range: PROGRAM_RANGE,
     source_program_range: SOURCE_PROGRAM_RANGE,
     source_p9400_ready: sourceReady,
+    factory_product_projection_source_ready: factoryProductSourceReady,
+    factory_product_source_tier: context.factory_product_projection_source?.source_tier ?? "missing",
+    factory_product_source_fallback_used: context.factory_product_projection_source?.source_projection_fallback_used ?? true,
+    factory_product_selected_count: context.factory_product_projection_source?.selected_product_count ?? 0,
     phase_rows_ready: phaseReady,
     api_routes_ready: routeReady,
     project_registry_ready: projectReady,
@@ -846,7 +1011,7 @@ function buildBoundary(context) {
     p9600_freeze_ready: freezeReady,
     negative_fixtures_block_unsafe_claims: negativeFixturesBlock,
     all_gates_pass: gatesPass,
-    ready_for_p9601_handoff: sourceReady && phaseReady && routeReady && projectReady && repoReady && riskReady && validationReady && blockersReady && domainReady && operatorReady && apiSmokeReady && browserSmokeReady && freezeReady && negativeFixturesBlock && gatesPass,
+    ready_for_p9601_handoff: sourceReady && factoryProductSourceReady && phaseReady && routeReady && projectReady && repoReady && riskReady && validationReady && blockersReady && domainReady && operatorReady && apiSmokeReady && browserSmokeReady && freezeReady && negativeFixturesBlock && gatesPass,
     api_write_methods_enabled: false,
     repo_git_write_enabled: false,
     raw_transcript_body_visible: false,
@@ -890,6 +1055,8 @@ function buildValidationItems(context) {
     validationItem("package.script", "package", Boolean(context.packageJson.data?.scripts?.[COMMAND_NAME]), `${COMMAND_NAME} must be registered in package.json`),
     validationItem("validate.chain", "package", validateScript.includes(`${COMMAND_NAME} -- --check`), "validate chain must include P9600 command"),
     validationItem("source.ready", "source", isSourceReady(context.source), "P9400 source must be ready for P9600 handoff"),
+    validationItem("factory.product.source", "factory_product_source", context.factory_product_projection_source?.projection_ready === true, "factory product projection source must resolve from ledger, seed, or visible fallback"),
+    validationItem("factory.product.source.count", "factory_product_source", context.factory_product_projection_source?.selected_product_count === context.saas_project_registry_rows.length, "factory product projection source must account for every registry row"),
     validationItem("roadmap.present", "docs", context.roadmapDoc.available && includesToken(context.roadmapDoc.text, PROGRAM_RANGE), "P9401-P9600 roadmap must exist"),
     validationItem("architecture.present", "docs", context.architectureDoc.available && includesToken(context.architectureDoc.text, "P9401-P9600 Multi-Project SaaS Control Plane"), "architecture must mention P9600"),
     validationItem("phases.ready", "phases", context.phaseRows.length === PHASE_SPECS.length && context.phaseRows.every((row) => row.current_verdict === "pass"), "all phase rows must pass"),
@@ -919,6 +1086,13 @@ function buildSummary(context) {
     source_program_range: SOURCE_PROGRAM_RANGE,
     source_work_os_goal_drilldown_status: context.source.data?.summary?.work_os_goal_drilldown_surface_status ?? "missing",
     source_p9400_ready: isSourceReady(context.source),
+    factory_product_projection_source_ready: context.factory_product_projection_source?.projection_ready === true,
+    factory_product_source_tier: context.factory_product_projection_source?.source_tier ?? "missing",
+    factory_product_source_fallback_used: context.factory_product_projection_source?.source_projection_fallback_used ?? true,
+    factory_product_operational_count: context.factory_product_projection_source?.operational_product_count ?? 0,
+    factory_product_seed_count: context.factory_product_projection_source?.seed_product_count ?? 0,
+    factory_product_selected_count: context.factory_product_projection_source?.selected_product_count ?? 0,
+    factory_product_source_validation_error_count: context.factory_product_projection_source?.validation_error_count ?? 0,
     phase_row_count: context.phaseRows.length,
     source_binding_count: context.sourceBindingRows.length,
     api_route_count: context.routeRows.length,
@@ -1006,6 +1180,7 @@ function renderControlPlaneHtml(result) {
     <div class="meta">
       <span class="pill">Program ${escapeHtml(result.program_range)}</span>
       <span class="pill">Source ${escapeHtml(result.source_program_range)}</span>
+      <span class="pill">Factory ${escapeHtml(result.summary?.factory_product_source_tier ?? "missing")}</span>
       <span class="pill">Status ${escapeHtml(result.summary?.multi_project_saas_control_plane_status ?? READY_STATUS)}</span>
       <span class="pill">Generated ${escapeHtml(result.generated_at)}</span>
     </div>
@@ -1071,6 +1246,9 @@ function renderMarkdown(result) {
     "## Summary",
     "",
     `- Source P9400 ready: ${result.summary.source_p9400_ready}`,
+    `- Factory product source: ${result.summary.factory_product_source_tier}`,
+    `- Factory product source fallback used: ${result.summary.factory_product_source_fallback_used}`,
+    `- Factory product selected count: ${result.summary.factory_product_selected_count}`,
     `- Projects: ${result.summary.project_count}`,
     `- Repos: ${result.summary.repo_count}`,
     `- Current goal risk rows: ${result.summary.current_goal_risk_count}`,
@@ -1270,6 +1448,8 @@ function normalizeInputs(options) {
     roadmap_doc_path: path.resolve(options.roadmapDocPath ?? DEFAULT_MULTI_PROJECT_SAAS_CONTROL_PLANE_INPUTS.roadmapDocPath),
     architecture_doc_path: path.resolve(options.architectureDocPath ?? DEFAULT_MULTI_PROJECT_SAAS_CONTROL_PLANE_INPUTS.architectureDocPath),
     source_work_os_goal_drilldown_path: path.resolve(options.sourceWorkOsGoalDrilldownPath ?? DEFAULT_MULTI_PROJECT_SAAS_CONTROL_PLANE_INPUTS.sourceWorkOsGoalDrilldownPath),
+    factory_ledger_dir: path.resolve(options.factoryLedgerDir ?? DEFAULT_MULTI_PROJECT_SAAS_CONTROL_PLANE_INPUTS.factoryLedgerDir),
+    factory_seed_dir: path.resolve(options.factorySeedDir ?? DEFAULT_MULTI_PROJECT_SAAS_CONTROL_PLANE_INPUTS.factorySeedDir),
   };
 }
 
@@ -1303,6 +1483,8 @@ function parseArgs(argv) {
     else if (arg === "--host") args.host = argv[++index];
     else if (arg === "--port") args.port = Number(argv[++index]);
     else if (arg === "--run-at") args.runAt = argv[++index];
+    else if (arg === "--factory-ledger-dir") args.factoryLedgerDir = argv[++index];
+    else if (arg === "--factory-seed-dir") args.factorySeedDir = argv[++index];
     else if (arg === "--help" || arg === "-h") args.help = true;
     else throw new Error(`Unknown argument: ${arg}`);
   }
@@ -1319,6 +1501,10 @@ Options:
   --host <host>        Server host
   --port <port>        Server port
   --run-at <iso>       Fixed generation timestamp
+  --factory-ledger-dir <path>
+                       Factory operational ledger directory
+  --factory-seed-dir <path>
+                       Factory tracked seed directory
   --help               Show this help
 `);
 }

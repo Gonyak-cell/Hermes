@@ -16,7 +16,7 @@ Routes: `/api/factory/products`.
 read-only guard and the route-local method guard. `POST`, `PUT`, `PATCH`, and
 `DELETE` return `405 method_not_allowed`.
 
-## FB.1 Factory Stage Routes
+## FB.2 Factory Stage Routes
 
 Factory Stage routes expose the read-only product PS state read model. The
 route derives current state from the factory product store and local
@@ -24,8 +24,24 @@ state-transition ledger without enabling PS3 transitions, candidate writes, or
 apply behavior. The response is explicitly read-only with
 `mutation_allowed: false` and `raw_confidential_material_visible: false`.
 
+FB.2 extends the rows with read-only control-view fields:
+
+- `stage_progress`
+- `gate_status`
+- `blocker_ids` and `blocker_count`
+- `next_operator_actions`
+- `freshness_status`, `source_age_days`, and `stale_badge_required`
+- `candidate_manifest_preview_status`
+- `candidate_manifest_queue_depth` and `workbench_queue_depth`
+
+The candidate manifest preview remains unavailable until FB.3, and queue depths
+remain `0`. Stale rows display a stale badge and block new adjudication until
+the product source is refreshed.
+
 Supported filters include `product_id`, `current_product_state`,
-`base_product_state`, `product_source_tier`, and `limit`.
+`base_product_state`, `product_source_tier`, `gate_status`,
+`freshness_status`, `stale_badge_required`,
+`candidate_manifest_preview_status`, and `limit`.
 
 Routes: `/api/factory/stage`.
 

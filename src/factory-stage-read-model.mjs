@@ -11,9 +11,11 @@ export const DEFAULT_FACTORY_STAGE_READ_MODEL_OUT_DIR = "artifacts/factory-stage
 const COMMAND_NAME = "factory:stage";
 const SCHEMA_VERSION = "factory-stage-read-model.v1";
 const CAPABILITY_ID = "factory.stage_read_model";
-const PROGRAM_RANGE = "FCORE-FB.1";
+const PROGRAM_RANGE = "FCORE-FB.1-FB.2";
 const READY_STATUS = "ready_factory_stage_read_model";
 const BLOCKED_STATUS = "blocked_factory_stage_read_model";
+const FB2_FRESHNESS_WINDOW_DAYS = 7;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const STAGE_LADDER = [
   ["PS0_seed", "Product row exists as seed or initial intake"],
   ["PS1_schema_valid", "Required product schema is valid"],
@@ -59,7 +61,7 @@ export async function buildFactoryStageReadModel(options = {}) {
   const seedDir = path.resolve(options.factorySeedDir ?? options.seedDir ?? DEFAULT_FACTORY_SEED_DIR);
   const productSource = await readFactoryProductSource({ ledgerDir, seedDir });
   const transitionSource = await readFactoryTransitionSource({ ledgerDir, seedDir });
-  const stageRows = buildStageRows(productSource, transitionSource);
+  const stageRows = buildStageRows(productSource, transitionSource, { generatedAt });
   const boundary = buildBoundary(productSource, transitionSource, stageRows);
   const validationItems = buildValidationItems(productSource, transitionSource, stageRows, boundary);
   const validation = summarizeValidation(validationItems);
@@ -189,12 +191,17 @@ function sourceResult(sourceTier, products, validationErrorCount, error, ledger)
   };
 }
 
-function buildStageRows(productSource, transitionSource) {
+function buildStageRows(productSource, transitionSource, { generatedAt }) {
   const transitionsByProduct = groupBy(transitionSource.transitions, (row) => row.product_id);
   return productSource.products.map((product) => {
     const transitions = sortTransitions(transitionsByProduct.get(product.product_id) ?? []);
     const latestTransition = transitions.at(-1) ?? null;
     const currentState = latestTransition?.to_state ?? product.product_state;
+    const stageProgress = buildStageProgress(currentState);
+    const freshness = buildFreshnessSnapshot(product, transitions, generatedAt);
+    const ps3OrLaterTransitionPresent = transitions.some((row) => isPs3OrLater(row.from_state) || isPs3OrLater(row.to_state));
+    const blockerIds = buildBlockerIds({ currentState, freshness, ps3OrLaterTransitionPresent });
+    const candidateManifestPreviewStatus = buildCandidateManifestPreviewStatus({ currentState, freshness, ps3OrLaterTransitionPresent });
     return {
       schema_version: "factory-stage-row.v1",
       product_id: product.product_id,
@@ -207,11 +214,28 @@ function buildStageRows(productSource, transitionSource) {
       base_product_state: product.product_state,
       current_product_state: currentState,
       current_stage_rank: stageRank(currentState),
+      stage_progress: stageProgress,
+      gate_status: buildGateStatus({ currentState, freshness, ps3OrLaterTransitionPresent }),
+      blocker_ids: blockerIds,
+      blocker_count: blockerIds.length,
+      next_operator_actions: buildNextOperatorActions({ currentState, freshness, ps3OrLaterTransitionPresent }),
+      next_operator_actions_are_instructions_only: true,
       transition_count: transitions.length,
       latest_transition_id: latestTransition?.transition_id ?? null,
       latest_transition_receipt_id: latestTransition?.receipt_id ?? null,
-      ps3_or_later_transition_present: transitions.some((row) => isPs3OrLater(row.from_state) || isPs3OrLater(row.to_state)),
+      latest_source_timestamp: freshness.source_last_seen_at,
+      freshness_status: freshness.freshness_status,
+      freshness_window_days: freshness.freshness_window_days,
+      source_age_days: freshness.source_age_days,
+      stale_badge_required: freshness.stale_badge_required,
+      freshness_blocks_new_adjudication: freshness.freshness_blocks_new_adjudication,
+      ps3_or_later_transition_present: ps3OrLaterTransitionPresent,
       ps3_transition_append_allowed_now: false,
+      candidate_manifest_preview_available: false,
+      candidate_manifest_preview_status: candidateManifestPreviewStatus,
+      candidate_manifest_preview_blocker_ids: buildCandidateManifestPreviewBlockers(candidateManifestPreviewStatus),
+      candidate_manifest_queue_depth: 0,
+      workbench_queue_depth: 0,
       candidate_manifest_write_allowed_now: false,
       apply_allowed_now: false,
       authority_flags: AUTHORITY_CLOSED,
@@ -229,6 +253,9 @@ function buildBoundary(productSource, transitionSource, stageRows) {
     transition_count: transitionSource.transitions.length,
     ps3_transition_handler_enabled: false,
     ps3_transition_append_allowed_now: false,
+    candidate_manifest_preview_available: false,
+    candidate_manifest_queue_depth: 0,
+    workbench_queue_depth: 0,
     candidate_manifest_write_allowed_now: false,
     apply_allowed_now: false,
     project_creation_allowed_now: false,
@@ -249,9 +276,13 @@ function buildValidationItems(productSource, transitionSource, stageRows, bounda
     validationItem("transitions.available", "source", transitionSource.available, transitionSource.error ?? "Factory transitions are available"),
     validationItem("stage.rows.present", "read_model", stageRows.length > 0, "Factory stage rows are present"),
     validationItem("stage.known_states", "read_model", stageRows.every((row) => row.current_stage_rank >= 0), "Factory stage rows use known PS states"),
+    validationItem("stage.control_fields_present", "read_model", stageRows.every((row) => row.gate_status && Array.isArray(row.blocker_ids) && row.blocker_count === row.blocker_ids.length && row.stage_progress?.stage_count === STAGE_LADDER.length), "Factory stage rows expose control view fields"),
+    validationItem("stage.next_actions_instruction_only", "authority", stageRows.every((row) => row.next_operator_actions_are_instructions_only === true && Array.isArray(row.next_operator_actions)), "Next operator actions must remain read-only instructions"),
+    validationItem("stage.freshness_badges_visible", "read_model", stageRows.every((row) => row.freshness_status !== "stale" || (row.stale_badge_required === true && row.freshness_blocks_new_adjudication === true)), "Stale stage rows must display stale badges and block new adjudication"),
     validationItem("stage.no_unknown_transition_products", "scope", unknownTransitionProducts.length === 0, "Factory transitions reference unknown product ids"),
     validationItem("stage.no_ps3_transition_present", "authority", stageRows.every((row) => row.ps3_or_later_transition_present === false), "PS3+ transitions must not appear before FB promotion"),
     validationItem("boundary.ps3_closed", "authority", boundary.ps3_transition_handler_enabled === false && boundary.ps3_transition_append_allowed_now === false, "PS3 transition handler must remain closed"),
+    validationItem("boundary.candidate_preview_closed", "authority", stageRows.every((row) => row.candidate_manifest_preview_available === false && row.candidate_manifest_queue_depth === 0 && row.workbench_queue_depth === 0), "Candidate manifest previews and queues must stay closed until FB.3"),
     validationItem("boundary.no_write", "authority", boundary.candidate_manifest_write_allowed_now === false && boundary.apply_allowed_now === false, "Factory stage read model must keep write/apply authority closed"),
     validationItem("boundary.authority_closed", "authority", allAuthorityClosed(boundary), "Factory stage read model authority flags must remain closed"),
   ];
@@ -259,6 +290,10 @@ function buildValidationItems(productSource, transitionSource, stageRows, bounda
 
 function buildSummary(productSource, transitionSource, stageRows, boundary, validation) {
   const ready = validation.valid && productSource.available && transitionSource.available && stageRows.length > 0 && allAuthorityClosed(boundary);
+  const gateStatusCounts = countBy(stageRows, (row) => row.gate_status);
+  const freshnessStatusCounts = countBy(stageRows, (row) => row.freshness_status);
+  const candidateManifestQueueDepth = stageRows.reduce((total, row) => total + row.candidate_manifest_queue_depth, 0);
+  const workbenchQueueDepth = stageRows.reduce((total, row) => total + row.workbench_queue_depth, 0);
   return {
     factory_stage_read_model_status: ready ? READY_STATUS : BLOCKED_STATUS,
     program_range: PROGRAM_RANGE,
@@ -267,8 +302,18 @@ function buildSummary(productSource, transitionSource, stageRows, boundary, vali
     product_count: stageRows.length,
     transition_count: transitionSource.transitions.length,
     state_counts: countBy(stageRows, (row) => row.current_product_state),
+    gate_status_counts: gateStatusCounts,
+    freshness_status_counts: freshnessStatusCounts,
+    freshness_window_days: FB2_FRESHNESS_WINDOW_DAYS,
+    stale_badge_required_count: stageRows.filter((row) => row.stale_badge_required).length,
+    freshness_blocks_new_adjudication_count: stageRows.filter((row) => row.freshness_blocks_new_adjudication).length,
+    blocked_stage_row_count: stageRows.filter((row) => row.blocker_count > 0).length,
+    candidate_manifest_preview_available_count: stageRows.filter((row) => row.candidate_manifest_preview_available).length,
+    candidate_manifest_queue_depth: candidateManifestQueueDepth,
+    workbench_queue_depth: workbenchQueueDepth,
     ps3_transition_handler_enabled: false,
     ps3_transition_append_allowed_now: false,
+    candidate_manifest_preview_available: false,
     candidate_manifest_write_allowed_now: false,
     apply_allowed_now: false,
     validation_errors: validation.errors.length,
@@ -291,6 +336,10 @@ function renderMarkdown(result) {
     `Products: ${result.summary.product_count}`,
     `Product source: ${result.summary.product_source_tier}`,
     `Transitions: ${result.summary.transition_count}`,
+    `Freshness window days: ${result.summary.freshness_window_days}`,
+    `Stale badges required: ${result.summary.stale_badge_required_count}`,
+    `Candidate manifest preview available: ${result.summary.candidate_manifest_preview_available}`,
+    `Candidate manifest queue depth: ${result.summary.candidate_manifest_queue_depth}`,
     `PS3 transition append allowed: ${result.summary.ps3_transition_append_allowed_now}`,
     `Candidate manifest write allowed: ${result.summary.candidate_manifest_write_allowed_now}`,
     `Apply allowed: ${result.summary.apply_allowed_now}`,
@@ -329,6 +378,104 @@ function unique(items) {
 
 function countBy(items, keyFn) {
   return Object.fromEntries([...groupBy(items, keyFn)].map(([key, rows]) => [key, rows.length]));
+}
+
+function buildStageProgress(currentState) {
+  const rank = stageRank(currentState);
+  const maxRank = STAGE_LADDER.length - 1;
+  const boundedRank = rank >= 0 ? rank : 0;
+  const knownState = rank >= 0;
+  return {
+    schema_version: "factory-stage-progress.v1",
+    stage_count: STAGE_LADDER.length,
+    current_stage_rank: rank,
+    completed_stage_count: knownState ? boundedRank + 1 : 0,
+    remaining_stage_count: knownState ? Math.max(STAGE_LADDER.length - boundedRank - 1, 0) : STAGE_LADDER.length,
+    progress_ratio: knownState && maxRank > 0 ? Number((boundedRank / maxRank).toFixed(3)) : 0,
+  };
+}
+
+function buildFreshnessSnapshot(product, transitions, generatedAt) {
+  const sourceLastSeenAt = latestIsoTimestamp([
+    product.updated_at,
+    product.created_at,
+    ...transitions.map((row) => row.created_at),
+  ]);
+  if (!sourceLastSeenAt) {
+    return {
+      schema_version: "factory-stage-freshness.v1",
+      source_last_seen_at: null,
+      freshness_status: "unknown",
+      freshness_window_days: FB2_FRESHNESS_WINDOW_DAYS,
+      source_age_days: null,
+      stale_badge_required: true,
+      freshness_blocks_new_adjudication: true,
+    };
+  }
+  const sourceMs = Date.parse(sourceLastSeenAt);
+  const generatedMs = Date.parse(generatedAt);
+  const ageDays = Number(((generatedMs - sourceMs) / MS_PER_DAY).toFixed(3));
+  const stale = Number.isFinite(ageDays) ? ageDays > FB2_FRESHNESS_WINDOW_DAYS : true;
+  return {
+    schema_version: "factory-stage-freshness.v1",
+    source_last_seen_at: sourceLastSeenAt,
+    freshness_status: stale ? "stale" : "fresh",
+    freshness_window_days: FB2_FRESHNESS_WINDOW_DAYS,
+    source_age_days: Number.isFinite(ageDays) ? ageDays : null,
+    stale_badge_required: stale,
+    freshness_blocks_new_adjudication: stale,
+  };
+}
+
+function buildGateStatus({ currentState, freshness, ps3OrLaterTransitionPresent }) {
+  if (freshness.freshness_status !== "fresh") return "blocked_stale_source";
+  if (ps3OrLaterTransitionPresent) return "blocked_ps3_before_fb_promotion";
+  if (stageRank(currentState) < 0) return "blocked_unknown_state";
+  if (stageRank(currentState) < stageRank("PS2_receipt_bound")) return "blocked_until_ps2_receipt_bound";
+  return "blocked_until_fb3_instantiation_resolver";
+}
+
+function buildBlockerIds({ currentState, freshness, ps3OrLaterTransitionPresent }) {
+  const blockers = [];
+  if (freshness.freshness_status !== "fresh") blockers.push("source_freshness_window_exceeded");
+  if (stageRank(currentState) < 0) blockers.push("unknown_product_state");
+  if (stageRank(currentState) < stageRank("PS1_schema_valid")) blockers.push("ps1_schema_validation_receipt_missing");
+  if (stageRank(currentState) < stageRank("PS2_receipt_bound")) blockers.push("ps2_receipt_binding_missing");
+  if (ps3OrLaterTransitionPresent) blockers.push("ps3_transition_before_fb_promotion");
+  blockers.push("fb3_instantiation_resolver_not_ready");
+  return unique(blockers);
+}
+
+function buildNextOperatorActions({ currentState, freshness, ps3OrLaterTransitionPresent }) {
+  if (freshness.freshness_status !== "fresh") return ["refresh_factory_stage_sources_before_new_adjudication"];
+  if (ps3OrLaterTransitionPresent) return ["quarantine_ps3_transition_before_fb3"];
+  if (stageRank(currentState) < 0) return ["repair_unknown_product_state"];
+  if (stageRank(currentState) < stageRank("PS1_schema_valid")) return ["collect_ps1_schema_validation_receipt"];
+  if (stageRank(currentState) < stageRank("PS2_receipt_bound")) return ["bind_ps2_state_transition_receipt"];
+  return ["wait_for_fb3_instantiation_resolver"];
+}
+
+function buildCandidateManifestPreviewStatus({ currentState, freshness, ps3OrLaterTransitionPresent }) {
+  if (freshness.freshness_status !== "fresh") return "blocked_stale_source";
+  if (ps3OrLaterTransitionPresent) return "blocked_ps3_before_fb_promotion";
+  if (stageRank(currentState) < stageRank("PS2_receipt_bound")) return "blocked_until_ps2_receipt_bound";
+  return "blocked_until_fb3_instantiation_resolver";
+}
+
+function buildCandidateManifestPreviewBlockers(previewStatus) {
+  if (previewStatus === "blocked_stale_source") return ["source_freshness_window_exceeded"];
+  if (previewStatus === "blocked_ps3_before_fb_promotion") return ["ps3_transition_before_fb_promotion"];
+  if (previewStatus === "blocked_until_ps2_receipt_bound") return ["ps2_receipt_binding_missing"];
+  return ["fb3_instantiation_resolver_not_ready"];
+}
+
+function latestIsoTimestamp(values) {
+  const validDates = values
+    .filter((value) => value !== null && value !== undefined)
+    .map((value) => new Date(value))
+    .filter((date) => Number.isFinite(date.getTime()))
+    .sort((left, right) => left.getTime() - right.getTime());
+  return validDates.at(-1)?.toISOString() ?? null;
 }
 
 function sortTransitions(transitions) {

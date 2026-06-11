@@ -47,6 +47,10 @@ const FACTORY_STAGE_FILTER_KEYS = [
   "current_product_state",
   "base_product_state",
   "product_source_tier",
+  "gate_status",
+  "freshness_status",
+  "stale_badge_required",
+  "candidate_manifest_preview_status",
 ];
 
 const FACTORY_PRODUCT_AUTHORITY_FLAG_KEYS = [

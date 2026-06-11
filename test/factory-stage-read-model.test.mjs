@@ -78,10 +78,23 @@ test("Factory Stage Read Model projects tracked seed products as PS0 stage rows"
     assert.equal(result.summary.product_source_tier, "tracked_seed");
     assert.equal(result.summary.product_count, 9);
     assert.equal(result.summary.state_counts.PS0_seed, 9);
+    assert.equal(result.summary.program_range, "FCORE-FB.1-FB.2");
+    assert.equal(result.summary.gate_status_counts.blocked_until_ps2_receipt_bound, 9);
+    assert.equal(result.summary.freshness_status_counts.fresh, 9);
+    assert.equal(result.summary.stale_badge_required_count, 0);
+    assert.equal(result.summary.candidate_manifest_preview_available_count, 0);
+    assert.equal(result.summary.candidate_manifest_queue_depth, 0);
+    assert.equal(result.summary.workbench_queue_depth, 0);
     assert.equal(result.summary.ps3_transition_append_allowed_now, false);
+    assert.equal(result.summary.candidate_manifest_preview_available, false);
     assert.equal(result.summary.candidate_manifest_write_allowed_now, false);
     assert.equal(result.summary.apply_allowed_now, false);
     assert.equal(result.factory_stage_rows.every((row) => row.current_product_state === "PS0_seed"), true);
+    assert.equal(result.factory_stage_rows.every((row) => row.gate_status === "blocked_until_ps2_receipt_bound"), true);
+    assert.equal(result.factory_stage_rows.every((row) => row.freshness_status === "fresh"), true);
+    assert.equal(result.factory_stage_rows.every((row) => row.stale_badge_required === false), true);
+    assert.equal(result.factory_stage_rows.every((row) => row.next_operator_actions_are_instructions_only === true), true);
+    assert.equal(result.factory_stage_rows.every((row) => row.candidate_manifest_preview_available === false), true);
   });
 });
 
@@ -103,6 +116,11 @@ test("Factory Stage Read Model computes current state from operational transitio
     assert.equal(result.factory_stage_rows[0].product_id, "product.stage_alpha");
     assert.equal(result.factory_stage_rows[0].current_product_state, "PS2_receipt_bound");
     assert.equal(result.factory_stage_rows[0].latest_transition_id, "transition.stage_alpha.ps1_ps2");
+    assert.equal(result.factory_stage_rows[0].gate_status, "blocked_until_fb3_instantiation_resolver");
+    assert.deepEqual(result.factory_stage_rows[0].blocker_ids, ["fb3_instantiation_resolver_not_ready"]);
+    assert.deepEqual(result.factory_stage_rows[0].next_operator_actions, ["wait_for_fb3_instantiation_resolver"]);
+    assert.equal(result.factory_stage_rows[0].candidate_manifest_preview_status, "blocked_until_fb3_instantiation_resolver");
+    assert.equal(result.factory_stage_rows[0].candidate_manifest_write_allowed_now, false);
   });
 });
 
@@ -148,6 +166,64 @@ test("Factory Stage Read Model blocks PS3 or later transition rows before FB pro
   });
 });
 
+test("Factory Stage Read Model marks sources older than seven days as stale control rows", async () => {
+  await withTempLedger(async (ledgerDir) => {
+    const opts = ledgerOptions(ledgerDir);
+    await appendFactoryLedgerEntry("products", {
+      ...productDraft("product.stage_stale", "stage-stale"),
+      created_at: "2026-05-01T00:00:00.000Z",
+      updated_at: "2026-05-01T00:00:00.000Z",
+    }, opts);
+
+    const result = await buildFactoryStageReadModel({
+      ledgerDir,
+      runAt: RUN_AT,
+    });
+
+    assert.equal(result.validation.valid, true);
+    assert.equal(result.summary.freshness_status_counts.stale, 1);
+    assert.equal(result.summary.stale_badge_required_count, 1);
+    assert.equal(result.summary.freshness_blocks_new_adjudication_count, 1);
+    assert.equal(result.factory_stage_rows[0].freshness_status, "stale");
+    assert.equal(result.factory_stage_rows[0].stale_badge_required, true);
+    assert.equal(result.factory_stage_rows[0].freshness_blocks_new_adjudication, true);
+    assert.equal(result.factory_stage_rows[0].gate_status, "blocked_stale_source");
+    assert.equal(result.factory_stage_rows[0].candidate_manifest_preview_status, "blocked_stale_source");
+    assert.equal(result.factory_stage_rows[0].blocker_ids.includes("source_freshness_window_exceeded"), true);
+    assert.deepEqual(result.factory_stage_rows[0].next_operator_actions, ["refresh_factory_stage_sources_before_new_adjudication"]);
+  });
+});
+
+test("Factory Stage Read Model treats exactly seven days as fresh and more than seven days as stale", async () => {
+  await withTempLedger(async (ledgerDir) => {
+    const opts = ledgerOptions(ledgerDir);
+    await appendFactoryLedgerEntry("products", {
+      ...productDraft("product.stage_exactly_fresh", "stage-exactly-fresh"),
+      created_at: "2026-06-04T00:00:00.000Z",
+      updated_at: "2026-06-04T00:00:00.000Z",
+    }, opts);
+    await appendFactoryLedgerEntry("products", {
+      ...productDraft("product.stage_just_stale", "stage-just-stale"),
+      created_at: "2026-06-03T23:59:00.000Z",
+      updated_at: "2026-06-03T23:59:00.000Z",
+    }, opts);
+
+    const result = await buildFactoryStageReadModel({
+      ledgerDir,
+      runAt: RUN_AT,
+    });
+    const rowsById = new Map(result.factory_stage_rows.map((row) => [row.product_id, row]));
+
+    assert.equal(result.validation.valid, true);
+    assert.equal(rowsById.get("product.stage_exactly_fresh").source_age_days, 7);
+    assert.equal(rowsById.get("product.stage_exactly_fresh").freshness_status, "fresh");
+    assert.equal(rowsById.get("product.stage_exactly_fresh").stale_badge_required, false);
+    assert.equal(rowsById.get("product.stage_just_stale").source_age_days, 7.001);
+    assert.equal(rowsById.get("product.stage_just_stale").freshness_status, "stale");
+    assert.equal(rowsById.get("product.stage_just_stale").stale_badge_required, true);
+  });
+});
+
 test("Review API exposes factory stage rows as a read-only collection", async () => {
   await withTempLedger(async (ledgerDir) => {
     const response = await buildReviewApiResponse("/api/factory/stage?product_id=product.fixture_hermes", {
@@ -180,9 +256,9 @@ test("Review API supports HEAD for factory stage without a response body", async
   });
 });
 
-test("Review API filters factory stage rows by documented filter keys", async () => {
+test("Review API filters factory stage rows by documented control-view filter keys", async () => {
   await withTempLedger(async (ledgerDir) => {
-    const response = await buildReviewApiResponse("/api/factory/stage?current_product_state=PS0_seed&base_product_state=PS0_seed&product_source_tier=tracked_seed&limit=3", {
+    const response = await buildReviewApiResponse("/api/factory/stage?current_product_state=PS0_seed&base_product_state=PS0_seed&product_source_tier=tracked_seed&gate_status=blocked_until_ps2_receipt_bound&freshness_status=fresh&stale_badge_required=false&candidate_manifest_preview_status=blocked_until_ps2_receipt_bound&limit=3", {
       factoryLedgerDir: ledgerDir,
       runAt: RUN_AT,
     });
@@ -194,6 +270,10 @@ test("Review API filters factory stage rows by documented filter keys", async ()
     assert.equal(body.items.every((row) => row.current_product_state === "PS0_seed"), true);
     assert.equal(body.items.every((row) => row.base_product_state === "PS0_seed"), true);
     assert.equal(body.items.every((row) => row.product_source_tier === "tracked_seed"), true);
+    assert.equal(body.items.every((row) => row.gate_status === "blocked_until_ps2_receipt_bound"), true);
+    assert.equal(body.items.every((row) => row.freshness_status === "fresh"), true);
+    assert.equal(body.items.every((row) => row.stale_badge_required === false), true);
+    assert.equal(body.items.every((row) => row.candidate_manifest_preview_status === "blocked_until_ps2_receipt_bound"), true);
   });
 });
 

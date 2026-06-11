@@ -1,6 +1,6 @@
 # Factory State Store
 
-Status: FB.1 factory stage read model plus FA.6 read-only factory products API.
+Status: FB.2 factory stage control view plus FA.6 read-only factory products API.
 Date: 2026-06-11
 
 ## Purpose
@@ -117,7 +117,8 @@ negative fixtures and return `405 method_not_allowed`.
 
 ## Factory Stage Read Model
 
-FB.1 adds the deterministic stage projection command:
+FB.1 adds the deterministic stage projection command, and FB.2 extends the
+same projection into a read-only control view:
 
 ```bash
 npm run factory:stage -- --check --require-pass
@@ -135,10 +136,17 @@ The read model:
 - marks the API response as `raw_confidential_material_visible: false`
 - blocks the read model when PS3 or later transition rows are present before FB
   promotion
+- exposes `gate_status`, visible `blocker_ids`, `next_operator_actions`, and
+  `stage_progress` without opening execution authority
+- applies a seven-day freshness window; stale rows require a stale badge and
+  block new adjudication until sources are refreshed
+- exposes candidate/workbench queue depth as `0` and candidate manifest preview
+  as unavailable until the FB.3 instantiation resolver exists
 
-FB.1 keeps these false:
+FB.2 keeps these false:
 
 - `ps3_transition_append_allowed_now`
+- `candidate_manifest_preview_available`
 - `candidate_manifest_write_allowed_now`
 - `apply_allowed_now`
 - all project/repo/connector/deploy/protected-action/production/enterprise
@@ -265,6 +273,11 @@ Expected result:
 - mutating `/api/factory/products` methods are rejected with `405 method_not_allowed`
 - `factory:stage` projects 9 tracked seed products as PS0 stage rows by default
 - `/api/factory/stage` exposes read-only product PS state rows
+- `/api/factory/stage` exposes FB.2 control fields: `gate_status`,
+  `freshness_status`, `stale_badge_required`,
+  `candidate_manifest_preview_status`, blocker IDs, queue depths, and next
+  operator actions
+- stale stage rows display a stale badge and block new adjudication
 - PS3+ transition rows block the stage read model before FB promotion
 - projection fallback, if needed, is visible in summary and row fields
 - sample `product-record.v1` validates

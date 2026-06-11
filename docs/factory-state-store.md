@@ -1,6 +1,6 @@
 # Factory State Store
 
-Status: FC.1 candidate lane plus FB.5 workbench, FB.4 starter artifact corpus, FB.3 candidate manifest resolver, FB.2 stage control view, and FA.6 read-only factory products API.
+Status: FC.2 candidate lane proof plus FC.1 candidate lane, FB.5 workbench, FB.4 starter artifact corpus, FB.3 candidate manifest resolver, FB.2 stage control view, and FA.6 read-only factory products API.
 Date: 2026-06-11
 
 ## Purpose
@@ -275,6 +275,42 @@ These remain false:
 - `apply_allowed_now`
 - production PASS and enterprise PASS
 
+## Factory Candidate Lane Proof
+
+FC.2 adds the deterministic proof harness:
+
+```bash
+npm run factory:candidate-lane-proof -- --check --require-pass
+```
+
+The proof harness builds a temporary OS-ledger scenario with three
+`PS2_receipt_bound` products, then runs the FC.1 candidate lane against that
+temporary ledger. A ready proof must show:
+
+- 3 proof products
+- 3 ready candidate packets
+- 3 unapplied unified diff packets
+- 3 draft rollback plans
+- 3 executed passing preflights
+- 3 chained candidate hash ledger rows
+- passed apply/path/protected-path negative fixtures
+- temporary ledger cleanup completed
+
+The proof writes only to an OS temporary ledger during execution and deletes it
+after the build unless `--keep-temp-ledger` is explicitly supplied. It does not
+write `data/factory/local/`, does not write `data/factory/seed/`, does not
+create git worktrees, does not write source files, does not append persistent
+ledgers, does not call connectors, does not deploy, and does not open
+production or enterprise trust.
+
+The proof isolates writes, while intentionally reading the committed seed and
+starter artifact corpus. A degraded starter corpus can therefore block the
+proof, but it cannot inflate the three proof products because operational
+product rows are single-source truth in the stage read model. Candidate packet
+hashes, proof row hashes, and candidate hash-ledger entry hashes are
+environment- and run-scoped because they include absolute workspace metadata and
+the run timestamp; use `--run-at` for deterministic local snapshots.
+
 ## Claude Review Evidence Validator
 
 Factory promotion review artifacts are classified before they can be counted:
@@ -418,6 +454,8 @@ Expected result:
   `invalid_not_review_evidence`
 - `/api/factory/candidate-manifests` exposes read-only JSON-only candidate
   resolver rows
+- `factory:candidate-lane-proof` proves 3 PS2 fixture candidate packets in a
+  temporary ledger and cleans that ledger up afterward
 - `factory:starter-artifacts` returns 19 materialized starter refs by default
 - `/api/factory/starter-artifacts` exposes read-only starter artifact rows
 - `factory:workbench` returns 9 stage-only workbench rows and 0 candidate

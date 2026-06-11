@@ -640,6 +640,7 @@
     "factory:starter-artifacts": "node scripts/factory-starter-artifact-corpus.mjs",
     "factory:workbench": "node scripts/factory-workbench-read-model.mjs",
     "factory:candidate-lane": "node scripts/factory-candidate-lane.mjs",
+    "factory:candidate-lane-proof": "node scripts/factory-candidate-lane-proof.mjs",
     "factory:claude-review-evidence": "node scripts/claude-review-evidence-validator.mjs",
     "factory:seed-migration": "node scripts/factory-seed-migration.mjs",
     "factory:receipt-preflight": "node scripts/factory-receipt-preflight.mjs",

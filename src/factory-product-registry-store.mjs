@@ -6,6 +6,7 @@ import { validateAgainstSchema } from "./core-contract-validator.mjs";
 
 export const DEFAULT_FACTORY_PRODUCT_REGISTRY_STORE_OUT_DIR = "artifacts/factory-product-registry-store/latest";
 export const DEFAULT_FACTORY_LEDGER_DIR = "data/factory/local";
+export const DEFAULT_FACTORY_SEED_DIR = "data/factory/seed";
 export const FACTORY_LEDGER_FILES = {
   products: "products.jsonl",
   state_transitions: "state-transitions.jsonl",
@@ -17,19 +18,34 @@ export const DEFAULT_FACTORY_PRODUCT_REGISTRY_STORE_INPUTS = {
   stateStoreDocPath: "docs/factory-state-store.md",
   gitignorePath: ".gitignore",
   ledgerDir: DEFAULT_FACTORY_LEDGER_DIR,
+  seedDir: DEFAULT_FACTORY_SEED_DIR,
 };
 
 const COMMAND_NAME = "platform:factory-product-registry-store";
 const SCHEMA_VERSION = "factory-product-registry-store.v1";
 const CAPABILITY_ID = "factory.product_registry_store";
-const PROGRAM_RANGE = "FCORE-FA.3";
-const READY_STATUS = "ready_factory_receipt_driven_state_transitions";
-const BLOCKED_STATUS = "blocked_factory_receipt_driven_state_transitions";
+const PROGRAM_RANGE = "FCORE-FA.4";
+const READY_STATUS = "ready_factory_seed_migration";
+const BLOCKED_STATUS = "blocked_factory_seed_migration";
+const SEED_MIGRATION_COMMAND_NAME = "factory:seed-migration";
+const SEED_MIGRATION_RECEIPT_ID = "rcpt-fa4-seed-migration";
 const HASH_RE = /^[a-f0-9]{64}$/;
 const LEDGER_LOCKS = new Map();
 const RECEIPT_DRIVEN_TRANSITIONS = [
   ["PS0_seed", "PS1_schema_valid"],
   ["PS1_schema_valid", "PS2_receipt_bound"],
+];
+
+const FACTORY_SEED_PRODUCT_SPECS = [
+  ["control_plan", "product.hr_solution_internalization", "project.hr_solution_internalization", "HR Solution", ["pack.human_resources"], "src/product-domain-saas-factory.mjs", "SAAS_PROJECT_SPECS"],
+  ["control_plan", "product.law_firm_os", "project.law_firm_os", "Law Firm OS", ["pack.law_firm"], "src/product-domain-saas-factory.mjs", "SAAS_PROJECT_SPECS"],
+  ["control_plan", "product.hermes_harness", "project.hermes_harness", "Hermes Harness", ["pack.platform"], "src/product-domain-saas-factory.mjs", "SAAS_PROJECT_SPECS"],
+  ["control_plan", "product.zendd_bridge", "project.zendd_bridge", "Zendd Bridge", ["pack.external_adapter"], "src/product-domain-saas-factory.mjs", "SAAS_PROJECT_SPECS"],
+  ["fixture_portfolio", "product.fixture_hermes", "project.hermes", "Hermes Harness", ["pack.personal_dev"], "src/work-os-live-control-surface.mjs", "PROJECT_SPECS"],
+  ["fixture_portfolio", "product.fixture_law_firm_os", "project.law_firm_os", "Law Firm OS", ["pack.law_firm"], "src/work-os-live-control-surface.mjs", "PROJECT_SPECS"],
+  ["fixture_portfolio", "product.fixture_hr_solution", "project.hr_solution", "HR Solution", ["pack.personal_dev"], "src/work-os-live-control-surface.mjs", "PROJECT_SPECS"],
+  ["fixture_portfolio", "product.fixture_zendd_bridge", "project.zendd_bridge", "Zendd Bridge", ["pack.law_firm"], "src/work-os-live-control-surface.mjs", "PROJECT_SPECS"],
+  ["fixture_portfolio", "product.fixture_trading_read_only", "project.trading_read_only", "Trading Read-Only", ["pack.trading"], "src/work-os-live-control-surface.mjs", "PROJECT_SPECS"],
 ];
 
 const AUTHORITY_CLOSED = {
@@ -50,8 +66,8 @@ export async function runFactoryProductRegistryStore(options = {}) {
     error.validation = result.validation;
     throw error;
   }
-  if (options.requirePass && result.summary.receipt_driven_transition_handlers_ready !== true) {
-    const error = new Error("Factory Product Registry Store receipt-driven transition handlers are not ready.");
+  if (options.requirePass && result.summary.tracked_seed_migration_ready !== true) {
+    const error = new Error("Factory Product Registry Store seed migration is not ready.");
     error.summary = result.summary;
     error.validation = result.validation;
     throw error;
@@ -73,14 +89,21 @@ export async function buildFactoryProductRegistryStore(options = {}) {
     productRegistrySchemaPath: inputs.product_registry_schema_path,
     receiptEnvelopeSchemaPath: inputs.receipt_envelope_schema_path,
   });
+  const seedMigration = await verifyFactorySeedMigration({
+    ...options,
+    seedDir: inputs.seed_dir,
+    productRegistrySchemaPath: inputs.product_registry_schema_path,
+    receiptEnvelopeSchemaPath: inputs.receipt_envelope_schema_path,
+  });
   const samples = buildSamples(generatedAt);
-  const boundary = buildBoundary({ gitignore, ledgerStore });
+  const boundary = buildBoundary({ gitignore, ledgerStore, seedMigration });
   const validationItems = buildValidationItems({
     productSchema,
     receiptSchema,
     stateStoreDoc,
     gitignore,
     ledgerStore,
+    seedMigration,
     samples,
     boundary,
   });
@@ -99,22 +122,27 @@ export async function buildFactoryProductRegistryStore(options = {}) {
       state_store_doc_path: stateStoreDoc.path,
       gitignore_path: gitignore.path,
       ledger_dir: ledgerStore.ledger_dir,
+      seed_dir: seedMigration.seed_dir,
     },
     store_policy: {
       tracked_seed_root: "data/factory/seed/",
       local_operational_ledger_root: "data/factory/local/",
       raw_confidential_material_tracked_allowed: false,
       local_operational_ledger_gitignored: boundary.local_operational_ledger_gitignored,
+      seed_migration_command_name: SEED_MIGRATION_COMMAND_NAME,
+      tracked_seed_migration_ready: seedMigration.validation.valid,
     },
     product_record_sample: samples.productRecord,
     state_transition_sample: samples.stateTransition,
     receipt_envelope_sample: samples.receiptEnvelope,
     ledger_store_summary: ledgerStore.summary,
     ledger_store_files: ledgerStore.files,
+    seed_migration_summary: seedMigration.summary,
+    seed_migration_files: seedMigration.files,
     factory_product_registry_store_boundary: boundary,
     factory_product_registry_store_validation_items: validationItems,
     validation: preliminaryValidation,
-    summary: buildSummary({ boundary, ledgerStore, validation: preliminaryValidation }),
+    summary: buildSummary({ boundary, ledgerStore, seedMigration, validation: preliminaryValidation }),
   };
 
   const schemaErrors = productSchema.available
@@ -123,7 +151,7 @@ export async function buildFactoryProductRegistryStore(options = {}) {
   const schemaValidationItems = schemaErrors.map((error, index) => validationItem(`schema.${index}`, "schema_validation", false, error.message, error.path));
   result.factory_product_registry_store_validation_items = [...validationItems, ...schemaValidationItems];
   result.validation = summarizeValidation(result.factory_product_registry_store_validation_items);
-  result.summary = buildSummary({ boundary, ledgerStore, validation: result.validation });
+  result.summary = buildSummary({ boundary, ledgerStore, seedMigration, validation: result.validation });
   return { ...result, markdown: renderMarkdown(result) };
 }
 
@@ -132,6 +160,7 @@ export async function writeFactoryProductRegistryStore(result, outDir = result.o
   await writeJson(path.join(outDir, "factory-product-registry-store.json"), serializableResult(result));
   await writeJson(path.join(outDir, "validation-items.json"), collectionEnvelope("factory-product-registry-store-validation-items.v1", "validation_items", result.factory_product_registry_store_validation_items, result.generated_at));
   await writeJson(path.join(outDir, "ledger-store-summary.json"), result.ledger_store_summary);
+  await writeJson(path.join(outDir, "seed-migration-summary.json"), result.seed_migration_summary);
   await writeJson(path.join(outDir, "boundary.json"), result.factory_product_registry_store_boundary);
   await writeFile(path.join(outDir, "summary.md"), result.markdown, "utf8");
 }
@@ -293,6 +322,110 @@ export async function verifyFactoryLedgerStore(options = {}) {
   };
 }
 
+export async function writeFactorySeedMigration(options = {}) {
+  if (options.check || options.write === false) {
+    throw new Error("Factory seed migration write rejected: --check/no-write mode is active.");
+  }
+  const seedDir = path.resolve(options.seedDir ?? DEFAULT_FACTORY_SEED_DIR);
+  const defaultSeedDir = path.resolve(DEFAULT_FACTORY_SEED_DIR);
+  const tempDir = path.resolve(os.tmpdir());
+  const testRootAllowed = options.allowTestSeedRoot === true && isInsideOrEqual(seedDir, tempDir);
+  if (!isInsideOrEqual(seedDir, defaultSeedDir) && !testRootAllowed) {
+    throw new Error(`Factory seed migration write rejected: seed dir must stay under ${defaultSeedDir}.`);
+  }
+
+  const generatedAt = new Date(options.runAt ?? new Date()).toISOString();
+  const migration = buildFactorySeedMigrationRows(generatedAt);
+  await mkdir(seedDir, { recursive: true });
+  await writeFile(path.join(seedDir, FACTORY_LEDGER_FILES.products), `${migration.products.map(canonicalize).join("\n")}\n`, "utf8");
+  await writeFile(path.join(seedDir, FACTORY_LEDGER_FILES.receipts_index), `${migration.receipts_index.map(canonicalize).join("\n")}\n`, "utf8");
+  await writeFile(path.join(seedDir, FACTORY_LEDGER_FILES.state_transitions), "", "utf8");
+  return verifyFactorySeedMigration({ ...options, seedDir });
+}
+
+export async function verifyFactorySeedMigration(options = {}) {
+  const seedDir = path.resolve(options.seedDir ?? DEFAULT_FACTORY_SEED_DIR);
+  const files = {};
+  for (const ledgerName of Object.keys(FACTORY_LEDGER_FILES)) {
+    files[ledgerName] = await readFactoryLedgerFile(ledgerName, {
+      ...options,
+      ledgerDir: seedDir,
+    });
+  }
+
+  const expectedProductIds = new Set(FACTORY_SEED_PRODUCT_SPECS.map(([, productId]) => productId));
+  const productIds = new Set(files.products.entries.map((row) => row.product_id));
+  const receiptIds = new Set(files.products.entries.map((row) => row.receipt_id));
+  const migrationReceipt = files.receipts_index.entries.find((row) => row.receipt_id === SEED_MIGRATION_RECEIPT_ID);
+  const serializedProducts = JSON.stringify(files.products.entries);
+  const validationItems = [
+    seedValidationItem("seed.products.valid", files.products.validation.valid, "Seed products ledger hash chain is invalid", files.products.file_path),
+    seedValidationItem("seed.receipts.valid", files.receipts_index.validation.valid, "Seed receipts ledger hash chain is invalid", files.receipts_index.file_path),
+    seedValidationItem("seed.transitions.empty_or_valid", files.state_transitions.validation.valid && files.state_transitions.entries.length === 0, "Seed state transitions must be empty and valid in FA.4", files.state_transitions.file_path),
+    seedValidationItem("seed.products.count", files.products.entries.length === 9, "Seed migration must include 9 product records", files.products.file_path),
+    seedValidationItem("seed.receipts.count", files.receipts_index.entries.length === 1, "Seed migration must include 1 migration receipt", files.receipts_index.file_path),
+    seedValidationItem("seed.products.expected_ids", sameSet(productIds, expectedProductIds), "Seed migration product ids do not match the FA.4 source set", files.products.file_path),
+    seedValidationItem("seed.products.receipt_binding", receiptIds.size === 1 && receiptIds.has(SEED_MIGRATION_RECEIPT_ID), "Seed product records must bind to the FA.4 migration receipt", files.products.file_path),
+    seedValidationItem("seed.receipt.kind", migrationReceipt?.receipt_kind === "migration", "Seed receipt must be a migration receipt", files.receipts_index.file_path),
+    seedValidationItem("seed.receipt.product_count", migrationReceipt?.migrated_product_count === 9, "Seed receipt must bind the 9 migrated product records", files.receipts_index.file_path),
+    seedValidationItem("seed.raw_confidential_absent", !/(secret|token|password|client_document|transcript_body|external_connector_payload)/i.test(serializedProducts), "Tracked seed must not contain raw confidential material", files.products.file_path),
+    seedValidationItem("seed.authority_closed", files.products.entries.every((row) => allAuthorityClosed(row.authority_flags ?? {})) && files.receipts_index.entries.every((row) => allAuthorityClosed(row.authority_flags ?? {})), "Seed migration opened authority flags", seedDir),
+  ];
+  const errors = [
+    ...Object.values(files).flatMap((file) => file.validation.errors),
+    ...validationItems.filter((item) => item.current_verdict !== "pass"),
+  ];
+  const validation = { valid: errors.length === 0, error_count: errors.length, errors };
+  return {
+    schema_version: "factory-seed-migration-validation.v1",
+    seed_dir: seedDir,
+    files,
+    validation_items: validationItems,
+    validation,
+    summary: {
+      schema_version: "factory-seed-migration-summary.v1",
+      seed_dir: seedDir,
+      seed_migration_status: validation.valid ? "ready_factory_seed_migration" : "blocked_factory_seed_migration",
+      migrated_product_record_count: files.products.entries.length,
+      migration_receipt_count: files.receipts_index.entries.length,
+      seed_state_transition_count: files.state_transitions.entries.length,
+      expected_product_record_count: 9,
+      migration_receipt_id: SEED_MIGRATION_RECEIPT_ID,
+      migration_receipt_recorded: Boolean(migrationReceipt),
+      seed_validation_errors: errors.length,
+    },
+  };
+}
+
+export async function runFactorySeedMigrationCli(argv = process.argv.slice(2)) {
+  const args = parseSeedMigrationArgs(argv);
+  if (args.help) {
+    printSeedMigrationHelp();
+    return null;
+  }
+  try {
+    const result = args.check
+      ? await verifyFactorySeedMigration(args)
+      : await writeFactorySeedMigration(args);
+    if (args.requirePass && !result.validation.valid) {
+      const error = new Error("Factory seed migration is not ready.");
+      error.validation = result.validation;
+      throw error;
+    }
+    console.log(`Factory Seed Migration ${args.check ? "validated" : "written"} at ${result.seed_dir}`);
+    console.log(`Status: ${result.summary.seed_migration_status}`);
+    console.log(`Products: ${result.summary.migrated_product_record_count}/9`);
+    console.log(`Migration receipts: ${result.summary.migration_receipt_count}`);
+    console.log(`Validation errors: ${result.validation.errors.length}`);
+    return result;
+  } catch (error) {
+    console.error(error.message);
+    for (const item of error.validation?.errors ?? []) console.error(`- ${item.item_id}: ${item.message}`);
+    process.exitCode = 1;
+    return null;
+  }
+}
+
 export async function readFactoryLedgerFile(ledgerName, options = {}) {
   assertKnownLedgerName(ledgerName);
   const filePath = resolveFactoryLedgerFile(ledgerName, options);
@@ -412,8 +545,10 @@ export async function runFactoryProductRegistryStoreCli(argv = process.argv.slic
     console.log(`Program: ${result.summary.program_range}`);
     console.log(`Append JSONL store ready: ${result.summary.append_jsonl_store_ready}`);
     console.log(`Receipt-driven transitions ready: ${result.summary.receipt_driven_transition_handlers_ready}`);
+    console.log(`Tracked seed migration ready: ${result.summary.tracked_seed_migration_ready}`);
     console.log(`Local ledger gitignored: ${result.summary.local_operational_ledger_gitignored}`);
     console.log(`Ledger entries: ${result.summary.ledger_total_entry_count}`);
+    console.log(`Seed products: ${result.summary.seed_product_record_count}`);
     console.log(`Validation errors: ${result.validation.errors.length}`);
     return result;
   } catch (error) {
@@ -470,13 +605,74 @@ function buildSamples(generatedAt) {
   return { productRecord, stateTransition, receiptEnvelope };
 }
 
+function buildFactorySeedMigrationRows(generatedAt) {
+  const products = [];
+  let previousProductHash = null;
+  for (const [seedRecordKind, productId, sourceProjectId, displayName, domainPackIds, sourceModule, sourceConst] of FACTORY_SEED_PRODUCT_SPECS) {
+    const product = withFactoryLedgerHashes("products", {
+      schema_version: "product-record.v1",
+      product_id: productId,
+      tenant_id: "tenant.factory_seed",
+      workspace_id: "workspace.factory_seed",
+      domain_pack_ids: domainPackIds,
+      product_state: "PS0_seed",
+      receipt_id: SEED_MIGRATION_RECEIPT_ID,
+      created_at: generatedAt,
+      updated_at: generatedAt,
+      seed_record_kind: seedRecordKind,
+      display_name: displayName,
+      source_project_id: sourceProjectId,
+      source_module: sourceModule,
+      source_const: sourceConst,
+      fallback_const_preserved: true,
+      raw_confidential_material_included: false,
+      authority_flags: AUTHORITY_CLOSED,
+    }, previousProductHash);
+    products.push(product);
+    previousProductHash = product.entry_hash;
+  }
+
+  const receipt = withFactoryLedgerHashes("receipts_index", {
+    schema_version: "factory-receipt-envelope.v1",
+    receipt_id: SEED_MIGRATION_RECEIPT_ID,
+    receipt_kind: "migration",
+    issued_at: generatedAt,
+    issuer: {
+      issuer_role: "system",
+      issuer_id: "factory-seed-migration",
+      engine_resolved_model_id: null,
+    },
+    subject: {
+      product_id: "product.hermes_harness",
+      artifact_id: "artifact.factory_seed_migration",
+      scope_id: "FCORE-FA.4",
+      reviewed_commit_sha: null,
+    },
+    migrated_product_count: products.length,
+    migrated_product_ids: products.map((row) => row.product_id),
+    source_modules: [...new Set(products.map((row) => row.source_module))],
+    products_ledger_tail_hash: products.at(-1)?.entry_hash ?? null,
+    tracked_seed_root: "data/factory/seed/",
+    local_operational_ledger_root: "data/factory/local/",
+    fallback_const_preserved: true,
+    raw_confidential_material_included: false,
+    authority_flags: AUTHORITY_CLOSED,
+  });
+
+  return {
+    products,
+    state_transitions: [],
+    receipts_index: [receipt],
+  };
+}
+
 function withFactoryLedgerHashes(ledgerName, draft, prevEntryHash = null) {
   const payload_sha256 = computeFactoryPayloadHash(draft);
   const row = { ...draft, payload_sha256, prev_entry_hash: prevEntryHash };
   return { ...row, entry_hash: computeFactoryEntryHash(ledgerName, row) };
 }
 
-function buildBoundary({ gitignore, ledgerStore }) {
+function buildBoundary({ gitignore, ledgerStore, seedMigration }) {
   return {
     tracked_seed_root: "data/factory/seed/",
     local_operational_ledger_root: "data/factory/local/",
@@ -485,7 +681,11 @@ function buildBoundary({ gitignore, ledgerStore }) {
     append_jsonl_store_ready: ledgerStore.validation.valid,
     receipt_driven_transition_handlers_ready: true,
     ps3_transition_handler_enabled: false,
+    tracked_seed_migration_ready: seedMigration.validation.valid,
+    migrated_seed_product_record_count: seedMigration.summary.migrated_product_record_count,
+    migration_receipt_recorded: seedMigration.summary.migration_receipt_recorded,
     ledger_validation_errors: ledgerStore.validation.errors.length,
+    seed_validation_errors: seedMigration.validation.errors.length,
     project_creation_allowed_now: false,
     repo_write_allowed_now: false,
     connector_write_allowed_now: false,
@@ -496,13 +696,15 @@ function buildBoundary({ gitignore, ledgerStore }) {
   };
 }
 
-function buildValidationItems({ productSchema, receiptSchema, stateStoreDoc, gitignore, ledgerStore, samples, boundary }) {
+function buildValidationItems({ productSchema, receiptSchema, stateStoreDoc, gitignore, ledgerStore, seedMigration, samples, boundary }) {
   const items = [
     validationItem("schema.product.available", "schema", productSchema.available === true, "Product registry schema unavailable", productSchema.path),
     validationItem("schema.receipt.available", "schema", receiptSchema.available === true, "Receipt envelope schema unavailable", receiptSchema.path),
     validationItem("doc.state_store.available", "documentation", stateStoreDoc.available === true, "Factory state store doc unavailable", stateStoreDoc.path),
     validationItem("gitignore.local_ledger", "store_policy", boundary.local_operational_ledger_gitignored === true, "Local operational ledger root is not gitignored", gitignore.path),
     validationItem("ledger.store.valid", "ledger", ledgerStore.validation.valid === true, "Append JSONL ledger validation failed", ledgerStore.ledger_dir),
+    validationItem("seed.migration.valid", "seed_migration", seedMigration.validation.valid === true, "Tracked seed migration is invalid or missing", seedMigration.seed_dir),
+    validationItem("seed.migration.count", "seed_migration", seedMigration.summary.migrated_product_record_count === 9 && seedMigration.summary.migration_receipt_count === 1, "Tracked seed migration must contain 9 product records and 1 receipt", seedMigration.seed_dir),
     validationItem("transition.ps0_ps2_handlers_only", "state_transition", receiptDrivenHandlersClosed(), "FA.3 receipt-driven handlers must be limited to PS0-PS2", "src/factory-product-registry-store.mjs"),
     validationItem("boundary.authority_closed", "authority", allAuthorityClosed(boundary), "Factory schema contract opened authority", "factory_product_registry_store_boundary"),
   ];
@@ -520,21 +722,22 @@ function buildValidationItems({ productSchema, receiptSchema, stateStoreDoc, git
       .map((error, index) => validationItem(`sample.receipt.${index}`, "schema_sample", false, error.message, error.path)));
   }
   if (stateStoreDoc.available) {
-    for (const term of ["data/factory/seed/", "data/factory/local/", "products.jsonl", "state-transitions.jsonl", "receipts-index.jsonl", "product-record.v1", "product-state-transition.v1", "factory-receipt-envelope.v1"]) {
+    for (const term of ["data/factory/seed/", "data/factory/local/", "products.jsonl", "state-transitions.jsonl", "receipts-index.jsonl", "product-record.v1", "product-state-transition.v1", "factory-receipt-envelope.v1", "factory:seed-migration"]) {
       items.push(validationItem(`doc.term.${slug(term)}`, "documentation", stateStoreDoc.text.includes(term), `Factory state store doc missing ${term}`, stateStoreDoc.path));
     }
   }
   return items;
 }
 
-function buildSummary({ boundary, ledgerStore, validation }) {
-  const ready = validation.valid === true && boundary.local_operational_ledger_gitignored === true && ledgerStore.validation.valid === true && allAuthorityClosed(boundary);
+function buildSummary({ boundary, ledgerStore, seedMigration, validation }) {
+  const ready = validation.valid === true && boundary.local_operational_ledger_gitignored === true && ledgerStore.validation.valid === true && seedMigration.validation.valid === true && allAuthorityClosed(boundary);
   return {
     factory_product_registry_store_status: ready ? READY_STATUS : BLOCKED_STATUS,
     program_range: PROGRAM_RANGE,
     schema_contracts_ready: ready,
     append_jsonl_store_ready: ready,
     receipt_driven_transition_handlers_ready: ready,
+    tracked_seed_migration_ready: ready,
     tracked_seed_root: "data/factory/seed/",
     local_operational_ledger_root: "data/factory/local/",
     local_operational_ledger_gitignored: boundary.local_operational_ledger_gitignored,
@@ -542,6 +745,10 @@ function buildSummary({ boundary, ledgerStore, validation }) {
     ledger_total_entry_count: ledgerStore.summary.ledger_total_entry_count,
     ledger_validation_errors: ledgerStore.validation.errors.length,
     ps3_transition_handler_enabled: false,
+    seed_dir: seedMigration.seed_dir,
+    seed_product_record_count: seedMigration.summary.migrated_product_record_count,
+    seed_migration_receipt_count: seedMigration.summary.migration_receipt_count,
+    seed_validation_errors: seedMigration.validation.errors.length,
     validation_errors: validation.errors.length,
     project_creation_allowed_now: false,
     repo_write_allowed_now: false,
@@ -703,6 +910,17 @@ function validationItem(itemId, category, observed, message, pathRef = null) {
   };
 }
 
+function seedValidationItem(itemId, observed, message, pathRef = null) {
+  return {
+    item_id: itemId,
+    category: "seed_migration",
+    observed,
+    current_verdict: observed ? "pass" : "fail",
+    message: observed ? "OK" : message,
+    path: pathRef,
+  };
+}
+
 function summarizeValidation(items) {
   const errors = items.filter((item) => item.current_verdict !== "pass");
   return { valid: errors.length === 0, error_count: errors.length, errors };
@@ -716,10 +934,12 @@ function renderMarkdown(result) {
     `Program: ${result.program_range}`,
     `Append JSONL store ready: ${result.summary.append_jsonl_store_ready}`,
     `Receipt-driven transitions ready: ${result.summary.receipt_driven_transition_handlers_ready}`,
+    `Tracked seed migration ready: ${result.summary.tracked_seed_migration_ready}`,
     `Tracked seed root: ${result.summary.tracked_seed_root}`,
     `Local operational ledger root: ${result.summary.local_operational_ledger_root}`,
     `Local operational ledger gitignored: ${result.summary.local_operational_ledger_gitignored}`,
     `Ledger entries: ${result.summary.ledger_total_entry_count}`,
+    `Seed products: ${result.summary.seed_product_record_count}`,
     `Production PASS enabled: ${result.summary.production_pass_enabled}`,
     `Enterprise PASS enabled: ${result.summary.enterprise_pass_enabled}`,
     "",
@@ -756,6 +976,7 @@ function normalizeInputs(options) {
     state_store_doc_path: options.stateStoreDocPath ?? DEFAULT_FACTORY_PRODUCT_REGISTRY_STORE_INPUTS.stateStoreDocPath,
     gitignore_path: options.gitignorePath ?? DEFAULT_FACTORY_PRODUCT_REGISTRY_STORE_INPUTS.gitignorePath,
     ledger_dir: options.ledgerDir ?? DEFAULT_FACTORY_PRODUCT_REGISTRY_STORE_INPUTS.ledgerDir,
+    seed_dir: options.seedDir ?? DEFAULT_FACTORY_PRODUCT_REGISTRY_STORE_INPUTS.seedDir,
   };
 }
 
@@ -770,6 +991,7 @@ function parseArgs(argv) {
     } else if (value === "--require-pass") args.requirePass = true;
     else if (value === "--out-dir") args.outDir = argv[++index];
     else if (value === "--ledger-dir") args.ledgerDir = argv[++index];
+    else if (value === "--seed-dir") args.seedDir = argv[++index];
     else if (value === "--product-registry-schema-path") args.productRegistrySchemaPath = argv[++index];
     else if (value === "--receipt-envelope-schema-path") args.receiptEnvelopeSchemaPath = argv[++index];
     else if (value === "--state-store-doc-path") args.stateStoreDocPath = argv[++index];
@@ -780,8 +1002,31 @@ function parseArgs(argv) {
 }
 
 function printHelp() {
-  console.log(`Usage: npm run ${COMMAND_NAME} -- [--check] [--require-pass] [--ledger-dir <path>]`);
-  console.log("Validates FA.2 factory product registry schemas, append JSONL ledgers, receipt envelopes, and split-store documentation.");
+  console.log(`Usage: npm run ${COMMAND_NAME} -- [--check] [--require-pass] [--ledger-dir <path>] [--seed-dir <path>]`);
+  console.log("Validates FA.4 factory product registry schemas, append JSONL ledgers, tracked seed migration, receipt envelopes, and split-store documentation.");
+}
+
+function parseSeedMigrationArgs(argv) {
+  const args = {};
+  for (let index = 0; index < argv.length; index += 1) {
+    const value = argv[index];
+    if (value === "--help" || value === "-h") args.help = true;
+    else if (value === "--check") {
+      args.check = true;
+      args.write = false;
+    } else if (value === "--require-pass") args.requirePass = true;
+    else if (value === "--seed-dir") args.seedDir = argv[++index];
+    else if (value === "--run-at") args.runAt = argv[++index];
+    else if (value === "--product-registry-schema-path") args.productRegistrySchemaPath = argv[++index];
+    else if (value === "--receipt-envelope-schema-path") args.receiptEnvelopeSchemaPath = argv[++index];
+    else throw new Error(`Unknown argument: ${value}`);
+  }
+  return args;
+}
+
+function printSeedMigrationHelp() {
+  console.log(`Usage: npm run ${SEED_MIGRATION_COMMAND_NAME} -- [--check] [--require-pass] [--seed-dir <path>] [--run-at <iso>]`);
+  console.log("Writes or validates the FA.4 tracked seed migration under data/factory/seed/.");
 }
 
 function collectionEnvelope(schemaVersion, key, rows, generatedAt) {
@@ -821,6 +1066,10 @@ function isPlainObject(value) {
 function isInsideOrEqual(childPath, parentPath) {
   const relative = path.relative(parentPath, childPath);
   return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
+}
+
+function sameSet(left, right) {
+  return left.size === right.size && [...left].every((value) => right.has(value));
 }
 
 function slug(value) {

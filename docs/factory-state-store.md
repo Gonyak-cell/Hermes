@@ -1,6 +1,6 @@
 # Factory State Store
 
-Status: FA.3 receipt-driven PS0-PS2 transitions, local runtime write only.
+Status: FA.4 tracked seed migration plus receipt-driven PS0-PS2 transitions.
 Date: 2026-06-11
 
 ## Purpose
@@ -54,6 +54,23 @@ schema.
 
 Recovery is local-only and truncates a damaged JSONL file to the last valid
 prefix. It does not create production or enterprise evidence.
+
+## Tracked Seed Migration
+
+FA.4 introduces the explicit migration command:
+
+```bash
+npm run factory:seed-migration -- --check --require-pass
+```
+
+The command owns writes to `data/factory/seed/`. It migrates:
+
+- 4 control-plan products from `src/product-domain-saas-factory.mjs`
+- 5 fixture portfolio products from `src/work-os-live-control-surface.mjs`
+- 1 `factory-receipt-envelope.v1` migration receipt
+
+The original `const` arrays stay as fallback fixtures until FA.5 redirects one
+projection to read from the store with fallback.
 
 ## Receipt-Driven State Transitions
 
@@ -137,7 +154,7 @@ FA.1 does not enable PS3 or later behavior.
 
 ## Authority Boundary
 
-FA.3 keeps these false:
+FA.4 keeps these false:
 
 - `project_creation_allowed_now`
 - `repo_write_allowed_now`
@@ -169,11 +186,13 @@ Expected result:
 
 - schema contracts ready
 - `data/factory/local/` is gitignored
+- `data/factory/seed/` contains 9 product records and 1 migration receipt
 - sample `product-record.v1` validates
 - sample `product-state-transition.v1` validates
 - sample `factory-receipt-envelope.v1` validates
 - existing JSONL ledgers validate when present
 - receipt-driven PS0-PS2 handlers are ready
 - PS3 transition handler remains disabled
+- `factory:seed-migration` validates the tracked seed hash chain
 - `--check` does not write ledger or artifact files
 - authority flags remain false

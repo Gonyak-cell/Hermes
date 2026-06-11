@@ -1,6 +1,6 @@
 {
   "package_id": "hermes-factory-promotion-package",
-  "package_version": "v0.1.7-fa3-receipt-driven-transitions",
+  "package_version": "v0.1.8-fa4-seed-migration",
   "generated_at": "2026-06-11",
   "author_engine_resolved_model_id": "claude-fable-5[1m]",
   "author_lane": "planner_reviewer",
@@ -68,6 +68,17 @@
   "fa3_targeted_tests_status": "16/16 pass",
   "fa3_ps0_ps2_transition_handlers_enabled": true,
   "fa3_ps3_transition_handler_enabled": false,
+  "fa4_status": "ready_factory_seed_migration",
+  "fa4_phase_doc": "fa4-seed-migration.md",
+  "fa4_seed_migration_command": "npm run factory:seed-migration -- --check --require-pass",
+  "fa4_validation_command": "npm run platform:factory-product-registry-store -- --check --require-pass",
+  "fa4_seed_products": 9,
+  "fa4_migration_receipts": 1,
+  "fa4_seed_files": [
+    "data/factory/seed/products.jsonl",
+    "data/factory/seed/receipts-index.jsonl",
+    "data/factory/seed/state-transitions.jsonl"
+  ],
   "remaining_hard_blockers": ["deferred F0.1 independent review receipts before production or enterprise trust"],
   "open_blocking_findings": ["HRM-01", "HRM-03", "HRM-04"],
   "opens_project_creation_now": false,
@@ -144,6 +155,7 @@
     "fa1-schema-contracts.md",
     "fa2-storage-module.md",
     "fa3-receipt-driven-transitions.md",
+    "fa4-seed-migration.md",
     "f0-review-requests/00-README.md",
     "f0-review-requests/connector-external-app-governance-opus-review-request.md",
     "f0-review-requests/execution-write-authority-maturity-opus-review-request.md",

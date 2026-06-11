@@ -20,6 +20,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "platform:factory-product-registry-store",
   "factory:seed-migration",
   "factory:receipt-verify",
+  "factory:apply-engine-closed",
   "api:route-inventory",
   "dashboard:ia",
   "approval:queue-ui",

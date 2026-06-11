@@ -644,6 +644,7 @@
     "factory:candidate-review-docket": "node scripts/factory-candidate-review-docket.mjs",
     "factory:candidate-freeze-handoff": "node scripts/factory-candidate-freeze-handoff.mjs",
     "factory:receipt-verify": "node scripts/factory-receipt-verifier.mjs",
+    "factory:apply-engine-closed": "node scripts/factory-apply-engine-closed.mjs",
     "factory:claude-review-evidence": "node scripts/claude-review-evidence-validator.mjs",
     "factory:seed-migration": "node scripts/factory-seed-migration.mjs",
     "factory:receipt-preflight": "node scripts/factory-receipt-preflight.mjs",

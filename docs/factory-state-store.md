@@ -1,6 +1,6 @@
 # Factory State Store
 
-Status: FC.2 candidate lane proof plus FC.1 candidate lane, FB.5 workbench, FB.4 starter artifact corpus, FB.3 candidate manifest resolver, FB.2 stage control view, and FA.6 read-only factory products API.
+Status: FC.3 candidate review docket plus FC.2 candidate lane proof, FC.1 candidate lane, FB.5 workbench, FB.4 starter artifact corpus, FB.3 candidate manifest resolver, FB.2 stage control view, and FA.6 read-only factory products API.
 Date: 2026-06-11
 
 ## Purpose
@@ -311,6 +311,34 @@ hashes, proof row hashes, and candidate hash-ledger entry hashes are
 environment- and run-scoped because they include absolute workspace metadata and
 the run timestamp; use `--run-at` for deterministic local snapshots.
 
+## Factory Candidate Review Docket
+
+FC.3 adds the deterministic candidate review docket:
+
+```bash
+npm run factory:candidate-review-docket -- --check --require-pass
+```
+
+The docket consumes the FC.2 proof scenario by default and emits one review
+docket row plus one review packet row per candidate packet. Each row binds the
+candidate packet hash, candidate manifest hash, diff hash, rollback hash,
+preflight hash, and candidate hash-ledger entry hash. It then records a chained
+review hash register over the review docket and review packet hashes.
+
+The docket is a review surface only. It requires human owner and independent
+review lanes before any future apply phase, while keeping
+`review_decision_allowed_now`, `approval_allowed_now`, `apply_allowed_now`,
+source writes, persistent ledger appends, repo writes, connector writes,
+deployment, protected action, production PASS, and enterprise PASS false.
+
+Negative fixtures execute guards that block auto-approval, apply without a
+review receipt, and mismatched candidate hash binding. The default tracked seed
+candidate lane has zero candidate packets, so FC.3 fails closed unless the FC.2
+proof scenario or an explicit candidate-lane JSON source provides three
+packets. Explicit candidate-lane JSON files are operator-supplied artifacts:
+FC.3 validates required hash fields and manifest-binding flags before a ready
+docket, but it does not convert those files into approval or apply authority.
+
 ## Claude Review Evidence Validator
 
 Factory promotion review artifacts are classified before they can be counted:
@@ -456,6 +484,8 @@ Expected result:
   resolver rows
 - `factory:candidate-lane-proof` proves 3 PS2 fixture candidate packets in a
   temporary ledger and cleans that ledger up afterward
+- `factory:candidate-review-docket` binds those 3 candidate packets into review
+  docket rows and keeps approval/apply closed
 - `factory:starter-artifacts` returns 19 materialized starter refs by default
 - `/api/factory/starter-artifacts` exposes read-only starter artifact rows
 - `factory:workbench` returns 9 stage-only workbench rows and 0 candidate

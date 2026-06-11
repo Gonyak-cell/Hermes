@@ -1,6 +1,6 @@
 # Factory State Store
 
-Status: FB.4 starter artifact corpus plus FB.3 candidate manifest resolver, FB.2 stage control view, and FA.6 read-only factory products API.
+Status: FC.1 candidate lane plus FB.5 workbench, FB.4 starter artifact corpus, FB.3 candidate manifest resolver, FB.2 stage control view, and FA.6 read-only factory products API.
 Date: 2026-06-11
 
 ## Purpose
@@ -231,6 +231,49 @@ The default tracked seed still returns 9 stage-only workbench rows and 0
 candidate previews. A fresh operational PS2 fixture returns 1 candidate preview
 without opening source writes, ledger appends, candidate manifest writes, apply,
 connector, deploy, production, or enterprise authority.
+
+## Factory Candidate Lane
+
+FC.1 adds the read-only candidate lane:
+
+```bash
+npm run factory:candidate-lane -- --check --require-pass
+node scripts/review-api.mjs --once /api/factory/candidate-lane
+```
+
+The candidate lane reads the FB.5 workbench. For each fresh
+`PS2_receipt_bound` product with a visible JSON candidate manifest, it builds a
+reviewable packet containing:
+
+- a planned isolated git-worktree path
+- a real unified diff packet for a generated candidate JSON file
+- a draft rollback plan bound to the diff hash
+- an executed deterministic preflight record
+- a chained candidate hash ledger row
+
+FC.1 still performs no worktree creation and no repository write. The isolated
+workspace is a path-scoped plan, not an applied checkout mutation. Default
+tracked seed state returns 0 candidate packets because no seed product has
+advanced to `PS2_receipt_bound`; operational PS2 fixtures produce candidate
+packets for review.
+
+The executable negative fixtures keep these paths closed:
+
+- candidate apply attempt
+- write outside the planned isolated worktree
+- protected path diff target
+
+These remain false:
+
+- `source_file_write_allowed_now`
+- `ledger_append_allowed_now`
+- `repo_write_allowed_now`
+- `connector_write_allowed_now`
+- `deployment_allowed_now`
+- `protected_action_allowed_now`
+- `patch_apply_enabled`
+- `apply_allowed_now`
+- production PASS and enterprise PASS
 
 ## Claude Review Evidence Validator
 

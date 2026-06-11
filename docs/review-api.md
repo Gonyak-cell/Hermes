@@ -116,6 +116,26 @@ Routes: `/api/factory/workbench`.
 `GET` and `HEAD` are allowed. Mutation methods return `405
 method_not_allowed`.
 
+## FC.1 Factory Candidate Lane Routes
+
+Factory Candidate Lane routes expose read-only review packets generated from
+visible workbench candidate manifests. The route returns candidate packet rows
+as the primary collection and includes the visible packet rows' diff packets,
+rollback plans, preflight rows, and hash ledger rows.
+
+FC.1 generates unified diff packet content and rollback/preflight metadata, but
+does not create worktrees, write repositories, append ledgers, apply patches,
+call connectors, deploy, or grant production/enterprise trust.
+
+Supported filters include `candidate_packet_id`, `candidate_packet_status`,
+`product_id`, `candidate_manifest_id`, `worktree_lane_status`,
+`diff_packet_status`, `rollback_plan_status`, `preflight_status`, and `limit`.
+
+Routes: `/api/factory/candidate-lane`.
+
+`GET` and `HEAD` are allowed. Mutation methods return `405
+method_not_allowed`.
+
 ## P511-P515 Platform Claim Registry Routes
 
 Platform Claim Registry routes expose the read-only P500 operations freeze claim

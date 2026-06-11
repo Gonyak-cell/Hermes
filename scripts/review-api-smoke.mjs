@@ -21,6 +21,7 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/factory/candidate-manifests"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/starter-artifacts"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/workbench"));
+  assert.ok(index.routes.some((route) => route.path === "/api/factory/candidate-lane"));
   assert.ok(index.routes.some((route) => route.path === "/api/packs"));
   assert.ok(index.routes.some((route) => route.path === "/api/capabilities"));
   assert.ok(index.routes.some((route) => route.path === "/api/artifacts"));
@@ -7271,6 +7272,21 @@ try {
   assert.equal(factoryWorkbenchHead.status, 200);
   const factoryWorkbenchPost = await fetch(`${url}/api/factory/workbench`, { method: "POST" });
   assert.equal(factoryWorkbenchPost.status, 405);
+
+  const factoryCandidateLane = await fetchJson(`${url}/api/factory/candidate-lane?limit=5`);
+  assert.equal(factoryCandidateLane.collection, "factory_candidate_packet_rows");
+  assert.equal(factoryCandidateLane.read_only, true);
+  assert.equal(factoryCandidateLane.mutation_allowed, false);
+  assert.equal(factoryCandidateLane.raw_confidential_material_visible, false);
+  assert.equal(factoryCandidateLane.patch_apply_enabled, false);
+  assert.equal(factoryCandidateLane.apply_allowed_now, false);
+  assert.ok(factoryCandidateLane.count <= 5);
+  assert.equal(factoryCandidateLane.factory_candidate_negative_fixture_rows.length, 3);
+  assert.equal(factoryCandidateLane.factory_candidate_negative_fixture_rows.every((row) => row.observed_outcome === "blocked"), true);
+  const factoryCandidateLaneHead = await fetch(`${url}/api/factory/candidate-lane`, { method: "HEAD" });
+  assert.equal(factoryCandidateLaneHead.status, 200);
+  const factoryCandidateLanePost = await fetch(`${url}/api/factory/candidate-lane`, { method: "POST" });
+  assert.equal(factoryCandidateLanePost.status, 405);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

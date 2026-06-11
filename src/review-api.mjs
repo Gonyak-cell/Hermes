@@ -8,6 +8,7 @@ import {
 } from "./factory-product-registry-store.mjs";
 import { buildFactoryStageReadModel } from "./factory-stage-read-model.mjs";
 import { buildFactoryCandidateManifestResolver } from "./factory-candidate-manifest-resolver.mjs";
+import { buildFactoryStarterArtifactCorpus } from "./factory-starter-artifact-corpus.mjs";
 
 export const DEFAULT_REVIEW_API_HOST = "127.0.0.1";
 export const DEFAULT_REVIEW_API_PORT = 4177;
@@ -66,6 +67,16 @@ const FACTORY_CANDIDATE_MANIFEST_FILTER_KEYS = [
   "candidate_manifest_json_available",
 ];
 
+const FACTORY_STARTER_ARTIFACT_FILTER_KEYS = [
+  "domain_pack_id",
+  "artifact_path",
+  "artifact_role",
+  "artifact_kind",
+  "content_type",
+  "exists_now",
+  "materialized_status",
+];
+
 const FACTORY_PRODUCT_AUTHORITY_FLAG_KEYS = [
   "project_creation_allowed_now",
   "repo_write_allowed_now",
@@ -120,6 +131,9 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
   if (pathname === "/api/factory/candidate-manifests" && !isReviewApiReadOnlyMethod(method)) {
     return methodNotAllowedResponse(method);
   }
+  if (pathname === "/api/factory/starter-artifacts" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
 
   if (!isReviewApiReadOnlyMethod(method)) {
     return methodNotAllowedResponse(method);
@@ -155,6 +169,14 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       return jsonResponse(503, buildError("factory_candidate_manifests_unavailable", `Factory candidate manifest resolver is not ready: ${candidateResolver.validation.errors.length} error(s).`), method);
     }
     return jsonResponse(200, buildFactoryCandidateManifestsResponse(candidateResolver, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/starter-artifacts") {
+    const starterCorpus = await buildFactoryStarterArtifactCorpus({ ...options, write: false });
+    if (!starterCorpus.validation.valid) {
+      return jsonResponse(503, buildError("factory_starter_artifacts_unavailable", `Factory starter artifact corpus is not ready: ${starterCorpus.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryStarterArtifactsResponse(starterCorpus, url, generatedAt), method);
   }
 
   if (pathname === "/" || pathname === "/index.html") {
@@ -13458,7 +13480,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/factory/products, /api/factory/stage, /api/factory/candidate-manifests, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/platform-operations-freezes, /api/platform-claim-registry, /api/platform-claim-gates, /api/platform-claim-boundary, /api/platform-claim-validations, /api/resource-contract-freezes, /api/resource-v2-contracts, /api/resource-version-v2-contracts, /api/resource-contract-validations, /api/evidence-review-drafts, /api/evidence-review-items, /api/policy-matrices, /api/policy-classifications, /api/runtime-policies, /api/model-policies, /api/tool-policies, /api/output-policies, /api/gate-policies, /api/policy-snapshot-ledgers, /api/policy-snapshots, /api/policy-snapshot-instances, /api/policy-decisions, /api/policy-usages, /api/context-packet-ledgers, /api/context-packets, /api/context-items, /api/context-retrieval-filters, /api/model-routing-ledgers, /api/model-routing-decisions, /api/cost-budget-ledgers, /api/cost-budget-decisions, /api/token-usage-ledgers, /api/token-usage-records, /api/cost-attribution-ledgers, /api/cost-attribution-records, /api/cost-record-projections, /api/projected-cost-records, /api/run-cost-rollups, /api/cost-category-rollups, /api/cost-record-projection-validations, /api/token-usage-projections, /api/projected-token-usage-records, /api/capability-token-rollups, /api/runtime-token-rollups, /api/capability-runtime-token-rollups, /api/token-usage-projection-validations, /api/budget-alert-ledgers, /api/budget-alert-records, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/contract-inventories, /api/contract-inventory-items, /api/contract-schemas, /api/contract-artifacts, /api/contract-owner-map, /api/contract-dependency-maps, /api/contract-dependency-nodes, /api/contract-dependency-edges, /api/contract-breaking-change-risks, /api/contract-owner-dependencies, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-review-packet-ledgers, /api/human-review-packets, /api/human-review-items, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
+  console.log("Routes: /, /health, /api, /api/factory/products, /api/factory/stage, /api/factory/candidate-manifests, /api/factory/starter-artifacts, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/platform-operations-freezes, /api/platform-claim-registry, /api/platform-claim-gates, /api/platform-claim-boundary, /api/platform-claim-validations, /api/resource-contract-freezes, /api/resource-v2-contracts, /api/resource-version-v2-contracts, /api/resource-contract-validations, /api/evidence-review-drafts, /api/evidence-review-items, /api/policy-matrices, /api/policy-classifications, /api/runtime-policies, /api/model-policies, /api/tool-policies, /api/output-policies, /api/gate-policies, /api/policy-snapshot-ledgers, /api/policy-snapshots, /api/policy-snapshot-instances, /api/policy-decisions, /api/policy-usages, /api/context-packet-ledgers, /api/context-packets, /api/context-items, /api/context-retrieval-filters, /api/model-routing-ledgers, /api/model-routing-decisions, /api/cost-budget-ledgers, /api/cost-budget-decisions, /api/token-usage-ledgers, /api/token-usage-records, /api/cost-attribution-ledgers, /api/cost-attribution-records, /api/cost-record-projections, /api/projected-cost-records, /api/run-cost-rollups, /api/cost-category-rollups, /api/cost-record-projection-validations, /api/token-usage-projections, /api/projected-token-usage-records, /api/capability-token-rollups, /api/runtime-token-rollups, /api/capability-runtime-token-rollups, /api/token-usage-projection-validations, /api/budget-alert-ledgers, /api/budget-alert-records, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/contract-inventories, /api/contract-inventory-items, /api/contract-schemas, /api/contract-artifacts, /api/contract-owner-map, /api/contract-dependency-maps, /api/contract-dependency-nodes, /api/contract-dependency-edges, /api/contract-breaking-change-risks, /api/contract-owner-dependencies, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-review-packet-ledgers, /api/human-review-packets, /api/human-review-items, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -13474,6 +13496,7 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/factory/products", "Factory product registry rows"),
       route("GET", "/api/factory/stage", "Factory product PS stage rows"),
       route("GET", "/api/factory/candidate-manifests", "Factory candidate manifest JSON-only resolver rows"),
+      route("GET", "/api/factory/starter-artifacts", "Factory starter artifact corpus rows"),
       route("GET", "/api/dashboard", "Full review-dashboard.v1 artifact"),
       route("GET", "/api/summary", "Dashboard summary only"),
       route("GET", "/api/stages", "Control Plane stage statuses"),
@@ -15254,7 +15277,10 @@ function buildFactoryCandidateManifestsResponse(candidateResolver, url, generate
     mutation_allowed: false,
     raw_confidential_material_visible: false,
     json_only_manifest_generation: true,
-    starter_artifact_corpus_materialized_now: false,
+    starter_artifact_corpus_materialized_now: candidateResolver.summary.starter_artifact_corpus_materialized_now,
+    starter_artifact_required_ref_count: candidateResolver.summary.starter_artifact_required_ref_count,
+    starter_artifact_materialized_count: candidateResolver.summary.starter_artifact_materialized_count,
+    starter_artifact_missing_count: candidateResolver.summary.starter_artifact_missing_count,
     candidate_manifest_write_allowed_now: false,
     apply_allowed_now: false,
     candidate_manifests: candidateResolver.candidate_manifests.filter((manifest) => visibleManifestIds.has(manifest.candidate_manifest_id)),
@@ -15263,6 +15289,30 @@ function buildFactoryCandidateManifestsResponse(candidateResolver, url, generate
     validation_error_count: candidateResolver.validation.errors.length,
     summary: candidateResolver.summary,
   };
+}
+
+function buildFactoryStarterArtifactsResponse(starterCorpus, url, generatedAt) {
+  return {
+    ...buildCollectionResponse("factory_starter_artifact_rows", sanitizeFactoryStarterArtifactRowsForApi(starterCorpus.starter_artifact_rows), url, generatedAt, FACTORY_STARTER_ARTIFACT_FILTER_KEYS),
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    starter_artifact_corpus_materialized_now: starterCorpus.summary.starter_artifact_corpus_materialized_now,
+    source_file_write_allowed_now: false,
+    ledger_append_allowed_now: false,
+    candidate_manifest_write_allowed_now: false,
+    apply_allowed_now: false,
+    validation_error_count: starterCorpus.validation.errors.length,
+    summary: starterCorpus.summary,
+  };
+}
+
+function sanitizeFactoryStarterArtifactRowsForApi(rows = []) {
+  return rows.map(({ resolved_path: _resolvedPath, ...row }) => ({
+    ...row,
+    resolved_path_visible: false,
+  }));
 }
 
 function sanitizeFactoryAuthorityFlags(authorityFlags = {}) {

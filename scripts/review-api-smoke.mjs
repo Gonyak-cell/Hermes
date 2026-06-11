@@ -19,6 +19,7 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/factory/products"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/stage"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/candidate-manifests"));
+  assert.ok(index.routes.some((route) => route.path === "/api/factory/starter-artifacts"));
   assert.ok(index.routes.some((route) => route.path === "/api/packs"));
   assert.ok(index.routes.some((route) => route.path === "/api/capabilities"));
   assert.ok(index.routes.some((route) => route.path === "/api/artifacts"));
@@ -7226,6 +7227,35 @@ try {
   assert.equal(factoryStage.items[0].ps3_transition_append_allowed_now, false);
   const factoryStagePost = await fetch(`${url}/api/factory/stage`, { method: "POST" });
   assert.equal(factoryStagePost.status, 405);
+
+  const factoryCandidateManifests = await fetchJson(`${url}/api/factory/candidate-manifests?limit=5`);
+  assert.equal(factoryCandidateManifests.collection, "factory_candidate_manifest_rows");
+  assert.equal(factoryCandidateManifests.read_only, true);
+  assert.equal(factoryCandidateManifests.mutation_allowed, false);
+  assert.equal(factoryCandidateManifests.raw_confidential_material_visible, false);
+  assert.equal(factoryCandidateManifests.json_only_manifest_generation, true);
+  assert.equal(factoryCandidateManifests.starter_artifact_corpus_materialized_now, true);
+  assert.ok(factoryCandidateManifests.total_count > 0);
+  assert.ok(factoryCandidateManifests.count <= 5);
+  const factoryCandidateManifestsHead = await fetch(`${url}/api/factory/candidate-manifests`, { method: "HEAD" });
+  assert.equal(factoryCandidateManifestsHead.status, 200);
+  const factoryCandidateManifestsPost = await fetch(`${url}/api/factory/candidate-manifests`, { method: "POST" });
+  assert.equal(factoryCandidateManifestsPost.status, 405);
+
+  const factoryStarterArtifacts = await fetchJson(`${url}/api/factory/starter-artifacts?domain_pack_id=pack.law_firm&limit=5`);
+  assert.equal(factoryStarterArtifacts.collection, "factory_starter_artifact_rows");
+  assert.equal(factoryStarterArtifacts.read_only, true);
+  assert.equal(factoryStarterArtifacts.mutation_allowed, false);
+  assert.equal(factoryStarterArtifacts.raw_confidential_material_visible, false);
+  assert.equal(factoryStarterArtifacts.starter_artifact_corpus_materialized_now, true);
+  assert.ok(factoryStarterArtifacts.count > 0);
+  assert.ok(factoryStarterArtifacts.count <= 5);
+  assert.equal(factoryStarterArtifacts.items.some((item) => Object.hasOwn(item, "resolved_path")), false);
+  assert.equal(factoryStarterArtifacts.items.every((item) => item.resolved_path_visible === false), true);
+  const factoryStarterArtifactsHead = await fetch(`${url}/api/factory/starter-artifacts`, { method: "HEAD" });
+  assert.equal(factoryStarterArtifactsHead.status, 200);
+  const factoryStarterArtifactsPost = await fetch(`${url}/api/factory/starter-artifacts`, { method: "POST" });
+  assert.equal(factoryStarterArtifactsPost.status, 405);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

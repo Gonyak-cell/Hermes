@@ -1,6 +1,6 @@
 {
   "package_id": "hermes-factory-promotion-package",
-  "package_version": "v0.1.13-fb3-candidate-manifest-resolver",
+  "package_version": "v0.1.15-fb4-lawos-style-claude-review",
   "generated_at": "2026-06-11",
   "author_engine_resolved_model_id": "claude-fable-5[1m]",
   "author_lane": "planner_reviewer",
@@ -39,7 +39,13 @@
   "f0_failed_claude_raw_output_rejected_by_intake": true,
   "f0_readiness_baseline_present": true,
   "pending_owner_decisions": [],
-  "adjudicated_owner_decisions": ["S0-1", "S0-2", "S0-3", "S0-4", "S0-5"],
+  "adjudicated_owner_decisions": [
+    "S0-1",
+    "S0-2",
+    "S0-3",
+    "S0-4",
+    "S0-5"
+  ],
   "f0_completed": true,
   "fa_implementation_allowed_now": true,
   "fa_implementation_trust_level": "owner_exception_low_trust",
@@ -82,7 +88,11 @@
   "fa5_status": "ready_factory_projection_redirection",
   "fa5_phase_doc": "fa5-projection-redirection.md",
   "fa5_redirected_projection": "src/multi-project-saas-control-plane.mjs",
-  "fa5_read_order": ["data/factory/local/products.jsonl", "data/factory/seed/products.jsonl", "P9400 source projection fallback"],
+  "fa5_read_order": [
+    "data/factory/local/products.jsonl",
+    "data/factory/seed/products.jsonl",
+    "P9400 source projection fallback"
+  ],
   "fa5_default_source_tier": "tracked_seed",
   "fa5_default_selected_products": 5,
   "fa5_validation_command": "npm run platform:multi-project-saas-control-plane -- --check",
@@ -99,9 +109,16 @@
   "fa6_review_packet": "fa6-claude-review-packet.md",
   "fa6_review_receipt": "fa6-claude-opus-max-review-receipt.md",
   "fa6_api_route": "/api/factory/products",
-  "fa6_route_method_allowlist": ["GET", "HEAD"],
+  "fa6_route_method_allowlist": [
+    "GET",
+    "HEAD"
+  ],
   "fa6_mutating_method_negative_fixture_status": "local_test_passed_405_method_not_allowed_for_post_put_patch_delete",
-  "fa6_read_order": ["data/factory/local/products.jsonl", "data/factory/seed/products.jsonl", "fail_closed_503"],
+  "fa6_read_order": [
+    "data/factory/local/products.jsonl",
+    "data/factory/seed/products.jsonl",
+    "fail_closed_503"
+  ],
   "fa6_default_source_tier": "tracked_seed",
   "fa6_default_product_count": 9,
   "fa6_fallback_projection_promoted_to_store_truth": false,
@@ -134,8 +151,13 @@
   "fb1_product_source_tier": "tracked_seed",
   "fb1_default_product_count": 9,
   "fb1_default_transition_count": 0,
-  "fb1_default_state_counts": { "PS0_seed": 9 },
-  "fb1_route_method_allowlist": ["GET", "HEAD"],
+  "fb1_default_state_counts": {
+    "PS0_seed": 9
+  },
+  "fb1_route_method_allowlist": [
+    "GET",
+    "HEAD"
+  ],
   "fb1_mutating_method_negative_fixture_status": "local_test_passed_405_method_not_allowed_for_post_put_patch_delete",
   "fb1_ps3_transition_handler_enabled": false,
   "fb1_ps3_transition_append_allowed_now": false,
@@ -168,7 +190,10 @@
   "fb2_review_receipt": "fb2-claude-opus-max-review-receipt.md",
   "fb2_command": "npm run factory:stage -- --check --require-pass",
   "fb2_api_route": "/api/factory/stage",
-  "fb2_route_method_allowlist": ["GET", "HEAD"],
+  "fb2_route_method_allowlist": [
+    "GET",
+    "HEAD"
+  ],
   "fb2_control_fields": [
     "stage_progress",
     "gate_status",
@@ -223,14 +248,17 @@
   "fb3_owner_claude_review_defer_receipt": "fb3-owner-claude-review-defer-receipt.json",
   "fb3_command": "npm run factory:candidate-manifests -- --check --require-pass",
   "fb3_api_route": "/api/factory/candidate-manifests",
-  "fb3_route_method_allowlist": ["GET", "HEAD"],
+  "fb3_route_method_allowlist": [
+    "GET",
+    "HEAD"
+  ],
   "fb3_default_resolver_rows": 9,
   "fb3_default_candidate_manifest_count": 0,
-  "fb3_operational_ps2_candidate_manifest_fixture_status": "local_test_passed_json_only_manifest_created",
+  "fb3_operational_ps2_candidate_manifest_fixture_status": "local_test_passed_json_only_manifest_created_with_materialized_starter_refs",
   "fb3_stale_ps2_negative_fixture_status": "local_test_passed_stale_ps2_blocks_manifest_id",
   "fb3_ps3_negative_fixture_status": "local_test_passed_stage_invalid_fail_closed",
   "fb3_json_only_manifest_generation": true,
-  "fb3_starter_artifact_corpus_materialized_now": false,
+  "fb3_starter_artifact_corpus_materialized_now": true,
   "fb3_source_file_write_allowed_now": false,
   "fb3_ledger_append_allowed_now": false,
   "fb3_ps3_transition_append_allowed_now": false,
@@ -238,7 +266,7 @@
   "fb3_apply_allowed_now": false,
   "fb3_mutating_method_negative_fixture_status": "local_test_passed_405_method_not_allowed_for_post_put_patch_delete",
   "fb3_targeted_tests": "node --test test/factory-candidate-manifest-resolver.test.mjs",
-  "fb3_targeted_tests_status": "7/7 pass",
+  "fb3_targeted_tests_status": "8/8 pass",
   "fb3_api_smoke_status": "pass",
   "fb3_contracts_validate_status": "214/214 pass",
   "fb3_claude_code_review_required_now": false,
@@ -266,7 +294,14 @@
       "validator_artifact": "artifacts/factory-promotion/fb3-review/invalid-attempt-001-validation/claude-review-evidence-validation.json",
       "validator_status": "invalid_not_review_evidence",
       "validator_error_count": 6,
-      "rejection_reasons": ["raw.wrapper_success", "raw.not_quota_limited", "raw.model_usage_observed", "payload.extracted", "payload.verdict_present", "payload.blocking_findings_array"],
+      "rejection_reasons": [
+        "raw.wrapper_success",
+        "raw.not_quota_limited",
+        "raw.model_usage_observed",
+        "payload.extracted",
+        "payload.verdict_present",
+        "payload.blocking_findings_array"
+      ],
       "counts_as_independent_review_evidence": false,
       "must_be_superseded_by_valid_opus_max_review": true,
       "note": "Extra usage exhausted; reset reported as 12:40am Asia/Seoul."
@@ -284,7 +319,14 @@
       "validator_artifact": "artifacts/factory-promotion/fb3-review/invalid-attempt-002-validation/claude-review-evidence-validation.json",
       "validator_status": "invalid_not_review_evidence",
       "validator_error_count": 6,
-      "rejection_reasons": ["raw.wrapper_success", "raw.not_quota_limited", "raw.model_usage_observed", "payload.extracted", "payload.verdict_present", "payload.blocking_findings_array"],
+      "rejection_reasons": [
+        "raw.wrapper_success",
+        "raw.not_quota_limited",
+        "raw.model_usage_observed",
+        "payload.extracted",
+        "payload.verdict_present",
+        "payload.blocking_findings_array"
+      ],
       "counts_as_independent_review_evidence": false,
       "must_be_superseded_by_valid_opus_max_review": true,
       "note": "Homebrew Claude Code CLI still reported extra usage exhausted after alternate-account login."
@@ -299,15 +341,32 @@
       "validator_artifact": "artifacts/factory-promotion/fb3-review/invalid-attempt-003-app-validation/claude-review-evidence-validation.json",
       "validator_status": "invalid_not_review_evidence",
       "validator_error_count": 9,
-      "rejection_reasons": ["raw.available", "raw.non_empty", "raw.wrapper_json_valid", "raw.sha256_bound", "raw.wrapper_success", "raw.model_usage_observed", "payload.extracted", "payload.verdict_present", "payload.blocking_findings_array"],
+      "rejection_reasons": [
+        "raw.available",
+        "raw.non_empty",
+        "raw.wrapper_json_valid",
+        "raw.sha256_bound",
+        "raw.wrapper_success",
+        "raw.model_usage_observed",
+        "payload.extracted",
+        "payload.verdict_present",
+        "payload.blocking_findings_array"
+      ],
       "counts_as_independent_review_evidence": false,
       "must_be_superseded_by_valid_opus_max_review": true,
       "note": "App-bundled Claude Code process produced a zero-byte raw artifact for several minutes and was stopped."
     }
   ],
   "fb3_claude_code_review_changes_required_before_commit": null,
-  "remaining_hard_blockers": ["deferred F0.1 independent review receipts before production or enterprise trust", "deferred FB.3 independent review before production or enterprise trust if owner resumes Claude review gate"],
-  "open_blocking_findings": ["HRM-01", "HRM-03", "HRM-04"],
+  "remaining_hard_blockers": [
+    "deferred F0.1 independent review receipts before production or enterprise trust",
+    "deferred FB.3 independent review before production or enterprise trust if owner resumes Claude review gate"
+  ],
+  "open_blocking_findings": [
+    "HRM-01",
+    "HRM-03",
+    "HRM-04"
+  ],
   "opens_project_creation_now": false,
   "opens_repo_write_now": false,
   "opens_connector_write_now": false,
@@ -322,8 +381,18 @@
   "opens_production_pass_now": false,
   "opens_enterprise_pass_now": false,
   "cross_project_data_mixing_allowed": false,
-  "gate_opening_requires": ["separate_source_literal_commit", "owner_no_opus_exception_receipt", "owner_adjudication_receipt", "first_use_audit_trail"],
-  "pilot_order": ["project.hermes_harness", "project.zendd_bridge", "project.hr_solution_internalization", "project.law_firm_os"],
+  "gate_opening_requires": [
+    "separate_source_literal_commit",
+    "owner_no_opus_exception_receipt",
+    "owner_adjudication_receipt",
+    "first_use_audit_trail"
+  ],
+  "pilot_order": [
+    "project.hermes_harness",
+    "project.zendd_bridge",
+    "project.hr_solution_internalization",
+    "project.law_firm_os"
+  ],
   "recommended_validation_commands": [
     "npm run platform:product-domain-saas-factory -- --check",
     "npm run platform:product-build-verification-loop -- --check",
@@ -339,11 +408,12 @@
     "npm run factory:candidate-manifests -- --check",
     "npm run factory:claude-review-evidence -- --help",
     "npm test",
-    "npm run test:canonical"
+    "npm run test:canonical",
+    "npm run factory:starter-artifacts -- --check"
   ],
   "new_validation_commands_by_tranche": {
     "FA": "npm run platform:factory-product-registry-store -- --check",
-    "FB": "npm run factory:stage -- --check && npm run factory:candidate-manifests -- --check && npm run factory:claude-review-evidence -- --help",
+    "FB": "npm run factory:stage -- --check && npm run factory:candidate-manifests -- --check && npm run factory:starter-artifacts -- --check && npm run factory:claude-review-evidence -- --help",
     "FC": "npm run factory:candidate-lane -- --check",
     "FD": "npm run factory:receipt-verify -- --check",
     "FE": "npm run factory:intake -- --check"
@@ -384,7 +454,14 @@
     "src/patch-candidate-lane.mjs",
     "REVIEW.md",
     "CLAUDE.md",
-    "docs/architecture.md"
+    "docs/architecture.md",
+    "src/factory-starter-artifact-catalog.mjs",
+    "src/factory-starter-artifact-corpus.mjs",
+    "scripts/factory-starter-artifact-corpus.mjs",
+    "test/factory-starter-artifact-corpus.test.mjs",
+    "docs/factory-promotion/fb4-starter-artifact-corpus.md",
+    "docs/factory-promotion/fb4-claude-opus-4-8-review-receipt.md",
+    "templates/"
   ],
   "package_files": [
     "00-README.md",
@@ -432,6 +509,69 @@
     "09-decision-records/S0-3-hrm-findings-adjudication-draft.md",
     "09-decision-records/S0-4-merge-governance-decision-draft.md",
     "09-decision-records/S0-5-identity-and-id-scheme-decision-draft.md",
-    "99-structured-summary.json"
-  ]
+    "99-structured-summary.json",
+    "fb4-starter-artifact-corpus.md",
+    "fb4-claude-opus-4-8-review-receipt.md"
+  ],
+  "fb3_starter_artifact_required_ref_count": 19,
+  "fb3_starter_artifact_materialized_count": 19,
+  "fb3_starter_artifact_missing_count": 0,
+  "fb3_missing_starter_template_negative_fixture_status": "local_test_passed_missing_starter_artifact_corpus_blocks_instantiation",
+  "fb4_status": "ready_factory_starter_artifact_corpus_lawos_style_claude_reviewed",
+  "fb4_phase_doc": "fb4-starter-artifact-corpus.md",
+  "fb4_review_receipt": "fb4-claude-opus-4-8-review-receipt.md",
+  "fb4_command": "npm run factory:starter-artifacts -- --check --require-pass",
+  "fb4_api_route": "/api/factory/starter-artifacts",
+  "fb4_route_method_allowlist": [
+    "GET",
+    "HEAD"
+  ],
+  "fb4_required_ref_count": 19,
+  "fb4_materialized_artifact_count": 19,
+  "fb4_missing_artifact_count": 0,
+  "fb4_starter_artifact_corpus_materialized_now": true,
+  "fb4_pack_manifest_template_ref_count": 7,
+  "fb4_factory_candidate_template_ref_count": 12,
+  "fb4_source_file_write_allowed_now": false,
+  "fb4_ledger_append_allowed_now": false,
+  "fb4_ps3_transition_append_allowed_now": false,
+  "fb4_candidate_manifest_write_allowed_now": false,
+  "fb4_apply_allowed_now": false,
+  "fb4_mutating_method_negative_fixture_status": "local_test_passed_405_method_not_allowed_for_post_put_patch_delete",
+  "fb4_missing_template_negative_fixture_status": "local_test_passed_missing_template_root_blocks_corpus_and_candidate_instantiation",
+  "fb4_unsafe_template_path_negative_fixture_status": "local_test_passed_blocked_unsafe_path",
+  "fb4_sensitive_marker_negative_fixture_status": "local_test_passed_blocked_sensitive_marker",
+  "fb4_invalid_json_negative_fixture_status": "local_test_passed_blocked_invalid_json",
+  "fb4_review_api_resolved_path_visible": false,
+  "fb4_targeted_tests": "node --test test/factory-starter-artifact-corpus.test.mjs test/factory-candidate-manifest-resolver.test.mjs",
+  "fb4_targeted_tests_status": "16/16 pass",
+  "fb4_api_smoke_status": "pass",
+  "fb4_contracts_validate_status": "214/214 pass",
+  "fb4_claude_code_review_required_now": true,
+  "fb4_claude_code_review_status": "valid_pass_with_findings_p2_fixed_p3_adjudicated",
+  "fb4_claude_code_review_deferred_by_owner_now": false,
+  "fb4_claude_code_review_model_alias": "claude-opus-4-8",
+  "fb4_claude_code_review_resolved_model": "claude-opus-4-8",
+  "fb4_claude_code_review_effort": "max",
+  "fb4_claude_code_review_read_only_tools": [
+    "Read",
+    "Grep",
+    "Glob"
+  ],
+  "fb4_claude_code_review_permission_mode": "dontAsk",
+  "fb4_claude_code_review_tools_disabled": false,
+  "fb4_claude_code_review_invalid_output_rejected_if_auth_or_malformed": true,
+  "fb4_claude_code_review_lawos_style_spawn": true,
+  "fb4_claude_code_review_raw_artifact": "artifacts/factory-promotion/fb4-review-lawos-style/raw-output.json",
+  "fb4_claude_code_review_receipt_artifact": "artifacts/factory-promotion/fb4-review-lawos-style/review-receipt.json",
+  "fb4_claude_code_review_raw_sha256": "addde2baea6aec31d09304d8773d59c7b1ce67fc0762467a8bb9118ef81d3a2d",
+  "fb4_claude_code_review_prompt_sha256": "b4bb79fad6475f0bf9e9987a083c0a4f354847201feafc68af14357c31390e61",
+  "fb4_claude_code_review_schema_sha256": "e3118be993433a6a20ef1801fb271c6dd76d1490c7e29c3ec7628d397b86ca10",
+  "fb4_claude_code_review_session_id": "f34e5b40-82ac-4fdb-9e5c-a4ab7c50c3b1",
+  "fb4_claude_code_review_result_uuid": "97e93299-fd67-42ad-a77e-d84cf4e84f69",
+  "fb4_claude_code_review_changes_required_before_commit": false,
+  "fb4_claude_code_review_blocking_findings": 0,
+  "fb4_claude_code_review_non_blocking_findings": 5,
+  "fb4_claude_code_review_p2_findings_fixed": true,
+  "fb4_claude_code_review_p3_findings_adjudicated": true
 }

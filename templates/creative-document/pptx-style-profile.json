@@ -1,0 +1,18 @@
+{
+  "schema_version": "creative-document-pptx-style-profile-starter.v1",
+  "profile_id": "starter.creative_document.pptx_style_profile",
+  "layout_system": {
+    "slide_size": "16:9",
+    "grid": "12-column",
+    "safe_margin": "standard"
+  },
+  "typography": {
+    "heading": "system-sans",
+    "body": "system-sans"
+  },
+  "review": {
+    "format_validation_required": true,
+    "human_approval_required": true,
+    "draft_only": true
+  }
+}

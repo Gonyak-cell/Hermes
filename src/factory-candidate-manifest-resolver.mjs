@@ -2,6 +2,8 @@ import { createHash } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { buildFactoryStageReadModel } from "./factory-stage-read-model.mjs";
+import { buildFactoryStarterArtifactCorpus } from "./factory-starter-artifact-corpus.mjs";
+import { buildFactoryStarterArtifactRefs, normalizeKey } from "./factory-starter-artifact-catalog.mjs";
 
 export const DEFAULT_FACTORY_CANDIDATE_MANIFEST_RESOLVER_OUT_DIR = "artifacts/factory-candidate-manifest-resolver/latest";
 
@@ -21,33 +23,6 @@ const AUTHORITY_CLOSED = {
   protected_action_allowed_now: false,
   production_pass_enabled: false,
   enterprise_pass_enabled: false,
-};
-
-const STARTER_ARTIFACT_REFS_BY_PACK = {
-  "pack.law_firm": [
-    ["templates/law-firm/matter-intake.md", "matter_intake_template"],
-    ["templates/law-firm/review-packet.md", "review_packet_template"],
-  ],
-  "pack.personal_dev": [
-    ["templates/personal-dev/issue-intake.md", "issue_intake_template"],
-    ["templates/personal-dev/review-packet.md", "review_packet_template"],
-  ],
-  "pack.platform": [
-    ["templates/platform/product-operating-brief.md", "product_operating_brief_template"],
-    ["templates/platform/review-packet.md", "review_packet_template"],
-  ],
-  "pack.human_resources": [
-    ["templates/human-resources/intake.md", "hr_intake_template"],
-    ["templates/human-resources/review-packet.md", "review_packet_template"],
-  ],
-  "pack.external_adapter": [
-    ["templates/connectors/bridge-plan.md", "connector_bridge_plan_template"],
-    ["templates/connectors/review-packet.md", "review_packet_template"],
-  ],
-  "pack.trading": [
-    ["templates/trading/read-only-dashboard.md", "read_only_dashboard_template"],
-    ["templates/trading/review-packet.md", "review_packet_template"],
-  ],
 };
 
 export async function runFactoryCandidateManifestResolver(options = {}) {
@@ -75,14 +50,19 @@ export async function buildFactoryCandidateManifestResolver(options = {}) {
     outDir: options.stageOutDir,
     write: false,
   });
-  const resolverRows = buildResolverRows(stageReadModel.factory_stage_rows, generatedAt);
+  const starterCorpus = await buildFactoryStarterArtifactCorpus({
+    ...options,
+    outDir: options.starterArtifactOutDir,
+    write: false,
+  });
+  const resolverRows = buildResolverRows(stageReadModel.factory_stage_rows, generatedAt, starterCorpus);
   const candidateManifests = resolverRows
     .filter((row) => row.candidate_manifest_json_available)
     .map((row) => buildCandidateManifest(row, generatedAt));
-  const boundary = buildBoundary(stageReadModel, resolverRows, candidateManifests);
-  const validationItems = buildValidationItems(stageReadModel, resolverRows, candidateManifests, boundary);
+  const boundary = buildBoundary(stageReadModel, starterCorpus, resolverRows, candidateManifests);
+  const validationItems = buildValidationItems(stageReadModel, starterCorpus, resolverRows, candidateManifests, boundary);
   const validation = summarizeValidation(validationItems);
-  const summary = buildSummary(stageReadModel, resolverRows, candidateManifests, boundary, validation);
+  const summary = buildSummary(stageReadModel, starterCorpus, resolverRows, candidateManifests, boundary, validation);
   const result = {
     schema_version: SCHEMA_VERSION,
     generated_at: generatedAt,
@@ -99,6 +79,17 @@ export async function buildFactoryCandidateManifestResolver(options = {}) {
       product_count: stageReadModel.summary.product_count,
       product_source_tier: stageReadModel.summary.product_source_tier,
       transition_source_tiers: stageReadModel.summary.transition_source_tiers,
+    },
+    source_starter_artifact_corpus: {
+      schema_version: "factory-candidate-starter-corpus-source.v1",
+      command_name: starterCorpus.command_name,
+      program_range: starterCorpus.program_range,
+      validation_valid: starterCorpus.validation.valid,
+      validation_error_count: starterCorpus.validation.errors.length,
+      required_ref_count: starterCorpus.summary.required_ref_count,
+      materialized_artifact_count: starterCorpus.summary.materialized_artifact_count,
+      missing_artifact_count: starterCorpus.summary.missing_artifact_count,
+      starter_artifact_corpus_materialized_now: starterCorpus.summary.starter_artifact_corpus_materialized_now,
     },
     candidate_manifest_resolver_rows: resolverRows,
     candidate_manifests: candidateManifests,
@@ -148,9 +139,13 @@ export async function runFactoryCandidateManifestResolverCli(argv = process.argv
   }
 }
 
-function buildResolverRows(stageRows, generatedAt) {
+function buildResolverRows(stageRows, generatedAt, starterCorpus) {
+  const starterArtifactByPath = new Map(starterCorpus.starter_artifact_rows.map((row) => [row.artifact_path, row]));
   return stageRows.map((row) => {
-    const eligible = isEligibleForCandidateManifest(row);
+    const stageEligible = isEligibleForCandidateManifest(row);
+    const plannedArtifactRefs = buildPlannedArtifactRefs(row, starterArtifactByPath);
+    const starterReady = plannedArtifactRefs.length > 0 && plannedArtifactRefs.every(isMaterializedStarterArtifactRef);
+    const eligible = stageEligible && starterReady;
     const candidateManifestId = eligible ? buildCandidateManifestId(row.product_id) : null;
     return {
       schema_version: "factory-candidate-manifest-resolver-row.v1",
@@ -166,19 +161,19 @@ function buildResolverRows(stageRows, generatedAt) {
       latest_source_timestamp: row.latest_source_timestamp,
       latest_transition_id: row.latest_transition_id,
       latest_transition_receipt_id: row.latest_transition_receipt_id,
-      resolver_status: eligible ? "candidate_manifest_json_ready" : buildBlockedResolverStatus(row),
+      resolver_status: eligible ? "candidate_manifest_json_ready" : buildBlockedResolverStatus(row, { stageEligible, starterReady, plannedArtifactRefs }),
       candidate_manifest_id: candidateManifestId,
       candidate_manifest_json_available: eligible,
       candidate_manifest_status: eligible ? "json_preview_ready" : "blocked",
       candidate_manifest_kind: "json_only_preview",
       candidate_manifest_sha256: null,
       candidate_manifest_output_path: candidateManifestId ? `candidate-manifests/${normalizeKey(candidateManifestId)}.json` : null,
-      blocked_reason_ids: eligible ? [] : buildBlockedReasonIds(row),
-      apply_blocker_ids: eligible ? ["fb4_starter_artifact_corpus_not_ready", "candidate_receipt_not_bound", "apply_engine_closed"] : buildBlockedReasonIds(row),
-      next_operator_actions: eligible ? ["review_candidate_manifest_json", "prepare_fb4_starter_artifact_corpus"] : row.next_operator_actions,
+      blocked_reason_ids: eligible ? [] : buildBlockedReasonIds(row, { stageEligible, starterReady, plannedArtifactRefs }),
+      apply_blocker_ids: eligible ? ["candidate_receipt_not_bound", "apply_engine_closed"] : buildBlockedReasonIds(row, { stageEligible, starterReady, plannedArtifactRefs }),
+      next_operator_actions: eligible ? ["review_candidate_manifest_json", "bind_candidate_receipt_before_apply"] : buildNextOperatorActions(row, { stageEligible, starterReady }),
       next_operator_actions_are_instructions_only: true,
-      planned_artifact_refs: buildPlannedArtifactRefs(row),
-      starter_artifact_corpus_status: "required_not_materialized_in_fb3",
+      planned_artifact_refs: plannedArtifactRefs,
+      starter_artifact_corpus_status: buildStarterCorpusStatus({ plannedArtifactRefs, starterReady }),
       generated_at: generatedAt,
       json_only_manifest_generation: true,
       source_file_write_allowed_now: false,
@@ -210,6 +205,7 @@ function buildCandidateManifest(row, generatedAt) {
       json_only_manifest_generation: true,
       starter_artifact_corpus_status: row.starter_artifact_corpus_status,
       fb4_starter_artifact_corpus_required: true,
+      starter_artifact_corpus_materialized_now: row.starter_artifact_corpus_status === "materialized_read_only",
     },
     source_stage_ref: {
       schema_version: "factory-candidate-stage-ref.v1",
@@ -235,7 +231,7 @@ function buildCandidateManifest(row, generatedAt) {
   return { ...draft, candidate_manifest_sha256: candidateManifestSha256 };
 }
 
-function buildBoundary(stageReadModel, resolverRows, candidateManifests) {
+function buildBoundary(stageReadModel, starterCorpus, resolverRows, candidateManifests) {
   return {
     schema_version: "factory-candidate-manifest-boundary.v1",
     read_only: true,
@@ -247,7 +243,10 @@ function buildBoundary(stageReadModel, resolverRows, candidateManifests) {
     candidate_manifest_count: candidateManifests.length,
     json_only_manifest_generation: true,
     starter_artifact_corpus_required_before_apply: true,
-    starter_artifact_corpus_materialized_now: false,
+    starter_artifact_corpus_materialized_now: starterCorpus.summary.starter_artifact_corpus_materialized_now,
+    starter_artifact_required_ref_count: starterCorpus.summary.required_ref_count,
+    starter_artifact_materialized_count: starterCorpus.summary.materialized_artifact_count,
+    starter_artifact_missing_count: starterCorpus.summary.missing_artifact_count,
     source_file_write_allowed_now: false,
     ledger_append_allowed_now: false,
     ps3_transition_append_allowed_now: false,
@@ -263,25 +262,30 @@ function buildBoundary(stageReadModel, resolverRows, candidateManifests) {
   };
 }
 
-function buildValidationItems(stageReadModel, resolverRows, candidateManifests, boundary) {
+function buildValidationItems(stageReadModel, starterCorpus, resolverRows, candidateManifests, boundary) {
   const eligibleRows = resolverRows.filter((row) => row.candidate_manifest_json_available);
+  const plannedRefs = resolverRows.flatMap((row) => row.planned_artifact_refs);
   return [
     validationItem("stage.valid", "source", stageReadModel.validation.valid, stageReadModel.validation.valid ? "Factory stage read model is valid" : `Factory stage read model has ${stageReadModel.validation.errors.length} error(s)`),
+    validationItem("starter_corpus.valid", "source", starterCorpus.validation.valid, starterCorpus.validation.valid ? "Factory starter artifact corpus is valid" : `Factory starter artifact corpus has ${starterCorpus.validation.errors.length} error(s)`),
     validationItem("resolver.rows.present", "resolver", resolverRows.length > 0, "Candidate manifest resolver rows are present"),
     validationItem("resolver.eligibility_bound", "resolver", eligibleRows.length === candidateManifests.length, "Every eligible resolver row has exactly one candidate manifest"),
     validationItem("resolver.no_ineligible_manifest", "resolver", resolverRows.every((row) => row.candidate_manifest_json_available || row.candidate_manifest_id === null), "Ineligible rows must not expose candidate manifest ids"),
+    validationItem("resolver.starter_refs_materialized", "resolver", plannedRefs.every(isMaterializedStarterArtifactRef), "Resolver starter artifact refs must be materialized and hash-bound"),
     validationItem("manifests.hash_bound", "manifest", candidateManifests.every((manifest) => HASH_RE.test(manifest.candidate_manifest_sha256)), "Candidate manifests must carry SHA-256 hashes"),
     validationItem("manifests.json_only", "authority", candidateManifests.every((manifest) => manifest.resolver.json_only_manifest_generation === true && manifest.candidate_manifest_kind === "json_only_preview"), "Candidate manifests must be JSON-only previews"),
+    validationItem("manifests.starter_refs_materialized", "manifest", candidateManifests.every((manifest) => manifest.planned_artifact_refs.every(isMaterializedStarterArtifactRef)), "Candidate manifests must reference materialized starter artifacts"),
     validationItem("manifests.no_write_or_apply", "authority", candidateManifests.every((manifest) => manifest.source_file_write_allowed_now === false && manifest.ledger_append_allowed_now === false && manifest.candidate_manifest_write_allowed_now === false && manifest.apply_allowed_now === false), "Candidate manifests must not open write/apply authority"),
     validationItem("rows.next_actions_instruction_only", "authority", resolverRows.every((row) => row.next_operator_actions_are_instructions_only === true && Array.isArray(row.next_operator_actions)), "Resolver next actions must remain read-only instructions"),
-    validationItem("boundary.json_only", "authority", boundary.json_only_manifest_generation === true && boundary.starter_artifact_corpus_materialized_now === false, "FB.3 must generate JSON-only manifests and defer starter corpus materialization"),
+    validationItem("boundary.starter_corpus_materialized", "authority", boundary.starter_artifact_corpus_materialized_now === true, "FB.4 must materialize the starter artifact corpus before candidate instantiation"),
+    validationItem("boundary.json_only", "authority", boundary.json_only_manifest_generation === true, "FB.4 candidate manifests must remain JSON-only previews"),
     validationItem("boundary.no_write", "authority", boundary.source_file_write_allowed_now === false && boundary.ledger_append_allowed_now === false && boundary.candidate_manifest_write_allowed_now === false && boundary.apply_allowed_now === false, "Candidate manifest resolver must keep write/apply authority closed"),
     validationItem("boundary.authority_closed", "authority", allAuthorityClosed(boundary), "Candidate manifest resolver authority flags must remain closed"),
   ];
 }
 
-function buildSummary(stageReadModel, resolverRows, candidateManifests, boundary, validation) {
-  const ready = validation.valid && stageReadModel.validation.valid && allAuthorityClosed(boundary);
+function buildSummary(stageReadModel, starterCorpus, resolverRows, candidateManifests, boundary, validation) {
+  const ready = validation.valid && stageReadModel.validation.valid && starterCorpus.validation.valid && allAuthorityClosed(boundary);
   return {
     factory_candidate_manifest_resolver_status: ready ? READY_STATUS : BLOCKED_STATUS,
     program_range: PROGRAM_RANGE,
@@ -293,9 +297,13 @@ function buildSummary(stageReadModel, resolverRows, candidateManifests, boundary
     product_source_tier: stageReadModel.summary.product_source_tier,
     transition_source_tiers: stageReadModel.summary.transition_source_tiers,
     stage_validation_errors: stageReadModel.validation.errors.length,
+    starter_artifact_corpus_validation_errors: starterCorpus.validation.errors.length,
     json_only_manifest_generation: true,
     starter_artifact_corpus_required_before_apply: true,
-    starter_artifact_corpus_materialized_now: false,
+    starter_artifact_corpus_materialized_now: starterCorpus.summary.starter_artifact_corpus_materialized_now,
+    starter_artifact_required_ref_count: starterCorpus.summary.required_ref_count,
+    starter_artifact_materialized_count: starterCorpus.summary.materialized_artifact_count,
+    starter_artifact_missing_count: starterCorpus.summary.missing_artifact_count,
     source_file_write_allowed_now: false,
     ledger_append_allowed_now: false,
     ps3_transition_append_allowed_now: false,
@@ -336,14 +344,17 @@ function isEligibleForCandidateManifest(row) {
     && row.ps3_or_later_transition_present === false;
 }
 
-function buildBlockedResolverStatus(row) {
+function buildBlockedResolverStatus(row, { stageEligible = false, starterReady = false } = {}) {
+  if (stageEligible && !starterReady) return "blocked_missing_starter_artifact_corpus";
   if (row.freshness_status !== "fresh") return "blocked_stale_source";
   if (row.ps3_or_later_transition_present) return "blocked_ps3_before_fb_promotion";
   if (row.current_product_state !== "PS2_receipt_bound") return "blocked_until_ps2_receipt_bound";
   return "blocked_unknown_candidate_manifest_condition";
 }
 
-function buildBlockedReasonIds(row) {
+function buildBlockedReasonIds(row, { stageEligible = false, starterReady = false, plannedArtifactRefs = [] } = {}) {
+  if (stageEligible && !starterReady && plannedArtifactRefs.length === 0) return ["starter_artifact_refs_unmapped"];
+  if (stageEligible && !starterReady) return ["starter_artifact_corpus_missing"];
   if (row.freshness_status !== "fresh") return ["source_freshness_window_exceeded"];
   if (row.ps3_or_later_transition_present) return ["ps3_transition_before_fb_promotion"];
   if (row.current_product_state !== "PS2_receipt_bound") return ["ps2_receipt_binding_missing"];
@@ -354,25 +365,37 @@ function buildCandidateManifestId(productId) {
   return `candidate-manifest.${normalizeKey(productId.replace(/^product\./, ""))}.fb3`;
 }
 
-function buildPlannedArtifactRefs(row) {
-  const refs = [];
-  for (const packId of row.domain_pack_ids ?? []) {
-    for (const [artifactPath, artifactRole] of STARTER_ARTIFACT_REFS_BY_PACK[packId] ?? []) {
-      refs.push({
-        schema_version: "factory-candidate-artifact-ref.v1",
-        artifact_ref_id: `artifact-ref.${normalizeKey(row.product_id)}.${normalizeKey(artifactRole)}`,
-        product_id: row.product_id,
-        domain_pack_id: packId,
-        artifact_path: artifactPath,
-        artifact_role: artifactRole,
-        artifact_kind: "starter_template",
-        starter_artifact_corpus_status: "required_not_materialized_in_fb3",
-        exists_now: false,
-        source_file_write_allowed_now: false,
-      });
-    }
-  }
-  return refs;
+function buildNextOperatorActions(row, { stageEligible = false, starterReady = false } = {}) {
+  if (stageEligible && !starterReady) return ["materialize_missing_starter_artifact_corpus", "rerun_factory_starter_artifacts"];
+  return row.next_operator_actions;
+}
+
+function buildStarterCorpusStatus({ plannedArtifactRefs, starterReady }) {
+  if (plannedArtifactRefs.length === 0) return "missing_required_ref_mapping";
+  return starterReady ? "materialized_read_only" : "missing_required_artifacts";
+}
+
+function buildPlannedArtifactRefs(row, starterArtifactByPath) {
+  return buildFactoryStarterArtifactRefs(row.domain_pack_ids ?? [], row.product_id).map((ref) => {
+    const starterArtifact = starterArtifactByPath.get(ref.artifact_path);
+    return {
+      ...ref,
+      starter_artifact_corpus_status: starterArtifact?.materialized_status ?? "missing_required_artifacts",
+      starter_artifact_id: starterArtifact?.starter_artifact_id ?? null,
+      materialized_status: starterArtifact?.materialized_status ?? "missing",
+      exists_now: starterArtifact?.exists_now === true,
+      content_sha256: starterArtifact?.content_sha256 ?? null,
+      byte_count: starterArtifact?.byte_count ?? 0,
+      content_type: starterArtifact?.content_type ?? null,
+      source_file_write_allowed_now: false,
+    };
+  });
+}
+
+function isMaterializedStarterArtifactRef(ref) {
+  return ref.materialized_status === "materialized_read_only"
+    && ref.exists_now === true
+    && HASH_RE.test(ref.content_sha256 ?? "");
 }
 
 function validationItem(itemId, category, pass, message) {
@@ -434,10 +457,6 @@ function canonicalize(value) {
   return JSON.stringify(value);
 }
 
-function normalizeKey(value) {
-  return String(value).toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
-}
-
 function parseArgs(argv) {
   const args = {
     outDir: DEFAULT_FACTORY_CANDIDATE_MANIFEST_RESOLVER_OUT_DIR,
@@ -451,6 +470,9 @@ function parseArgs(argv) {
     else if (arg === "--factory-ledger-dir" || arg === "--ledger-dir") args.factoryLedgerDir = argv[++index];
     else if (arg === "--factory-seed-dir" || arg === "--seed-dir") args.factorySeedDir = argv[++index];
     else if (arg === "--stage-out-dir") args.stageOutDir = argv[++index];
+    else if (arg === "--starter-artifact-out-dir") args.starterArtifactOutDir = argv[++index];
+    else if (arg === "--template-root") args.templateRoot = argv[++index];
+    else if (arg === "--pack-root") args.packRoot = argv[++index];
     else if (arg === "--run-at") args.runAt = argv[++index];
     else throw new Error(`Unknown argument: ${arg}`);
   }
@@ -467,6 +489,10 @@ Options:
   --factory-ledger-dir    Factory operational ledger directory.
   --factory-seed-dir      Factory tracked seed directory.
   --stage-out-dir <path>  Optional stage read-model artifact directory.
+  --starter-artifact-out-dir <path>
+                          Optional starter artifact corpus artifact directory.
+  --template-root <path>  Starter template root. Default: templates.
+  --pack-root <path>      Domain pack manifest root. Default: packs.
   --run-at <iso>          Deterministic timestamp.
   -h, --help              Show this help.
 `);

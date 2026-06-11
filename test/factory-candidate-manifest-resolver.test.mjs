@@ -87,11 +87,13 @@ test("Factory Candidate Manifest Resolver projects tracked seed products as bloc
     assert.equal(result.summary.candidate_manifest_json_available_count, 0);
     assert.equal(result.summary.resolver_status_counts.blocked_until_ps2_receipt_bound, 9);
     assert.equal(result.summary.json_only_manifest_generation, true);
-    assert.equal(result.summary.starter_artifact_corpus_materialized_now, false);
+    assert.equal(result.summary.starter_artifact_corpus_materialized_now, true);
+    assert.equal(result.summary.starter_artifact_missing_count, 0);
     assert.equal(result.summary.candidate_manifest_write_allowed_now, false);
     assert.equal(result.summary.apply_allowed_now, false);
     assert.equal(result.candidate_manifest_resolver_rows.every((row) => row.candidate_manifest_json_available === false), true);
     assert.equal(result.candidate_manifest_resolver_rows.every((row) => row.source_file_write_allowed_now === false), true);
+    assert.equal(result.candidate_manifest_resolver_rows.every((row) => row.planned_artifact_refs.every((ref) => ref.exists_now === true && /^[a-f0-9]{64}$/.test(ref.content_sha256))), true);
   });
 });
 
@@ -113,15 +115,44 @@ test("Factory Candidate Manifest Resolver creates one JSON-only manifest for a f
     assert.equal(row.candidate_manifest_json_available, true);
     assert.equal(row.candidate_manifest_write_allowed_now, false);
     assert.equal(row.apply_allowed_now, false);
-    assert.equal(row.apply_blocker_ids.includes("fb4_starter_artifact_corpus_not_ready"), true);
+    assert.equal(row.apply_blocker_ids.includes("fb4_starter_artifact_corpus_not_ready"), false);
+    assert.equal(row.starter_artifact_corpus_status, "materialized_read_only");
     assert.equal(manifest.product_id, "product.candidate_alpha");
     assert.equal(manifest.candidate_manifest_kind, "json_only_preview");
     assert.match(manifest.candidate_manifest_sha256, /^[a-f0-9]{64}$/);
     assert.equal(manifest.resolver.fb4_starter_artifact_corpus_required, true);
+    assert.equal(manifest.resolver.starter_artifact_corpus_materialized_now, true);
     assert.equal(manifest.planned_artifact_refs.length, 2);
+    assert.equal(manifest.planned_artifact_refs.every((ref) => ref.exists_now === true && /^[a-f0-9]{64}$/.test(ref.content_sha256)), true);
     assert.equal(manifest.source_file_write_allowed_now, false);
     assert.equal(manifest.ledger_append_allowed_now, false);
     assert.equal(manifest.apply_allowed_now, false);
+  });
+});
+
+test("Factory Candidate Manifest Resolver refuses instantiation when starter artifacts are missing", async () => {
+  await withTempLedger(async (ledgerDir) => {
+    const templateRoot = await mkdtemp(path.join(os.tmpdir(), "factory-missing-templates-"));
+    try {
+      await appendPs2Product(ledgerDir, "product.candidate_missing_templates");
+
+      const result = await buildFactoryCandidateManifestResolver({
+        ledgerDir,
+        templateRoot,
+        runAt: RUN_AT,
+      });
+      const row = result.candidate_manifest_resolver_rows[0];
+
+      assert.equal(result.validation.valid, false);
+      assert.equal(result.summary.factory_candidate_manifest_resolver_status, "blocked_factory_candidate_manifest_resolver");
+      assert.equal(result.summary.candidate_manifest_count, 0);
+      assert.equal(result.summary.starter_artifact_corpus_materialized_now, false);
+      assert.equal(row.resolver_status, "blocked_missing_starter_artifact_corpus");
+      assert.deepEqual(row.blocked_reason_ids, ["starter_artifact_corpus_missing"]);
+      assert.equal(row.candidate_manifest_id, null);
+    } finally {
+      await rm(templateRoot, { recursive: true, force: true });
+    }
   });
 });
 
@@ -183,12 +214,13 @@ test("Review API exposes candidate manifest resolver rows as read-only JSON-only
     assert.equal(body.mutation_allowed, false);
     assert.equal(body.raw_confidential_material_visible, false);
     assert.equal(body.json_only_manifest_generation, true);
-    assert.equal(body.starter_artifact_corpus_materialized_now, false);
+    assert.equal(body.starter_artifact_corpus_materialized_now, true);
     assert.equal(body.count, 1);
     assert.equal(body.visible_candidate_manifest_count, 1);
     assert.equal(body.candidate_manifest_count, 1);
     assert.equal(body.candidate_manifests.length, 1);
     assert.equal(body.items[0].candidate_manifest_json_available, true);
+    assert.equal(body.items[0].starter_artifact_corpus_status, "materialized_read_only");
     assert.equal(body.items[0].candidate_manifest_write_allowed_now, false);
     assert.equal(body.items[0].apply_allowed_now, false);
   });

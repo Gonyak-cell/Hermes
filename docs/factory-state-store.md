@@ -1,6 +1,6 @@
 # Factory State Store
 
-Status: FB.3 candidate manifest resolver plus FB.2 stage control view and FA.6 read-only factory products API.
+Status: FB.4 starter artifact corpus plus FB.3 candidate manifest resolver, FB.2 stage control view, and FA.6 read-only factory products API.
 Date: 2026-06-11
 
 ## Purpose
@@ -20,7 +20,7 @@ It separates two things:
 |---|---|---|---|
 | Tracked seed baseline | `data/factory/seed/` | commit allowed | redacted seed fixtures, schema examples, migration receipts |
 | Local operational ledger | `data/factory/local/` | gitignored | append JSONL operational state, local product runs, replay scratch |
-| Derived artifacts | `artifacts/factory-product-registry-store/` | gitignored | generated check output and projections |
+| Derived artifacts | `artifacts/factory-*/` | gitignored | generated check output and projections |
 
 Rules:
 
@@ -143,7 +143,7 @@ The read model:
 - exposes candidate/workbench queue depth as `0`; candidate JSON previews are
   resolved by the separate FB.3 candidate manifest resolver
 
-FB.2 and FB.3 keep these false:
+FB.2, FB.3, and FB.4 keep these false:
 
 - `ps3_transition_append_allowed_now`
 - `candidate_manifest_write_allowed_now`
@@ -153,7 +153,8 @@ FB.2 and FB.3 keep these false:
 
 ## Candidate Manifest Resolver
 
-FB.3 adds the deterministic JSON-only candidate manifest resolver:
+FB.3 adds the deterministic JSON-only candidate manifest resolver, and FB.4
+binds its planned starter artifact refs to the tracked starter corpus:
 
 ```bash
 npm run factory:candidate-manifests -- --check --require-pass
@@ -164,18 +165,44 @@ The resolver:
 - reads the FB.2 stage read model as its source of truth
 - returns one resolver row per product
 - creates a `factory-candidate-manifest.v1` JSON preview only for fresh
-  `PS2_receipt_bound` products
+  `PS2_receipt_bound` products whose starter artifact refs are materialized
 - blocks stale products, PS0/PS1 products, and PS3+ rows from candidate manifest
   availability
+- blocks otherwise eligible products when required starter artifact files are
+  missing
 - exposes `/api/factory/candidate-manifests` as a read-only collection
 - marks responses as `raw_confidential_material_visible: false`
-- keeps starter artifact corpus materialization deferred to FB.4
+- reports starter artifact `exists_now`, `content_sha256`, `byte_count`, and
+  `content_type` on planned refs
 - keeps source writes, ledger appends, candidate manifest writes, apply behavior,
   PS3 transition append, project/repo/connector/deploy/protected-action,
   production PASS, and enterprise PASS closed
 
 Default tracked seed state still returns 9 resolver rows and 0 candidate
 manifests because all tracked seed products remain `PS0_seed`.
+
+## Starter Artifact Corpus
+
+FB.4 materializes the starter templates referenced by domain pack manifests and
+factory candidate manifests:
+
+```bash
+npm run factory:starter-artifacts -- --check --require-pass
+node scripts/review-api.mjs --once /api/factory/starter-artifacts
+```
+
+The corpus validator reads:
+
+- `packs/*/pack.json` template refs
+- factory candidate starter refs for `pack.law_firm`, `pack.personal_dev`,
+  `pack.platform`, `pack.human_resources`, `pack.external_adapter`, and
+  `pack.trading`
+- tracked files under `templates/`
+
+The validator refuses unsafe paths, missing files, empty files, invalid JSON
+starter files, and obvious sensitive markers. It returns SHA-256 hashes for all
+materialized starter files. It does not instantiate products, append ledgers,
+write candidate manifests, apply diffs, or open production/enterprise trust.
 
 ## Claude Review Evidence Validator
 

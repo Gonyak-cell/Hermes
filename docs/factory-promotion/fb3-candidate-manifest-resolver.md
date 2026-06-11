@@ -39,8 +39,9 @@ These remain false:
 - all project/repo/connector/deploy/protected-action/production/enterprise
   authority flags
 
-FB.4 is still required to materialize the starter artifact corpus referenced by
-candidate manifests.
+FB.4 now materializes the starter artifact corpus referenced by candidate
+manifests. The resolver remains JSON-only and refuses otherwise eligible
+candidate rows when required starter refs are missing.
 
 ## Review API
 
@@ -72,10 +73,13 @@ node --check src/claude-review-evidence-validator.mjs
 node --check scripts/claude-review-evidence-validator.mjs
 node --check src/factory-candidate-manifest-resolver.mjs
 node --check scripts/factory-candidate-manifest-resolver.mjs
+node --check src/factory-starter-artifact-corpus.mjs
+node --check scripts/factory-starter-artifact-corpus.mjs
 node --check src/factory-stage-read-model.mjs
 node --check src/review-api.mjs
 node --check scripts/review-api-smoke.mjs
-node --test test/claude-review-evidence-validator.test.mjs test/factory-candidate-manifest-resolver.test.mjs
+node --test test/claude-review-evidence-validator.test.mjs test/factory-candidate-manifest-resolver.test.mjs test/factory-starter-artifact-corpus.test.mjs
+npm run factory:starter-artifacts -- --check --require-pass
 npm run factory:candidate-manifests -- --check --require-pass
 npm run api:smoke
 npm run contracts:validate -- --check
@@ -95,10 +99,12 @@ independent review, production PASS, enterprise PASS, or final approval.
 
 Expected local result:
 
-- candidate resolver targeted tests: 7/7 pass
+- candidate resolver targeted tests: 8/8 pass
+- starter artifact corpus targeted tests: 5/5 pass
 - Claude review evidence validator tests: 6/6 pass
 - default tracked seed projection: 9 resolver rows, 0 candidate manifests
 - operational fresh PS2 fixture: 1 JSON-only candidate manifest
+- missing starter template fixture: blocked, 0 candidate manifests
 - stale PS2 fixture: blocked, 0 candidate manifests
 - PS3+ fixture: fail closed
 - invalid FB.3 429 raw review attempt: rejected as `invalid_not_review_evidence`

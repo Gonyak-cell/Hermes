@@ -48,16 +48,16 @@ Routes: `/api/factory/stage`.
 `GET` and `HEAD` are allowed. Mutation methods return `405
 method_not_allowed`.
 
-## FB.3 Factory Candidate Manifest Routes
+## FB.3-FB.4 Factory Candidate Manifest Routes
 
-Factory Candidate Manifest routes expose the read-only FB.3 instantiation
-resolver. The route returns one resolver row per product and nests generated
-`factory-candidate-manifest.v1` JSON previews for rows that are fresh and already
-at `PS2_receipt_bound`.
+Factory Candidate Manifest routes expose the read-only instantiation resolver.
+The route returns one resolver row per product and nests generated
+`factory-candidate-manifest.v1` JSON previews for rows that are fresh, already
+at `PS2_receipt_bound`, and backed by materialized starter artifact refs.
 
-The route is JSON-only. It does not materialize starter artifact files, append
-ledgers, advance products to PS3, apply candidates, create projects, write
-repositories, call connectors, deploy, or grant production/enterprise trust.
+The route is JSON-only. It does not append ledgers, advance products to PS3,
+apply candidates, create projects, write repositories, call connectors, deploy,
+or grant production/enterprise trust.
 
 Default tracked seed state returns 9 blocked resolver rows and 0 candidate
 manifests because seed products are still `PS0_seed`.
@@ -72,6 +72,21 @@ Routes: `/api/factory/candidate-manifests`.
 `visible_candidate_manifest_count` counts candidate manifests visible after
 request filters. `candidate_manifest_count` remains the full resolver manifest
 total before filters.
+
+`GET` and `HEAD` are allowed. Mutation methods return `405
+method_not_allowed`.
+
+## FB.4 Factory Starter Artifact Routes
+
+Factory Starter Artifact routes expose the read-only starter corpus required by
+candidate manifest instantiation. The route returns one row per required starter
+artifact with materialization status, content type, byte count, and SHA-256 hash.
+
+Supported filters include `domain_pack_id`, `artifact_path`, `artifact_role`,
+`artifact_kind`, `content_type`, `exists_now`, `materialized_status`, and
+`limit`.
+
+Routes: `/api/factory/starter-artifacts`.
 
 `GET` and `HEAD` are allowed. Mutation methods return `405
 method_not_allowed`.

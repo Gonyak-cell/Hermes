@@ -1,0 +1,109 @@
+{
+  "schema": "factory-owner-adjudication-receipt.v0",
+  "receipt_id": "rcpt-s0-owner-adjudication-20260611",
+  "receipt_kind": "human_owner_adjudication",
+  "status": "accepted_with_blockers_visible",
+  "issued_at": "2026-06-11T17:12:36+09:00",
+  "issuer": {
+    "role": "human_owner",
+    "owner_id": "jwsuh@amic.kr",
+    "instruction_source": "owner_directive_2026-06-11",
+    "instruction_summary": "전부 권고안대로 채택하고 전체 구현을 목표로 진행"
+  },
+  "scope": {
+    "program": "Hermes Factory Promotion",
+    "stage": "S0",
+    "subject_ref": "docs/factory-promotion/09-decision-records",
+    "product_identity": "Hermes SaaS Factory / Product Operating Platform",
+    "implementation_goal_active": true
+  },
+  "adjudicated_decisions": [
+    {
+      "decision_id": "S0-1",
+      "receipt_id": "rcpt-s0-1-engine-identity-20260611",
+      "decision": "A_then_B",
+      "summary": "Use actual Opus-family independent review receipts for F0.1 now; migrate to engine_resolved_model_id based multi-engine receipt validation in FD.",
+      "source_ref": "09-decision-records/S0-1-engine-identity-decision-draft.md"
+    },
+    {
+      "decision_id": "S0-2",
+      "receipt_id": "rcpt-s0-2-corrective-baseline-waiver-20260611",
+      "decision": "corrective_baseline_waiver",
+      "summary": "Treat FCORE as a corrective baseline for the blocked P11601-P15000 chain while preserving visible blockers and keeping all authority gates closed.",
+      "source_ref": "09-decision-records/S0-2-multi-engine-blocker-disposition-draft.md",
+      "expires_before": "FA.6 freeze",
+      "expiry_condition": "Re-evaluate before FA.6; the blocked P-chain must not be hidden, forged ready, or used to open production/enterprise/write/deploy authority."
+    },
+    {
+      "decision_id": "S0-3",
+      "receipt_id": "rcpt-s0-3-hrm-caps-20260611",
+      "decision": "parallel_with_adopted_caps",
+      "summary": "Keep HRM-01/03/04 open while enforcing review-depth, review-window, phase-doc, and evidence-boundary caps across FCORE.",
+      "source_ref": "09-decision-records/S0-3-hrm-findings-adjudication-draft.md"
+    },
+    {
+      "decision_id": "S0-4",
+      "receipt_id": "rcpt-s0-4-merge-governance-20260611",
+      "decision": "pilot_merge_governance",
+      "summary": "Continue FCORE on codex/p3840-review-hardening or a child branch; split the 181-commit backlog into receipt-gated candidate merge packets.",
+      "source_ref": "09-decision-records/S0-4-merge-governance-decision-draft.md"
+    },
+    {
+      "decision_id": "S0-5",
+      "receipt_id": "rcpt-s0-5-identity-id-scheme-20260611",
+      "decision": "factory_now_product_later_fcore_canonical",
+      "summary": "Adopt Hermes as SaaS Factory now and productized SaaS later; use FCORE as the canonical new-work ID system; keep legacy P-ranges as source bindings.",
+      "source_ref": "09-decision-records/S0-5-identity-and-id-scheme-decision-draft.md"
+    }
+  ],
+  "authority_flags": {
+    "project_creation_allowed_now": false,
+    "repo_write_allowed_now": false,
+    "connector_write_allowed_now": false,
+    "deployment_allowed_now": false,
+    "protected_action_allowed_now": false,
+    "command_execution_allowed_now": false,
+    "api_write_methods_allowed_now": false,
+    "store_mutation_allowed_now": false,
+    "codex_final_approval_allowed": false,
+    "claude_final_approval_allowed": false,
+    "fable_final_approval_allowed": false,
+    "production_pass_enabled": false,
+    "enterprise_pass_enabled": false
+  },
+  "remaining_hard_blockers": [
+    {
+      "blocker_id": "F0.1",
+      "summary": "Two missing independent review receipts must be obtained and must pass the F0 receipt-integrity preflight.",
+      "required_receipts": [
+        "artifacts/connector-external-app-governance/review/claude-connector-governance-review-receipt.json",
+        "artifacts/execution-write-authority-maturity/review/claude-execution-write-authority-review-receipt.json"
+      ]
+    },
+    {
+      "blocker_id": "F0.2",
+      "summary": "The P11601-P15000 source-chain blockers remain visible. FCORE may proceed only as the owner-adjudicated corrective baseline and must not mark blocked source handoffs ready by hand."
+    }
+  ],
+  "fcore_start_policy": {
+    "f0_owner_adjudication_complete": true,
+    "fa_implementation_allowed_now": false,
+    "allowed_before_f0_1_and_f0_2_close": [
+      "planning documents",
+      "receipt request packets",
+      "receipt preflight tooling that does not open authority gates",
+      "read-only validation and blocker reporting"
+    ],
+    "disallowed_before_f0_1_and_f0_2_close": [
+      "project creation",
+      "repo write outside the approved Codex implementation lane",
+      "connector write",
+      "deployment",
+      "protected action",
+      "production PASS",
+      "enterprise PASS",
+      "AI final approval"
+    ]
+  },
+  "payload_sha256": "63e3f10e3d0694084e9c5b12d8ce85635420dabc55f465e5397b5d1b22017482"
+}

@@ -1,0 +1,24 @@
+{
+  "schema_version": "factory-f0-review-request-index.v1",
+  "status": "request_packets_only_not_review_evidence",
+  "generated_at": "2026-06-11T17:12:36+09:00",
+  "requests": [
+    {
+      "scope_id": "connector_external_app_governance",
+      "prompt_path": "docs/factory-promotion/f0-review-requests/connector-external-app-governance-opus-review-request.md",
+      "prompt_sha256": "663234d9e0ecf482257e42cec4cf1ec409a5e5865586d4d0358d21bcb46cbb93",
+      "required_receipt_path": "artifacts/connector-external-app-governance/review/claude-connector-governance-review-receipt.json",
+      "required_validator_command": "npm run platform:connector-external-app-governance -- --check"
+    },
+    {
+      "scope_id": "execution_write_authority_maturity",
+      "prompt_path": "docs/factory-promotion/f0-review-requests/execution-write-authority-maturity-opus-review-request.md",
+      "prompt_sha256": "26fad4c16ca0eba05f3d3c9e347abb537fddfa8eddae82635a08e0c19b9dea99",
+      "required_receipt_path": "artifacts/execution-write-authority-maturity/review/claude-execution-write-authority-review-receipt.json",
+      "required_validator_command": "npm run platform:execution-write-authority-maturity -- --check"
+    }
+  ],
+  "post_receipt_preflight_command": "npm run factory:receipt-preflight -- --check --require-pass",
+  "is_review_evidence": false,
+  "is_validation_substrate": false
+}

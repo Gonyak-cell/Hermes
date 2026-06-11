@@ -1,0 +1,22 @@
+{
+  "schema_version": "<target-specific receipt schema>",
+  "review_engine": "claude_code_opus_max",
+  "receipt_status": "complete",
+  "scope_connector_external_app_governance": false,
+  "scope_execution_write_authority_maturity": false,
+  "scope_id": "<connector_external_app_governance or execution_write_authority_maturity>",
+  "reviewed_commit_sha": "<actual reviewed git commit sha>",
+  "prompt_sha256": "<sha256 of the request packet used for this review>",
+  "raw_output_sha256": "<sha256 of raw reviewer output>",
+  "engine_resolved_model_id": "<actual resolved Opus-family model id>",
+  "unresolved_finding_count": 0,
+  "findings": [],
+  "summary": {
+    "review_status": "complete",
+    "unresolved_finding_count": 0,
+    "blocking_findings": []
+  },
+  "claude_final_approval_allowed": false,
+  "production_pass_enabled": false,
+  "enterprise_pass_enabled": false
+}

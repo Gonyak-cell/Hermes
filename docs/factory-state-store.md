@@ -1,6 +1,6 @@
 # Factory State Store
 
-Status: FA.5 store-first projection redirection plus tracked seed migration.
+Status: FA.6 read-only factory products API plus store-first projection redirection.
 Date: 2026-06-11
 
 ## Purpose
@@ -91,6 +91,29 @@ The projection exposes `factory_product_source_tier`,
 `factory_product_source_fallback_used`, and selected product counts in its
 summary and registry rows. The default tracked seed path selects 5
 `fixture_portfolio` rows for the multi-project registry.
+
+## Review API Projection
+
+FA.6 adds the read-only Review API route:
+
+```bash
+node scripts/review-api.mjs --once /api/factory/products
+```
+
+Read order:
+
+1. `data/factory/local/products.jsonl`
+2. `data/factory/seed/products.jsonl`
+3. fail closed with `503 factory_products_unavailable`
+
+The API response exposes `source_tier`, `read_only: true`,
+`mutation_allowed: false`, `method_allowlist: ["GET", "HEAD"]`, and
+`raw_confidential_material_visible: false`. It deliberately does not expose raw
+confidential material flags from the source rows and does not convert the P9400
+fallback projection into factory-store truth.
+
+`POST`, `PUT`, `PATCH`, and `DELETE` on `/api/factory/products` are executable
+negative fixtures and return `405 method_not_allowed`.
 
 ## Receipt-Driven State Transitions
 
@@ -208,6 +231,9 @@ Expected result:
 - `data/factory/local/` is gitignored
 - `data/factory/seed/` contains 9 product records and 1 migration receipt
 - `multi-project-saas-control-plane` reads factory products from tracked seed by default
+- `/api/factory/products` exposes factory products as a read-only Review API collection
+- `HEAD /api/factory/products` returns a bodyless 200-class read
+- mutating `/api/factory/products` methods are rejected with `405 method_not_allowed`
 - projection fallback, if needed, is visible in summary and row fields
 - sample `product-record.v1` validates
 - sample `product-state-transition.v1` validates

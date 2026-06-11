@@ -16,6 +16,7 @@ try {
   const index = await fetchJson(`${url}/api`);
   assert.equal(index.schema_version, "review-api-index.v1");
   assert.ok(index.routes.some((route) => route.path === "/api/dashboard"));
+  assert.ok(index.routes.some((route) => route.path === "/api/factory/products"));
   assert.ok(index.routes.some((route) => route.path === "/api/packs"));
   assert.ok(index.routes.some((route) => route.path === "/api/capabilities"));
   assert.ok(index.routes.some((route) => route.path === "/api/artifacts"));
@@ -7196,6 +7197,20 @@ try {
   const identityPolicyFreezeValidations = await fetchJson(`${url}/api/identity-policy-freeze-validations?status=passed&limit=5`);
   assert.equal(identityPolicyFreezeValidations.collection, "identity_policy_freeze_validations");
   assert.ok(identityPolicyFreezeValidations.count <= 5);
+
+  const factoryProducts = await fetchJson(`${url}/api/factory/products?limit=20`);
+  assert.equal(factoryProducts.collection, "factory_products");
+  assert.equal(factoryProducts.read_only, true);
+  assert.equal(factoryProducts.mutation_allowed, false);
+  assert.ok(["operational_ledger", "tracked_seed"].includes(factoryProducts.source_tier));
+  assert.ok(factoryProducts.count > 0);
+  assert.equal(factoryProducts.items.some((item) => Object.hasOwn(item, "raw_confidential_material_included")), false);
+
+  const factoryProductsHead = await fetch(`${url}/api/factory/products`, { method: "HEAD" });
+  assert.equal(factoryProductsHead.status, 200);
+
+  const factoryProductsPost = await fetch(`${url}/api/factory/products`, { method: "POST" });
+  assert.equal(factoryProductsPost.status, 405);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

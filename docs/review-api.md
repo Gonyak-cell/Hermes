@@ -1,5 +1,21 @@
 # Review API
 
+## FA.6 Factory Product Routes
+
+Factory Product routes expose the read-only SaaS Factory product registry rows
+from the factory state store. The route reads `data/factory/local/products.jsonl`
+first, then `data/factory/seed/products.jsonl`; it does not silently promote the
+legacy fallback projection to factory-store truth.
+
+Supported filters include `product_id`, `product_state`, `receipt_id`,
+`source_tier`, `seed_record_kind`, and `limit`.
+
+Routes: `/api/factory/products`.
+
+`GET` and `HEAD` are allowed. Mutation methods are blocked by the Review API
+read-only guard and the route-local method guard. `POST`, `PUT`, `PATCH`, and
+`DELETE` return `405 method_not_allowed`.
+
 ## P511-P515 Platform Claim Registry Routes
 
 Platform Claim Registry routes expose the read-only P500 operations freeze claim

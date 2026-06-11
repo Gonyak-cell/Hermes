@@ -38,6 +38,7 @@
         "product_id": { "type": "string", "pattern": "^product\\.[a-z0-9][a-z0-9._-]+$" },
         "artifact_id": { "type": "string", "pattern": "^artifact\\.[a-z0-9][a-z0-9._-]+$" },
         "scope_id": { "type": "string", "minLength": 1 },
+        "bound_transition_payload_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
         "reviewed_commit_sha": { "type": ["string", "null"], "pattern": "^[a-f0-9]{7,64}$" }
       }
     },

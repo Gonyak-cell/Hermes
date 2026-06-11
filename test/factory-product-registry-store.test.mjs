@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import {
+  applyFactoryReceiptDrivenTransition,
   appendFactoryLedgerEntry,
   buildFactoryProductRegistryStore,
   computeFactoryPayloadHash,
@@ -89,6 +90,38 @@ function receiptDraft(productId, suffix = productId.replace(/^product\./, "")) {
   };
 }
 
+function transitionReceiptDraft({ productId, fromState, toState, receiptId, transitionId }) {
+  const transition = {
+    schema_version: "product-state-transition.v1",
+    transition_id: transitionId,
+    product_id: productId,
+    from_state: fromState,
+    to_state: toState,
+    receipt_id: receiptId,
+    created_at: RUN_AT,
+    authority_flags: AUTHORITY_CLOSED,
+  };
+  return {
+    schema_version: "factory-receipt-envelope.v1",
+    receipt_id: receiptId,
+    receipt_kind: "state_transition",
+    issued_at: RUN_AT,
+    issuer: {
+      issuer_role: "codex_implementer",
+      issuer_id: "codex",
+      engine_resolved_model_id: null,
+    },
+    subject: {
+      product_id: productId,
+      artifact_id: `artifact.${transitionId.replaceAll(".", "_")}`,
+      scope_id: "FCORE-FA.3",
+      bound_transition_payload_sha256: computeFactoryPayloadHash(transition),
+      reviewed_commit_sha: null,
+    },
+    authority_flags: AUTHORITY_CLOSED,
+  };
+}
+
 async function withTempLedger(fn) {
   const ledgerDir = await mkdtemp(path.join(os.tmpdir(), "factory-product-registry-ledger-"));
   try {
@@ -98,14 +131,16 @@ async function withTempLedger(fn) {
   }
 }
 
-test("Factory Product Registry Store validates FA.2 append ledger contracts", async () => {
+test("Factory Product Registry Store validates FA.3 receipt-driven transition contracts", async () => {
   const result = await buildFactoryProductRegistryStore(options());
 
   assert.equal(result.validation.valid, true);
   assert.equal(result.schema_version, "factory-product-registry-store.v1");
-  assert.equal(result.summary.program_range, "FCORE-FA.2");
-  assert.equal(result.summary.factory_product_registry_store_status, "ready_factory_product_registry_store_append_ledger");
+  assert.equal(result.summary.program_range, "FCORE-FA.3");
+  assert.equal(result.summary.factory_product_registry_store_status, "ready_factory_receipt_driven_state_transitions");
   assert.equal(result.summary.append_jsonl_store_ready, true);
+  assert.equal(result.summary.receipt_driven_transition_handlers_ready, true);
+  assert.equal(result.summary.ps3_transition_handler_enabled, false);
   assert.equal(result.summary.tracked_seed_root, "data/factory/seed/");
   assert.equal(result.summary.local_operational_ledger_root, "data/factory/local/");
   assert.equal(result.summary.local_operational_ledger_gitignored, true);
@@ -260,6 +295,146 @@ test("Factory Product Registry Store requires product-scoped reads and rejects c
   });
 });
 
+test("Factory Product Registry Store applies receipt-driven PS0 to PS2 transitions", async () => {
+  await withTempLedger(async (ledgerDir) => {
+    const opts = ledgerOptions(ledgerDir);
+    await appendFactoryLedgerEntry("products", productDraft("product.fa3_success", "fa3-success"), opts);
+
+    const ps1TransitionId = "transition.fa3_success.ps0_ps1";
+    const ps1Receipt = transitionReceiptDraft({
+      productId: "product.fa3_success",
+      fromState: "PS0_seed",
+      toState: "PS1_schema_valid",
+      receiptId: "rcpt-fa3-success-ps1",
+      transitionId: ps1TransitionId,
+    });
+    const ps1 = await applyFactoryReceiptDrivenTransition({
+      ...opts,
+      productId: "product.fa3_success",
+      fromState: "PS0_seed",
+      toState: "PS1_schema_valid",
+      transitionId: ps1TransitionId,
+      receipt: ps1Receipt,
+      createdAt: RUN_AT,
+    });
+    assert.equal(ps1.stored_transition.to_state, "PS1_schema_valid");
+
+    const ps2TransitionId = "transition.fa3_success.ps1_ps2";
+    const ps2Receipt = transitionReceiptDraft({
+      productId: "product.fa3_success",
+      fromState: "PS1_schema_valid",
+      toState: "PS2_receipt_bound",
+      receiptId: "rcpt-fa3-success-ps2",
+      transitionId: ps2TransitionId,
+    });
+    const ps2 = await applyFactoryReceiptDrivenTransition({
+      ...opts,
+      productId: "product.fa3_success",
+      fromState: "PS1_schema_valid",
+      toState: "PS2_receipt_bound",
+      transitionId: ps2TransitionId,
+      receipt: ps2Receipt,
+      createdAt: RUN_AT,
+    });
+    assert.equal(ps2.stored_transition.to_state, "PS2_receipt_bound");
+
+    const scoped = await readFactoryProductScope({ ...opts, productId: "product.fa3_success" });
+    assert.deepEqual(scoped.state_transitions.map((row) => row.to_state), ["PS1_schema_valid", "PS2_receipt_bound"]);
+    assert.deepEqual(scoped.receipts.map((row) => row.receipt_id), ["rcpt-fa3-success-ps1", "rcpt-fa3-success-ps2"]);
+  });
+});
+
+test("Factory Product Registry Store rejects forged transition receipts", async () => {
+  await withTempLedger(async (ledgerDir) => {
+    const opts = ledgerOptions(ledgerDir);
+    await appendFactoryLedgerEntry("products", productDraft("product.fa3_forged", "fa3-forged"), opts);
+    const receipt = transitionReceiptDraft({
+      productId: "product.fa3_forged",
+      fromState: "PS0_seed",
+      toState: "PS1_schema_valid",
+      receiptId: "rcpt-fa3-forged",
+      transitionId: "transition.fa3_forged.ps0_ps1",
+    });
+    receipt.subject.bound_transition_payload_sha256 = "0".repeat(64);
+
+    await assert.rejects(
+      () => applyFactoryReceiptDrivenTransition({
+        ...opts,
+        productId: "product.fa3_forged",
+        fromState: "PS0_seed",
+        toState: "PS1_schema_valid",
+        transitionId: "transition.fa3_forged.ps0_ps1",
+        receipt,
+        createdAt: RUN_AT,
+      }),
+      /bound_transition_payload_sha256/,
+    );
+  });
+});
+
+test("Factory Product Registry Store rejects receipt replay", async () => {
+  await withTempLedger(async (ledgerDir) => {
+    const opts = ledgerOptions(ledgerDir);
+    await appendFactoryLedgerEntry("products", productDraft("product.fa3_replay", "fa3-replay"), opts);
+    const receipt = transitionReceiptDraft({
+      productId: "product.fa3_replay",
+      fromState: "PS0_seed",
+      toState: "PS1_schema_valid",
+      receiptId: "rcpt-fa3-replay",
+      transitionId: "transition.fa3_replay.ps0_ps1",
+    });
+    await applyFactoryReceiptDrivenTransition({
+      ...opts,
+      productId: "product.fa3_replay",
+      fromState: "PS0_seed",
+      toState: "PS1_schema_valid",
+      transitionId: "transition.fa3_replay.ps0_ps1",
+      receipt,
+      createdAt: RUN_AT,
+    });
+
+    await assert.rejects(
+      () => applyFactoryReceiptDrivenTransition({
+        ...opts,
+        productId: "product.fa3_replay",
+        fromState: "PS0_seed",
+        toState: "PS1_schema_valid",
+        transitionId: "transition.fa3_replay.ps0_ps1",
+        receipt,
+        createdAt: RUN_AT,
+      }),
+      /already used|current state/,
+    );
+  });
+});
+
+test("Factory Product Registry Store rejects PS3 transitions", async () => {
+  await withTempLedger(async (ledgerDir) => {
+    const opts = ledgerOptions(ledgerDir);
+    await appendFactoryLedgerEntry("products", productDraft("product.fa3_ps3", "fa3-ps3"), opts);
+    const receipt = transitionReceiptDraft({
+      productId: "product.fa3_ps3",
+      fromState: "PS2_receipt_bound",
+      toState: "PS3_candidate_ready",
+      receiptId: "rcpt-fa3-ps3",
+      transitionId: "transition.fa3_ps3.ps2_ps3",
+    });
+
+    await assert.rejects(
+      () => applyFactoryReceiptDrivenTransition({
+        ...opts,
+        productId: "product.fa3_ps3",
+        fromState: "PS2_receipt_bound",
+        toState: "PS3_candidate_ready",
+        transitionId: "transition.fa3_ps3.ps2_ps3",
+        receipt,
+        createdAt: RUN_AT,
+      }),
+      /not enabled/,
+    );
+  });
+});
+
 test("Factory Product Registry Store blocks ledger writes in --check mode", async () => {
   await withTempLedger(async (ledgerDir) => {
     await assert.rejects(
@@ -311,6 +486,6 @@ test("Factory Product Registry Store --require-pass rejects missing documentatio
       requirePass: true,
       stateStoreDocPath: "docs/missing-factory-state-store.md",
     })),
-    /append ledger is not ready/,
+    /receipt-driven transition handlers are not ready/,
   );
 });

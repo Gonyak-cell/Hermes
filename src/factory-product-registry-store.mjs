@@ -22,11 +22,15 @@ export const DEFAULT_FACTORY_PRODUCT_REGISTRY_STORE_INPUTS = {
 const COMMAND_NAME = "platform:factory-product-registry-store";
 const SCHEMA_VERSION = "factory-product-registry-store.v1";
 const CAPABILITY_ID = "factory.product_registry_store";
-const PROGRAM_RANGE = "FCORE-FA.2";
-const READY_STATUS = "ready_factory_product_registry_store_append_ledger";
-const BLOCKED_STATUS = "blocked_factory_product_registry_store_append_ledger";
+const PROGRAM_RANGE = "FCORE-FA.3";
+const READY_STATUS = "ready_factory_receipt_driven_state_transitions";
+const BLOCKED_STATUS = "blocked_factory_receipt_driven_state_transitions";
 const HASH_RE = /^[a-f0-9]{64}$/;
 const LEDGER_LOCKS = new Map();
+const RECEIPT_DRIVEN_TRANSITIONS = [
+  ["PS0_seed", "PS1_schema_valid"],
+  ["PS1_schema_valid", "PS2_receipt_bound"],
+];
 
 const AUTHORITY_CLOSED = {
   project_creation_allowed_now: false,
@@ -46,8 +50,8 @@ export async function runFactoryProductRegistryStore(options = {}) {
     error.validation = result.validation;
     throw error;
   }
-  if (options.requirePass && result.summary.append_jsonl_store_ready !== true) {
-    const error = new Error("Factory Product Registry Store append ledger is not ready.");
+  if (options.requirePass && result.summary.receipt_driven_transition_handlers_ready !== true) {
+    const error = new Error("Factory Product Registry Store receipt-driven transition handlers are not ready.");
     error.summary = result.summary;
     error.validation = result.validation;
     throw error;
@@ -198,6 +202,67 @@ export async function readFactoryProductScope(options = {}) {
   };
 }
 
+export async function applyFactoryReceiptDrivenTransition(options = {}) {
+  const {
+    productId,
+    fromState,
+    toState,
+    receipt,
+    receiptPath,
+    transitionId,
+    createdAt = new Date().toISOString(),
+  } = options;
+  if (!productId) throw new Error("Factory receipt-driven transition requires product_id.");
+  if (!fromState || !toState) throw new Error("Factory receipt-driven transition requires from_state and to_state.");
+  if (!isAllowedReceiptDrivenTransition(fromState, toState)) {
+    throw new Error(`Factory receipt-driven transition rejected: ${fromState} -> ${toState} is not enabled in FA.3.`);
+  }
+
+  const receiptEnvelope = receipt ?? await readReceiptEnvelope(receiptPath);
+  if (!receiptEnvelope) throw new Error("Factory receipt-driven transition requires a receipt envelope.");
+  const receiptId = receiptEnvelope.receipt_id;
+  if (!receiptId) throw new Error("Factory receipt-driven transition receipt is missing receipt_id.");
+  if (receiptEnvelope.subject?.product_id !== productId) {
+    throw new Error(`Factory receipt-driven transition rejected: receipt product ${receiptEnvelope.subject?.product_id ?? "missing"} does not match ${productId}.`);
+  }
+
+  const scope = await readFactoryProductScope({ ...options, productId });
+  const currentState = resolveCurrentProductState(scope);
+  if (currentState !== fromState) {
+    throw new Error(`Factory receipt-driven transition rejected: current state ${currentState ?? "missing"} does not match ${fromState}.`);
+  }
+  if (scope.state_transitions.some((row) => row.receipt_id === receiptId)) {
+    throw new Error(`Factory receipt-driven transition rejected: receipt ${receiptId} was already used.`);
+  }
+
+  const transitionDraft = {
+    schema_version: "product-state-transition.v1",
+    transition_id: transitionId ?? `transition.${slug(productId)}.${slug(fromState)}.${slug(toState)}.${slug(receiptId)}`,
+    product_id: productId,
+    from_state: fromState,
+    to_state: toState,
+    receipt_id: receiptId,
+    created_at: createdAt,
+    authority_flags: AUTHORITY_CLOSED,
+  };
+  const expectedBoundPayload = computeFactoryPayloadHash(transitionDraft);
+  if (receiptEnvelope.subject?.bound_transition_payload_sha256 !== expectedBoundPayload) {
+    throw new Error(`Factory receipt-driven transition rejected: receipt bound_transition_payload_sha256 must equal ${expectedBoundPayload}.`);
+  }
+
+  const storedReceipt = await appendFactoryLedgerEntry("receipts_index", receiptEnvelope, options);
+  const storedTransition = await appendFactoryLedgerEntry("state_transitions", transitionDraft, options);
+  return {
+    schema_version: "factory-receipt-driven-state-transition-result.v1",
+    product_id: productId,
+    from_state: fromState,
+    to_state: toState,
+    receipt_id: receiptId,
+    stored_receipt: storedReceipt,
+    stored_transition: storedTransition,
+  };
+}
+
 export async function verifyFactoryLedgerStore(options = {}) {
   const files = {};
   for (const ledgerName of Object.keys(FACTORY_LEDGER_FILES)) {
@@ -210,6 +275,8 @@ export async function verifyFactoryLedgerStore(options = {}) {
     schema_version: "factory-ledger-store-summary.v1",
     ledger_dir: path.resolve(options.ledgerDir ?? DEFAULT_FACTORY_LEDGER_DIR),
     append_jsonl_store_ready: validation.valid,
+    receipt_driven_transition_handlers_ready: true,
+    ps3_transition_handler_enabled: false,
     ledger_file_count: Object.keys(files).length,
     ledger_total_entry_count: totalEntries,
     products_entry_count: files.products.entries.length,
@@ -344,6 +411,7 @@ export async function runFactoryProductRegistryStoreCli(argv = process.argv.slic
     console.log(`Status: ${result.summary.factory_product_registry_store_status}`);
     console.log(`Program: ${result.summary.program_range}`);
     console.log(`Append JSONL store ready: ${result.summary.append_jsonl_store_ready}`);
+    console.log(`Receipt-driven transitions ready: ${result.summary.receipt_driven_transition_handlers_ready}`);
     console.log(`Local ledger gitignored: ${result.summary.local_operational_ledger_gitignored}`);
     console.log(`Ledger entries: ${result.summary.ledger_total_entry_count}`);
     console.log(`Validation errors: ${result.validation.errors.length}`);
@@ -393,7 +461,8 @@ function buildSamples(generatedAt) {
     subject: {
       product_id: "product.hermes_harness",
       artifact_id: "artifact.factory_append_ledger",
-      scope_id: "FCORE-FA.2",
+      scope_id: "FCORE-FA.3",
+      bound_transition_payload_sha256: stateTransition.payload_sha256,
       reviewed_commit_sha: null,
     },
     authority_flags: AUTHORITY_CLOSED,
@@ -414,6 +483,8 @@ function buildBoundary({ gitignore, ledgerStore }) {
     local_operational_ledger_gitignored: gitignore.text.includes("data/factory/local/"),
     raw_confidential_material_tracked_allowed: false,
     append_jsonl_store_ready: ledgerStore.validation.valid,
+    receipt_driven_transition_handlers_ready: true,
+    ps3_transition_handler_enabled: false,
     ledger_validation_errors: ledgerStore.validation.errors.length,
     project_creation_allowed_now: false,
     repo_write_allowed_now: false,
@@ -432,6 +503,7 @@ function buildValidationItems({ productSchema, receiptSchema, stateStoreDoc, git
     validationItem("doc.state_store.available", "documentation", stateStoreDoc.available === true, "Factory state store doc unavailable", stateStoreDoc.path),
     validationItem("gitignore.local_ledger", "store_policy", boundary.local_operational_ledger_gitignored === true, "Local operational ledger root is not gitignored", gitignore.path),
     validationItem("ledger.store.valid", "ledger", ledgerStore.validation.valid === true, "Append JSONL ledger validation failed", ledgerStore.ledger_dir),
+    validationItem("transition.ps0_ps2_handlers_only", "state_transition", receiptDrivenHandlersClosed(), "FA.3 receipt-driven handlers must be limited to PS0-PS2", "src/factory-product-registry-store.mjs"),
     validationItem("boundary.authority_closed", "authority", allAuthorityClosed(boundary), "Factory schema contract opened authority", "factory_product_registry_store_boundary"),
   ];
   for (const [ledgerName, file] of Object.entries(ledgerStore.files)) {
@@ -462,12 +534,14 @@ function buildSummary({ boundary, ledgerStore, validation }) {
     program_range: PROGRAM_RANGE,
     schema_contracts_ready: ready,
     append_jsonl_store_ready: ready,
+    receipt_driven_transition_handlers_ready: ready,
     tracked_seed_root: "data/factory/seed/",
     local_operational_ledger_root: "data/factory/local/",
     local_operational_ledger_gitignored: boundary.local_operational_ledger_gitignored,
     ledger_dir: ledgerStore.ledger_dir,
     ledger_total_entry_count: ledgerStore.summary.ledger_total_entry_count,
     ledger_validation_errors: ledgerStore.validation.errors.length,
+    ps3_transition_handler_enabled: false,
     validation_errors: validation.errors.length,
     project_creation_allowed_now: false,
     repo_write_allowed_now: false,
@@ -477,6 +551,26 @@ function buildSummary({ boundary, ledgerStore, validation }) {
     production_pass_enabled: false,
     enterprise_pass_enabled: false,
   };
+}
+
+function isAllowedReceiptDrivenTransition(fromState, toState) {
+  return RECEIPT_DRIVEN_TRANSITIONS.some(([allowedFrom, allowedTo]) => fromState === allowedFrom && toState === allowedTo);
+}
+
+function receiptDrivenHandlersClosed() {
+  return RECEIPT_DRIVEN_TRANSITIONS.length === 2
+    && RECEIPT_DRIVEN_TRANSITIONS.every(([fromState, toState]) => !fromState.startsWith("PS3") && !toState.startsWith("PS3"));
+}
+
+function resolveCurrentProductState(scope) {
+  const latestTransition = scope.state_transitions.at(-1);
+  if (latestTransition) return latestTransition.to_state;
+  return scope.products.at(-1)?.product_state ?? null;
+}
+
+async function readReceiptEnvelope(receiptPath) {
+  if (!receiptPath) return null;
+  return JSON.parse(await readFile(path.resolve(receiptPath), "utf8"));
 }
 
 async function validateFactoryLedgerRow(ledgerName, row, options = {}) {
@@ -621,6 +715,7 @@ function renderMarkdown(result) {
     `Status: ${result.summary.factory_product_registry_store_status}`,
     `Program: ${result.program_range}`,
     `Append JSONL store ready: ${result.summary.append_jsonl_store_ready}`,
+    `Receipt-driven transitions ready: ${result.summary.receipt_driven_transition_handlers_ready}`,
     `Tracked seed root: ${result.summary.tracked_seed_root}`,
     `Local operational ledger root: ${result.summary.local_operational_ledger_root}`,
     `Local operational ledger gitignored: ${result.summary.local_operational_ledger_gitignored}`,

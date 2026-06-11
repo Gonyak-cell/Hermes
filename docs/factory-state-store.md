@@ -1,6 +1,6 @@
 # Factory State Store
 
-Status: FA.2 append ledger, local runtime write only.
+Status: FA.3 receipt-driven PS0-PS2 transitions, local runtime write only.
 Date: 2026-06-11
 
 ## Purpose
@@ -54,6 +54,23 @@ schema.
 
 Recovery is local-only and truncates a damaged JSONL file to the last valid
 prefix. It does not create production or enterprise evidence.
+
+## Receipt-Driven State Transitions
+
+FA.3 enables only these receipt-driven transitions:
+
+- `PS0_seed -> PS1_schema_valid`
+- `PS1_schema_valid -> PS2_receipt_bound`
+
+A transition receipt must:
+
+- validate as `factory-receipt-envelope.v1`
+- match the requested `product_id`
+- carry `subject.bound_transition_payload_sha256`
+- bind that hash to the exact canonical transition payload
+- be unused in the product state transition ledger
+
+`PS3_candidate_ready` and later states have no handler in FA.3.
 
 ## Core Schemas
 
@@ -120,7 +137,7 @@ FA.1 does not enable PS3 or later behavior.
 
 ## Authority Boundary
 
-FA.2 keeps these false:
+FA.3 keeps these false:
 
 - `project_creation_allowed_now`
 - `repo_write_allowed_now`
@@ -156,5 +173,7 @@ Expected result:
 - sample `product-state-transition.v1` validates
 - sample `factory-receipt-envelope.v1` validates
 - existing JSONL ledgers validate when present
+- receipt-driven PS0-PS2 handlers are ready
+- PS3 transition handler remains disabled
 - `--check` does not write ledger or artifact files
 - authority flags remain false

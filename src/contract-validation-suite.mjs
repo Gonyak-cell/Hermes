@@ -17,6 +17,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "contracts:migrations",
   "contracts:golden-fixtures",
   "contracts:validate",
+  "platform:factory-product-registry-store",
   "api:route-inventory",
   "dashboard:ia",
   "approval:queue-ui",

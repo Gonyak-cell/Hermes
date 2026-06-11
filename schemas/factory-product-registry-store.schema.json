@@ -1,0 +1,178 @@
+{
+  "$id": "https://hermes.local/schemas/factory-product-registry-store.schema.json",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "capability_id",
+    "command_name",
+    "program_range",
+    "store_policy",
+    "product_record_sample",
+    "state_transition_sample",
+    "receipt_envelope_sample",
+    "factory_product_registry_store_boundary",
+    "validation",
+    "summary"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": { "const": "factory-product-registry-store.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "capability_id": { "const": "factory.product_registry_store" },
+    "command_name": { "const": "platform:factory-product-registry-store" },
+    "program_range": { "const": "FCORE-FA.1" },
+    "store_policy": {
+      "type": "object",
+      "required": [
+        "tracked_seed_root",
+        "local_operational_ledger_root",
+        "raw_confidential_material_tracked_allowed",
+        "local_operational_ledger_gitignored"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "tracked_seed_root": { "const": "data/factory/seed/" },
+        "local_operational_ledger_root": { "const": "data/factory/local/" },
+        "raw_confidential_material_tracked_allowed": { "const": false },
+        "local_operational_ledger_gitignored": { "type": "boolean" }
+      }
+    },
+    "product_record_sample": { "$ref": "#/$defs/productRecord" },
+    "state_transition_sample": { "$ref": "#/$defs/productStateTransition" },
+    "receipt_envelope_sample": { "type": "object" },
+    "factory_product_registry_store_boundary": { "$ref": "#/$defs/authorityBoundary" },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "additionalProperties": true,
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "factory_product_registry_store_status",
+        "program_range",
+        "schema_contracts_ready",
+        "tracked_seed_root",
+        "local_operational_ledger_root",
+        "local_operational_ledger_gitignored",
+        "project_creation_allowed_now",
+        "repo_write_allowed_now",
+        "connector_write_allowed_now",
+        "deployment_allowed_now",
+        "protected_action_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "factory_product_registry_store_status": {
+          "type": "string",
+          "enum": ["ready_factory_product_registry_store_schema_contracts", "blocked_factory_product_registry_store_schema_contracts"]
+        },
+        "program_range": { "const": "FCORE-FA.1" },
+        "schema_contracts_ready": { "type": "boolean" },
+        "tracked_seed_root": { "const": "data/factory/seed/" },
+        "local_operational_ledger_root": { "const": "data/factory/local/" },
+        "local_operational_ledger_gitignored": { "type": "boolean" },
+        "project_creation_allowed_now": { "const": false },
+        "repo_write_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "productRecord": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "product_id",
+        "tenant_id",
+        "workspace_id",
+        "domain_pack_ids",
+        "product_state",
+        "created_at",
+        "updated_at",
+        "authority_flags"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "schema_version": { "const": "product-record.v1" },
+        "product_id": { "type": "string", "pattern": "^product\\.[a-z0-9][a-z0-9._-]+$" },
+        "tenant_id": { "type": "string", "pattern": "^tenant\\.[a-z0-9][a-z0-9._-]+$" },
+        "workspace_id": { "type": "string", "pattern": "^workspace\\.[a-z0-9][a-z0-9._-]+$" },
+        "domain_pack_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^pack\\.[a-z0-9][a-z0-9._-]+$" }
+        },
+        "product_state": {
+          "type": "string",
+          "enum": ["PS0_seed", "PS1_schema_valid", "PS2_receipt_bound", "PS3_candidate_ready", "PS4_apply_ready", "PS5_limited_execution", "PS6_release_candidate", "PS7_deploy_ready"]
+        },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" },
+        "authority_flags": { "$ref": "#/$defs/authorityBoundary" }
+      }
+    },
+    "productStateTransition": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "transition_id",
+        "product_id",
+        "from_state",
+        "to_state",
+        "receipt_id",
+        "payload_sha256",
+        "prev_entry_hash",
+        "created_at",
+        "authority_flags"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "schema_version": { "const": "product-state-transition.v1" },
+        "transition_id": { "type": "string", "pattern": "^transition\\.[a-z0-9][a-z0-9._-]+$" },
+        "product_id": { "type": "string", "pattern": "^product\\.[a-z0-9][a-z0-9._-]+$" },
+        "from_state": { "type": "string", "minLength": 1 },
+        "to_state": { "type": "string", "minLength": 1 },
+        "receipt_id": { "type": "string", "pattern": "^rcpt-[a-z0-9][a-z0-9._-]+$" },
+        "payload_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "prev_entry_hash": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "authority_flags": { "$ref": "#/$defs/authorityBoundary" }
+      }
+    },
+    "authorityBoundary": {
+      "type": "object",
+      "required": [
+        "project_creation_allowed_now",
+        "repo_write_allowed_now",
+        "connector_write_allowed_now",
+        "deployment_allowed_now",
+        "protected_action_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "project_creation_allowed_now": { "const": false },
+        "repo_write_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    }
+  }
+}

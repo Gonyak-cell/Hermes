@@ -1,0 +1,69 @@
+{
+  "$id": "https://hermes.local/schemas/factory-receipt-envelope.schema.json",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "receipt_id",
+    "receipt_kind",
+    "issuer",
+    "subject",
+    "payload_sha256",
+    "prev_entry_hash",
+    "authority_flags"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": { "const": "factory-receipt-envelope.v1" },
+    "receipt_id": { "type": "string", "pattern": "^rcpt-[a-z0-9][a-z0-9._-]+$" },
+    "receipt_kind": { "type": "string", "minLength": 1 },
+    "issued_at": { "type": "string", "format": "date-time" },
+    "issuer": {
+      "type": "object",
+      "required": ["issuer_role", "issuer_id"],
+      "additionalProperties": true,
+      "properties": {
+        "issuer_role": {
+          "type": "string",
+          "enum": ["human_owner", "independent_reviewer", "codex_implementer", "validator", "system"]
+        },
+        "issuer_id": { "type": "string", "minLength": 1 },
+        "engine_resolved_model_id": { "type": ["string", "null"] }
+      }
+    },
+    "subject": {
+      "type": "object",
+      "required": ["product_id", "artifact_id", "scope_id"],
+      "additionalProperties": true,
+      "properties": {
+        "product_id": { "type": "string", "pattern": "^product\\.[a-z0-9][a-z0-9._-]+$" },
+        "artifact_id": { "type": "string", "pattern": "^artifact\\.[a-z0-9][a-z0-9._-]+$" },
+        "scope_id": { "type": "string", "minLength": 1 },
+        "reviewed_commit_sha": { "type": ["string", "null"], "pattern": "^[a-f0-9]{7,64}$" }
+      }
+    },
+    "payload_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "prev_entry_hash": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+    "authority_flags": {
+      "type": "object",
+      "required": [
+        "project_creation_allowed_now",
+        "repo_write_allowed_now",
+        "connector_write_allowed_now",
+        "deployment_allowed_now",
+        "protected_action_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "project_creation_allowed_now": { "const": false },
+        "repo_write_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    }
+  }
+}

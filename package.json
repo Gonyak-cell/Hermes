@@ -634,6 +634,7 @@
     "platform:saas-factory-mode": "node scripts/saas-factory-mode.mjs",
     "platform:connector-external-app-governance": "node scripts/connector-external-app-governance.mjs",
     "platform:execution-write-authority-maturity": "node scripts/execution-write-authority-maturity.mjs",
+    "platform:factory-product-registry-store": "node scripts/factory-product-registry-store.mjs",
     "factory:receipt-preflight": "node scripts/factory-receipt-preflight.mjs",
     "factory:promotion-f0-gate": "node scripts/factory-promotion-f0-gate.mjs",
     "factory:f0-review-receipt-intake": "node scripts/factory-f0-review-receipt-intake.mjs",

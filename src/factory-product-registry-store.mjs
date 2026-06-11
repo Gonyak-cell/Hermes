@@ -50,6 +50,14 @@ const FACTORY_SEED_PRODUCT_SPECS = [
 
 const AUTHORITY_CLOSED = {
   project_creation_allowed_now: false,
+  review_decision_allowed_now: false,
+  approval_allowed_now: false,
+  apply_allowed_now: false,
+  apply_engine_runtime_enabled_now: false,
+  rollback_executor_runtime_enabled_now: false,
+  source_file_write_allowed_now: false,
+  ledger_append_allowed_now: false,
+  persistent_ledger_append_allowed_now: false,
   repo_write_allowed_now: false,
   connector_write_allowed_now: false,
   deployment_allowed_now: false,

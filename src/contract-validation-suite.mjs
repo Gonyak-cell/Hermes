@@ -21,6 +21,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "factory:seed-migration",
   "factory:receipt-verify",
   "factory:apply-engine-closed",
+  "factory:receipt-authority-schema-freeze",
   "api:route-inventory",
   "dashboard:ia",
   "approval:queue-ui",

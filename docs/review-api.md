@@ -210,6 +210,15 @@ Supported filters include `row_id`, `category`, `current_verdict`, and `limit`.
 
 Routes: `/api/factory/g1a-source-literal-preflight`.
 
+`GET /api/factory/g1a-opening-closeout-readiness` returns the read-only G1a
+gate-opening closeout chain rows plus blocker rows. The default state is
+`waiting_for_signed_g1a_owner_receipt`; the route does not sign receipts, edit
+source, open G1a, claim first-use audit, or grant project creation authority.
+
+Supported filters include `row_id`, `category`, `current_verdict`, and `limit`.
+
+Routes: `/api/factory/g1a-opening-closeout-readiness`.
+
 `GET` and `HEAD` are allowed. Mutation methods return `405
 method_not_allowed`.
 

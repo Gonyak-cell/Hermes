@@ -656,6 +656,7 @@
     "factory:g1a-opening-packet": "node scripts/factory-g1a-opening-packet.mjs",
     "factory:g1a-owner-receipt-intake": "node scripts/factory-g1a-owner-receipt-intake.mjs",
     "factory:g1a-source-literal-preflight": "node scripts/factory-g1a-source-literal-preflight.mjs",
+    "factory:g1a-opening-closeout-readiness": "node scripts/factory-g1a-opening-closeout-readiness.mjs",
     "factory:claude-review-evidence": "node scripts/claude-review-evidence-validator.mjs",
     "factory:seed-migration": "node scripts/factory-seed-migration.mjs",
     "factory:receipt-preflight": "node scripts/factory-receipt-preflight.mjs",

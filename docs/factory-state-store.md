@@ -463,6 +463,22 @@ is read-only and preview-only: it does not edit `src/factory-gate-opening-readin
 does not add receipt literals, does not claim first-use audit, and does not open
 `project_creation_allowed_now`.
 
+## Factory G1a Opening Closeout Readiness
+
+G1a opening closeout readiness aggregates the G0, packet, owner receipt intake,
+and source-literal preflight layers into one read-only blocker surface:
+
+```bash
+npm run factory:g1a-opening-closeout-readiness -- --check
+node scripts/review-api.mjs --once /api/factory/g1a-opening-closeout-readiness
+```
+
+The current chain is 4 pass / 6 wait / 0 fail. The waiting blockers are the
+signed owner receipt, receipt intake with that signed receipt, source-literal
+preflight with that receipt, the isolated source-literal commit, source receipt
+binding, and the first-use audit. The command does not open G1a or grant project
+creation authority.
+
 ## Claude Review Evidence Validator
 
 Factory promotion review artifacts are classified before they can be counted:

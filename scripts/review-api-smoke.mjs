@@ -26,6 +26,7 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/factory/g1a-opening-packet"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/g1a-owner-receipt-intake"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/g1a-source-literal-preflight"));
+  assert.ok(index.routes.some((route) => route.path === "/api/factory/g1a-opening-closeout-readiness"));
   assert.ok(index.routes.some((route) => route.path === "/api/packs"));
   assert.ok(index.routes.some((route) => route.path === "/api/capabilities"));
   assert.ok(index.routes.some((route) => route.path === "/api/artifacts"));
@@ -7357,6 +7358,22 @@ try {
   assert.equal(factoryG1aSourceLiteralPreflightHead.status, 200);
   const factoryG1aSourceLiteralPreflightPost = await fetch(`${url}/api/factory/g1a-source-literal-preflight`, { method: "POST" });
   assert.equal(factoryG1aSourceLiteralPreflightPost.status, 405);
+
+  const factoryG1aOpeningCloseoutReadiness = await fetchJson(`${url}/api/factory/g1a-opening-closeout-readiness?category=owner_receipt`);
+  assert.equal(factoryG1aOpeningCloseoutReadiness.collection, "factory_g1a_opening_closeout_chain_rows");
+  assert.equal(factoryG1aOpeningCloseoutReadiness.read_only, true);
+  assert.equal(factoryG1aOpeningCloseoutReadiness.mutation_allowed, false);
+  assert.equal(factoryG1aOpeningCloseoutReadiness.closeout_readiness_only, true);
+  assert.equal(factoryG1aOpeningCloseoutReadiness.owner_adjudication_required, true);
+  assert.equal(factoryG1aOpeningCloseoutReadiness.opens_gate_now, false);
+  assert.equal(factoryG1aOpeningCloseoutReadiness.summary.factory_g1a_opening_closeout_readiness_status, "waiting_for_signed_g1a_owner_receipt");
+  assert.equal(factoryG1aOpeningCloseoutReadiness.g1a_project_creation_gate_open_now, false);
+  assert.equal(factoryG1aOpeningCloseoutReadiness.project_creation_allowed_now, false);
+  assert.equal(factoryG1aOpeningCloseoutReadiness.production_pass_enabled, false);
+  const factoryG1aOpeningCloseoutReadinessHead = await fetch(`${url}/api/factory/g1a-opening-closeout-readiness`, { method: "HEAD" });
+  assert.equal(factoryG1aOpeningCloseoutReadinessHead.status, 200);
+  const factoryG1aOpeningCloseoutReadinessPost = await fetch(`${url}/api/factory/g1a-opening-closeout-readiness`, { method: "POST" });
+  assert.equal(factoryG1aOpeningCloseoutReadinessPost.status, 405);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

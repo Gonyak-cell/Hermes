@@ -21,6 +21,7 @@
 [g1a-first-use-audit-readiness.md](g1a-first-use-audit-readiness.md),
 [g1a-owner-candidate-selection-docket.md](g1a-owner-candidate-selection-docket.md),
 [g1a-owner-signing-handoff.md](g1a-owner-signing-handoff.md), 그리고
+[g1a-owner-action-packet.md](g1a-owner-action-packet.md),
 [factory-promotion-closeout-readiness.md](factory-promotion-closeout-readiness.md)이다. G0는
 G1a/G1b/G2/G3 상태를 읽기전용으로 계산하고, 어떤 권한도 열지 않는다.
 G1a는 선행조건과 리뷰 패킷이 준비됐지만 signed owner `gate_opening`
@@ -47,6 +48,14 @@ G1a owner signing handoff는 unsigned template과 signed receipt intake 사이�
 `owner-completion-checklist.json`, `owner-signing-work-order.json`, 그리고
 Law Firm OS식 Opus review packet을 만들지만 owner 대신 서명하지 않고,
 G1a를 열지 않으며, source literal을 변경하지 않는다.
+
+G1a owner action packet은 candidate selection docket, owner signing handoff,
+Factory Promotion closeout readiness를 묶어 다음 owner action을 한 표면에
+정렬한다. 기본 상태는 `ready_g1a_owner_action_packet`, candidate cards 3개,
+owner action pass/wait/fail `0/8/0`, first required action
+`owner.choose_candidate_hash`이다. 이 패킷도 후보를 기본 선택하지 않고,
+owner receipt 서명, source literal 변경, first-use audit, protected closeout,
+G1a 개방, production/enterprise PASS를 수행하지 않는다.
 
 G1a source literal preflight는 signed owner receipt가 들어왔을 때의 미래
 소스 리터럴 커밋 형태를 사전검증한다. 현재는 unsigned template만 있으므로

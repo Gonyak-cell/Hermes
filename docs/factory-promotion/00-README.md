@@ -42,9 +42,11 @@
 | 12 | [06-pilot-strategy.md](06-pilot-strategy.md) | 소유자 | 파일럿 제품 순서와 기준 |
 | 13 | [07-verification-strategy.md](07-verification-strategy.md) | Codex 레인 | 상태형 테스트·실행형 네거티브 픽스처 규약 |
 | 14 | [08-operating-cadence-and-checklist.md](08-operating-cadence-and-checklist.md) | 전원 | 리뷰 윈도우 운영·체크리스트 |
-| 15 | [factory-promotion-closeout-readiness.md](factory-promotion-closeout-readiness.md) | 소유자 + Codex | FCORE 완료 증거와 G1a owner-chain 대기 상태를 묶은 최상위 closeout readiness |
-| 16 | [factory-promotion-closeout-readiness-claude-opus-4-8-review-receipt.md](factory-promotion-closeout-readiness-claude-opus-4-8-review-receipt.md) | 감사/리뷰 | 최상위 closeout readiness Opus 4.8 read-only 리뷰 영수증 |
-| 17 | [99-structured-summary.json](99-structured-summary.json) | 기계/감사 | 패키지 메타데이터 |
+| 15 | [g1a-owner-action-packet.md](g1a-owner-action-packet.md) | 소유자 + Codex | G1a owner-chain의 다음 human-owner 작업을 모은 read-only action packet |
+| 16 | [g1a-owner-action-packet-claude-opus-4-8-review-receipt.md](g1a-owner-action-packet-claude-opus-4-8-review-receipt.md) | 감사/리뷰 | G1a owner action packet Opus 4.8 read-only 리뷰 영수증 |
+| 17 | [factory-promotion-closeout-readiness.md](factory-promotion-closeout-readiness.md) | 소유자 + Codex | FCORE 완료 증거와 G1a owner-chain 대기 상태를 묶은 최상위 closeout readiness |
+| 18 | [factory-promotion-closeout-readiness-claude-opus-4-8-review-receipt.md](factory-promotion-closeout-readiness-claude-opus-4-8-review-receipt.md) | 감사/리뷰 | 최상위 closeout readiness Opus 4.8 read-only 리뷰 영수증 |
+| 19 | [99-structured-summary.json](99-structured-summary.json) | 기계/감사 | 패키지 메타데이터 |
 
 ## 용어 (패키지 전체 공통)
 

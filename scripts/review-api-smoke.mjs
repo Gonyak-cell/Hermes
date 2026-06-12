@@ -30,6 +30,7 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/factory/g1a-opening-closeout-readiness"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/g1a-first-use-audit-readiness"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/g1a-owner-signing-handoff"));
+  assert.ok(index.routes.some((route) => route.path === "/api/factory/g1a-owner-action-packet"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/promotion-closeout-readiness"));
   assert.ok(index.routes.some((route) => route.path === "/api/packs"));
   assert.ok(index.routes.some((route) => route.path === "/api/capabilities"));
@@ -7453,6 +7454,24 @@ try {
   assert.equal(factoryG1aOwnerCandidateSelectionDocketHead.status, 200);
   const factoryG1aOwnerCandidateSelectionDocketPost = await fetch(`${url}/api/factory/g1a-owner-candidate-selection-docket`, { method: "POST" });
   assert.equal(factoryG1aOwnerCandidateSelectionDocketPost.status, 405);
+
+  const factoryG1aOwnerActionPacket = await fetchJson(`${url}/api/factory/g1a-owner-action-packet?limit=1`);
+  assert.equal(factoryG1aOwnerActionPacket.collection, "factory_g1a_owner_action_rows");
+  assert.equal(factoryG1aOwnerActionPacket.read_only, true);
+  assert.equal(factoryG1aOwnerActionPacket.mutation_allowed, false);
+  assert.equal(factoryG1aOwnerActionPacket.action_packet_only, true);
+  assert.equal(factoryG1aOwnerActionPacket.owner_completion_required, true);
+  assert.equal(factoryG1aOwnerActionPacket.signs_owner_receipt_now, false);
+  assert.equal(factoryG1aOwnerActionPacket.source_mutation_allowed_now, false);
+  assert.equal(factoryG1aOwnerActionPacket.opens_gate_now, false);
+  assert.equal(factoryG1aOwnerActionPacket.summary.factory_g1a_owner_action_packet_status, "ready_g1a_owner_action_packet");
+  assert.equal(factoryG1aOwnerActionPacket.g1a_project_creation_gate_open_now, false);
+  assert.equal(factoryG1aOwnerActionPacket.project_creation_allowed_now, false);
+  assert.equal(factoryG1aOwnerActionPacket.production_pass_enabled, false);
+  const factoryG1aOwnerActionPacketHead = await fetch(`${url}/api/factory/g1a-owner-action-packet`, { method: "HEAD" });
+  assert.equal(factoryG1aOwnerActionPacketHead.status, 200);
+  const factoryG1aOwnerActionPacketPost = await fetch(`${url}/api/factory/g1a-owner-action-packet`, { method: "POST" });
+  assert.equal(factoryG1aOwnerActionPacketPost.status, 405);
 
   const factoryPromotionCloseoutReadiness = await fetchJson(`${url}/api/factory/promotion-closeout-readiness?category=g1a_owner`);
   assert.equal(factoryPromotionCloseoutReadiness.collection, "factory_promotion_closeout_readiness_rows");

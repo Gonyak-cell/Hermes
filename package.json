@@ -662,6 +662,7 @@
     "factory:g1a-first-use-audit-readiness": "node scripts/factory-g1a-first-use-audit-readiness.mjs",
     "factory:g1a-owner-signing-handoff": "node scripts/factory-g1a-owner-signing-handoff.mjs",
     "factory:g1a-owner-candidate-selection-docket": "node scripts/factory-g1a-owner-candidate-selection-docket.mjs",
+    "factory:g1a-owner-action-packet": "node scripts/factory-g1a-owner-action-packet.mjs",
     "factory:claude-review-evidence": "node scripts/claude-review-evidence-validator.mjs",
     "factory:seed-migration": "node scripts/factory-seed-migration.mjs",
     "factory:receipt-preflight": "node scripts/factory-receipt-preflight.mjs",

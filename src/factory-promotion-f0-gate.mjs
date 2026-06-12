@@ -224,13 +224,14 @@ function buildF0PhaseRows({ ownerReceipt, ownerNoOpusException, noOpusException,
   const s01 = decisionMap.get("S0-1");
   const s02 = decisionMap.get("S0-2");
   const receiptPreflightPassed = receiptPreflight.data?.summary?.f0_1_receipt_preflight_passed === true && s01?.decision === "A_then_B";
+  const independentReviewDeferred = noOpusException.active && !receiptPreflightPassed;
   const rows = [
     gateRow({
       row_id: "F0.1",
-      category: noOpusException.active ? "owner_exception" : "receipt_preflight",
+      category: independentReviewDeferred ? "owner_exception" : "receipt_preflight",
       label: "F0.1 independent review receipts pass integrity preflight or owner no-Opus exception is active",
       observed: receiptPreflightPassed || noOpusException.active,
-      evidence_ref: noOpusException.active ? ownerNoOpusException.path : receiptPreflight.path,
+      evidence_ref: independentReviewDeferred ? ownerNoOpusException.path : receiptPreflight.path,
       generated_at: generatedAt,
       blocked_reason: buildReceiptBlockedReason(receiptPreflight.data),
       expected_decision: "A_then_B",
@@ -239,8 +240,8 @@ function buildF0PhaseRows({ ownerReceipt, ownerNoOpusException, noOpusException,
       receipt_preflight_passed: receiptPreflightPassed,
       owner_no_opus_exception_active: noOpusException.active,
       owner_no_opus_exception_receipt_id: noOpusException.receipt_id,
-      independent_review_deferred_now: noOpusException.active,
-      fa_implementation_trust_level: noOpusException.active ? "owner_exception_low_trust" : "reviewed_baseline",
+      independent_review_deferred_now: independentReviewDeferred,
+      fa_implementation_trust_level: independentReviewDeferred ? "owner_exception_low_trust" : "reviewed_baseline",
     }),
     gateRow({
       row_id: "F0.2",
@@ -323,20 +324,22 @@ function buildBoundary({ ownerReceipt, ownerNoOpusException, noOpusException, re
   ]);
   const f0PhasePassCount = f0PhaseRows.filter((row) => row.current_verdict === "pass").length;
   const f0AllPhasesPassed = f0PhaseRows.length > 0 && f0PhasePassCount === f0PhaseRows.length;
+  const receiptPreflightPassed = receiptPreflight.data?.summary?.f0_1_receipt_preflight_passed === true;
+  const independentReviewDeferred = noOpusException.active && !receiptPreflightPassed;
   return {
     owner_adjudication_receipt_present_now: ownerReceipt.available === true,
     owner_adjudication_receipt_id: ownerReceipt.data?.receipt_id ?? null,
     owner_no_opus_exception_receipt_present_now: ownerNoOpusException.available === true,
     owner_no_opus_exception_active_now: noOpusException.active,
     owner_no_opus_exception_receipt_id: noOpusException.receipt_id,
-    independent_review_deferred_now: noOpusException.active,
-    fa_implementation_trust_level: noOpusException.active ? "owner_exception_low_trust" : "reviewed_baseline",
+    independent_review_deferred_now: independentReviewDeferred,
+    fa_implementation_trust_level: independentReviewDeferred ? "owner_exception_low_trust" : "reviewed_baseline",
     receipt_preflight_validation_valid: receiptPreflight.data?.validation?.valid === true,
     saas_factory_mode_validation_valid: saasFactoryMode.data?.validation?.valid === true,
     f0_phase_count: f0PhaseRows.length,
     f0_phase_pass_count: f0PhasePassCount,
     f0_all_phases_passed: f0AllPhasesPassed,
-    f0_1_receipt_preflight_passed: receiptPreflight.data?.summary?.f0_1_receipt_preflight_passed === true,
+    f0_1_receipt_preflight_passed: receiptPreflightPassed,
     f0_2_source_handoff_or_visible_waiver_now: saasFactoryMode.data?.summary?.f0_2_source_handoff_or_visible_waiver_now === true,
     source_ready_for_p15001_handoff: saasFactoryMode.data?.summary?.source_ready_for_p15001_handoff === true,
     source_blocker_waived_for_fcore_corrective_baseline_now: saasFactoryMode.data?.summary?.source_blocker_waived_for_fcore_corrective_baseline_now === true,

@@ -1,7 +1,7 @@
 # F0 Receipt Integrity Preflight
 
-Status: F0 pre-implementation guard, not approval.
-Date: 2026-06-11
+Status: F0.1 receipt-integrity guard passed for the current reviewed baseline; not final approval.
+Date: 2026-06-12
 
 ## Purpose
 
@@ -72,13 +72,15 @@ AND
 reviewed_commit_sha matches the intended F0 review target
 ```
 
-For this run only, the human owner issued
-`docs/factory-promotion/f0-owner-no-opus-exception-receipt.json`. That receipt
-allows FA implementation to start at `owner_exception_low_trust` without
-claiming that this F0.1 receipt preflight passed. The missing independent review
-receipts remain deferred blockers before production PASS, enterprise PASS,
-final approval, protected closeout, connector write, deployment, or release
-approval.
+As of the current F0.1 closeout, both missing independent review receipts were
+captured through Claude Code Opus 4.8 Max raw-output review runs, normalized by
+`factory:f0-review-receipt-intake`, and accepted by this preflight with target
+pass count `2/2`, unresolved finding count `0`, and authority flags opened `0`.
+
+The earlier one-time owner no-Opus exception remains recorded in
+`docs/factory-promotion/f0-owner-no-opus-exception-receipt.json` as historical
+owner adjudication. It no longer supplies the active F0.1 review basis while
+this receipt preflight remains passed.
 
 FA implementation may start only after the aggregate F0 gate also passes:
 

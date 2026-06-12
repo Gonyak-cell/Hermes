@@ -167,6 +167,8 @@ test("Factory Promotion F0 Gate opens FA implementation only after all F0 rows p
   assert.equal(result.summary.f0_phase_count, 5);
   assert.equal(result.summary.f0_phase_pass_count, 5);
   assert.equal(result.summary.f0_1_receipt_preflight_passed, true);
+  assert.equal(result.summary.independent_review_deferred_now, false);
+  assert.equal(result.summary.fa_implementation_trust_level, "reviewed_baseline");
   assert.equal(result.summary.f0_2_source_handoff_or_visible_waiver_now, true);
   assert.equal(result.summary.source_ready_for_p15001_handoff, false);
   assert.equal(result.summary.source_blocker_waived_for_fcore_corrective_baseline_now, true);
@@ -175,6 +177,23 @@ test("Factory Promotion F0 Gate opens FA implementation only after all F0 rows p
   assert.equal(result.summary.repo_write_allowed_now, false);
   assert.equal(result.summary.production_pass_enabled, false);
   assert.equal(result.summary.enterprise_pass_enabled, false);
+});
+
+test("Factory Promotion F0 Gate records owner no-Opus receipt without deferring review after F0.1 receipts pass", async () => {
+  const result = await buildFactoryPromotionF0Gate(options({
+    ownerNoOpusExceptionReceipt: OWNER_NO_OPUS_EXCEPTION_RECEIPT,
+  }));
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.f0_1_receipt_preflight_passed, true);
+  assert.equal(result.summary.f0_1_owner_no_opus_exception_active_now, true);
+  assert.equal(result.summary.independent_review_deferred_now, false);
+  assert.equal(result.summary.fa_implementation_trust_level, "reviewed_baseline");
+  const row = result.f0_phase_rows.find((entry) => entry.row_id === "F0.1");
+  assert.equal(row.receipt_preflight_passed, true);
+  assert.equal(row.owner_no_opus_exception_active, true);
+  assert.equal(row.independent_review_deferred_now, false);
+  assert.equal(row.category, "receipt_preflight");
 });
 
 test("Factory Promotion F0 Gate keeps FA blocked when independent review receipts are missing", async () => {

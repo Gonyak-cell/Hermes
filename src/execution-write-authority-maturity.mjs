@@ -58,6 +58,34 @@ const AUTHORITY_TERMS = [
   "no protected action",
   "no final automated approval",
 ];
+const HEX_64 = /^[a-f0-9]{64}$/i;
+const GIT_SHA = /^[a-f0-9]{7,64}$/i;
+const LABEL_ONLY_ENGINE_IDS = new Set([
+  "claude",
+  "claude_code",
+  "claude_code_opus_max",
+  "opus",
+  "opus_max",
+  "fable",
+  "fable_5",
+]);
+const UNSAFE_RECEIPT_AUTHORITY_FIELDS = [
+  "project_creation_allowed_now",
+  "repo_write_allowed_now",
+  "connector_write_allowed_now",
+  "deployment_allowed_now",
+  "protected_action_allowed_now",
+  "command_execution_allowed_now",
+  "api_write_methods_allowed_now",
+  "store_mutation_allowed_now",
+  "codex_final_approval_allowed",
+  "claude_final_approval_allowed",
+  "fable_final_approval_allowed",
+  "production_pass_enabled",
+  "enterprise_pass_enabled",
+  "final_approval_allowed",
+  "final_approval_ui_enabled",
+];
 
 export async function runExecutionWriteAuthorityMaturity(options = {}) {
   const result = await buildExecutionWriteAuthorityMaturity(options);
@@ -276,11 +304,7 @@ function buildTermRows(category, labelPrefix, terms, roadmapText, outputRef, gen
 }
 
 function buildClaudeReviewRows(roadmapText, claudeReview, generatedAt) {
-  const reviewObserved = claudeReview.available === true
-    && claudeReview.data?.review_engine === "claude_code_opus_max"
-    && claudeReview.data?.receipt_status === "complete"
-    && claudeReview.data?.scope_execution_write_authority_maturity === true
-    && Number(claudeReview.data?.unresolved_finding_count ?? 0) === 0;
+  const reviewObserved = isObservedExecutionWriteAuthorityReviewReceipt(claudeReview);
   return CLAUDE_REVIEW_TERMS.map(([reviewId, label]) => verdictRow({
     row_id: `claude_execution_write_authority_review.${reviewId}`,
     category: "claude_execution_write_authority_review_gate",
@@ -294,6 +318,36 @@ function buildClaudeReviewRows(roadmapText, claudeReview, generatedAt) {
     claude_final_approval_allowed: false,
     finding_loop_required: true,
   }));
+}
+
+function isObservedExecutionWriteAuthorityReviewReceipt(claudeReview) {
+  const data = claudeReview.data ?? {};
+  const unresolvedFindingCount = Number(data.unresolved_finding_count);
+  return claudeReview.available === true
+    && data.review_engine === "claude_code_opus_max"
+    && data.receipt_status === "complete"
+    && data.scope_execution_write_authority_maturity === true
+    && data.scope_id === "execution_write_authority_maturity"
+    && Number.isFinite(unresolvedFindingCount)
+    && unresolvedFindingCount === 0
+    && typeof data.reviewed_commit_sha === "string"
+    && GIT_SHA.test(data.reviewed_commit_sha)
+    && typeof data.prompt_sha256 === "string"
+    && HEX_64.test(data.prompt_sha256)
+    && typeof data.raw_output_sha256 === "string"
+    && HEX_64.test(data.raw_output_sha256)
+    && isResolvedModelIdAcceptable(data.engine_resolved_model_id)
+    && countUnsafeReceiptAuthorityFields(data) === 0;
+}
+
+function isResolvedModelIdAcceptable(value) {
+  if (typeof value !== "string" || value.trim().length === 0) return false;
+  const normalized = value.trim().toLowerCase();
+  return !LABEL_ONLY_ENGINE_IDS.has(normalized) && !normalized.includes("fable");
+}
+
+function countUnsafeReceiptAuthorityFields(data) {
+  return UNSAFE_RECEIPT_AUTHORITY_FIELDS.filter((field) => data?.[field] === true).length;
 }
 
 function buildFreezeRows(context) {

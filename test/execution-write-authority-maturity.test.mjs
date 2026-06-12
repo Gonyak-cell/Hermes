@@ -105,6 +105,11 @@ const CLAUDE_EXECUTION_WRITE_REVIEW_READY = {
   review_engine: "claude_code_opus_max",
   receipt_status: "complete",
   scope_execution_write_authority_maturity: true,
+  scope_id: "execution_write_authority_maturity",
+  reviewed_commit_sha: "20268570e7fa1f796c66db96b86aa48219cfba7d",
+  prompt_sha256: "a".repeat(64),
+  raw_output_sha256: "b".repeat(64),
+  engine_resolved_model_id: "claude-opus-4-8",
   unresolved_finding_count: 0,
   summary: {
     review_status: "complete",
@@ -201,6 +206,26 @@ test("Execution/Write Authority Maturity keeps ready source blocked when Claude 
   assert.equal(result.summary.source_ready_for_p15801_handoff, true);
   assert.equal(result.summary.claude_execution_write_authority_review_receipt_present_now, false);
   assert.equal(result.summary.ready_for_p16201_handoff, false);
+});
+
+test("Execution/Write Authority Maturity rejects weak or unsafe Claude review receipts at the module gate", async () => {
+  const missingIntegrity = await buildExecutionWriteAuthorityMaturity(options({
+    claudeExecutionWriteAuthorityReviewReceipt: {
+      ...CLAUDE_EXECUTION_WRITE_REVIEW_READY,
+      unresolved_finding_count: undefined,
+    },
+  }));
+  assert.equal(missingIntegrity.summary.claude_execution_write_authority_review_receipt_present_now, false);
+  assert.equal(missingIntegrity.summary.ready_for_p16201_handoff, false);
+
+  const unsafeAuthority = await buildExecutionWriteAuthorityMaturity(options({
+    claudeExecutionWriteAuthorityReviewReceipt: {
+      ...CLAUDE_EXECUTION_WRITE_REVIEW_READY,
+      production_pass_enabled: true,
+    },
+  }));
+  assert.equal(unsafeAuthority.summary.claude_execution_write_authority_review_receipt_present_now, false);
+  assert.equal(unsafeAuthority.summary.ready_for_p16201_handoff, false);
 });
 
 test("Execution/Write Authority Maturity fails validation if P15800 source is missing", async () => {

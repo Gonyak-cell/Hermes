@@ -18,6 +18,7 @@
 [g1a-source-literal-preflight.md](g1a-source-literal-preflight.md),
 [g1a-opening-closeout-readiness.md](g1a-opening-closeout-readiness.md),
 [g1a-first-use-audit-readiness.md](g1a-first-use-audit-readiness.md),
+[g1a-owner-candidate-selection-docket.md](g1a-owner-candidate-selection-docket.md),
 [g1a-owner-signing-handoff.md](g1a-owner-signing-handoff.md)이다. G0는
 G1a/G1b/G2/G3 상태를 읽기전용으로 계산하고, 어떤 권한도 열지 않는다.
 G1a는 선행조건과 리뷰 패킷이 준비됐지만 signed owner `gate_opening`
@@ -31,6 +32,13 @@ receipt나 source literal 변경으로 취급하지 않는다.
 G1a owner receipt intake는 future signed owner receipt 후보를 검증한다.
 현재 기본 receipt는 unsigned template이므로 intake status는
 `waiting_for_signed_g1a_owner_receipt`이며, 이 상태도 권한을 열지 않는다.
+
+G1a owner candidate selection docket은 FC.3 후보 hash를 소유자 서명 흐름에
+연결한다. 기본 상태는 후보 3개가 보이고 선택은 없는
+`ready_g1a_owner_candidate_selection_docket`이다. hash를 명시하면 정확히 한
+row와 매칭되는지 검증하고 owner signing handoff pre-bind command를 보여줄
+수 있지만, owner 대신 후보를 선택하거나 receipt에 서명하거나 G1a를 열지는
+않는다.
 
 G1a owner signing handoff는 unsigned template과 signed receipt intake 사이의
 소유자 작업 패킷이다. `signable-owner-receipt-draft.json`,

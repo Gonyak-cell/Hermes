@@ -7413,6 +7413,26 @@ try {
   const factoryG1aOwnerSigningHandoffPost = await fetch(`${url}/api/factory/g1a-owner-signing-handoff`, { method: "POST" });
   assert.equal(factoryG1aOwnerSigningHandoffPost.status, 405);
 
+  const factoryG1aOwnerCandidateSelectionDocket = await fetchJson(`${url}/api/factory/g1a-owner-candidate-selection-docket?limit=1`);
+  assert.equal(factoryG1aOwnerCandidateSelectionDocket.collection, "factory_g1a_owner_candidate_selection_rows");
+  assert.equal(factoryG1aOwnerCandidateSelectionDocket.read_only, true);
+  assert.equal(factoryG1aOwnerCandidateSelectionDocket.mutation_allowed, false);
+  assert.equal(factoryG1aOwnerCandidateSelectionDocket.docket_only, true);
+  assert.equal(factoryG1aOwnerCandidateSelectionDocket.owner_selection_required, true);
+  assert.equal(factoryG1aOwnerCandidateSelectionDocket.selected_candidate_now, false);
+  assert.equal(factoryG1aOwnerCandidateSelectionDocket.candidate_hash_bound_now, false);
+  assert.equal(factoryG1aOwnerCandidateSelectionDocket.signs_owner_receipt_now, false);
+  assert.equal(factoryG1aOwnerCandidateSelectionDocket.source_mutation_allowed_now, false);
+  assert.equal(factoryG1aOwnerCandidateSelectionDocket.opens_gate_now, false);
+  assert.equal(factoryG1aOwnerCandidateSelectionDocket.summary.factory_g1a_owner_candidate_selection_docket_status, "ready_g1a_owner_candidate_selection_docket");
+  assert.equal(factoryG1aOwnerCandidateSelectionDocket.g1a_project_creation_gate_open_now, false);
+  assert.equal(factoryG1aOwnerCandidateSelectionDocket.project_creation_allowed_now, false);
+  assert.equal(factoryG1aOwnerCandidateSelectionDocket.production_pass_enabled, false);
+  const factoryG1aOwnerCandidateSelectionDocketHead = await fetch(`${url}/api/factory/g1a-owner-candidate-selection-docket`, { method: "HEAD" });
+  assert.equal(factoryG1aOwnerCandidateSelectionDocketHead.status, 200);
+  const factoryG1aOwnerCandidateSelectionDocketPost = await fetch(`${url}/api/factory/g1a-owner-candidate-selection-docket`, { method: "POST" });
+  assert.equal(factoryG1aOwnerCandidateSelectionDocketPost.status, 405);
+
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);
   assert.match(await html.text(), /Hermes Review Dashboard/);

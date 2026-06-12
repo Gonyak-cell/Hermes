@@ -496,6 +496,28 @@ G1a is still closed. The command does not perform first use, bind an audit into
 source, mutate `src/factory-gate-opening-readiness.mjs`, open G1a, or grant
 project creation authority.
 
+## Factory G1a Owner Candidate Selection Docket
+
+G1a owner candidate selection docket bridges FC.3 candidate review rows into the
+owner signing flow:
+
+```bash
+npm run factory:g1a-owner-candidate-selection-docket -- --check --require-pass
+node scripts/review-api.mjs --once /api/factory/g1a-owner-candidate-selection-docket
+```
+
+The default state is `ready_g1a_owner_candidate_selection_docket` with three
+eligible candidate rows and no selected candidate. This is intentional: the
+command lists candidate packet and manifest hashes that a human owner may bind
+into the future signed owner receipt, but it does not make a default selection.
+
+If an owner-selected hash is supplied, the command requires that it match
+exactly one row and then previews the corresponding
+`factory:g1a-owner-signing-handoff -- --bound-candidate-*` command. This is
+hash pre-binding only. It does not sign the owner receipt, mutate source, apply
+the G1a source-literal opening commit, perform first use, open G1a, or grant
+project creation authority.
+
 ## Factory G1a Owner Signing Handoff
 
 G1a owner signing handoff packages the exact owner-facing signing work order

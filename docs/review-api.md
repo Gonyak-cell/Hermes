@@ -240,6 +240,21 @@ Supported filters include `row_id`, `category`, `current_verdict`, and `limit`.
 
 Routes: `/api/factory/g1a-owner-signing-handoff`.
 
+`GET /api/factory/g1a-owner-candidate-selection-docket` returns the read-only
+owner candidate selection docket rows plus prebind command previews, selection
+policy, source-chain rows, owner signing handoff preview, and Law Firm OS-style
+Opus review packet. The default state is
+`ready_g1a_owner_candidate_selection_docket` with
+`owner_selection_required_now: true`; the route lists eligible candidate hashes
+but does not choose a candidate, sign receipts, edit source, open G1a, or grant
+project creation authority.
+
+Supported filters include `selection_row_id`, `review_docket_id`, `product_id`,
+`candidate_packet_id`, `candidate_manifest_id`, `eligibility_status`,
+`selected_now`, `selection_source`, and `limit`.
+
+Routes: `/api/factory/g1a-owner-candidate-selection-docket`.
+
 `GET` and `HEAD` are allowed. Mutation methods return `405
 method_not_allowed`.
 

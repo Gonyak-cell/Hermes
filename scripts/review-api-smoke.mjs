@@ -30,6 +30,7 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/factory/g1a-opening-closeout-readiness"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/g1a-first-use-audit-readiness"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/g1a-owner-signing-handoff"));
+  assert.ok(index.routes.some((route) => route.path === "/api/factory/promotion-closeout-readiness"));
   assert.ok(index.routes.some((route) => route.path === "/api/packs"));
   assert.ok(index.routes.some((route) => route.path === "/api/capabilities"));
   assert.ok(index.routes.some((route) => route.path === "/api/artifacts"));
@@ -7452,6 +7453,23 @@ try {
   assert.equal(factoryG1aOwnerCandidateSelectionDocketHead.status, 200);
   const factoryG1aOwnerCandidateSelectionDocketPost = await fetch(`${url}/api/factory/g1a-owner-candidate-selection-docket`, { method: "POST" });
   assert.equal(factoryG1aOwnerCandidateSelectionDocketPost.status, 405);
+
+  const factoryPromotionCloseoutReadiness = await fetchJson(`${url}/api/factory/promotion-closeout-readiness?category=g1a_owner`);
+  assert.equal(factoryPromotionCloseoutReadiness.collection, "factory_promotion_closeout_readiness_rows");
+  assert.equal(factoryPromotionCloseoutReadiness.read_only, true);
+  assert.equal(factoryPromotionCloseoutReadiness.mutation_allowed, false);
+  assert.equal(factoryPromotionCloseoutReadiness.closeout_readiness_only, true);
+  assert.equal(factoryPromotionCloseoutReadiness.human_owner_protected_closeout_required, true);
+  assert.equal(factoryPromotionCloseoutReadiness.fcore_closeout_chain_ready, true);
+  assert.equal(factoryPromotionCloseoutReadiness.g1a_owner_gate_opening_chain_ready, false);
+  assert.equal(factoryPromotionCloseoutReadiness.summary.factory_promotion_closeout_readiness_status, "waiting_for_g1a_owner_gate_opening_chain");
+  assert.equal(factoryPromotionCloseoutReadiness.factory_promotion_goal_complete_allowed_now, false);
+  assert.equal(factoryPromotionCloseoutReadiness.project_creation_allowed_now, false);
+  assert.equal(factoryPromotionCloseoutReadiness.production_pass_enabled, false);
+  const factoryPromotionCloseoutReadinessHead = await fetch(`${url}/api/factory/promotion-closeout-readiness`, { method: "HEAD" });
+  assert.equal(factoryPromotionCloseoutReadinessHead.status, 200);
+  const factoryPromotionCloseoutReadinessPost = await fetch(`${url}/api/factory/promotion-closeout-readiness`, { method: "POST" });
+  assert.equal(factoryPromotionCloseoutReadinessPost.status, 405);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

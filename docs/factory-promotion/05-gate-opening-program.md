@@ -20,7 +20,8 @@
 [g1a-opening-closeout-readiness.md](g1a-opening-closeout-readiness.md),
 [g1a-first-use-audit-readiness.md](g1a-first-use-audit-readiness.md),
 [g1a-owner-candidate-selection-docket.md](g1a-owner-candidate-selection-docket.md),
-[g1a-owner-signing-handoff.md](g1a-owner-signing-handoff.md)이다. G0는
+[g1a-owner-signing-handoff.md](g1a-owner-signing-handoff.md), 그리고
+[factory-promotion-closeout-readiness.md](factory-promotion-closeout-readiness.md)이다. G0는
 G1a/G1b/G2/G3 상태를 읽기전용으로 계산하고, 어떤 권한도 열지 않는다.
 G1a는 선행조건과 리뷰 패킷이 준비됐지만 signed owner `gate_opening`
 영수증, 분리 소스 리터럴 개방 커밋, 첫 사용 감사가 없으므로 닫힌 상태다.
@@ -57,6 +58,14 @@ artifact를 만든다. patch는 `SOURCE_LITERAL_GATE_OPEN_COMMITS.G1a`의
 false→true 변경과 owner receipt 1건 바인딩만 포함해야 한다. 기본 상태는
 signed owner receipt가 없어 `waiting_for_signed_g1a_owner_receipt`이며,
 이 단계도 patch 적용, source mutation, first-use audit, G1a 개방을 수행하지
+않는다.
+
+Factory Promotion closeout readiness는 FCORE F0~FE 완료 증거와 G1a
+owner-chain 대기 상태를 하나의 read-only 판정으로 묶는다. 현재 판정은
+`waiting_for_g1a_owner_gate_opening_chain`이며, FCORE chain은 ready이나
+owner candidate 선택, signed owner receipt, source-literal opening commit,
+first-use audit, G1a opening closeout은 아직 대기 상태다. 이 단계도 protected
+closeout, source mutation, G1a 개방, production/enterprise PASS를 수행하지
 않는다.
 
 G1a opening closeout readiness는 G0, packet, owner receipt intake,

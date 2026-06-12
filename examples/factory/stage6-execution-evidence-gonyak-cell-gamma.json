@@ -1,0 +1,17 @@
+{
+  "schema_version": "factory-stage6-execution-evidence.v1",
+  "evidence_id": "STAGE6-EXECUTION-EVIDENCE-GONYAK-CELL-20260612-GAMMA",
+  "stage_id": "Stage6",
+  "required_gate_id": "G2",
+  "source_literal_opening_commit_sha": "3a42cb07f6cf618db7710d50e1182bbffcda227c",
+  "intake_runtime_contract_bound": true,
+  "work_packet_execution_contract_bound": true,
+  "validation_loop_runtime_contract_bound": true,
+  "receipt_and_log_binding_contract_bound": true,
+  "sandbox_command_receipts": 3,
+  "validation_loop_first_use_audits": 3,
+  "runtime_authority_open_now": false,
+  "command_execution_enabled": false,
+  "production_pass_enabled": false,
+  "enterprise_pass_enabled": false
+}

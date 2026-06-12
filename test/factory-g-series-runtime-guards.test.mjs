@@ -37,7 +37,10 @@ test("Factory G-series Runtime Guards block G1b/G2/G3 and Stage6/Stage7 protecte
   const stage7 = result.factory_g_series_runtime_guard_rows.find((row) => row.attempt_kind === "stage7_pilot_release_candidate");
 
   assert.equal(repoWrite.guard_status, "blocked_as_expected");
+  assert.equal(repoWrite.required_gate_source_evidence_complete_now, true);
+  assert.deepEqual(repoWrite.blocked_reason_ids, ["repo_write_runtime_authority_closed"]);
   assert.equal(command.guard_verdict, "pass_blocked");
+  assert.deepEqual(command.blocked_reason_ids, ["command_execution_runtime_authority_closed"]);
   assert.equal(deploy.deployment_allowed_now, false);
   assert.equal(stage6.command_spawn_allowed_now, false);
   assert.equal(stage7.protected_action_allowed_now, false);
@@ -57,6 +60,7 @@ test("Factory G-series Runtime Guards can isolate one protected attempt kind", a
   assert.equal(result.summary.runtime_guard_count, 1);
   assert.equal(result.factory_g_series_runtime_guard_rows[0].attempt_kind, "g2_command_execution");
   assert.equal(result.factory_g_series_runtime_guard_rows[0].required_gate_id, "G2");
+  assert.equal(result.factory_g_series_runtime_guard_rows[0].required_gate_source_evidence_complete_now, true);
   assert.equal(result.factory_g_series_runtime_guard_rows[0].guard_status, "blocked_as_expected");
 });
 

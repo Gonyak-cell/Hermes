@@ -210,7 +210,10 @@ function buildDraftPatch({ gateOpeningSource, sourceLiteralPreflight, outputDir,
     ? applyReplacementResults(gateOpeningSource.text, replacementResults)
     : null;
   const forbiddenSymbolRows = preflightApplied
-    ? buildForbiddenSymbolRows(gateOpeningSource.text ?? "", gateOpeningSource.text ?? "", generatedAt)
+    ? buildForbiddenSymbolRows(gateOpeningSource.text ?? "", gateOpeningSource.text ?? "", generatedAt, {
+      comparisonState: "already_applied_source_snapshot",
+      requireClosedGateValues: false,
+    })
     : buildForbiddenSymbolRows(gateOpeningSource.text ?? "", patchedText, generatedAt);
   const forbiddenUnchanged = patchAvailable && forbiddenSymbolRows.every((row) => row.current_verdict === "pass");
   const unifiedDiff = patchAvailable && forbiddenUnchanged
@@ -284,16 +287,18 @@ function applyReplacementResults(sourceText, replacementResults) {
   return patched;
 }
 
-function buildForbiddenSymbolRows(beforeText, afterText, generatedAt) {
+function buildForbiddenSymbolRows(beforeText, afterText, generatedAt, options = {}) {
   if (typeof afterText !== "string") return buildWaitingForbiddenSymbolRows(beforeText, generatedAt);
+  const comparisonState = options.comparisonState ?? "materialized_from_patch_preview";
+  const requireClosedGateValues = options.requireClosedGateValues !== false;
   const rows = [
-    forbiddenGateRow("SOURCE_LITERAL_GATE_OPEN_COMMITS.G1b", "G1b", beforeText, afterText, generatedAt),
-    forbiddenGateRow("SOURCE_LITERAL_GATE_OPEN_COMMITS.G2", "G2", beforeText, afterText, generatedAt),
-    forbiddenGateRow("SOURCE_LITERAL_GATE_OPEN_COMMITS.G3", "G3", beforeText, afterText, generatedAt),
-    forbiddenTextRow("production_pass_enabled", beforeText, afterText, generatedAt),
-    forbiddenTextRow("enterprise_pass_enabled", beforeText, afterText, generatedAt),
-    forbiddenTextRow("connector_write_allowed_now", beforeText, afterText, generatedAt),
-    forbiddenTextRow("deployment_allowed_now", beforeText, afterText, generatedAt),
+    forbiddenGateRow("SOURCE_LITERAL_GATE_OPEN_COMMITS.G1b", "G1b", beforeText, afterText, generatedAt, { comparisonState, requireClosedGateValues }),
+    forbiddenGateRow("SOURCE_LITERAL_GATE_OPEN_COMMITS.G2", "G2", beforeText, afterText, generatedAt, { comparisonState, requireClosedGateValues }),
+    forbiddenGateRow("SOURCE_LITERAL_GATE_OPEN_COMMITS.G3", "G3", beforeText, afterText, generatedAt, { comparisonState, requireClosedGateValues }),
+    forbiddenTextRow("production_pass_enabled", beforeText, afterText, generatedAt, { comparisonState }),
+    forbiddenTextRow("enterprise_pass_enabled", beforeText, afterText, generatedAt, { comparisonState }),
+    forbiddenTextRow("connector_write_allowed_now", beforeText, afterText, generatedAt, { comparisonState }),
+    forbiddenTextRow("deployment_allowed_now", beforeText, afterText, generatedAt, { comparisonState }),
   ];
   return rows.map((row) => ({ ...row, forbidden_symbol_row_sha256: sha256(canonicalize(row)) }));
 }
@@ -337,15 +342,17 @@ function waitingForbiddenTextRow(symbol, beforeText, generatedAt) {
   };
 }
 
-function forbiddenGateRow(symbol, gateId, beforeText, afterText, generatedAt) {
+function forbiddenGateRow(symbol, gateId, beforeText, afterText, generatedAt, options = {}) {
   const before = extractGateLiteralValue(beforeText, gateId);
   const after = extractGateLiteralValue(afterText, gateId);
-  const passed = before === false && after === false;
+  const passed = options.requireClosedGateValues === false
+    ? before === after
+    : before === false && after === false;
   return {
     schema_version: "factory-g1a-source-literal-forbidden-symbol-row.v1",
     symbol,
     current_verdict: passed ? "pass" : "fail",
-    comparison_state: "materialized_from_patch_preview",
+    comparison_state: options.comparisonState ?? "materialized_from_patch_preview",
     before_value: before,
     after_value: after,
     comparison_materialized_now: true,
@@ -353,7 +360,7 @@ function forbiddenGateRow(symbol, gateId, beforeText, afterText, generatedAt) {
   };
 }
 
-function forbiddenTextRow(symbol, beforeText, afterText, generatedAt) {
+function forbiddenTextRow(symbol, beforeText, afterText, generatedAt, options = {}) {
   const beforeCount = countOccurrences(beforeText, symbol);
   const afterCount = countOccurrences(afterText, symbol);
   const passed = beforeCount === afterCount;
@@ -361,7 +368,7 @@ function forbiddenTextRow(symbol, beforeText, afterText, generatedAt) {
     schema_version: "factory-g1a-source-literal-forbidden-symbol-row.v1",
     symbol,
     current_verdict: passed ? "pass" : "fail",
-    comparison_state: "materialized_from_patch_preview",
+    comparison_state: options.comparisonState ?? "materialized_from_patch_preview",
     before_occurrence_count: beforeCount,
     after_occurrence_count: afterCount,
     comparison_materialized_now: true,

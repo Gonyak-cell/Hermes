@@ -295,13 +295,14 @@ function buildGateAdvancementRows({ gateOpeningReadiness, generatedAt }) {
       prerequisite_status: sourceGate.prerequisite_status ?? "missing",
       previous_gate_status: sourceGate.previous_gate_status ?? "missing",
       gate_open_now: gateOpen,
+      source_gate_evidence_complete_now: sourceGate.gate_evidence_complete_now === true,
       advancement_status: buildGateAdvancementStatus({ definition, sourceGate, gateOpen }),
       code_development_allowed_now: true,
       runtime_authority_allowed_now: false,
       source_literal_gate_open_commit_present: sourceGate.source_literal_gate_open_commit_present === true,
       owner_gate_opening_receipt_present: sourceGate.owner_gate_opening_receipt_present === true,
       first_use_audit_present: sourceGate.first_use_audit_present === true,
-      missing_evidence_ids: sourceGate.blocked_reason_ids ?? ["missing_source_gate_row"],
+      missing_evidence_ids: sourceGate.gate_evidence_complete_now === true ? [] : sourceGate.blocked_reason_ids ?? ["missing_source_gate_row"],
       required_evidence: definition.required_evidence,
       code_development_focus: definition.code_development_focus,
       runtime_scope_limit: definition.runtime_scope_limit,
@@ -323,7 +324,8 @@ function buildStageAdvancementRows({ gateRows, sourceState, generatedAt }) {
   return STAGE_ADVANCEMENT_DEFINITIONS.map((definition, index) => {
     const requiredGate = gateRows.find((row) => row.gate_id === definition.required_gate_id);
     const requiredGateOpen = requiredGate?.gate_open_now === true;
-    const stageRuntimeOpen = requiredGateOpen && (definition.stage_id !== "Stage7" || sourceState.g3GateOpen === true);
+    const requiredGateEvidenceComplete = requiredGate?.source_gate_evidence_complete_now === true;
+    const stageRuntimeOpen = false;
     const row = {
       schema_version: "factory-g-series-stage-advancement-row.v1",
       advancement_id: `g-series.stage.${definition.stage_id}`,
@@ -333,7 +335,8 @@ function buildStageAdvancementRows({ gateRows, sourceState, generatedAt }) {
       required_gate_id: definition.required_gate_id,
       required_gate_status: requiredGate?.source_gate_status ?? sourceState[`${definition.required_gate_id.toLowerCase()}GateStatus`] ?? "missing",
       required_gate_open_now: requiredGateOpen,
-      advancement_status: stageRuntimeOpen ? "ready_for_scoped_runtime_usage" : definition.advancement_status_when_closed,
+      required_gate_source_evidence_complete_now: requiredGateEvidenceComplete,
+      advancement_status: requiredGateEvidenceComplete ? "source_evidence_complete_runtime_authority_closed" : definition.advancement_status_when_closed,
       code_development_allowed_now: true,
       runtime_authority_allowed_now: false,
       stage_runtime_open_now: false,
@@ -357,6 +360,7 @@ function buildStageAdvancementRows({ gateRows, sourceState, generatedAt }) {
 
 function buildGateAdvancementStatus({ definition, sourceGate, gateOpen }) {
   if (gateOpen) return "ready_for_scoped_runtime_usage";
+  if (sourceGate.gate_evidence_complete_now === true) return "source_evidence_complete_runtime_authority_closed";
   if (
     definition.gate_id === "G1b"
     && sourceGate.previous_gate_status === "not_required_or_open"
@@ -370,15 +374,19 @@ function buildGateAdvancementStatus({ definition, sourceGate, gateOpen }) {
 function buildStageMissingEvidenceIds(definition, requiredGate, sourceState) {
   const missing = [];
   if (sourceState.feReady !== true) missing.push("fe_freeze_handoff_not_ready");
-  if (requiredGate?.gate_open_now !== true) missing.push(`${definition.required_gate_id.toLowerCase()}_gate_not_open`);
+  if (requiredGate?.source_gate_evidence_complete_now !== true) missing.push(`${definition.required_gate_id.toLowerCase()}_source_evidence_not_complete`);
   if (definition.stage_id === "Stage7") {
-    missing.push("stage6_limited_execution_evidence_missing");
-    missing.push("pilot_release_candidate_receipts_missing");
-    missing.push("rollback_rehearsal_receipts_missing");
+    if (requiredGate?.source_gate_evidence_complete_now !== true) {
+      missing.push("stage6_limited_execution_evidence_missing");
+      missing.push("pilot_release_candidate_receipts_missing");
+      missing.push("rollback_rehearsal_receipts_missing");
+    }
   }
   if (definition.stage_id === "Stage6") {
-    missing.push("sandbox_command_receipts_missing");
-    missing.push("validation_loop_first_use_audits_missing");
+    if (requiredGate?.source_gate_evidence_complete_now !== true) {
+      missing.push("sandbox_command_receipts_missing");
+      missing.push("validation_loop_first_use_audits_missing");
+    }
   }
   return [...new Set(missing)];
 }
@@ -433,6 +441,7 @@ function buildBoundary({ sourceState, gateRows, stageRows, negativeFixtureRows, 
     source_gate_open_count: sourceState.gateOpenCount,
     gate_advancement_count: gateRows.length,
     gate_advancement_open_count: gateOpenCount,
+    gate_advancement_evidence_complete_count: gateRows.filter((row) => row.source_gate_evidence_complete_now).length,
     stage_advancement_count: stageRows.length,
     stage_runtime_open_count: 0,
     negative_fixture_count: negativeFixtureRows.length,
@@ -440,8 +449,11 @@ function buildBoundary({ sourceState, gateRows, stageRows, negativeFixtureRows, 
     g1a_source_evidence_complete_now: sourceState.g1aSourceEvidenceComplete,
     g1a_project_creation_gate_open_now: sourceState.g1aGateOpen,
     g1b_repo_write_gate_open_now: sourceState.g1bGateOpen,
+    g1b_source_evidence_complete_now: gateRows.find((row) => row.gate_id === "G1b")?.source_gate_evidence_complete_now === true,
     g2_command_execution_gate_open_now: sourceState.g2GateOpen,
+    g2_source_evidence_complete_now: gateRows.find((row) => row.gate_id === "G2")?.source_gate_evidence_complete_now === true,
     g3_deployment_gate_open_now: sourceState.g3GateOpen,
+    g3_source_evidence_complete_now: gateRows.find((row) => row.gate_id === "G3")?.source_gate_evidence_complete_now === true,
     stage6_limited_execution_allowed_now: false,
     stage7_release_candidate_allowed_now: false,
     ...CLOSED_AUTHORITY_FLAGS,
@@ -476,8 +488,12 @@ function buildSummary({ gateRows, stageRows, negativeFixtureRows, boundary, vali
     source_program_range: SOURCE_PROGRAM_RANGE,
     gate_advancement_count: gateRows.length,
     gate_advancement_open_count: gateRows.filter((row) => row.gate_open_now).length,
+    gate_advancement_evidence_complete_count: gateRows.filter((row) => row.source_gate_evidence_complete_now).length,
     gate_advancement_waiting_count: gateRows.filter((row) => row.gate_open_now === false).length,
     g1a_source_evidence_complete_now: boundary.g1a_source_evidence_complete_now,
+    g1b_source_evidence_complete_now: boundary.g1b_source_evidence_complete_now,
+    g2_source_evidence_complete_now: boundary.g2_source_evidence_complete_now,
+    g3_source_evidence_complete_now: boundary.g3_source_evidence_complete_now,
     stage_advancement_count: stageRows.length,
     stage_runtime_open_count: 0,
     stage_advancement_waiting_count: stageRows.length,

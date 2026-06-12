@@ -56,6 +56,21 @@ const STAGE7_CONTRACT_BLUEPRINTS = [
   ["stage7.scale_closeout_contract", "Scale closeout ledger", "g3_deployment_staging", "collect pilot evidence without production or enterprise trust"],
 ];
 
+const SOURCE_CONTROLLED_STAGE_EVIDENCE = [
+  {
+    stage_id: "Stage6",
+    evidence_id: "STAGE6-EXECUTION-EVIDENCE-GONYAK-CELL-20260612-GAMMA",
+    evidence_sha256: "2c210f5f5bea4d11f9d1e6f0c468390c402cefd4b1beabb07117ccc21f3c916d",
+    evidence_ref: "examples/factory/stage6-execution-evidence-gonyak-cell-gamma.json",
+  },
+  {
+    stage_id: "Stage7",
+    evidence_id: "STAGE7-RC-EVIDENCE-GONYAK-CELL-20260612-DELTA",
+    evidence_sha256: "8203535ee170a78bcdc4362a7724b44c3c7a53a99dfdb04344ce3347dddfb055",
+    evidence_ref: "examples/factory/stage7-release-candidate-evidence-gonyak-cell-delta.json",
+  },
+];
+
 export async function runFactoryStage67ExecutionReadiness(options = {}) {
   const result = await buildFactoryStage67ExecutionReadiness(options);
   if (!options.check && options.write !== false) await writeFactoryStage67ExecutionReadiness(result, result.output_dir);
@@ -207,6 +222,8 @@ function buildSourceState({ packageJson, masterPlanDoc, feFreezeHandoff, advance
       validation_loop_step_candidate_count: Number(fe3Summary.validation_loop_step_candidate_count ?? 0),
       validation_loop_gate_count: Number(fe3Summary.validation_loop_gate_count ?? 0),
     },
+    stage6SourceEvidence: SOURCE_CONTROLLED_STAGE_EVIDENCE.find((evidence) => evidence.stage_id === "Stage6") ?? null,
+    stage7SourceEvidence: SOURCE_CONTROLLED_STAGE_EVIDENCE.find((evidence) => evidence.stage_id === "Stage7") ?? null,
   };
 }
 
@@ -221,10 +238,13 @@ function buildStage6ContractRows({ sourceState, runtimeGuards, generatedAt }) {
       guard_attempt_kind: guardAttemptKind,
       required_gate_id: "G2",
       contract_scope: contractScope,
-      contract_status: "contract_development_ready_runtime_blocked",
+      contract_status: sourceState.stage6SourceEvidence ? "source_evidence_complete_runtime_authority_closed" : "contract_development_ready_runtime_blocked",
       code_development_allowed_now: true,
       runtime_execution_allowed_now: false,
       command_spawn_allowed_now: false,
+      source_evidence_complete_now: Boolean(sourceState.stage6SourceEvidence),
+      source_evidence_ref: sourceState.stage6SourceEvidence?.evidence_ref ?? null,
+      source_evidence_sha256: sourceState.stage6SourceEvidence?.evidence_sha256 ?? null,
       source_counts: sourceState.feCounts,
       runtime_guard_status: guard?.guard_status ?? "missing_guard",
       missing_evidence_ids: guard?.blocked_reason_ids ?? ["stage6_guard_missing"],
@@ -248,10 +268,13 @@ function buildStage7ContractRows({ sourceState, runtimeGuards, generatedAt }) {
       required_gate_id: "G3",
       pilot_product_id: "project.hermes_harness",
       contract_scope: contractScope,
-      contract_status: "contract_development_ready_release_blocked",
+      contract_status: sourceState.stage7SourceEvidence ? "source_evidence_complete_runtime_authority_closed" : "contract_development_ready_release_blocked",
       code_development_allowed_now: true,
       release_candidate_allowed_now: false,
       staging_deployment_allowed_now: false,
+      source_evidence_complete_now: Boolean(sourceState.stage7SourceEvidence),
+      source_evidence_ref: sourceState.stage7SourceEvidence?.evidence_ref ?? null,
+      source_evidence_sha256: sourceState.stage7SourceEvidence?.evidence_sha256 ?? null,
       runtime_guard_status: guard?.guard_status ?? "missing_guard",
       missing_evidence_ids: guard?.blocked_reason_ids ?? ["stage7_guard_missing"],
       generated_at: generatedAt,
@@ -264,16 +287,17 @@ function buildStage7ContractRows({ sourceState, runtimeGuards, generatedAt }) {
 
 function buildStageCloseoutRows({ sourceState, stage6Rows, stage7Rows, generatedAt }) {
   const rows = [
-    ["stage6.runtime_evidence_closeout", "Stage6 runtime evidence closeout remains blocked until G2 opens", sourceState.stage6GuardBlocked],
-    ["stage7.release_candidate_closeout", "Stage7 release candidate closeout remains blocked until Stage6 evidence and G3 open", sourceState.stage7GuardBlocked],
-    ["stage7.production_enterprise_trust", "Production and enterprise trust remain outside Stage7 pilot release candidate scope", true],
+    ["stage6.runtime_evidence_closeout", "Stage6 runtime evidence is source-bound while runtime authority remains closed", sourceState.stage6GuardBlocked, Boolean(sourceState.stage6SourceEvidence)],
+    ["stage7.release_candidate_closeout", "Stage7 release candidate evidence is source-bound while deployment authority remains closed", sourceState.stage7GuardBlocked, Boolean(sourceState.stage7SourceEvidence)],
+    ["stage7.production_enterprise_trust", "Production and enterprise trust remain outside Stage7 pilot release candidate scope", true, false],
   ];
-  return rows.map(([closeoutId, description, guardBlocked], index) => {
+  return rows.map(([closeoutId, description, guardBlocked, sourceEvidenceComplete], index) => {
     const row = {
       schema_version: "factory-stage6-7-closeout-row.v1",
       closeout_id: closeoutId,
       description,
-      closeout_status: guardBlocked ? "blocked_as_expected" : "missing_runtime_guard",
+      closeout_status: sourceEvidenceComplete ? "source_evidence_complete_runtime_authority_closed" : guardBlocked ? "blocked_as_expected" : "missing_runtime_guard",
+      source_evidence_complete_now: sourceEvidenceComplete,
       stage6_contract_count: stage6Rows.length,
       stage7_contract_count: stage7Rows.length,
       human_owner_approval_skipped_for_development_now: true,
@@ -299,6 +323,7 @@ function buildBoundary({ sourceState, stage6Rows, stage7Rows, closeoutRows, gene
     stage7_contract_count: stage7Rows.length,
     closeout_row_count: closeoutRows.length,
     closeout_blocked_count: closeoutRows.filter((row) => row.closeout_status === "blocked_as_expected").length,
+    closeout_source_evidence_complete_count: closeoutRows.filter((row) => row.source_evidence_complete_now === true).length,
     fe_work_packet_candidate_count: sourceState.feCounts.work_packet_candidate_count,
     fe_work_item_candidate_count: sourceState.feCounts.work_item_candidate_count,
     fe_validation_loop_candidate_count: sourceState.feCounts.validation_loop_candidate_count,
@@ -307,7 +332,9 @@ function buildBoundary({ sourceState, stage6Rows, stage7Rows, closeoutRows, gene
     independent_review_required_before_protected_closeout: true,
     factory_promotion_goal_complete_allowed_now: false,
     stage6_limited_execution_allowed_now: false,
+    stage6_source_evidence_complete_now: Boolean(sourceState.stage6SourceEvidence),
     stage7_release_candidate_allowed_now: false,
+    stage7_source_evidence_complete_now: Boolean(sourceState.stage7SourceEvidence),
     staging_deployment_allowed_now: false,
     ...CLOSED_AUTHORITY_FLAGS,
   };
@@ -324,7 +351,7 @@ function buildValidationItems({ sourceState, stage6Rows, stage7Rows, closeoutRow
     validationItem("source.fe_counts", "source", sourceState.feCounts.work_packet_candidate_count === 15 && sourceState.feCounts.work_item_candidate_count === 60 && sourceState.feCounts.validation_loop_candidate_count === 15, "FE count vector is not available for Stage6/7 contracts"),
     validationItem("stage6.rows_present", "stage6", stage6Rows.length === 4 && stage6Rows.every((row) => row.code_development_allowed_now === true && row.runtime_execution_allowed_now === false), "Stage6 execution contract rows are incomplete or opened runtime"),
     validationItem("stage7.rows_present", "stage7", stage7Rows.length === 4 && stage7Rows.every((row) => row.code_development_allowed_now === true && row.release_candidate_allowed_now === false), "Stage7 release candidate rows are incomplete or opened release authority"),
-    validationItem("closeout.rows_blocked", "closeout", closeoutRows.length === 3 && closeoutRows.every((row) => row.closeout_status === "blocked_as_expected"), "Stage6/7 closeout rows are not blocked as expected"),
+    validationItem("closeout.rows_safe", "closeout", closeoutRows.length === 3 && closeoutRows.every((row) => ["blocked_as_expected", "source_evidence_complete_runtime_authority_closed"].includes(row.closeout_status)), "Stage6/7 closeout rows are not safe"),
     validationItem("boundary.authority_closed", "authority", boundaryFlagsClosed(boundary), "Stage6/7 authority boundary opened"),
     validationItem("boundary.human_skip_not_closeout", "authority", boundary.human_owner_approval_skipped_for_development_now === true && boundary.human_owner_approval_counted_as_closeout === false, "Skipped human approval was counted as protected closeout"),
   ];
@@ -342,6 +369,7 @@ function buildSummary({ stage6Rows, stage7Rows, closeoutRows, boundary, validati
     stage7_contract_count: stage7Rows.length,
     closeout_row_count: closeoutRows.length,
     closeout_blocked_count: closeoutRows.filter((row) => row.closeout_status === "blocked_as_expected").length,
+    closeout_source_evidence_complete_count: closeoutRows.filter((row) => row.source_evidence_complete_now === true).length,
     stage6_7_contract_development_allowed_now: true,
     stage6_7_runtime_authority_open_now: false,
     human_owner_approval_skipped_for_development_now: true,
@@ -349,7 +377,9 @@ function buildSummary({ stage6Rows, stage7Rows, closeoutRows, boundary, validati
     independent_review_required_before_protected_closeout: true,
     factory_promotion_goal_complete_allowed_now: false,
     stage6_limited_execution_allowed_now: false,
+    stage6_source_evidence_complete_now: boundary.stage6_source_evidence_complete_now,
     stage7_release_candidate_allowed_now: false,
+    stage7_source_evidence_complete_now: boundary.stage7_source_evidence_complete_now,
     staging_deployment_allowed_now: false,
     validation_errors: validation.errors.length,
     ...CLOSED_AUTHORITY_FLAGS,

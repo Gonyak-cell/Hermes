@@ -24,11 +24,14 @@ test("Factory Stage6/7 Execution Readiness binds FE candidates to closed runtime
   assert.equal(result.summary.factory_stage6_7_execution_readiness_status, "ready_stage6_stage7_contract_development");
   assert.equal(result.summary.stage6_contract_count, 4);
   assert.equal(result.summary.stage7_contract_count, 4);
-  assert.equal(result.summary.closeout_blocked_count, 3);
+  assert.equal(result.summary.closeout_blocked_count, 1);
+  assert.equal(result.summary.closeout_source_evidence_complete_count, 2);
   assert.equal(result.summary.stage6_7_contract_development_allowed_now, true);
   assert.equal(result.summary.stage6_7_runtime_authority_open_now, false);
   assert.equal(result.summary.stage6_limited_execution_allowed_now, false);
+  assert.equal(result.summary.stage6_source_evidence_complete_now, true);
   assert.equal(result.summary.stage7_release_candidate_allowed_now, false);
+  assert.equal(result.summary.stage7_source_evidence_complete_now, true);
   assert.equal(result.summary.human_owner_approval_counted_as_closeout, false);
 
   assert.equal(result.source_summaries.fe_counts.work_packet_candidate_count, 15);
@@ -40,10 +43,13 @@ test("Factory Stage6/7 Execution Readiness binds FE candidates to closed runtime
   const stage6 = result.factory_stage6_execution_contract_rows.find((row) => row.contract_id === "stage6.validation_loop_runtime_contract");
   const stage7 = result.factory_stage7_release_candidate_contract_rows.find((row) => row.contract_id === "stage7.hermes_harness_pilot_rc");
 
-  assert.equal(stage6.contract_status, "contract_development_ready_runtime_blocked");
+  assert.equal(stage6.contract_status, "source_evidence_complete_runtime_authority_closed");
+  assert.equal(stage6.source_evidence_complete_now, true);
   assert.equal(stage6.runtime_execution_allowed_now, false);
   assert.equal(stage6.command_spawn_allowed_now, false);
   assert.equal(stage7.pilot_product_id, "project.hermes_harness");
+  assert.equal(stage7.contract_status, "source_evidence_complete_runtime_authority_closed");
+  assert.equal(stage7.source_evidence_complete_now, true);
   assert.equal(stage7.release_candidate_allowed_now, false);
   assert.equal(stage7.staging_deployment_allowed_now, false);
 });

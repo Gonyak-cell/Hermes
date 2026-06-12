@@ -211,6 +211,7 @@ function buildRuntimeGuardRows({ advancementReadiness, generatedAt, attemptKind 
       const gateRow = gateRows.find((row) => row.gate_id === definition.required_gate_id);
       const stageRow = stageRows.find((row) => row.stage_id === definition.required_stage_id);
       const requiredGateOpen = gateRow?.gate_open_now === true;
+      const requiredGateSourceEvidenceComplete = gateRow?.source_gate_evidence_complete_now === true;
       const runtimeAllowed = false;
       const missingEvidenceIds = [
         ...(gateRow?.missing_evidence_ids ?? []),
@@ -225,6 +226,7 @@ function buildRuntimeGuardRows({ advancementReadiness, generatedAt, attemptKind 
         required_gate_id: definition.required_gate_id,
         required_stage_id: definition.required_stage_id,
         required_gate_open_now: requiredGateOpen,
+        required_gate_source_evidence_complete_now: requiredGateSourceEvidenceComplete,
         guard_status: runtimeAllowed ? "allowed_unexpectedly" : "blocked_as_expected",
         guard_verdict: runtimeAllowed ? "fail_opened_unexpectedly" : "pass_blocked",
         mutation_allowed_now: false,
@@ -233,7 +235,7 @@ function buildRuntimeGuardRows({ advancementReadiness, generatedAt, attemptKind 
         source_file_write_allowed_now: false,
         deployment_allowed_now: false,
         stage_runtime_open_now: false,
-        blocked_reason_ids: buildBlockedReasonIds(definition, missingEvidenceIds, requiredGateOpen),
+        blocked_reason_ids: buildBlockedReasonIds(definition, missingEvidenceIds, requiredGateSourceEvidenceComplete),
         safe_next_action: definition.safe_next_action,
         simulated_only: true,
         no_process_spawned: true,
@@ -249,9 +251,9 @@ function buildRuntimeGuardRows({ advancementReadiness, generatedAt, attemptKind 
     });
 }
 
-function buildBlockedReasonIds(definition, missingEvidenceIds, requiredGateOpen) {
+function buildBlockedReasonIds(definition, missingEvidenceIds, requiredGateSourceEvidenceComplete) {
   const reasons = [];
-  if (!requiredGateOpen) reasons.push(`${definition.required_gate_id.toLowerCase()}_gate_not_open`);
+  if (!requiredGateSourceEvidenceComplete) reasons.push(`${definition.required_gate_id.toLowerCase()}_source_evidence_not_complete`);
   reasons.push(...missingEvidenceIds);
   reasons.push(`${definition.protected_surface}_runtime_authority_closed`);
   return [...new Set(reasons)];

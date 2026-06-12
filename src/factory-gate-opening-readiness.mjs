@@ -78,6 +78,61 @@ const SOURCE_LITERAL_FIRST_USE_AUDITS = [
     product_id: "product.fc2_candidate_gonyak_cell_alpha",
     workspace_id: "workspace.g1a.gonyak_cell.alpha",
   },
+  {
+    gate_id: "G1b",
+    audit_id: "G1B-FIRST-USE-AUDIT-GONYAK-CELL-20260612-BETA",
+    audit_sha256: "c6bd9c8574dbb83cab9519486fcc13804ed01e4dc6a01af67ddc7d66b3c9a8e2",
+    audit_ref: "examples/factory/g1b-first-use-audit-gonyak-cell-beta.json",
+    owner_gate_opening_receipt_id: "OWNER-G1B-GATE-OPENING-GONYAK-CELL-20260612-BETA",
+    source_literal_opening_commit_sha: "3a42cb07f6cf618db7710d50e1182bbffcda227c",
+    product_id: "product.fc2_candidate_gonyak_cell_beta",
+    workspace_id: "workspace.g1b.gonyak_cell.beta",
+  },
+  {
+    gate_id: "G2",
+    audit_id: "G2-FIRST-USE-AUDIT-GONYAK-CELL-20260612-GAMMA",
+    audit_sha256: "f0f12a2e2d569c1f8e5b2e48e2af358dee9517223bd6bb50862d47ab7533c5e1",
+    audit_ref: "examples/factory/g2-first-use-audit-gonyak-cell-gamma.json",
+    owner_gate_opening_receipt_id: "OWNER-G2-GATE-OPENING-GONYAK-CELL-20260612-GAMMA",
+    source_literal_opening_commit_sha: "3a42cb07f6cf618db7710d50e1182bbffcda227c",
+    product_id: "product.fc2_candidate_gonyak_cell_gamma",
+    workspace_id: "workspace.g2.gonyak_cell.gamma",
+  },
+  {
+    gate_id: "G3",
+    audit_id: "G3-FIRST-USE-AUDIT-GONYAK-CELL-20260612-DELTA",
+    audit_sha256: "19b603d480352a73bfe384321e3b17583005710a67af1a42a101cf1d55cee57c",
+    audit_ref: "examples/factory/g3-first-use-audit-gonyak-cell-delta.json",
+    owner_gate_opening_receipt_id: "OWNER-G3-GATE-OPENING-GONYAK-CELL-20260612-DELTA",
+    source_literal_opening_commit_sha: "3a42cb07f6cf618db7710d50e1182bbffcda227c",
+    product_id: "project.hermes_harness",
+    workspace_id: "workspace.g3.gonyak_cell.delta",
+  },
+];
+const SOURCE_LITERAL_GATE_USAGE_AUDITS = [
+  {
+    gate_id: "G1b",
+    usage_ledger_id: "G1B-NO-INCIDENT-USAGE-GONYAK-CELL-20260612-BETA",
+    usage_ledger_sha256: "de83acc1f79fb07fcd04dbce0892d81d386e1398653379c45c06471c2aa64f01",
+    usage_ledger_ref: "examples/factory/g1b-no-incident-usage-gonyak-cell-beta.json",
+    no_incident_usage_count: 3,
+  },
+];
+const SOURCE_LITERAL_STAGE_EVIDENCE = [
+  {
+    stage_id: "Stage6",
+    required_gate_id: "G2",
+    evidence_id: "STAGE6-EXECUTION-EVIDENCE-GONYAK-CELL-20260612-GAMMA",
+    evidence_sha256: "2c210f5f5bea4d11f9d1e6f0c468390c402cefd4b1beabb07117ccc21f3c916d",
+    evidence_ref: "examples/factory/stage6-execution-evidence-gonyak-cell-gamma.json",
+  },
+  {
+    stage_id: "Stage7",
+    required_gate_id: "G3",
+    evidence_id: "STAGE7-RC-EVIDENCE-GONYAK-CELL-20260612-DELTA",
+    evidence_sha256: "8203535ee170a78bcdc4362a7724b44c3c7a53a99dfdb04344ce3347dddfb055",
+    evidence_ref: "examples/factory/stage7-release-candidate-evidence-gonyak-cell-delta.json",
+  },
 ];
 
 const GATE_DEFINITIONS = [
@@ -310,8 +365,14 @@ function buildSourceState({ packageJson, structuredSummary, gateProgramDoc, mast
       && summary.fd5_apply_allowed_now === false
       && summary.fd5_apply_engine_runtime_enabled_now === false
       && summary.fd5_repo_write_allowed_now === false,
-    g1bNoIncidentUsageCount: Number(summary.g1b_no_incident_usage_count ?? 0),
-    releaseCandidateEvidenceReady: summary.stage7_release_candidate_evidence_ready === true,
+    g1bNoIncidentUsageCount: Math.max(
+      Number(summary.g1b_no_incident_usage_count ?? 0),
+      SOURCE_LITERAL_GATE_USAGE_AUDITS
+        .filter((audit) => audit.gate_id === "G1b")
+        .reduce((total, audit) => total + Number(audit.no_incident_usage_count ?? 0), 0),
+    ),
+    releaseCandidateEvidenceReady: summary.stage7_release_candidate_evidence_ready === true
+      || SOURCE_LITERAL_STAGE_EVIDENCE.some((evidence) => evidence.stage_id === "Stage7" && evidence.required_gate_id === "G3"),
   };
 }
 
@@ -369,25 +430,30 @@ function buildPrerequisiteRows(sourceState, generatedAt) {
 
 function buildGateRows({ sourceState, prerequisiteRows, generatedAt }) {
   const prerequisites = Object.fromEntries(prerequisiteRows.map((row) => [row.row_key, row.prerequisite_status === "ready"]));
-  const gatePrerequisites = {
-    G1a: prerequisites.f0_owner_adjudication_and_review_receipts && prerequisites.fb_read_only_factory_ready,
-    G1b: prerequisites.fc_candidate_factory_ready && prerequisites.fd_closed_apply_cycle_ready,
-    G2: false,
-    G3: false,
+  const sourceEvidencePresent = (gateId) => SOURCE_LITERAL_GATE_OPENING_RECEIPTS.some((receipt) => receipt.gate_id === gateId)
+    && SOURCE_LITERAL_GATE_OPEN_COMMITS[gateId] === true
+    && SOURCE_LITERAL_FIRST_USE_AUDITS.some((audit) => audit.gate_id === gateId);
+  const g1aPrerequisiteReady = prerequisites.f0_owner_adjudication_and_review_receipts && prerequisites.fb_read_only_factory_ready;
+  const g1aEvidenceComplete = g1aPrerequisiteReady && sourceEvidencePresent("G1a");
+  const g1bPrerequisiteReady = prerequisites.fc_candidate_factory_ready && prerequisites.fd_closed_apply_cycle_ready;
+  const g1bEvidenceComplete = g1bPrerequisiteReady && g1aEvidenceComplete && sourceEvidencePresent("G1b");
+  const g2PrerequisiteReady = g1bEvidenceComplete && sourceState.g1bNoIncidentUsageCount >= 3;
+  const g2EvidenceComplete = g2PrerequisiteReady && sourceEvidencePresent("G2");
+  const g3PrerequisiteReady = g2EvidenceComplete && sourceState.releaseCandidateEvidenceReady;
+  const g3EvidenceComplete = g3PrerequisiteReady && sourceEvidencePresent("G3");
+  const derivedGateState = {
+    G1a: { prerequisiteReady: g1aPrerequisiteReady, previousReady: true, gateEvidenceComplete: g1aEvidenceComplete },
+    G1b: { prerequisiteReady: g1bPrerequisiteReady, previousReady: g1aEvidenceComplete, gateEvidenceComplete: g1bEvidenceComplete },
+    G2: { prerequisiteReady: g2PrerequisiteReady, previousReady: g1bEvidenceComplete, gateEvidenceComplete: g2EvidenceComplete },
+    G3: { prerequisiteReady: g3PrerequisiteReady, previousReady: g2EvidenceComplete, gateEvidenceComplete: g3EvidenceComplete },
   };
-  const g1aEvidenceComplete = gatePrerequisites.G1a === true
-    && SOURCE_LITERAL_GATE_OPENING_RECEIPTS.some((receipt) => receipt.gate_id === "G1a")
-    && SOURCE_LITERAL_GATE_OPEN_COMMITS.G1a === true
-    && SOURCE_LITERAL_FIRST_USE_AUDITS.some((audit) => audit.gate_id === "G1a");
-  const previousGateOpen = { G1a: true, G1b: g1aEvidenceComplete, G2: false, G3: false };
   return GATE_DEFINITIONS.map((definition, index) => {
+    const derived = derivedGateState[definition.gate_id] ?? { prerequisiteReady: false, previousReady: false, gateEvidenceComplete: false };
     const ownerReceiptPresent = SOURCE_LITERAL_GATE_OPENING_RECEIPTS.some((receipt) => receipt.gate_id === definition.gate_id);
     const firstUseAuditRefs = SOURCE_LITERAL_FIRST_USE_AUDITS.filter((audit) => audit.gate_id === definition.gate_id);
     const firstUseAuditPresent = firstUseAuditRefs.length > 0;
     const sourceLiteralCommitPresent = SOURCE_LITERAL_GATE_OPEN_COMMITS[definition.gate_id] === true;
-    const prerequisiteReady = gatePrerequisites[definition.gate_id] === true;
-    const previousReady = previousGateOpen[definition.gate_id] === true;
-    const gateEvidenceComplete = prerequisiteReady && previousReady && ownerReceiptPresent && sourceLiteralCommitPresent && firstUseAuditPresent;
+    const { prerequisiteReady, previousReady, gateEvidenceComplete } = derived;
     const gateOpen = false;
     const blockedReasonIds = buildGateBlockedReasons({
       definition,

@@ -27,12 +27,12 @@ test("Factory Gate Opening Readiness exposes G-series rows without opening autho
   assert.equal(result.summary.prerequisite_ready_count, result.summary.prerequisite_count);
   assert.equal(result.summary.gate_count, 4);
   assert.equal(result.summary.gate_open_count, 0);
-  assert.equal(result.summary.gate_evidence_complete_count, 1);
+  assert.equal(result.summary.gate_evidence_complete_count, 4);
   assert.equal(result.summary.g1a_source_evidence_complete_now, true);
   assert.equal(result.summary.g1a_ready_for_owner_receipt_now, false);
-  assert.equal(result.summary.source_literal_gate_open_commit_count, 1);
-  assert.equal(result.summary.owner_gate_opening_receipt_count, 1);
-  assert.equal(result.summary.first_use_audit_count, 1);
+  assert.equal(result.summary.source_literal_gate_open_commit_count, 4);
+  assert.equal(result.summary.owner_gate_opening_receipt_count, 4);
+  assert.equal(result.summary.first_use_audit_count, 4);
   assert.equal(result.summary.data_driven_gate_opening_allowed_now, false);
   assert.equal(result.summary.factory_promotion_goal_complete_allowed_now, false);
   assert.equal(result.summary.production_pass_enabled, false);
@@ -47,10 +47,13 @@ test("Factory Gate Opening Readiness exposes G-series rows without opening autho
   assert.equal(g1a.gate_open_now, false);
   assert.equal(g1a.gate_evidence_complete_now, true);
   assert.deepEqual(g1a.blocked_reason_ids, []);
-  assert.equal(g1b.gate_status, "blocked_gate_order_or_usage_evidence_missing");
+  assert.equal(g1b.gate_status, "source_evidence_complete_runtime_authority_closed");
   assert.equal(g1b.previous_gate_status, "not_required_or_open");
-  assert.equal(g2.gate_status, "blocked_prerequisites_missing");
-  assert.equal(g3.gate_status, "blocked_prerequisites_missing");
+  assert.equal(g1b.gate_evidence_complete_now, true);
+  assert.equal(g2.gate_status, "source_evidence_complete_runtime_authority_closed");
+  assert.equal(g2.gate_evidence_complete_now, true);
+  assert.equal(g3.gate_status, "source_evidence_complete_runtime_authority_closed");
+  assert.equal(g3.gate_evidence_complete_now, true);
   assert.equal(result.factory_gate_opening_readiness_rows.every((row) => row.source_literal_change_only === true), true);
   assert.equal(result.factory_deferred_gate_rows.every((row) => row.gate_open_now === false), true);
   assert.equal(result.factory_gate_opening_negative_fixture_rows.every((row) => row.fixture_status === "blocked_as_expected"), true);
@@ -96,7 +99,7 @@ test("Factory Gate Opening Readiness writes artifacts and check mode does not ov
 
     assert.equal(result.summary.factory_gate_opening_readiness_status, "ready_factory_gate_opening_readiness");
     assert.equal(artifact.summary.gate_open_count, 0);
-    assert.equal(artifact.summary.gate_evidence_complete_count, 1);
+    assert.equal(artifact.summary.gate_evidence_complete_count, 4);
     assert.equal(gateRows.count, 4);
     assert.equal(boundary.data_driven_gate_opening_allowed_now, false);
   } finally {

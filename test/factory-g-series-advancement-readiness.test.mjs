@@ -40,12 +40,17 @@ test("Factory G-series Advancement Readiness exposes G1b/G2/G3 plus Stage6/Stage
   const stage6 = result.factory_g_series_stage_advancement_rows.find((row) => row.stage_id === "Stage6");
   const stage7 = result.factory_g_series_stage_advancement_rows.find((row) => row.stage_id === "Stage7");
 
-  assert.equal(g1b.advancement_status, "waiting_for_g1b_owner_receipt_and_source_literal_commit");
+  assert.equal(result.summary.gate_advancement_evidence_complete_count, 3);
+  assert.equal(result.summary.g1b_source_evidence_complete_now, true);
+  assert.equal(result.summary.g2_source_evidence_complete_now, true);
+  assert.equal(result.summary.g3_source_evidence_complete_now, true);
+  assert.equal(g1b.advancement_status, "source_evidence_complete_runtime_authority_closed");
   assert.equal(g1b.previous_gate_status, "not_required_or_open");
-  assert.equal(g2.advancement_status, "waiting_for_g1b_three_no_incident_usage_rows");
-  assert.equal(g3.advancement_status, "waiting_for_g2_release_candidate_evidence_loop");
-  assert.equal(stage6.advancement_status, "waiting_for_g2_command_execution_gate");
-  assert.equal(stage7.advancement_status, "waiting_for_stage6_and_g3_staging_gate");
+  assert.equal(g1b.source_gate_evidence_complete_now, true);
+  assert.equal(g2.advancement_status, "source_evidence_complete_runtime_authority_closed");
+  assert.equal(g3.advancement_status, "source_evidence_complete_runtime_authority_closed");
+  assert.equal(stage6.advancement_status, "source_evidence_complete_runtime_authority_closed");
+  assert.equal(stage7.advancement_status, "source_evidence_complete_runtime_authority_closed");
   assert.equal(g1b.code_development_allowed_now, true);
   assert.equal(stage7.code_development_allowed_now, true);
   assert.equal(g1b.runtime_authority_allowed_now, false);
@@ -89,6 +94,7 @@ test("Factory G-series Advancement Readiness writes artifacts and check mode doe
 
     assert.equal(result.summary.factory_g_series_advancement_readiness_status, "ready_for_g_series_continued_code_development");
     assert.equal(artifact.summary.gate_advancement_count, 3);
+    assert.equal(artifact.summary.gate_advancement_evidence_complete_count, 3);
     assert.equal(gateRows.count, 3);
     assert.equal(stageRows.count, 2);
     assert.equal(boundary.g_series_runtime_authority_open_now, false);

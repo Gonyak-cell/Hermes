@@ -11,15 +11,18 @@ import { buildReviewApiResponse } from "../src/review-api.mjs";
 
 const RUN_AT = "2026-06-12T23:00:00.000Z";
 
-test("default G1a first-use audit readiness waits for source-literal opening commit", async () => {
+test("default G1a first-use audit readiness reports the source-bound first-use audit fixture", async () => {
   const outDir = await mkdtemp(path.join(os.tmpdir(), "hermes-g1a-first-use-audit-"));
   try {
     const result = await runFactoryG1aFirstUseAuditReadiness({ check: true, outDir });
 
-    assert.equal(result.summary.factory_g1a_first_use_audit_readiness_status, "waiting_for_g1a_opening_source_literal_commit");
+    assert.equal(result.summary.factory_g1a_first_use_audit_readiness_status, "g1a_first_use_audit_already_bound");
     assert.equal(result.summary.ready_for_first_use_audit_source_binding, false);
-    assert.equal(result.summary.first_use_audit_candidate_present, false);
-    assert.equal(result.summary.source_literal_opening_commit_applied, false);
+    assert.equal(result.summary.first_use_audit_candidate_present, true);
+    assert.equal(result.summary.first_use_audit_already_bound, true);
+    assert.equal(result.summary.source_literal_opening_commit_applied, true);
+    assert.equal(result.summary.readiness_pass_count, 17);
+    assert.equal(result.summary.blocker_count, 0);
     assert.equal(result.summary.g1a_project_creation_gate_open_now, false);
     assert.equal(result.summary.project_creation_allowed_now, false);
     assert.equal(result.summary.production_pass_enabled, false);
@@ -32,6 +35,7 @@ test("default G1a first-use audit readiness waits for source-literal opening com
 test("valid audit candidate before G1a source opening remains waiting and read-only", async () => {
   const result = await buildFactoryG1aFirstUseAuditReadiness({
     auditCandidate: validAuditCandidate(),
+    closeoutReadiness: preOpeningCloseoutReadiness(),
   });
 
   assert.equal(result.summary.first_use_audit_candidate_present, true);
@@ -94,7 +98,7 @@ test("check mode does not write first-use audit readiness artifacts", async () =
   }
 });
 
-test("Review API exposes G1a first-use audit readiness as read-only waiting data", async () => {
+test("Review API exposes G1a first-use audit readiness as read-only source-bound data", async () => {
   const response = await buildReviewApiResponse("/api/factory/g1a-first-use-audit-readiness?category=source", {
     runAt: RUN_AT,
   });
@@ -108,7 +112,8 @@ test("Review API exposes G1a first-use audit readiness as read-only waiting data
   assert.equal(body.source_mutation_allowed_now, false);
   assert.equal(body.first_use_audit_bound_by_this_command, false);
   assert.equal(body.opens_gate_now, false);
-  assert.equal(body.summary.factory_g1a_first_use_audit_readiness_status, "waiting_for_g1a_opening_source_literal_commit");
+  assert.equal(body.summary.factory_g1a_first_use_audit_readiness_status, "g1a_first_use_audit_already_bound");
+  assert.equal(body.first_use_audit_source_binding_closed_now, true);
   assert.equal(body.g1a_project_creation_gate_open_now, false);
   assert.equal(body.project_creation_allowed_now, false);
   assert.equal(body.production_pass_enabled, false);
@@ -207,6 +212,40 @@ function openedCloseoutReadiness() {
       row("source_literal.preflight_ready", "pass"),
       row("source_literal.commit_applied", "pass"),
       row("source_literal.owner_receipt_bound", "pass"),
+      row("first_use.audit_present", "wait", false),
+      row("authority.closed_until_complete", "pass"),
+    ],
+  };
+}
+
+function preOpeningCloseoutReadiness() {
+  const row = (rowId, currentVerdict, observedValue = true) => ({
+    schema_version: "factory-g1a-opening-closeout-chain-row.v1",
+    row_id: rowId,
+    category: "test",
+    current_verdict: currentVerdict,
+    description: rowId,
+    observed_value: observedValue,
+    generated_at: "2026-06-12T00:00:00.000Z",
+  });
+  return {
+    schema_version: "factory-g1a-opening-closeout-readiness.v1",
+    summary: {
+      factory_g1a_opening_closeout_readiness_status: "waiting_for_signed_g1a_owner_receipt",
+    },
+    validation: {
+      valid: true,
+      errors: [],
+    },
+    g1a_opening_closeout_chain_rows: [
+      row("g0.readiness_ready", "pass"),
+      row("g1a.packet_ready", "pass"),
+      row("g1a.packet_review_valid", "pass"),
+      row("owner_receipt.signed", "wait", false),
+      row("owner_receipt.intake_ready", "wait", "waiting_for_signed_g1a_owner_receipt"),
+      row("source_literal.preflight_ready", "wait", "waiting_for_signed_g1a_owner_receipt"),
+      row("source_literal.commit_applied", "wait", false),
+      row("source_literal.owner_receipt_bound", "wait", false),
       row("first_use.audit_present", "wait", false),
       row("authority.closed_until_complete", "pass"),
     ],

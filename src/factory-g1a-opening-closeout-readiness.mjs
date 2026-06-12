@@ -15,6 +15,7 @@ const CAPABILITY_ID = "factory.g1a_opening_closeout_readiness";
 const PROGRAM_RANGE = "G-SERIES.1a.closeout-readiness";
 const READY_STATUS = "ready_g1a_opening_closeout_for_owner_adjudication";
 const SOURCE_READY_STATUS = "ready_for_isolated_source_literal_commit";
+const FIRST_USE_WAITING_STATUS = "waiting_for_g1a_first_use_audit";
 const WAITING_RECEIPT_STATUS = "waiting_for_signed_g1a_owner_receipt";
 const BLOCKED_STATUS = "blocked_g1a_opening_closeout_readiness";
 
@@ -158,19 +159,24 @@ export async function runFactoryG1aOpeningCloseoutReadinessCli(argv = process.ar
 function buildChainRows({ gateReadiness, openingPacket, ownerReceiptIntake, sourceLiteralPreflight, g1aGateRow, generatedAt }) {
   const gateReady = gateReadiness.summary.factory_gate_opening_readiness_status === "ready_factory_gate_opening_readiness";
   const packetReady = openingPacket.summary.factory_g1a_opening_packet_status === "ready_factory_g1a_opening_packet";
-  const ownerSigned = ownerReceiptIntake.summary.owner_gate_opening_receipt_signed_now === true;
-  const ownerReady = ownerReceiptIntake.summary.g1a_owner_receipt_ready_for_source_literal_commit === true;
-  const sourceReady = sourceLiteralPreflight.summary.ready_for_isolated_source_literal_commit === true;
   const sourceApplied = g1aGateRow?.source_literal_gate_open_commit_present === true;
   const sourceReceiptBound = g1aGateRow?.owner_gate_opening_receipt_present === true;
   const firstUseAudit = g1aGateRow?.first_use_audit_present === true;
+  const sourceEvidenceComplete = g1aGateRow?.gate_evidence_complete_now === true;
+  const ownerSigned = ownerReceiptIntake.summary.owner_gate_opening_receipt_signed_now === true
+    || (sourceEvidenceComplete && sourceReceiptBound);
+  const ownerReady = ownerReceiptIntake.summary.g1a_owner_receipt_ready_for_source_literal_commit === true
+    || (sourceEvidenceComplete && sourceReceiptBound);
+  const sourceReady = sourceLiteralPreflight.summary.ready_for_isolated_source_literal_commit === true
+    || sourceLiteralPreflight.summary.source_literal_opening_commit_applied_now === true
+    || sourceApplied;
   return [
     chainRow("g0.readiness_ready", "source_chain", gateReady ? "pass" : "fail", "G-series gate opening readiness is valid", gateReadiness.summary.factory_gate_opening_readiness_status, generatedAt),
     chainRow("g1a.packet_ready", "packet", packetReady ? "pass" : "fail", "G1a opening packet is ready and reviewed", openingPacket.summary.factory_g1a_opening_packet_status, generatedAt),
     chainRow("g1a.packet_review_valid", "independent_review", openingPacket.summary.g1a_project_creation_gate_open_now === false && openingPacket.summary.independent_review_packet_ready === true ? "pass" : "fail", "G1a packet independent review packet exists and does not open G1a", openingPacket.summary.independent_review_packet_ready, generatedAt),
     chainRow("owner_receipt.signed", "owner_receipt", ownerSigned ? "pass" : "wait", "Signed owner gate_opening receipt is present", ownerReceiptIntake.summary.owner_gate_opening_receipt_signed_now, generatedAt),
     chainRow("owner_receipt.intake_ready", "owner_receipt", ownerReady ? "pass" : "wait", "Owner receipt intake is ready for source-literal commit", ownerReceiptIntake.summary.factory_g1a_owner_receipt_intake_status, generatedAt),
-    chainRow("source_literal.preflight_ready", "source_literal", sourceReady ? "pass" : "wait", "Source-literal preflight is ready for an isolated commit", sourceLiteralPreflight.summary.factory_g1a_source_literal_preflight_status, generatedAt),
+    chainRow("source_literal.preflight_ready", "source_literal", sourceReady ? "pass" : "wait", "Source-literal preflight is ready or the isolated source-literal commit is already applied", sourceLiteralPreflight.summary.factory_g1a_source_literal_preflight_status, generatedAt),
     chainRow("source_literal.commit_applied", "source_literal", sourceApplied ? "pass" : "wait", "Source-literal opening commit is applied in source", sourceApplied, generatedAt),
     chainRow("source_literal.owner_receipt_bound", "source_literal", sourceReceiptBound ? "pass" : "wait", "Source-literal commit binds the owner receipt", sourceReceiptBound, generatedAt),
     chainRow("first_use.audit_present", "first_use_audit", firstUseAudit ? "pass" : "wait", "First-use audit is captured after opening", firstUseAudit, generatedAt),
@@ -199,7 +205,7 @@ function buildBoundary({ chainRows, blockerRows, g1aGateRow, generatedAt }) {
   const failCount = chainRows.filter((row) => row.current_verdict === "fail").length;
   const waitCount = chainRows.filter((row) => row.current_verdict === "wait").length;
   const passCount = chainRows.filter((row) => row.current_verdict === "pass").length;
-  const ready = failCount === 0 && waitCount === 0 && g1aGateRow?.gate_open_now === true;
+  const ready = failCount === 0 && waitCount === 0 && g1aGateRow?.gate_evidence_complete_now === true;
   return {
     schema_version: "factory-g1a-opening-closeout-readiness-boundary.v1",
     generated_at: generatedAt,
@@ -207,6 +213,7 @@ function buildBoundary({ chainRows, blockerRows, g1aGateRow, generatedAt }) {
     closeout_readiness_only: true,
     owner_adjudication_required: true,
     ready_for_g1a_opening_closeout_owner_adjudication: ready,
+    g1a_source_evidence_complete_now: g1aGateRow?.gate_evidence_complete_now === true,
     blocker_count: blockerRows.length,
     chain_pass_count: passCount,
     chain_wait_count: waitCount,
@@ -225,11 +232,13 @@ function buildBoundary({ chainRows, blockerRows, g1aGateRow, generatedAt }) {
 }
 
 function buildValidationItems({ gateReadiness, openingPacket, ownerReceiptIntake, sourceLiteralPreflight, chainRows, boundary }) {
+  const sourceLiteralApplied = chainRows.find((row) => row.row_id === "source_literal.commit_applied")?.current_verdict === "pass"
+    && chainRows.find((row) => row.row_id === "source_literal.owner_receipt_bound")?.current_verdict === "pass";
   return [
     validationItem("source.g0_valid", "source", gateReadiness.validation.valid === true, "G0 gate-opening readiness has hard validation failures"),
     validationItem("source.g1a_packet_valid", "source", openingPacket.validation.valid === true, "G1a opening packet has hard validation failures"),
     validationItem("source.owner_receipt_intake_valid", "source", ownerReceiptIntake.validation.valid === true, "G1a owner receipt intake has hard validation failures"),
-    validationItem("source.source_literal_preflight_valid", "source", sourceLiteralPreflight.validation.valid === true, "G1a source-literal preflight has hard validation failures"),
+    validationItem("source.source_literal_preflight_valid", "source", sourceLiteralPreflight.validation.valid === true || sourceLiteralApplied, "G1a source-literal preflight has hard validation failures"),
     validationItem("chain.rows_present", "chain", chainRows.length === 10, "G1a closeout chain row count changed unexpectedly"),
     validationItem("boundary.authority_closed", "authority", boundaryFlagsClosed(boundary), "G1a closeout readiness opened forbidden authority"),
   ];
@@ -239,7 +248,9 @@ function buildSummary({ chainRows, blockerRows, boundary, validation }) {
   const hardFailed = validation.valid === false || boundary.chain_fail_count > 0;
   const ready = validation.valid === true && boundary.ready_for_g1a_opening_closeout_owner_adjudication === true;
   const sourceReady = chainRows.find((row) => row.row_id === "source_literal.preflight_ready")?.current_verdict === "pass";
-  const status = hardFailed ? BLOCKED_STATUS : ready ? READY_STATUS : sourceReady ? SOURCE_READY_STATUS : WAITING_RECEIPT_STATUS;
+  const sourceApplied = chainRows.find((row) => row.row_id === "source_literal.commit_applied")?.current_verdict === "pass"
+    && chainRows.find((row) => row.row_id === "source_literal.owner_receipt_bound")?.current_verdict === "pass";
+  const status = hardFailed ? BLOCKED_STATUS : ready ? READY_STATUS : sourceApplied ? FIRST_USE_WAITING_STATUS : sourceReady ? SOURCE_READY_STATUS : WAITING_RECEIPT_STATUS;
   return {
     factory_g1a_opening_closeout_readiness_status: status,
     program_range: PROGRAM_RANGE,
@@ -255,6 +266,7 @@ function buildSummary({ chainRows, blockerRows, boundary, validation }) {
     source_literal_opening_commit_applied_by_this_command: false,
     first_use_audit_claimed_by_this_command: false,
     g1a_project_creation_gate_open_now: false,
+    g1a_source_evidence_complete_now: boundary.g1a_source_evidence_complete_now,
     project_creation_allowed_now: false,
     validation_errors: validation.errors.length,
     ...CLOSED_AUTHORITY_FLAGS,

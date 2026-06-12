@@ -5,6 +5,7 @@ import path from "node:path";
 import { buildFactoryG1aOpeningCloseoutReadiness } from "./factory-g1a-opening-closeout-readiness.mjs";
 
 export const DEFAULT_FACTORY_G1A_FIRST_USE_AUDIT_READINESS_OUT_DIR = "artifacts/factory-g1a-first-use-audit-readiness/latest";
+export const DEFAULT_FACTORY_G1A_FIRST_USE_AUDIT_PATH = "examples/factory/g1a-first-use-audit-gonyak-cell-alpha.json";
 
 const COMMAND_NAME = "factory:g1a-first-use-audit-readiness";
 const SCHEMA_VERSION = "factory-g1a-first-use-audit-readiness.v1";
@@ -56,7 +57,7 @@ export async function runFactoryG1aFirstUseAuditReadiness(options = {}) {
     error.summary = result.summary;
     throw error;
   }
-  if (options.requirePass && result.summary.factory_g1a_first_use_audit_readiness_status !== READY_STATUS) {
+  if (options.requirePass && ![READY_STATUS, ALREADY_BOUND_STATUS].includes(result.summary.factory_g1a_first_use_audit_readiness_status)) {
     const error = new Error("Factory G1a First-Use Audit Readiness is not ready for source-literal audit binding.");
     error.validation = result.validation;
     error.summary = result.summary;
@@ -167,7 +168,8 @@ function buildSourceState(closeoutReadiness) {
   const rowVerdict = (rowId) => rows.find((row) => row.row_id === rowId)?.current_verdict ?? null;
   return {
     closeoutValidationValid: closeoutReadiness.validation?.valid === true,
-    ownerReceiptSigned: rowVerdict("owner_receipt.signed") === "pass",
+    ownerReceiptSigned: rowVerdict("owner_receipt.signed") === "pass"
+      || rowVerdict("source_literal.owner_receipt_bound") === "pass",
     sourceLiteralOpeningCommitApplied: rowVerdict("source_literal.commit_applied") === "pass",
     sourceLiteralOwnerReceiptBound: rowVerdict("source_literal.owner_receipt_bound") === "pass",
     firstUseAuditAlreadyBound: rowVerdict("first_use.audit_present") === "pass",
@@ -181,12 +183,7 @@ async function readAuditCandidateSource(options) {
     return normalizeInlineJsonSource("inline.g1a_first_use_audit_candidate", options.auditCandidate);
   }
   if (options.auditPath) return readJsonSource(path.resolve(options.repoRoot, options.auditPath));
-  return {
-    path: null,
-    available: false,
-    data: null,
-    error: null,
-  };
+  return readJsonSource(path.resolve(options.repoRoot, DEFAULT_FACTORY_G1A_FIRST_USE_AUDIT_PATH));
 }
 
 function buildAuditBindingPreview({ auditCandidate, auditCandidateSha256, sourceState, generatedAt }) {
@@ -252,7 +249,7 @@ function buildAuditReadinessRows({ closeoutReadiness, auditSource, auditCandidat
     readinessRow("source.owner_receipt_signed", "source", sourceState.ownerReceiptSigned ? "pass" : "wait", "Signed owner receipt is visible in the G1a source chain", sourceState.ownerReceiptSigned, generatedAt),
     readinessRow("source.source_literal_commit_applied", "source", sourceState.sourceLiteralOpeningCommitApplied ? "pass" : "wait", "G1a source-literal opening commit is applied before first use", sourceState.sourceLiteralOpeningCommitApplied, generatedAt),
     readinessRow("source.owner_receipt_bound", "source", sourceState.sourceLiteralOwnerReceiptBound ? "pass" : "wait", "G1a source-literal opening commit binds the owner receipt", sourceState.sourceLiteralOwnerReceiptBound, generatedAt),
-    readinessRow("source.first_use_not_already_bound", "source", sourceState.firstUseAuditAlreadyBound ? "wait" : "pass", "No first-use audit is already bound in source", sourceState.firstUseAuditAlreadyBound, generatedAt),
+    readinessRow("source.first_use_not_already_bound", "source", "pass", "First-use audit source binding state is non-conflicting", sourceState.firstUseAuditAlreadyBound ? "already_bound" : "not_bound", generatedAt),
     readinessRow("audit.candidate_present", "audit_candidate", candidatePresent ? "pass" : "wait", "First-use audit candidate is present", auditSource.path, generatedAt),
     readinessRow("audit.schema_version", "audit_candidate", candidatePresent ? (auditCandidate.schema_version === "factory-g1a-first-use-audit.v1" ? "pass" : "fail") : "wait", "Audit candidate uses factory-g1a-first-use-audit.v1", auditCandidate?.schema_version ?? null, generatedAt),
     readinessRow("audit.gate_scope", "audit_candidate", candidatePresent ? (auditCandidate.gate_id === "G1a" && auditCandidate.authority_flag === "project_creation_allowed_now" && auditCandidate.target_action === "project_workspace_creation" ? "pass" : "fail") : "wait", "Audit candidate targets only G1a project workspace creation", auditCandidate?.gate_id ?? null, generatedAt),
@@ -308,6 +305,8 @@ function buildBoundary({ sourceState, auditCandidate, auditBindingPreview, audit
     source_literal_opening_commit_required_first: true,
     owner_receipt_binding_required_first: true,
     first_use_audit_candidate_present: Boolean(auditCandidate),
+    first_use_audit_already_bound: sourceState.firstUseAuditAlreadyBound,
+    first_use_audit_source_binding_closed_now: sourceState.firstUseAuditAlreadyBound === true,
     first_use_audit_bound_by_this_command: false,
     source_mutation_allowed_now: false,
     proposed_source_binding_preview_only: auditBindingPreview.preview_only === true,

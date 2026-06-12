@@ -22,7 +22,7 @@ const BLOCKED_STATUS = "blocked_factory_gate_opening_readiness";
 // Gate opening is intentionally a source-literal change, not a data flag.
 // Future gate-opening commits must change this constant in an isolated commit.
 const SOURCE_LITERAL_GATE_OPEN_COMMITS = {
-  G1a: false,
+  G1a: true,
   G1b: false,
   G2: false,
   G3: false,
@@ -30,8 +30,28 @@ const SOURCE_LITERAL_GATE_OPEN_COMMITS = {
 
 // Owner receipts become countable only after a source-literal gate-opening commit
 // names the receipt here. Runtime data alone must never open authority.
-const SOURCE_LITERAL_GATE_OPENING_RECEIPTS = [];
-const SOURCE_LITERAL_FIRST_USE_AUDITS = [];
+const SOURCE_LITERAL_GATE_OPENING_RECEIPTS = [
+  {
+    gate_id: "G1a",
+    receipt_id: "OWNER-G1A-GATE-OPENING-GONYAK-CELL-20260612-ALPHA",
+    receipt_sha256: "ddb647e5806799263b439bd7baefd8175016b79388b6ab2ceeac4a572e5c6316",
+    owner_signed_at: "2026-06-12T07:06:37Z",
+    independent_review_receipt_ref: "docs/factory-promotion/g1a-claude-opus-4-8-review-receipt.md",
+    scope_limit: "new product workspace creation only; one owner gate_opening receipt permits one scoped creation action",
+  },
+];
+const SOURCE_LITERAL_FIRST_USE_AUDITS = [
+  {
+    gate_id: "G1a",
+    audit_id: "G1A-FIRST-USE-AUDIT-GONYAK-CELL-20260612-ALPHA",
+    audit_sha256: "ec943fb68d02926b05863e2a620194c567e74393043ad8cd9a11b4cb64ee3249",
+    audit_ref: "examples/factory/g1a-first-use-audit-gonyak-cell-alpha.json",
+    owner_gate_opening_receipt_id: "OWNER-G1A-GATE-OPENING-GONYAK-CELL-20260612-ALPHA",
+    source_literal_opening_commit_sha: "e681f2a7fc9a6f9915f94dd1428877a5b02393c1",
+    product_id: "product.fc2_candidate_gonyak_cell_alpha",
+    workspace_id: "workspace.g1a.gonyak_cell.alpha",
+  },
+];
 
 const GATE_DEFINITIONS = [
   {
@@ -328,14 +348,20 @@ function buildGateRows({ sourceState, prerequisiteRows, generatedAt }) {
     G2: false,
     G3: false,
   };
-  const previousGateOpen = { G1a: true, G1b: false, G2: false, G3: false };
+  const g1aEvidenceComplete = gatePrerequisites.G1a === true
+    && SOURCE_LITERAL_GATE_OPENING_RECEIPTS.some((receipt) => receipt.gate_id === "G1a")
+    && SOURCE_LITERAL_GATE_OPEN_COMMITS.G1a === true
+    && SOURCE_LITERAL_FIRST_USE_AUDITS.some((audit) => audit.gate_id === "G1a");
+  const previousGateOpen = { G1a: true, G1b: g1aEvidenceComplete, G2: false, G3: false };
   return GATE_DEFINITIONS.map((definition, index) => {
     const ownerReceiptPresent = SOURCE_LITERAL_GATE_OPENING_RECEIPTS.some((receipt) => receipt.gate_id === definition.gate_id);
-    const firstUseAuditPresent = SOURCE_LITERAL_FIRST_USE_AUDITS.some((audit) => audit.gate_id === definition.gate_id);
+    const firstUseAuditRefs = SOURCE_LITERAL_FIRST_USE_AUDITS.filter((audit) => audit.gate_id === definition.gate_id);
+    const firstUseAuditPresent = firstUseAuditRefs.length > 0;
     const sourceLiteralCommitPresent = SOURCE_LITERAL_GATE_OPEN_COMMITS[definition.gate_id] === true;
     const prerequisiteReady = gatePrerequisites[definition.gate_id] === true;
     const previousReady = previousGateOpen[definition.gate_id] === true;
-    const gateOpen = prerequisiteReady && previousReady && ownerReceiptPresent && sourceLiteralCommitPresent && firstUseAuditPresent;
+    const gateEvidenceComplete = prerequisiteReady && previousReady && ownerReceiptPresent && sourceLiteralCommitPresent && firstUseAuditPresent;
+    const gateOpen = false;
     const blockedReasonIds = buildGateBlockedReasons({
       definition,
       prerequisiteReady,
@@ -355,8 +381,18 @@ function buildGateRows({ sourceState, prerequisiteRows, generatedAt }) {
       prerequisite_description: definition.prerequisite_description,
       prerequisite_status: prerequisiteReady ? "ready" : "blocked",
       previous_gate_status: previousReady ? "not_required_or_open" : "blocked_previous_gate_closed",
-      gate_status: gateOpen ? "open" : buildGateStatus({ definition, prerequisiteReady, previousReady }),
+      gate_status: gateOpen ? "open" : buildGateStatus({
+        definition,
+        prerequisiteReady,
+        previousReady,
+        ownerReceiptPresent,
+        sourceLiteralCommitPresent,
+        firstUseAuditPresent,
+        gateEvidenceComplete,
+      }),
       gate_open_now: gateOpen,
+      gate_evidence_complete_now: gateEvidenceComplete,
+      runtime_authority_open_now: false,
       owner_gate_opening_receipt_required: true,
       owner_gate_opening_receipt_present: ownerReceiptPresent,
       receipt_kind_required: "gate_opening",
@@ -366,6 +402,11 @@ function buildGateRows({ sourceState, prerequisiteRows, generatedAt }) {
       data_driven_opening_allowed_now: false,
       first_use_audit_required: true,
       first_use_audit_present: firstUseAuditPresent,
+      first_use_audit_refs: firstUseAuditRefs.map((audit) => ({
+        audit_id: audit.audit_id,
+        audit_sha256: audit.audit_sha256,
+        audit_ref: audit.audit_ref,
+      })),
       one_receipt_one_action: true,
       scope_limit: definition.scope_limit,
       blocked_reason_ids: blockedReasonIds,
@@ -393,14 +434,21 @@ function buildGateBlockedReasons({ definition, prerequisiteReady, previousReady,
   return [...new Set(reasons)];
 }
 
-function buildGateStatus({ definition, prerequisiteReady, previousReady }) {
+function buildGateStatus({ definition, prerequisiteReady, previousReady, ownerReceiptPresent, sourceLiteralCommitPresent, firstUseAuditPresent, gateEvidenceComplete }) {
+  if (gateEvidenceComplete) return "source_evidence_complete_runtime_authority_closed";
   if (!prerequisiteReady) return "blocked_prerequisites_missing";
   if (!previousReady) return "blocked_previous_gate_closed";
+  if (definition.gate_id === "G1a" && ownerReceiptPresent && sourceLiteralCommitPresent && !firstUseAuditPresent) return "waiting_for_first_use_audit_after_source_literal_commit";
+  if (definition.gate_id === "G1a" && ownerReceiptPresent && !sourceLiteralCommitPresent) return "ready_for_source_literal_commit";
+  if (definition.gate_id === "G1a" && !ownerReceiptPresent && sourceLiteralCommitPresent) return "blocked_source_literal_commit_without_owner_receipt";
   if (definition.gate_id === "G1a") return "ready_for_owner_gate_receipt_and_source_literal_commit";
   return "blocked_gate_order_or_usage_evidence_missing";
 }
 
 function buildNextOperatorActions(gateId, blockedReasonIds) {
+  if (gateId === "G1a" && blockedReasonIds.length === 1 && blockedReasonIds.includes("post_open_first_use_audit_missing")) {
+    return ["capture_g1a_first_use_audit_after_owner_authorized_opening"];
+  }
   if (gateId === "G1a" && blockedReasonIds.includes("gate_opening_receipt_missing")) {
     return ["prepare_g1a_gate_opening_receipt", "prepare_isolated_source_literal_gate_opening_commit", "request_independent_gate_opening_review"];
   }
@@ -476,6 +524,7 @@ function buildBoundary({ sourceState, gateRows, deferredGateRows, negativeFixtur
     human_owner_protected_closeout_required: sourceState.protectedCloseoutRequired,
     factory_promotion_goal_complete_allowed_now: false,
     g1a_project_creation_gate_open_now: gateRows.find((row) => row.gate_id === "G1a")?.gate_open_now === true,
+    g1a_source_evidence_complete_now: gateRows.find((row) => row.gate_id === "G1a")?.gate_evidence_complete_now === true,
     g1b_repo_write_gate_open_now: gateRows.find((row) => row.gate_id === "G1b")?.gate_open_now === true,
     g2_command_execution_gate_open_now: gateRows.find((row) => row.gate_id === "G2")?.gate_open_now === true,
     g3_deployment_gate_open_now: gateRows.find((row) => row.gate_id === "G3")?.gate_open_now === true,
@@ -516,7 +565,9 @@ function buildSummary({ prerequisiteRows, gateRows, deferredGateRows, negativeFi
     prerequisite_ready_count: readyPrerequisites,
     gate_count: gateRows.length,
     gate_open_count: gateOpenCount,
+    gate_evidence_complete_count: gateRows.filter((row) => row.gate_evidence_complete_now).length,
     g1a_gate_status: g1a?.gate_status ?? null,
+    g1a_source_evidence_complete_now: g1a?.gate_evidence_complete_now === true,
     g1a_ready_for_owner_receipt_now: g1a?.gate_status === "ready_for_owner_gate_receipt_and_source_literal_commit",
     source_literal_gate_open_commit_count: gateRows.filter((row) => row.source_literal_gate_open_commit_present).length,
     owner_gate_opening_receipt_count: gateRows.filter((row) => row.owner_gate_opening_receipt_present).length,

@@ -33,13 +33,13 @@ test("Factory G1a owner action packet surfaces owner actions without selecting, 
   assert.equal(result.summary.owner_signature_required_now, true);
   assert.equal(result.summary.first_required_owner_action, "owner.choose_candidate_hash");
   assert.equal(result.summary.owner_action_row_count, 8);
-  assert.equal(result.summary.owner_action_pass_count, 0);
-  assert.equal(result.summary.owner_action_wait_count, 8);
+  assert.equal(result.summary.owner_action_pass_count, 3);
+  assert.equal(result.summary.owner_action_wait_count, 5);
   assert.equal(result.summary.owner_action_fail_count, 0);
   assert.equal(result.summary.signs_owner_receipt_now, false);
   assert.equal(result.summary.source_mutation_allowed_now, false);
-  assert.equal(result.summary.source_literal_opening_commit_applied_now, false);
-  assert.equal(result.summary.first_use_audit_present, false);
+  assert.equal(result.summary.source_literal_opening_commit_applied_now, true);
+  assert.equal(result.summary.first_use_audit_present, true);
   assert.equal(result.summary.g1a_project_creation_gate_open_now, false);
   assert.equal(result.summary.project_creation_allowed_now, false);
   assert.equal(result.summary.production_pass_enabled, false);
@@ -74,8 +74,8 @@ test("Factory G1a owner action packet marks explicit selected candidate prebind 
   assert.equal(rows.get("owner.choose_candidate_hash").current_verdict, "pass");
   assert.equal(rows.get("owner.run_prebind_check").current_verdict, "pass");
   assert.equal(rows.get("owner.sign_gate_opening_receipt").current_verdict, "wait");
-  assert.equal(result.summary.owner_action_pass_count, 2);
-  assert.equal(result.summary.owner_action_wait_count, 6);
+  assert.equal(result.summary.owner_action_pass_count, 5);
+  assert.equal(result.summary.owner_action_wait_count, 3);
   assert.equal(result.summary.signs_owner_receipt_now, false);
   assert.equal(result.summary.opens_gate_now, false);
   assert.equal(result.summary.project_creation_allowed_now, false);
@@ -153,7 +153,7 @@ test("Factory G1a owner action packet writes artifacts and check mode does not o
     const workOrder = JSON.parse(await readFile(path.join(outDir, "owner-work-order.json"), "utf8"));
 
     assert.equal(result.summary.factory_g1a_owner_action_packet_status, "ready_g1a_owner_action_packet");
-    assert.equal(artifact.summary.owner_action_wait_count, 8);
+    assert.equal(artifact.summary.owner_action_wait_count, 5);
     assert.equal(cards.count, 3);
     assert.equal(rows.count, 8);
     assert.equal(workOrder.signs_owner_receipt_now, false);

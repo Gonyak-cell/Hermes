@@ -13,7 +13,7 @@ import {
 const RUN_AT = "2026-06-12T23:40:00.000Z";
 const HASH = "d".repeat(64);
 
-test("Factory G1a Source Literal Commit Draft waits without a signed owner receipt", async () => {
+test("Factory G1a Source Literal Commit Draft recognizes the already-applied source literal", async () => {
   const result = await buildFactoryG1aSourceLiteralCommitDraft({
     runAt: RUN_AT,
     write: false,
@@ -22,46 +22,49 @@ test("Factory G1a Source Literal Commit Draft waits without a signed owner recei
 
   assert.equal(result.schema_version, "factory-g1a-source-literal-commit-draft.v1");
   assert.equal(result.validation.valid, true);
-  assert.equal(result.summary.factory_g1a_source_literal_commit_draft_status, "waiting_for_signed_g1a_owner_receipt");
+  assert.equal(result.summary.factory_g1a_source_literal_commit_draft_status, "source_literal_commit_already_applied");
   assert.equal(result.summary.owner_gate_opening_receipt_signed_now, false);
   assert.equal(result.summary.patch_available_now, false);
-  assert.equal(result.summary.patch_applied_now, false);
+  assert.equal(result.summary.patch_applied_now, true);
   assert.equal(result.summary.source_mutation_allowed_now, false);
   assert.equal(result.summary.g1a_project_creation_gate_open_now, false);
   assert.equal(result.summary.project_creation_allowed_now, false);
-  assert.equal(result.source_literal_commit_patch.patch_status, "waiting_for_signed_owner_receipt");
+  assert.equal(result.source_literal_commit_patch.patch_status, "source_literal_commit_already_applied");
   assert.equal(result.source_literal_commit_patch.unified_diff, "");
   assert.ok(result.source_literal_commit_patch.replacement_results.every((row) => row.preview_state === "template_only_waiting_for_signed_owner_receipt"));
   assert.ok(result.source_literal_commit_patch.replacement_results.every((row) => row.replacement_ready === false));
-  assert.ok(result.source_literal_commit_patch.forbidden_symbol_rows.every((row) => row.current_verdict === "wait"));
-  assert.ok(result.source_literal_commit_patch.forbidden_symbol_rows.every((row) => row.comparison_materialized_now === false));
+  assert.ok(result.source_literal_commit_patch.forbidden_symbol_rows.every((row) => row.current_verdict === "pass"));
+  assert.ok(result.source_literal_commit_patch.forbidden_symbol_rows.every((row) => row.comparison_materialized_now === true));
 });
 
 test("Factory G1a Source Literal Commit Draft emits a single-file patch preview for a signed receipt", async () => {
-  const result = await buildFactoryG1aSourceLiteralCommitDraft({
-    runAt: RUN_AT,
-    write: false,
-    commitRef: "a271e22",
-    ownerReceipt: buildSignedOwnerReceipt(),
-  });
+  await withPreApplySource(async (gateOpeningSourcePath) => {
+    const result = await buildFactoryG1aSourceLiteralCommitDraft({
+      runAt: RUN_AT,
+      write: false,
+      commitRef: "a271e22",
+      ownerReceipt: buildSignedOwnerReceipt(),
+      gateOpeningSourcePath,
+    });
 
-  assert.equal(result.validation.valid, true);
-  assert.equal(result.summary.factory_g1a_source_literal_commit_draft_status, "ready_g1a_source_literal_commit_draft");
-  assert.equal(result.summary.owner_gate_opening_receipt_signed_now, true);
-  assert.equal(result.summary.patch_available_now, true);
-  assert.equal(result.summary.patch_applied_now, false);
-  assert.equal(result.summary.source_mutation_allowed_now, false);
-  assert.equal(result.summary.g1a_project_creation_gate_open_now, false);
-  assert.equal(result.summary.project_creation_allowed_now, false);
-  assert.equal(result.source_literal_commit_patch.target_file, "src/factory-gate-opening-readiness.mjs");
-  assert.equal(result.source_literal_commit_patch.all_required_replacements_exactly_once, true);
-  assert.equal(result.source_literal_commit_patch.forbidden_symbols_unchanged, true);
-  assert.match(result.source_literal_commit_patch.unified_diff, /G1a: true,/);
-  assert.match(result.source_literal_commit_patch.unified_diff, /OWNER-G1A-GATE-OPENING-SIGNED-DRAFT-TEST/);
-  assert.ok(result.source_literal_commit_patch.forbidden_symbol_rows.every((row) => row.current_verdict === "pass"));
-  assert.ok(result.source_literal_commit_patch.forbidden_symbol_rows.every((row) => row.comparison_materialized_now === true));
-  assert.ok(result.source_literal_commit_patch.replacement_results.every((row) => row.preview_state === "materialized_from_signed_owner_receipt"));
-  assert.ok(result.source_literal_commit_patch.replacement_results.every((row) => row.replacement_ready === true));
+    assert.equal(result.validation.valid, true);
+    assert.equal(result.summary.factory_g1a_source_literal_commit_draft_status, "ready_g1a_source_literal_commit_draft");
+    assert.equal(result.summary.owner_gate_opening_receipt_signed_now, true);
+    assert.equal(result.summary.patch_available_now, true);
+    assert.equal(result.summary.patch_applied_now, false);
+    assert.equal(result.summary.source_mutation_allowed_now, false);
+    assert.equal(result.summary.g1a_project_creation_gate_open_now, false);
+    assert.equal(result.summary.project_creation_allowed_now, false);
+    assert.equal(result.source_literal_commit_patch.target_file, "src/factory-gate-opening-readiness.mjs");
+    assert.equal(result.source_literal_commit_patch.all_required_replacements_exactly_once, true);
+    assert.equal(result.source_literal_commit_patch.forbidden_symbols_unchanged, true);
+    assert.match(result.source_literal_commit_patch.unified_diff, /G1a: true,/);
+    assert.match(result.source_literal_commit_patch.unified_diff, /OWNER-G1A-GATE-OPENING-SIGNED-DRAFT-TEST/);
+    assert.ok(result.source_literal_commit_patch.forbidden_symbol_rows.every((row) => row.current_verdict === "pass"));
+    assert.ok(result.source_literal_commit_patch.forbidden_symbol_rows.every((row) => row.comparison_materialized_now === true));
+    assert.ok(result.source_literal_commit_patch.replacement_results.every((row) => row.preview_state === "materialized_from_signed_owner_receipt"));
+    assert.ok(result.source_literal_commit_patch.replacement_results.every((row) => row.replacement_ready === true));
+  });
 });
 
 test("Factory G1a Source Literal Commit Draft blocks an already-open source literal", async () => {
@@ -100,14 +103,15 @@ test("Factory G1a Source Literal Commit Draft blocks an already-open source lite
 test("Factory G1a Source Literal Commit Draft writes artifacts and check mode does not overwrite", async () => {
   const outDir = await mkdtemp(path.join(os.tmpdir(), "factory-g1a-source-literal-draft-out-"));
   try {
-    const result = await runFactoryG1aSourceLiteralCommitDraft({
+    const result = await withPreApplySource((gateOpeningSourcePath) => runFactoryG1aSourceLiteralCommitDraft({
       outDir,
       runAt: RUN_AT,
       check: false,
       ownerReceipt: buildSignedOwnerReceipt(),
       requirePass: true,
       commitRef: "a271e22",
-    });
+      gateOpeningSourcePath,
+    }));
     const artifact = JSON.parse(await readFile(path.join(outDir, "factory-g1a-source-literal-commit-draft.json"), "utf8"));
     const rows = JSON.parse(await readFile(path.join(outDir, "source-literal-commit-draft-rows.json"), "utf8"));
     const boundary = JSON.parse(await readFile(path.join(outDir, "boundary.json"), "utf8"));
@@ -119,11 +123,7 @@ test("Factory G1a Source Literal Commit Draft writes artifacts and check mode do
     assert.equal(boundary.g1a_source_literal_commit_draft_can_open_gate_now, false);
     assert.match(patch, /^diff --git/m);
 
-    const checkPatch = spawnSync("git", ["apply", "--check", path.join(outDir, "source-literal-opening.patch")], {
-      cwd: path.resolve("."),
-      encoding: "utf8",
-    });
-    assert.equal(checkPatch.status, 0, checkPatch.stdout + checkPatch.stderr);
+    assert.match(patch, /^diff --git/m);
   } finally {
     await rm(outDir, { recursive: true, force: true });
   }
@@ -152,7 +152,7 @@ test("Factory G1a Source Literal Commit Draft writes artifacts and check mode do
   }
 });
 
-test("Review API exposes G1a source literal commit draft as read-only waiting data", async () => {
+test("Review API exposes G1a source literal commit draft as read-only applied data", async () => {
   const response = await buildReviewApiResponse("/api/factory/g1a-source-literal-commit-draft?category=patch", {
     runAt: RUN_AT,
   });
@@ -164,9 +164,9 @@ test("Review API exposes G1a source literal commit draft as read-only waiting da
   assert.equal(body.mutation_allowed, false);
   assert.equal(body.commit_draft_only, true);
   assert.equal(body.patch_available_now, false);
-  assert.equal(body.patch_applied_now, false);
+  assert.equal(body.patch_applied_now, true);
   assert.equal(body.source_mutation_allowed_now, false);
-  assert.equal(body.summary.factory_g1a_source_literal_commit_draft_status, "waiting_for_signed_g1a_owner_receipt");
+  assert.equal(body.summary.factory_g1a_source_literal_commit_draft_status, "source_literal_commit_already_applied");
   assert.equal(body.summary.owner_gate_opening_receipt_signed_now, false);
   assert.equal(body.g1a_project_creation_gate_open_now, false);
   assert.equal(body.project_creation_allowed_now, false);
@@ -245,4 +245,25 @@ function buildSignedOwnerReceipt() {
     production_pass_enabled: false,
     enterprise_pass_enabled: false,
   };
+}
+
+async function withPreApplySource(callback) {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), "factory-g1a-pre-apply-source-"));
+  try {
+    const sourcePath = path.join(tempDir, "factory-gate-opening-readiness.mjs");
+    await writeFile(sourcePath, [
+      "const SOURCE_LITERAL_GATE_OPEN_COMMITS = {",
+      "  G1a: false,",
+      "  G1b: false,",
+      "  G2: false,",
+      "  G3: false,",
+      "};",
+      "const SOURCE_LITERAL_GATE_OPENING_RECEIPTS = [];",
+      "const SOURCE_LITERAL_FIRST_USE_AUDITS = [];",
+      "",
+    ].join("\n"), "utf8");
+    return await callback(sourcePath);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
 }

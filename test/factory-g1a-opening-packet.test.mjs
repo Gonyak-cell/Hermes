@@ -29,7 +29,7 @@ test("Factory G1a Opening Packet prepares LawOS-style review packet without open
   assert.equal(result.owner_gate_opening_receipt_template.receipt_kind, "gate_opening");
   assert.equal(result.owner_gate_opening_receipt_template.receipt_status, "template_not_signed");
   assert.equal(result.owner_gate_opening_receipt_template.human_owner_signed, false);
-  assert.equal(result.source_literal_opening_commit_plan.plan_status, "planned_not_applied");
+  assert.equal(result.source_literal_opening_commit_plan.plan_status, "already_applied_waiting_first_use_audit");
   assert.equal(result.source_literal_opening_commit_plan.opens_gate_now, false);
   assert.equal(result.source_literal_opening_commit_plan.source_literal_path, "SOURCE_LITERAL_GATE_OPEN_COMMITS.G1a");
   assert.equal(result.first_use_audit_checklist.first_use_audit_present, false);
@@ -114,10 +114,11 @@ test("Factory G1a Opening Packet rejects injected open-attempt shapes", async ()
   ];
 
   for (const attempt of attempts) {
-    const result = await buildFactoryG1aOpeningPacket({
+    const result = await withPreApplySource((gateOpeningSourcePath) => buildFactoryG1aOpeningPacket({
       runAt: RUN_AT,
       write: false,
       commitRef: "0aefc2b",
+      gateOpeningSourcePath,
       gateOpeningReadiness: {
         validation: { valid: true, errors: [] },
         summary: {
@@ -126,7 +127,7 @@ test("Factory G1a Opening Packet rejects injected open-attempt shapes", async ()
         },
         factory_gate_opening_readiness_rows: [attempt.row],
       },
-    });
+    }));
 
     assert.equal(result.validation.valid, attempt.valid, attempt.name);
     assert.equal(result.summary.g1a_project_creation_gate_open_now, false, attempt.name);
@@ -201,7 +202,7 @@ test("Review API exposes G1a opening packet as read-only packet data", async () 
   assert.equal(body.count, 1);
   assert.equal(body.items[0].packet_item_id, "g1a.owner_gate_opening_receipt_template");
   assert.equal(body.owner_gate_opening_receipt_template.receipt_status, "template_not_signed");
-  assert.equal(body.source_literal_opening_commit_plan.plan_status, "planned_not_applied");
+  assert.equal(body.source_literal_opening_commit_plan.plan_status, "already_applied_waiting_first_use_audit");
   assert.equal(body.g1a_project_creation_gate_open_now, false);
   assert.equal(body.project_creation_allowed_now, false);
   assert.equal(body.production_pass_enabled, false);
@@ -223,3 +224,24 @@ test("Review API exposes G1a opening packet as read-only packet data", async () 
     assert.equal(deniedBody.error, "method_not_allowed");
   }
 });
+
+async function withPreApplySource(callback) {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), "factory-g1a-pre-apply-source-"));
+  try {
+    const sourcePath = path.join(tempDir, "factory-gate-opening-readiness.mjs");
+    await writeFile(sourcePath, [
+      "const SOURCE_LITERAL_GATE_OPEN_COMMITS = {",
+      "  G1a: false,",
+      "  G1b: false,",
+      "  G2: false,",
+      "  G3: false,",
+      "};",
+      "const SOURCE_LITERAL_GATE_OPENING_RECEIPTS = [];",
+      "const SOURCE_LITERAL_FIRST_USE_AUDITS = [];",
+      "",
+    ].join("\n"), "utf8");
+    return await callback(sourcePath);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+}

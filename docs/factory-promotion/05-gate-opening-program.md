@@ -78,15 +78,15 @@ closeout, source mutation, G1a 개방, production/enterprise PASS를 수행하�
 않는다.
 
 G1a opening closeout readiness는 G0, packet, owner receipt intake,
-source-literal preflight를 한 표면으로 집계한다. 현재 chain은 4 pass / 6
-wait / 0 fail이며, signed owner receipt와 이후 source-literal commit,
-first-use audit이 없으므로 G1a는 닫힌 상태다.
+source-literal preflight, first-use audit binding을 한 표면으로 집계한다.
+현재 chain은 10 pass / 0 wait / 0 fail이며, G1a source evidence는 complete
+상태다. 단, `project_creation_allowed_now`와 production/enterprise authority는
+계속 닫힌 상태다.
 
 G1a first-use audit readiness는 개방 이후 첫 workspace creation 감사 후보를
-검증하고 `SOURCE_LITERAL_FIRST_USE_AUDITS` source binding preview를 만든다.
-현재 source-literal opening commit이 없으므로
-`waiting_for_g1a_opening_source_literal_commit`이며, 감사 수행·source mutation·
-G1a 개방을 주장하지 않는다.
+검증하고 `SOURCE_LITERAL_FIRST_USE_AUDITS` source binding을 확인한다. 현재
+source-controlled fixture가 바인딩되어 `g1a_first_use_audit_already_bound`이며,
+추가 감사 수행·source mutation·protected authority 개방을 주장하지 않는다.
 
 ## 2. 게이트 매트릭스
 

@@ -7354,8 +7354,9 @@ try {
   assert.equal(factoryG1aSourceLiteralPreflight.preflight_only, true);
   assert.equal(factoryG1aSourceLiteralPreflight.source_mutation_allowed_now, false);
   assert.equal(factoryG1aSourceLiteralPreflight.opens_gate_now, false);
-  assert.equal(factoryG1aSourceLiteralPreflight.summary.factory_g1a_source_literal_preflight_status, "waiting_for_signed_g1a_owner_receipt");
+  assert.equal(factoryG1aSourceLiteralPreflight.summary.factory_g1a_source_literal_preflight_status, "source_literal_opening_commit_already_applied");
   assert.equal(factoryG1aSourceLiteralPreflight.summary.owner_gate_opening_receipt_signed_now, false);
+  assert.equal(factoryG1aSourceLiteralPreflight.source_literal_opening_commit_applied_now, true);
   assert.equal(factoryG1aSourceLiteralPreflight.g1a_project_creation_gate_open_now, false);
   assert.equal(factoryG1aSourceLiteralPreflight.project_creation_allowed_now, false);
   assert.equal(factoryG1aSourceLiteralPreflight.production_pass_enabled, false);
@@ -7370,10 +7371,10 @@ try {
   assert.equal(factoryG1aSourceLiteralCommitDraft.mutation_allowed, false);
   assert.equal(factoryG1aSourceLiteralCommitDraft.commit_draft_only, true);
   assert.equal(factoryG1aSourceLiteralCommitDraft.patch_available_now, false);
-  assert.equal(factoryG1aSourceLiteralCommitDraft.patch_applied_now, false);
+  assert.equal(factoryG1aSourceLiteralCommitDraft.patch_applied_now, true);
   assert.equal(factoryG1aSourceLiteralCommitDraft.source_mutation_allowed_now, false);
   assert.equal(factoryG1aSourceLiteralCommitDraft.opens_gate_now, false);
-  assert.equal(factoryG1aSourceLiteralCommitDraft.summary.factory_g1a_source_literal_commit_draft_status, "waiting_for_signed_g1a_owner_receipt");
+  assert.equal(factoryG1aSourceLiteralCommitDraft.summary.factory_g1a_source_literal_commit_draft_status, "source_literal_commit_already_applied");
   assert.equal(factoryG1aSourceLiteralCommitDraft.summary.owner_gate_opening_receipt_signed_now, false);
   assert.equal(factoryG1aSourceLiteralCommitDraft.g1a_project_creation_gate_open_now, false);
   assert.equal(factoryG1aSourceLiteralCommitDraft.project_creation_allowed_now, false);
@@ -7390,7 +7391,8 @@ try {
   assert.equal(factoryG1aOpeningCloseoutReadiness.closeout_readiness_only, true);
   assert.equal(factoryG1aOpeningCloseoutReadiness.owner_adjudication_required, true);
   assert.equal(factoryG1aOpeningCloseoutReadiness.opens_gate_now, false);
-  assert.equal(factoryG1aOpeningCloseoutReadiness.summary.factory_g1a_opening_closeout_readiness_status, "waiting_for_signed_g1a_owner_receipt");
+  assert.equal(factoryG1aOpeningCloseoutReadiness.summary.factory_g1a_opening_closeout_readiness_status, "ready_g1a_opening_closeout_for_owner_adjudication");
+  assert.equal(factoryG1aOpeningCloseoutReadiness.summary.g1a_source_evidence_complete_now, true);
   assert.equal(factoryG1aOpeningCloseoutReadiness.g1a_project_creation_gate_open_now, false);
   assert.equal(factoryG1aOpeningCloseoutReadiness.project_creation_allowed_now, false);
   assert.equal(factoryG1aOpeningCloseoutReadiness.production_pass_enabled, false);
@@ -7407,7 +7409,8 @@ try {
   assert.equal(factoryG1aFirstUseAuditReadiness.source_mutation_allowed_now, false);
   assert.equal(factoryG1aFirstUseAuditReadiness.first_use_audit_bound_by_this_command, false);
   assert.equal(factoryG1aFirstUseAuditReadiness.opens_gate_now, false);
-  assert.equal(factoryG1aFirstUseAuditReadiness.summary.factory_g1a_first_use_audit_readiness_status, "waiting_for_g1a_opening_source_literal_commit");
+  assert.equal(factoryG1aFirstUseAuditReadiness.summary.factory_g1a_first_use_audit_readiness_status, "g1a_first_use_audit_already_bound");
+  assert.equal(factoryG1aFirstUseAuditReadiness.first_use_audit_source_binding_closed_now, true);
   assert.equal(factoryG1aFirstUseAuditReadiness.g1a_project_creation_gate_open_now, false);
   assert.equal(factoryG1aFirstUseAuditReadiness.project_creation_allowed_now, false);
   assert.equal(factoryG1aFirstUseAuditReadiness.production_pass_enabled, false);
@@ -7480,8 +7483,8 @@ try {
   assert.equal(factoryPromotionCloseoutReadiness.closeout_readiness_only, true);
   assert.equal(factoryPromotionCloseoutReadiness.human_owner_protected_closeout_required, true);
   assert.equal(factoryPromotionCloseoutReadiness.fcore_closeout_chain_ready, true);
-  assert.equal(factoryPromotionCloseoutReadiness.g1a_owner_gate_opening_chain_ready, false);
-  assert.equal(factoryPromotionCloseoutReadiness.summary.factory_promotion_closeout_readiness_status, "waiting_for_g1a_owner_gate_opening_chain");
+  assert.equal(factoryPromotionCloseoutReadiness.g1a_owner_gate_opening_chain_ready, true);
+  assert.equal(factoryPromotionCloseoutReadiness.summary.factory_promotion_closeout_readiness_status, "ready_for_human_owner_protected_closeout");
   assert.equal(factoryPromotionCloseoutReadiness.factory_promotion_goal_complete_allowed_now, false);
   assert.equal(factoryPromotionCloseoutReadiness.project_creation_allowed_now, false);
   assert.equal(factoryPromotionCloseoutReadiness.production_pass_enabled, false);

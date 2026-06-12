@@ -46,7 +46,8 @@
 | 16 | [g1a-owner-action-packet-claude-opus-4-8-review-receipt.md](g1a-owner-action-packet-claude-opus-4-8-review-receipt.md) | 감사/리뷰 | G1a owner action packet Opus 4.8 read-only 리뷰 영수증 |
 | 17 | [factory-promotion-closeout-readiness.md](factory-promotion-closeout-readiness.md) | 소유자 + Codex | FCORE 완료 증거와 G1a owner-chain 대기 상태를 묶은 최상위 closeout readiness |
 | 18 | [factory-promotion-closeout-readiness-claude-opus-4-8-review-receipt.md](factory-promotion-closeout-readiness-claude-opus-4-8-review-receipt.md) | 감사/리뷰 | 최상위 closeout readiness Opus 4.8 read-only 리뷰 영수증 |
-| 19 | [99-structured-summary.json](99-structured-summary.json) | 기계/감사 | 패키지 메타데이터 |
+| 19 | [g-series-advancement-and-stage6-7.md](g-series-advancement-and-stage6-7.md) | Codex + 소유자 | G1b/G2/G3 advancement, runtime guards, Stage6/Stage7 contract readiness |
+| 20 | [99-structured-summary.json](99-structured-summary.json) | 기계/감사 | 패키지 메타데이터 |
 
 ## 용어 (패키지 전체 공통)
 

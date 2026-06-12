@@ -15,9 +15,11 @@ const SCHEMA_VERSION = "factory-g1a-source-literal-commit-draft.v1";
 const CAPABILITY_ID = "factory.g1a_source_literal_commit_draft";
 const PROGRAM_RANGE = "G-SERIES.1a.source-literal-commit-draft";
 const READY_STATUS = "ready_g1a_source_literal_commit_draft";
+const APPLIED_STATUS = "source_literal_commit_already_applied";
 const WAITING_STATUS = "waiting_for_signed_g1a_owner_receipt";
 const BLOCKED_STATUS = "blocked_g1a_source_literal_commit_draft";
 const PREFLIGHT_READY_STATUS = "ready_g1a_source_literal_commit_preflight";
+const PREFLIGHT_APPLIED_STATUS = "source_literal_opening_commit_already_applied";
 const REVIEW_MODEL = "claude-opus-4-8";
 const REVIEW_EFFORT = "max";
 
@@ -52,7 +54,7 @@ export async function runFactoryG1aSourceLiteralCommitDraft(options = {}) {
     error.summary = result.summary;
     throw error;
   }
-  if (options.requirePass && result.summary.factory_g1a_source_literal_commit_draft_status !== READY_STATUS) {
+  if (options.requirePass && ![READY_STATUS, APPLIED_STATUS].includes(result.summary.factory_g1a_source_literal_commit_draft_status)) {
     const error = new Error("Factory G1a Source Literal Commit Draft is not ready.");
     error.validation = result.validation;
     error.summary = result.summary;
@@ -195,6 +197,8 @@ function normalizeInputs(options) {
 function buildDraftPatch({ gateOpeningSource, sourceLiteralPreflight, outputDir, generatedAt }) {
   const preflightReady = sourceLiteralPreflight.validation?.valid === true
     && sourceLiteralPreflight.summary?.factory_g1a_source_literal_preflight_status === PREFLIGHT_READY_STATUS;
+  const preflightApplied = sourceLiteralPreflight.validation?.valid === true
+    && sourceLiteralPreflight.summary?.factory_g1a_source_literal_preflight_status === PREFLIGHT_APPLIED_STATUS;
   const proposed = sourceLiteralPreflight.proposed_source_literal_change ?? {};
   const replacements = proposed.required_replacements ?? [];
   const replacementResults = replacements.map((replacement) => buildReplacementResult(replacement, gateOpeningSource.text ?? "", preflightReady));
@@ -205,7 +209,9 @@ function buildDraftPatch({ gateOpeningSource, sourceLiteralPreflight, outputDir,
   const patchedText = patchAvailable
     ? applyReplacementResults(gateOpeningSource.text, replacementResults)
     : null;
-  const forbiddenSymbolRows = buildForbiddenSymbolRows(gateOpeningSource.text ?? "", patchedText, generatedAt);
+  const forbiddenSymbolRows = preflightApplied
+    ? buildForbiddenSymbolRows(gateOpeningSource.text ?? "", gateOpeningSource.text ?? "", generatedAt)
+    : buildForbiddenSymbolRows(gateOpeningSource.text ?? "", patchedText, generatedAt);
   const forbiddenUnchanged = patchAvailable && forbiddenSymbolRows.every((row) => row.current_verdict === "pass");
   const unifiedDiff = patchAvailable && forbiddenUnchanged
     ? buildUnifiedDiff({
@@ -218,15 +224,16 @@ function buildDraftPatch({ gateOpeningSource, sourceLiteralPreflight, outputDir,
   const patch = {
     schema_version: "factory-g1a-source-literal-opening-patch.v1",
     generated_at: generatedAt,
-    patch_status: patchAvailable && forbiddenUnchanged ? "patch_ready_review_required" : preflightReady ? "patch_blocked" : "waiting_for_signed_owner_receipt",
+    patch_status: preflightApplied ? APPLIED_STATUS : patchAvailable && forbiddenUnchanged ? "patch_ready_review_required" : preflightReady ? "patch_blocked" : "waiting_for_signed_owner_receipt",
     draft_only: true,
     patch_available_now: patchAvailable && forbiddenUnchanged,
-    patch_applied_now: false,
+    patch_applied_now: preflightApplied,
+    patch_applied_by_this_command: false,
     source_mutation_allowed_now: false,
     target_file: "src/factory-gate-opening-readiness.mjs",
     artifact_patch_path: relativeArtifactPath(outputDir, "source-literal-opening.patch"),
     source_file_sha256_before: gateOpeningSource.available ? sha256(gateOpeningSource.text) : null,
-    source_file_sha256_after_preview: patchAvailable && forbiddenUnchanged ? sha256(patchedText) : null,
+    source_file_sha256_after_preview: patchAvailable && forbiddenUnchanged ? sha256(patchedText) : preflightApplied && gateOpeningSource.available ? sha256(gateOpeningSource.text) : null,
     owner_receipt_sha256: sourceLiteralPreflight.owner_receipt_sha256 ?? null,
     owner_receipt_id: sourceLiteralPreflight.owner_gate_opening_receipt_candidate?.receipt_id ?? null,
     independent_review_receipt_ref: sourceLiteralPreflight.owner_gate_opening_receipt_candidate?.independent_review_receipt_ref ?? null,
@@ -234,7 +241,7 @@ function buildDraftPatch({ gateOpeningSource, sourceLiteralPreflight, outputDir,
     replacement_results: replacementResults,
     forbidden_symbol_rows: forbiddenSymbolRows,
     all_required_replacements_exactly_once: allReplacementsExact,
-    forbidden_symbols_unchanged: forbiddenUnchanged,
+    forbidden_symbols_unchanged: preflightApplied ? forbiddenSymbolRows.every((row) => row.current_verdict === "pass") : forbiddenUnchanged,
     unified_diff: unifiedDiff,
     unified_diff_sha256: unifiedDiff ? sha256(unifiedDiff) : null,
     first_use_audit_required_after_commit: true,
@@ -390,16 +397,17 @@ function buildVerificationCommandRows({ draftPatch, outputDir, generatedAt }) {
 function buildDraftRows({ sourceLiteralPreflight, gateOpeningSource, draftPatch, verificationCommandRows, generatedAt }) {
   const preflightValid = sourceLiteralPreflight.validation?.valid === true;
   const preflightReady = sourceLiteralPreflight.summary?.factory_g1a_source_literal_preflight_status === PREFLIGHT_READY_STATUS;
+  const preflightApplied = sourceLiteralPreflight.summary?.factory_g1a_source_literal_preflight_status === PREFLIGHT_APPLIED_STATUS;
   const patchAvailable = draftPatch.patch_available_now === true;
   return [
     draftRow("source.target_file_available", "source", gateOpeningSource.available ? "pass" : "fail", "Gate-opening source file is readable", generatedAt),
     draftRow("source.preflight_valid", "source", preflightValid ? "pass" : "fail", "Source-literal preflight has no hard validation failures", generatedAt),
-    draftRow("owner_receipt.signed_ready", "owner_receipt", preflightReady ? "pass" : "wait", "Signed owner receipt made source-literal preflight ready", generatedAt),
-    draftRow("patch.required_replacements_exact", "patch", preflightReady ? (draftPatch.all_required_replacements_exactly_once ? "pass" : "fail") : "wait", "Every required replacement matches exactly once", generatedAt),
-    draftRow("patch.forbidden_symbols_unchanged", "patch", preflightReady ? (draftPatch.forbidden_symbols_unchanged ? "pass" : "fail") : "wait", "G1b/G2/G3 and production/deploy/connector flags stay unchanged", generatedAt),
-    draftRow("patch.unified_diff_generated", "patch", patchAvailable ? "pass" : "wait", "Unified diff artifact is generated for review", generatedAt),
+    draftRow("owner_receipt.signed_ready", "owner_receipt", preflightReady || preflightApplied ? "pass" : "wait", "Signed owner receipt made source-literal preflight ready or is already applied", generatedAt),
+    draftRow("patch.required_replacements_exact", "patch", preflightApplied ? "pass" : preflightReady ? (draftPatch.all_required_replacements_exactly_once ? "pass" : "fail") : "wait", "Every required replacement matches exactly once or is already applied", generatedAt),
+    draftRow("patch.forbidden_symbols_unchanged", "patch", preflightReady || preflightApplied ? (draftPatch.forbidden_symbols_unchanged ? "pass" : "fail") : "wait", "G1b/G2/G3 and production/deploy/connector flags stay unchanged", generatedAt),
+    draftRow("patch.unified_diff_generated", "patch", patchAvailable || preflightApplied ? "pass" : "wait", "Unified diff artifact is generated for review or no longer needed after apply", generatedAt),
     draftRow("commands.preview_only", "command", verificationCommandRows.every((row) => row.command_executes_now === false && row.command_mutates_source_now === false) ? "pass" : "fail", "Verification commands are preview-only metadata", generatedAt),
-    draftRow("authority.not_applied", "authority", draftPatch.patch_applied_now === false && draftPatch.source_mutation_allowed_now === false, "Commit draft does not apply the patch or open authority", generatedAt),
+    draftRow("authority.not_applied_by_command", "authority", draftPatch.patch_applied_by_this_command === false && draftPatch.source_mutation_allowed_now === false ? "pass" : "fail", "Commit draft command does not apply the patch or open authority", generatedAt),
   ];
 }
 
@@ -526,10 +534,12 @@ function buildBoundary({ sourceLiteralPreflight, draftPatch, draftRows, generate
     read_only: true,
     commit_draft_only: true,
     patch_available_now: draftPatch.patch_available_now === true,
-    patch_applied_now: false,
+    patch_applied_now: draftPatch.patch_applied_now === true,
+    patch_applied_by_this_command: draftPatch.patch_applied_by_this_command === true,
     source_mutation_allowed_now: false,
-    source_literal_opening_commit_applied_now: false,
+    source_literal_opening_commit_applied_now: draftPatch.patch_applied_now === true,
     source_literal_preflight_ready_now: sourceLiteralPreflight.summary?.factory_g1a_source_literal_preflight_status === PREFLIGHT_READY_STATUS,
+    source_literal_preflight_applied_now: sourceLiteralPreflight.summary?.factory_g1a_source_literal_preflight_status === PREFLIGHT_APPLIED_STATUS,
     owner_gate_opening_receipt_signed_now: sourceLiteralPreflight.summary?.owner_gate_opening_receipt_signed_now === true,
     ready_for_isolated_source_literal_commit_review: draftPatch.patch_available_now === true && failCount === 0,
     first_use_audit_present: false,
@@ -549,8 +559,12 @@ function buildBoundary({ sourceLiteralPreflight, draftPatch, draftRows, generate
 function buildValidationItems({ packageJson, gateOpeningSource, sourceLiteralPreflight, draftPatch, draftRows, verificationCommandRows, boundary }) {
   const scripts = packageJson.data?.scripts ?? {};
   const preflightWaitingOrReady = sourceLiteralPreflight.validation?.valid === true
-    && ["waiting_for_signed_g1a_owner_receipt", PREFLIGHT_READY_STATUS].includes(sourceLiteralPreflight.summary?.factory_g1a_source_literal_preflight_status);
+    && ["waiting_for_signed_g1a_owner_receipt", PREFLIGHT_READY_STATUS, PREFLIGHT_APPLIED_STATUS].includes(sourceLiteralPreflight.summary?.factory_g1a_source_literal_preflight_status);
   const patchReadyOrWaiting = draftPatch.patch_status === "waiting_for_signed_owner_receipt"
+    || (draftPatch.patch_status === APPLIED_STATUS
+      && draftPatch.patch_applied_now === true
+      && draftPatch.patch_applied_by_this_command === false
+      && draftPatch.forbidden_symbols_unchanged === true)
     || (draftPatch.patch_status === "patch_ready_review_required"
       && draftPatch.patch_available_now === true
       && draftPatch.unified_diff_sha256
@@ -571,16 +585,18 @@ function buildValidationItems({ packageJson, gateOpeningSource, sourceLiteralPre
 function buildSummary({ sourceLiteralPreflight, draftPatch, draftRows, verificationCommandRows, boundary, validation }) {
   const hardFailed = validation.valid === false || boundary.draft_fail_count > 0 || draftPatch.patch_status === "patch_blocked";
   const ready = validation.valid === true && draftPatch.patch_available_now === true && boundary.ready_for_isolated_source_literal_commit_review === true;
-  const status = hardFailed ? BLOCKED_STATUS : ready ? READY_STATUS : WAITING_STATUS;
+  const applied = validation.valid === true && draftPatch.patch_status === APPLIED_STATUS && boundary.patch_applied_now === true;
+  const status = hardFailed ? BLOCKED_STATUS : applied ? APPLIED_STATUS : ready ? READY_STATUS : WAITING_STATUS;
   return {
     factory_g1a_source_literal_commit_draft_status: status,
     program_range: PROGRAM_RANGE,
     source_literal_preflight_status: sourceLiteralPreflight.summary?.factory_g1a_source_literal_preflight_status ?? null,
     owner_gate_opening_receipt_signed_now: sourceLiteralPreflight.summary?.owner_gate_opening_receipt_signed_now === true,
     patch_available_now: draftPatch.patch_available_now === true,
-    patch_applied_now: false,
+    patch_applied_now: applied,
+    patch_applied_by_this_command: false,
     source_mutation_allowed_now: false,
-    source_literal_opening_commit_applied_now: false,
+    source_literal_opening_commit_applied_now: applied,
     ready_for_isolated_source_literal_commit_review: ready,
     verification_command_count: verificationCommandRows.length,
     draft_row_count: draftRows.length,

@@ -15,6 +15,7 @@ const SCHEMA_VERSION = "factory-g1a-source-literal-preflight.v1";
 const CAPABILITY_ID = "factory.g1a_source_literal_preflight";
 const PROGRAM_RANGE = "G-SERIES.1a.source-literal-preflight";
 const READY_STATUS = "ready_g1a_source_literal_commit_preflight";
+const APPLIED_STATUS = "source_literal_opening_commit_already_applied";
 const WAITING_STATUS = "waiting_for_signed_g1a_owner_receipt";
 const BLOCKED_STATUS = "blocked_g1a_source_literal_preflight";
 const OWNER_INTAKE_READY_STATUS = "ready_g1a_owner_receipt_for_source_literal_commit";
@@ -50,7 +51,7 @@ export async function runFactoryG1aSourceLiteralPreflight(options = {}) {
     error.summary = result.summary;
     throw error;
   }
-  if (options.requirePass && result.summary.factory_g1a_source_literal_preflight_status !== READY_STATUS) {
+  if (options.requirePass && ![READY_STATUS, APPLIED_STATUS].includes(result.summary.factory_g1a_source_literal_preflight_status)) {
     const error = new Error("Factory G1a Source Literal Preflight is not ready for an isolated source-literal commit.");
     error.validation = result.validation;
     error.summary = result.summary;
@@ -84,15 +85,17 @@ export async function buildFactoryG1aSourceLiteralPreflight(options = {}) {
     gateOpeningSource,
     generatedAt,
   });
+  const receiptInputExplicit = Object.prototype.hasOwnProperty.call(options, "ownerReceipt") || Boolean(options.ownerReceiptPath);
   const preflightRows = buildPreflightRows({
     ownerReceiptIntake,
     sourceFacts,
     proposedChange,
     receipt,
     ownerReceiptSha256,
+    receiptInputExplicit,
     generatedAt,
   });
-  const boundary = buildBoundary({ ownerReceiptIntake, sourceFacts, proposedChange, preflightRows, generatedAt });
+  const boundary = buildBoundary({ ownerReceiptIntake, sourceFacts, proposedChange, preflightRows, receiptInputExplicit, generatedAt });
   const validationItems = buildValidationItems({ packageJson, gateOpeningSource, ownerReceiptIntake, sourceFacts, proposedChange, boundary });
   const validation = summarizeValidation(validationItems);
   const summary = buildSummary({ ownerReceiptIntake, preflightRows, boundary, validation });
@@ -174,11 +177,14 @@ function normalizeInputs(options) {
 
 function buildSourceFacts(source) {
   const text = source.text ?? "";
+  const g1aReceipts = extractLiteralObjectsForGate(text, "SOURCE_LITERAL_GATE_OPENING_RECEIPTS", "G1a");
   return {
     source_available: source.available === true,
     source_text_sha256: source.available ? sha256(text) : null,
     g1aSourceLiteralValue: extractSourceLiteralValue(text, "G1a"),
-    g1aReceiptCount: countLiteralObjectsForGate(text, "SOURCE_LITERAL_GATE_OPENING_RECEIPTS", "G1a"),
+    g1aReceiptCount: g1aReceipts.length,
+    g1aReceiptIds: g1aReceipts.map((receipt) => receipt.receipt_id).filter(Boolean),
+    g1aReceiptSha256s: g1aReceipts.map((receipt) => receipt.receipt_sha256).filter(Boolean),
     g1aFirstUseAuditCount: countLiteralObjectsForGate(text, "SOURCE_LITERAL_FIRST_USE_AUDITS", "G1a"),
   };
 }
@@ -242,17 +248,21 @@ function renderReceiptLiteral({ receiptId, ownerReceiptSha256, signedAt, reviewR
   ].join("\n");
 }
 
-function buildPreflightRows({ ownerReceiptIntake, sourceFacts, proposedChange, receipt, ownerReceiptSha256, generatedAt }) {
+function buildPreflightRows({ ownerReceiptIntake, sourceFacts, proposedChange, receipt, ownerReceiptSha256, receiptInputExplicit, generatedAt }) {
   const intakeReady = ownerReceiptIntake.summary.factory_g1a_owner_receipt_intake_status === OWNER_INTAKE_READY_STATUS;
+  const sourcePreApply = sourceReadyForPreApply(sourceFacts);
+  const sourcePostApply = sourceAlreadyAppliedForReceipt({ sourceFacts, receipt, ownerReceiptSha256 });
+  const sourceAppliedInSource = sourceAlreadyAppliedInSource(sourceFacts);
+  const sourceAppliedOrBound = sourcePostApply || (!receiptInputExplicit && sourceAppliedInSource);
   return [
     preflightRow("source.file_available", "source", sourceFacts.source_available ? "pass" : "fail", "Gate-opening source file is readable", generatedAt),
-    preflightRow("source.g1a_literal_false", "source", sourceFacts.g1aSourceLiteralValue === false ? "pass" : "fail", "Current G1a source literal is false before the opening commit", generatedAt),
-    preflightRow("source.no_existing_g1a_receipt", "source", sourceFacts.g1aReceiptCount === 0 ? "pass" : "fail", "No G1a owner receipt is already bound in source", generatedAt),
-    preflightRow("source.no_existing_g1a_first_use_audit", "source", sourceFacts.g1aFirstUseAuditCount === 0 ? "pass" : "fail", "No G1a first-use audit is already bound in source", generatedAt),
-    preflightRow("owner_receipt.intake_valid", "owner_receipt", ownerReceiptIntake.validation.valid ? "pass" : "fail", "Owner receipt intake has no hard validation failures", generatedAt),
-    preflightRow("owner_receipt.signed_ready", "owner_receipt", intakeReady ? "pass" : "wait", "Signed scoped owner receipt is ready for source-literal commit", generatedAt),
-    preflightRow("owner_receipt.hash_bound", "owner_receipt", ownerReceiptSha256 ? "pass" : "wait", "Owner receipt SHA-256 can be bound into source", generatedAt),
-    preflightRow("owner_receipt.gate_scope", "owner_receipt", receipt?.gate_id === "G1a" && receipt?.authority_flag === "project_creation_allowed_now" ? "pass" : "fail", "Receipt targets only G1a project creation", generatedAt),
+    preflightRow("source.g1a_literal_state", "source", sourcePreApply || sourceAppliedInSource ? "pass" : "fail", "G1a source literal is either pre-apply false or already applied in source", generatedAt),
+    preflightRow("source.g1a_receipt_state", "source", sourcePreApply || sourceAppliedInSource ? "pass" : "fail", "G1a receipt binding is either absent pre-apply or present post-apply", generatedAt),
+    preflightRow("source.no_existing_g1a_first_use_audit", "source", sourceFacts.g1aFirstUseAuditCount === 0 || sourceAppliedInSource ? "pass" : "fail", "No pre-apply G1a first-use audit is bound, or the post-apply audit is already source-bound", generatedAt),
+    preflightRow("owner_receipt.intake_valid", "owner_receipt", ownerReceiptIntake.validation.valid || sourceAppliedOrBound ? "pass" : "fail", "Owner receipt intake has no hard validation failures or source-bound receipt evidence already exists", generatedAt),
+    preflightRow("owner_receipt.signed_ready", "owner_receipt", intakeReady || sourceAppliedOrBound ? "pass" : "wait", "Signed scoped owner receipt is ready for source-literal commit or already source-bound", generatedAt),
+    preflightRow("owner_receipt.hash_bound", "owner_receipt", ownerReceiptSha256 || sourceAppliedOrBound ? "pass" : "wait", "Owner receipt SHA-256 can be bound into source or is already source-bound", generatedAt),
+    preflightRow("owner_receipt.gate_scope", "owner_receipt", receipt?.gate_id === "G1a" && receipt?.authority_flag === "project_creation_allowed_now" || sourceAppliedOrBound ? "pass" : "fail", "Receipt targets only G1a project creation or is already source-bound", generatedAt),
     preflightRow("patch.single_file", "patch", proposedChange.allowed_file_count === 1 && proposedChange.allowed_files.length === 1 ? "pass" : "fail", "Future source-literal commit is constrained to one source file", generatedAt),
     preflightRow("patch.false_to_true_only", "patch", proposedChange.required_replacements.some((item) => item.replacement_id === "g1a.literal.false_to_true") ? "pass" : "fail", "Future patch changes only G1a false to true for gate-open literal", generatedAt),
     preflightRow("patch.receipt_binding", "patch", proposedChange.required_replacements.some((item) => item.replacement_id === "g1a.receipt.bind_one_owner_receipt") ? "pass" : "fail", "Future patch binds exactly one signed owner receipt", generatedAt),
@@ -260,10 +270,15 @@ function buildPreflightRows({ ownerReceiptIntake, sourceFacts, proposedChange, r
   ];
 }
 
-function buildBoundary({ ownerReceiptIntake, sourceFacts, proposedChange, preflightRows, generatedAt }) {
+function buildBoundary({ ownerReceiptIntake, sourceFacts, proposedChange, preflightRows, receiptInputExplicit, generatedAt }) {
   const failCount = preflightRows.filter((row) => row.current_verdict === "fail").length;
   const waitCount = preflightRows.filter((row) => row.current_verdict === "wait").length;
   const passCount = preflightRows.filter((row) => row.current_verdict === "pass").length;
+  const receipt = ownerReceiptIntake.owner_gate_opening_receipt_candidate ?? null;
+  const ownerReceiptSha256 = receipt ? sha256(canonicalize(receipt)) : null;
+  const sourcePostApply = sourceAlreadyAppliedForReceipt({ sourceFacts, receipt, ownerReceiptSha256 });
+  const sourceAppliedInSource = sourceAlreadyAppliedInSource(sourceFacts);
+  const sourceBound = sourcePostApply || (!receiptInputExplicit && sourceAppliedInSource);
   const ready = failCount === 0
     && waitCount === 0
     && ownerReceiptIntake.summary.factory_g1a_owner_receipt_intake_status === OWNER_INTAKE_READY_STATUS
@@ -274,10 +289,11 @@ function buildBoundary({ ownerReceiptIntake, sourceFacts, proposedChange, prefli
     read_only: true,
     preflight_only: true,
     source_mutation_allowed_now: false,
-    source_literal_opening_commit_applied_now: false,
+    source_literal_opening_commit_applied_now: sourceAppliedInSource,
+    source_literal_opening_commit_bound_to_owner_receipt_now: sourceBound,
     ready_for_isolated_source_literal_commit: ready,
     proposed_change_preview_sha256: proposedChange.change_preview_sha256,
-    first_use_audit_present: false,
+    first_use_audit_present: sourceFacts.g1aFirstUseAuditCount > 0,
     g1a_source_literal_preflight_can_open_gate_now: false,
     g1a_project_creation_gate_open_now: false,
     factory_promotion_goal_complete_allowed_now: false,
@@ -293,12 +309,15 @@ function buildBoundary({ ownerReceiptIntake, sourceFacts, proposedChange, prefli
 
 function buildValidationItems({ packageJson, gateOpeningSource, ownerReceiptIntake, sourceFacts, proposedChange, boundary }) {
   const scripts = packageJson.data?.scripts ?? {};
+  const sourcePreApply = sourceReadyForPreApply(sourceFacts);
+  const sourcePostApply = boundary.source_literal_opening_commit_applied_now === true
+    && boundary.source_literal_opening_commit_bound_to_owner_receipt_now === true;
   return [
     validationItem("package.script_registered", "package", typeof scripts[COMMAND_NAME] === "string" && scripts[COMMAND_NAME].includes("factory-g1a-source-literal-preflight.mjs"), "package.json does not register factory:g1a-source-literal-preflight"),
     validationItem("source.file_available", "source", gateOpeningSource.available === true, "Gate-opening source file is missing"),
-    validationItem("source.g1a_literal_false", "source", sourceFacts.g1aSourceLiteralValue === false, "G1a source literal is not currently false"),
-    validationItem("source.no_existing_g1a_receipt", "source", sourceFacts.g1aReceiptCount === 0, "G1a owner receipt is already bound in source"),
-    validationItem("owner_receipt_intake.valid", "owner_receipt", ownerReceiptIntake.validation.valid === true, "Owner receipt intake has hard validation failures"),
+    validationItem("source.g1a_literal_state", "source", sourcePreApply || sourcePostApply, "G1a source literal is neither pre-apply false nor exactly applied for the signed receipt"),
+    validationItem("source.g1a_receipt_state", "source", sourcePreApply || sourcePostApply, "G1a receipt binding is neither absent pre-apply nor exactly bound post-apply"),
+    validationItem("owner_receipt_intake.valid", "owner_receipt", ownerReceiptIntake.validation.valid === true || sourcePostApply, "Owner receipt intake has hard validation failures and no source-bound receipt evidence supersedes it"),
     validationItem("patch.preview_only", "patch", proposedChange.preview_only === true && proposedChange.apply_allowed_now === false, "Source literal preflight tried to apply a source change"),
     validationItem("patch.single_file", "patch", proposedChange.allowed_files.length === 1 && proposedChange.allowed_files[0] === "src/factory-gate-opening-readiness.mjs", "Source literal patch is not constrained to the gate-opening source file"),
     validationItem("boundary.authority_closed", "authority", boundaryFlagsClosed(boundary), "Source literal preflight opened forbidden authority"),
@@ -308,15 +327,18 @@ function buildValidationItems({ packageJson, gateOpeningSource, ownerReceiptInta
 function buildSummary({ ownerReceiptIntake, preflightRows, boundary, validation }) {
   const hardFailed = validation.valid === false || boundary.preflight_fail_count > 0;
   const ready = validation.valid === true && boundary.ready_for_isolated_source_literal_commit === true;
-  const status = hardFailed ? BLOCKED_STATUS : ready ? READY_STATUS : WAITING_STATUS;
+  const applied = validation.valid === true
+    && boundary.source_literal_opening_commit_applied_now === true
+    && boundary.source_literal_opening_commit_bound_to_owner_receipt_now === true;
+  const status = hardFailed ? BLOCKED_STATUS : applied ? APPLIED_STATUS : ready ? READY_STATUS : WAITING_STATUS;
   return {
     factory_g1a_source_literal_preflight_status: status,
     program_range: PROGRAM_RANGE,
     owner_receipt_intake_status: ownerReceiptIntake.summary.factory_g1a_owner_receipt_intake_status,
     owner_gate_opening_receipt_signed_now: ownerReceiptIntake.summary.owner_gate_opening_receipt_signed_now,
     ready_for_isolated_source_literal_commit: ready,
-    source_literal_opening_commit_applied_now: false,
-    first_use_audit_present: false,
+    source_literal_opening_commit_applied_now: applied,
+    first_use_audit_present: boundary.first_use_audit_present,
     g1a_source_literal_preflight_can_open_gate_now: false,
     g1a_project_creation_gate_open_now: false,
     project_creation_allowed_now: false,
@@ -438,10 +460,44 @@ function extractSourceLiteralValue(sourceText, gateId) {
 }
 
 function countLiteralObjectsForGate(sourceText, symbolName, gateId) {
+  return extractLiteralObjectsForGate(sourceText, symbolName, gateId).length;
+}
+
+function extractLiteralObjectsForGate(sourceText, symbolName, gateId) {
   const match = String(sourceText ?? "").match(new RegExp(`const\\s+${symbolName}\\s*=\\s*\\[([\\s\\S]*?)\\];`));
-  if (!match) return 0;
-  const gatePattern = new RegExp(`gate_id\\s*:\\s*["']${gateId}["']`, "g");
-  return [...match[1].matchAll(gatePattern)].length;
+  if (!match) return [];
+  return [...match[1].matchAll(/\{[\s\S]*?\}/g)]
+    .map((item) => item[0])
+    .filter((block) => new RegExp(`gate_id\\s*:\\s*["']${gateId}["']`).test(block))
+    .map((block) => ({
+      receipt_id: extractStringLiteralField(block, "receipt_id"),
+      receipt_sha256: extractStringLiteralField(block, "receipt_sha256"),
+    }));
+}
+
+function extractStringLiteralField(block, fieldName) {
+  const match = String(block ?? "").match(new RegExp(`${fieldName}\\s*:\\s*["']([^"']+)["']`));
+  return match?.[1] ?? null;
+}
+
+function sourceReadyForPreApply(sourceFacts) {
+  return sourceFacts.g1aSourceLiteralValue === false && sourceFacts.g1aReceiptCount === 0;
+}
+
+function sourceAlreadyAppliedForReceipt({ sourceFacts, receipt, ownerReceiptSha256 }) {
+  return sourceFacts.g1aSourceLiteralValue === true
+    && sourceFacts.g1aReceiptCount === 1
+    && Boolean(receipt?.receipt_id)
+    && Boolean(ownerReceiptSha256)
+    && sourceFacts.g1aReceiptIds.includes(receipt.receipt_id)
+    && sourceFacts.g1aReceiptSha256s.includes(ownerReceiptSha256);
+}
+
+function sourceAlreadyAppliedInSource(sourceFacts) {
+  return sourceFacts.g1aSourceLiteralValue === true
+    && sourceFacts.g1aReceiptCount === 1
+    && sourceFacts.g1aReceiptIds.length === 1
+    && sourceFacts.g1aReceiptSha256s.length === 1;
 }
 
 function readGitCommitRef(repoRoot) {

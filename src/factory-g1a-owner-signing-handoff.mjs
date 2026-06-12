@@ -22,6 +22,13 @@ const READY_STATUS = "ready_g1a_owner_signature_handoff";
 const BLOCKED_STATUS = "blocked_g1a_owner_signature_handoff";
 const REVIEW_MODEL = "claude-opus-4-8";
 const REVIEW_EFFORT = "max";
+const WAITING_RECEIPT_STATUS = "waiting_for_signed_g1a_owner_receipt";
+const WAITING_FIRST_USE_STATUS = "waiting_for_g1a_first_use_audit";
+const WAITING_OPENING_STATUS = "waiting_for_g1a_opening_source_literal_commit";
+const WAITING_FIRST_USE_CANDIDATE_STATUS = "waiting_for_g1a_first_use_audit_candidate";
+const SOURCE_LITERAL_APPLIED_STATUS = "source_literal_opening_commit_already_applied";
+const CLOSEOUT_READY_STATUS = "ready_g1a_opening_closeout_for_owner_adjudication";
+const FIRST_USE_ALREADY_BOUND_STATUS = "g1a_first_use_audit_already_bound";
 
 const CLOSED_AUTHORITY_FLAGS = {
   project_creation_allowed_now: false,
@@ -453,6 +460,15 @@ function buildHandoffRows({
   const scripts = packageJson.data?.scripts ?? {};
   const candidateHashBound = isSha256(signableReceiptDraft.bound_candidate_manifest_sha256)
     || isSha256(signableReceiptDraft.bound_candidate_packet_sha256);
+  const closeoutStatus = closeoutReadiness.summary.factory_g1a_opening_closeout_readiness_status;
+  const firstUseStatus = firstUseAuditReadiness.summary.factory_g1a_first_use_audit_readiness_status;
+  const g1aSourceEvidenceComplete = closeoutStatus === CLOSEOUT_READY_STATUS
+    && firstUseStatus === FIRST_USE_ALREADY_BOUND_STATUS;
+  const closeoutSafelyWaiting = [WAITING_RECEIPT_STATUS, WAITING_FIRST_USE_STATUS].includes(closeoutStatus);
+  const firstUseSafelyWaiting = [WAITING_OPENING_STATUS, WAITING_FIRST_USE_CANDIDATE_STATUS].includes(firstUseStatus);
+  const sourcePreflightSafe = sourceLiteralPreflight.summary.factory_g1a_source_literal_preflight_status === WAITING_RECEIPT_STATUS
+    || sourceLiteralPreflight.summary.factory_g1a_source_literal_preflight_status === SOURCE_LITERAL_APPLIED_STATUS
+    || g1aSourceEvidenceComplete;
   return [
     handoffRow("package.script_registered", "package", typeof scripts[COMMAND_NAME] === "string" ? "pass" : "fail", "package.json registers factory:g1a-owner-signing-handoff", generatedAt),
     handoffRow("source.opening_packet_ready", "source_chain", openingPacket.summary?.factory_g1a_opening_packet_status === "ready_factory_g1a_opening_packet" ? "pass" : "fail", "G1a opening packet is ready", generatedAt),
@@ -461,10 +477,10 @@ function buildHandoffRows({
     handoffRow("receipt.candidate_hash_required", "owner_receipt", candidateHashBound ? "pass" : "wait", "Owner must bind one candidate manifest or packet SHA-256 before signing", generatedAt),
     handoffRow("receipt.owner_signature_required", "owner_signature", signableReceiptDraft.human_owner_signature_required === true && signableReceiptDraft.human_owner_signed === false ? "wait" : "fail", "Human owner signature remains required and absent", generatedAt),
     handoffRow("receipt.independent_review_bound", "review_binding", hasText(signableReceiptDraft.independent_review_receipt_ref) ? "pass" : "fail", "Receipt draft binds independent review evidence", generatedAt),
-    handoffRow("intake.draft_waits_not_ready", "owner_receipt", ownerReceiptIntake.summary.factory_g1a_owner_receipt_intake_status === "waiting_for_signed_g1a_owner_receipt" ? "pass" : "fail", "Owner receipt intake keeps unsigned draft waiting", generatedAt),
-    handoffRow("source_preflight.waits_for_signature", "source_literal", sourceLiteralPreflight.summary.factory_g1a_source_literal_preflight_status === "waiting_for_signed_g1a_owner_receipt" ? "pass" : "fail", "Source-literal preflight waits for signed receipt", generatedAt),
-    handoffRow("closeout.waits_for_signature", "closeout", closeoutReadiness.summary.factory_g1a_opening_closeout_readiness_status === "waiting_for_signed_g1a_owner_receipt" ? "pass" : "fail", "Closeout readiness waits for signed receipt", generatedAt),
-    handoffRow("first_use.waits_for_opening", "first_use_audit", firstUseAuditReadiness.summary.factory_g1a_first_use_audit_readiness_status === "waiting_for_g1a_opening_source_literal_commit" ? "pass" : "fail", "First-use audit readiness waits for source-literal opening", generatedAt),
+    handoffRow("intake.draft_waits_not_ready", "owner_receipt", ownerReceiptIntake.summary.factory_g1a_owner_receipt_intake_status === WAITING_RECEIPT_STATUS ? "pass" : "fail", "Owner receipt intake keeps unsigned draft waiting", generatedAt),
+    handoffRow("source_preflight.waits_for_signature", "source_literal", sourcePreflightSafe ? "pass" : "fail", "Source-literal preflight waits for signature or the G1a source evidence is already complete", generatedAt),
+    handoffRow("closeout.waits_for_signature", "closeout", closeoutSafelyWaiting || g1aSourceEvidenceComplete ? "pass" : "fail", "Closeout readiness is safely waiting or ready after source evidence completion", generatedAt),
+    handoffRow("first_use.waits_for_opening", "first_use_audit", firstUseSafelyWaiting || g1aSourceEvidenceComplete ? "pass" : "fail", "First-use audit readiness is safely waiting or already source-bound", generatedAt),
     handoffRow("owner_checklist.ready", "owner_completion", ownerCompletionChecklist.checklist_status === "owner_action_required" && ownerCompletionChecklist.required_item_count >= 7 ? "pass" : "fail", "Owner completion checklist is ready", generatedAt),
     handoffRow("review.packet_ready", "independent_review", independentReviewPacket.review_status === "packet_ready_review_not_run" && independentReviewPacket.read_only === true ? "pass" : "fail", "LawOS-style Claude review packet is ready and read-only", generatedAt),
     handoffRow("authority.closed", "authority", receiptAuthorityClosed(signableReceiptDraft) ? "pass" : "fail", "Handoff and receipt draft do not open protected authority", generatedAt),

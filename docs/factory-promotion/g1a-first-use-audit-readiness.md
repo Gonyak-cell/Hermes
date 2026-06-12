@@ -1,26 +1,29 @@
 # G1a First-Use Audit Readiness
 
-Status: readiness layer ready locally, waiting for G1a source-literal opening.
+Status: first-use audit fixture is source-bound; protected authority remains closed.
 
-This layer prepares the post-opening first-use audit path for G1a. It validates a
-future first-use audit candidate and produces a preview-only source binding for
-`SOURCE_LITERAL_FIRST_USE_AUDITS`.
+This layer validates the post-opening first-use audit path for G1a. The default
+repo state now includes a source-controlled audit fixture at
+`examples/factory/g1a-first-use-audit-gonyak-cell-alpha.json` and a source-literal
+binding in `SOURCE_LITERAL_FIRST_USE_AUDITS`.
 
-It does not perform the first use, bind the audit into source, open G1a, create a
-workspace, or grant production or enterprise trust.
+It does not perform a new first use, mutate source by command, open protected
+runtime authority, create another workspace, or grant production or enterprise
+trust.
 
 ## Commands
 
 ```bash
 npm run factory:g1a-first-use-audit-readiness
 npm run factory:g1a-first-use-audit-readiness -- --check
+npm run factory:g1a-first-use-audit-readiness -- --check --require-pass
 npm run factory:g1a-first-use-audit-readiness -- --audit path/to/audit.json --check --require-pass
 node scripts/review-api.mjs --once /api/factory/g1a-first-use-audit-readiness
 ```
 
-The default repo state still has no signed owner receipt, no isolated G1a
-source-literal opening commit, and no first-use audit. The command therefore
-returns `waiting_for_g1a_opening_source_literal_commit`.
+The default repo state has the signed owner receipt, source-literal G1a opening
+marker, and first-use audit fixture bound. The command therefore returns
+`g1a_first_use_audit_already_bound`.
 
 ## Audit Candidate Contract
 
@@ -52,13 +55,14 @@ A future audit candidate must use:
 
 Current default result:
 
-- status: `waiting_for_g1a_opening_source_literal_commit`
-- audit candidate present: false
+- status: `g1a_first_use_audit_already_bound`
+- audit candidate present: true
+- first-use audit already bound: true
 - ready for first-use audit source binding: false
+- readiness rows pass/wait/fail: 17/0/0
 - G1a gate open now: false
 - validation errors: 0
 
-The future ready state requires the signed owner receipt and isolated G1a
-source-literal opening commit to be present first. A valid audit candidate can
-then become `ready_g1a_first_use_audit_for_source_literal_binding`, still as a
-preview-only source binding step.
+The prior ready-to-bind state is still supported for injected candidates and
+pre-binding tests. The default path is now the post-binding state: evidence is
+closed, while protected runtime authority remains closed.

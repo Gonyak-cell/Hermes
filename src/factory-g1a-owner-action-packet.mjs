@@ -295,6 +295,8 @@ function buildOwnerWorkOrder({
   generatedAt,
 }) {
   const firstWait = ownerActionRows.find((row) => row.current_verdict === "wait");
+  const sourceLiteralApplied = ownerActionRows.some((row) => row.row_id === "codex.apply_source_literal_commit" && row.current_verdict === "pass");
+  const firstUseAuditPresent = ownerActionRows.some((row) => row.row_id === "codex.capture_first_use_audit" && row.current_verdict === "pass");
   const workOrder = {
     schema_version: "factory-g1a-owner-work-order.v1",
     work_order_id: "g1a.owner-action-packet.current",
@@ -324,8 +326,9 @@ function buildOwnerWorkOrder({
     command_to_prepare_source_literal_commit: "npm run factory:g1a-source-literal-commit-draft -- --owner-receipt-path <signed-owner-receipt.json> --check",
     ...CLOSED_AUTHORITY_FLAGS,
     signs_owner_receipt_now: false,
-    source_literal_opening_commit_applied_now: false,
-    first_use_audit_present: false,
+    source_mutation_allowed_now: false,
+    source_literal_opening_commit_applied_now: sourceLiteralApplied,
+    first_use_audit_present: firstUseAuditPresent,
   };
   return { ...workOrder, work_order_sha256: sha256(canonicalize(workOrder)) };
 }
@@ -347,8 +350,8 @@ function buildBoundary({ candidateCards, ownerActionRows, ownerWorkOrder, genera
     owner_signature_required_now: ownerWorkOrder.owner_signature_required_now,
     signs_owner_receipt_now: false,
     selects_candidate_by_default_now: false,
-    source_literal_opening_commit_applied_now: false,
-    first_use_audit_present: false,
+    source_literal_opening_commit_applied_now: ownerWorkOrder.source_literal_opening_commit_applied_now,
+    first_use_audit_present: ownerWorkOrder.first_use_audit_present,
     ...CLOSED_AUTHORITY_FLAGS,
   };
 }
@@ -373,7 +376,7 @@ function buildValidationItems({
     validationItem("cards.no_default_selection", "candidate_cards", candidateCards.every((card) => card.card_selects_by_default === false && card.card_signs_owner_receipt_now === false && card.card_opens_gate_now === false && card.card_mutates_source_now === false), "Candidate cards must not select, sign, open, or mutate"),
     validationItem("actions.present", "owner_actions", ownerActionRows.length === 8, "Owner action row count changed unexpectedly"),
     validationItem("actions.no_failures", "owner_actions", ownerActionRows.every((row) => row.current_verdict !== "fail"), "Owner action packet has hard failed rows"),
-    validationItem("work_order.no_signature", "owner_work_order", ownerWorkOrder.signs_owner_receipt_now === false && ownerWorkOrder.source_literal_opening_commit_applied_now === false, "Owner work order must not sign or apply source"),
+    validationItem("work_order.no_signature", "owner_work_order", ownerWorkOrder.signs_owner_receipt_now === false && ownerWorkOrder.source_mutation_allowed_now === false, "Owner work order must not sign or allow source mutation"),
     validationItem("boundary.authority_closed", "authority", authorityClosed(boundary), "Owner action packet opened forbidden authority"),
   ];
 }
@@ -395,8 +398,8 @@ function buildSummary({ candidateCards, ownerActionRows, ownerWorkOrder, boundar
     owner_action_fail_count: boundary.owner_action_fail_count,
     signs_owner_receipt_now: false,
     source_mutation_allowed_now: false,
-    source_literal_opening_commit_applied_now: false,
-    first_use_audit_present: false,
+    source_literal_opening_commit_applied_now: boundary.source_literal_opening_commit_applied_now,
+    first_use_audit_present: boundary.first_use_audit_present,
     opens_gate_now: false,
     validation_errors: validation.errors.length,
     ...CLOSED_AUTHORITY_FLAGS,
@@ -448,8 +451,7 @@ function summarizeValidation(items) {
 function authorityClosed(value = {}) {
   return Object.keys(CLOSED_AUTHORITY_FLAGS).every((flag) => value?.[flag] === false)
     && value?.signs_owner_receipt_now === false
-    && value?.source_literal_opening_commit_applied_now === false
-    && value?.first_use_audit_present === false;
+    && value?.selects_candidate_by_default_now === false;
 }
 
 function renderMarkdown(result) {

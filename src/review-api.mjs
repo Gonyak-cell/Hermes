@@ -22,6 +22,9 @@ import { buildFactoryG1aFirstUseAuditReadiness } from "./factory-g1a-first-use-a
 import { buildFactoryG1aOwnerSigningHandoff } from "./factory-g1a-owner-signing-handoff.mjs";
 import { buildFactoryG1aOwnerCandidateSelectionDocket } from "./factory-g1a-owner-candidate-selection-docket.mjs";
 import { buildFactoryG1aOwnerActionPacket } from "./factory-g1a-owner-action-packet.mjs";
+import { buildFactoryGSeriesAdvancementReadiness } from "./factory-g-series-advancement-readiness.mjs";
+import { buildFactoryGSeriesRuntimeGuards } from "./factory-g-series-runtime-guards.mjs";
+import { buildFactoryStage67ExecutionReadiness } from "./factory-stage6-7-execution-readiness.mjs";
 import { buildFactoryPromotionCloseoutReadiness } from "./factory-promotion-closeout-readiness.mjs";
 
 export const DEFAULT_REVIEW_API_HOST = "127.0.0.1";
@@ -204,6 +207,42 @@ const FACTORY_PROMOTION_CLOSEOUT_READINESS_FILTER_KEYS = [
   "current_verdict",
 ];
 
+const FACTORY_G_SERIES_ADVANCEMENT_READINESS_FILTER_KEYS = [
+  "advancement_id",
+  "row_kind",
+  "gate_id",
+  "stage_id",
+  "authority_flag",
+  "advancement_status",
+  "code_development_allowed_now",
+  "runtime_authority_allowed_now",
+  "gate_open_now",
+  "stage_runtime_open_now",
+];
+
+const FACTORY_G_SERIES_RUNTIME_GUARD_FILTER_KEYS = [
+  "guard_id",
+  "attempt_kind",
+  "attempted_operation",
+  "protected_surface",
+  "required_gate_id",
+  "required_stage_id",
+  "guard_status",
+  "guard_verdict",
+];
+
+const FACTORY_STAGE6_7_EXECUTION_READINESS_FILTER_KEYS = [
+  "contract_id",
+  "stage_id",
+  "contract_name",
+  "contract_status",
+  "required_gate_id",
+  "code_development_allowed_now",
+  "runtime_execution_allowed_now",
+  "release_candidate_allowed_now",
+  "closeout_status",
+];
+
 const FACTORY_PRODUCT_AUTHORITY_FLAG_KEYS = [
   "project_creation_allowed_now",
   "repo_write_allowed_now",
@@ -298,6 +337,15 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     return methodNotAllowedResponse(method);
   }
   if (pathname === "/api/factory/g1a-owner-action-packet" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/g-series-advancement-readiness" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/g-series-runtime-guards" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/stage6-7-execution-readiness" && !isReviewApiReadOnlyMethod(method)) {
     return methodNotAllowedResponse(method);
   }
   if (pathname === "/api/factory/promotion-closeout-readiness" && !isReviewApiReadOnlyMethod(method)) {
@@ -450,6 +498,30 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       return jsonResponse(503, buildError("factory_g1a_owner_action_packet_unavailable", `Factory G1a owner action packet has hard validation failures: ${ownerActionPacket.validation.errors.length} error(s).`), method);
     }
     return jsonResponse(200, buildFactoryG1aOwnerActionPacketResponse(ownerActionPacket, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/g-series-advancement-readiness") {
+    const advancementReadiness = await buildFactoryGSeriesAdvancementReadiness({ ...options, write: false });
+    if (!advancementReadiness.validation.valid) {
+      return jsonResponse(503, buildError("factory_g_series_advancement_readiness_unavailable", `Factory G-series advancement readiness has hard validation failures: ${advancementReadiness.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryGSeriesAdvancementReadinessResponse(advancementReadiness, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/g-series-runtime-guards") {
+    const runtimeGuards = await buildFactoryGSeriesRuntimeGuards({ ...options, write: false, attemptKind: url.searchParams.get("attempt_kind") ?? options.attemptKind });
+    if (!runtimeGuards.validation.valid) {
+      return jsonResponse(503, buildError("factory_g_series_runtime_guards_unavailable", `Factory G-series runtime guards have hard validation failures: ${runtimeGuards.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryGSeriesRuntimeGuardsResponse(runtimeGuards, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/stage6-7-execution-readiness") {
+    const executionReadiness = await buildFactoryStage67ExecutionReadiness({ ...options, write: false });
+    if (!executionReadiness.validation.valid) {
+      return jsonResponse(503, buildError("factory_stage6_7_execution_readiness_unavailable", `Factory Stage6/7 execution readiness has hard validation failures: ${executionReadiness.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryStage67ExecutionReadinessResponse(executionReadiness, url, generatedAt), method);
   }
 
   if (pathname === "/api/factory/promotion-closeout-readiness") {
@@ -13761,7 +13833,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/factory/products, /api/factory/stage, /api/factory/candidate-manifests, /api/factory/starter-artifacts, /api/factory/workbench, /api/factory/candidate-lane, /api/factory/candidate-review-docket, /api/factory/gate-opening-readiness, /api/factory/g1a-opening-packet, /api/factory/g1a-owner-receipt-intake, /api/factory/g1a-source-literal-preflight, /api/factory/g1a-source-literal-commit-draft, /api/factory/g1a-opening-closeout-readiness, /api/factory/g1a-first-use-audit-readiness, /api/factory/g1a-owner-signing-handoff, /api/factory/g1a-owner-candidate-selection-docket, /api/factory/g1a-owner-action-packet, /api/factory/promotion-closeout-readiness, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/platform-operations-freezes, /api/platform-claim-registry, /api/platform-claim-gates, /api/platform-claim-boundary, /api/platform-claim-validations, /api/resource-contract-freezes, /api/resource-v2-contracts, /api/resource-version-v2-contracts, /api/resource-contract-validations, /api/evidence-review-drafts, /api/evidence-review-items, /api/policy-matrices, /api/policy-classifications, /api/runtime-policies, /api/model-policies, /api/tool-policies, /api/output-policies, /api/gate-policies, /api/policy-snapshot-ledgers, /api/policy-snapshots, /api/policy-snapshot-instances, /api/policy-decisions, /api/policy-usages, /api/context-packet-ledgers, /api/context-packets, /api/context-items, /api/context-retrieval-filters, /api/model-routing-ledgers, /api/model-routing-decisions, /api/cost-budget-ledgers, /api/cost-budget-decisions, /api/token-usage-ledgers, /api/token-usage-records, /api/cost-attribution-ledgers, /api/cost-attribution-records, /api/cost-record-projections, /api/projected-cost-records, /api/run-cost-rollups, /api/cost-category-rollups, /api/cost-record-projection-validations, /api/token-usage-projections, /api/projected-token-usage-records, /api/capability-token-rollups, /api/runtime-token-rollups, /api/capability-runtime-token-rollups, /api/token-usage-projection-validations, /api/budget-alert-ledgers, /api/budget-alert-records, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/contract-inventories, /api/contract-inventory-items, /api/contract-schemas, /api/contract-artifacts, /api/contract-owner-map, /api/contract-dependency-maps, /api/contract-dependency-nodes, /api/contract-dependency-edges, /api/contract-breaking-change-risks, /api/contract-owner-dependencies, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-review-packet-ledgers, /api/human-review-packets, /api/human-review-items, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
+  console.log("Routes: /, /health, /api, /api/factory/products, /api/factory/stage, /api/factory/candidate-manifests, /api/factory/starter-artifacts, /api/factory/workbench, /api/factory/candidate-lane, /api/factory/candidate-review-docket, /api/factory/gate-opening-readiness, /api/factory/g1a-opening-packet, /api/factory/g1a-owner-receipt-intake, /api/factory/g1a-source-literal-preflight, /api/factory/g1a-source-literal-commit-draft, /api/factory/g1a-opening-closeout-readiness, /api/factory/g1a-first-use-audit-readiness, /api/factory/g1a-owner-signing-handoff, /api/factory/g1a-owner-candidate-selection-docket, /api/factory/g1a-owner-action-packet, /api/factory/g-series-advancement-readiness, /api/factory/g-series-runtime-guards, /api/factory/stage6-7-execution-readiness, /api/factory/promotion-closeout-readiness, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/platform-operations-freezes, /api/platform-claim-registry, /api/platform-claim-gates, /api/platform-claim-boundary, /api/platform-claim-validations, /api/resource-contract-freezes, /api/resource-v2-contracts, /api/resource-version-v2-contracts, /api/resource-contract-validations, /api/evidence-review-drafts, /api/evidence-review-items, /api/policy-matrices, /api/policy-classifications, /api/runtime-policies, /api/model-policies, /api/tool-policies, /api/output-policies, /api/gate-policies, /api/policy-snapshot-ledgers, /api/policy-snapshots, /api/policy-snapshot-instances, /api/policy-decisions, /api/policy-usages, /api/context-packet-ledgers, /api/context-packets, /api/context-items, /api/context-retrieval-filters, /api/model-routing-ledgers, /api/model-routing-decisions, /api/cost-budget-ledgers, /api/cost-budget-decisions, /api/token-usage-ledgers, /api/token-usage-records, /api/cost-attribution-ledgers, /api/cost-attribution-records, /api/cost-record-projections, /api/projected-cost-records, /api/run-cost-rollups, /api/cost-category-rollups, /api/cost-record-projection-validations, /api/token-usage-projections, /api/projected-token-usage-records, /api/capability-token-rollups, /api/runtime-token-rollups, /api/capability-runtime-token-rollups, /api/token-usage-projection-validations, /api/budget-alert-ledgers, /api/budget-alert-records, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/contract-inventories, /api/contract-inventory-items, /api/contract-schemas, /api/contract-artifacts, /api/contract-owner-map, /api/contract-dependency-maps, /api/contract-dependency-nodes, /api/contract-dependency-edges, /api/contract-breaking-change-risks, /api/contract-owner-dependencies, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-review-packet-ledgers, /api/human-review-packets, /api/human-review-items, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -13791,6 +13863,9 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/factory/g1a-owner-signing-handoff", "Factory G1a owner signing handoff rows"),
       route("GET", "/api/factory/g1a-owner-candidate-selection-docket", "Factory G1a owner candidate selection docket rows"),
       route("GET", "/api/factory/g1a-owner-action-packet", "Factory G1a owner action packet rows"),
+      route("GET", "/api/factory/g-series-advancement-readiness", "Factory G1b/G2/G3 plus Stage6/Stage7 advancement readiness rows"),
+      route("GET", "/api/factory/g-series-runtime-guards", "Factory G1b/G2/G3 plus Stage6/Stage7 protected runtime guard rows"),
+      route("GET", "/api/factory/stage6-7-execution-readiness", "Factory Stage6/Stage7 execution and release-candidate contract rows"),
       route("GET", "/api/factory/promotion-closeout-readiness", "Factory Promotion closeout readiness rows"),
       route("GET", "/api/dashboard", "Full review-dashboard.v1 artifact"),
       route("GET", "/api/summary", "Dashboard summary only"),
@@ -15705,6 +15780,8 @@ function buildFactoryGateOpeningReadinessResponse(gateReadiness, url, generatedA
     data_driven_gate_opening_allowed_now: false,
     source_literal_authority_model: true,
     gate_open_count: gateReadiness.summary.gate_open_count,
+    gate_evidence_complete_count: gateReadiness.summary.gate_evidence_complete_count,
+    g1a_source_evidence_complete_now: gateReadiness.summary.g1a_source_evidence_complete_now,
     g1a_project_creation_gate_open_now: false,
     g1b_repo_write_gate_open_now: false,
     g2_command_execution_gate_open_now: false,
@@ -15723,6 +15800,152 @@ function buildFactoryGateOpeningReadinessResponse(gateReadiness, url, generatedA
     boundary: gateReadiness.factory_gate_opening_readiness_boundary,
     summary: gateReadiness.summary,
   };
+}
+
+function buildFactoryGSeriesAdvancementReadinessResponse(advancementReadiness, url, generatedAt) {
+  const items = buildFactoryGSeriesAdvancementReadinessItems(advancementReadiness);
+  const collection = buildCollectionResponse("factory_g_series_advancement_readiness_items", items, url, generatedAt, FACTORY_G_SERIES_ADVANCEMENT_READINESS_FILTER_KEYS);
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    data_driven_gate_opening_allowed_now: false,
+    source_literal_authority_model: true,
+    g_series_code_development_allowed_now: true,
+    g_series_runtime_authority_open_now: false,
+    human_owner_approval_skipped_for_development_now: true,
+    human_owner_approval_counted_as_closeout: false,
+    g1a_source_evidence_complete_now: advancementReadiness.summary.g1a_source_evidence_complete_now,
+    g1a_project_creation_gate_open_now: advancementReadiness.summary.g1a_project_creation_gate_open_now,
+    g1b_repo_write_gate_open_now: false,
+    g2_command_execution_gate_open_now: false,
+    g3_deployment_gate_open_now: false,
+    stage6_limited_execution_allowed_now: false,
+    stage7_release_candidate_allowed_now: false,
+    project_creation_allowed_now: false,
+    repo_write_allowed_now: false,
+    command_execution_enabled: false,
+    deployment_allowed_now: false,
+    protected_action_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    factory_g_series_gate_advancement_rows: advancementReadiness.factory_g_series_gate_advancement_rows,
+    factory_g_series_stage_advancement_rows: advancementReadiness.factory_g_series_stage_advancement_rows,
+    factory_g_series_advancement_negative_fixture_rows: advancementReadiness.factory_g_series_advancement_negative_fixture_rows,
+    validation_error_count: advancementReadiness.validation.errors.length,
+    boundary: advancementReadiness.factory_g_series_advancement_boundary,
+    summary: advancementReadiness.summary,
+  };
+}
+
+function buildFactoryGSeriesAdvancementReadinessItems(advancementReadiness) {
+  return [
+    ...advancementReadiness.factory_g_series_gate_advancement_rows.map((row) => ({
+      ...row,
+      row_kind: "gate_advancement",
+      stage_runtime_open_now: false,
+    })),
+    ...advancementReadiness.factory_g_series_stage_advancement_rows.map((row) => ({
+      ...row,
+      gate_id: row.required_gate_id,
+      gate_open_now: row.required_gate_open_now,
+      authority_flag: row.required_gate_id === "G2" ? "command_execution_enabled" : "deployment_allowed_now",
+      row_kind: "stage_advancement",
+    })),
+  ];
+}
+
+function buildFactoryGSeriesRuntimeGuardsResponse(runtimeGuards, url, generatedAt) {
+  const collection = buildCollectionResponse("factory_g_series_runtime_guard_rows", runtimeGuards.factory_g_series_runtime_guard_rows, url, generatedAt, FACTORY_G_SERIES_RUNTIME_GUARD_FILTER_KEYS);
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    simulated_only: true,
+    data_driven_gate_opening_allowed_now: false,
+    source_literal_authority_model: true,
+    g_series_code_development_allowed_now: runtimeGuards.summary.g_series_code_development_allowed_now,
+    g_series_runtime_authority_open_now: false,
+    human_owner_approval_skipped_for_development_now: true,
+    human_owner_approval_counted_as_closeout: false,
+    mutation_allowed_now: false,
+    command_spawn_allowed_now: false,
+    project_creation_allowed_now: false,
+    repo_write_allowed_now: false,
+    command_execution_enabled: false,
+    deployment_allowed_now: false,
+    protected_action_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    validation_error_count: runtimeGuards.validation.errors.length,
+    boundary: runtimeGuards.factory_g_series_runtime_guard_boundary,
+    summary: runtimeGuards.summary,
+  };
+}
+
+function buildFactoryStage67ExecutionReadinessResponse(executionReadiness, url, generatedAt) {
+  const items = buildFactoryStage67ExecutionReadinessItems(executionReadiness);
+  const collection = buildCollectionResponse("factory_stage6_7_execution_readiness_items", items, url, generatedAt, FACTORY_STAGE6_7_EXECUTION_READINESS_FILTER_KEYS);
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    stage6_7_contract_development_allowed_now: true,
+    stage6_7_runtime_authority_open_now: false,
+    human_owner_approval_skipped_for_development_now: true,
+    human_owner_approval_counted_as_closeout: false,
+    stage6_limited_execution_allowed_now: false,
+    stage7_release_candidate_allowed_now: false,
+    staging_deployment_allowed_now: false,
+    project_creation_allowed_now: false,
+    repo_write_allowed_now: false,
+    command_execution_enabled: false,
+    deployment_allowed_now: false,
+    protected_action_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    factory_stage6_execution_contract_rows: executionReadiness.factory_stage6_execution_contract_rows,
+    factory_stage7_release_candidate_contract_rows: executionReadiness.factory_stage7_release_candidate_contract_rows,
+    factory_stage6_7_closeout_rows: executionReadiness.factory_stage6_7_closeout_rows,
+    validation_error_count: executionReadiness.validation.errors.length,
+    boundary: executionReadiness.factory_stage6_7_execution_boundary,
+    summary: executionReadiness.summary,
+  };
+}
+
+function buildFactoryStage67ExecutionReadinessItems(executionReadiness) {
+  return [
+    ...executionReadiness.factory_stage6_execution_contract_rows.map((row) => ({
+      ...row,
+      row_kind: "stage6_contract",
+      release_candidate_allowed_now: false,
+      closeout_status: null,
+    })),
+    ...executionReadiness.factory_stage7_release_candidate_contract_rows.map((row) => ({
+      ...row,
+      row_kind: "stage7_contract",
+      runtime_execution_allowed_now: false,
+      closeout_status: null,
+    })),
+    ...executionReadiness.factory_stage6_7_closeout_rows.map((row) => ({
+      ...row,
+      row_kind: "stage6_7_closeout",
+      contract_id: row.closeout_id,
+      stage_id: row.closeout_id.startsWith("stage6.") ? "Stage6" : "Stage7",
+      contract_name: row.description,
+      contract_status: row.closeout_status,
+      required_gate_id: row.closeout_id.startsWith("stage6.") ? "G2" : "G3",
+      code_development_allowed_now: true,
+      runtime_execution_allowed_now: false,
+      release_candidate_allowed_now: false,
+    })),
+  ];
 }
 
 function buildFactoryG1aOpeningPacketResponse(openingPacket, url, generatedAt) {
@@ -15829,7 +16052,7 @@ function buildFactoryG1aSourceLiteralPreflightResponse(sourceLiteralPreflight, u
     raw_confidential_material_visible: false,
     preflight_only: true,
     source_mutation_allowed_now: false,
-    source_literal_opening_commit_applied_now: false,
+    source_literal_opening_commit_applied_now: sourceLiteralPreflight.summary.source_literal_opening_commit_applied_now,
     opens_gate_now: false,
     g1a_source_literal_preflight_can_open_gate_now: false,
     g1a_project_creation_gate_open_now: false,
@@ -15858,9 +16081,9 @@ function buildFactoryG1aSourceLiteralCommitDraftResponse(sourceLiteralCommitDraf
     raw_confidential_material_visible: false,
     commit_draft_only: true,
     patch_available_now: sourceLiteralCommitDraft.summary.patch_available_now,
-    patch_applied_now: false,
+    patch_applied_now: sourceLiteralCommitDraft.summary.patch_applied_now,
     source_mutation_allowed_now: false,
-    source_literal_opening_commit_applied_now: false,
+    source_literal_opening_commit_applied_now: sourceLiteralCommitDraft.summary.source_literal_opening_commit_applied_now,
     opens_gate_now: false,
     g1a_source_literal_commit_draft_can_open_gate_now: false,
     g1a_project_creation_gate_open_now: false,
@@ -15890,6 +16113,7 @@ function buildFactoryG1aOpeningCloseoutReadinessResponse(closeoutReadiness, url,
     raw_confidential_material_visible: false,
     closeout_readiness_only: true,
     owner_adjudication_required: true,
+    g1a_source_evidence_complete_now: closeoutReadiness.summary.g1a_source_evidence_complete_now,
     source_mutation_allowed_now: false,
     source_literal_opening_commit_applied_by_this_command: false,
     first_use_audit_claimed_by_this_command: false,
@@ -15919,6 +16143,7 @@ function buildFactoryG1aFirstUseAuditReadinessResponse(firstUseAuditReadiness, u
     raw_confidential_material_visible: false,
     first_use_audit_readiness_only: true,
     source_mutation_allowed_now: false,
+    first_use_audit_source_binding_closed_now: firstUseAuditReadiness.summary.first_use_audit_already_bound,
     first_use_audit_bound_by_this_command: false,
     opens_gate_now: false,
     g1a_project_creation_gate_open_now: false,

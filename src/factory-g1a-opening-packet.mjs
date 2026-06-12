@@ -251,7 +251,7 @@ function buildSourceState({ packageJson, structuredSummary, gateOpeningProgramDo
     g0ValidationValid: readiness.validation?.valid === true,
     g0GateOpenCount: Number(readiness.summary?.gate_open_count ?? summary.g0_gate_open_count ?? -1),
     g1aGateStatus: g1aRow?.gate_status ?? summary.g0_g1a_gate_status ?? null,
-    g1aReadyForOwnerReceiptNow: g1aRow?.gate_status === "ready_for_owner_gate_receipt_and_source_literal_commit"
+    g1aReadyForOwnerReceiptNow: ["ready_for_owner_gate_receipt_and_source_literal_commit", "ready_for_source_literal_commit", "waiting_for_first_use_audit_after_source_literal_commit"].includes(g1aRow?.gate_status)
       || summary.g0_g1a_ready_for_owner_receipt_now === true,
     g1aGateOpenNow: g1aRow?.gate_open_now === true,
     g1aOwnerReceiptPresent: g1aRow?.owner_gate_opening_receipt_present === true,
@@ -267,7 +267,7 @@ function buildSourceState({ packageJson, structuredSummary, gateOpeningProgramDo
       && gateOpeningReadinessDoc.text.includes("gate_open_now: false"),
     gateOpeningSourceReady: gateOpeningSource.available
       && sourceText.includes("SOURCE_LITERAL_GATE_OPEN_COMMITS")
-      && g1aCurrentValue === false,
+      && (g1aCurrentValue === false || g1aRow?.source_literal_gate_open_commit_present === true),
   };
 }
 
@@ -315,16 +315,18 @@ function buildOwnerReceiptTemplate({ generatedAt, commitRef }) {
 }
 
 function buildSourceLiteralOpeningCommitPlan({ generatedAt, commitRef, sourceState }) {
+  const alreadyApplied = sourceState.g1aSourceLiteralCommitPresent === true && sourceState.g1aOwnerReceiptPresent === true;
   const plan = {
     schema_version: "factory-g1a-source-literal-opening-commit-plan.v1",
     plan_id: "g1a.source_literal_opening_commit_plan",
     generated_at: generatedAt,
     current_commit_sha: commitRef || null,
-    plan_status: "planned_not_applied",
+    plan_status: alreadyApplied ? "already_applied_waiting_first_use_audit" : "planned_not_applied",
     opens_gate_now: false,
     source_file: "src/factory-gate-opening-readiness.mjs",
     source_literal_path: "SOURCE_LITERAL_GATE_OPEN_COMMITS.G1a",
     current_source_literal_value: sourceState.g1aSourceLiteralCurrentValue,
+    source_literal_opening_commit_applied_now: alreadyApplied,
     future_source_literal_value_after_owner_approval: true,
     isolated_commit_required: true,
     one_gate_per_commit: true,
@@ -528,7 +530,7 @@ function buildBoundary({ sourceState, ownerReceiptTemplate, sourceLiteralOpening
     source_mutation_performed: false,
     owner_receipt_template_ready: ownerReceiptTemplate.receipt_status === "template_not_signed",
     owner_receipt_signed_now: ownerReceiptTemplate.human_owner_signed === true,
-    source_literal_commit_applied_now: sourceLiteralOpeningCommitPlan.plan_status === "applied",
+    source_literal_commit_applied_now: sourceLiteralOpeningCommitPlan.source_literal_opening_commit_applied_now === true,
     independent_review_packet_ready: independentReviewPacket.review_status === "packet_ready_review_not_run",
     independent_review_completed_now: false,
     first_use_audit_present: firstUseAuditChecklist.first_use_audit_present === true,
@@ -554,11 +556,11 @@ function buildValidationItems({ sourceState, ownerReceiptTemplate, sourceLiteral
     validationItem("source.g0_summary_ready", "source", sourceState.structuredSummaryReady, "Structured summary does not expose ready G0/G1a packet preconditions"),
     validationItem("source.g0_readiness_ready", "source", sourceState.g0Status === "ready_factory_gate_opening_readiness" && sourceState.g0ValidationValid === true && sourceState.g0GateOpenCount === 0, "G0 readiness is not ready or already opened a gate"),
     validationItem("source.g1a_ready_closed", "source", sourceState.g1aReadyForOwnerReceiptNow === true && sourceState.g1aGateOpenNow === false, "G1a is not ready for owner receipt or is already open"),
-    validationItem("source.g1a_source_literal_false", "source", sourceState.gateOpeningSourceReady, "G1a source literal is missing or already true"),
+    validationItem("source.g1a_source_literal_state", "source", sourceState.gateOpeningSourceReady, "G1a source literal is missing or in an unexpected state"),
     validationItem("docs.gate_program_ready", "docs", sourceState.gateOpeningProgramDocReady, "Gate-opening program doc missing G1a/gate_opening/source literal language"),
     validationItem("docs.g0_doc_ready", "docs", sourceState.gateOpeningReadinessDocReady, "G0 readiness doc missing G1a closed readiness evidence"),
     validationItem("receipt.template_only", "owner_receipt", ownerReceiptTemplate.receipt_kind === "gate_opening" && ownerReceiptTemplate.receipt_status === "template_not_signed" && ownerReceiptTemplate.human_owner_signed === false, "Owner receipt template is signed or not gate_opening"),
-    validationItem("source_plan.not_applied", "source_literal_plan", sourceLiteralOpeningCommitPlan.plan_status === "planned_not_applied" && sourceLiteralOpeningCommitPlan.opens_gate_now === false, "Source literal opening plan claims to be applied"),
+    validationItem("source_plan.safe_state", "source_literal_plan", ["planned_not_applied", "already_applied_waiting_first_use_audit"].includes(sourceLiteralOpeningCommitPlan.plan_status) && sourceLiteralOpeningCommitPlan.opens_gate_now === false, "Source literal opening plan claims unsafe authority"),
     validationItem("review.packet_ready", "independent_review", independentReviewPacket.review_status === "packet_ready_review_not_run" && independentReviewPacket.read_only === true, "Independent review packet is missing or not read-only"),
     validationItem("first_use.audit_template", "first_use_audit", firstUseAuditChecklist.checklist_status === "template_not_performed" && firstUseAuditChecklist.first_use_audit_present === false, "First-use audit template is already marked performed"),
     validationItem("negative_fixtures.blocked", "negative_fixture", negativeFixtureRows.length >= 5 && negativeFixtureRows.every((row) => row.fixture_status === "blocked_as_expected"), "G1a negative fixtures did not all block"),
@@ -581,8 +583,8 @@ function buildSummary({ sourceState, ownerReceiptTemplate, sourceLiteralOpeningC
     g1a_ready_for_owner_receipt_now: sourceState.g1aReadyForOwnerReceiptNow,
     owner_gate_opening_receipt_template_ready: ownerReceiptTemplate.receipt_status === "template_not_signed",
     owner_gate_opening_receipt_signed_now: ownerReceiptTemplate.human_owner_signed === true,
-    source_literal_opening_commit_plan_ready: sourceLiteralOpeningCommitPlan.plan_status === "planned_not_applied",
-    source_literal_opening_commit_applied_now: false,
+    source_literal_opening_commit_plan_ready: ["planned_not_applied", "already_applied_waiting_first_use_audit"].includes(sourceLiteralOpeningCommitPlan.plan_status),
+    source_literal_opening_commit_applied_now: sourceLiteralOpeningCommitPlan.source_literal_opening_commit_applied_now === true,
     independent_review_packet_ready: independentReviewPacket.review_status === "packet_ready_review_not_run",
     independent_review_completed_now: false,
     first_use_audit_template_ready: firstUseAuditChecklist.checklist_status === "template_not_performed",

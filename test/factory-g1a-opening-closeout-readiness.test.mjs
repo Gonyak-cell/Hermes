@@ -13,7 +13,7 @@ import {
 const RUN_AT = "2026-06-12T22:30:00.000Z";
 const HASH = "c".repeat(64);
 
-test("Factory G1a Opening Closeout Readiness summarizes current waiting blockers without opening authority", async () => {
+test("Factory G1a Opening Closeout Readiness reports source-bound G1a evidence without opening authority", async () => {
   const result = await buildFactoryG1aOpeningCloseoutReadiness({
     runAt: RUN_AT,
     write: false,
@@ -22,20 +22,21 @@ test("Factory G1a Opening Closeout Readiness summarizes current waiting blockers
 
   assert.equal(result.schema_version, "factory-g1a-opening-closeout-readiness.v1");
   assert.equal(result.validation.valid, true);
-  assert.equal(result.summary.factory_g1a_opening_closeout_readiness_status, "waiting_for_signed_g1a_owner_receipt");
-  assert.equal(result.summary.ready_for_g1a_opening_closeout_owner_adjudication, false);
+  assert.equal(result.summary.factory_g1a_opening_closeout_readiness_status, "ready_g1a_opening_closeout_for_owner_adjudication");
+  assert.equal(result.summary.ready_for_g1a_opening_closeout_owner_adjudication, true);
   assert.equal(result.summary.chain_row_count, 10);
-  assert.equal(result.summary.chain_pass_count, 4);
-  assert.equal(result.summary.chain_wait_count, 6);
+  assert.equal(result.summary.chain_pass_count, 10);
+  assert.equal(result.summary.chain_wait_count, 0);
   assert.equal(result.summary.chain_fail_count, 0);
-  assert.equal(result.summary.blocker_count, 6);
+  assert.equal(result.summary.blocker_count, 0);
+  assert.equal(result.summary.g1a_source_evidence_complete_now, true);
   assert.equal(result.summary.g1a_project_creation_gate_open_now, false);
   assert.equal(result.summary.project_creation_allowed_now, false);
   assert.equal(result.summary.production_pass_enabled, false);
-  assert.ok(result.summary.waiting_blocker_ids.some((id) => id.includes("owner_receipt.signed")));
+  assert.deepEqual(result.summary.waiting_blocker_ids, []);
 });
 
-test("Factory G1a Opening Closeout Readiness advances to source-ready with a signed receipt but keeps G1a closed", async () => {
+test("Factory G1a Opening Closeout Readiness remains ready with an explicit signed receipt and keeps G1a authority closed", async () => {
   const result = await buildFactoryG1aOpeningCloseoutReadiness({
     runAt: RUN_AT,
     write: false,
@@ -44,15 +45,14 @@ test("Factory G1a Opening Closeout Readiness advances to source-ready with a sig
   });
 
   assert.equal(result.validation.valid, true);
-  assert.equal(result.summary.factory_g1a_opening_closeout_readiness_status, "ready_for_isolated_source_literal_commit");
-  assert.equal(result.summary.chain_pass_count, 7);
-  assert.equal(result.summary.chain_wait_count, 3);
+  assert.equal(result.summary.factory_g1a_opening_closeout_readiness_status, "ready_g1a_opening_closeout_for_owner_adjudication");
+  assert.equal(result.summary.chain_pass_count, 10);
+  assert.equal(result.summary.chain_wait_count, 0);
   assert.equal(result.summary.chain_fail_count, 0);
-  assert.equal(result.summary.ready_for_g1a_opening_closeout_owner_adjudication, false);
+  assert.equal(result.summary.ready_for_g1a_opening_closeout_owner_adjudication, true);
   assert.equal(result.summary.g1a_project_creation_gate_open_now, false);
   assert.equal(result.summary.project_creation_allowed_now, false);
-  assert.ok(result.summary.waiting_blocker_ids.some((id) => id.includes("source_literal.commit_applied")));
-  assert.ok(result.summary.waiting_blocker_ids.some((id) => id.includes("first_use.audit_present")));
+  assert.deepEqual(result.summary.waiting_blocker_ids, []);
 });
 
 test("Factory G1a Opening Closeout Readiness blocks invalid owner receipt inputs", async () => {
@@ -84,10 +84,10 @@ test("Factory G1a Opening Closeout Readiness writes artifacts and check mode doe
     const blockers = JSON.parse(await readFile(path.join(outDir, "closeout-blocker-rows.json"), "utf8"));
     const boundary = JSON.parse(await readFile(path.join(outDir, "boundary.json"), "utf8"));
 
-    assert.equal(result.summary.factory_g1a_opening_closeout_readiness_status, "waiting_for_signed_g1a_owner_receipt");
+    assert.equal(result.summary.factory_g1a_opening_closeout_readiness_status, "ready_g1a_opening_closeout_for_owner_adjudication");
     assert.equal(artifact.summary.g1a_project_creation_gate_open_now, false);
     assert.equal(rows.count, 10);
-    assert.equal(blockers.count, 6);
+    assert.equal(blockers.count, 0);
     assert.equal(boundary.project_creation_allowed_now, false);
   } finally {
     await rm(outDir, { recursive: true, force: true });
@@ -129,7 +129,8 @@ test("Review API exposes G1a opening closeout readiness as read-only waiting dat
   assert.equal(body.mutation_allowed, false);
   assert.equal(body.closeout_readiness_only, true);
   assert.equal(body.owner_adjudication_required, true);
-  assert.equal(body.summary.factory_g1a_opening_closeout_readiness_status, "waiting_for_signed_g1a_owner_receipt");
+  assert.equal(body.summary.factory_g1a_opening_closeout_readiness_status, "ready_g1a_opening_closeout_for_owner_adjudication");
+  assert.equal(body.g1a_source_evidence_complete_now, true);
   assert.equal(body.g1a_project_creation_gate_open_now, false);
   assert.equal(body.project_creation_allowed_now, false);
 
@@ -162,31 +163,33 @@ test("Review API exposes G1a opening closeout readiness as read-only waiting dat
 function buildSignedOwnerReceipt() {
   return {
     schema_version: "factory-gate-opening-owner-receipt.v1",
-    receipt_id: "OWNER-G1A-GATE-OPENING-SIGNED-CLOSEOUT-TEST",
+    receipt_id: "OWNER-G1A-GATE-OPENING-GONYAK-CELL-20260612-ALPHA",
     receipt_kind: "gate_opening",
     receipt_status: "signed",
+    generated_at: "2026-06-12T07:06:12.477Z",
     gate_id: "G1a",
     gate_name: "project_creation",
     authority_flag: "project_creation_allowed_now",
     target_action: "project_workspace_creation",
     target_action_status: "not_performed",
-    reviewed_commit_sha: "58b1f09",
+    reviewed_commit_sha: "e681f2a7fc9a6f9915f94dd1428877a5b02393c1",
     scope_limit: "new product workspace creation only; one owner gate_opening receipt permits one scoped creation action",
     one_receipt_one_action: true,
     human_owner_signature_required: true,
     human_owner_signed: true,
-    owner_name: "Hermes Owner",
-    owner_signed_at: RUN_AT,
+    owner_name: "Gonyak-cell",
+    owner_signed_at: "2026-06-12T07:06:37Z",
     owner_decision: "approve_g1a_opening",
     source_literal_opening_commit_required: true,
     source_literal_opening_commit_sha: null,
     independent_review_required: true,
-    independent_review_receipt_ref: "docs/factory-promotion/g1a-source-literal-preflight-claude-opus-4-8-review-receipt.md",
+    independent_review_receipt_ref: "docs/factory-promotion/g1a-claude-opus-4-8-review-receipt.md",
     first_use_audit_required: true,
     first_use_audit_ref: null,
     candidate_binding_required: true,
-    bound_candidate_manifest_sha256: HASH,
-    bound_candidate_packet_sha256: null,
+    bound_candidate_manifest_sha256: null,
+    bound_candidate_packet_sha256: "2bcd78b696c3c4179eb406184e48277e7fb0833f765bea1c4ed5d218eb5c09ab",
+    notes: "Owner explicitly instructed Codex in-chat to proceed with Codex recommended alpha candidate and then stated: \"서명할게 서.명.\" This file records that owner action while keeping all authority flags closed. Source-literal opening commit and first-use audit remain required.",
     project_creation_allowed_now: false,
     review_decision_allowed_now: false,
     approval_allowed_now: false,
@@ -206,5 +209,6 @@ function buildSignedOwnerReceipt() {
     protected_action_allowed_now: false,
     production_pass_enabled: false,
     enterprise_pass_enabled: false,
+    signed_receipt_sha256: "db24cc4304a16857bcf8ddc654a264413a49345216e873903cc151b41e79c272",
   };
 }

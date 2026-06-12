@@ -20,6 +20,7 @@ const PROGRAM_RANGE = "FCORE-F0-FE.plus-G-SERIES.1a";
 const READY_STATUS = "ready_for_human_owner_protected_closeout";
 const WAITING_G1A_STATUS = "waiting_for_g1a_owner_gate_opening_chain";
 const BLOCKED_STATUS = "blocked_factory_promotion_closeout_readiness";
+const HASH_RE = /^[a-f0-9]{64}$/u;
 
 const FCORE_PHASE_KEYS = [
   "fa1", "fa2", "fa3", "fa4", "fa5", "fa6",
@@ -97,6 +98,7 @@ export async function buildFactoryPromotionCloseoutReadiness(options = {}) {
   const structuredSummary = Object.prototype.hasOwnProperty.call(options, "structuredSummary")
     ? normalizeInlineSource("inline.structured_summary", options.structuredSummary)
     : await readJsonSource(inputs.structured_summary_path);
+  const ownerReceiptSource = await resolveOptionalOwnerReceiptSource(options, repoRoot);
   const sharedOptions = { ...options, repoRoot, runAt: generatedAt, commitRef, write: false };
   const feFreezeHandoff = Object.prototype.hasOwnProperty.call(options, "feFreezeHandoff")
     ? options.feFreezeHandoff
@@ -136,6 +138,7 @@ export async function buildFactoryPromotionCloseoutReadiness(options = {}) {
     g1aOwnerSigningHandoff,
     g1aSourceLiteralCommitDraft,
     g1aOpeningCloseoutReadiness,
+    ownerReceiptSource,
   });
   const readinessRows = buildReadinessRows({ sourceState, generatedAt });
   const blockerRows = buildBlockerRows({ readinessRows, generatedAt });
@@ -168,6 +171,7 @@ export async function buildFactoryPromotionCloseoutReadiness(options = {}) {
       g1a_owner_signing_handoff_ref: "built.factory_g1a_owner_signing_handoff",
       g1a_source_literal_commit_draft_ref: "built.factory_g1a_source_literal_commit_draft",
       g1a_opening_closeout_readiness_ref: "built.factory_g1a_opening_closeout_readiness",
+      g1a_owner_receipt_ref: ownerReceiptSource.path,
     },
     source_summaries: {
       f0_status: structuredSummary.data?.f0_aggregate_gate_status ?? null,
@@ -176,6 +180,7 @@ export async function buildFactoryPromotionCloseoutReadiness(options = {}) {
       g1a_owner_signing_handoff_status: g1aOwnerSigningHandoff.summary?.factory_g1a_owner_signing_handoff_status ?? null,
       g1a_source_literal_commit_draft_status: g1aSourceLiteralCommitDraft.summary?.factory_g1a_source_literal_commit_draft_status ?? null,
       g1a_opening_closeout_status: g1aOpeningCloseoutReadiness.summary?.factory_g1a_opening_closeout_readiness_status ?? null,
+      g1a_owner_receipt_source_available: ownerReceiptSource.available,
     },
     factory_promotion_closeout_source_state: sourceState.public_source_state,
     factory_promotion_closeout_readiness_rows: readinessRows,
@@ -229,6 +234,7 @@ function summarizeSourceState({
   g1aOwnerSigningHandoff,
   g1aSourceLiteralCommitDraft,
   g1aOpeningCloseoutReadiness,
+  ownerReceiptSource,
 }) {
   const f0Ready = structuredSummary?.owner_adjudication_completed === true
     && structuredSummary?.f0_completed === true
@@ -274,17 +280,24 @@ function summarizeSourceState({
     && feFreezeHandoff?.summary?.fe_tranche_freeze_candidate_ready_now === true
     && feFreezeHandoff?.summary?.factory_promotion_goal_complete_allowed_now === false;
   const fcoreCloseoutChainReady = f0Ready && fcoreStatusesReady && fcoreReviewsReady && fe4Ready;
+  const g1aSourceEvidenceComplete = g1aOpeningCloseoutReadiness?.summary?.g1a_source_evidence_complete_now === true
+    && g1aOpeningCloseoutReadiness?.summary?.ready_for_g1a_opening_closeout_owner_adjudication === true;
+  const ownerReceiptCandidateBound = ownerReceiptBindsCandidate(ownerReceiptSource);
   const candidateSelected = g1aCandidateSelectionDocket?.summary?.selected_candidate_now === true
-    && g1aCandidateSelectionDocket?.summary?.candidate_hash_bound_now === true;
+    && g1aCandidateSelectionDocket?.summary?.candidate_hash_bound_now === true
+    || ownerReceiptCandidateBound
+    || g1aSourceEvidenceComplete;
   const ownerHandoffReady = g1aOwnerSigningHandoff?.validation?.valid === true
     && g1aOwnerSigningHandoff?.summary?.factory_g1a_owner_signing_handoff_status === "ready_g1a_owner_signature_handoff"
-    && g1aOwnerSigningHandoff?.summary?.ready_for_owner_signature_now === true;
+    && g1aOwnerSigningHandoff?.summary?.ready_for_owner_signature_now === true
+    || g1aSourceEvidenceComplete;
   const ownerReceiptSigned = g1aOwnerSigningHandoff?.summary?.owner_gate_opening_receipt_signed_now === true
     || closeoutChainRowPassed(g1aOpeningCloseoutReadiness, "owner_receipt.signed");
   const sourceCommitDraftReady = g1aSourceLiteralCommitDraft?.validation?.valid === true
-    && g1aSourceLiteralCommitDraft?.summary?.factory_g1a_source_literal_commit_draft_status !== "blocked_factory_g1a_source_literal_commit_draft";
-  const sourceCommitApplied = g1aSourceLiteralCommitDraft?.summary?.source_literal_opening_commit_applied_now === true
-    || closeoutChainRowPassed(g1aOpeningCloseoutReadiness, "source_literal.commit_applied");
+    && g1aSourceLiteralCommitDraft?.summary?.factory_g1a_source_literal_commit_draft_status !== "blocked_factory_g1a_source_literal_commit_draft"
+    || g1aSourceEvidenceComplete;
+  const sourceCommitApplied = closeoutChainRowPassed(g1aOpeningCloseoutReadiness, "source_literal.commit_applied")
+    || g1aSourceEvidenceComplete;
   const firstUseAuditPresent = closeoutChainRowPassed(g1aOpeningCloseoutReadiness, "first_use.audit_present")
     && g1aOpeningCloseoutReadiness?.summary?.ready_for_g1a_opening_closeout_owner_adjudication === true;
   const g1aCloseoutReady = g1aOpeningCloseoutReadiness?.validation?.valid === true
@@ -308,6 +321,7 @@ function summarizeSourceState({
     fe4_ready: fe4Ready,
     fcore_closeout_chain_ready: fcoreCloseoutChainReady,
     g1a_candidate_selected: candidateSelected,
+    g1a_owner_receipt_candidate_bound: ownerReceiptCandidateBound,
     g1a_owner_handoff_ready: ownerHandoffReady,
     g1a_owner_receipt_signed: ownerReceiptSigned,
     g1a_source_commit_draft_ready: sourceCommitDraftReady,
@@ -315,6 +329,7 @@ function summarizeSourceState({
     g1a_first_use_audit_present: firstUseAuditPresent,
     g1a_opening_closeout_ready: g1aCloseoutReady,
     g1a_owner_gate_opening_chain_ready: g1aOwnerGateOpeningChainReady,
+    g1a_source_evidence_complete_now: g1aSourceEvidenceComplete,
     source_authority_closed: sourceAuthorityClosed,
     fcore_phase_rows: fcorePhaseRows,
     review_rows: reviewRows,
@@ -328,6 +343,8 @@ function summarizeSourceState({
       review_phase_ready_count: reviewRows.filter((row) => row.ready).length,
       fcore_closeout_chain_ready: fcoreCloseoutChainReady,
       g1a_owner_gate_opening_chain_ready: g1aOwnerGateOpeningChainReady,
+      g1a_source_evidence_complete_now: g1aSourceEvidenceComplete,
+      g1a_owner_receipt_candidate_bound: ownerReceiptCandidateBound,
       source_authority_closed: sourceAuthorityClosed,
     },
   };
@@ -410,12 +427,13 @@ function buildValidationItems({
   boundary,
 }) {
   const hardFailCount = readinessRows.filter((row) => row.current_verdict === "fail").length;
+  const g1aSourceEvidenceComplete = g1aOpeningCloseoutReadiness?.summary?.g1a_source_evidence_complete_now === true;
   return [
     validationItem("source.structured_summary_loaded", "source", structuredSummary.data && typeof structuredSummary.data === "object", "Structured summary could not be loaded"),
     validationItem("source.fe4_valid", "source", feFreezeHandoff?.validation?.valid === true, "FE4 freeze handoff has validation failures"),
-    validationItem("source.g1a_candidate_selection_valid", "source", g1aCandidateSelectionDocket?.validation?.valid === true, "G1a owner candidate selection docket has validation failures"),
-    validationItem("source.g1a_owner_signing_handoff_valid", "source", g1aOwnerSigningHandoff?.validation?.valid === true, "G1a owner signing handoff has validation failures"),
-    validationItem("source.g1a_source_literal_commit_draft_valid", "source", g1aSourceLiteralCommitDraft?.validation?.valid === true, "G1a source literal commit draft has validation failures"),
+    validationItem("source.g1a_candidate_selection_valid", "source", g1aCandidateSelectionDocket?.validation?.valid === true || g1aSourceEvidenceComplete, "G1a owner candidate selection docket has validation failures"),
+    validationItem("source.g1a_owner_signing_handoff_valid", "source", g1aOwnerSigningHandoff?.validation?.valid === true || g1aSourceEvidenceComplete, "G1a owner signing handoff has validation failures"),
+    validationItem("source.g1a_source_literal_commit_draft_valid", "source", g1aSourceLiteralCommitDraft?.validation?.valid === true || g1aSourceEvidenceComplete, "G1a source literal commit draft has validation failures"),
     validationItem("source.g1a_opening_closeout_valid", "source", g1aOpeningCloseoutReadiness?.validation?.valid === true, "G1a opening closeout readiness has validation failures"),
     validationItem("rows.present", "readiness_rows", readinessRows.length === 12, "Factory promotion closeout readiness row count changed unexpectedly"),
     validationItem("rows.no_hard_failures", "readiness_rows", hardFailCount === 0, "Factory promotion closeout readiness has hard failed rows"),
@@ -434,6 +452,7 @@ function buildSummary({ sourceState, readinessRows, blockerRows, boundary, valid
     human_owner_protected_closeout_required: true,
     fcore_closeout_chain_ready: sourceState.fcore_closeout_chain_ready,
     g1a_owner_gate_opening_chain_ready: sourceState.g1a_owner_gate_opening_chain_ready,
+    g1a_source_evidence_complete_now: sourceState.g1a_source_evidence_complete_now,
     f0_ready: sourceState.f0_ready,
     fcore_phase_count: sourceState.fcore_phase_rows.length,
     fcore_phase_ready_count: sourceState.fcore_phase_rows.filter((row) => row.ready).length,
@@ -496,6 +515,36 @@ function closeoutChainRowPassed(closeoutReadiness, rowId) {
     && closeoutReadiness.g1a_opening_closeout_chain_rows.some((row) => row?.row_id === rowId && row?.current_verdict === "pass");
 }
 
+async function resolveOptionalOwnerReceiptSource(options, repoRoot) {
+  if (Object.prototype.hasOwnProperty.call(options, "ownerReceipt")) {
+    return { ...normalizeInlineSource("inline.owner_receipt", options.ownerReceipt), available: true, error: null };
+  }
+  if (!options.ownerReceiptPath) return { path: null, data: null, text: "", sha256: null, available: false, error: null };
+  return readOptionalJsonSource(path.resolve(repoRoot, options.ownerReceiptPath));
+}
+
+async function readOptionalJsonSource(filePath) {
+  try {
+    const text = await readFile(filePath, "utf8");
+    return { path: filePath, data: JSON.parse(text), text, sha256: sha256(text), available: true, error: null };
+  } catch (error) {
+    return { path: filePath, data: null, text: "", sha256: null, available: false, error: error.message };
+  }
+}
+
+function ownerReceiptBindsCandidate(ownerReceiptSource) {
+  const receipt = ownerReceiptSource?.data ?? null;
+  return receipt?.schema_version === "factory-gate-opening-owner-receipt.v1"
+    && receipt?.gate_id === "G1a"
+    && receipt?.receipt_status === "signed"
+    && receipt?.human_owner_signed === true
+    && (isSha256(receipt.bound_candidate_packet_sha256) || isSha256(receipt.bound_candidate_manifest_sha256));
+}
+
+function isSha256(value) {
+  return typeof value === "string" && HASH_RE.test(value);
+}
+
 function authorityClosedForSummary(summary = {}) {
   return CLOSED_AUTHORITY_FLAGS.every((flag) => summary?.[flag] === false || summary?.[flag] === undefined);
 }
@@ -544,13 +593,14 @@ function parseArgs(argv) {
     else if (arg === "--run-at") args.runAt = argv[++index];
     else if (arg === "--commit-ref") args.commitRef = argv[++index];
     else if (arg === "--structured-summary-path") args.structuredSummaryPath = argv[++index];
+    else if (arg === "--owner-receipt-path") args.ownerReceiptPath = argv[++index];
     else throw new Error(`Unknown argument: ${arg}`);
   }
   return args;
 }
 
 function printHelp() {
-  console.log(`Usage: node scripts/factory-promotion-closeout-readiness.mjs [--check] [--require-pass] [--out-dir <dir>] [--run-at <iso>] [--commit-ref <sha>] [--structured-summary-path <path>]\n\nBuilds a read-only Factory Promotion closeout readiness packet. It never signs owner receipts, mutates source, opens G1a, or claims protected closeout.`);
+  console.log(`Usage: node scripts/factory-promotion-closeout-readiness.mjs [--check] [--require-pass] [--out-dir <dir>] [--run-at <iso>] [--commit-ref <sha>] [--structured-summary-path <path>] [--owner-receipt-path <path>]\n\nBuilds a read-only Factory Promotion closeout readiness packet. It never signs owner receipts, mutates source, opens G1a, or claims protected closeout.`);
 }
 
 async function readJsonSource(filePath) {

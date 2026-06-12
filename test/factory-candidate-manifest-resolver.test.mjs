@@ -198,6 +198,52 @@ test("Factory Candidate Manifest Resolver fails closed when the stage read model
   });
 });
 
+test("Factory Candidate Manifest Resolver exposes PS3 transition block reasons before FB promotion", async () => {
+  await withTempLedger(async (ledgerDir) => {
+    const opts = ledgerOptions(ledgerDir);
+    await appendFactoryLedgerEntry("products", productDraft("product.candidate_ps3", "candidate-ps3"), opts);
+    await appendFactoryLedgerEntry("state_transitions", transitionDraft("product.candidate_ps3", "PS0_seed", "PS1_schema_valid", "ps0_ps1"), opts);
+    await appendFactoryLedgerEntry("state_transitions", transitionDraft("product.candidate_ps3", "PS1_schema_valid", "PS2_receipt_bound", "ps1_ps2"), opts);
+    await appendFactoryLedgerEntry("state_transitions", transitionDraft("product.candidate_ps3", "PS2_receipt_bound", "PS3_candidate_ready", "ps2_ps3"), opts);
+
+    const result = await buildFactoryCandidateManifestResolver({
+      ledgerDir,
+      runAt: RUN_AT,
+    });
+    const row = result.candidate_manifest_resolver_rows[0];
+
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.factory_candidate_manifest_resolver_status, "blocked_factory_candidate_manifest_resolver");
+    assert.equal(row.current_product_state, "PS3_candidate_ready");
+    assert.equal(row.resolver_status, "blocked_ps3_before_fb_promotion");
+    assert.deepEqual(row.blocked_reason_ids, ["ps3_transition_before_fb_promotion"]);
+    assert.equal(row.candidate_manifest_id, null);
+    assert.equal(row.candidate_manifest_json_available, false);
+  });
+});
+
+test("Factory Candidate Manifest Resolver distinguishes unmapped starter artifact refs", async () => {
+  await withTempLedger(async (ledgerDir) => {
+    await appendPs2Product(ledgerDir, "product.candidate_unmapped_refs", {
+      product: { domain_pack_ids: ["pack.unmapped"] },
+    });
+
+    const result = await buildFactoryCandidateManifestResolver({
+      ledgerDir,
+      runAt: RUN_AT,
+    });
+    const row = result.candidate_manifest_resolver_rows[0];
+
+    assert.equal(result.validation.valid, true);
+    assert.equal(result.summary.candidate_manifest_count, 0);
+    assert.equal(row.resolver_status, "blocked_missing_starter_artifact_corpus");
+    assert.deepEqual(row.blocked_reason_ids, ["starter_artifact_refs_unmapped"]);
+    assert.equal(row.starter_artifact_corpus_status, "missing_required_ref_mapping");
+    assert.deepEqual(row.planned_artifact_refs, []);
+    assert.equal(row.candidate_manifest_id, null);
+  });
+});
+
 test("Review API exposes candidate manifest resolver rows as read-only JSON-only data", async () => {
   await withTempLedger(async (ledgerDir) => {
     await appendPs2Product(ledgerDir, "product.candidate_api");

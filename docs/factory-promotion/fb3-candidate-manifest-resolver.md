@@ -1,6 +1,6 @@
 # FB.3 Candidate Manifest Resolver
 
-Status: ready with Claude review deferred by owner instruction.
+Status: ready with valid Law Firm OS-style Claude Opus 4.8 Max review completed and adjudicated.
 Date: 2026-06-11
 
 ## Scope
@@ -39,9 +39,18 @@ These remain false:
 - all project/repo/connector/deploy/protected-action/production/enterprise
   authority flags
 
-FB.4 now materializes the starter artifact corpus referenced by candidate
-manifests. The resolver remains JSON-only and refuses otherwise eligible
-candidate rows when required starter refs are missing.
+FB.3 owns the JSON-only resolver capability and keeps the `.fb3` candidate
+manifest id suffix. FB.4 owns the read-only starter artifact corpus
+materialization that FB.3 references through `fb4_starter_artifact_corpus_*`
+fields. The pairing is intentional: the resolver remains JSON-only and refuses
+otherwise eligible candidate rows when required starter refs are missing.
+
+`candidate_manifest_sha256` is a per-run snapshot hash because `generated_at` is
+part of the hashed draft. This is acceptable for FB.3 previews because no
+candidate apply, ledger append, source write, or downstream protected action is
+opened. Before any downstream receipt uses the hash as a stable apply identity,
+that downstream phase must explicitly decide whether to bind the snapshot hash
+or introduce a separate content-stable identity hash.
 
 ## Review API
 
@@ -89,19 +98,66 @@ git diff --check
 Command to run after the final Opus Max raw artifact is captured:
 
 ```bash
-npm run factory:claude-review-evidence -- --raw-review artifacts/factory-promotion/fb3-review/claude-opus-max-final.raw.json --prompt artifacts/factory-promotion/fb3-review/claude-opus-max-final.prompt.md --review-id fb3-opus-max-final --program-range FCORE-FB.3 --out-dir artifacts/factory-promotion/fb3-review/final-validation --check --require-valid
+npm run factory:claude-review-evidence -- --raw-review artifacts/factory-promotion/fb3-review-lawos-style-final/raw-output.json --prompt artifacts/factory-promotion/fb3-review-lawos-style-final/review-prompt.md --review-id fb3-opus-4-8-lawos-style-final --program-range FCORE-FB.3 --out-dir artifacts/factory-promotion/fb3-review-lawos-style-final/evidence-validation --check --require-valid
 ```
 
-Current closeout path uses
-`fb3-owner-claude-review-defer-receipt.json`: the human owner instructed Codex to
-defer Claude review until explicitly requested again. This does not count as an
-independent review, production PASS, enterprise PASS, or final approval.
+Current closeout path supersedes
+`fb3-owner-claude-review-defer-receipt.json`. The owner later requested the
+Claude review lane, and the final raw Opus 4.8 Max artifact validated as
+`valid_review_evidence`. This counts as independent review evidence only; it
+does not count as final approval, production PASS, enterprise PASS, or human
+protected closeout adjudication.
+
+## Review Closeout
+
+Review receipt: `fb3-claude-opus-4-8-review-receipt.md`.
+
+Evidence:
+
+- reviewed tree commit SHA:
+  `2f3be4e42f09148dc26fda44e2a82f150b1a14fe`
+- implementation commit SHA for the FB.3 resolver/API/tests:
+  `5dd51751c8e87185eea34122963ff385b4251a90`
+- related starter corpus dependency commit SHA:
+  `82f596d41a208070bb3f9f991563ffa1fe58b419`
+- related Review API exposure commit SHA:
+  `dbb670904d24819e5a7fa8f9e8ffbbf0969c90dc`
+- raw artifact:
+  `artifacts/factory-promotion/fb3-review-lawos-style-final/raw-output.json`
+- normalized artifact receipt:
+  `artifacts/factory-promotion/fb3-review-lawos-style-final/review-receipt.json`
+- evidence validation artifact:
+  `artifacts/factory-promotion/fb3-review-lawos-style-final/evidence-validation/claude-review-evidence-validation.json`
+- prompt SHA-256:
+  `87d4c24230ef497f0e1d785459ca93104548ba607e80e91e6f45a5af325e4f26`
+- raw output SHA-256:
+  `46abdb6c1bf8be736d7c44a831286faee97ab5d352196dc8087c33da382cbe93`
+
+Review result:
+
+- verdict: `APPROVE_WITH_FINDINGS`
+- blocking findings: 0
+- non-blocking findings: 4
+- changes required before commit: false
+
+Disposition:
+
+- `FB3-NB-1` is fixed in the receipt trail by recording both the reviewed tree
+  commit and the implementing FB.3/FB.4/API commits.
+- `FB3-NB-2` is adjudicated and documented above: `.fb3` ids belong to the
+  FB.3 resolver, while `fb4_*` fields record the required starter corpus
+  dependency.
+- `FB3-NB-3` is adjudicated and documented above: the current hash is a
+  snapshot hash, not a stable apply identity hash.
+- `FB3-NB-4` is fixed by adding direct regression coverage for the PS3 block
+  reason and unmapped starter artifact ref branch.
 
 Expected local result:
 
-- candidate resolver targeted tests: 8/8 pass
-- starter artifact corpus targeted tests: 5/5 pass
-- Claude review evidence validator tests: 6/6 pass
+- candidate resolver targeted tests: 10/10 pass
+- starter artifact corpus targeted tests: 8/8 pass
+- Claude review evidence validator tests: 7/7 pass
+- combined review-support test bundle: 25/25 pass
 - default tracked seed projection: 9 resolver rows, 0 candidate manifests
 - operational fresh PS2 fixture: 1 JSON-only candidate manifest
 - missing starter template fixture: blocked, 0 candidate manifests

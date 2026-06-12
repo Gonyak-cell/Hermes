@@ -257,10 +257,10 @@
   "fb2_claude_code_review_superseded_raw_artifacts": [
     "artifacts/factory-promotion/fb2-review/claude-opus-max-review.raw.json"
   ],
-  "fb3_status": "ready_factory_candidate_manifest_resolver_owner_deferred_claude_review",
+  "fb3_status": "ready_factory_candidate_manifest_resolver_lawos_style_claude_reviewed",
   "fb3_phase_doc": "fb3-candidate-manifest-resolver.md",
   "fb3_review_packet": "fb3-claude-review-packet.md",
-  "fb3_review_receipt": null,
+  "fb3_review_receipt": "fb3-claude-opus-4-8-review-receipt.md",
   "fb3_owner_claude_review_defer_receipt": "fb3-owner-claude-review-defer-receipt.json",
   "fb3_command": "npm run factory:candidate-manifests -- --check --require-pass",
   "fb3_api_route": "/api/factory/candidate-manifests",
@@ -272,7 +272,7 @@
   "fb3_default_candidate_manifest_count": 0,
   "fb3_operational_ps2_candidate_manifest_fixture_status": "local_test_passed_json_only_manifest_created_with_materialized_starter_refs",
   "fb3_stale_ps2_negative_fixture_status": "local_test_passed_stale_ps2_blocks_manifest_id",
-  "fb3_ps3_negative_fixture_status": "local_test_passed_stage_invalid_fail_closed",
+  "fb3_ps3_negative_fixture_status": "local_test_passed_stage_invalid_fail_closed_and_row_level_ps3_block_reason",
   "fb3_json_only_manifest_generation": true,
   "fb3_starter_artifact_corpus_materialized_now": true,
   "fb3_source_file_write_allowed_now": false,
@@ -282,20 +282,20 @@
   "fb3_apply_allowed_now": false,
   "fb3_mutating_method_negative_fixture_status": "local_test_passed_405_method_not_allowed_for_post_put_patch_delete",
   "fb3_targeted_tests": "node --test test/factory-candidate-manifest-resolver.test.mjs",
-  "fb3_targeted_tests_status": "8/8 pass",
+  "fb3_targeted_tests_status": "10/10 pass",
   "fb3_api_smoke_status": "pass",
   "fb3_contracts_validate_status": "214/214 pass",
-  "fb3_claude_code_review_required_now": false,
-  "fb3_claude_code_review_status": "owner_deferred_until_user_requests_review",
-  "fb3_claude_code_review_deferred_by_owner_now": true,
-  "fb3_claude_code_review_model_alias": "opus",
+  "fb3_claude_code_review_required_now": true,
+  "fb3_claude_code_review_status": "valid_approve_with_findings_opus_4_8_lawos_style_final",
+  "fb3_claude_code_review_deferred_by_owner_now": false,
+  "fb3_claude_code_review_model_alias": "claude-opus-4-8",
   "fb3_claude_code_review_effort": "max",
   "fb3_claude_code_review_tools_disabled": true,
   "fb3_claude_code_review_invalid_output_rejected_if_auth_or_malformed": true,
   "fb3_claude_code_review_evidence_validator_command": "npm run factory:claude-review-evidence -- --raw-review <raw.json> --prompt <prompt.md> --review-id <id> --program-range FCORE-FB.3 --out-dir <validation-dir> --check --require-valid",
-  "fb3_claude_code_review_final_retry_prompt_artifact": "artifacts/factory-promotion/fb3-review/claude-opus-max-final.prompt.md",
-  "fb3_claude_code_review_final_retry_prompt_sha256": null,
-  "fb3_claude_code_review_final_retry_prompt_sha256_binding_rule": "recompute immediately before dispatch and bind in the final review receipt",
+  "fb3_claude_code_review_final_retry_prompt_artifact": "artifacts/factory-promotion/fb3-review-lawos-style-final/review-prompt.md",
+  "fb3_claude_code_review_final_retry_prompt_sha256": "87d4c24230ef497f0e1d785459ca93104548ba607e80e91e6f45a5af325e4f26",
+  "fb3_claude_code_review_final_retry_prompt_sha256_binding_rule": "final prompt sha256 is bound in fb3-claude-opus-4-8-review-receipt.md and evidence validation artifact",
   "fb3_claude_code_review_invalid_attempts": [
     {
       "attempt_id": "fb3-opus-max-invalid-attempt-001",
@@ -373,10 +373,11 @@
       "note": "App-bundled Claude Code process produced a zero-byte raw artifact for several minutes and was stopped."
     }
   ],
-  "fb3_claude_code_review_changes_required_before_commit": null,
+  "fb3_claude_code_review_changes_required_before_commit": false,
   "remaining_hard_blockers": [
-    "deferred F0.1 independent review receipts before production or enterprise trust",
-    "deferred FB.3 independent review before production or enterprise trust if owner resumes Claude review gate"
+    "human owner protected closeout adjudication remains required before production or enterprise trust",
+    "G-series gate-opening program remains required before project/repo/command/deployment gates can open",
+    "Claude review evidence does not grant final approval, production PASS, enterprise PASS, or protected-action authority"
   ],
   "open_blocking_findings": [
     "HRM-01",
@@ -1894,5 +1895,52 @@
   "fe4_claude_code_review_findings": [],
   "fe4_claude_code_review_superseded_raw_artifacts": [
     "artifacts/factory-promotion/fe4-review-lawos-style/raw-output.json"
-  ]
+  ],
+  "fb3_reviewed_tree_commit_sha": "2f3be4e42f09148dc26fda44e2a82f150b1a14fe",
+  "fb3_primary_implementation_commit_sha": "5dd51751c8e87185eea34122963ff385b4251a90",
+  "fb3_related_starter_corpus_commit_sha": "82f596d41a208070bb3f9f991563ffa1fe58b419",
+  "fb3_related_review_api_commit_sha": "dbb670904d24819e5a7fa8f9e8ffbbf0969c90dc",
+  "fb3_unmapped_starter_ref_negative_fixture_status": "local_test_passed_unmapped_starter_refs_block_with_reason",
+  "fb3_claude_code_review_resolved_model": "claude-opus-4-8",
+  "fb3_claude_code_review_raw_artifact": "artifacts/factory-promotion/fb3-review-lawos-style-final/raw-output.json",
+  "fb3_claude_code_review_raw_sha256": "46abdb6c1bf8be736d7c44a831286faee97ab5d352196dc8087c33da382cbe93",
+  "fb3_claude_code_review_prompt_artifact": "artifacts/factory-promotion/fb3-review-lawos-style-final/review-prompt.md",
+  "fb3_claude_code_review_prompt_sha256": "87d4c24230ef497f0e1d785459ca93104548ba607e80e91e6f45a5af325e4f26",
+  "fb3_claude_code_review_request_artifact": "artifacts/factory-promotion/fb3-review-lawos-style-final/review-request.json",
+  "fb3_claude_code_review_request_sha256": "fb95cab1a57356b80cccbd3e9ef73782d1a599e87c6b7d5d164e175ef999886e",
+  "fb3_claude_code_review_receipt_artifact": "artifacts/factory-promotion/fb3-review-lawos-style-final/review-receipt.json",
+  "fb3_claude_code_review_receipt_sha256": "8511c5ba45803ee0f35d4ec2ed7fc236c1ef95ea3b4e8ff8dd2c9d4fb63de5da",
+  "fb3_claude_code_review_evidence_validation_artifact": "artifacts/factory-promotion/fb3-review-lawos-style-final/evidence-validation/claude-review-evidence-validation.json",
+  "fb3_claude_code_review_evidence_validation_sha256": "c1dfc0934ec6e0accf0dfbb048ec070e4732b960eacc192a3ce5d0cd96ddf74f",
+  "fb3_claude_code_review_evidence_valid": true,
+  "fb3_claude_code_review_verdict": "APPROVE_WITH_FINDINGS",
+  "fb3_claude_code_review_session_id": "0914cfc9-78e0-45f9-984b-fbd04396cded",
+  "fb3_claude_code_review_result_uuid": "e22654a7-a54e-44ed-9512-f1e7062103cd",
+  "fb3_claude_code_review_process_status": 0,
+  "fb3_claude_code_review_terminal_reason": "completed",
+  "fb3_claude_code_review_total_cost_usd": 0.5948005,
+  "fb3_claude_code_review_blocking_findings": 0,
+  "fb3_claude_code_review_non_blocking_findings": 4,
+  "fb3_claude_code_review_findings": [
+    "FB3-NB-1",
+    "FB3-NB-2",
+    "FB3-NB-3",
+    "FB3-NB-4"
+  ],
+  "fb3_claude_code_review_fixed_or_adjudicated_findings": [
+    "FB3-NB-1",
+    "FB3-NB-2",
+    "FB3-NB-3",
+    "FB3-NB-4"
+  ],
+  "fb3_claude_code_review_superseded_owner_defer_receipt": "fb3-owner-claude-review-defer-receipt.json",
+  "fb3_candidate_manifest_sha256_semantics": "snapshot_hash_includes_generated_at_not_stable_apply_identity",
+  "fb3_fb4_labeling_disposition": "intentional_fb3_json_resolver_with_fb4_starter_corpus_dependency_fields",
+  "f0_and_fb3_deferred_review_blockers_closed_now": true,
+  "independent_review_evidence_complete_for_f0_and_fb3_now": true,
+  "fb3_review_evidence_validator_tests_status": "7/7 pass",
+  "fb3_starter_artifact_corpus_targeted_tests_status": "8/8 pass",
+  "fb3_combined_review_support_tests": "node --test test/claude-review-evidence-validator.test.mjs test/factory-candidate-manifest-resolver.test.mjs test/factory-starter-artifact-corpus.test.mjs",
+  "fb3_combined_review_support_tests_status": "25/25 pass",
+  "fb3_git_diff_check_status": "pass"
 }

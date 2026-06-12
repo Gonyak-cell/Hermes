@@ -1,31 +1,43 @@
 # FB.3 Claude Opus Max Review Packet
 
-Status: prepared, but deferred by owner instruction until requested again.
+Status: completed with valid Law Firm OS-style Opus 4.8 Max review evidence.
 Date: 2026-06-11
 Requested reviewer lane: Claude Code Opus Max.
 
-Owner defer receipt:
+Original owner defer receipt:
 `docs/factory-promotion/fb3-owner-claude-review-defer-receipt.json`.
+
+The original defer receipt is now superseded by the final validated review
+artifact. It remains part of the audit history only and does not describe the
+current FB.3 closeout state.
 
 ## Review Command Contract
 
-The Codex lane must request this review with:
+The Codex lane requested the final review with the Law Firm OS-style wrapper:
 
 ```bash
-claude --model opus --effort max --tools "" --no-session-persistence --output-format json \
-  -p "$(cat artifacts/factory-promotion/fb3-review/claude-opus-max-final.prompt.md)" \
-  | tee artifacts/factory-promotion/fb3-review/claude-opus-max-final.raw.json
+claude -p "$(cat artifacts/factory-promotion/fb3-review-lawos-style-final/review-prompt.md)" \
+  --model claude-opus-4-8 \
+  --effort max \
+  --permission-mode dontAsk \
+  --tools "" \
+  --output-format json \
+  --max-budget-usd 4 \
+  --no-session-persistence
 ```
 
-Before launch, check for stale Claude review processes. During long quiet
-periods, inspect process liveness and raw artifact growth before retrying. Do
-not count a review without a captured raw artifact.
+Before launch, Codex checked for stale Claude review processes and treated
+empty, interrupted, malformed, auth-failed, quota-failed, or tool-call-shaped
+attempts as non-evidence. The final raw artifact was captured only after the
+Claude process exited with code 0 and stderr 0 bytes.
 
-Current final retry prompt:
+Final prompt:
 
-- path: `artifacts/factory-promotion/fb3-review/claude-opus-max-final.prompt.md`
-- SHA-256: recompute immediately before dispatch and bind in the final review
-  receipt. The prompt must not be counted if it predates the current diff.
+- path: `artifacts/factory-promotion/fb3-review-lawos-style-final/review-prompt.md`
+- SHA-256:
+  `87d4c24230ef497f0e1d785459ca93104548ba607e80e91e6f45a5af325e4f26`
+- reviewed tree commit SHA:
+  `2f3be4e42f09148dc26fda44e2a82f150b1a14fe`
 
 ## Invalid Review Outputs
 
@@ -42,6 +54,23 @@ Do not count the review as evidence when any of these are true:
 Only the final valid raw Opus Max artifact may be referenced as FB.3 review
 evidence.
 
+Final valid evidence:
+
+- raw artifact:
+  `artifacts/factory-promotion/fb3-review-lawos-style-final/raw-output.json`
+- parsed payload:
+  `artifacts/factory-promotion/fb3-review-lawos-style-final/review-payload.json`
+- artifact receipt:
+  `artifacts/factory-promotion/fb3-review-lawos-style-final/review-receipt.json`
+- evidence validation:
+  `artifacts/factory-promotion/fb3-review-lawos-style-final/evidence-validation/claude-review-evidence-validation.json`
+- verdict: `APPROVE_WITH_FINDINGS`
+- blocking findings: 0
+- non-blocking findings: 4
+- changes required before commit: false
+- Claude session id: `0914cfc9-78e0-45f9-984b-fbd04396cded`
+- Claude result uuid: `e22654a7-a54e-44ed-9512-f1e7062103cd`
+
 ## Evidence Validation Command
 
 Every raw review artifact must be classified with the deterministic validator
@@ -49,11 +78,11 @@ before it is counted:
 
 ```bash
 npm run factory:claude-review-evidence -- \
-  --review-id fb3-opus-max-final \
+  --review-id fb3-opus-4-8-lawos-style-final \
   --program-range FCORE-FB.3 \
-  --raw-review artifacts/factory-promotion/fb3-review/claude-opus-max-final.raw.json \
-  --prompt artifacts/factory-promotion/fb3-review/claude-opus-max-review.prompt.md \
-  --out-dir artifacts/factory-promotion/fb3-review/final-validation \
+  --raw-review artifacts/factory-promotion/fb3-review-lawos-style-final/raw-output.json \
+  --prompt artifacts/factory-promotion/fb3-review-lawos-style-final/review-prompt.md \
+  --out-dir artifacts/factory-promotion/fb3-review-lawos-style-final/evidence-validation \
   --check --require-valid
 ```
 

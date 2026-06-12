@@ -219,6 +219,17 @@ Supported filters include `row_id`, `category`, `current_verdict`, and `limit`.
 
 Routes: `/api/factory/g1a-opening-closeout-readiness`.
 
+`GET /api/factory/g1a-first-use-audit-readiness` returns the read-only G1a
+first-use audit readiness rows plus blocker rows and a preview-only
+`SOURCE_LITERAL_FIRST_USE_AUDITS` source binding. The default state is
+`waiting_for_g1a_opening_source_literal_commit`; the route does not perform
+first use, edit source, bind an audit, open G1a, or grant project creation
+authority.
+
+Supported filters include `row_id`, `category`, `current_verdict`, and `limit`.
+
+Routes: `/api/factory/g1a-first-use-audit-readiness`.
+
 `GET` and `HEAD` are allowed. Mutation methods return `405
 method_not_allowed`.
 

@@ -479,6 +479,23 @@ preflight with that receipt, the isolated source-literal commit, source receipt
 binding, and the first-use audit. The command does not open G1a or grant project
 creation authority.
 
+## Factory G1a First-Use Audit Readiness
+
+G1a first-use audit readiness validates a future first workspace-creation audit
+candidate and renders a preview-only source binding for
+`SOURCE_LITERAL_FIRST_USE_AUDITS`:
+
+```bash
+npm run factory:g1a-first-use-audit-readiness -- --check
+npm run factory:g1a-first-use-audit-readiness -- --audit path/to/audit.json --check --require-pass
+node scripts/review-api.mjs --once /api/factory/g1a-first-use-audit-readiness
+```
+
+The default state is `waiting_for_g1a_opening_source_literal_commit` because
+G1a is still closed. The command does not perform first use, bind an audit into
+source, mutate `src/factory-gate-opening-readiness.mjs`, open G1a, or grant
+project creation authority.
+
 ## Claude Review Evidence Validator
 
 Factory promotion review artifacts are classified before they can be counted:

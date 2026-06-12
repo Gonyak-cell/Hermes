@@ -27,6 +27,7 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/factory/g1a-owner-receipt-intake"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/g1a-source-literal-preflight"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/g1a-opening-closeout-readiness"));
+  assert.ok(index.routes.some((route) => route.path === "/api/factory/g1a-first-use-audit-readiness"));
   assert.ok(index.routes.some((route) => route.path === "/api/packs"));
   assert.ok(index.routes.some((route) => route.path === "/api/capabilities"));
   assert.ok(index.routes.some((route) => route.path === "/api/artifacts"));
@@ -7374,6 +7375,23 @@ try {
   assert.equal(factoryG1aOpeningCloseoutReadinessHead.status, 200);
   const factoryG1aOpeningCloseoutReadinessPost = await fetch(`${url}/api/factory/g1a-opening-closeout-readiness`, { method: "POST" });
   assert.equal(factoryG1aOpeningCloseoutReadinessPost.status, 405);
+
+  const factoryG1aFirstUseAuditReadiness = await fetchJson(`${url}/api/factory/g1a-first-use-audit-readiness?category=source`);
+  assert.equal(factoryG1aFirstUseAuditReadiness.collection, "factory_g1a_first_use_audit_readiness_rows");
+  assert.equal(factoryG1aFirstUseAuditReadiness.read_only, true);
+  assert.equal(factoryG1aFirstUseAuditReadiness.mutation_allowed, false);
+  assert.equal(factoryG1aFirstUseAuditReadiness.first_use_audit_readiness_only, true);
+  assert.equal(factoryG1aFirstUseAuditReadiness.source_mutation_allowed_now, false);
+  assert.equal(factoryG1aFirstUseAuditReadiness.first_use_audit_bound_by_this_command, false);
+  assert.equal(factoryG1aFirstUseAuditReadiness.opens_gate_now, false);
+  assert.equal(factoryG1aFirstUseAuditReadiness.summary.factory_g1a_first_use_audit_readiness_status, "waiting_for_g1a_opening_source_literal_commit");
+  assert.equal(factoryG1aFirstUseAuditReadiness.g1a_project_creation_gate_open_now, false);
+  assert.equal(factoryG1aFirstUseAuditReadiness.project_creation_allowed_now, false);
+  assert.equal(factoryG1aFirstUseAuditReadiness.production_pass_enabled, false);
+  const factoryG1aFirstUseAuditReadinessHead = await fetch(`${url}/api/factory/g1a-first-use-audit-readiness`, { method: "HEAD" });
+  assert.equal(factoryG1aFirstUseAuditReadinessHead.status, 200);
+  const factoryG1aFirstUseAuditReadinessPost = await fetch(`${url}/api/factory/g1a-first-use-audit-readiness`, { method: "POST" });
+  assert.equal(factoryG1aFirstUseAuditReadinessPost.status, 405);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

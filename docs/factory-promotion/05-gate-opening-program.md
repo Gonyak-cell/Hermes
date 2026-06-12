@@ -16,7 +16,8 @@
 [g1a-opening-packet.md](g1a-opening-packet.md),
 [g1a-owner-receipt-intake.md](g1a-owner-receipt-intake.md), 그리고
 [g1a-source-literal-preflight.md](g1a-source-literal-preflight.md),
-[g1a-opening-closeout-readiness.md](g1a-opening-closeout-readiness.md)이다. G0는
+[g1a-opening-closeout-readiness.md](g1a-opening-closeout-readiness.md),
+[g1a-first-use-audit-readiness.md](g1a-first-use-audit-readiness.md)이다. G0는
 G1a/G1b/G2/G3 상태를 읽기전용으로 계산하고, 어떤 권한도 열지 않는다.
 G1a는 선행조건과 리뷰 패킷이 준비됐지만 signed owner `gate_opening`
 영수증, 분리 소스 리터럴 개방 커밋, 첫 사용 감사가 없으므로 닫힌 상태다.
@@ -39,6 +40,12 @@ G1a opening closeout readiness는 G0, packet, owner receipt intake,
 source-literal preflight를 한 표면으로 집계한다. 현재 chain은 4 pass / 6
 wait / 0 fail이며, signed owner receipt와 이후 source-literal commit,
 first-use audit이 없으므로 G1a는 닫힌 상태다.
+
+G1a first-use audit readiness는 개방 이후 첫 workspace creation 감사 후보를
+검증하고 `SOURCE_LITERAL_FIRST_USE_AUDITS` source binding preview를 만든다.
+현재 source-literal opening commit이 없으므로
+`waiting_for_g1a_opening_source_literal_commit`이며, 감사 수행·source mutation·
+G1a 개방을 주장하지 않는다.
 
 ## 2. 게이트 매트릭스
 

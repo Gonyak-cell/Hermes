@@ -656,6 +656,7 @@
     "factory:g1a-opening-packet": "node scripts/factory-g1a-opening-packet.mjs",
     "factory:g1a-owner-receipt-intake": "node scripts/factory-g1a-owner-receipt-intake.mjs",
     "factory:g1a-source-literal-preflight": "node scripts/factory-g1a-source-literal-preflight.mjs",
+    "factory:g1a-source-literal-commit-draft": "node scripts/factory-g1a-source-literal-commit-draft.mjs",
     "factory:g1a-opening-closeout-readiness": "node scripts/factory-g1a-opening-closeout-readiness.mjs",
     "factory:g1a-first-use-audit-readiness": "node scripts/factory-g1a-first-use-audit-readiness.mjs",
     "factory:g1a-owner-signing-handoff": "node scripts/factory-g1a-owner-signing-handoff.mjs",

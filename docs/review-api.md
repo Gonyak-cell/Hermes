@@ -210,6 +210,18 @@ Supported filters include `row_id`, `category`, `current_verdict`, and `limit`.
 
 Routes: `/api/factory/g1a-source-literal-preflight`.
 
+`GET /api/factory/g1a-source-literal-commit-draft` returns the read-only G1a
+source-literal commit draft rows plus patch metadata, verification command
+previews, and the Law Firm OS-style Opus review packet. The default state is
+`waiting_for_signed_g1a_owner_receipt`; with a valid signed owner receipt the
+draft can expose `source-literal-opening.patch`, but the route never applies the
+patch, edits source, signs receipts, claims first-use audit, opens G1a, or grants
+project creation authority.
+
+Supported filters include `row_id`, `category`, `current_verdict`, and `limit`.
+
+Routes: `/api/factory/g1a-source-literal-commit-draft`.
+
 `GET /api/factory/g1a-opening-closeout-readiness` returns the read-only G1a
 gate-opening closeout chain rows plus blocker rows. The default state is
 `waiting_for_signed_g1a_owner_receipt`; the route does not sign receipts, edit

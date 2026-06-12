@@ -16,6 +16,7 @@
 [g1a-opening-packet.md](g1a-opening-packet.md),
 [g1a-owner-receipt-intake.md](g1a-owner-receipt-intake.md), 그리고
 [g1a-source-literal-preflight.md](g1a-source-literal-preflight.md),
+[g1a-source-literal-commit-draft.md](g1a-source-literal-commit-draft.md),
 [g1a-opening-closeout-readiness.md](g1a-opening-closeout-readiness.md),
 [g1a-first-use-audit-readiness.md](g1a-first-use-audit-readiness.md),
 [g1a-owner-candidate-selection-docket.md](g1a-owner-candidate-selection-docket.md),
@@ -50,6 +51,13 @@ G1a source literal preflight는 signed owner receipt가 들어왔을 때의 미�
 소스 리터럴 커밋 형태를 사전검증한다. 현재는 unsigned template만 있으므로
 `waiting_for_signed_g1a_owner_receipt`이며, preflight 자체는 소스 파일을
 수정하거나 G1a를 열지 않는다.
+
+G1a source literal commit draft는 preflight가 준비됐을 때 단일 파일 patch
+artifact를 만든다. patch는 `SOURCE_LITERAL_GATE_OPEN_COMMITS.G1a`의
+false→true 변경과 owner receipt 1건 바인딩만 포함해야 한다. 기본 상태는
+signed owner receipt가 없어 `waiting_for_signed_g1a_owner_receipt`이며,
+이 단계도 patch 적용, source mutation, first-use audit, G1a 개방을 수행하지
+않는다.
 
 G1a opening closeout readiness는 G0, packet, owner receipt intake,
 source-literal preflight를 한 표면으로 집계한다. 현재 chain은 4 pass / 6

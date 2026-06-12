@@ -463,6 +463,25 @@ is read-only and preview-only: it does not edit `src/factory-gate-opening-readin
 does not add receipt literals, does not claim first-use audit, and does not open
 `project_creation_allowed_now`.
 
+## Factory G1a Source Literal Commit Draft
+
+G1a source literal commit draft turns a ready source-literal preflight into a
+reviewable single-file patch artifact:
+
+```bash
+npm run factory:g1a-source-literal-commit-draft -- --check
+npm run factory:g1a-source-literal-commit-draft -- --owner-receipt-path <signed-owner-receipt.json> --check --require-pass
+node scripts/review-api.mjs --once /api/factory/g1a-source-literal-commit-draft
+```
+
+The default state is `waiting_for_signed_g1a_owner_receipt`, so no patch is
+available yet. With a valid signed receipt, the command writes
+`source-literal-opening.patch` and `source-literal-commit-patch.json`. The patch
+is constrained to `src/factory-gate-opening-readiness.mjs`, changes only G1a
+from false to true, and binds exactly one owner receipt. This is still a draft:
+it does not run `git apply`, does not mutate source, does not perform first use,
+and does not open project creation authority.
+
 ## Factory G1a Opening Closeout Readiness
 
 G1a opening closeout readiness aggregates the G0, packet, owner receipt intake,

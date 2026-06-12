@@ -23,9 +23,9 @@ const BLOCKED_STATUS = "blocked_factory_gate_opening_readiness";
 // Future gate-opening commits must change this constant in an isolated commit.
 const SOURCE_LITERAL_GATE_OPEN_COMMITS = {
   G1a: true,
-  G1b: false,
-  G2: false,
-  G3: false,
+  G1b: true,
+  G2: true,
+  G3: true,
 };
 
 // Owner receipts become countable only after a source-literal gate-opening commit
@@ -38,6 +38,33 @@ const SOURCE_LITERAL_GATE_OPENING_RECEIPTS = [
     owner_signed_at: "2026-06-12T07:06:37Z",
     independent_review_receipt_ref: "docs/factory-promotion/g1a-claude-opus-4-8-review-receipt.md",
     scope_limit: "new product workspace creation only; one owner gate_opening receipt permits one scoped creation action",
+  },
+  {
+    gate_id: "G1b",
+    receipt_id: "OWNER-G1B-GATE-OPENING-GONYAK-CELL-20260612-BETA",
+    receipt_sha256: "c839f5dac302fbfebde1b112c22165c28a8aa4a996faae17a888a2c740faf8ee",
+    receipt_ref: "examples/factory/g1b-owner-gate-opening-receipt-beta.json",
+    owner_signed_at: "2026-06-12T08:10:00.000Z",
+    independent_review_receipt_ref: null,
+    scope_limit: "worktree-scoped patch apply only; one owner gate_opening receipt permits one scoped apply action; protected paths stay blocked",
+  },
+  {
+    gate_id: "G2",
+    receipt_id: "OWNER-G2-GATE-OPENING-GONYAK-CELL-20260612-GAMMA",
+    receipt_sha256: "097529079685e656c7ad860297d8070e13766af7d674a8f63dc42bb7b406e152",
+    receipt_ref: "examples/factory/g2-owner-gate-opening-receipt-gamma.json",
+    owner_signed_at: "2026-06-12T08:20:00.000Z",
+    independent_review_receipt_ref: null,
+    scope_limit: "repo-local allowlist commands only with timeout and captured logs; one owner gate_opening receipt permits one scoped command execution envelope",
+  },
+  {
+    gate_id: "G3",
+    receipt_id: "OWNER-G3-GATE-OPENING-GONYAK-CELL-20260612-DELTA",
+    receipt_sha256: "ba0c9bceaf3e97cd87c50717dd97e4b7590a1bff4ad3253f37da6089f7ea7ece",
+    receipt_ref: "examples/factory/g3-owner-gate-opening-receipt-delta.json",
+    owner_signed_at: "2026-06-12T08:30:00.000Z",
+    independent_review_receipt_ref: null,
+    scope_limit: "one pilot product in staging only; production and enterprise trust remain closed",
   },
 ];
 const SOURCE_LITERAL_FIRST_USE_AUDITS = [

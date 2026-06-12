@@ -22,6 +22,7 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/factory/starter-artifacts"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/workbench"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/candidate-lane"));
+  assert.ok(index.routes.some((route) => route.path === "/api/factory/gate-opening-readiness"));
   assert.ok(index.routes.some((route) => route.path === "/api/packs"));
   assert.ok(index.routes.some((route) => route.path === "/api/capabilities"));
   assert.ok(index.routes.some((route) => route.path === "/api/artifacts"));
@@ -7287,6 +7288,22 @@ try {
   assert.equal(factoryCandidateLaneHead.status, 200);
   const factoryCandidateLanePost = await fetch(`${url}/api/factory/candidate-lane`, { method: "POST" });
   assert.equal(factoryCandidateLanePost.status, 405);
+
+  const factoryGateOpeningReadiness = await fetchJson(`${url}/api/factory/gate-opening-readiness?gate_id=G1a`);
+  assert.equal(factoryGateOpeningReadiness.collection, "factory_gate_opening_readiness_rows");
+  assert.equal(factoryGateOpeningReadiness.read_only, true);
+  assert.equal(factoryGateOpeningReadiness.mutation_allowed, false);
+  assert.equal(factoryGateOpeningReadiness.raw_confidential_material_visible, false);
+  assert.equal(factoryGateOpeningReadiness.count, 1);
+  assert.equal(factoryGateOpeningReadiness.items[0].gate_id, "G1a");
+  assert.equal(factoryGateOpeningReadiness.items[0].gate_open_now, false);
+  assert.equal(factoryGateOpeningReadiness.data_driven_gate_opening_allowed_now, false);
+  assert.equal(factoryGateOpeningReadiness.project_creation_allowed_now, false);
+  assert.equal(factoryGateOpeningReadiness.production_pass_enabled, false);
+  const factoryGateOpeningReadinessHead = await fetch(`${url}/api/factory/gate-opening-readiness`, { method: "HEAD" });
+  assert.equal(factoryGateOpeningReadinessHead.status, 200);
+  const factoryGateOpeningReadinessPost = await fetch(`${url}/api/factory/gate-opening-readiness`, { method: "POST" });
+  assert.equal(factoryGateOpeningReadinessPost.status, 405);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

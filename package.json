@@ -652,6 +652,7 @@
     "factory:work-packet-decomposition": "node scripts/factory-work-packet-decomposition.mjs",
     "factory:validation-loop-instantiation": "node scripts/factory-validation-loop-instantiation.mjs",
     "factory:fe-freeze-handoff": "node scripts/factory-fe-freeze-handoff.mjs",
+    "factory:gate-opening-readiness": "node scripts/factory-gate-opening-readiness.mjs",
     "factory:claude-review-evidence": "node scripts/claude-review-evidence-validator.mjs",
     "factory:seed-migration": "node scripts/factory-seed-migration.mjs",
     "factory:receipt-preflight": "node scripts/factory-receipt-preflight.mjs",

@@ -12,6 +12,7 @@ import { buildFactoryStarterArtifactCorpus } from "./factory-starter-artifact-co
 import { buildFactoryWorkbenchReadModel } from "./factory-workbench-read-model.mjs";
 import { buildFactoryCandidateLane } from "./factory-candidate-lane.mjs";
 import { buildFactoryCandidateReviewDocket } from "./factory-candidate-review-docket.mjs";
+import { buildFactoryGateOpeningReadiness } from "./factory-gate-opening-readiness.mjs";
 
 export const DEFAULT_REVIEW_API_HOST = "127.0.0.1";
 export const DEFAULT_REVIEW_API_PORT = 4177;
@@ -113,6 +114,19 @@ const FACTORY_CANDIDATE_REVIEW_DOCKET_FILTER_KEYS = [
   "next_allowed_action",
 ];
 
+const FACTORY_GATE_OPENING_READINESS_FILTER_KEYS = [
+  "gate_id",
+  "gate_name",
+  "authority_flag",
+  "ps_transition",
+  "prerequisite_status",
+  "previous_gate_status",
+  "gate_status",
+  "gate_open_now",
+  "owner_gate_opening_receipt_present",
+  "source_literal_gate_open_commit_present",
+];
+
 const FACTORY_PRODUCT_AUTHORITY_FLAG_KEYS = [
   "project_creation_allowed_now",
   "repo_write_allowed_now",
@@ -177,6 +191,9 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     return methodNotAllowedResponse(method);
   }
   if (pathname === "/api/factory/candidate-review-docket" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/gate-opening-readiness" && !isReviewApiReadOnlyMethod(method)) {
     return methodNotAllowedResponse(method);
   }
 
@@ -246,6 +263,14 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       return jsonResponse(503, buildError("factory_candidate_review_docket_unavailable", `Factory candidate review docket is not ready: ${reviewDocket.validation.errors.length} error(s).`), method);
     }
     return jsonResponse(200, buildFactoryCandidateReviewDocketResponse(reviewDocket, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/gate-opening-readiness") {
+    const gateReadiness = await buildFactoryGateOpeningReadiness({ ...options, write: false });
+    if (!gateReadiness.validation.valid) {
+      return jsonResponse(503, buildError("factory_gate_opening_readiness_unavailable", `Factory gate opening readiness is not ready: ${gateReadiness.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryGateOpeningReadinessResponse(gateReadiness, url, generatedAt), method);
   }
 
   if (pathname === "/" || pathname === "/index.html") {
@@ -13569,6 +13594,7 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/factory/workbench", "Factory workbench integrated read-only rows"),
       route("GET", "/api/factory/candidate-lane", "Factory candidate diff packet lane rows"),
       route("GET", "/api/factory/candidate-review-docket", "Factory candidate review docket rows"),
+      route("GET", "/api/factory/gate-opening-readiness", "Factory G-series gate opening readiness rows"),
       route("GET", "/api/dashboard", "Full review-dashboard.v1 artifact"),
       route("GET", "/api/summary", "Dashboard summary only"),
       route("GET", "/api/stages", "Control Plane stage statuses"),
@@ -15468,6 +15494,37 @@ function buildFactoryCandidateReviewDocketResponse(reviewDocket, url, generatedA
     validation_error_count: reviewDocket.validation.errors.length,
     boundary: reviewDocket.factory_candidate_review_docket_boundary,
     summary: reviewDocket.summary,
+  };
+}
+
+function buildFactoryGateOpeningReadinessResponse(gateReadiness, url, generatedAt) {
+  const collection = buildCollectionResponse("factory_gate_opening_readiness_rows", gateReadiness.factory_gate_opening_readiness_rows, url, generatedAt, FACTORY_GATE_OPENING_READINESS_FILTER_KEYS);
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    data_driven_gate_opening_allowed_now: false,
+    source_literal_authority_model: true,
+    gate_open_count: gateReadiness.summary.gate_open_count,
+    g1a_project_creation_gate_open_now: false,
+    g1b_repo_write_gate_open_now: false,
+    g2_command_execution_gate_open_now: false,
+    g3_deployment_gate_open_now: false,
+    project_creation_allowed_now: false,
+    repo_write_allowed_now: false,
+    command_execution_enabled: false,
+    deployment_allowed_now: false,
+    protected_action_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    factory_gate_opening_prerequisite_rows: gateReadiness.factory_gate_opening_prerequisite_rows,
+    factory_deferred_gate_rows: gateReadiness.factory_deferred_gate_rows,
+    factory_gate_opening_negative_fixture_rows: gateReadiness.factory_gate_opening_negative_fixture_rows,
+    validation_error_count: gateReadiness.validation.errors.length,
+    boundary: gateReadiness.factory_gate_opening_readiness_boundary,
+    summary: gateReadiness.summary,
   };
 }
 

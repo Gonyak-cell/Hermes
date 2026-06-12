@@ -164,6 +164,27 @@ response or the canonical FC.3 docket artifact. Unexpected build exceptions are
 fail-closed and follow the same process-level handling pattern as the sibling
 factory routes; blocked validation results return the documented `503` envelope.
 
+## G0 Factory Gate Opening Readiness Routes
+
+Factory Gate Opening Readiness routes expose the read-only G-series gate matrix.
+The route returns one row each for G1a, G1b, G2, and G3, plus prerequisite,
+deferred-gate, negative-fixture, boundary, and summary data.
+
+The route is for readiness and audit only. It does not create projects, write
+repositories, execute commands, deploy, call connectors, approve protected
+actions, grant production PASS, grant enterprise PASS, or mark Factory
+Promotion complete.
+
+Supported filters include `gate_id`, `gate_name`, `authority_flag`,
+`ps_transition`, `prerequisite_status`, `previous_gate_status`, `gate_status`,
+`gate_open_now`, `owner_gate_opening_receipt_present`,
+`source_literal_gate_open_commit_present`, and `limit`.
+
+Routes: `/api/factory/gate-opening-readiness`.
+
+`GET` and `HEAD` are allowed. Mutation methods return `405
+method_not_allowed`.
+
 ## P511-P515 Platform Claim Registry Routes
 
 Platform Claim Registry routes expose the read-only P500 operations freeze claim

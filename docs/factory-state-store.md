@@ -1,6 +1,6 @@
 # Factory State Store
 
-Status: FD.1 receipt verification plus FC.5 candidate freeze handoff, FC.4 candidate review docket API, FC.3 candidate review docket, FC.2 candidate lane proof, FC.1 candidate lane, FB.5 workbench, FB.4 starter artifact corpus, FB.3 candidate manifest resolver, FB.2 stage control view, and FA.6 read-only factory products API.
+Status: G0 gate opening readiness, FD.1 receipt verification plus FC.5 candidate freeze handoff, FC.4 candidate review docket API, FC.3 candidate review docket, FC.2 candidate lane proof, FC.1 candidate lane, FB.5 workbench, FB.4 starter artifact corpus, FB.3 candidate manifest resolver, FB.2 stage control view, and FA.6 read-only factory products API.
 Date: 2026-06-11
 
 ## Purpose
@@ -399,6 +399,24 @@ The apply engine and rollback executor stay contractually closed:
 `rollback_executor_runtime_enabled_now` are false. FD.1 does not write source
 files, append persistent ledgers, write repositories, call connectors, deploy,
 or grant protected/production/enterprise authority.
+
+## Factory Gate Opening Readiness
+
+G0 adds the read-only G-series gate opening readiness model:
+
+```bash
+npm run factory:gate-opening-readiness -- --check --require-pass
+node scripts/review-api.mjs --once /api/factory/gate-opening-readiness
+```
+
+The model exposes one row each for G1a, G1b, G2, and G3. It proves that G1a is
+ready for the owner `gate_opening` receipt and isolated source literal opening
+commit, while G1b/G2/G3 remain blocked by gate order or missing usage/release
+evidence.
+
+All authority flags remain false. Runtime data cannot open a gate; future
+gate-opening commits must change source literals in isolation, pass independent
+review, bind an owner receipt, and capture the first-use audit.
 
 ## Claude Review Evidence Validator
 

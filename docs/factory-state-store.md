@@ -448,6 +448,21 @@ status is `waiting_for_signed_g1a_owner_receipt`. A valid signed receipt can
 make the intake ready for the source-literal commit, but this still does not
 open G1a, create a workspace, or enable `project_creation_allowed_now`.
 
+## Factory G1a Source Literal Preflight
+
+G1a source literal preflight validates the future isolated commit shape that can
+bind one signed owner receipt to `SOURCE_LITERAL_GATE_OPEN_COMMITS.G1a`:
+
+```bash
+npm run factory:g1a-source-literal-preflight -- --check
+node scripts/review-api.mjs --once /api/factory/g1a-source-literal-preflight
+```
+
+The default state is still `waiting_for_signed_g1a_owner_receipt`. The preflight
+is read-only and preview-only: it does not edit `src/factory-gate-opening-readiness.mjs`,
+does not add receipt literals, does not claim first-use audit, and does not open
+`project_creation_allowed_now`.
+
 ## Claude Review Evidence Validator
 
 Factory promotion review artifacts are classified before they can be counted:

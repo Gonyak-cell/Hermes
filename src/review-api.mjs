@@ -15,6 +15,7 @@ import { buildFactoryCandidateReviewDocket } from "./factory-candidate-review-do
 import { buildFactoryGateOpeningReadiness } from "./factory-gate-opening-readiness.mjs";
 import { buildFactoryG1aOpeningPacket } from "./factory-g1a-opening-packet.mjs";
 import { buildFactoryG1aOwnerReceiptIntake } from "./factory-g1a-owner-receipt-intake.mjs";
+import { buildFactoryG1aSourceLiteralPreflight } from "./factory-g1a-source-literal-preflight.mjs";
 
 export const DEFAULT_REVIEW_API_HOST = "127.0.0.1";
 export const DEFAULT_REVIEW_API_PORT = 4177;
@@ -143,6 +144,12 @@ const FACTORY_G1A_OWNER_RECEIPT_INTAKE_FILTER_KEYS = [
   "current_verdict",
 ];
 
+const FACTORY_G1A_SOURCE_LITERAL_PREFLIGHT_FILTER_KEYS = [
+  "row_id",
+  "category",
+  "current_verdict",
+];
+
 const FACTORY_PRODUCT_AUTHORITY_FLAG_KEYS = [
   "project_creation_allowed_now",
   "repo_write_allowed_now",
@@ -216,6 +223,9 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     return methodNotAllowedResponse(method);
   }
   if (pathname === "/api/factory/g1a-owner-receipt-intake" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/g1a-source-literal-preflight" && !isReviewApiReadOnlyMethod(method)) {
     return methodNotAllowedResponse(method);
   }
 
@@ -309,6 +319,14 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       return jsonResponse(503, buildError("factory_g1a_owner_receipt_intake_unavailable", `Factory G1a owner receipt intake has hard validation failures: ${ownerReceiptIntake.validation.errors.length} error(s).`), method);
     }
     return jsonResponse(200, buildFactoryG1aOwnerReceiptIntakeResponse(ownerReceiptIntake, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/g1a-source-literal-preflight") {
+    const sourceLiteralPreflight = await buildFactoryG1aSourceLiteralPreflight({ ...options, write: false });
+    if (!sourceLiteralPreflight.validation.valid) {
+      return jsonResponse(503, buildError("factory_g1a_source_literal_preflight_unavailable", `Factory G1a source literal preflight has hard validation failures: ${sourceLiteralPreflight.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryG1aSourceLiteralPreflightResponse(sourceLiteralPreflight, url, generatedAt), method);
   }
 
   if (pathname === "/" || pathname === "/index.html") {
@@ -13612,7 +13630,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/factory/products, /api/factory/stage, /api/factory/candidate-manifests, /api/factory/starter-artifacts, /api/factory/workbench, /api/factory/candidate-lane, /api/factory/candidate-review-docket, /api/factory/gate-opening-readiness, /api/factory/g1a-opening-packet, /api/factory/g1a-owner-receipt-intake, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/platform-operations-freezes, /api/platform-claim-registry, /api/platform-claim-gates, /api/platform-claim-boundary, /api/platform-claim-validations, /api/resource-contract-freezes, /api/resource-v2-contracts, /api/resource-version-v2-contracts, /api/resource-contract-validations, /api/evidence-review-drafts, /api/evidence-review-items, /api/policy-matrices, /api/policy-classifications, /api/runtime-policies, /api/model-policies, /api/tool-policies, /api/output-policies, /api/gate-policies, /api/policy-snapshot-ledgers, /api/policy-snapshots, /api/policy-snapshot-instances, /api/policy-decisions, /api/policy-usages, /api/context-packet-ledgers, /api/context-packets, /api/context-items, /api/context-retrieval-filters, /api/model-routing-ledgers, /api/model-routing-decisions, /api/cost-budget-ledgers, /api/cost-budget-decisions, /api/token-usage-ledgers, /api/token-usage-records, /api/cost-attribution-ledgers, /api/cost-attribution-records, /api/cost-record-projections, /api/projected-cost-records, /api/run-cost-rollups, /api/cost-category-rollups, /api/cost-record-projection-validations, /api/token-usage-projections, /api/projected-token-usage-records, /api/capability-token-rollups, /api/runtime-token-rollups, /api/capability-runtime-token-rollups, /api/token-usage-projection-validations, /api/budget-alert-ledgers, /api/budget-alert-records, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/contract-inventories, /api/contract-inventory-items, /api/contract-schemas, /api/contract-artifacts, /api/contract-owner-map, /api/contract-dependency-maps, /api/contract-dependency-nodes, /api/contract-dependency-edges, /api/contract-breaking-change-risks, /api/contract-owner-dependencies, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-review-packet-ledgers, /api/human-review-packets, /api/human-review-items, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
+  console.log("Routes: /, /health, /api, /api/factory/products, /api/factory/stage, /api/factory/candidate-manifests, /api/factory/starter-artifacts, /api/factory/workbench, /api/factory/candidate-lane, /api/factory/candidate-review-docket, /api/factory/gate-opening-readiness, /api/factory/g1a-opening-packet, /api/factory/g1a-owner-receipt-intake, /api/factory/g1a-source-literal-preflight, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/platform-operations-freezes, /api/platform-claim-registry, /api/platform-claim-gates, /api/platform-claim-boundary, /api/platform-claim-validations, /api/resource-contract-freezes, /api/resource-v2-contracts, /api/resource-version-v2-contracts, /api/resource-contract-validations, /api/evidence-review-drafts, /api/evidence-review-items, /api/policy-matrices, /api/policy-classifications, /api/runtime-policies, /api/model-policies, /api/tool-policies, /api/output-policies, /api/gate-policies, /api/policy-snapshot-ledgers, /api/policy-snapshots, /api/policy-snapshot-instances, /api/policy-decisions, /api/policy-usages, /api/context-packet-ledgers, /api/context-packets, /api/context-items, /api/context-retrieval-filters, /api/model-routing-ledgers, /api/model-routing-decisions, /api/cost-budget-ledgers, /api/cost-budget-decisions, /api/token-usage-ledgers, /api/token-usage-records, /api/cost-attribution-ledgers, /api/cost-attribution-records, /api/cost-record-projections, /api/projected-cost-records, /api/run-cost-rollups, /api/cost-category-rollups, /api/cost-record-projection-validations, /api/token-usage-projections, /api/projected-token-usage-records, /api/capability-token-rollups, /api/runtime-token-rollups, /api/capability-runtime-token-rollups, /api/token-usage-projection-validations, /api/budget-alert-ledgers, /api/budget-alert-records, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/contract-inventories, /api/contract-inventory-items, /api/contract-schemas, /api/contract-artifacts, /api/contract-owner-map, /api/contract-dependency-maps, /api/contract-dependency-nodes, /api/contract-dependency-edges, /api/contract-breaking-change-risks, /api/contract-owner-dependencies, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-review-packet-ledgers, /api/human-review-packets, /api/human-review-items, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -13635,6 +13653,7 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/factory/gate-opening-readiness", "Factory G-series gate opening readiness rows"),
       route("GET", "/api/factory/g1a-opening-packet", "Factory G1a gate-opening packet items"),
       route("GET", "/api/factory/g1a-owner-receipt-intake", "Factory G1a owner gate-opening receipt intake rows"),
+      route("GET", "/api/factory/g1a-source-literal-preflight", "Factory G1a source-literal opening preflight rows"),
       route("GET", "/api/dashboard", "Full review-dashboard.v1 artifact"),
       route("GET", "/api/summary", "Dashboard summary only"),
       route("GET", "/api/stages", "Control Plane stage statuses"),
@@ -15659,6 +15678,35 @@ function buildFactoryG1aOwnerReceiptIntakeResponse(ownerReceiptIntake, url, gene
     validation_error_count: ownerReceiptIntake.validation.errors.length,
     boundary: ownerReceiptIntake.factory_g1a_owner_receipt_intake_boundary,
     summary: ownerReceiptIntake.summary,
+  };
+}
+
+function buildFactoryG1aSourceLiteralPreflightResponse(sourceLiteralPreflight, url, generatedAt) {
+  const collection = buildCollectionResponse("factory_g1a_source_literal_preflight_rows", sourceLiteralPreflight.source_literal_preflight_rows, url, generatedAt, FACTORY_G1A_SOURCE_LITERAL_PREFLIGHT_FILTER_KEYS);
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    preflight_only: true,
+    source_mutation_allowed_now: false,
+    source_literal_opening_commit_applied_now: false,
+    opens_gate_now: false,
+    g1a_source_literal_preflight_can_open_gate_now: false,
+    g1a_project_creation_gate_open_now: false,
+    project_creation_allowed_now: false,
+    repo_write_allowed_now: false,
+    command_execution_enabled: false,
+    deployment_allowed_now: false,
+    protected_action_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    owner_receipt_sha256: sourceLiteralPreflight.owner_receipt_sha256,
+    proposed_source_literal_change: sourceLiteralPreflight.proposed_source_literal_change,
+    validation_error_count: sourceLiteralPreflight.validation.errors.length,
+    boundary: sourceLiteralPreflight.factory_g1a_source_literal_preflight_boundary,
+    summary: sourceLiteralPreflight.summary,
   };
 }
 

@@ -201,6 +201,15 @@ Supported filters include `row_id`, `category`, `current_verdict`, and `limit`.
 
 Routes: `/api/factory/g1a-owner-receipt-intake`.
 
+`GET /api/factory/g1a-source-literal-preflight` returns the read-only source
+literal opening preflight rows for G1a. The route exposes a preview-only future
+change shape and never edits source, binds a receipt, claims first-use audit, or
+opens project creation.
+
+Supported filters include `row_id`, `category`, `current_verdict`, and `limit`.
+
+Routes: `/api/factory/g1a-source-literal-preflight`.
+
 `GET` and `HEAD` are allowed. Mutation methods return `405
 method_not_allowed`.
 

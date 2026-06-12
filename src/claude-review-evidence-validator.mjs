@@ -176,6 +176,10 @@ function buildSummary({ reviewId, programRange, rawReview, prompt, reviewPayload
 
 function extractReviewPayload(rawReview) {
   const evidenceRef = rawReview.path;
+  const structuredOutput = rawReview.data?.structured_output;
+  if (structuredOutput && typeof structuredOutput === "object" && !Array.isArray(structuredOutput)) {
+    return { validJson: true, payload: structuredOutput, evidenceRef };
+  }
   const resultValue = rawReview.data?.result;
   if (resultValue && typeof resultValue === "object" && !Array.isArray(resultValue)) {
     return { validJson: true, payload: resultValue, evidenceRef };
@@ -209,7 +213,10 @@ function containsQuotaLimit(text) {
 }
 
 function containsInterrupted(text) {
-  return /interrupted|cancelled|canceled|pty|stdout loss|connection lost/i.test(String(text ?? ""));
+  const value = String(text ?? "");
+  return /\b(?:process|request|operation|run|review|command|session)\s+(?:was\s+)?(?:interrupted|cancelled|canceled)\b/i.test(value)
+    || /\b(?:interrupted|cancelled|canceled)\s+(?:by|due to|because|while|during)\b/i.test(value)
+    || /\bpty\s+(?:lost|closed|disconnected)\b|\bstdout\s+loss\b|\bconnection\s+lost\b/i.test(value);
 }
 
 function isToolCallShaped(value) {

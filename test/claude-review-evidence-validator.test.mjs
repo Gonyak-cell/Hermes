@@ -144,6 +144,36 @@ test("Claude review evidence validator rejects final approval and source mutatio
   assert.ok(result.summary.invalid_reason_ids.includes("payload.no_source_mutation"));
 });
 
+test("Claude review evidence validator accepts structured_output and does not treat empty as PTY loss", async () => {
+  const rawReview = {
+    ...VALID_RAW_REVIEW,
+    result: "Review packet slot is empty_for_fe4_review before owner adjudication.",
+    structured_output: {
+      ...VALID_PAYLOAD,
+      verdict: "APPROVE_WITH_FINDINGS",
+      overall_verdict: "APPROVE_WITH_FINDINGS",
+      blocking_findings: [],
+      non_blocking_findings: [],
+      changes_required_before_commit: false,
+      is_final_approval: false,
+      production_pass_enabled: false,
+      enterprise_pass_enabled: false,
+      source_mutation_performed: false,
+      verification_notes: [
+        "The valid review says empty_for_fe4_review will not trip interrupted/PTY-loss detection.",
+      ],
+    },
+  };
+
+  const result = await buildClaudeReviewEvidenceValidator(options({ rawReview, programRange: "FCORE-FE.4" }));
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.summary.evidence_status, "valid_review_evidence");
+  assert.equal(result.summary.review_verdict, "APPROVE_WITH_FINDINGS");
+  assert.equal(result.summary.blocking_finding_count, 0);
+  assert.equal(result.summary.invalid_reason_ids.includes("raw.not_interrupted"), false);
+});
+
 test("Claude review evidence validator writes artifacts when requested", async () => {
   const outDir = await mkdtemp(path.join(os.tmpdir(), "claude-review-evidence-"));
   try {

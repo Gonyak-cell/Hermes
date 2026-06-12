@@ -27,6 +27,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "factory:prd-intake",
   "factory:work-packet-decomposition",
   "factory:validation-loop-instantiation",
+  "factory:fe-freeze-handoff",
   "api:route-inventory",
   "dashboard:ia",
   "approval:queue-ui",

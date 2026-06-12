@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -538,11 +539,15 @@ function duplicates(values) {
 }
 
 function slugify(value) {
-  return String(value ?? "unknown")
+  const normalized = String(value ?? "unknown")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, ".")
     .replace(/^\.+|\.+$/g, "")
-    .slice(0, 180) || "unknown";
+    || "unknown";
+  const maxLength = 180;
+  if (normalized.length <= maxLength) return normalized;
+  const suffix = createHash("sha256").update(String(value ?? "")).digest("hex").slice(0, 12);
+  return `${normalized.slice(0, maxLength - suffix.length - 1)}.${suffix}`;
 }
 
 function dateStamp(value) {

@@ -57,6 +57,11 @@ const SCANNER_FIXTURES = [
     expected_offenders: 0,
   },
   {
+    fixture_id: "single_statement_runtime_guard_ok",
+    source: "if (!options.check && options.write !== false) await write(); function parseArgs(argv) { const args = {}; for (const arg of argv) { if (arg === \"--check\") args.check = true; } }",
+    expected_offenders: 0,
+  },
+  {
     fixture_id: "missing_write_blocked",
     source: "if (options.write !== false) await write(); function parseArgs(argv) { const args = {}; for (const value of argv) { if (value === \"--check\") { args.check = true; } } }",
     expected_offenders: 1,
@@ -250,6 +255,7 @@ export async function collectCheckModeGuardFindings(options = {}) {
 
 export function collectCheckModeGuardFindingsFromSource(filePath, source) {
   const guarded = source.includes("options.write !== false") && source.includes("--check");
+  const runtimeCheckBlocksWrite = guarded && sourceHasRuntimeCheckWriteGuard(source);
   const branches = guarded ? extractCheckBranches(source) : [];
   const findings = [];
   if (guarded && branches.length === 0 && findings.length === 0) {
@@ -258,7 +264,7 @@ export function collectCheckModeGuardFindingsFromSource(filePath, source) {
   for (const [index, branch] of branches.entries()) {
     if (branch.malformed) {
       findings.push(finding(filePath, branch.finding_type ?? "malformed_check_branch", branch.message ?? `check branch ${index + 1} is malformed`));
-    } else if (!branchDisablesWrite(branch.body)) {
+    } else if (!branchDisablesWrite(branch.body, { runtimeCheckBlocksWrite })) {
       findings.push(finding(filePath, "check_without_write_false", "sets check without disabling write"));
     }
   }
@@ -297,14 +303,24 @@ function extractCheckBranchesFromCodeSection(source) {
         continue;
       }
       const condition = source.slice(parenIndex + 1, closeParenIndex);
-      const openBraceIndex = skipWhitespace(source, closeParenIndex + 1);
-      if (!conditionMatchesCheck(condition) || source[openBraceIndex] !== "{") continue;
-      const closeBraceIndex = findMatchingBrace(source, openBraceIndex);
-      if (closeBraceIndex === -1) {
-        branches.push(malformedBranch(source, openBraceIndex, "check branch body is malformed"));
+      const bodyStart = skipWhitespace(source, closeParenIndex + 1);
+      if (!conditionMatchesCheck(condition)) continue;
+      if (source[bodyStart] === "{") {
+        const closeBraceIndex = findMatchingBrace(source, bodyStart);
+        if (closeBraceIndex === -1) {
+          branches.push(malformedBranch(source, bodyStart, "check branch body is malformed"));
+        } else {
+          branches.push({ body: maskNonCode(source.slice(bodyStart + 1, closeBraceIndex)), malformed: false });
+          index = closeBraceIndex;
+        }
       } else {
-        branches.push({ body: maskNonCode(source.slice(openBraceIndex + 1, closeBraceIndex)), malformed: false });
-        index = closeBraceIndex;
+        const statementEnd = findSingleStatementEnd(source, bodyStart);
+        if (statementEnd === -1 || statementEnd === bodyStart) {
+          branches.push(malformedBranch(source, bodyStart, "check branch body is malformed"));
+        } else {
+          branches.push({ body: maskNonCode(source.slice(bodyStart, statementEnd)), malformed: false });
+          index = statementEnd - 1;
+        }
       }
       continue;
     }
@@ -345,6 +361,29 @@ function extractParserSections(source) {
     }
   }
   return sections;
+}
+
+function findSingleStatementEnd(source, startIndex) {
+  let depth = 0;
+  for (let index = startIndex; index < source.length; index += 1) {
+    const skipped = skipNonCode(source, index);
+    if (skipped !== index) {
+      index = skipped - 1;
+      continue;
+    }
+    const char = source[index];
+    if (char === "(" || char === "[" || char === "{") {
+      depth += 1;
+    } else if (char === ")" || char === "]" || char === "}") {
+      if (depth === 0) return index;
+      depth -= 1;
+    } else if (depth === 0 && char === ";") {
+      return index + 1;
+    } else if (depth === 0 && char === "\n") {
+      return index;
+    }
+  }
+  return source.length;
 }
 
 function malformedBranch(source, startIndex, fallbackMessage) {
@@ -400,8 +439,17 @@ function findSwitchCaseBodyEnd(source, bodyStart) {
   return source.length;
 }
 
-function branchDisablesWrite(body) {
-  return /\.\s*check\s*=\s*true\s*;?/.test(body) && /\.\s*write\s*=\s*false\s*;?/.test(body);
+function branchDisablesWrite(body, options = {}) {
+  const setsCheck = /\.\s*check\s*=\s*true\s*;?/.test(body);
+  const disablesWriteInParser = /\.\s*write\s*=\s*false\s*;?/.test(body);
+  return setsCheck && (disablesWriteInParser || options.runtimeCheckBlocksWrite === true);
+}
+
+function sourceHasRuntimeCheckWriteGuard(source) {
+  const code = maskNonCode(source);
+  const checkBeforeWrite = /!\s*options\s*\.\s*check\s*&&\s*options\s*\.\s*write\s*!==\s*false/.test(code);
+  const writeBeforeCheck = /options\s*\.\s*write\s*!==\s*false\s*&&\s*!\s*options\s*\.\s*check/.test(code);
+  return checkBeforeWrite || writeBeforeCheck;
 }
 
 function branchKeywordLength(source, index) {

@@ -354,7 +354,10 @@ function parseArgs(argv) {
   const parsed = {};
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
-    if (arg === "--check") parsed.check = true;
+    if (arg === "--check") {
+      parsed.check = true;
+      parsed.write = false;
+    }
     else if (arg === "--require-pass") parsed.requirePass = true;
     else if (arg === "--write") parsed.write = true;
     else if (arg === "--no-write") parsed.write = false;

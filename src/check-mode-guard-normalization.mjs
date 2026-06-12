@@ -62,6 +62,11 @@ const SCANNER_FIXTURES = [
     expected_offenders: 0,
   },
   {
+    fixture_id: "mixed_runtime_and_unguarded_write_blocked",
+    source: "if (!options.check && options.write !== false) await writeSafe(); if (options.write !== false) await writeUnsafe(); function parseArgs(argv) { const args = {}; for (const arg of argv) { if (arg === \"--check\") args.check = true; } }",
+    expected_offenders: 1,
+  },
+  {
     fixture_id: "missing_write_blocked",
     source: "if (options.write !== false) await write(); function parseArgs(argv) { const args = {}; for (const value of argv) { if (value === \"--check\") { args.check = true; } } }",
     expected_offenders: 1,
@@ -447,9 +452,31 @@ function branchDisablesWrite(body, options = {}) {
 
 function sourceHasRuntimeCheckWriteGuard(source) {
   const code = maskNonCode(source);
-  const checkBeforeWrite = /!\s*options\s*\.\s*check\s*&&\s*options\s*\.\s*write\s*!==\s*false/.test(code);
-  const writeBeforeCheck = /options\s*\.\s*write\s*!==\s*false\s*&&\s*!\s*options\s*\.\s*check/.test(code);
+  const writeGuardMatches = [...code.matchAll(/options\s*\.\s*write\s*!==\s*false/g)];
+  if (writeGuardMatches.length === 0) return false;
+  return writeGuardMatches.every((match) => writeGuardIsCheckAware(code, match.index ?? -1));
+}
+
+function writeGuardIsCheckAware(code, writeIndex) {
+  const condition = findEnclosingIfCondition(code, writeIndex);
+  if (!condition) return false;
+  const checkBeforeWrite = /!\s*options\s*\.\s*check\s*&&\s*options\s*\.\s*write\s*!==\s*false/.test(condition);
+  const writeBeforeCheck = /options\s*\.\s*write\s*!==\s*false\s*&&\s*!\s*options\s*\.\s*check/.test(condition);
   return checkBeforeWrite || writeBeforeCheck;
+}
+
+function findEnclosingIfCondition(code, targetIndex) {
+  if (targetIndex < 0) return null;
+  for (let index = targetIndex; index >= 0; index -= 1) {
+    if (!keywordAt(code, index, "if")) continue;
+    const parenIndex = skipWhitespace(code, index + "if".length);
+    if (code[parenIndex] !== "(") continue;
+    const closeParenIndex = findMatchingDelimiter(code, parenIndex, "(", ")");
+    if (closeParenIndex !== -1 && parenIndex < targetIndex && targetIndex < closeParenIndex) {
+      return code.slice(parenIndex + 1, closeParenIndex);
+    }
+  }
+  return null;
 }
 
 function branchKeywordLength(source, index) {
@@ -743,6 +770,7 @@ function buildScannerRows(fixtureRows, generatedAt) {
     row("multiline_branch", "Scanner recognizes multi-line --check branch bodies", rowPass(fixtureRows, "arg_multiline_ok"), "scanner_fixture.arg_multiline_ok", generatedAt),
     row("missing_write_negative", "Scanner catches --check branches that do not disable write", rowPass(fixtureRows, "missing_write_blocked"), "scanner_fixture.missing_write_blocked", generatedAt),
     row("missing_branch_negative", "Scanner catches guarded generators with no parse branch", rowPass(fixtureRows, "missing_branch_blocked"), "scanner_fixture.missing_branch_blocked", generatedAt),
+    row("mixed_runtime_guard_negative", "Scanner catches mixed check-aware and unguarded write guards", rowPass(fixtureRows, "mixed_runtime_and_unguarded_write_blocked"), "scanner_fixture.mixed_runtime_and_unguarded_write_blocked", generatedAt),
   ];
 }
 

@@ -59,6 +59,21 @@ test("Check-Mode Guard Normalization flags missing write disable and missing bra
   assert.equal(missingBranch.findings[0].finding_type, "missing_check_branch");
 });
 
+test("Check-Mode Guard Normalization blocks mixed runtime and unguarded writes", () => {
+  const runtimeOnly = collectCheckModeGuardFindingsFromSource(
+    "fixture/runtime-only.mjs",
+    "if (!options.check && options.write !== false) await write(); function parseArgs(argv) { const args = {}; for (const arg of argv) { if (arg === \"--check\") args.check = true; } }",
+  );
+  const mixedWrite = collectCheckModeGuardFindingsFromSource(
+    "fixture/mixed-write.mjs",
+    "if (!options.check && options.write !== false) await writeSafe(); if (options.write !== false) await writeUnsafe(); function parseArgs(argv) { const args = {}; for (const arg of argv) { if (arg === \"--check\") args.check = true; } }",
+  );
+
+  assert.deepEqual(runtimeOnly.findings, []);
+  assert.equal(mixedWrite.findings.length, 1);
+  assert.equal(mixedWrite.findings[0].finding_type, "check_without_write_false");
+});
+
 test("Check-Mode Guard Normalization covers parser shapes beyond variable-left strict equality", () => {
   const fixtures = [
     "if (options.write !== false) await write(); function parseArgs(argv) { const args = {}; for (const arg of argv) { if (\"--check\" === arg) { args.check = true; args.write = false; } } }",

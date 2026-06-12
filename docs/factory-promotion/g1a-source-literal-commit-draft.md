@@ -12,6 +12,10 @@ intentional. The default owner receipt is still unsigned, so the command writes 
 safe waiting artifact with no source mutation, no patch application, no first-use
 audit, and no G1a opening.
 
+In the waiting state, replacement rows and forbidden-symbol comparison rows are
+explicitly marked as template-only/waiting. They must not be read as a real patch
+comparison until a signed owner receipt makes source-literal preflight ready.
+
 When a signed owner receipt path is provided and
 `factory:g1a-source-literal-preflight` is ready, the command produces:
 

@@ -31,6 +31,10 @@ test("Factory G1a Source Literal Commit Draft waits without a signed owner recei
   assert.equal(result.summary.project_creation_allowed_now, false);
   assert.equal(result.source_literal_commit_patch.patch_status, "waiting_for_signed_owner_receipt");
   assert.equal(result.source_literal_commit_patch.unified_diff, "");
+  assert.ok(result.source_literal_commit_patch.replacement_results.every((row) => row.preview_state === "template_only_waiting_for_signed_owner_receipt"));
+  assert.ok(result.source_literal_commit_patch.replacement_results.every((row) => row.replacement_ready === false));
+  assert.ok(result.source_literal_commit_patch.forbidden_symbol_rows.every((row) => row.current_verdict === "wait"));
+  assert.ok(result.source_literal_commit_patch.forbidden_symbol_rows.every((row) => row.comparison_materialized_now === false));
 });
 
 test("Factory G1a Source Literal Commit Draft emits a single-file patch preview for a signed receipt", async () => {
@@ -55,6 +59,9 @@ test("Factory G1a Source Literal Commit Draft emits a single-file patch preview 
   assert.match(result.source_literal_commit_patch.unified_diff, /G1a: true,/);
   assert.match(result.source_literal_commit_patch.unified_diff, /OWNER-G1A-GATE-OPENING-SIGNED-DRAFT-TEST/);
   assert.ok(result.source_literal_commit_patch.forbidden_symbol_rows.every((row) => row.current_verdict === "pass"));
+  assert.ok(result.source_literal_commit_patch.forbidden_symbol_rows.every((row) => row.comparison_materialized_now === true));
+  assert.ok(result.source_literal_commit_patch.replacement_results.every((row) => row.preview_state === "materialized_from_signed_owner_receipt"));
+  assert.ok(result.source_literal_commit_patch.replacement_results.every((row) => row.replacement_ready === true));
 });
 
 test("Factory G1a Source Literal Commit Draft blocks an already-open source literal", async () => {

@@ -197,14 +197,16 @@ function buildDraftPatch({ gateOpeningSource, sourceLiteralPreflight, outputDir,
     && sourceLiteralPreflight.summary?.factory_g1a_source_literal_preflight_status === PREFLIGHT_READY_STATUS;
   const proposed = sourceLiteralPreflight.proposed_source_literal_change ?? {};
   const replacements = proposed.required_replacements ?? [];
-  const replacementResults = replacements.map((replacement) => buildReplacementResult(replacement, gateOpeningSource.text ?? ""));
-  const allReplacementsExact = replacementResults.length > 0 && replacementResults.every((row) => row.match_count === 1);
+  const replacementResults = replacements.map((replacement) => buildReplacementResult(replacement, gateOpeningSource.text ?? "", preflightReady));
+  const allReplacementsExact = preflightReady
+    && replacementResults.length > 0
+    && replacementResults.every((row) => row.replacement_ready === true && row.match_count === 1);
   const patchAvailable = preflightReady && gateOpeningSource.available === true && allReplacementsExact;
   const patchedText = patchAvailable
     ? applyReplacementResults(gateOpeningSource.text, replacementResults)
     : null;
-  const forbiddenSymbolRows = buildForbiddenSymbolRows(gateOpeningSource.text ?? "", patchedText ?? gateOpeningSource.text ?? "", generatedAt);
-  const forbiddenUnchanged = forbiddenSymbolRows.every((row) => row.current_verdict === "pass");
+  const forbiddenSymbolRows = buildForbiddenSymbolRows(gateOpeningSource.text ?? "", patchedText, generatedAt);
+  const forbiddenUnchanged = patchAvailable && forbiddenSymbolRows.every((row) => row.current_verdict === "pass");
   const unifiedDiff = patchAvailable && forbiddenUnchanged
     ? buildUnifiedDiff({
       fromPath: "src/factory-gate-opening-readiness.mjs",
@@ -243,19 +245,23 @@ function buildDraftPatch({ gateOpeningSource, sourceLiteralPreflight, outputDir,
   return { ...patch, patch_sha256: sha256(canonicalize({ ...patch, unified_diff: unifiedDiff ? "<omitted-from-patch-hash>" : "" })) };
 }
 
-function buildReplacementResult(replacement, sourceText) {
+function buildReplacementResult(replacement, sourceText, preflightReady) {
   const before = String(replacement.before ?? "");
   const after = String(replacement.after ?? "");
   const matchCount = before ? countOccurrences(sourceText, before) : 0;
+  const replacementReady = preflightReady && matchCount === 1 && before.length > 0 && after.length > 0;
   const row = {
     schema_version: "factory-g1a-source-literal-replacement-result.v1",
     replacement_id: replacement.replacement_id ?? null,
+    preview_state: preflightReady ? "materialized_from_signed_owner_receipt" : "template_only_waiting_for_signed_owner_receipt",
     match_count: matchCount,
-    replacement_ready: matchCount === 1 && before.length > 0 && after.length > 0,
+    replacement_ready: replacementReady,
+    replacement_materialized_now: preflightReady,
     before,
-    after,
+    after: preflightReady ? after : null,
     before_sha256: before ? sha256(before) : null,
-    after_sha256: after ? sha256(after) : null,
+    after_sha256: preflightReady && after ? sha256(after) : null,
+    template_after_sha256: after ? sha256(after) : null,
   };
   return { ...row, replacement_result_sha256: sha256(canonicalize(row)) };
 }
@@ -263,12 +269,16 @@ function buildReplacementResult(replacement, sourceText) {
 function applyReplacementResults(sourceText, replacementResults) {
   let patched = sourceText;
   for (const row of replacementResults) {
+    if (row.replacement_ready !== true || countOccurrences(patched, row.before) !== 1 || typeof row.after !== "string") {
+      throw new Error(`Replacement ${row.replacement_id ?? "<unknown>"} is not exact-one ready.`);
+    }
     patched = patched.replace(row.before, row.after);
   }
   return patched;
 }
 
 function buildForbiddenSymbolRows(beforeText, afterText, generatedAt) {
+  if (typeof afterText !== "string") return buildWaitingForbiddenSymbolRows(beforeText, generatedAt);
   const rows = [
     forbiddenGateRow("SOURCE_LITERAL_GATE_OPEN_COMMITS.G1b", "G1b", beforeText, afterText, generatedAt),
     forbiddenGateRow("SOURCE_LITERAL_GATE_OPEN_COMMITS.G2", "G2", beforeText, afterText, generatedAt),
@@ -281,6 +291,45 @@ function buildForbiddenSymbolRows(beforeText, afterText, generatedAt) {
   return rows.map((row) => ({ ...row, forbidden_symbol_row_sha256: sha256(canonicalize(row)) }));
 }
 
+function buildWaitingForbiddenSymbolRows(beforeText, generatedAt) {
+  const rows = [
+    waitingForbiddenGateRow("SOURCE_LITERAL_GATE_OPEN_COMMITS.G1b", "G1b", beforeText, generatedAt),
+    waitingForbiddenGateRow("SOURCE_LITERAL_GATE_OPEN_COMMITS.G2", "G2", beforeText, generatedAt),
+    waitingForbiddenGateRow("SOURCE_LITERAL_GATE_OPEN_COMMITS.G3", "G3", beforeText, generatedAt),
+    waitingForbiddenTextRow("production_pass_enabled", beforeText, generatedAt),
+    waitingForbiddenTextRow("enterprise_pass_enabled", beforeText, generatedAt),
+    waitingForbiddenTextRow("connector_write_allowed_now", beforeText, generatedAt),
+    waitingForbiddenTextRow("deployment_allowed_now", beforeText, generatedAt),
+  ];
+  return rows.map((row) => ({ ...row, forbidden_symbol_row_sha256: sha256(canonicalize(row)) }));
+}
+
+function waitingForbiddenGateRow(symbol, gateId, beforeText, generatedAt) {
+  return {
+    schema_version: "factory-g1a-source-literal-forbidden-symbol-row.v1",
+    symbol,
+    current_verdict: "wait",
+    comparison_state: "template_only_waiting_for_signed_owner_receipt",
+    before_value: extractGateLiteralValue(beforeText, gateId),
+    after_value: null,
+    comparison_materialized_now: false,
+    generated_at: generatedAt,
+  };
+}
+
+function waitingForbiddenTextRow(symbol, beforeText, generatedAt) {
+  return {
+    schema_version: "factory-g1a-source-literal-forbidden-symbol-row.v1",
+    symbol,
+    current_verdict: "wait",
+    comparison_state: "template_only_waiting_for_signed_owner_receipt",
+    before_occurrence_count: countOccurrences(beforeText, symbol),
+    after_occurrence_count: null,
+    comparison_materialized_now: false,
+    generated_at: generatedAt,
+  };
+}
+
 function forbiddenGateRow(symbol, gateId, beforeText, afterText, generatedAt) {
   const before = extractGateLiteralValue(beforeText, gateId);
   const after = extractGateLiteralValue(afterText, gateId);
@@ -289,8 +338,10 @@ function forbiddenGateRow(symbol, gateId, beforeText, afterText, generatedAt) {
     schema_version: "factory-g1a-source-literal-forbidden-symbol-row.v1",
     symbol,
     current_verdict: passed ? "pass" : "fail",
+    comparison_state: "materialized_from_patch_preview",
     before_value: before,
     after_value: after,
+    comparison_materialized_now: true,
     generated_at: generatedAt,
   };
 }
@@ -303,8 +354,10 @@ function forbiddenTextRow(symbol, beforeText, afterText, generatedAt) {
     schema_version: "factory-g1a-source-literal-forbidden-symbol-row.v1",
     symbol,
     current_verdict: passed ? "pass" : "fail",
+    comparison_state: "materialized_from_patch_preview",
     before_occurrence_count: beforeCount,
     after_occurrence_count: afterCount,
+    comparison_materialized_now: true,
     generated_at: generatedAt,
   };
 }

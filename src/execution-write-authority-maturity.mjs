@@ -86,6 +86,29 @@ const UNSAFE_RECEIPT_AUTHORITY_FIELDS = [
   "final_approval_allowed",
   "final_approval_ui_enabled",
 ];
+const EXECUTION_BOUNDARY_AUTHORITY_FIELDS = [
+  "receipt_application_allowed_now",
+  "candidate_execution_allowed_now",
+  "command_execution_allowed_now",
+  "runtime_execution_allowed_now",
+  "direct_file_write_allowed_now",
+  "patch_apply_allowed_now",
+  "protected_action_allowed_now",
+  "connector_write_enabled",
+  "external_service_mutation_allowed_now",
+  "deployment_allowed_now",
+  "secret_read_allowed_now",
+  "raw_source_exposure_allowed",
+  "production_pass_enabled",
+  "enterprise_pass_enabled",
+  "enterprise_trust_claim_allowed_now",
+  "protected_closeout_enabled",
+  "release_approval_allowed_now",
+  "write_action_allowed_now",
+  "final_approval_ui_enabled",
+  "codex_final_approval_ui_enabled",
+  "claude_final_approval_ui_enabled",
+];
 
 export async function runExecutionWriteAuthorityMaturity(options = {}) {
   const result = await buildExecutionWriteAuthorityMaturity(options);
@@ -274,7 +297,7 @@ function buildSourceBindingRows(source, generatedAt) {
     ["source.block_visible", "P15800 blocker visible", sourceReady || sourceBlocked],
     ["source.connector_rows", "P15800 external app connector consent quarantine evidence boundary projection rows available", Number(summary.external_app_registry_row_count ?? 0) >= 6 && Number(summary.connector_capability_matrix_row_count ?? 0) >= 6 && Number(summary.consent_auth_receipt_row_count ?? 0) >= 6 && Number(summary.ingestion_quarantine_row_count ?? 0) >= 6 && Number(summary.external_app_evidence_mapping_row_count ?? 0) >= 6 && Number(summary.cross_app_boundary_guard_row_count ?? 0) >= 6 && Number(summary.connector_read_only_projection_row_count ?? 0) >= 6],
     ["source.no_connector_side_effects", "P15800 source did not open external app connection credential lookup secret read raw export ingestion connector write mutation or cross-app join", boundary.external_app_connection_allowed_now === false && boundary.credential_lookup_allowed_now === false && boundary.secret_read_allowed_now === false && boundary.raw_export_allowed_now === false && boundary.ingestion_start_allowed_now === false && boundary.connector_write_enabled === false && boundary.external_service_mutation_allowed_now === false && boundary.cross_app_data_join_allowed_now === false],
-    ["source.no_trust_write_final", "P15800 source did not open trust production protected closeout deployment release write runtime or final approval", boundary.enterprise_trust_claim_allowed_now === false && boundary.production_pass_enabled === false && boundary.protected_closeout_enabled === false && boundary.deployment_allowed_now === false && boundary.release_approval_allowed_now === false && boundary.write_action_allowed_now === false && boundary.runtime_execution_allowed_now === false && boundary.final_approval_ui_enabled === false],
+    ["source.no_trust_write_final", "P15800 source did not open trust production protected closeout deployment release write runtime or final approval", boundary.enterprise_trust_claim_allowed_now === false && boundary.production_pass_enabled === false && boundary.protected_closeout_enabled === false && boundary.deployment_allowed_now === false && boundary.release_approval_allowed_now === false && boundary.write_action_allowed_now === false && boundary.runtime_execution_allowed_now === false && boundary.final_approval_ui_enabled === false && boundary.unsafe_flag_count === 0],
     ["source.no_raw_secret", "P15800 source did not open raw source exposure or secret read", boundary.raw_source_exposure_allowed === false && boundary.secret_read_allowed_now === false],
   ].map(([rowId, label, observed]) => verdictRow({
     row_id: rowId,
@@ -337,6 +360,7 @@ function isObservedExecutionWriteAuthorityReviewReceipt(claudeReview) {
     && typeof data.raw_output_sha256 === "string"
     && HEX_64.test(data.raw_output_sha256)
     && isResolvedModelIdAcceptable(data.engine_resolved_model_id)
+    && !isFablePlanningReceipt(data)
     && countUnsafeReceiptAuthorityFields(data) === 0;
 }
 
@@ -347,7 +371,39 @@ function isResolvedModelIdAcceptable(value) {
 }
 
 function countUnsafeReceiptAuthorityFields(data) {
-  return UNSAFE_RECEIPT_AUTHORITY_FIELDS.filter((field) => data?.[field] === true).length;
+  return countUnsafeAuthorityFieldsDeep(data);
+}
+
+function countUnsafeAuthorityFieldsDeep(value, seen = new Set()) {
+  if (!value || typeof value !== "object") return 0;
+  if (seen.has(value)) return 0;
+  seen.add(value);
+  let count = 0;
+  if (Array.isArray(value)) {
+    for (const entry of value) count += countUnsafeAuthorityFieldsDeep(entry, seen);
+    return count;
+  }
+  for (const [key, entryValue] of Object.entries(value)) {
+    if (UNSAFE_RECEIPT_AUTHORITY_FIELDS.includes(key) && entryValue === true) count += 1;
+    count += countUnsafeAuthorityFieldsDeep(entryValue, seen);
+  }
+  return count;
+}
+
+function isFablePlanningReceipt(data) {
+  const haystack = [
+    data.review_engine,
+    data.engine_resolved_model_id,
+    data.review_lane,
+    data.lane,
+    data.source_lane,
+    data.subject,
+    data.subject_ref,
+    data.source,
+    data.source_ref,
+    data.authoring_engine,
+  ].filter(Boolean).join(" ").toLowerCase();
+  return haystack.includes("fable") || haystack.includes("planning") || haystack.includes("factory-promotion");
 }
 
 function buildFreezeRows(context) {
@@ -394,7 +450,7 @@ function buildBoundary(context) {
   const authorityReady = allPass(context.authorityRows);
   const contractReady = actionReady && candidateReady && allowlistReady && writeReady && rollbackReady && postActionReady && allPass(context.claudeRows) && projectionReady && authorityReady;
   const freezeReady = sourceReady && claudeObserved && contractReady && allPass(context.freezeRows);
-  return {
+  const boundary = {
     source_connector_governance_available: sourceAvailable,
     source_ready_for_p15801_handoff: sourceReady,
     source_block_visible_now: sourceAvailable && sourceReady === false && sourceBlockVisible,
@@ -431,7 +487,10 @@ function buildBoundary(context) {
     final_approval_ui_enabled: false,
     codex_final_approval_ui_enabled: false,
     claude_final_approval_ui_enabled: false,
-    unsafe_flag_count: 0,
+  };
+  return {
+    ...boundary,
+    unsafe_flag_count: countBoundaryAuthorityFlags(boundary, EXECUTION_BOUNDARY_AUTHORITY_FIELDS),
   };
 }
 
@@ -449,7 +508,7 @@ function buildValidationItems(context) {
   add("write_scope.ready", "write_scope", context.writeRows.length === WRITE_SCOPE_TERMS.length && allPass(context.writeRows), "Write scope rows incomplete", "write_scope_policy_rows");
   add("rollback.ready", "rollback", context.rollbackRows.length === ROLLBACK_TERMS.length && allPass(context.rollbackRows), "Rollback rows incomplete", "rollback_recovery_binding_rows");
   add("post_action.ready", "validation", context.postActionRows.length === POST_ACTION_TERMS.length && allPass(context.postActionRows), "Post-action validation rows incomplete", "post_action_validation_rows");
-  add("claude_review.block_visible", "review", context.claudeRows.length === CLAUDE_REVIEW_TERMS.length && (context.boundary.claude_execution_write_authority_review_block_visible_now === true || context.boundary.claude_execution_write_authority_review_receipt_present_now === true), "Claude execution/write authority review missing without visible blocker", "claude_execution_write_authority_review_rows");
+  add("claude_review.block_visible", "review", context.claudeRows.length === CLAUDE_REVIEW_TERMS.length && context.boundary.claude_execution_write_authority_review_block_visible_now === (context.boundary.claude_execution_write_authority_review_receipt_present_now === false), "Claude execution/write authority review missing without visible blocker", "claude_execution_write_authority_review_rows");
   add("projection.ready", "projection", context.projectionRows.length === PROJECTION_TERMS.length && allPass(context.projectionRows), "Authority projection rows incomplete", "authority_read_only_projection_rows");
   add("authority.ready", "authority", context.authorityRows.length === AUTHORITY_TERMS.length && allPass(context.authorityRows), "Execution/write authority guard rows incomplete", "execution_write_authority_guard_rows");
   add("freeze.structure", "freeze", context.freezeRows.length >= 12, "P16200 freeze rows missing", "p16200_freeze_rows");
@@ -684,6 +743,10 @@ function allPass(rows) {
 
 function rowPass(rows, rowId) {
   return rows.find((row) => row.row_id === rowId)?.current_verdict === "pass";
+}
+
+function countBoundaryAuthorityFlags(boundary, fields) {
+  return fields.filter((field) => boundary?.[field] === true).length;
 }
 
 function includesAll(text = "", terms = []) {

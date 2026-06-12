@@ -48,6 +48,7 @@ const P15400_READY = {
     final_approval_ui_enabled: false,
     connector_write_enabled: false,
     raw_source_exposure_allowed: false,
+    unsafe_flag_count: 0,
   },
 };
 
@@ -89,6 +90,7 @@ const P15400_BLOCKED = {
     final_approval_ui_enabled: false,
     connector_write_enabled: false,
     raw_source_exposure_allowed: false,
+    unsafe_flag_count: 0,
   },
 };
 
@@ -218,6 +220,37 @@ test("Connector And External App Governance rejects weak or unsafe Claude review
   }));
   assert.equal(unsafeAuthority.summary.claude_connector_governance_review_receipt_present_now, false);
   assert.equal(unsafeAuthority.summary.ready_for_p15801_handoff, false);
+
+  const nestedAuthority = await buildConnectorExternalAppGovernance(options({
+    claudeConnectorGovernanceReviewReceipt: {
+      ...CLAUDE_CONNECTOR_REVIEW_READY,
+      summary: {
+        review_status: "complete",
+        unresolved_finding_count: 0,
+        production_pass_enabled: true,
+      },
+    },
+  }));
+  assert.equal(nestedAuthority.summary.claude_connector_governance_review_receipt_present_now, false);
+  assert.equal(nestedAuthority.summary.ready_for_p15801_handoff, false);
+
+  const labelOnlyModel = await buildConnectorExternalAppGovernance(options({
+    claudeConnectorGovernanceReviewReceipt: {
+      ...CLAUDE_CONNECTOR_REVIEW_READY,
+      engine_resolved_model_id: "claude_code_opus_max",
+    },
+  }));
+  assert.equal(labelOnlyModel.summary.claude_connector_governance_review_receipt_present_now, false);
+  assert.equal(labelOnlyModel.summary.ready_for_p15801_handoff, false);
+
+  const planningLane = await buildConnectorExternalAppGovernance(options({
+    claudeConnectorGovernanceReviewReceipt: {
+      ...CLAUDE_CONNECTOR_REVIEW_READY,
+      review_lane: "fable_planning",
+    },
+  }));
+  assert.equal(planningLane.summary.claude_connector_governance_review_receipt_present_now, false);
+  assert.equal(planningLane.summary.ready_for_p15801_handoff, false);
 });
 
 test("Connector And External App Governance fails validation if P15400 source is missing", async () => {

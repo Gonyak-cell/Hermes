@@ -52,6 +52,7 @@ const P15800_READY = {
     write_action_allowed_now: false,
     runtime_execution_allowed_now: false,
     final_approval_ui_enabled: false,
+    unsafe_flag_count: 0,
   },
 };
 
@@ -97,6 +98,7 @@ const P15800_BLOCKED = {
     write_action_allowed_now: false,
     runtime_execution_allowed_now: false,
     final_approval_ui_enabled: false,
+    unsafe_flag_count: 0,
   },
 };
 
@@ -226,6 +228,37 @@ test("Execution/Write Authority Maturity rejects weak or unsafe Claude review re
   }));
   assert.equal(unsafeAuthority.summary.claude_execution_write_authority_review_receipt_present_now, false);
   assert.equal(unsafeAuthority.summary.ready_for_p16201_handoff, false);
+
+  const nestedAuthority = await buildExecutionWriteAuthorityMaturity(options({
+    claudeExecutionWriteAuthorityReviewReceipt: {
+      ...CLAUDE_EXECUTION_WRITE_REVIEW_READY,
+      summary: {
+        review_status: "complete",
+        unresolved_finding_count: 0,
+        production_pass_enabled: true,
+      },
+    },
+  }));
+  assert.equal(nestedAuthority.summary.claude_execution_write_authority_review_receipt_present_now, false);
+  assert.equal(nestedAuthority.summary.ready_for_p16201_handoff, false);
+
+  const labelOnlyModel = await buildExecutionWriteAuthorityMaturity(options({
+    claudeExecutionWriteAuthorityReviewReceipt: {
+      ...CLAUDE_EXECUTION_WRITE_REVIEW_READY,
+      engine_resolved_model_id: "claude_code_opus_max",
+    },
+  }));
+  assert.equal(labelOnlyModel.summary.claude_execution_write_authority_review_receipt_present_now, false);
+  assert.equal(labelOnlyModel.summary.ready_for_p16201_handoff, false);
+
+  const planningLane = await buildExecutionWriteAuthorityMaturity(options({
+    claudeExecutionWriteAuthorityReviewReceipt: {
+      ...CLAUDE_EXECUTION_WRITE_REVIEW_READY,
+      review_lane: "fable_planning",
+    },
+  }));
+  assert.equal(planningLane.summary.claude_execution_write_authority_review_receipt_present_now, false);
+  assert.equal(planningLane.summary.ready_for_p16201_handoff, false);
 });
 
 test("Execution/Write Authority Maturity fails validation if P15800 source is missing", async () => {

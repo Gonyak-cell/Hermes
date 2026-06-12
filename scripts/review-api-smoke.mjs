@@ -23,6 +23,7 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/factory/workbench"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/candidate-lane"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/gate-opening-readiness"));
+  assert.ok(index.routes.some((route) => route.path === "/api/factory/g1a-opening-packet"));
   assert.ok(index.routes.some((route) => route.path === "/api/packs"));
   assert.ok(index.routes.some((route) => route.path === "/api/capabilities"));
   assert.ok(index.routes.some((route) => route.path === "/api/artifacts"));
@@ -7304,6 +7305,23 @@ try {
   assert.equal(factoryGateOpeningReadinessHead.status, 200);
   const factoryGateOpeningReadinessPost = await fetch(`${url}/api/factory/gate-opening-readiness`, { method: "POST" });
   assert.equal(factoryGateOpeningReadinessPost.status, 405);
+
+  const factoryG1aOpeningPacket = await fetchJson(`${url}/api/factory/g1a-opening-packet?item_kind=owner_gate_opening_receipt_template`);
+  assert.equal(factoryG1aOpeningPacket.collection, "factory_g1a_opening_packet_items");
+  assert.equal(factoryG1aOpeningPacket.read_only, true);
+  assert.equal(factoryG1aOpeningPacket.mutation_allowed, false);
+  assert.equal(factoryG1aOpeningPacket.packet_only, true);
+  assert.equal(factoryG1aOpeningPacket.opens_gate_now, false);
+  assert.equal(factoryG1aOpeningPacket.count, 1);
+  assert.equal(factoryG1aOpeningPacket.items[0].gate_id, "G1a");
+  assert.equal(factoryG1aOpeningPacket.items[0].item_status, "template_not_signed");
+  assert.equal(factoryG1aOpeningPacket.g1a_project_creation_gate_open_now, false);
+  assert.equal(factoryG1aOpeningPacket.project_creation_allowed_now, false);
+  assert.equal(factoryG1aOpeningPacket.production_pass_enabled, false);
+  const factoryG1aOpeningPacketHead = await fetch(`${url}/api/factory/g1a-opening-packet`, { method: "HEAD" });
+  assert.equal(factoryG1aOpeningPacketHead.status, 200);
+  const factoryG1aOpeningPacketPost = await fetch(`${url}/api/factory/g1a-opening-packet`, { method: "POST" });
+  assert.equal(factoryG1aOpeningPacketPost.status, 405);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

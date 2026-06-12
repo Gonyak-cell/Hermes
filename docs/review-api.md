@@ -182,6 +182,16 @@ Supported filters include `gate_id`, `gate_name`, `authority_flag`,
 
 Routes: `/api/factory/gate-opening-readiness`.
 
+`GET /api/factory/g1a-opening-packet` returns the packet-only G1a opening
+preparation surface: owner receipt template, source-literal opening commit
+plan, Law Firm OS-style independent review packet, first-use audit checklist,
+negative fixtures, boundary, and summary data.
+
+Supported filters include `packet_item_id`, `item_kind`, `item_status`,
+`gate_id`, `authority_flag`, and `limit`.
+
+Routes: `/api/factory/g1a-opening-packet`.
+
 `GET` and `HEAD` are allowed. Mutation methods return `405
 method_not_allowed`.
 

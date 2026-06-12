@@ -418,6 +418,21 @@ All authority flags remain false. Runtime data cannot open a gate; future
 gate-opening commits must change source literals in isolation, pass independent
 review, bind an owner receipt, and capture the first-use audit.
 
+## Factory G1a Opening Packet
+
+G1a adds the packet-only preparation surface for opening project creation later:
+
+```bash
+npm run factory:g1a-opening-packet -- --check --require-pass
+node scripts/review-api.mjs --once /api/factory/g1a-opening-packet
+```
+
+The packet creates the owner `gate_opening` receipt template, the isolated
+`SOURCE_LITERAL_GATE_OPEN_COMMITS.G1a` change plan, the Law Firm OS-style Claude
+Opus 4.8 Max review packet, and the first-use audit checklist. It does not sign
+the receipt, apply the source literal change, complete independent review, run
+the first-use audit, or open `project_creation_allowed_now`.
+
 ## Claude Review Evidence Validator
 
 Factory promotion review artifacts are classified before they can be counted:

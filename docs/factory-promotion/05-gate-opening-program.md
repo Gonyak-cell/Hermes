@@ -12,10 +12,16 @@
    → ③ 소유자 판정 영수증(`receipt_kind: gate_opening`) → ④ 개방 후 첫 사용 1건의 전체 감사 추적 캡처.
 5. 모든 개방은 **범위 한정**이다 (전역 개방 없음): 제품 단위, 영수증 1건당 액션 1건.
 
-현재 구현 기준선은 [g0-gate-opening-readiness.md](g0-gate-opening-readiness.md)이다.
-G0는 G1a/G1b/G2/G3 상태를 읽기전용으로 계산하고, 어떤 권한도 열지
-않는다. G1a는 선행조건이 준비됐지만 owner `gate_opening` 영수증, 분리
-소스 리터럴 개방 커밋, 첫 사용 감사가 없으므로 닫힌 상태다.
+현재 구현 기준선은 [g0-gate-opening-readiness.md](g0-gate-opening-readiness.md)와
+[g1a-opening-packet.md](g1a-opening-packet.md)이다. G0는 G1a/G1b/G2/G3
+상태를 읽기전용으로 계산하고, 어떤 권한도 열지 않는다. G1a는 선행조건이
+준비됐지만 owner `gate_opening` 영수증, 분리 소스 리터럴 개방 커밋, 첫
+사용 감사가 없으므로 닫힌 상태다.
+
+G1a opening packet은 owner 영수증 템플릿, 소스 리터럴 개방 커밋 계획,
+Law Firm OS식 Claude Opus 4.8 Max 리뷰 패킷, 첫 사용 감사 체크리스트만
+생성한다. 이 패킷은 `project_creation_allowed_now`를 열지 않고, signed
+receipt나 source literal 변경으로 취급하지 않는다.
 
 ## 2. 게이트 매트릭스
 

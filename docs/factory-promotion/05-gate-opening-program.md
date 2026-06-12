@@ -17,7 +17,8 @@
 [g1a-owner-receipt-intake.md](g1a-owner-receipt-intake.md), 그리고
 [g1a-source-literal-preflight.md](g1a-source-literal-preflight.md),
 [g1a-opening-closeout-readiness.md](g1a-opening-closeout-readiness.md),
-[g1a-first-use-audit-readiness.md](g1a-first-use-audit-readiness.md)이다. G0는
+[g1a-first-use-audit-readiness.md](g1a-first-use-audit-readiness.md),
+[g1a-owner-signing-handoff.md](g1a-owner-signing-handoff.md)이다. G0는
 G1a/G1b/G2/G3 상태를 읽기전용으로 계산하고, 어떤 권한도 열지 않는다.
 G1a는 선행조건과 리뷰 패킷이 준비됐지만 signed owner `gate_opening`
 영수증, 분리 소스 리터럴 개방 커밋, 첫 사용 감사가 없으므로 닫힌 상태다.
@@ -30,6 +31,12 @@ receipt나 source literal 변경으로 취급하지 않는다.
 G1a owner receipt intake는 future signed owner receipt 후보를 검증한다.
 현재 기본 receipt는 unsigned template이므로 intake status는
 `waiting_for_signed_g1a_owner_receipt`이며, 이 상태도 권한을 열지 않는다.
+
+G1a owner signing handoff는 unsigned template과 signed receipt intake 사이의
+소유자 작업 패킷이다. `signable-owner-receipt-draft.json`,
+`owner-completion-checklist.json`, `owner-signing-work-order.json`, 그리고
+Law Firm OS식 Opus review packet을 만들지만 owner 대신 서명하지 않고,
+G1a를 열지 않으며, source literal을 변경하지 않는다.
 
 G1a source literal preflight는 signed owner receipt가 들어왔을 때의 미래
 소스 리터럴 커밋 형태를 사전검증한다. 현재는 unsigned template만 있으므로

@@ -230,6 +230,16 @@ Supported filters include `row_id`, `category`, `current_verdict`, and `limit`.
 
 Routes: `/api/factory/g1a-first-use-audit-readiness`.
 
+`GET /api/factory/g1a-owner-signing-handoff` returns the read-only owner signing
+handoff rows plus the signable unsigned owner receipt draft, owner completion
+checklist, work order, and Law Firm OS-style Opus review packet. The default
+state is `ready_g1a_owner_signature_handoff`; the route does not sign receipts,
+edit source, open G1a, or grant project creation authority.
+
+Supported filters include `row_id`, `category`, `current_verdict`, and `limit`.
+
+Routes: `/api/factory/g1a-owner-signing-handoff`.
+
 `GET` and `HEAD` are allowed. Mutation methods return `405
 method_not_allowed`.
 

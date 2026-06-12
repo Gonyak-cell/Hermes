@@ -28,6 +28,7 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/factory/g1a-source-literal-preflight"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/g1a-opening-closeout-readiness"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/g1a-first-use-audit-readiness"));
+  assert.ok(index.routes.some((route) => route.path === "/api/factory/g1a-owner-signing-handoff"));
   assert.ok(index.routes.some((route) => route.path === "/api/packs"));
   assert.ok(index.routes.some((route) => route.path === "/api/capabilities"));
   assert.ok(index.routes.some((route) => route.path === "/api/artifacts"));
@@ -7392,6 +7393,25 @@ try {
   assert.equal(factoryG1aFirstUseAuditReadinessHead.status, 200);
   const factoryG1aFirstUseAuditReadinessPost = await fetch(`${url}/api/factory/g1a-first-use-audit-readiness`, { method: "POST" });
   assert.equal(factoryG1aFirstUseAuditReadinessPost.status, 405);
+
+  const factoryG1aOwnerSigningHandoff = await fetchJson(`${url}/api/factory/g1a-owner-signing-handoff?category=owner_signature`);
+  assert.equal(factoryG1aOwnerSigningHandoff.collection, "factory_g1a_owner_signing_handoff_rows");
+  assert.equal(factoryG1aOwnerSigningHandoff.read_only, true);
+  assert.equal(factoryG1aOwnerSigningHandoff.mutation_allowed, false);
+  assert.equal(factoryG1aOwnerSigningHandoff.handoff_only, true);
+  assert.equal(factoryG1aOwnerSigningHandoff.owner_completion_required, true);
+  assert.equal(factoryG1aOwnerSigningHandoff.signs_owner_receipt_now, false);
+  assert.equal(factoryG1aOwnerSigningHandoff.source_mutation_allowed_now, false);
+  assert.equal(factoryG1aOwnerSigningHandoff.opens_gate_now, false);
+  assert.equal(factoryG1aOwnerSigningHandoff.summary.factory_g1a_owner_signing_handoff_status, "ready_g1a_owner_signature_handoff");
+  assert.equal(factoryG1aOwnerSigningHandoff.summary.owner_gate_opening_receipt_signed_now, false);
+  assert.equal(factoryG1aOwnerSigningHandoff.g1a_project_creation_gate_open_now, false);
+  assert.equal(factoryG1aOwnerSigningHandoff.project_creation_allowed_now, false);
+  assert.equal(factoryG1aOwnerSigningHandoff.production_pass_enabled, false);
+  const factoryG1aOwnerSigningHandoffHead = await fetch(`${url}/api/factory/g1a-owner-signing-handoff`, { method: "HEAD" });
+  assert.equal(factoryG1aOwnerSigningHandoffHead.status, 200);
+  const factoryG1aOwnerSigningHandoffPost = await fetch(`${url}/api/factory/g1a-owner-signing-handoff`, { method: "POST" });
+  assert.equal(factoryG1aOwnerSigningHandoffPost.status, 405);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

@@ -496,6 +496,22 @@ G1a is still closed. The command does not perform first use, bind an audit into
 source, mutate `src/factory-gate-opening-readiness.mjs`, open G1a, or grant
 project creation authority.
 
+## Factory G1a Owner Signing Handoff
+
+G1a owner signing handoff packages the exact owner-facing signing work order
+between the unsigned opening packet and the signed receipt intake:
+
+```bash
+npm run factory:g1a-owner-signing-handoff -- --check --require-pass
+node scripts/review-api.mjs --once /api/factory/g1a-owner-signing-handoff
+```
+
+The default state is `ready_g1a_owner_signature_handoff`. The command writes a
+signable unsigned receipt draft, owner completion checklist, work order, and
+Law Firm OS-style Opus review packet. It does not sign the receipt, mutate
+source, apply the G1a source-literal opening commit, perform first use, open
+G1a, or grant project creation authority.
+
 ## Claude Review Evidence Validator
 
 Factory promotion review artifacts are classified before they can be counted:

@@ -73,6 +73,23 @@ const UNSAFE_RECEIPT_AUTHORITY_FIELDS = [
   "project_creation_allowed_now",
   "repo_write_allowed_now",
   "connector_write_allowed_now",
+  "connector_write_enabled",
+  "external_app_connection_allowed_now",
+  "credential_lookup_allowed_now",
+  "secret_read_allowed_now",
+  "raw_export_allowed_now",
+  "raw_source_exposure_allowed",
+  "ingestion_start_allowed_now",
+  "connector_provisioning_allowed_now",
+  "external_service_mutation_allowed_now",
+  "cross_app_data_join_allowed_now",
+  "receipt_application_allowed_now",
+  "candidate_execution_allowed_now",
+  "runtime_execution_allowed_now",
+  "direct_file_write_allowed_now",
+  "patch_apply_allowed_now",
+  "release_approval_allowed_now",
+  "write_action_allowed_now",
   "deployment_allowed_now",
   "protected_action_allowed_now",
   "command_execution_allowed_now",
@@ -83,6 +100,8 @@ const UNSAFE_RECEIPT_AUTHORITY_FIELDS = [
   "fable_final_approval_allowed",
   "production_pass_enabled",
   "enterprise_pass_enabled",
+  "enterprise_trust_claim_allowed_now",
+  "protected_closeout_enabled",
   "final_approval_allowed",
   "final_approval_ui_enabled",
 ];
@@ -346,14 +365,14 @@ function buildClaudeReviewRows(roadmapText, claudeReview, generatedAt) {
 
 function isObservedConnectorGovernanceReviewReceipt(claudeReview) {
   const data = claudeReview.data ?? {};
-  const unresolvedFindingCount = Number(data.unresolved_finding_count);
   return claudeReview.available === true
+    && data.schema_version === "connector-governance-claude-review-receipt.v1"
     && data.review_engine === "claude_code_opus_max"
     && data.receipt_status === "complete"
     && data.scope_connector_external_app_governance === true
     && data.scope_id === "connector_external_app_governance"
-    && Number.isFinite(unresolvedFindingCount)
-    && unresolvedFindingCount === 0
+    && Number.isInteger(data.unresolved_finding_count)
+    && data.unresolved_finding_count === 0
     && typeof data.reviewed_commit_sha === "string"
     && GIT_SHA.test(data.reviewed_commit_sha)
     && typeof data.prompt_sha256 === "string"

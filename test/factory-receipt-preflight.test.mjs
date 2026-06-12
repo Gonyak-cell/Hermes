@@ -154,6 +154,34 @@ test("Factory Receipt Preflight rejects receipts that satisfy old shape but miss
   assert.equal(result.receipt_preflight_rows.find((row) => row.row_id.endsWith("integrity.prompt_sha256") && row.target_id === "f0_1.connector_external_app_governance").current_verdict, "blocked");
 });
 
+test("Factory Receipt Preflight rejects connector and execution specific unsafe authority fields", async () => {
+  const connectorUnsafe = {
+    ...CONNECTOR_RECEIPT,
+    connector_write_enabled: true,
+  };
+  const executionUnsafe = {
+    ...EXECUTION_RECEIPT,
+    summary: {
+      ...EXECUTION_RECEIPT.summary,
+      patch_apply_allowed_now: true,
+    },
+  };
+  const result = await buildFactoryReceiptPreflight(options({
+    inlineReceipts: {
+      "f0_1.connector_external_app_governance": connectorUnsafe,
+      "f0_1.execution_write_authority_maturity": executionUnsafe,
+    },
+  }));
+
+  assert.equal(result.validation.valid, false);
+  assert.equal(result.validation.errors.some((error) => error.item_id === "authority.closed"), true);
+  assert.equal(result.summary.f0_1_receipt_preflight_passed, false);
+  assert.equal(result.receipt_targets.find((target) => target.target_id === "f0_1.connector_external_app_governance").unsafe_authority_true_count, 1);
+  assert.equal(result.receipt_targets.find((target) => target.target_id === "f0_1.execution_write_authority_maturity").unsafe_authority_true_count, 1);
+  assert.equal(result.receipt_preflight_rows.find((row) => row.row_id.endsWith("authority.flags_false") && row.target_id === "f0_1.connector_external_app_governance").current_verdict, "blocked");
+  assert.equal(result.receipt_preflight_rows.find((row) => row.row_id.endsWith("authority.flags_false") && row.target_id === "f0_1.execution_write_authority_maturity").current_verdict, "blocked");
+});
+
 test("Factory Receipt Preflight --check does not overwrite artifacts", async () => {
   const outDir = await mkdtemp(path.join(os.tmpdir(), "factory-receipt-preflight-"));
   const sentinelPath = path.join(outDir, "factory-receipt-preflight.json");

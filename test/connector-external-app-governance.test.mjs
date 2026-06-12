@@ -243,6 +243,25 @@ test("Connector And External App Governance rejects weak or unsafe Claude review
   assert.equal(labelOnlyModel.summary.claude_connector_governance_review_receipt_present_now, false);
   assert.equal(labelOnlyModel.summary.ready_for_p15801_handoff, false);
 
+  for (const receiptPatch of [
+    { schema_version: "wrong-schema" },
+    { review_engine: "fable_5" },
+    { scope_id: "execution_write_authority_maturity" },
+    { reviewed_commit_sha: "not-a-sha" },
+    { prompt_sha256: "not-a-hash" },
+    { raw_output_sha256: "not-a-hash" },
+    { unresolved_finding_count: null },
+  ]) {
+    const result = await buildConnectorExternalAppGovernance(options({
+      claudeConnectorGovernanceReviewReceipt: {
+        ...CLAUDE_CONNECTOR_REVIEW_READY,
+        ...receiptPatch,
+      },
+    }));
+    assert.equal(result.summary.claude_connector_governance_review_receipt_present_now, false);
+    assert.equal(result.summary.ready_for_p15801_handoff, false);
+  }
+
   const planningLane = await buildConnectorExternalAppGovernance(options({
     claudeConnectorGovernanceReviewReceipt: {
       ...CLAUDE_CONNECTOR_REVIEW_READY,

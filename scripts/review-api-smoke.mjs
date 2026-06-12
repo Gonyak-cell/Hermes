@@ -24,6 +24,7 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/factory/candidate-lane"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/gate-opening-readiness"));
   assert.ok(index.routes.some((route) => route.path === "/api/factory/g1a-opening-packet"));
+  assert.ok(index.routes.some((route) => route.path === "/api/factory/g1a-owner-receipt-intake"));
   assert.ok(index.routes.some((route) => route.path === "/api/packs"));
   assert.ok(index.routes.some((route) => route.path === "/api/capabilities"));
   assert.ok(index.routes.some((route) => route.path === "/api/artifacts"));
@@ -7322,6 +7323,22 @@ try {
   assert.equal(factoryG1aOpeningPacketHead.status, 200);
   const factoryG1aOpeningPacketPost = await fetch(`${url}/api/factory/g1a-opening-packet`, { method: "POST" });
   assert.equal(factoryG1aOpeningPacketPost.status, 405);
+
+  const factoryG1aOwnerReceiptIntake = await fetchJson(`${url}/api/factory/g1a-owner-receipt-intake?category=owner_signature`);
+  assert.equal(factoryG1aOwnerReceiptIntake.collection, "factory_g1a_owner_receipt_intake_rows");
+  assert.equal(factoryG1aOwnerReceiptIntake.read_only, true);
+  assert.equal(factoryG1aOwnerReceiptIntake.mutation_allowed, false);
+  assert.equal(factoryG1aOwnerReceiptIntake.intake_only, true);
+  assert.equal(factoryG1aOwnerReceiptIntake.opens_gate_now, false);
+  assert.equal(factoryG1aOwnerReceiptIntake.summary.factory_g1a_owner_receipt_intake_status, "waiting_for_signed_g1a_owner_receipt");
+  assert.equal(factoryG1aOwnerReceiptIntake.summary.owner_gate_opening_receipt_signed_now, false);
+  assert.equal(factoryG1aOwnerReceiptIntake.g1a_project_creation_gate_open_now, false);
+  assert.equal(factoryG1aOwnerReceiptIntake.project_creation_allowed_now, false);
+  assert.equal(factoryG1aOwnerReceiptIntake.production_pass_enabled, false);
+  const factoryG1aOwnerReceiptIntakeHead = await fetch(`${url}/api/factory/g1a-owner-receipt-intake`, { method: "HEAD" });
+  assert.equal(factoryG1aOwnerReceiptIntakeHead.status, 200);
+  const factoryG1aOwnerReceiptIntakePost = await fetch(`${url}/api/factory/g1a-owner-receipt-intake`, { method: "POST" });
+  assert.equal(factoryG1aOwnerReceiptIntakePost.status, 405);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

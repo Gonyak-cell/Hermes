@@ -433,6 +433,21 @@ Opus 4.8 Max review packet, and the first-use audit checklist. It does not sign
 the receipt, apply the source literal change, complete independent review, run
 the first-use audit, or open `project_creation_allowed_now`.
 
+## Factory G1a Owner Receipt Intake
+
+G1a owner receipt intake validates a future signed owner `gate_opening` receipt
+before the isolated source-literal commit can be prepared:
+
+```bash
+npm run factory:g1a-owner-receipt-intake -- --check
+node scripts/review-api.mjs --once /api/factory/g1a-owner-receipt-intake
+```
+
+The current default owner receipt is the unsigned G1a template, so the intake
+status is `waiting_for_signed_g1a_owner_receipt`. A valid signed receipt can
+make the intake ready for the source-literal commit, but this still does not
+open G1a, create a workspace, or enable `project_creation_allowed_now`.
+
 ## Claude Review Evidence Validator
 
 Factory promotion review artifacts are classified before they can be counted:

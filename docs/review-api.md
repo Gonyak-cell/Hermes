@@ -192,6 +192,15 @@ Supported filters include `packet_item_id`, `item_kind`, `item_status`,
 
 Routes: `/api/factory/g1a-opening-packet`.
 
+`GET /api/factory/g1a-owner-receipt-intake` returns the read-only owner
+`gate_opening` receipt intake rows for G1a. The default current state is
+`waiting_for_signed_g1a_owner_receipt`; the route does not sign receipts, open
+G1a, or allow project creation.
+
+Supported filters include `row_id`, `category`, `current_verdict`, and `limit`.
+
+Routes: `/api/factory/g1a-owner-receipt-intake`.
+
 `GET` and `HEAD` are allowed. Mutation methods return `405
 method_not_allowed`.
 

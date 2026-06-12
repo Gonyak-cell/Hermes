@@ -654,6 +654,7 @@
     "factory:fe-freeze-handoff": "node scripts/factory-fe-freeze-handoff.mjs",
     "factory:gate-opening-readiness": "node scripts/factory-gate-opening-readiness.mjs",
     "factory:g1a-opening-packet": "node scripts/factory-g1a-opening-packet.mjs",
+    "factory:g1a-owner-receipt-intake": "node scripts/factory-g1a-owner-receipt-intake.mjs",
     "factory:claude-review-evidence": "node scripts/claude-review-evidence-validator.mjs",
     "factory:seed-migration": "node scripts/factory-seed-migration.mjs",
     "factory:receipt-preflight": "node scripts/factory-receipt-preflight.mjs",

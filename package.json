@@ -614,6 +614,7 @@
     "platform:ci-github-evidence-bridge": "node scripts/ci-github-evidence-bridge.mjs",
     "platform:local-session-capture-memory-store": "node scripts/local-session-capture-memory-store.mjs",
     "platform:context-recall-drift-guard": "node scripts/context-recall-drift-guard.mjs",
+    "platform:amplitude-ui-reference-audit": "node scripts/amplitude-ui-reference-audit.mjs",
     "platform:global-ui-reference-intake": "node scripts/global-ui-reference-intake.mjs",
     "platform:global-ui-contract": "node scripts/global-ui-contract.mjs",
     "platform:global-ui-design-foundation": "node scripts/global-ui-design-foundation.mjs",

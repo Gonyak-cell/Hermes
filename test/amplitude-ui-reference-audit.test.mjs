@@ -16,6 +16,7 @@ function options(sourceDir, overrides = {}) {
     runAt: RUN_AT,
     sourceDir,
     write: false,
+    fontPaths: fontPathsForFixture(sourceDir),
     expectedScreenshotCount: 3,
     expectedMinIndex: 0,
     expectedMaxIndex: 2,
@@ -35,6 +36,9 @@ test("Amplitude UI reference audit inventories screenshots, crops, tokens, and H
     assert.equal(result.summary.screenshot_count, 3);
     assert.equal(result.summary.crop_row_count, 3);
     assert.equal(result.summary.measurement_queue_count, 3);
+    assert.equal(result.summary.locale_count, 2);
+    assert.equal(result.summary.korean_font_count, 7);
+    assert.equal(result.summary.korean_font_available_count, 7);
     assert.equal(result.summary.pixel_measurement_count, 3);
     assert.equal(result.summary.pixel_measurement_complete_count, 3);
     assert.equal(result.pixel_measurement_rows.every((row) => row.exact_pixel_measurement_complete === true), true);
@@ -45,6 +49,10 @@ test("Amplitude UI reference audit inventories screenshots, crops, tokens, and H
     assert.equal(result.ui_reference_boundary.literal_clone_allowed, false);
     assert.equal(result.ui_reference_boundary.amplitude_brand_assets_copied, false);
     assert.equal(result.ui_reference_boundary.mobbin_footer_used_as_ui, false);
+    assert.equal(result.ui_reference_boundary.locale_switch_ready, true);
+    assert.equal(result.ui_reference_boundary.korean_font_manifest_ready, true);
+    assert.equal(result.html.includes("data-locale-select"), true);
+    assert.equal(result.html.includes("@font-face"), true);
   } finally {
     await rm(sourceDir, { recursive: true, force: true });
   }
@@ -97,7 +105,22 @@ async function createReferenceFixture() {
   }
   await writeFile(path.join(sourceDir, "showcase-preview.png"), pngRgba(1440, 900, false));
   await writeFile(path.join(sourceDir, "showcase.html"), "<!doctype html><title>fixture</title>\n", "utf8");
+  for (const fontPath of Object.values(fontPathsForFixture(sourceDir))) {
+    await writeFile(fontPath, "fixture-font\n", "utf8");
+  }
   return sourceDir;
+}
+
+function fontPathsForFixture(sourceDir) {
+  return {
+    "ko.body.regular": path.join(sourceDir, "Pretendard-Regular.otf"),
+    "ko.body.medium": path.join(sourceDir, "Pretendard-Medium.otf"),
+    "ko.body.semibold": path.join(sourceDir, "Pretendard-SemiBold.otf"),
+    "ko.body.bold": path.join(sourceDir, "Pretendard-Bold.otf"),
+    "ko.heading.regular": path.join(sourceDir, "SUITE-Regular.otf"),
+    "ko.heading.medium": path.join(sourceDir, "SUITE-Medium.otf"),
+    "ko.heading.bold": path.join(sourceDir, "SUITE-Bold.otf"),
+  };
 }
 
 function pngHeader(width, height) {

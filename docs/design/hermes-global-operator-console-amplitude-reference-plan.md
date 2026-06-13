@@ -30,6 +30,8 @@ Required artifacts:
 
 - `screenshot-manifest.json`: all numbered screenshots, dimensions, bytes, sha256
 - `asset-manifest.json`: showcase preview and showcase HTML metadata
+- `font-manifest.json`: Korean UI font references for Pretendard body and SUITE headings
+- `locale-rows.json`: Korean/English locale selector contract
 - `crop-manifest.json`: product crop and attribution/footer exclusion rows
 - `screen-family-rows.json`: seed classifications plus pending full visual review rows
 - `measurement-queue-rows.json`: one exact-pixel measurement queue row per screenshot
@@ -70,6 +72,27 @@ The exact-pixel measurement pass must capture:
 - modal width
 - inspector width
 - chart/workspace region height
+
+## Locale And Typography Contract
+
+The UI must expose a full `Korean / English` selector. The default locale is Korean for the local operator workflow, but Korean copy intentionally keeps natural English technical terms when those terms read better in product UI: `Hermes`, `Global Operator Console`, `Queue`, `Gate`, `Review`, `Receipt`, `Evidence`, `Pixel`, `Overlay`, `API`, and `CI`.
+
+Korean typography uses the local LazyWeb font assets without silently copying binaries into the repository:
+
+| Role | Font |
+|---|---|
+| Korean body | `Pretendard` |
+| Korean heading | `SUITE` |
+| English | system UI sans stack |
+
+Generated UI artifacts include:
+
+- `@font-face` rules from `font-manifest.json`
+- `data-locale-select` controls
+- Korean/English copy dictionaries
+- `lang` and `body[data-locale]` switching
+
+Before production packaging, the font license and deployment path must be reviewed and the font assets must be intentionally packaged or replaced by approved webfont delivery. The current reference audit uses local file URLs only.
 
 ## Current Pixel Measurement Output
 

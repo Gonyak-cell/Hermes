@@ -1,10 +1,12 @@
 import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { inflateSync } from "node:zlib";
 
 export const DEFAULT_AMPLITUDE_UI_REFERENCE_SOURCE_DIR = "/Users/jws/Applications/LazyWeb/Amplitude web Feb 2025";
 export const DEFAULT_AMPLITUDE_UI_REFERENCE_OUT_DIR = "artifacts/ui-reference/amplitude-feb-2025/latest";
+export const DEFAULT_AMPLITUDE_UI_FONT_SEARCH_ROOT = "/Users/jws/Applications/LazyWeb";
 
 const COMMAND_NAME = "platform:amplitude-ui-reference-audit";
 const SCHEMA_VERSION = "amplitude-ui-reference-audit.v1";
@@ -20,6 +22,21 @@ const EXPECTED_PRODUCT_CROP = { x: 0, y: 0, width: 1920, height: 1200 };
 const EXPECTED_ATTRIBUTION_FOOTER = { x: 0, y: 1200, width: 1920, height: 120 };
 const EXPECTED_SHOWCASE_PREVIEW_DIMENSIONS = { width: 1440, height: 900 };
 const PNG_SIGNATURE_HEX = "89504e470d0a1a0a";
+
+const FONT_ROLE_SPECS = [
+  ["ko.body.regular", "Pretendard-Regular.otf", "Hermes Pretendard", 400, "body"],
+  ["ko.body.medium", "Pretendard-Medium.otf", "Hermes Pretendard", 500, "body"],
+  ["ko.body.semibold", "Pretendard-SemiBold.otf", "Hermes Pretendard", 600, "body"],
+  ["ko.body.bold", "Pretendard-Bold.otf", "Hermes Pretendard", 700, "body"],
+  ["ko.heading.regular", "SUITE-Regular.otf", "Hermes SUITE", 400, "heading"],
+  ["ko.heading.medium", "SUITE-Medium.otf", "Hermes SUITE", 500, "heading"],
+  ["ko.heading.bold", "SUITE-Bold.otf", "Hermes SUITE", 700, "heading"],
+];
+
+const LOCALE_SPECS = [
+  ["ko", "Korean", "ko-KR", "Korean UI with natural English technical terms", true],
+  ["en", "English", "en-US", "English UI", false],
+];
 
 const REQUIRED_HERMES_SURFACE_IDS = [
   "surface.global_operator_queue",
@@ -149,6 +166,8 @@ export async function buildAmplitudeUiReferenceAudit(options = {}) {
   const source = await readReferenceSource(sourceDir);
   const screenshotManifest = await buildScreenshotManifest(source, generatedAt);
   const assetManifest = await buildAssetManifest(source, generatedAt);
+  const fontManifestRows = await buildFontManifestRows(options, generatedAt);
+  const localeRows = buildLocaleRows(generatedAt);
   const cropRows = buildCropRows(screenshotManifest, generatedAt);
   const screenFamilyRows = buildScreenFamilyRows(screenshotManifest, generatedAt);
   const measurementQueueRows = buildMeasurementQueueRows(screenshotManifest, generatedAt);
@@ -164,6 +183,8 @@ export async function buildAmplitudeUiReferenceAudit(options = {}) {
     source,
     screenshotManifest,
     assetManifest,
+    fontManifestRows,
+    localeRows,
     cropRows,
     screenFamilyRows,
     measurementQueueRows,
@@ -179,6 +200,8 @@ export async function buildAmplitudeUiReferenceAudit(options = {}) {
     source,
     screenshotManifest,
     assetManifest,
+    fontManifestRows,
+    localeRows,
     cropRows,
     screenFamilyRows,
     measurementQueueRows,
@@ -203,6 +226,8 @@ export async function buildAmplitudeUiReferenceAudit(options = {}) {
     reference_source: source.summary,
     screenshot_manifest: screenshotManifest,
     asset_manifest: assetManifest,
+    font_manifest_rows: fontManifestRows,
+    locale_rows: localeRows,
     crop_manifest_rows: cropRows,
     screen_family_rows: screenFamilyRows,
     measurement_queue_rows: measurementQueueRows,
@@ -219,6 +244,8 @@ export async function buildAmplitudeUiReferenceAudit(options = {}) {
       source,
       screenshotManifest,
       assetManifest,
+      fontManifestRows,
+      localeRows,
       cropRows,
       screenFamilyRows,
       measurementQueueRows,
@@ -240,6 +267,8 @@ export async function writeAmplitudeUiReferenceAudit(result, outDir = result.out
   await writeJson(path.join(outDir, "amplitude-ui-reference-audit.json"), serializableResult(result));
   await writeJson(path.join(outDir, "screenshot-manifest.json"), collectionEnvelope("amplitude-screenshot-manifest.v1", "screenshots", result.screenshot_manifest, result.generated_at));
   await writeJson(path.join(outDir, "asset-manifest.json"), collectionEnvelope("amplitude-asset-manifest.v1", "assets", result.asset_manifest, result.generated_at));
+  await writeJson(path.join(outDir, "font-manifest.json"), collectionEnvelope("amplitude-ui-font-manifest.v1", "font_manifest_rows", result.font_manifest_rows, result.generated_at));
+  await writeJson(path.join(outDir, "locale-rows.json"), collectionEnvelope("amplitude-ui-locale-rows.v1", "locale_rows", result.locale_rows, result.generated_at));
   await writeJson(path.join(outDir, "crop-manifest.json"), collectionEnvelope("amplitude-crop-manifest.v1", "crop_manifest_rows", result.crop_manifest_rows, result.generated_at));
   await writeJson(path.join(outDir, "screen-family-rows.json"), collectionEnvelope("amplitude-screen-family-rows.v1", "screen_family_rows", result.screen_family_rows, result.generated_at));
   await writeJson(path.join(outDir, "measurement-queue-rows.json"), collectionEnvelope("amplitude-measurement-queue-rows.v1", "measurement_queue_rows", result.measurement_queue_rows, result.generated_at));
@@ -381,6 +410,84 @@ async function buildAssetManifest(source, generatedAt) {
     });
   }
   return rows;
+}
+
+async function buildFontManifestRows(options, generatedAt) {
+  const provided = options.fontPaths ?? null;
+  const discovered = provided ? provided : await discoverFontPaths(DEFAULT_AMPLITUDE_UI_FONT_SEARCH_ROOT);
+  const rows = [];
+  for (const [font_role, filename, family, weight, usage] of FONT_ROLE_SPECS) {
+    const absolutePath = discovered[font_role] ?? null;
+    const available = absolutePath ? await fileExists(absolutePath) : false;
+    rows.push({
+      row_id: `font.${font_role}`,
+      font_role,
+      expected_filename: filename,
+      font_family: family,
+      font_weight: weight,
+      usage,
+      locale_id: "ko",
+      absolute_path: absolutePath,
+      file_url: available ? pathToFileURL(absolutePath).href : null,
+      available,
+      generated_at: generatedAt,
+      font_binary_copied_to_repo: false,
+      local_reference_only: true,
+      product_font_packaging_required_before_deploy: true,
+    });
+  }
+  return rows;
+}
+
+function buildLocaleRows(generatedAt) {
+  return LOCALE_SPECS.map(([locale_id, label, html_lang, usage, default_locale]) => ({
+    row_id: `locale.${locale_id}`,
+    locale_id,
+    label,
+    html_lang,
+    usage,
+    default_locale,
+    selectable_in_ui: true,
+    generated_at: generatedAt,
+    english_terms_allowed_in_korean: locale_id === "ko",
+    technical_terms_kept_in_english: locale_id === "ko"
+      ? ["Hermes", "Global Operator Console", "Queue", "Gate", "Review", "Receipt", "Evidence", "Pixel", "Overlay", "API", "CI"]
+      : [],
+  }));
+}
+
+async function discoverFontPaths(rootDir) {
+  const filenames = new Map(FONT_ROLE_SPECS.map(([role, filename]) => [filename, role]));
+  const found = {};
+  await walkFontRoot(rootDir, filenames, found);
+  return found;
+}
+
+async function walkFontRoot(dir, filenames, found) {
+  let entries;
+  try {
+    entries = await readdir(dir, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  for (const entry of entries) {
+    const absolutePath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      await walkFontRoot(absolutePath, filenames, found);
+    } else if (entry.isFile()) {
+      const role = filenames.get(entry.name);
+      if (role && !found[role]) found[role] = absolutePath;
+    }
+  }
+}
+
+async function fileExists(filePath) {
+  try {
+    const fileStat = await stat(filePath);
+    return fileStat.isFile();
+  } catch {
+    return false;
+  }
 }
 
 function buildCropRows(screenshotManifest, generatedAt) {
@@ -638,6 +745,9 @@ function buildBoundary(context) {
   const preview = context.assetManifest.find((row) => row.filename === "showcase-preview.png");
   const showcaseHtml = context.assetManifest.find((row) => row.filename === "showcase.html");
   const overlayRows = selectOverlayRows(context.pixelMeasurementRows);
+  const localeReady = ["ko", "en"].every((localeId) => context.localeRows.some((row) => row.locale_id === localeId && row.selectable_in_ui === true));
+  const koreanFontsReady = context.fontManifestRows.length === FONT_ROLE_SPECS.length
+    && context.fontManifestRows.every((row) => row.available === true);
   const showcaseComplete = Boolean(preview)
     && preview.width === EXPECTED_SHOWCASE_PREVIEW_DIMENSIONS.width
     && preview.height === EXPECTED_SHOWCASE_PREVIEW_DIMENSIONS.height
@@ -651,12 +761,16 @@ function buildBoundary(context) {
     && context.pixelMeasurementRows.every((row) => row.exact_pixel_measurement_complete === true)
     && context.pixelMeasurementSummaryRows.some((row) => row.ready_for_token_promotion === true)
     && overlayRows.length >= 3
+    && localeReady
+    && koreanFontsReady
     && REQUIRED_HERMES_SURFACE_IDS.every((surfaceId) => mappingIds.has(surfaceId));
 
   return {
     reference_pack_available: context.source.available,
     screenshot_inventory_ready: inventoryComplete,
     showcase_assets_ready: showcaseComplete,
+    locale_switch_ready: localeReady,
+    korean_font_manifest_ready: koreanFontsReady,
     screenshot_crop_manifest_ready: context.cropRows.length === context.screenshotManifest.length,
     measurement_queue_ready: context.measurementQueueRows.length === context.screenshotManifest.length,
     exact_pixel_measurement_ready: context.pixelMeasurementRows.length === context.screenshotManifest.length
@@ -672,6 +786,7 @@ function buildBoundary(context) {
     visual_reference_only: true,
     source_body_embedded: false,
     binary_body_embedded: false,
+    font_binary_copied_to_repo: false,
     screenshot_binary_copied_to_repo: false,
     amplitude_brand_assets_copied: false,
     amplitude_logo_or_copy_allowed: false,
@@ -706,6 +821,7 @@ function buildValidationItems(context) {
   const preview = context.assetManifest.find((row) => row.filename === "showcase-preview.png");
   const html = context.assetManifest.find((row) => row.filename === "showcase.html");
   const mappingIds = new Set(context.hermesSurfaceMappingRows.map((row) => row.surface_id));
+  const localeIds = new Set(context.localeRows.map((row) => row.locale_id));
 
   add("source.available", "source", context.source.available, `Source directory unavailable: ${context.source.error ?? context.source.path}`, context.source.path);
   add("screenshots.count", "inventory", context.screenshotManifest.length === context.expected.screenshot_count, `Expected ${context.expected.screenshot_count} screenshots, found ${context.screenshotManifest.length}`, context.source.path);
@@ -716,6 +832,12 @@ function buildValidationItems(context) {
   add("showcase.preview", "asset", Boolean(preview), "showcase-preview.png missing", "asset_manifest");
   add("showcase.preview.dimensions", "asset", Boolean(preview) && preview.width === EXPECTED_SHOWCASE_PREVIEW_DIMENSIONS.width && preview.height === EXPECTED_SHOWCASE_PREVIEW_DIMENSIONS.height, "showcase-preview.png must be 1440x900", "asset_manifest");
   add("showcase.html", "asset", Boolean(html), "showcase.html missing", "asset_manifest");
+  add("locale.ko.en", "locale", localeIds.has("ko") && localeIds.has("en"), "Korean and English locale rows are required", "locale_rows");
+  add("locale.selectable", "locale", context.localeRows.filter((row) => ["ko", "en"].includes(row.locale_id)).every((row) => row.selectable_in_ui === true), "Korean and English must be selectable in UI", "locale_rows");
+  add("locale.ko.english.terms", "locale", context.localeRows.find((row) => row.locale_id === "ko")?.english_terms_allowed_in_korean === true, "Korean UI must allow natural English technical terms", "locale_rows");
+  add("font.rows", "font", context.fontManifestRows.length === FONT_ROLE_SPECS.length, "Korean font manifest rows incomplete", "font_manifest_rows");
+  add("font.available", "font", context.fontManifestRows.every((row) => row.available === true), "All Korean font files must be available", "font_manifest_rows");
+  add("font.no.copy", "font", context.fontManifestRows.every((row) => row.font_binary_copied_to_repo === false), "Font binaries must not be silently copied into repo", "font_manifest_rows");
   add("crop.rows", "crop", context.cropRows.length === context.screenshotManifest.length, "Crop row count must match screenshot count", "crop_manifest_rows");
   add("crop.footer.excluded", "crop", context.cropRows.every((row) => row.attribution_footer_excluded_from_measurements === true), "Attribution/footer must be excluded from every numbered screenshot measurement", "crop_manifest_rows");
   add("measurement.queue.rows", "measurement", context.measurementQueueRows.length === context.screenshotManifest.length, "Measurement queue row count must match screenshot count", "measurement_queue_rows");
@@ -744,6 +866,9 @@ function buildSummary(context) {
     reference_pack_available: context.source.available,
     screenshot_count: context.screenshotManifest.length,
     asset_count: context.assetManifest.length,
+    locale_count: context.localeRows.length,
+    korean_font_count: context.fontManifestRows.length,
+    korean_font_available_count: context.fontManifestRows.filter((row) => row.available === true).length,
     crop_row_count: context.cropRows.length,
     screen_family_count: context.screenFamilyRows.length,
     measurement_queue_count: context.measurementQueueRows.length,
@@ -760,6 +885,8 @@ function buildSummary(context) {
     ready_for_hermes_ui_execution_package: context.boundary.ready_for_hermes_ui_execution_package,
     read_only_reference_intake: context.boundary.read_only_reference_intake,
     visual_reference_only: context.boundary.visual_reference_only,
+    locale_switch_ready: context.boundary.locale_switch_ready,
+    korean_font_manifest_ready: context.boundary.korean_font_manifest_ready,
     literal_clone_allowed: context.boundary.literal_clone_allowed,
     amplitude_brand_assets_copied: context.boundary.amplitude_brand_assets_copied,
     mobbin_footer_used_as_ui: context.boundary.mobbin_footer_used_as_ui,
@@ -817,16 +944,23 @@ function renderHtml(result) {
   const surfaceRows = result.hermes_surface_mapping_rows.map((row) => `<tr><td>${escapeHtml(row.label)}</td><td>${escapeHtml(row.source_pattern)}</td><td>${escapeHtml(row.hermes_instruction)}</td></tr>`).join("");
   const pixelSummaryRows = result.pixel_measurement_summary_rows.map((row) => `<tr><td>${escapeHtml(row.metric_name)}</td><td>${escapeHtml(row.sample_count)}</td><td>${escapeHtml(row.median_px ?? "n/a")}</td><td>${escapeHtml(row.common_values.map((item) => `${item.value_px}px (${item.count})`).join(", "))}</td></tr>`).join("");
   return `<!doctype html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Amplitude UI Reference Audit</title>
   <style>
-    body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #111827; background: #f8fafc; }
+    ${fontFaceCss(result.font_manifest_rows)}
+    :root { --font-en: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --font-ko-body: "Hermes Pretendard", var(--font-en); --font-ko-heading: "Hermes SUITE", "Hermes Pretendard", var(--font-en); }
+    body { margin: 0; font-family: var(--font-ko-body); color: #111827; background: #f8fafc; word-break: keep-all; }
+    body[data-locale="en"] { font-family: var(--font-en); word-break: normal; }
     main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
-    h1 { font-size: 24px; margin: 0 0 16px; }
-    h2 { font-size: 16px; margin: 28px 0 12px; }
+    h1 { font-family: var(--font-ko-heading); font-size: 24px; margin: 0 0 16px; }
+    h2 { font-family: var(--font-ko-heading); font-size: 16px; margin: 28px 0 12px; }
+    body[data-locale="en"] h1, body[data-locale="en"] h2 { font-family: var(--font-en); }
+    .toolbar { display:flex; justify-content:space-between; align-items:center; gap:16px; margin:0 0 16px; }
+    .locale { display:inline-flex; align-items:center; gap:8px; font-size:12px; color:#4b5563; }
+    select { height:32px; border:1px solid #d1d5db; border-radius:6px; background:white; color:#111827; padding:0 28px 0 10px; font:inherit; font-size:12px; }
     .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
     .metric { border: 1px solid #e5e7eb; border-radius: 6px; padding: 14px; background: white; }
     .metric strong { display: block; font-size: 22px; }
@@ -839,27 +973,31 @@ function renderHtml(result) {
 </head>
 <body>
   <main>
-    <h1>Amplitude UI Reference Audit</h1>
-    <div class="notice">This is a read-only Hermes reference intake package. It translates layout evidence into Hermes UI contracts without copying brand assets, screenshots, or product claims.</div>
-    <h2>Summary</h2>
+    <div class="toolbar">
+      <h1 data-i18n="title">Amplitude UI Reference Audit</h1>
+      <label class="locale"><span data-i18n="languageLabel">Language</span><select data-locale-select aria-label="Language"><option value="ko">Korean</option><option value="en">English</option></select></label>
+    </div>
+    <div class="notice" data-i18n="notice">Hermes read-only reference intake입니다. Brand asset이나 screenshot을 복사하지 않고 layout evidence를 Hermes UI contract로 변환합니다.</div>
+    <h2 data-i18n="summary">Summary</h2>
     <section class="grid">
-      <div class="metric"><strong>${result.summary.screenshot_count}</strong><span>screenshots</span></div>
-      <div class="metric"><strong>${result.summary.measurement_queue_count}</strong><span>measurement rows</span></div>
-      <div class="metric"><strong>${result.summary.pixel_measurement_complete_count}</strong><span>pixel-complete</span></div>
-      <div class="metric"><strong>${result.summary.design_token_seed_count}</strong><span>token seeds</span></div>
-      <div class="metric"><strong>${result.summary.validation_error_count}</strong><span>validation errors</span></div>
+      <div class="metric"><strong>${result.summary.screenshot_count}</strong><span data-i18n="screenshots">Screenshots</span></div>
+      <div class="metric"><strong>${result.summary.measurement_queue_count}</strong><span data-i18n="measurementRows">Measurement rows</span></div>
+      <div class="metric"><strong>${result.summary.pixel_measurement_complete_count}</strong><span data-i18n="pixelComplete">Pixel complete</span></div>
+      <div class="metric"><strong>${result.summary.design_token_seed_count}</strong><span data-i18n="tokenSeeds">Token seeds</span></div>
+      <div class="metric"><strong>${result.summary.validation_error_count}</strong><span data-i18n="validationErrors">Validation errors</span></div>
     </section>
-    <h2>Pixel Measurement Summary</h2>
+    <h2 data-i18n="pixelSummary">Pixel Measurement Summary</h2>
     <table>
-      <thead><tr><th>Metric</th><th>Samples</th><th>Median px</th><th>Common Values</th></tr></thead>
+      <thead><tr><th data-i18n="metric">Metric</th><th data-i18n="samples">Samples</th><th data-i18n="medianPx">Median px</th><th data-i18n="commonValues">Common Values</th></tr></thead>
       <tbody>${pixelSummaryRows}</tbody>
     </table>
-    <h2>Hermes Surface Mapping</h2>
+    <h2 data-i18n="surfaceMapping">Hermes Surface Mapping</h2>
     <table>
-      <thead><tr><th>Surface</th><th>Reference Pattern</th><th>Hermes Translation</th></tr></thead>
+      <thead><tr><th data-i18n="surface">Surface</th><th data-i18n="referencePattern">Reference Pattern</th><th data-i18n="hermesTranslation">Hermes Translation</th></tr></thead>
       <tbody>${surfaceRows}</tbody>
     </table>
   </main>
+  ${localeScript()}
 </body>
 </html>`;
 }
@@ -868,17 +1006,24 @@ function renderPixelOverlayHtml(result) {
   const selectedRows = selectOverlayRows(result.pixel_measurement_rows);
   const overlaySections = selectedRows.map((row) => renderOverlaySection(row)).join("\n");
   return `<!doctype html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Amplitude Pixel Layout Overlay</title>
   <style>
-    body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #111827; background: #f8fafc; }
+    ${fontFaceCss(result.font_manifest_rows)}
+    :root { --font-en: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --font-ko-body: "Hermes Pretendard", var(--font-en); --font-ko-heading: "Hermes SUITE", "Hermes Pretendard", var(--font-en); }
+    body { margin: 0; font-family: var(--font-ko-body); color: #111827; background: #f8fafc; word-break: keep-all; }
+    body[data-locale="en"] { font-family: var(--font-en); word-break: normal; }
     main { max-width: 1180px; margin: 0 auto; padding: 28px 24px; }
-    h1 { font-size: 24px; margin: 0 0 8px; }
-    h2 { font-size: 16px; margin: 26px 0 10px; }
+    h1 { font-family: var(--font-ko-heading); font-size: 24px; margin: 0 0 8px; }
+    h2 { font-family: var(--font-ko-heading); font-size: 16px; margin: 26px 0 10px; }
+    body[data-locale="en"] h1, body[data-locale="en"] h2 { font-family: var(--font-en); }
     p { color: #4b5563; font-size: 13px; line-height: 1.5; }
+    .toolbar { display:flex; justify-content:space-between; align-items:center; gap:16px; margin:0 0 12px; }
+    .locale { display:inline-flex; align-items:center; gap:8px; font-size:12px; color:#4b5563; }
+    select { height:32px; border:1px solid #d1d5db; border-radius:6px; background:white; color:#111827; padding:0 28px 0 10px; font:inherit; font-size:12px; }
     .shot { border: 1px solid #e5e7eb; background: white; border-radius: 6px; padding: 14px; margin: 18px 0; }
     .canvas { position: relative; width: 100%; aspect-ratio: 1920 / 1200; overflow: hidden; border: 1px solid #e5e7eb; background: #f3f4f6; }
     .canvas img { position: absolute; inset: 0; width: 100%; height: auto; }
@@ -892,10 +1037,14 @@ function renderPixelOverlayHtml(result) {
 </head>
 <body>
   <main>
-    <h1>Amplitude Pixel Layout Overlay</h1>
-    <p>Overlay lines are generated from decoded PNG pixels inside the product crop only. The footer attribution band is excluded and the source images are referenced from their local absolute paths, not copied into Hermes product assets.</p>
+    <div class="toolbar">
+      <h1 data-i18n="overlayTitle">Amplitude Pixel Layout Overlay</h1>
+      <label class="locale"><span data-i18n="languageLabel">Language</span><select data-locale-select aria-label="Language"><option value="ko">Korean</option><option value="en">English</option></select></label>
+    </div>
+    <p data-i18n="overlayNotice">Overlay line은 product crop 내부의 decoded PNG pixel에서 생성됩니다. Footer attribution band는 제외하며 source image는 local absolute path로만 참조합니다.</p>
     ${overlaySections}
   </main>
+  ${localeScript()}
 </body>
 </html>`;
 }
@@ -937,6 +1086,81 @@ function selectOverlayRows(rows) {
     .sort((a, b) => b.confidence - a.confidence)
     .slice(0, 9);
   return [...seeded, ...highConfidence];
+}
+
+function fontFaceCss(fontRows) {
+  return fontRows
+    .filter((row) => row.available && row.file_url)
+    .map((row) => `@font-face { font-family: "${row.font_family}"; src: url("${row.file_url}") format("opentype"); font-weight: ${row.font_weight}; font-style: normal; font-display: swap; }`)
+    .join("\n    ");
+}
+
+function localeScript() {
+  return `<script>
+    const hermesLocaleCopy = {
+      ko: {
+        title: "Amplitude UI Reference Audit",
+        overlayTitle: "Amplitude Pixel Layout Overlay",
+        languageLabel: "Language",
+        notice: "Hermes read-only reference intake입니다. Brand asset이나 screenshot을 복사하지 않고 layout evidence를 Hermes UI contract로 변환합니다.",
+        overlayNotice: "Overlay line은 product crop 내부의 decoded PNG pixel에서 생성됩니다. Footer attribution band는 제외하며 source image는 local absolute path로만 참조합니다.",
+        summary: "Summary",
+        screenshots: "Screenshots",
+        measurementRows: "Measurement rows",
+        pixelComplete: "Pixel complete",
+        tokenSeeds: "Token seeds",
+        validationErrors: "Validation errors",
+        pixelSummary: "Pixel Measurement Summary",
+        metric: "Metric",
+        samples: "Samples",
+        medianPx: "Median px",
+        commonValues: "Common Values",
+        surfaceMapping: "Hermes Surface Mapping",
+        surface: "Surface",
+        referencePattern: "Reference Pattern",
+        hermesTranslation: "Hermes Translation"
+      },
+      en: {
+        title: "Amplitude UI Reference Audit",
+        overlayTitle: "Amplitude Pixel Layout Overlay",
+        languageLabel: "Language",
+        notice: "This is a read-only Hermes reference intake. It translates layout evidence into Hermes UI contracts without copying brand assets or screenshots.",
+        overlayNotice: "Overlay lines are generated from decoded PNG pixels inside the product crop only. The footer attribution band is excluded and source images are referenced from local absolute paths.",
+        summary: "Summary",
+        screenshots: "Screenshots",
+        measurementRows: "Measurement rows",
+        pixelComplete: "Pixel complete",
+        tokenSeeds: "Token seeds",
+        validationErrors: "Validation errors",
+        pixelSummary: "Pixel Measurement Summary",
+        metric: "Metric",
+        samples: "Samples",
+        medianPx: "Median px",
+        commonValues: "Common Values",
+        surfaceMapping: "Hermes Surface Mapping",
+        surface: "Surface",
+        referencePattern: "Reference Pattern",
+        hermesTranslation: "Hermes Translation"
+      }
+    };
+    function applyHermesLocale(locale) {
+      const nextLocale = locale === "en" ? "en" : "ko";
+      document.documentElement.lang = nextLocale === "ko" ? "ko" : "en";
+      document.body.dataset.locale = nextLocale;
+      for (const node of document.querySelectorAll("[data-i18n]")) {
+        const key = node.getAttribute("data-i18n");
+        node.textContent = hermesLocaleCopy[nextLocale][key] || hermesLocaleCopy.en[key] || node.textContent;
+      }
+      for (const select of document.querySelectorAll("[data-locale-select]")) select.value = nextLocale;
+      try { localStorage.setItem("hermes-ui-locale", nextLocale); } catch {}
+    }
+    for (const select of document.querySelectorAll("[data-locale-select]")) {
+      select.addEventListener("change", (event) => applyHermesLocale(event.target.value));
+    }
+    let savedLocale = "ko";
+    try { savedLocale = localStorage.getItem("hermes-ui-locale") || "ko"; } catch {}
+    applyHermesLocale(savedLocale);
+  </script>`;
 }
 
 async function readFileMetadata(filePath) {

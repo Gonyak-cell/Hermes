@@ -14,6 +14,12 @@
     "non_human_workstream_rows",
     "non_human_command_rows",
     "authority_guard_rows",
+    "ci_runtime_upgrade_rows",
+    "pr_review_packet_rows",
+    "release_readiness_gap_rows",
+    "ui_productization_rows",
+    "gate_readiness_cross_ref_rows",
+    "next_work_queue_rows",
     "execution_plan_rows",
     "launch_non_human_boundary",
     "validation_items",
@@ -126,6 +132,168 @@
         ]
       }
     },
+    "ci_runtime_upgrade_rows": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/verdictRow" },
+          {
+            "type": "object",
+            "required": [
+              "upgrade_id",
+              "legacy_action_absent",
+              "target_action_present",
+              "node24_capable_major_required",
+              "mutates_runtime_authority"
+            ],
+            "properties": {
+              "legacy_action_absent": { "const": true },
+              "target_action_present": { "const": true },
+              "node24_capable_major_required": { "const": true },
+              "mutates_runtime_authority": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "pr_review_packet_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/verdictRow" },
+          {
+            "type": "object",
+            "required": [
+              "packet_id",
+              "codex_may_prepare_packet",
+              "codex_may_mark_approved",
+              "review_completion_claimed_now",
+              "human_approval_counted_now"
+            ],
+            "properties": {
+              "codex_may_prepare_packet": { "const": true },
+              "codex_may_mark_approved": { "const": false },
+              "review_completion_claimed_now": { "const": false },
+              "human_approval_counted_now": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "release_readiness_gap_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/verdictRow" },
+          {
+            "type": "object",
+            "required": [
+              "gap_id",
+              "gap_category",
+              "codex_executable",
+              "requires_human",
+              "gap_status",
+              "release_approval_allowed_now",
+              "production_pass_enabled",
+              "enterprise_pass_enabled"
+            ],
+            "properties": {
+              "release_approval_allowed_now": { "const": false },
+              "production_pass_enabled": { "const": false },
+              "enterprise_pass_enabled": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "ui_productization_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/verdictRow" },
+          {
+            "type": "object",
+            "required": [
+              "ui_id",
+              "first_viewport_signal",
+              "read_only_surface",
+              "protected_action_controls_enabled",
+              "raw_payload_embedded"
+            ],
+            "properties": {
+              "first_viewport_signal": { "const": true },
+              "read_only_surface": { "const": true },
+              "protected_action_controls_enabled": { "const": false },
+              "raw_payload_embedded": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "gate_readiness_cross_ref_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/verdictRow" },
+          {
+            "type": "object",
+            "required": [
+              "gate_id",
+              "source_evidence_complete",
+              "protected_authority_closed",
+              "opens_gate_now",
+              "owner_approval_counted_now",
+              "deployment_allowed_now"
+            ],
+            "properties": {
+              "source_evidence_complete": { "const": true },
+              "protected_authority_closed": { "const": true },
+              "opens_gate_now": { "const": false },
+              "owner_approval_counted_now": { "const": false },
+              "deployment_allowed_now": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "next_work_queue_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/verdictRow" },
+          {
+            "type": "object",
+            "required": [
+              "queue_id",
+              "sequence",
+              "codex_executable_now",
+              "requires_human_before_execution",
+              "protected_action_allowed_now",
+              "release_approval_allowed_now"
+            ],
+            "properties": {
+              "sequence": { "type": "integer", "minimum": 1 },
+              "codex_executable_now": { "const": true },
+              "requires_human_before_execution": { "const": false },
+              "protected_action_allowed_now": { "const": false },
+              "release_approval_allowed_now": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
     "execution_plan_rows": {
       "type": "array",
       "minItems": 6,
@@ -165,7 +333,13 @@
         "runtime_authority_open_now",
         "protected_action_allowed_now",
         "non_human_work_allowed_now",
-        "all_authority_flags_closed"
+        "all_authority_flags_closed",
+        "ci_runtime_upgraded",
+        "pr_review_packet_ready",
+        "release_gaps_classified",
+        "ui_productization_ready",
+        "gate_readiness_cross_refs_ready",
+        "next_work_queue_ready"
       ],
       "properties": {
         "human_approval_excluded_now": { "const": true },
@@ -178,7 +352,13 @@
         "runtime_authority_open_now": { "const": false },
         "protected_action_allowed_now": { "const": false },
         "non_human_work_allowed_now": { "const": true },
-        "all_authority_flags_closed": { "const": true }
+        "all_authority_flags_closed": { "const": true },
+        "ci_runtime_upgraded": { "const": true },
+        "pr_review_packet_ready": { "const": true },
+        "release_gaps_classified": { "const": true },
+        "ui_productization_ready": { "const": true },
+        "gate_readiness_cross_refs_ready": { "const": true },
+        "next_work_queue_ready": { "const": true }
       },
       "additionalProperties": true
     },
@@ -201,6 +381,12 @@
         "command_count",
         "authority_flag_count",
         "closed_authority_flag_count",
+        "ci_runtime_upgrade_count",
+        "pr_review_packet_row_count",
+        "release_gap_count",
+        "ui_productization_count",
+        "gate_readiness_cross_ref_count",
+        "next_work_queue_count",
         "codex_final_approval_allowed",
         "release_approval_allowed_now",
         "deployment_allowed_now",

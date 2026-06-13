@@ -6,6 +6,12 @@ Status: Codex-executable launch readiness plan. This is not human approval, rele
 
 - human-only approval blockers
 - non-human workstreams Codex may continue
+- CI runtime upgrade rows for Node 24-capable GitHub Actions
+- PR review packet rows
+- release readiness gap rows
+- UI productization rows
+- gate readiness cross-reference rows
+- next-work queue rows
 - commands that can be run in check mode
 - authority flags that must remain closed
 - detailed execution rows for the remaining pre-approval work
@@ -47,6 +53,17 @@ Codex may prepare packets, validation evidence, UI/API surfaces, and review prom
 | `release.review_packet_prep` | Prepare independent review packet material and adjudication templates without treating review as human approval. |
 | `ci.pr_observability` | Keep local validation and PR/CI status visible while preserving the review-required state. |
 
+## Added Testable Units
+
+| Row Collection | Purpose |
+|---|---|
+| `ci_runtime_upgrade_rows` | Verifies `actions/checkout`, `actions/setup-node`, and `actions/upload-artifact` are on Node 24-capable majors. |
+| `pr_review_packet_rows` | Records the review scope, authority boundary, evidence matrix, finding loop, CI status, and human blockers without claiming approval. |
+| `release_readiness_gap_rows` | Splits remaining gaps into human/external blockers and non-human closed gaps. |
+| `ui_productization_rows` | Records the locale selector, Korean typography, Global Operator Queue, Review Evidence Trace, and Launch Readiness Console. |
+| `gate_readiness_cross_ref_rows` | Binds G1b, G2, G3, Stage6, Stage7, and release control readiness evidence to still-closed authority flags. |
+| `next_work_queue_rows` | Summarizes the executable queue for CI cleanup, review packet refresh, gap report, UI productization, gate refs, and validation. |
+
 ## Boundary
 
 The plan is valid only while these flags remain closed:
@@ -60,3 +77,14 @@ The plan is valid only while these flags remain closed:
 - `codex_final_approval_allowed: false`
 
 The artifact is useful exactly because it lets Codex keep building without pretending that human approval happened.
+
+## Validation Scope
+
+The non-human closeout path is valid only when:
+
+- Node 20 GitHub Actions annotations are addressed by Node 24-capable action majors.
+- The PR review packet is prepared but not marked approved.
+- Release gaps are classified honestly.
+- UI productization remains read-only and does not expose protected action controls.
+- Gate readiness evidence is complete while real gate opening remains blocked.
+- The next-work queue contains only Codex-executable, non-human work.

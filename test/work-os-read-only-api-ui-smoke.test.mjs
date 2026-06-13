@@ -51,7 +51,7 @@ test("Work OS read-only API routes are GET HEAD only and reject mutation", async
   const result = await buildWorkOsReadOnlyApiUiSmoke(await buildOptions({ workOsLiveControlSurface: source }));
   const paths = new Set(result.read_only_api_route_projection_rows.map((row) => row.api_path));
 
-  for (const apiPath of ["/health", "/api/work-os", "/api/work-os/summary", "/api/work-os/projects", "/api/work-os/phases", "/api/work-os/timeline", "/api/work-os/reviews", "/api/work-os/gates", "/api/work-os/session-sources", "/api/work-os/boundary", "/api/work-os/refresh"]) {
+  for (const apiPath of ["/health", "/api/work-os", "/api/work-os/summary", "/api/work-os/projects", "/api/work-os/phases", "/api/work-os/timeline", "/api/work-os/reviews", "/api/work-os/gates", "/api/work-os/session-sources", "/api/work-os/launch-readiness", "/api/work-os/boundary", "/api/work-os/refresh"]) {
     assert.equal(paths.has(apiPath), true);
   }
   assert.equal(result.read_only_api_route_projection_rows.every((row) => row.method_allowlist.includes("GET") && row.method_allowlist.includes("HEAD")), true);
@@ -68,7 +68,7 @@ test("Work OS read-only API routes are GET HEAD only and reject mutation", async
 test("Work OS read-only API response bodies are sanitized view models", async () => {
   const source = await readySource();
 
-  for (const apiPath of ["/api/work-os", "/api/work-os/projects", "/api/work-os/phases", "/api/work-os/timeline", "/api/work-os/reviews", "/api/work-os/gates", "/api/work-os/session-sources", "/api/work-os/boundary", "/api/work-os/refresh"]) {
+  for (const apiPath of ["/api/work-os", "/api/work-os/projects", "/api/work-os/phases", "/api/work-os/timeline", "/api/work-os/reviews", "/api/work-os/gates", "/api/work-os/session-sources", "/api/work-os/launch-readiness", "/api/work-os/boundary", "/api/work-os/refresh"]) {
     const response = await buildWorkOsReadOnlyApiResponse(apiPath, {
       runAt: RUN_AT,
       method: "GET",
@@ -97,8 +97,9 @@ test("Work OS UI HTML binds live surfaces to API paths without protected action 
   assert.equal(response.body.includes("Global Operator Queue"), true);
   assert.equal(response.body.includes("Readiness Rule Matrix"), true);
   assert.equal(response.body.includes("Review Evidence Trace"), true);
+  assert.equal(response.body.includes("Launch Readiness Console"), true);
   assert.equal(response.body.includes("window.WORK_OS_API_PATHS"), true);
-  for (const apiPath of ["/api/work-os/summary", "/api/work-os/projects", "/api/work-os/phases", "/api/work-os/timeline", "/api/work-os/reviews", "/api/work-os/gates", "/api/work-os/refresh"]) {
+  for (const apiPath of ["/api/work-os/summary", "/api/work-os/projects", "/api/work-os/phases", "/api/work-os/timeline", "/api/work-os/reviews", "/api/work-os/gates", "/api/work-os/launch-readiness", "/api/work-os/refresh"]) {
     assert.equal(response.body.includes(apiPath), true);
   }
   assert.equal(response.body.includes("data-protected-action"), false);
@@ -109,7 +110,7 @@ test("Work OS read-only API/UI smoke records API and browser smoke evidence", as
   const result = await buildWorkOsReadOnlyApiUiSmoke(await buildOptions());
 
   assert.equal(result.api_projection_smoke_rows.length >= 12, true);
-  assert.equal(result.browser_smoke_evidence_rows.length >= 9, true);
+  assert.equal(result.browser_smoke_evidence_rows.length >= 10, true);
   assert.equal(result.api_projection_smoke_rows.every((row) => row.current_verdict === "pass"), true);
   assert.equal(result.browser_smoke_evidence_rows.every((row) => row.current_verdict === "pass"), true);
   assert.equal(result.api_projection_smoke_rows.every((row) => row.raw_payload_keys_present === false && row.secret_keys_present === false), true);
@@ -158,6 +159,8 @@ test("Work OS read-only API/UI smoke records bilingual locale and typography con
   assert.equal(smokeIds.has("browser_smoke.locale_selector"), true);
   assert.equal(smokeIds.has("browser_smoke.korean_fonts"), true);
   assert.equal(smokeIds.has("browser_smoke.operator_console_model"), true);
+  assert.equal(smokeIds.has("browser_smoke.launch_readiness_console"), true);
+  assert.equal(result.summary.launch_readiness_console_ready, true);
 });
 
 test("Work OS read-only API/UI smoke freezes P9000 without authority expansion", async () => {

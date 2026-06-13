@@ -59,6 +59,7 @@ const API_ROUTE_SPECS = [
   ["/api/work-os/reviews", "reviews", "Review and finding rows", "review_finding_surface_rows"],
   ["/api/work-os/gates", "gates", "Gate rows", "work_os_live_gate_rows"],
   ["/api/work-os/session-sources", "session_sources", "Session source rows", "session_ingestion_adapter_rows"],
+  ["/api/work-os/launch-readiness", "launch_readiness", "Launch readiness console model", null],
   ["/api/work-os/boundary", "boundary", "Boundary row", "work_os_live_boundary"],
   ["/api/work-os/refresh", "refresh", "Read-only refresh snapshot", null],
 ];
@@ -70,6 +71,7 @@ const UI_BINDING_SPECS = [
   ["ui.timeline", "Evidence Timeline", "/api/work-os/timeline", "timeline"],
   ["ui.review_console", "Review Evidence Trace", "/api/work-os/reviews", "reviews"],
   ["ui.gate_console", "Gate State Console", "/api/work-os/gates", "gates"],
+  ["ui.launch_readiness", "Launch Readiness Console", "/api/work-os/launch-readiness", "launch_readiness"],
   ["ui.refresh_status", "Read-Only Refresh", "/api/work-os/refresh", "refresh"],
 ];
 
@@ -354,6 +356,9 @@ export async function buildWorkOsReadOnlyApiResponse(requestUrl = "/", options =
       policy: responsePolicy(),
     }), method);
   }
+  if (pathname === "/api/work-os/launch-readiness") {
+    return jsonResponse(200, sanitizeApiPayload(buildLaunchReadinessConsoleModel(artifact, generatedAt)), method);
+  }
   const routeSpec = API_ROUTE_SPECS.find(([apiPath]) => apiPath === pathname);
   if (routeSpec) {
     const [, responseKey,, collectionRef] = routeSpec;
@@ -421,6 +426,7 @@ function buildContract(generatedAt) {
     timeline_review_view_required: true,
     live_refresh_smoke_required: true,
     browser_smoke_evidence_required: true,
+    launch_readiness_console_required: true,
     p9000_freeze_required: true,
     api_get_head_only: true,
     api_write_methods_enabled: false,
@@ -662,6 +668,12 @@ async function buildUiSmokeRows(sourceData, generatedAt) {
       readiness_matrix_present: includesToken(html, "Readiness Rule Matrix"),
       post_fetch_present: false,
       protected_action_token_present: false,
+    }, generatedAt),
+    smokeRow("browser_smoke.launch_readiness_console", "HTML shell exposes launch readiness console without protected controls", includesToken(html, "Launch Readiness Console") && includesToken(html, "/api/work-os/launch-readiness") && !includesToken(html, "data-protected-action"), {
+      launch_readiness_console_present: includesToken(html, "Launch Readiness Console"),
+      launch_readiness_api_present: includesToken(html, "/api/work-os/launch-readiness"),
+      post_fetch_present: false,
+      protected_action_token_present: includesToken(html, "data-protected-action"),
     }, generatedAt),
   ];
   return rows.map((row, index) => ({ ...row, row_id: `work.os.browser.smoke.row.${String(index + 1).padStart(2, "0")}` }));
@@ -927,6 +939,9 @@ function buildSummary(context) {
     ui_binding_ready: boundary.ui_binding_ready,
     api_smoke_ready: boundary.api_smoke_ready,
     browser_smoke_ready: boundary.browser_smoke_ready,
+    launch_readiness_console_ready: uiBindingRows.some((row) => row.surface_id === "ui.launch_readiness" && row.current_verdict === "pass")
+      && directSmokeRows.some((row) => row.api_path === "/api/work-os/launch-readiness" && row.current_verdict === "pass")
+      && uiSmokeRows.some((row) => row.smoke_id === "browser_smoke.launch_readiness_console" && row.current_verdict === "pass"),
     p9000_freeze_ready: boundary.p9000_freeze_ready,
     ready_for_p9001_handoff: boundary.ready_for_p9001_handoff,
     raw_payload_keys_returned: boundary.raw_payload_keys_returned,
@@ -956,6 +971,46 @@ function buildCollectionResponse(collectionName, rows, url, generatedAt) {
     filters: Object.fromEntries(url.searchParams.entries()),
     policy: responsePolicy(),
     rows: safeRows,
+  };
+}
+
+function buildLaunchReadinessConsoleModel(artifact, generatedAt) {
+  const summary = artifact.summary ?? {};
+  const boundary = artifact.work_os_live_boundary ?? {};
+  const gateRows = asArray(artifact.work_os_live_gate_rows);
+  const reviewRows = asArray(artifact.review_finding_surface_rows);
+  const openGateCount = gateRows.filter((row) => row.current_verdict !== "pass").length;
+  const unresolvedReviewCount = reviewRows.filter((row) => row.current_verdict !== "pass").length;
+  return {
+    schema_version: "work-os-launch-readiness-console-response.v1",
+    generated_at: generatedAt,
+    launch_readiness_status: summary.ready_for_p8801_handoff === true && openGateCount === 0 ? "ready_read_only" : "blocked_read_only",
+    source_status: summary.work_os_live_control_surface_status ?? "unknown",
+    ready_for_next_handoff: summary.ready_for_p8801_handoff === true,
+    open_gate_count: openGateCount,
+    unresolved_review_count: unresolvedReviewCount,
+    protected_action_allowed_now: false,
+    release_approval_allowed_now: false,
+    deployment_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    runtime_execution_enabled: false,
+    write_action_enabled: false,
+    evidence_refs: {
+      summary_ref: "source.summary",
+      boundary_ref: "source.work_os_live_boundary",
+      gate_rows_ref: "source.work_os_live_gate_rows",
+      review_rows_ref: "source.review_finding_surface_rows",
+    },
+    next_allowed_action: "continue read-only evidence hardening; do not approve, deploy, or mutate",
+    policy: responsePolicy(),
+    boundary_projection: sanitizeApiPayload({
+      ready_for_next_handoff: summary.ready_for_p8801_handoff === true,
+      ui_protected_action_controls_enabled: false,
+      raw_payload_keys_returned: false,
+      secret_keys_returned: false,
+      source_boundary_status: boundary.current_verdict ?? boundary.boundary_status ?? "unknown",
+    }),
   };
 }
 
@@ -997,6 +1052,7 @@ function renderWorkOsHtml(artifact, options = {}) {
   const phases = asArray(artifact.phase_detail_surface_rows).slice(0, 10);
   const reviews = asArray(artifact.review_finding_surface_rows).slice(0, 5);
   const timeline = asArray(artifact.redacted_timeline_projection_rows).slice(0, 5);
+  const launchReadiness = buildLaunchReadinessConsoleModel(artifact, generatedAt);
   const paths = UI_BINDING_SPECS.map(([, surfaceTitle, apiPath, responseKey]) => ({ surfaceTitle, apiPath, responseKey }));
   return `<!doctype html>
 <html lang="ko">
@@ -1209,6 +1265,15 @@ function renderWorkOsHtml(artifact, options = {}) {
       <div class="surface-title"><h2>Gate State Console</h2><span data-i18n="readOnly">read-only</span></div>
       <pre id="live-status" data-i18n="awaitingRefresh">Awaiting read-only refresh.</pre>
     </section>
+    <section class="band" id="ui-launch_readiness" data-api-path="/api/work-os/launch-readiness">
+      <div class="surface-title"><h2>Launch Readiness Console</h2><span>read-only / no approval controls</span></div>
+      <div class="grid">
+        ${summaryItem("Launch", launchReadiness.launch_readiness_status, "launch")}
+        ${summaryItem("Open Gates", launchReadiness.open_gate_count, "openGates")}
+        ${summaryItem("Unresolved Review", launchReadiness.unresolved_review_count, "unresolvedReview")}
+        ${summaryItem("Deployment", launchReadiness.deployment_allowed_now ? "allowed" : "blocked", "deployment")}
+      </div>
+    </section>
   </main>
   <script>
     window.WORK_OS_API_PATHS = ${JSON.stringify(paths)};
@@ -1224,6 +1289,10 @@ function renderWorkOsHtml(artifact, options = {}) {
         gates: "Gates",
         apiRoutes: "API Routes",
         projectsMetric: "Projects",
+        launch: "Launch",
+        openGates: "Open Gates",
+        unresolvedReview: "Unresolved Review",
+        deployment: "Deployment",
         queueHint: "allowed / blocked / receipt-required",
         timeline: "Timeline",
         readOnly: "read-only",
@@ -1240,6 +1309,10 @@ function renderWorkOsHtml(artifact, options = {}) {
         gates: "Gates",
         apiRoutes: "API Routes",
         projectsMetric: "Projects",
+        launch: "Launch",
+        openGates: "Open Gates",
+        unresolvedReview: "Unresolved Review",
+        deployment: "Deployment",
         queueHint: "allowed / blocked / receipt-required",
         timeline: "Timeline",
         readOnly: "read-only",

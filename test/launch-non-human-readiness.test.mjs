@@ -25,6 +25,7 @@ async function fixtureInputs() {
     stage67ReadinessPath: path.join(dir, "factory-stage6-7-execution-readiness.json"),
     workOsSmokePath: path.join(dir, "work-os-read-only-api-ui-smoke.json"),
     amplitudeUiAuditPath: path.join(dir, "amplitude-ui-reference-audit.json"),
+    workflowPath: path.join(dir, "hermes-verification-trust.yml"),
   };
   await writeJson(paths.releaseReadinessPath, {
     summary: {
@@ -48,6 +49,9 @@ async function fixtureInputs() {
     summary: {
       g_series_code_development_allowed_now: true,
       g_series_runtime_authority_open_now: false,
+      g1b_source_evidence_complete_now: true,
+      g2_source_evidence_complete_now: true,
+      g3_source_evidence_complete_now: true,
       project_creation_allowed_now: false,
       repo_write_allowed_now: false,
       command_execution_allowed_now: false,
@@ -60,6 +64,9 @@ async function fixtureInputs() {
     summary: {
       stage6_7_contract_development_allowed_now: true,
       stage6_7_runtime_authority_open_now: false,
+      stage6_source_evidence_complete_now: true,
+      stage7_source_evidence_complete_now: true,
+      stage7_release_candidate_allowed_now: false,
       deployment_allowed_now: false,
       production_pass_enabled: false,
       enterprise_pass_enabled: false,
@@ -68,6 +75,11 @@ async function fixtureInputs() {
   await writeJson(paths.workOsSmokePath, {
     summary: {
       work_os_read_only_api_ui_smoke_status: "ready_for_work_os_read_only_api_ui_smoke",
+      locale_count: 2,
+      ui_binding_count: 8,
+      korean_font_contract_ready: true,
+      browser_smoke_ready: true,
+      launch_readiness_console_ready: true,
       deployment_allowed_now: false,
       production_pass_enabled: false,
       enterprise_pass_enabled: false,
@@ -80,6 +92,16 @@ async function fixtureInputs() {
       korean_font_manifest_ready: true,
     },
   });
+  await writeFile(paths.workflowPath, [
+    "steps:",
+    "  - uses: actions/checkout@v5",
+    "  - uses: actions/setup-node@v6",
+    "    with:",
+    "      node-version: \"22\"",
+    "      cache: npm",
+    "  - uses: actions/upload-artifact@v7",
+    "",
+  ].join("\n"), "utf8");
   return paths;
 }
 
@@ -93,6 +115,7 @@ function buildOptions(paths, overrides = {}) {
     stage67ReadinessPath: paths.stage67ReadinessPath,
     workOsSmokePath: paths.workOsSmokePath,
     amplitudeUiAuditPath: paths.amplitudeUiAuditPath,
+    workflowPath: paths.workflowPath,
     ...overrides,
   };
 }
@@ -107,6 +130,12 @@ test("Launch non-human readiness excludes human approval and keeps authority clo
     assert.equal(result.summary.human_approval_excluded_now, true);
     assert.equal(result.summary.non_human_workstream_count, 6);
     assert.equal(result.summary.non_human_workstream_ready_count, 6);
+    assert.equal(result.summary.ci_runtime_upgrade_ready_count, 3);
+    assert.equal(result.summary.pr_review_packet_ready_count, 6);
+    assert.equal(result.summary.release_gap_classified_count, 6);
+    assert.equal(result.summary.ui_productization_ready_count, 5);
+    assert.equal(result.summary.gate_readiness_cross_ref_ready_count, 6);
+    assert.equal(result.summary.next_work_queue_ready_count, 6);
     assert.equal(result.summary.closed_authority_flag_count, result.summary.authority_flag_count);
     assert.equal(result.summary.codex_final_approval_allowed, false);
     assert.equal(result.summary.release_approval_allowed_now, false);
@@ -124,6 +153,7 @@ test("Launch non-human readiness records detailed workstreams and commands", asy
     const result = await buildLaunchNonHumanReadiness(buildOptions(paths));
     const workstreams = new Set(result.non_human_workstream_rows.map((row) => row.workstream_id));
     const commands = new Set(result.non_human_command_rows.map((row) => row.command_name));
+    const gaps = new Set(result.release_readiness_gap_rows.map((row) => row.gap_id));
 
     for (const id of ["ui.product_shell", "factory.g_series_contracts", "factory.stage6_stage7_contracts", "release.evidence_packet", "release.review_packet_prep", "ci.pr_observability"]) {
       assert.equal(workstreams.has(id), true);
@@ -133,6 +163,11 @@ test("Launch non-human readiness records detailed workstreams and commands", asy
     }
     assert.equal(result.execution_plan_rows.every((row) => row.blocked_by_human_approval === false), true);
     assert.equal(result.execution_plan_rows.every((row) => row.detailed_steps.length >= 3), true);
+    assert.equal(gaps.has("gap.node20_actions_annotation"), true);
+    assert.equal(result.ci_runtime_upgrade_rows.every((row) => row.target_action_present && row.legacy_action_absent), true);
+    assert.equal(result.pr_review_packet_rows.every((row) => row.codex_may_prepare_packet && row.codex_may_mark_approved === false), true);
+    assert.equal(result.gate_readiness_cross_ref_rows.every((row) => row.opens_gate_now === false && row.protected_authority_closed === true), true);
+    assert.equal(result.next_work_queue_rows.every((row) => row.codex_executable_now && row.requires_human_before_execution === false), true);
   } finally {
     await rm(paths.dir, { recursive: true, force: true });
   }
@@ -146,11 +181,17 @@ test("Launch non-human readiness writes artifacts and check mode does not overwr
     const artifact = JSON.parse(await readFile(path.join(outDir, "launch-non-human-readiness.json"), "utf8"));
     const workstreams = JSON.parse(await readFile(path.join(outDir, "non-human-workstream-rows.json"), "utf8"));
     const boundary = JSON.parse(await readFile(path.join(outDir, "launch-non-human-boundary.json"), "utf8"));
+    const gaps = JSON.parse(await readFile(path.join(outDir, "release-readiness-gap-rows.json"), "utf8"));
+    const reviewPacket = JSON.parse(await readFile(path.join(outDir, "pr-review-packet-rows.json"), "utf8"));
 
     assert.equal(result.summary.launch_non_human_readiness_status, "ready_for_non_human_launch_readiness_execution");
     assert.equal(artifact.summary.human_approval_excluded_now, true);
     assert.equal(workstreams.count, 6);
+    assert.equal(gaps.count, 6);
+    assert.equal(reviewPacket.count, 6);
     assert.equal(boundary.deployment_allowed_now, false);
+    assert.equal(boundary.ci_runtime_upgraded, true);
+    assert.equal(boundary.next_work_queue_ready, true);
 
     const sentinelPath = path.join(outDir, "launch-non-human-readiness.json");
     const sentinel = '{ "sentinel": "launch-non-human-readiness" }\n';
@@ -173,6 +214,8 @@ test("Launch non-human readiness writes artifacts and check mode does not overwr
       paths.workOsSmokePath,
       "--amplitude-ui-audit",
       paths.amplitudeUiAuditPath,
+      "--workflow",
+      paths.workflowPath,
     ], { cwd: path.resolve("."), encoding: "utf8" });
 
     assert.equal(checkResult.status, 0, checkResult.stdout + checkResult.stderr);

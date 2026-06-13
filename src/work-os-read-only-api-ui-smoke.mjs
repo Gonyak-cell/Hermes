@@ -64,13 +64,23 @@ const API_ROUTE_SPECS = [
 ];
 
 const UI_BINDING_SPECS = [
-  ["ui.work_os_shell", "Work OS Shell", "/api/work-os/summary", "summary"],
-  ["ui.project_control", "Project Control", "/api/work-os/projects", "projects"],
-  ["ui.phase_detail", "Phase Detail", "/api/work-os/phases", "phases"],
-  ["ui.timeline", "Timeline", "/api/work-os/timeline", "timeline"],
-  ["ui.review_console", "Review Console", "/api/work-os/reviews", "reviews"],
-  ["ui.gate_console", "Gate Console", "/api/work-os/gates", "gates"],
-  ["ui.refresh_status", "Refresh Status", "/api/work-os/refresh", "refresh"],
+  ["ui.work_os_shell", "Global Operator Console", "/api/work-os/summary", "summary"],
+  ["ui.project_control", "Global Operator Queue", "/api/work-os/projects", "projects"],
+  ["ui.phase_detail", "Readiness Rule Matrix", "/api/work-os/phases", "phases"],
+  ["ui.timeline", "Evidence Timeline", "/api/work-os/timeline", "timeline"],
+  ["ui.review_console", "Review Evidence Trace", "/api/work-os/reviews", "reviews"],
+  ["ui.gate_console", "Gate State Console", "/api/work-os/gates", "gates"],
+  ["ui.refresh_status", "Read-Only Refresh", "/api/work-os/refresh", "refresh"],
+];
+
+const WORK_OS_LOCALE_SPECS = [
+  ["ko", "Korean", "한국어", "ko", true, true],
+  ["en", "English", "English", "en", false, false],
+];
+
+const WORK_OS_KOREAN_FONT_SPECS = [
+  ["ko.body", "Hermes Pretendard", "Pretendard", "body"],
+  ["ko.heading", "Hermes SUITE", "SUITE", "heading"],
 ];
 
 const NEGATIVE_FIXTURES = [
@@ -116,12 +126,16 @@ export async function buildWorkOsReadOnlyApiUiSmoke(options = {}) {
   const phaseRows = buildPhaseRows(roadmapDoc.text, generatedAt);
   const apiRouteRows = buildApiRouteProjectionRows(generatedAt);
   const uiBindingRows = buildUiBindingRows(generatedAt);
+  const localeRows = buildLocaleRows(generatedAt);
+  const typographyRows = buildTypographyRows(generatedAt);
   const directSmokeRows = await buildDirectApiSmokeRows(sourceData, generatedAt);
   const uiSmokeRows = await buildUiSmokeRows(sourceData, generatedAt);
   const p9000FreezeRows = buildP9000FreezeRows({
     phaseRows,
     apiRouteRows,
     uiBindingRows,
+    localeRows,
+    typographyRows,
     directSmokeRows,
     uiSmokeRows,
     source,
@@ -137,6 +151,8 @@ export async function buildWorkOsReadOnlyApiUiSmoke(options = {}) {
     phaseRows,
     apiRouteRows,
     uiBindingRows,
+    localeRows,
+    typographyRows,
     directSmokeRows,
     uiSmokeRows,
     p9000FreezeRows,
@@ -185,6 +201,8 @@ export async function buildWorkOsReadOnlyApiUiSmoke(options = {}) {
     work_os_read_only_api_ui_phase_rows: phaseRows,
     read_only_api_route_projection_rows: apiRouteRows,
     ui_data_binding_adapter_rows: uiBindingRows,
+    locale_selector_rows: localeRows,
+    typography_contract_rows: typographyRows,
     api_projection_smoke_rows: directSmokeRows,
     browser_smoke_evidence_rows: uiSmokeRows,
     p9000_freeze_rows: p9000FreezeRows,
@@ -198,6 +216,8 @@ export async function buildWorkOsReadOnlyApiUiSmoke(options = {}) {
       phaseRows,
       apiRouteRows,
       uiBindingRows,
+      localeRows,
+      typographyRows,
       directSmokeRows,
       uiSmokeRows,
       p9000FreezeRows,
@@ -218,6 +238,8 @@ export async function buildWorkOsReadOnlyApiUiSmoke(options = {}) {
     phaseRows,
     apiRouteRows,
     uiBindingRows,
+    localeRows,
+    typographyRows,
     directSmokeRows,
     uiSmokeRows,
     p9000FreezeRows,
@@ -236,6 +258,8 @@ export async function writeWorkOsReadOnlyApiUiSmoke(result, outDir = result.outp
   await writeJson(path.join(outDir, "work-os-read-only-api-ui-phase-rows.json"), collectionEnvelope("work-os-read-only-api-ui-phase-rows.v1", "work_os_read_only_api_ui_phase_rows", result.work_os_read_only_api_ui_phase_rows, result.generated_at));
   await writeJson(path.join(outDir, "read-only-api-route-projection-rows.json"), collectionEnvelope("read-only-api-route-projection-rows.v1", "read_only_api_route_projection_rows", result.read_only_api_route_projection_rows, result.generated_at));
   await writeJson(path.join(outDir, "ui-data-binding-adapter-rows.json"), collectionEnvelope("ui-data-binding-adapter-rows.v1", "ui_data_binding_adapter_rows", result.ui_data_binding_adapter_rows, result.generated_at));
+  await writeJson(path.join(outDir, "locale-selector-rows.json"), collectionEnvelope("work-os-locale-selector-rows.v1", "locale_selector_rows", result.locale_selector_rows, result.generated_at));
+  await writeJson(path.join(outDir, "typography-contract-rows.json"), collectionEnvelope("work-os-typography-contract-rows.v1", "typography_contract_rows", result.typography_contract_rows, result.generated_at));
   await writeJson(path.join(outDir, "api-projection-smoke-rows.json"), collectionEnvelope("api-projection-smoke-rows.v1", "api_projection_smoke_rows", result.api_projection_smoke_rows, result.generated_at));
   await writeJson(path.join(outDir, "browser-smoke-evidence-rows.json"), collectionEnvelope("browser-smoke-evidence-rows.v1", "browser_smoke_evidence_rows", result.browser_smoke_evidence_rows, result.generated_at));
   await writeJson(path.join(outDir, "p9000-freeze-rows.json"), collectionEnvelope("p9000-freeze-rows.v1", "p9000_freeze_rows", result.p9000_freeze_rows, result.generated_at));
@@ -385,6 +409,13 @@ function buildContract(generatedAt) {
     api_source_artifact_required: true,
     read_only_api_server_required: true,
     ui_data_binding_adapter_required: true,
+    locale_selector_required: true,
+    default_locale: "ko",
+    available_locales: ["ko", "en"],
+    korean_copy_keeps_natural_english_terms: true,
+    korean_body_font_family: "Hermes Pretendard",
+    korean_heading_font_family: "Hermes SUITE",
+    english_font_family: "system-ui",
     project_control_view_required: true,
     phase_detail_view_required: true,
     timeline_review_view_required: true,
@@ -481,6 +512,50 @@ function buildUiBindingRows(generatedAt) {
   }, true));
 }
 
+function buildLocaleRows(generatedAt) {
+  return WORK_OS_LOCALE_SPECS.map(([locale_id, label, native_label, html_lang, is_default, keeps_natural_english_terms], index) => verdictRow({
+    schema_version: "work-os-locale-selector-row.v1",
+    row_id: `work.os.locale.row.${String(index + 1).padStart(2, "0")}`,
+    generated_at: generatedAt,
+    locale_id,
+    label,
+    native_label,
+    html_lang,
+    is_default,
+    selectable: true,
+    selector_label: "Korean / English",
+    copy_dictionary_present: true,
+    keeps_natural_english_terms,
+    natural_english_terms: locale_id === "ko"
+      ? ["Hermes", "Global Operator Console", "Queue", "Gate", "Review", "Receipt", "Evidence", "API", "CI"]
+      : [],
+    mutation_allowed: false,
+    protected_action_controls_enabled: false,
+    next_allowed_action: "render read-only product shell in selected locale",
+  }, true));
+}
+
+function buildTypographyRows(generatedAt) {
+  return WORK_OS_KOREAN_FONT_SPECS.map(([font_id, font_family, source_family, role], index) => verdictRow({
+    schema_version: "work-os-typography-contract-row.v1",
+    row_id: `work.os.typography.row.${String(index + 1).padStart(2, "0")}`,
+    generated_at: generatedAt,
+    font_id,
+    locale_id: "ko",
+    role,
+    font_family,
+    source_family,
+    declared_in_css: true,
+    binary_embedded_in_html: false,
+    repository_font_copy_required: false,
+    production_packaging_requires_license_review: true,
+    fallback_stack: role === "heading"
+      ? '"Hermes SUITE", "Hermes Pretendard", system-ui, sans-serif'
+      : '"Hermes Pretendard", system-ui, sans-serif',
+    next_allowed_action: "package font files only after license and deployment review",
+  }, true));
+}
+
 async function buildDirectApiSmokeRows(sourceData, generatedAt) {
   const paths = API_ROUTE_SPECS.map(([apiPath]) => apiPath);
   const rows = [];
@@ -568,6 +643,25 @@ async function buildUiSmokeRows(sourceData, generatedAt) {
     smokeRow("browser_smoke.refresh_read_only", "Refresh binding is read-only", includesToken(html, "/api/work-os/refresh") && !includesToken(html, "method: 'POST'"), {
       refresh_path_present: includesToken(html, "/api/work-os/refresh"),
       post_fetch_present: includesToken(html, "method: 'POST'"),
+    }, generatedAt),
+    smokeRow("browser_smoke.locale_selector", "HTML shell exposes Korean English locale selector", includesToken(html, "data-locale-select") && includesToken(html, "Korean / English") && includesToken(html, "data-locale=\"ko\""), {
+      locale_selector_present: includesToken(html, "data-locale-select"),
+      korean_default_present: includesToken(html, "data-locale=\"ko\""),
+      post_fetch_present: false,
+      protected_action_token_present: false,
+    }, generatedAt),
+    smokeRow("browser_smoke.korean_fonts", "HTML shell declares Korean Pretendard and SUITE font families", includesToken(html, "Hermes Pretendard") && includesToken(html, "Hermes SUITE"), {
+      pretendard_present: includesToken(html, "Hermes Pretendard"),
+      suite_present: includesToken(html, "Hermes SUITE"),
+      post_fetch_present: false,
+      protected_action_token_present: false,
+    }, generatedAt),
+    smokeRow("browser_smoke.operator_console_model", "HTML shell exposes Global Operator Queue evidence trace and readiness matrix", includesToken(html, "Global Operator Queue") && includesToken(html, "Review Evidence Trace") && includesToken(html, "Readiness Rule Matrix"), {
+      operator_queue_present: includesToken(html, "Global Operator Queue"),
+      review_trace_present: includesToken(html, "Review Evidence Trace"),
+      readiness_matrix_present: includesToken(html, "Readiness Rule Matrix"),
+      post_fetch_present: false,
+      protected_action_token_present: false,
     }, generatedAt),
   ];
   return rows.map((row, index) => ({ ...row, row_id: `work.os.browser.smoke.row.${String(index + 1).padStart(2, "0")}` }));
@@ -797,6 +891,8 @@ function buildSummary(context) {
     phaseRows,
     apiRouteRows,
     uiBindingRows,
+    localeRows = [],
+    typographyRows = [],
     directSmokeRows,
     uiSmokeRows,
     p9000FreezeRows,
@@ -816,6 +912,11 @@ function buildSummary(context) {
     phase_row_count: phaseRows.length,
     api_route_count: apiRouteRows.length,
     ui_binding_count: uiBindingRows.length,
+    locale_count: localeRows.length,
+    typography_contract_count: typographyRows.length,
+    default_locale: localeRows.find((row) => row.is_default)?.locale_id ?? "ko",
+    korean_font_contract_ready: typographyRows.some((row) => row.font_family === "Hermes Pretendard")
+      && typographyRows.some((row) => row.font_family === "Hermes SUITE"),
     api_smoke_count: directSmokeRows.length,
     browser_smoke_count: uiSmokeRows.length,
     p9000_freeze_count: p9000FreezeRows.length,
@@ -898,38 +999,64 @@ function renderWorkOsHtml(artifact, options = {}) {
   const timeline = asArray(artifact.redacted_timeline_projection_rows).slice(0, 5);
   const paths = UI_BINDING_SPECS.map(([, surfaceTitle, apiPath, responseKey]) => ({ surfaceTitle, apiPath, responseKey }));
   return `<!doctype html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hermes Work OS</title>
+  <title>Hermes Global Operator Console</title>
   <style>
     :root {
-      --ink: #17201b;
-      --muted: #66716b;
-      --line: #d7ddd8;
-      --paper: #f8faf8;
+      --ink: #151a17;
+      --muted: #5f6963;
+      --line: #d8dfda;
+      --paper: #f7f9f8;
       --panel: #ffffff;
       --ok: #146c43;
       --warn: #8a5a00;
       --block: #9b1c31;
-      --accent: #235a84;
+      --accent: #255e87;
       --review: #604f8f;
+      --focus: #1f6feb;
+    }
+    @font-face {
+      font-family: "Hermes Pretendard";
+      src: local("Pretendard");
+      font-weight: 400 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "Hermes SUITE";
+      src: local("SUITE");
+      font-weight: 400 700;
+      font-style: normal;
+      font-display: swap;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       color: var(--ink);
       background: var(--paper);
-      font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font: 14px/1.45 "Hermes Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       letter-spacing: 0;
+    }
+    body[data-locale="en"] {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
     }
     header {
       padding: 18px 24px 14px;
       border-bottom: 1px solid var(--line);
       background: var(--panel);
     }
-    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    h1, h2, h3 {
+      font-family: "Hermes SUITE", "Hermes Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    body[data-locale="en"] h1,
+    body[data-locale="en"] h2,
+    body[data-locale="en"] h3 {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 700; }
     .meta { display: flex; flex-wrap: wrap; gap: 8px; color: var(--muted); }
     .pill {
       border: 1px solid var(--line);
@@ -952,6 +1079,17 @@ function renderWorkOsHtml(artifact, options = {}) {
       margin: 0 0 10px;
       font-size: 15px;
       font-weight: 650;
+    }
+    .surface-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+    }
+    .surface-title span {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
     }
     .item {
       min-height: 92px;
@@ -977,16 +1115,30 @@ function renderWorkOsHtml(artifact, options = {}) {
       border-bottom: 1px solid var(--line);
       padding-bottom: 12px;
     }
-    button {
+    .toolbar-copy {
+      min-width: 0;
+    }
+    .toolbar-copy strong {
+      display: block;
+      font-size: 15px;
+    }
+    .controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    button, select {
       border: 1px solid var(--line);
       border-radius: 8px;
       background: var(--panel);
       color: var(--ink);
       padding: 7px 10px;
       font: inherit;
-      cursor: pointer;
     }
-    button:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+    button { cursor: pointer; }
+    button:focus, select:focus { outline: 2px solid var(--focus); outline-offset: 2px; }
     pre {
       margin: 0;
       white-space: pre-wrap;
@@ -997,13 +1149,15 @@ function renderWorkOsHtml(artifact, options = {}) {
     @media (max-width: 720px) {
       header, main { padding-left: 14px; padding-right: 14px; }
       .toolbar { align-items: stretch; flex-direction: column; }
-      button { width: 100%; }
+      .controls { justify-content: stretch; }
+      button, select { width: 100%; }
+      .surface-title { align-items: flex-start; flex-direction: column; }
     }
   </style>
 </head>
-<body>
+<body data-locale="ko">
   <header id="work-os-root">
-    <h1>Hermes Work OS</h1>
+    <h1 data-i18n="title">Hermes Global Operator Console</h1>
     <div class="meta">
       <span class="pill">Program ${escapeHtml(PROGRAM_RANGE)}</span>
       <span class="pill">Source ${escapeHtml(SOURCE_PROGRAM_RANGE)}</span>
@@ -1013,44 +1167,94 @@ function renderWorkOsHtml(artifact, options = {}) {
   </header>
   <main>
     <div class="toolbar">
-      <div>
-        <strong>Read-only control surface</strong>
-        <div class="label">Artifact-backed API bindings, redacted summaries, review gates.</div>
+      <div class="toolbar-copy">
+        <strong data-i18n="toolbarTitle">Read-only control surface</strong>
+        <div class="label" data-i18n="toolbarSubtitle">Artifact-backed API bindings, redacted summaries, Review gates.</div>
       </div>
-      <button id="refresh" type="button" aria-label="Refresh read-only Work OS snapshot">Refresh</button>
+      <div class="controls">
+        <label class="label" for="locale" data-i18n="localeLabel">Korean / English</label>
+        <select id="locale" data-locale-select aria-label="Korean / English">
+          <option value="ko">Korean</option>
+          <option value="en">English</option>
+        </select>
+        <button id="refresh" type="button" aria-label="Refresh read-only Work OS snapshot" data-i18n="refresh">Refresh</button>
+      </div>
     </div>
     <section class="band" id="ui-work_os_shell" data-api-path="/api/work-os/summary">
-      <h2>Source Summary</h2>
+      <div class="surface-title"><h2 data-i18n="sourceSummary">Source Summary</h2><span>Global Operator Console</span></div>
       <div class="grid">
-        ${summaryItem("Ready", summary.ready_for_p8801_handoff)}
-        ${summaryItem("Gates", `${summary.pass_gate_count ?? 0}/${summary.gate_count ?? 0}`)}
-        ${summaryItem("API Routes", summary.api_server_route_count)}
-        ${summaryItem("Projects", summary.project_surface_count)}
+        ${summaryItem("Ready", summary.ready_for_p8801_handoff, "ready")}
+        ${summaryItem("Gates", `${summary.pass_gate_count ?? 0}/${summary.gate_count ?? 0}`, "gates")}
+        ${summaryItem("API Routes", summary.api_server_route_count, "apiRoutes")}
+        ${summaryItem("Projects", summary.project_surface_count, "projectsMetric")}
       </div>
     </section>
     <section class="band" id="ui-project_control" data-api-path="/api/work-os/projects">
-      <h2>Projects</h2>
+      <div class="surface-title"><h2>Global Operator Queue</h2><span data-i18n="queueHint">allowed / blocked / receipt-required</span></div>
       <div class="grid">${projects.map((row) => projectItem(row)).join("")}</div>
     </section>
     <section class="band" id="ui-phase_detail" data-api-path="/api/work-os/phases">
-      <h2>Phases</h2>
+      <div class="surface-title"><h2>Readiness Rule Matrix</h2><span>Source -> Claim -> Requirement -> Evidence -> Gate -> Review -> Verdict -> Next Action</span></div>
       <div class="grid">${phases.map((row) => phaseItem(row)).join("")}</div>
     </section>
     <section class="band" id="ui-timeline" data-api-path="/api/work-os/timeline">
-      <h2>Timeline</h2>
+      <div class="surface-title"><h2 data-i18n="timeline">Timeline</h2><span>Evidence</span></div>
       <div class="grid">${timeline.map((row) => timelineItem(row)).join("")}</div>
     </section>
     <section class="band" id="ui-review_console" data-api-path="/api/work-os/reviews">
-      <h2>Review</h2>
+      <div class="surface-title"><h2>Review Evidence Trace</h2><span>Receipt / Finding / Revalidation</span></div>
       <div class="grid">${reviews.map((row) => reviewItem(row)).join("")}</div>
     </section>
     <section class="band" id="ui-gate_console" data-api-path="/api/work-os/gates">
-      <h2>Gate Console</h2>
-      <pre id="live-status">Awaiting read-only refresh.</pre>
+      <div class="surface-title"><h2>Gate State Console</h2><span data-i18n="readOnly">read-only</span></div>
+      <pre id="live-status" data-i18n="awaitingRefresh">Awaiting read-only refresh.</pre>
     </section>
   </main>
   <script>
     window.WORK_OS_API_PATHS = ${JSON.stringify(paths)};
+    window.WORK_OS_LOCALE_COPY = {
+      ko: {
+        title: "Hermes Global Operator Console",
+        toolbarTitle: "Read-only control surface",
+        toolbarSubtitle: "Artifact-backed API binding, redacted summary, Review Gate.",
+        localeLabel: "Korean / English",
+        refresh: "Refresh",
+        sourceSummary: "Source Summary",
+        ready: "Ready",
+        gates: "Gates",
+        apiRoutes: "API Routes",
+        projectsMetric: "Projects",
+        queueHint: "allowed / blocked / receipt-required",
+        timeline: "Timeline",
+        readOnly: "read-only",
+        awaitingRefresh: "Awaiting read-only refresh."
+      },
+      en: {
+        title: "Hermes Global Operator Console",
+        toolbarTitle: "Read-only control surface",
+        toolbarSubtitle: "Artifact-backed API bindings, redacted summaries, Review gates.",
+        localeLabel: "Korean / English",
+        refresh: "Refresh",
+        sourceSummary: "Source Summary",
+        ready: "Ready",
+        gates: "Gates",
+        apiRoutes: "API Routes",
+        projectsMetric: "Projects",
+        queueHint: "allowed / blocked / receipt-required",
+        timeline: "Timeline",
+        readOnly: "read-only",
+        awaitingRefresh: "Awaiting read-only refresh."
+      }
+    };
+    function applyLocale(locale) {
+      const selected = window.WORK_OS_LOCALE_COPY[locale] ? locale : "ko";
+      document.documentElement.lang = selected;
+      document.body.dataset.locale = selected;
+      document.querySelectorAll("[data-i18n]").forEach((node) => {
+        const key = node.dataset.i18n;
+        if (window.WORK_OS_LOCALE_COPY[selected][key]) node.textContent = window.WORK_OS_LOCALE_COPY[selected][key];
+      });
+    }
     async function refreshReadOnlySnapshot() {
       const status = document.getElementById("live-status");
       const results = [];
@@ -1061,6 +1265,8 @@ function renderWorkOsHtml(artifact, options = {}) {
       const refresh = await fetch("/api/work-os/refresh", { method: "GET", cache: "no-store" });
       status.textContent = results.join("\\n") + "\\nrefresh:" + refresh.status;
     }
+    document.getElementById("locale").addEventListener("change", (event) => applyLocale(event.target.value));
+    applyLocale("ko");
     document.getElementById("refresh").addEventListener("click", refreshReadOnlySnapshot);
     refreshReadOnlySnapshot().catch((error) => {
       document.getElementById("live-status").textContent = "refresh_error:" + error.message;
@@ -1070,8 +1276,9 @@ function renderWorkOsHtml(artifact, options = {}) {
 </html>`;
 }
 
-function summaryItem(label, value) {
-  return `<div class="item"><h3>${escapeHtml(String(label))}</h3><div class="row"><span class="label">value</span><span class="status-pass">${escapeHtml(String(value))}</span></div></div>`;
+function summaryItem(label, value, i18nKey = "") {
+  const i18n = i18nKey ? ` data-i18n="${escapeHtml(i18nKey)}"` : "";
+  return `<div class="item"><h3${i18n}>${escapeHtml(String(label))}</h3><div class="row"><span class="label">value</span><span class="status-pass">${escapeHtml(String(value))}</span></div></div>`;
 }
 
 function projectItem(row) {

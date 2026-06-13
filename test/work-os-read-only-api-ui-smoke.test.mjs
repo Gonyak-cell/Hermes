@@ -90,6 +90,13 @@ test("Work OS UI HTML binds live surfaces to API paths without protected action 
 
   assert.equal(response.status, 200);
   assert.equal(response.body.includes("work-os-root"), true);
+  assert.equal(response.body.includes("data-locale-select"), true);
+  assert.equal(response.body.includes("Korean / English"), true);
+  assert.equal(response.body.includes("Hermes Pretendard"), true);
+  assert.equal(response.body.includes("Hermes SUITE"), true);
+  assert.equal(response.body.includes("Global Operator Queue"), true);
+  assert.equal(response.body.includes("Readiness Rule Matrix"), true);
+  assert.equal(response.body.includes("Review Evidence Trace"), true);
   assert.equal(response.body.includes("window.WORK_OS_API_PATHS"), true);
   for (const apiPath of ["/api/work-os/summary", "/api/work-os/projects", "/api/work-os/phases", "/api/work-os/timeline", "/api/work-os/reviews", "/api/work-os/gates", "/api/work-os/refresh"]) {
     assert.equal(response.body.includes(apiPath), true);
@@ -102,7 +109,7 @@ test("Work OS read-only API/UI smoke records API and browser smoke evidence", as
   const result = await buildWorkOsReadOnlyApiUiSmoke(await buildOptions());
 
   assert.equal(result.api_projection_smoke_rows.length >= 12, true);
-  assert.equal(result.browser_smoke_evidence_rows.length >= 6, true);
+  assert.equal(result.browser_smoke_evidence_rows.length >= 9, true);
   assert.equal(result.api_projection_smoke_rows.every((row) => row.current_verdict === "pass"), true);
   assert.equal(result.browser_smoke_evidence_rows.every((row) => row.current_verdict === "pass"), true);
   assert.equal(result.api_projection_smoke_rows.every((row) => row.raw_payload_keys_present === false && row.secret_keys_present === false), true);
@@ -129,11 +136,28 @@ test("Work OS read-only API server serves local artifact-backed routes", async (
     const htmlResponse = await fetch(`${started.url}/work-os.html`);
     assert.equal(htmlResponse.status, 200);
     const html = await htmlResponse.text();
-    assert.equal(html.includes("Hermes Work OS"), true);
+    assert.equal(html.includes("Hermes Global Operator Console"), true);
     assert.equal(html.includes("window.WORK_OS_API_PATHS"), true);
   } finally {
     await new Promise((resolve, reject) => started.server.close((error) => error ? reject(error) : resolve()));
   }
+});
+
+test("Work OS read-only API/UI smoke records bilingual locale and typography contracts", async () => {
+  const result = await buildWorkOsReadOnlyApiUiSmoke(await buildOptions());
+  const locales = new Set(result.locale_selector_rows.map((row) => row.locale_id));
+  const fonts = new Set(result.typography_contract_rows.map((row) => row.font_family));
+  const smokeIds = new Set(result.browser_smoke_evidence_rows.map((row) => row.smoke_id));
+
+  assert.equal(locales.has("ko"), true);
+  assert.equal(locales.has("en"), true);
+  assert.equal(result.locale_selector_rows.find((row) => row.locale_id === "ko").is_default, true);
+  assert.equal(result.locale_selector_rows.find((row) => row.locale_id === "ko").keeps_natural_english_terms, true);
+  assert.equal(fonts.has("Hermes Pretendard"), true);
+  assert.equal(fonts.has("Hermes SUITE"), true);
+  assert.equal(smokeIds.has("browser_smoke.locale_selector"), true);
+  assert.equal(smokeIds.has("browser_smoke.korean_fonts"), true);
+  assert.equal(smokeIds.has("browser_smoke.operator_console_model"), true);
 });
 
 test("Work OS read-only API/UI smoke freezes P9000 without authority expansion", async () => {

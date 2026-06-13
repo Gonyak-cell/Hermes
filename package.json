@@ -626,6 +626,7 @@
     "platform:patch-candidate-lane": "node scripts/patch-candidate-lane.mjs",
     "platform:human-owner-adjudication-option": "node scripts/human-owner-adjudication-option.mjs",
     "platform:release-readiness-control-plane": "node scripts/release-readiness-control-plane.mjs",
+    "platform:launch-non-human-readiness": "node scripts/launch-non-human-readiness.mjs",
     "platform:enterprise-trust-hardening-control-plane": "node scripts/enterprise-trust-hardening-control-plane.mjs",
     "work-os:serve": "node scripts/work-os-read-only-api-ui-smoke.mjs --serve",
     "platform:observability-cost-plane": "node scripts/observability-cost-plane.mjs",

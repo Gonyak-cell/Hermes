@@ -3,6 +3,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { deflateSync } from "node:zlib";
 import {
   buildAmplitudeUiReferenceAudit,
   runAmplitudeUiReferenceAudit,
@@ -34,6 +35,12 @@ test("Amplitude UI reference audit inventories screenshots, crops, tokens, and H
     assert.equal(result.summary.screenshot_count, 3);
     assert.equal(result.summary.crop_row_count, 3);
     assert.equal(result.summary.measurement_queue_count, 3);
+    assert.equal(result.summary.pixel_measurement_count, 3);
+    assert.equal(result.summary.pixel_measurement_complete_count, 3);
+    assert.equal(result.pixel_measurement_rows.every((row) => row.exact_pixel_measurement_complete === true), true);
+    assert.equal(result.pixel_measurement_summary_rows.some((row) => row.ready_for_token_promotion === true), true);
+    assert.equal(result.pixel_measurement_rows[0].derived_metrics.topbar_height_px, 56);
+    assert.equal(result.pixel_measurement_rows[0].derived_metrics.left_rail_width_px, 56);
     assert.equal(result.summary.design_token_seed_count, 27);
     assert.equal(result.ui_reference_boundary.literal_clone_allowed, false);
     assert.equal(result.ui_reference_boundary.amplitude_brand_assets_copied, false);
@@ -86,9 +93,9 @@ test("Amplitude UI reference audit --check does not overwrite artifacts", async 
 async function createReferenceFixture() {
   const sourceDir = await mkdtemp(path.join(os.tmpdir(), "amplitude-ui-reference-"));
   for (let index = 0; index < 3; index += 1) {
-    await writeFile(path.join(sourceDir, `Amplitude web Feb 2025 ${index}.png`), pngHeader(1920, 1320));
+    await writeFile(path.join(sourceDir, `Amplitude web Feb 2025 ${index}.png`), pngRgba(1920, 1320, true));
   }
-  await writeFile(path.join(sourceDir, "showcase-preview.png"), pngHeader(1440, 900));
+  await writeFile(path.join(sourceDir, "showcase-preview.png"), pngRgba(1440, 900, false));
   await writeFile(path.join(sourceDir, "showcase.html"), "<!doctype html><title>fixture</title>\n", "utf8");
   return sourceDir;
 }
@@ -101,4 +108,59 @@ function pngHeader(width, height) {
   buffer.writeUInt32BE(width, 16);
   buffer.writeUInt32BE(height, 20);
   return buffer;
+}
+
+function pngRgba(width, height, drawUiLines) {
+  const bytesPerPixel = 4;
+  const rowLength = 1 + width * bytesPerPixel;
+  const raw = Buffer.alloc(rowLength * height);
+  for (let y = 0; y < height; y += 1) {
+    const rowOffset = y * rowLength;
+    raw[rowOffset] = 0;
+    for (let x = 0; x < width; x += 1) {
+      const offset = rowOffset + 1 + x * bytesPerPixel;
+      const isLine = drawUiLines && (
+        x === 56
+        || x === 304
+        || x === 1560
+        || y === 56
+        || y === 300
+        || y === 344
+        || y === 388
+        || y === 432
+      );
+      const value = isLine ? 16 : 248;
+      raw[offset] = value;
+      raw[offset + 1] = value;
+      raw[offset + 2] = value;
+      raw[offset + 3] = 255;
+    }
+  }
+  const chunks = [
+    pngChunk("IHDR", ihdr(width, height)),
+    pngChunk("IDAT", deflateSync(raw)),
+    pngChunk("IEND", Buffer.alloc(0)),
+  ];
+  return Buffer.concat([Buffer.from("89504e470d0a1a0a", "hex"), ...chunks]);
+}
+
+function ihdr(width, height) {
+  const data = Buffer.alloc(13);
+  data.writeUInt32BE(width, 0);
+  data.writeUInt32BE(height, 4);
+  data.writeUInt8(8, 8);
+  data.writeUInt8(6, 9);
+  data.writeUInt8(0, 10);
+  data.writeUInt8(0, 11);
+  data.writeUInt8(0, 12);
+  return data;
+}
+
+function pngChunk(type, data) {
+  const chunk = Buffer.alloc(12 + data.length);
+  chunk.writeUInt32BE(data.length, 0);
+  chunk.write(type, 4, "ascii");
+  data.copy(chunk, 8);
+  chunk.writeUInt32BE(0, 8 + data.length);
+  return chunk;
 }

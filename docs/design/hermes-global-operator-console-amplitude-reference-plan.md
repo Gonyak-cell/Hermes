@@ -33,6 +33,9 @@ Required artifacts:
 - `crop-manifest.json`: product crop and attribution/footer exclusion rows
 - `screen-family-rows.json`: seed classifications plus pending full visual review rows
 - `measurement-queue-rows.json`: one exact-pixel measurement queue row per screenshot
+- `pixel-measurement-rows.json`: decoded PNG pixel analysis rows for every numbered screenshot
+- `pixel-measurement-summary-rows.json`: aggregated metric candidates across the full reference set
+- `pixel-layout-overlay.html`: human-reviewable local-image overlay for seeded and high-confidence samples
 - `measurement-plan.json`: measurable layout/component targets
 - `design-token-seed.json`: Hermes token candidates derived from the reference rhythm
 - `hermes-surface-mapping-rows.json`: reference pattern to Hermes surface map
@@ -68,6 +71,23 @@ The exact-pixel measurement pass must capture:
 - inspector width
 - chart/workspace region height
 
+## Current Pixel Measurement Output
+
+The deterministic pixel pass decodes the source PNGs directly and excludes the bottom attribution/footer band before measuring. Current generated output reports:
+
+| Metric | Current Evidence |
+|---|---|
+| Numbered screenshots decoded | 318/318 |
+| Pixel measurement summaries | 9 |
+| Common topbar candidate | 43px median across 295 samples |
+| Common rail candidate | 43px median across 265 samples; 83px also appears in app-shell samples |
+| Common sidebar width candidates | 145px, 204px, 225px families |
+| Common table/control rhythm | 28-32px dense rhythm |
+| Common modal width candidates | 532px and 650px families |
+| Inspector width candidate | 391px median, with 452px/462px families |
+
+These are machine-extracted candidates, not final product tokens by themselves. Hermes implementation should promote only repeated app-shell values after reviewing `pixel-layout-overlay.html` and excluding marketing-only layouts.
+
 ## Hermes Surface Map
 
 | Hermes Surface | Reference Pattern | Translation |
@@ -91,8 +111,8 @@ The exact-pixel measurement pass must capture:
    - Exclude attribution/footer from all measurements.
 
 2. Exact pixel annotation pass
-   - Work through `measurement-queue-rows.json`.
-   - Record component bounds per screenshot family.
+   - Work through `pixel-measurement-rows.json` and `pixel-layout-overlay.html`.
+   - Record accepted component bounds per screen family.
    - Promote repeated measurements into stable Hermes tokens.
 
 3. Hermes shell design system

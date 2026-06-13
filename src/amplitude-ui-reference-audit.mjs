@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { inflateSync } from "node:zlib";
 
 export const DEFAULT_AMPLITUDE_UI_REFERENCE_SOURCE_DIR = "/Users/jws/Applications/LazyWeb/Amplitude web Feb 2025";
 export const DEFAULT_AMPLITUDE_UI_REFERENCE_OUT_DIR = "artifacts/ui-reference/amplitude-feb-2025/latest";
@@ -151,6 +152,10 @@ export async function buildAmplitudeUiReferenceAudit(options = {}) {
   const cropRows = buildCropRows(screenshotManifest, generatedAt);
   const screenFamilyRows = buildScreenFamilyRows(screenshotManifest, generatedAt);
   const measurementQueueRows = buildMeasurementQueueRows(screenshotManifest, generatedAt);
+  const pixelMeasurementRows = options.pixelAnalysis === false
+    ? []
+    : await buildPixelMeasurementRows(screenshotManifest, cropRows, generatedAt);
+  const pixelMeasurementSummaryRows = buildPixelMeasurementSummaryRows(pixelMeasurementRows, generatedAt);
   const measurementPlanRows = buildMeasurementPlanRows(generatedAt);
   const designTokenSeedRows = buildDesignTokenSeedRows(generatedAt);
   const hermesSurfaceMappingRows = buildHermesSurfaceMappingRows(generatedAt);
@@ -162,6 +167,8 @@ export async function buildAmplitudeUiReferenceAudit(options = {}) {
     cropRows,
     screenFamilyRows,
     measurementQueueRows,
+    pixelMeasurementRows,
+    pixelMeasurementSummaryRows,
     measurementPlanRows,
     designTokenSeedRows,
     hermesSurfaceMappingRows,
@@ -175,6 +182,8 @@ export async function buildAmplitudeUiReferenceAudit(options = {}) {
     cropRows,
     screenFamilyRows,
     measurementQueueRows,
+    pixelMeasurementRows,
+    pixelMeasurementSummaryRows,
     measurementPlanRows,
     designTokenSeedRows,
     hermesSurfaceMappingRows,
@@ -197,6 +206,8 @@ export async function buildAmplitudeUiReferenceAudit(options = {}) {
     crop_manifest_rows: cropRows,
     screen_family_rows: screenFamilyRows,
     measurement_queue_rows: measurementQueueRows,
+    pixel_measurement_rows: pixelMeasurementRows,
+    pixel_measurement_summary_rows: pixelMeasurementSummaryRows,
     measurement_plan_rows: measurementPlanRows,
     design_token_seed_rows: designTokenSeedRows,
     hermes_surface_mapping_rows: hermesSurfaceMappingRows,
@@ -211,6 +222,8 @@ export async function buildAmplitudeUiReferenceAudit(options = {}) {
       cropRows,
       screenFamilyRows,
       measurementQueueRows,
+      pixelMeasurementRows,
+      pixelMeasurementSummaryRows,
       measurementPlanRows,
       designTokenSeedRows,
       hermesSurfaceMappingRows,
@@ -230,6 +243,8 @@ export async function writeAmplitudeUiReferenceAudit(result, outDir = result.out
   await writeJson(path.join(outDir, "crop-manifest.json"), collectionEnvelope("amplitude-crop-manifest.v1", "crop_manifest_rows", result.crop_manifest_rows, result.generated_at));
   await writeJson(path.join(outDir, "screen-family-rows.json"), collectionEnvelope("amplitude-screen-family-rows.v1", "screen_family_rows", result.screen_family_rows, result.generated_at));
   await writeJson(path.join(outDir, "measurement-queue-rows.json"), collectionEnvelope("amplitude-measurement-queue-rows.v1", "measurement_queue_rows", result.measurement_queue_rows, result.generated_at));
+  await writeJson(path.join(outDir, "pixel-measurement-rows.json"), collectionEnvelope("amplitude-pixel-measurement-rows.v1", "pixel_measurement_rows", result.pixel_measurement_rows, result.generated_at));
+  await writeJson(path.join(outDir, "pixel-measurement-summary-rows.json"), collectionEnvelope("amplitude-pixel-measurement-summary-rows.v1", "pixel_measurement_summary_rows", result.pixel_measurement_summary_rows, result.generated_at));
   await writeJson(path.join(outDir, "measurement-plan.json"), collectionEnvelope("amplitude-measurement-plan.v1", "measurement_plan_rows", result.measurement_plan_rows, result.generated_at));
   await writeJson(path.join(outDir, "design-token-seed.json"), collectionEnvelope("amplitude-design-token-seed.v1", "design_token_seed_rows", result.design_token_seed_rows, result.generated_at));
   await writeJson(path.join(outDir, "hermes-surface-mapping-rows.json"), collectionEnvelope("amplitude-hermes-surface-mapping-rows.v1", "hermes_surface_mapping_rows", result.hermes_surface_mapping_rows, result.generated_at));
@@ -243,6 +258,7 @@ export async function writeAmplitudeUiReferenceAudit(result, outDir = result.out
   });
   await writeFile(path.join(outDir, "summary.md"), result.markdown, "utf8");
   await writeFile(path.join(outDir, "index.html"), result.html, "utf8");
+  await writeFile(path.join(outDir, "pixel-layout-overlay.html"), renderPixelOverlayHtml(result), "utf8");
 }
 
 export async function runAmplitudeUiReferenceAuditCli(argv = process.argv.slice(2)) {
@@ -257,6 +273,7 @@ export async function runAmplitudeUiReferenceAuditCli(argv = process.argv.slice(
     console.log(`Status: ${result.summary.amplitude_ui_reference_status}`);
     console.log(`Screenshots: ${result.summary.screenshot_count}`);
     console.log(`Measurement queue rows: ${result.summary.measurement_queue_count}`);
+    console.log(`Pixel measurement rows: ${result.summary.pixel_measurement_complete_count}/${result.summary.pixel_measurement_count}`);
     console.log(`Hermes surface mappings: ${result.summary.hermes_surface_mapping_count}`);
     console.log(`Validation errors: ${result.validation.errors.length}`);
   } catch (error) {
@@ -444,6 +461,109 @@ function buildMeasurementQueueRows(screenshotManifest, generatedAt) {
   });
 }
 
+async function buildPixelMeasurementRows(screenshotManifest, cropRows, generatedAt) {
+  const cropByScreenshotId = new Map(cropRows.map((row) => [row.screenshot_id, row]));
+  const rows = [];
+  for (const screenshot of screenshotManifest) {
+    const crop = cropByScreenshotId.get(screenshot.screenshot_id);
+    rows.push(await buildPixelMeasurementRow(screenshot, crop, generatedAt));
+  }
+  return rows;
+}
+
+async function buildPixelMeasurementRow(screenshot, crop, generatedAt) {
+  const baseRow = {
+    row_id: `pixel.${screenshot.screenshot_id}`,
+    screenshot_id: screenshot.screenshot_id,
+    screenshot_index: screenshot.screenshot_index,
+    filename: screenshot.filename,
+    generated_at: generatedAt,
+    evidence_ref: screenshot.absolute_path,
+    crop_ref: crop?.row_id ?? null,
+    analysis_status: "blocked",
+    visual_reference_only: true,
+    binary_embedded: false,
+  };
+
+  try {
+    const image = await decodePngRgba(screenshot.absolute_path);
+    const productArea = crop?.product_area ?? { x: 0, y: 0, width: image.width, height: image.height };
+    const verticalLineCandidates = detectAxisEdges(image, productArea, "vertical");
+    const horizontalLineCandidates = detectAxisEdges(image, productArea, "horizontal");
+    const derivedMetrics = deriveLayoutMetrics(verticalLineCandidates, horizontalLineCandidates, productArea);
+    const dominantColors = dominantQuantizedColors(image, productArea);
+    const componentCandidates = buildComponentCandidates(derivedMetrics, productArea);
+    const confidence = scorePixelMeasurementConfidence({ verticalLineCandidates, horizontalLineCandidates, derivedMetrics, componentCandidates });
+
+    return {
+      ...baseRow,
+      analysis_status: "complete",
+      decoder: {
+        format: "png",
+        color_type: image.colorType,
+        bit_depth: image.bitDepth,
+        interlace_method: image.interlaceMethod,
+        decoded_rgba: true,
+      },
+      product_area: productArea,
+      sample_stride_px: 4,
+      vertical_line_candidates: verticalLineCandidates,
+      horizontal_line_candidates: horizontalLineCandidates,
+      dominant_colors: dominantColors,
+      derived_metrics: derivedMetrics,
+      component_candidates: componentCandidates,
+      confidence,
+      exact_pixel_measurement_complete: true,
+    };
+  } catch (error) {
+    return {
+      ...baseRow,
+      analysis_status: "decode_failed",
+      error: error.message,
+      product_area: crop?.product_area ?? null,
+      vertical_line_candidates: [],
+      horizontal_line_candidates: [],
+      dominant_colors: [],
+      derived_metrics: {},
+      component_candidates: [],
+      confidence: 0,
+      exact_pixel_measurement_complete: false,
+    };
+  }
+}
+
+function buildPixelMeasurementSummaryRows(pixelMeasurementRows, generatedAt) {
+  const completeRows = pixelMeasurementRows.filter((row) => row.analysis_status === "complete");
+  const metricSpecs = [
+    ["metric.topbar_height_px", "topbar_height_px"],
+    ["metric.left_rail_width_px", "left_rail_width_px"],
+    ["metric.sidebar_boundary_x", "sidebar_boundary_x"],
+    ["metric.sidebar_width_px", "sidebar_width_px"],
+    ["metric.inspector_boundary_x", "inspector_boundary_x"],
+    ["metric.inspector_width_px", "inspector_width_px"],
+    ["metric.table_row_rhythm_px", "table_row_rhythm_px"],
+    ["metric.control_height_px", "control_height_px"],
+    ["metric.modal_width_px", "modal_width_px"],
+  ];
+  return metricSpecs.map(([rowId, metricName]) => {
+    const values = completeRows
+      .map((row) => row.derived_metrics?.[metricName])
+      .filter((value) => Number.isFinite(value));
+    return {
+      row_id: rowId,
+      metric_name: metricName,
+      sample_count: values.length,
+      median_px: median(values),
+      min_px: values.length ? Math.min(...values) : null,
+      max_px: values.length ? Math.max(...values) : null,
+      common_values: commonValues(values, 8),
+      generated_at: generatedAt,
+      exact_pixel_source: true,
+      ready_for_token_promotion: values.length > 0,
+    };
+  });
+}
+
 function buildMeasurementPlanRows(generatedAt) {
   return MEASUREMENT_TARGET_SPECS.map(([rowId, label, category, seedPx, unit, method]) => ({
     row_id: rowId,
@@ -517,6 +637,7 @@ function buildBoundary(context) {
     && context.screenshotManifest.every((row) => row.width === EXPECTED_SCREENSHOT_DIMENSIONS.width && row.height === EXPECTED_SCREENSHOT_DIMENSIONS.height);
   const preview = context.assetManifest.find((row) => row.filename === "showcase-preview.png");
   const showcaseHtml = context.assetManifest.find((row) => row.filename === "showcase.html");
+  const overlayRows = selectOverlayRows(context.pixelMeasurementRows);
   const showcaseComplete = Boolean(preview)
     && preview.width === EXPECTED_SHOWCASE_PREVIEW_DIMENSIONS.width
     && preview.height === EXPECTED_SHOWCASE_PREVIEW_DIMENSIONS.height
@@ -526,6 +647,10 @@ function buildBoundary(context) {
     && showcaseComplete
     && context.cropRows.length === context.screenshotManifest.length
     && context.measurementQueueRows.length === context.screenshotManifest.length
+    && context.pixelMeasurementRows.length === context.screenshotManifest.length
+    && context.pixelMeasurementRows.every((row) => row.exact_pixel_measurement_complete === true)
+    && context.pixelMeasurementSummaryRows.some((row) => row.ready_for_token_promotion === true)
+    && overlayRows.length >= 3
     && REQUIRED_HERMES_SURFACE_IDS.every((surfaceId) => mappingIds.has(surfaceId));
 
   return {
@@ -534,6 +659,10 @@ function buildBoundary(context) {
     showcase_assets_ready: showcaseComplete,
     screenshot_crop_manifest_ready: context.cropRows.length === context.screenshotManifest.length,
     measurement_queue_ready: context.measurementQueueRows.length === context.screenshotManifest.length,
+    exact_pixel_measurement_ready: context.pixelMeasurementRows.length === context.screenshotManifest.length
+      && context.pixelMeasurementRows.every((row) => row.exact_pixel_measurement_complete === true),
+    pixel_measurement_summary_ready: context.pixelMeasurementSummaryRows.some((row) => row.ready_for_token_promotion === true),
+    pixel_layout_overlay_ready: overlayRows.length >= 3,
     measurement_plan_ready: context.measurementPlanRows.length >= MEASUREMENT_TARGET_SPECS.length,
     design_token_seed_ready: context.designTokenSeedRows.length >= DESIGN_TOKEN_SEEDS.length,
     hermes_surface_mapping_ready: REQUIRED_HERMES_SURFACE_IDS.every((surfaceId) => mappingIds.has(surfaceId)),
@@ -590,6 +719,10 @@ function buildValidationItems(context) {
   add("crop.rows", "crop", context.cropRows.length === context.screenshotManifest.length, "Crop row count must match screenshot count", "crop_manifest_rows");
   add("crop.footer.excluded", "crop", context.cropRows.every((row) => row.attribution_footer_excluded_from_measurements === true), "Attribution/footer must be excluded from every numbered screenshot measurement", "crop_manifest_rows");
   add("measurement.queue.rows", "measurement", context.measurementQueueRows.length === context.screenshotManifest.length, "Measurement queue row count must match screenshot count", "measurement_queue_rows");
+  add("pixel.measurement.rows", "measurement", context.pixelMeasurementRows.length === context.screenshotManifest.length, "Pixel measurement row count must match screenshot count", "pixel_measurement_rows");
+  add("pixel.measurement.complete", "measurement", context.pixelMeasurementRows.every((row) => row.exact_pixel_measurement_complete === true), "Every screenshot must complete exact pixel measurement", "pixel_measurement_rows");
+  add("pixel.measurement.summary", "measurement", context.pixelMeasurementSummaryRows.some((row) => row.ready_for_token_promotion === true), "Pixel measurement summary must include token-promotion candidates", "pixel_measurement_summary_rows");
+  add("pixel.overlay.rows", "measurement", selectOverlayRows(context.pixelMeasurementRows).length >= 3, "Pixel overlay must include seeded or high-confidence samples", "pixel-layout-overlay.html");
   add("measurement.plan.rows", "measurement", context.measurementPlanRows.length >= MEASUREMENT_TARGET_SPECS.length, "Measurement plan rows incomplete", "measurement_plan_rows");
   add("design.tokens", "tokens", context.designTokenSeedRows.length >= DESIGN_TOKEN_SEEDS.length, "Design token seed rows incomplete", "design_token_seed_rows");
   for (const surfaceId of REQUIRED_HERMES_SURFACE_IDS) {
@@ -614,6 +747,10 @@ function buildSummary(context) {
     crop_row_count: context.cropRows.length,
     screen_family_count: context.screenFamilyRows.length,
     measurement_queue_count: context.measurementQueueRows.length,
+    pixel_measurement_count: context.pixelMeasurementRows.length,
+    pixel_measurement_complete_count: context.pixelMeasurementRows.filter((row) => row.exact_pixel_measurement_complete === true).length,
+    pixel_measurement_summary_count: context.pixelMeasurementSummaryRows.length,
+    pixel_layout_overlay_row_count: selectOverlayRows(context.pixelMeasurementRows).length,
     measurement_plan_count: context.measurementPlanRows.length,
     design_token_seed_count: context.designTokenSeedRows.length,
     hermes_surface_mapping_count: context.hermesSurfaceMappingRows.length,
@@ -641,6 +778,8 @@ function renderMarkdown(result) {
     `- Source: ${result.source_dir}`,
     `- Screenshots inventoried: ${result.summary.screenshot_count}`,
     `- Measurement queue rows: ${result.summary.measurement_queue_count}`,
+    `- Pixel measurement rows: ${result.summary.pixel_measurement_complete_count}/${result.summary.pixel_measurement_count}`,
+    `- Pixel measurement summaries: ${result.summary.pixel_measurement_summary_count}`,
     `- Crop rows: ${result.summary.crop_row_count}`,
     `- Token seed rows: ${result.summary.design_token_seed_count}`,
     `- Hermes surface mappings: ${result.summary.hermes_surface_mapping_count}`,
@@ -658,6 +797,9 @@ function renderMarkdown(result) {
     "- `screenshot-manifest.json`",
     "- `crop-manifest.json`",
     "- `measurement-queue-rows.json`",
+    "- `pixel-measurement-rows.json`",
+    "- `pixel-measurement-summary-rows.json`",
+    "- `pixel-layout-overlay.html`",
     "- `measurement-plan.json`",
     "- `design-token-seed.json`",
     "- `hermes-surface-mapping-rows.json`",
@@ -673,6 +815,7 @@ function renderMarkdown(result) {
 
 function renderHtml(result) {
   const surfaceRows = result.hermes_surface_mapping_rows.map((row) => `<tr><td>${escapeHtml(row.label)}</td><td>${escapeHtml(row.source_pattern)}</td><td>${escapeHtml(row.hermes_instruction)}</td></tr>`).join("");
+  const pixelSummaryRows = result.pixel_measurement_summary_rows.map((row) => `<tr><td>${escapeHtml(row.metric_name)}</td><td>${escapeHtml(row.sample_count)}</td><td>${escapeHtml(row.median_px ?? "n/a")}</td><td>${escapeHtml(row.common_values.map((item) => `${item.value_px}px (${item.count})`).join(", "))}</td></tr>`).join("");
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -702,9 +845,15 @@ function renderHtml(result) {
     <section class="grid">
       <div class="metric"><strong>${result.summary.screenshot_count}</strong><span>screenshots</span></div>
       <div class="metric"><strong>${result.summary.measurement_queue_count}</strong><span>measurement rows</span></div>
+      <div class="metric"><strong>${result.summary.pixel_measurement_complete_count}</strong><span>pixel-complete</span></div>
       <div class="metric"><strong>${result.summary.design_token_seed_count}</strong><span>token seeds</span></div>
       <div class="metric"><strong>${result.summary.validation_error_count}</strong><span>validation errors</span></div>
     </section>
+    <h2>Pixel Measurement Summary</h2>
+    <table>
+      <thead><tr><th>Metric</th><th>Samples</th><th>Median px</th><th>Common Values</th></tr></thead>
+      <tbody>${pixelSummaryRows}</tbody>
+    </table>
     <h2>Hermes Surface Mapping</h2>
     <table>
       <thead><tr><th>Surface</th><th>Reference Pattern</th><th>Hermes Translation</th></tr></thead>
@@ -713,6 +862,81 @@ function renderHtml(result) {
   </main>
 </body>
 </html>`;
+}
+
+function renderPixelOverlayHtml(result) {
+  const selectedRows = selectOverlayRows(result.pixel_measurement_rows);
+  const overlaySections = selectedRows.map((row) => renderOverlaySection(row)).join("\n");
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Amplitude Pixel Layout Overlay</title>
+  <style>
+    body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #111827; background: #f8fafc; }
+    main { max-width: 1180px; margin: 0 auto; padding: 28px 24px; }
+    h1 { font-size: 24px; margin: 0 0 8px; }
+    h2 { font-size: 16px; margin: 26px 0 10px; }
+    p { color: #4b5563; font-size: 13px; line-height: 1.5; }
+    .shot { border: 1px solid #e5e7eb; background: white; border-radius: 6px; padding: 14px; margin: 18px 0; }
+    .canvas { position: relative; width: 100%; aspect-ratio: 1920 / 1200; overflow: hidden; border: 1px solid #e5e7eb; background: #f3f4f6; }
+    .canvas img { position: absolute; inset: 0; width: 100%; height: auto; }
+    .vline, .hline { position: absolute; background: rgba(79, 70, 229, .7); pointer-events: none; }
+    .vline { top: 0; bottom: 0; width: 1px; }
+    .hline { left: 0; right: 0; height: 1px; background: rgba(220, 38, 38, .65); }
+    .box { position: absolute; border: 2px solid rgba(5, 150, 105, .9); background: rgba(5, 150, 105, .08); box-sizing: border-box; }
+    .meta { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 10px 0 0; font-size: 12px; color: #374151; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Amplitude Pixel Layout Overlay</h1>
+    <p>Overlay lines are generated from decoded PNG pixels inside the product crop only. The footer attribution band is excluded and the source images are referenced from their local absolute paths, not copied into Hermes product assets.</p>
+    ${overlaySections}
+  </main>
+</body>
+</html>`;
+}
+
+function renderOverlaySection(row) {
+  const area = row.product_area ?? EXPECTED_PRODUCT_CROP;
+  const verticalLines = row.vertical_line_candidates.slice(0, 12).map((line) => `<span class="vline" title="x=${line.x}, score=${line.score}" style="left:${(line.x / area.width) * 100}%"></span>`).join("");
+  const horizontalLines = row.horizontal_line_candidates.slice(0, 12).map((line) => `<span class="hline" title="y=${line.y}, score=${line.score}" style="top:${(line.y / area.height) * 100}%"></span>`).join("");
+  const boxes = row.component_candidates.slice(0, 8).map((box) => {
+    const x = ((box.bounds.x - area.x) / area.width) * 100;
+    const y = ((box.bounds.y - area.y) / area.height) * 100;
+    const width = (box.bounds.width / area.width) * 100;
+    const height = (box.bounds.height / area.height) * 100;
+    return `<span class="box" title="${escapeHtml(box.component_kind)} ${escapeHtml(JSON.stringify(box.bounds))}" style="left:${x}%;top:${y}%;width:${width}%;height:${height}%"></span>`;
+  }).join("");
+  return `<section class="shot">
+  <h2>${escapeHtml(row.filename)}</h2>
+  <div class="canvas">
+    <img src="${escapeHtml(row.evidence_ref)}" alt="${escapeHtml(row.filename)}">
+    ${verticalLines}
+    ${horizontalLines}
+    ${boxes}
+  </div>
+  <div class="meta">
+    <span><strong>topbar</strong> <code>${escapeHtml(row.derived_metrics?.topbar_height_px ?? "n/a")}</code></span>
+    <span><strong>rail</strong> <code>${escapeHtml(row.derived_metrics?.left_rail_width_px ?? "n/a")}</code></span>
+    <span><strong>sidebar</strong> <code>${escapeHtml(row.derived_metrics?.sidebar_width_px ?? "n/a")}</code></span>
+    <span><strong>row rhythm</strong> <code>${escapeHtml(row.derived_metrics?.table_row_rhythm_px ?? "n/a")}</code></span>
+  </div>
+</section>`;
+}
+
+function selectOverlayRows(rows) {
+  const byIndex = new Map(rows.map((row) => [row.screenshot_index, row]));
+  const seeded = [0, 100, 200].map((index) => byIndex.get(index)).filter(Boolean);
+  const highConfidence = rows
+    .filter((row) => ![0, 100, 200].includes(row.screenshot_index))
+    .filter((row) => row.confidence >= 0.55)
+    .sort((a, b) => b.confidence - a.confidence)
+    .slice(0, 9);
+  return [...seeded, ...highConfidence];
 }
 
 async function readFileMetadata(filePath) {
@@ -742,6 +966,357 @@ async function readPngMetadata(filePath) {
       error: error.message,
     };
   }
+}
+
+async function decodePngRgba(filePath) {
+  const buffer = await readFile(filePath);
+  if (buffer.subarray(0, 8).toString("hex") !== PNG_SIGNATURE_HEX) {
+    throw new Error("Invalid PNG signature.");
+  }
+
+  let offset = 8;
+  let width = null;
+  let height = null;
+  let bitDepth = null;
+  let colorType = null;
+  let compressionMethod = null;
+  let filterMethod = null;
+  let interlaceMethod = null;
+  const idatChunks = [];
+
+  while (offset + 12 <= buffer.length) {
+    const length = buffer.readUInt32BE(offset);
+    const type = buffer.subarray(offset + 4, offset + 8).toString("ascii");
+    const data = buffer.subarray(offset + 8, offset + 8 + length);
+    offset += 12 + length;
+
+    if (type === "IHDR") {
+      width = data.readUInt32BE(0);
+      height = data.readUInt32BE(4);
+      bitDepth = data.readUInt8(8);
+      colorType = data.readUInt8(9);
+      compressionMethod = data.readUInt8(10);
+      filterMethod = data.readUInt8(11);
+      interlaceMethod = data.readUInt8(12);
+    } else if (type === "IDAT") {
+      idatChunks.push(data);
+    } else if (type === "IEND") {
+      break;
+    }
+  }
+
+  if (!width || !height) throw new Error("PNG IHDR chunk missing.");
+  if (bitDepth !== 8) throw new Error(`Unsupported PNG bit depth: ${bitDepth}`);
+  if (![0, 2, 4, 6].includes(colorType)) throw new Error(`Unsupported PNG color type: ${colorType}`);
+  if (compressionMethod !== 0 || filterMethod !== 0 || interlaceMethod !== 0) {
+    throw new Error("Unsupported PNG compression/filter/interlace method.");
+  }
+
+  const channels = channelsForColorType(colorType);
+  const bytesPerPixel = channels;
+  const scanlineLength = width * channels;
+  const inflated = inflateSync(Buffer.concat(idatChunks));
+  const rgba = Buffer.alloc(width * height * 4);
+  let inputOffset = 0;
+  let previous = Buffer.alloc(scanlineLength);
+
+  for (let y = 0; y < height; y += 1) {
+    const filterType = inflated.readUInt8(inputOffset);
+    inputOffset += 1;
+    const raw = inflated.subarray(inputOffset, inputOffset + scanlineLength);
+    inputOffset += scanlineLength;
+    const current = unfilterScanline(filterType, raw, previous, bytesPerPixel);
+    copyScanlineToRgba(current, rgba, y, width, colorType);
+    previous = current;
+  }
+
+  return {
+    width,
+    height,
+    bitDepth,
+    colorType,
+    interlaceMethod,
+    data: rgba,
+  };
+}
+
+function unfilterScanline(filterType, raw, previous, bytesPerPixel) {
+  const current = Buffer.alloc(raw.length);
+  for (let index = 0; index < raw.length; index += 1) {
+    const left = index >= bytesPerPixel ? current[index - bytesPerPixel] : 0;
+    const up = previous[index] ?? 0;
+    const upLeft = index >= bytesPerPixel ? previous[index - bytesPerPixel] ?? 0 : 0;
+    let value;
+    if (filterType === 0) value = raw[index];
+    else if (filterType === 1) value = raw[index] + left;
+    else if (filterType === 2) value = raw[index] + up;
+    else if (filterType === 3) value = raw[index] + Math.floor((left + up) / 2);
+    else if (filterType === 4) value = raw[index] + paethPredictor(left, up, upLeft);
+    else throw new Error(`Unsupported PNG filter type: ${filterType}`);
+    current[index] = value & 0xff;
+  }
+  return current;
+}
+
+function copyScanlineToRgba(scanline, rgba, y, width, colorType) {
+  const channels = channelsForColorType(colorType);
+  for (let x = 0; x < width; x += 1) {
+    const source = x * channels;
+    const target = (y * width + x) * 4;
+    if (colorType === 0) {
+      rgba[target] = scanline[source];
+      rgba[target + 1] = scanline[source];
+      rgba[target + 2] = scanline[source];
+      rgba[target + 3] = 255;
+    } else if (colorType === 2) {
+      rgba[target] = scanline[source];
+      rgba[target + 1] = scanline[source + 1];
+      rgba[target + 2] = scanline[source + 2];
+      rgba[target + 3] = 255;
+    } else if (colorType === 4) {
+      rgba[target] = scanline[source];
+      rgba[target + 1] = scanline[source];
+      rgba[target + 2] = scanline[source];
+      rgba[target + 3] = scanline[source + 1];
+    } else {
+      rgba[target] = scanline[source];
+      rgba[target + 1] = scanline[source + 1];
+      rgba[target + 2] = scanline[source + 2];
+      rgba[target + 3] = scanline[source + 3];
+    }
+  }
+}
+
+function channelsForColorType(colorType) {
+  if (colorType === 0) return 1;
+  if (colorType === 2) return 3;
+  if (colorType === 4) return 2;
+  if (colorType === 6) return 4;
+  throw new Error(`Unsupported PNG color type: ${colorType}`);
+}
+
+function paethPredictor(left, up, upLeft) {
+  const p = left + up - upLeft;
+  const pa = Math.abs(p - left);
+  const pb = Math.abs(p - up);
+  const pc = Math.abs(p - upLeft);
+  if (pa <= pb && pa <= pc) return left;
+  if (pb <= pc) return up;
+  return upLeft;
+}
+
+function detectAxisEdges(image, area, axis) {
+  const scores = axis === "vertical"
+    ? buildVerticalEdgeScores(image, area)
+    : buildHorizontalEdgeScores(image, area);
+  const sorted = scores
+    .filter((item) => item.score >= 5)
+    .sort((a, b) => b.score - a.score);
+  const selected = [];
+  for (const item of sorted) {
+    const position = axis === "vertical" ? item.x : item.y;
+    const farEnough = selected.every((existing) => Math.abs((axis === "vertical" ? existing.x : existing.y) - position) >= 6);
+    if (farEnough) selected.push(item);
+    if (selected.length >= 30) break;
+  }
+  return selected.sort((a, b) => (axis === "vertical" ? a.x - b.x : a.y - b.y));
+}
+
+function buildVerticalEdgeScores(image, area) {
+  const rows = [];
+  const startY = Math.max(0, area.y);
+  const endY = Math.min(image.height, area.y + area.height);
+  const startX = Math.max(1, area.x + 1);
+  const endX = Math.min(image.width, area.x + area.width);
+  for (let x = startX; x < endX; x += 1) {
+    let score = 0;
+    let samples = 0;
+    for (let y = startY; y < endY; y += 4) {
+      score += colorDistanceAt(image, x, y, x - 1, y);
+      samples += 1;
+    }
+    rows.push({ x, score: round(score / Math.max(1, samples), 2) });
+  }
+  return rows;
+}
+
+function buildHorizontalEdgeScores(image, area) {
+  const rows = [];
+  const startX = Math.max(0, area.x);
+  const endX = Math.min(image.width, area.x + area.width);
+  const startY = Math.max(1, area.y + 1);
+  const endY = Math.min(image.height, area.y + area.height);
+  for (let y = startY; y < endY; y += 1) {
+    let score = 0;
+    let samples = 0;
+    for (let x = startX; x < endX; x += 4) {
+      score += colorDistanceAt(image, x, y, x, y - 1);
+      samples += 1;
+    }
+    rows.push({ y, score: round(score / Math.max(1, samples), 2) });
+  }
+  return rows;
+}
+
+function colorDistanceAt(image, x1, y1, x2, y2) {
+  const a = (y1 * image.width + x1) * 4;
+  const b = (y2 * image.width + x2) * 4;
+  return (Math.abs(image.data[a] - image.data[b])
+    + Math.abs(image.data[a + 1] - image.data[b + 1])
+    + Math.abs(image.data[a + 2] - image.data[b + 2])) / 3;
+}
+
+function dominantQuantizedColors(image, area) {
+  const counts = new Map();
+  const startX = Math.max(0, area.x);
+  const endX = Math.min(image.width, area.x + area.width);
+  const startY = Math.max(0, area.y);
+  const endY = Math.min(image.height, area.y + area.height);
+  for (let y = startY; y < endY; y += 12) {
+    for (let x = startX; x < endX; x += 12) {
+      const index = (y * image.width + x) * 4;
+      const key = [image.data[index], image.data[index + 1], image.data[index + 2]]
+        .map((value) => Math.round(value / 16) * 16)
+        .map((value) => Math.max(0, Math.min(255, value)).toString(16).padStart(2, "0"))
+        .join("");
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+  }
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([hex, count]) => ({ hex: `#${hex}`, sample_count: count }));
+}
+
+function deriveLayoutMetrics(verticalLines, horizontalLines, area) {
+  const topbar = firstPositionInRange(horizontalLines, "y", 40, 96);
+  const rail = firstPositionInRange(verticalLines, "x", 40, 96);
+  const sidebarBoundary = firstPositionInRange(verticalLines, "x", 180, 380);
+  const inspectorBoundary = lastPositionInRange(verticalLines, "x", area.width - 620, area.width - 260);
+  const modalPair = findCenteredPair(verticalLines.map((line) => line.x), area.width, 360, 780);
+  const rhythm = repeatedGap(horizontalLines.map((line) => line.y), 28, 72);
+  const controlHeight = repeatedGap(horizontalLines.map((line) => line.y), 24, 44);
+
+  return {
+    topbar_height_px: topbar,
+    left_rail_width_px: rail,
+    sidebar_boundary_x: sidebarBoundary,
+    sidebar_width_px: Number.isFinite(rail) && Number.isFinite(sidebarBoundary) && sidebarBoundary > rail ? sidebarBoundary - rail : null,
+    inspector_boundary_x: inspectorBoundary,
+    inspector_width_px: Number.isFinite(inspectorBoundary) ? area.width - inspectorBoundary : null,
+    modal_left_x: modalPair?.left ?? null,
+    modal_right_x: modalPair?.right ?? null,
+    modal_width_px: modalPair?.width ?? null,
+    table_row_rhythm_px: rhythm,
+    control_height_px: controlHeight,
+  };
+}
+
+function buildComponentCandidates(metrics, area) {
+  const candidates = [];
+  if (Number.isFinite(metrics.topbar_height_px)) {
+    candidates.push(componentCandidate("topbar", 0, 0, area.width, metrics.topbar_height_px, "horizontal edge candidate"));
+  }
+  if (Number.isFinite(metrics.left_rail_width_px)) {
+    candidates.push(componentCandidate("left_icon_rail", 0, metrics.topbar_height_px ?? 0, metrics.left_rail_width_px, area.height - (metrics.topbar_height_px ?? 0), "vertical edge candidate"));
+  }
+  if (Number.isFinite(metrics.sidebar_width_px)) {
+    candidates.push(componentCandidate("saved_view_sidebar", metrics.left_rail_width_px, metrics.topbar_height_px ?? 0, metrics.sidebar_width_px, area.height - (metrics.topbar_height_px ?? 0), "two vertical edge candidates"));
+  }
+  if (Number.isFinite(metrics.inspector_width_px)) {
+    candidates.push(componentCandidate("right_inspector", metrics.inspector_boundary_x, metrics.topbar_height_px ?? 0, metrics.inspector_width_px, area.height - (metrics.topbar_height_px ?? 0), "right vertical edge candidate"));
+  }
+  if (Number.isFinite(metrics.modal_width_px)) {
+    candidates.push(componentCandidate("center_modal", metrics.modal_left_x, Math.round(area.height * 0.18), metrics.modal_width_px, Math.round(area.height * 0.5), "centered vertical pair candidate"));
+  }
+  return candidates;
+}
+
+function componentCandidate(componentKind, x, y, width, height, reason) {
+  return {
+    component_kind: componentKind,
+    bounds: {
+      x: Math.round(x),
+      y: Math.round(y),
+      width: Math.round(width),
+      height: Math.round(height),
+    },
+    detection_reason: reason,
+  };
+}
+
+function scorePixelMeasurementConfidence(context) {
+  let score = 0;
+  if (context.verticalLineCandidates.length >= 3) score += 0.18;
+  if (context.horizontalLineCandidates.length >= 3) score += 0.18;
+  if (Number.isFinite(context.derivedMetrics.topbar_height_px)) score += 0.14;
+  if (Number.isFinite(context.derivedMetrics.left_rail_width_px)) score += 0.12;
+  if (Number.isFinite(context.derivedMetrics.sidebar_width_px)) score += 0.12;
+  if (Number.isFinite(context.derivedMetrics.table_row_rhythm_px)) score += 0.12;
+  if (context.componentCandidates.length >= 2) score += 0.14;
+  return round(Math.min(1, score), 2);
+}
+
+function firstPositionInRange(lines, field, min, max) {
+  const match = lines.find((line) => line[field] >= min && line[field] <= max);
+  return match ? match[field] : null;
+}
+
+function lastPositionInRange(lines, field, min, max) {
+  const matches = lines.filter((line) => line[field] >= min && line[field] <= max);
+  return matches.length ? matches.at(-1)[field] : null;
+}
+
+function findCenteredPair(positions, width, minWidth, maxWidth) {
+  const center = width / 2;
+  let best = null;
+  for (let leftIndex = 0; leftIndex < positions.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < positions.length; rightIndex += 1) {
+      const left = positions[leftIndex];
+      const right = positions[rightIndex];
+      const candidateWidth = right - left;
+      if (candidateWidth < minWidth || candidateWidth > maxWidth) continue;
+      const candidateCenter = left + candidateWidth / 2;
+      const centerDistance = Math.abs(center - candidateCenter);
+      if (!best || centerDistance < best.centerDistance) {
+        best = { left, right, width: candidateWidth, centerDistance };
+      }
+    }
+  }
+  return best;
+}
+
+function repeatedGap(positions, min, max) {
+  const counts = new Map();
+  const sorted = [...positions].sort((a, b) => a - b);
+  for (let index = 1; index < sorted.length; index += 1) {
+    const gap = sorted[index] - sorted[index - 1];
+    if (gap >= min && gap <= max) counts.set(gap, (counts.get(gap) ?? 0) + 1);
+  }
+  const best = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0];
+  return best ? best[0] : null;
+}
+
+function median(values) {
+  if (!values.length) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  if (sorted.length % 2) return sorted[middle];
+  return round((sorted[middle - 1] + sorted[middle]) / 2, 2);
+}
+
+function commonValues(values, limit) {
+  const counts = new Map();
+  for (const value of values) counts.set(value, (counts.get(value) ?? 0) + 1);
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0] - b[0])
+    .slice(0, limit)
+    .map(([value, count]) => ({ value_px: value, count }));
+}
+
+function round(value, digits) {
+  const factor = 10 ** digits;
+  return Math.round(value * factor) / factor;
 }
 
 function parseScreenshotName(filename) {
@@ -828,6 +1403,7 @@ function parseArgs(argv) {
       args.write = false;
     } else if (value === "--source-dir") args.sourceDir = argv[++index];
     else if (value === "--out-dir") args.outDir = argv[++index];
+    else if (value === "--skip-pixel-analysis") args.pixelAnalysis = false;
     else if (value === "--expected-screenshot-count") args.expectedScreenshotCount = Number(argv[++index]);
     else if (value === "--expected-min-index") args.expectedMinIndex = Number(argv[++index]);
     else if (value === "--expected-max-index") args.expectedMaxIndex = Number(argv[++index]);
@@ -838,7 +1414,7 @@ function parseArgs(argv) {
 }
 
 function printHelp() {
-  console.log(`Usage: npm run ${COMMAND_NAME} -- [--check] [--source-dir PATH] [--out-dir PATH]`);
+  console.log(`Usage: npm run ${COMMAND_NAME} -- [--check] [--source-dir PATH] [--out-dir PATH] [--skip-pixel-analysis]`);
 }
 
 function escapeHtml(value) {

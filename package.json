@@ -268,6 +268,8 @@
     "ingestion:e2e-report": "node scripts/ingestion-e2e-report.mjs",
     "deployment:runbook": "node scripts/deployment-runbook.mjs",
     "operator:handbook": "node scripts/operator-handbook.mjs",
+    "desktop:authority-boundary": "node scripts/desktop-authority-boundary.mjs",
+    "desktop:read-model": "node scripts/desktop-read-model.mjs",
     "release:candidate": "node scripts/release-candidate-report.mjs",
     "release:freeze": "node scripts/v1-freeze.mjs",
     "connectors:contract-v2": "node scripts/connector-contract-v2.mjs",

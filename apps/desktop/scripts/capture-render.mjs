@@ -15,14 +15,13 @@ import { loadDesktopReadModel, loadDesktopSourcePreview } from "../src/main/read
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const APP_DIR = path.resolve(__dirname, "..");
 const REPO_ROOT = process.env.HERMES_REPO_ROOT ?? path.resolve(APP_DIR, "../..");
-const outputArg = process.argv.find((arg) => arg.startsWith("--out="));
-const outPath = outputArg?.slice("--out=".length) ?? path.join(REPO_ROOT, "tmp", "desktop-render-smoke.png");
+const outPath = resolveRepoPath(readStringArg("--out=", "tmp/desktop-render-smoke.png"));
 const rendererPath = path.join(APP_DIR, "dist", "renderer", "index.html");
 const width = readPositiveIntArg("--width=", 1440);
 const height = readPositiveIntArg("--height=", 900);
 const screen = readStringArg("--screen=", "release");
 const previewPath = readStringArg("--preview=", "");
-const textOutPath = readStringArg("--text-out=", "");
+const textOutPath = resolveOptionalRepoPath(readStringArg("--text-out=", ""));
 const assertNoForbiddenTrustCopy = process.argv.includes("--assert-no-forbidden-trust-copy");
 
 app.disableHardwareAcceleration();
@@ -110,6 +109,14 @@ function readPositiveIntArg(prefix, fallback) {
 
 function readStringArg(prefix, fallback) {
   return process.argv.find((arg) => arg.startsWith(prefix))?.slice(prefix.length) || fallback;
+}
+
+function resolveRepoPath(filePath) {
+  return path.isAbsolute(filePath) ? filePath : path.join(REPO_ROOT, filePath);
+}
+
+function resolveOptionalRepoPath(filePath) {
+  return filePath ? resolveRepoPath(filePath) : "";
 }
 
 function readRendererText(window) {

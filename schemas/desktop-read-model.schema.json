@@ -35,7 +35,7 @@
       ],
       "properties": {
         "mode": { "const": "explicit_allowlist_with_denylist_precedence" },
-        "allowlist": { "type": "array", "minItems": 19 },
+        "allowlist": { "type": "array", "minItems": 20 },
         "denylist": { "type": "array", "minItems": 6 },
         "raw_payload_read_allowed": { "const": false },
         "secret_like_path_read_allowed": { "const": false },
@@ -44,7 +44,7 @@
     },
     "source_rows": {
       "type": "array",
-      "minItems": 19,
+      "minItems": 20,
       "items": { "$ref": "#/$defs/sourceRow" }
     },
     "sections": {
@@ -169,7 +169,7 @@
         "desktop_read_model_status": {
           "enum": ["ready_for_desktop_shell", "blocked_desktop_shell"]
         },
-        "source_count": { "type": "integer", "minimum": 19 },
+        "source_count": { "type": "integer", "minimum": 20 },
         "ready_source_count": { "type": "integer", "minimum": 0 },
         "blocked_source_count": { "type": "integer", "minimum": 0 },
         "section_count": { "type": "integer", "minimum": 6 },

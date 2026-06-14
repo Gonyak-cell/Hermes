@@ -30,13 +30,15 @@ npm run desktop:local-preflight
 
 이 명령은 다음을 순서대로 확인한다.
 
-1. `desktop:read-model`: desktop read model artifact를 최신 source 기준으로 생성한다.
-2. `desktop:read-model -- --check`: desktop read model이 19개 source와 6개 section을 fail-closed 방식으로 읽을 수 있는지 확인한다.
-3. `desktop:authority-boundary`: desktop authority boundary artifact를 최신 source 기준으로 생성한다.
-4. `desktop:authority-boundary -- --check`: deploy, git push, approval apply, receipt apply, connector write, secret read, raw exposure, desktop write authority가 닫혀 있는지 확인한다.
-5. `test:desktop`: Electron security policy, renderer contract, read model sanitizer, preview redaction, forbidden trust-copy policy를 테스트한다.
-6. `desktop:build`: Vite renderer bundle을 생성한다.
-7. `desktop:smoke:render`: Electron으로 실제 화면을 열고 DOM text에서 금지 trust/approval 문구가 새지 않는지 검사한다.
+1. `desktop:packaging-manifest`: local build, packaging, signing, notarization, publish, auto-update boundary artifact를 생성한다.
+2. `desktop:packaging-manifest -- --check`: autoUpdater와 packaging authority가 닫혀 있는지 확인한다.
+3. `desktop:read-model`: desktop read model artifact를 최신 source 기준으로 생성한다.
+4. `desktop:read-model -- --check`: desktop read model이 20개 source와 6개 section을 fail-closed 방식으로 읽을 수 있는지 확인한다.
+5. `desktop:authority-boundary`: desktop authority boundary artifact를 최신 source 기준으로 생성한다.
+6. `desktop:authority-boundary -- --check`: deploy, git push, approval apply, receipt apply, connector write, secret read, raw exposure, desktop write authority가 닫혀 있는지 확인한다.
+7. `test:desktop`: Electron security policy, renderer contract, read model sanitizer, preview redaction, forbidden trust-copy policy를 테스트한다.
+8. `desktop:build`: Vite renderer bundle을 생성한다.
+9. `desktop:smoke:render`: Electron으로 실제 화면을 열고 DOM text에서 금지 trust/approval 문구가 새지 않는지 검사한다.
 
 생성되는 스모크 산출물은 `tmp/` 아래에 있으며 커밋 대상이 아니다.
 

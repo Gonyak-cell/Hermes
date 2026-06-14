@@ -26,8 +26,8 @@ test("Desktop read model projects release, factory, review, operator, artifact, 
     assert.equal(result.validation.valid, true);
     assert.equal(result.schema_version, "desktop-read-model.v1");
     assert.equal(result.summary.desktop_read_model_status, "ready_for_desktop_shell");
-    assert.equal(result.summary.source_count, 18);
-    assert.equal(result.summary.ready_source_count, 18);
+    assert.equal(result.summary.source_count, 19);
+    assert.equal(result.summary.ready_source_count, 19);
     assert.equal(result.summary.section_count, 6);
     assert.equal(result.summary.ready_section_count, 6);
     assert.equal(result.summary.operator_handbook_bound, true);
@@ -176,6 +176,7 @@ async function createReadModelFixture() {
     githubFinalReviewPacketPath: file("github-review.md"),
     releaseNoteTagDraftPath: file("release-note.md"),
     desktopPlanPath: file("desktop-plan.md"),
+    desktopLocalLaunchRunbookPath: file("desktop-local-launch-runbook.md"),
     operatorHandbookPath: file("operator-handbook.json"),
     operatorSurfacesPath: file("operator-surfaces.json"),
     operatorScreensPath: file("operator-screens.json"),
@@ -197,6 +198,7 @@ async function createReadModelFixture() {
     options.githubFinalReviewPacketPath,
     options.releaseNoteTagDraftPath,
     options.desktopPlanPath,
+    options.desktopLocalLaunchRunbookPath,
     options.releaseReadinessSummaryPath,
     options.productionGovernanceSummaryPath,
     options.p16800FreezeSummaryPath,

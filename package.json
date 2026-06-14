@@ -272,6 +272,8 @@
     "desktop:read-model": "node scripts/desktop-read-model.mjs",
     "desktop:dev": "npm --prefix apps/desktop run dev --",
     "desktop:build": "npm --prefix apps/desktop run build",
+    "desktop:start": "npm --prefix apps/desktop start --",
+    "desktop:local-preflight": "npm run desktop:read-model && npm run desktop:read-model -- --check && npm run desktop:authority-boundary && npm run desktop:authority-boundary -- --check && npm run test:desktop && npm run desktop:build && npm run desktop:smoke:render -- --out=tmp/desktop-render-smoke.png --text-out=tmp/desktop-render-smoke-report.json && npm run desktop:smoke:render -- --screen=factory --out=tmp/desktop-render-smoke-factory.png --text-out=tmp/desktop-render-smoke-factory-report.json && npm run desktop:smoke:render -- --preview=docs/release-owner-decision-2026-06-14.md --out=tmp/desktop-render-smoke-preview.png --text-out=tmp/desktop-render-smoke-preview-report.json",
     "desktop:smoke:render": "npm --prefix apps/desktop run smoke:render --",
     "desktop:smoke:screenshot": "npm --prefix apps/desktop run smoke:screenshot --",
     "test:desktop": "npm --prefix apps/desktop test",

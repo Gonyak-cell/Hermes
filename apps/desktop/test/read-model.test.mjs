@@ -13,6 +13,8 @@ test("desktop read model loader returns visible blocker when artifact is missing
     assert.equal(result.summary.desktop_read_model_status, "blocked_desktop_shell");
     assert.equal(result.summary.deployment_allowed_now, false);
     assert.equal(result.summary.secret_read_allowed_now, false);
+    assert.equal(result.release_projection.deployment_authorized, false);
+    assert.equal(result.factory_projection.gate_open_now, 0);
     assert.equal(result.sections[0].status, "blocked");
     assert.match(result.sections[0].blocker, /Missing desktop read model/);
   } finally {
@@ -54,18 +56,57 @@ test("desktop read model loader sanitizes authority flags from artifact input", 
         section_refs: [],
       },
     ],
-    desktop_read_authority: {
-      deployment_allowed_now: true,
-      production_pass_enabled: true,
-      unsafe_flag_count: 9,
-    },
-  });
+      desktop_read_authority: {
+        deployment_allowed_now: true,
+        production_pass_enabled: true,
+        unsafe_flag_count: 9,
+      },
+      release_projection: {
+        candidate_commit: "5e332b1c6327b255cf9bf418bc455b7965172658",
+        local_rc_tag: "v0.1.0-rc.20260614.5e332b1",
+        trust_mode: "enterprise trust",
+        github_independent_approval_status: "approved",
+        production_launch_approval_status: "approved",
+        deployment_authorized: true,
+        tag_pushed: true,
+        github_release_published: true,
+        production_pass_enabled: true,
+        enterprise_pass_enabled: true,
+        protected_closeout_enabled: true,
+        projection_rows: [
+          { row_id: "deployment_authorization", label: "Deployment authorization", value: "authorized", status: "open", authority_open: true },
+        ],
+      },
+      factory_projection: {
+        gate_open_now: 9,
+        runtime_authority_open: true,
+        stage6_limited_execution_allowed: true,
+        stage7_release_candidate_allowed: true,
+        production_pass_enabled: true,
+        enterprise_pass_enabled: true,
+        projection_rows: [
+          { row_id: "gate_open_now", label: "Gate open now", value: "9", status: "open", authority_open: true },
+        ],
+      },
+    });
 
   assert.equal(result.summary.deployment_allowed_now, false);
   assert.equal(result.summary.production_pass_enabled, false);
   assert.equal(result.desktop_read_authority.deployment_allowed_now, false);
   assert.equal(result.desktop_read_authority.production_pass_enabled, false);
   assert.equal(result.desktop_read_authority.unsafe_flag_count, 0);
+  assert.equal(result.release_projection.trust_mode, "single-owner lower-trust RC");
+  assert.equal(result.release_projection.github_independent_approval_status, "missing");
+  assert.equal(result.release_projection.deployment_authorized, false);
+  assert.equal(result.release_projection.production_pass_enabled, false);
+  assert.equal(result.release_projection.enterprise_pass_enabled, false);
+  assert.equal(result.release_projection.projection_rows[0].authority_open, false);
+  assert.equal(result.factory_projection.gate_open_now, 0);
+  assert.equal(result.factory_projection.runtime_authority_open, false);
+  assert.equal(result.factory_projection.stage6_limited_execution_allowed, false);
+  assert.equal(result.factory_projection.stage7_release_candidate_allowed, false);
+  assert.equal(result.factory_projection.projection_rows[0].value, "0");
+  assert.equal(result.factory_projection.projection_rows[0].authority_open, false);
   assert.equal(result.source_rows[0].status, "ready");
 });
 

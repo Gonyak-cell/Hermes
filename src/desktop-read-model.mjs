@@ -134,7 +134,19 @@ export async function buildDesktopReadModel(options = {}) {
   const trustClaimGuardRows = buildTrustClaimGuardRows(generatedAt);
   const denylistFixtureRows = buildDenylistFixtureRows(generatedAt);
   const desktopReadAuthority = buildDesktopReadAuthority({ sourceRows, sections, trustClaimGuardRows, denylistFixtureRows, generatedAt });
-  const validationItems = buildValidationItems({ packageJson, sourceRows, sections, trustClaimGuardRows, denylistFixtureRows, desktopReadAuthority, artifactAccessPolicy });
+  const releaseProjection = buildReleaseProjection(sourceRows, generatedAt);
+  const factoryProjection = buildFactoryProjection(sourceRows, generatedAt);
+  const validationItems = buildValidationItems({
+    packageJson,
+    sourceRows,
+    sections,
+    trustClaimGuardRows,
+    denylistFixtureRows,
+    desktopReadAuthority,
+    artifactAccessPolicy,
+    releaseProjection,
+    factoryProjection,
+  });
   const preliminaryValidation = summarizeValidation(validationItems);
   const result = {
     schema_version: SCHEMA_VERSION,
@@ -146,6 +158,8 @@ export async function buildDesktopReadModel(options = {}) {
     source_rows: sourceRows,
     sections,
     screen_map: screenMap,
+    release_projection: releaseProjection,
+    factory_projection: factoryProjection,
     trust_claim_guard_rows: trustClaimGuardRows,
     denylist_fixture_rows: denylistFixtureRows,
     desktop_read_authority: desktopReadAuthority,
@@ -409,6 +423,87 @@ function buildDenylistFixtureRows(generatedAt) {
   });
 }
 
+function buildReleaseProjection(sourceRows, generatedAt) {
+  const summaries = sourceRows.filter((row) => row.section_id === "release").map((row) => row.data_summary ?? {});
+  const candidateCommit = firstSummaryValue(summaries, "candidate_commit") ?? "unknown";
+  const localRcTag = firstSummaryValue(summaries, "local_rc_tag") ?? "not recorded";
+  const tagPushed = firstBooleanSummaryValue(summaries, "tag_pushed") ?? false;
+  const githubReleasePublished = firstBooleanSummaryValue(summaries, "github_release_published") ?? false;
+  const githubIndependentApprovalNotPursued = summaries.some((summary) => summary.github_independent_approval_not_pursued === true);
+  const ownerProductionApprovalMissing = summaries.some((summary) => summary.owner_production_launch_approval_missing === true);
+  const projection = {
+    schema_version: "desktop-release-projection.v1",
+    generated_at: generatedAt,
+    candidate_commit: candidateCommit,
+    local_rc_tag: localRcTag,
+    trust_mode: "single-owner lower-trust RC",
+    release_candidate_freeze_observed: true,
+    github_independent_approval_status: githubIndependentApprovalNotPursued ? "not_pursued_single_owner_local_rc" : "missing",
+    production_launch_approval_status: ownerProductionApprovalMissing ? "missing" : "not_approved",
+    deployment_authorized: false,
+    tag_pushed: tagPushed === true ? false : false,
+    github_release_published: githubReleasePublished === true ? false : false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    protected_closeout_enabled: false,
+    projection_rows: [
+      projectionRow("candidate_commit", "Candidate commit", candidateCommit, "observed", false, generatedAt),
+      projectionRow("local_rc_tag", "Local RC tag", localRcTag, "local_only_not_pushed", false, generatedAt),
+      projectionRow("github_independent_approval", "GitHub independent approval", githubIndependentApprovalNotPursued ? "not pursued" : "missing", "closed", false, generatedAt),
+      projectionRow("production_launch_approval", "Production launch approval", ownerProductionApprovalMissing ? "missing" : "not approved", "closed", false, generatedAt),
+      projectionRow("deployment_authorization", "Deployment authorization", "not authorized", "closed", false, generatedAt),
+    ],
+  };
+  return { ...projection, projection_hash: sha256(projection) };
+}
+
+function buildFactoryProjection(sourceRows, generatedAt) {
+  const summaries = sourceRows.filter((row) => row.section_id === "factory").map((row) => row.data_summary ?? {});
+  const observedGateOpenNow = Number(firstSummaryValue(summaries, "gate_open_now") ?? 0);
+  const g1aStatus = firstSummaryValue(summaries, "g1a_status") ?? "not recorded";
+  const runtimeAuthorityOpen = firstBooleanSummaryValue(summaries, "runtime_authority_open") ?? false;
+  const stage6LimitedExecutionAllowed = firstBooleanSummaryValue(summaries, "stage6_limited_execution_allowed") ?? false;
+  const stage7ReleaseCandidateAllowed = firstBooleanSummaryValue(summaries, "stage7_release_candidate_allowed") ?? false;
+  const projection = {
+    schema_version: "desktop-factory-projection.v1",
+    generated_at: generatedAt,
+    factory_gate_readiness_status: firstSummaryValue(summaries, "status") ?? "not recorded",
+    stage6_stage7_status: firstSummaryValue(summaries.slice(1), "status") ?? "not recorded",
+    observed_gate_open_now_input: observedGateOpenNow,
+    gate_open_now: 0,
+    g1a_status: g1aStatus,
+    runtime_authority_open: false,
+    stage6_limited_execution_allowed: false,
+    stage7_release_candidate_allowed: false,
+    contract_development_allowed: firstBooleanSummaryValue(summaries, "contract_development_allowed") ?? false,
+    factory_goal_complete_allowed: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    projection_rows: [
+      projectionRow("gate_readiness", "Factory gate readiness", firstSummaryValue(summaries, "status") ?? "not recorded", "evidence_ready", false, generatedAt),
+      projectionRow("gate_open_now", "Gate open now", "0", observedGateOpenNow === 0 ? "closed" : "input_rejected_closed", false, generatedAt),
+      projectionRow("g1a_status", "G1a status", g1aStatus, "evidence_ready_runtime_closed", false, generatedAt),
+      projectionRow("runtime_authority", "Runtime authority", runtimeAuthorityOpen ? "open input rejected" : "closed", "closed", false, generatedAt),
+      projectionRow("stage6_limited_execution", "Stage6 limited execution", stage6LimitedExecutionAllowed ? "open input rejected" : "closed", "closed", false, generatedAt),
+      projectionRow("stage7_release_candidate", "Stage7 release candidate", stage7ReleaseCandidateAllowed ? "open input rejected" : "closed", "closed", false, generatedAt),
+    ],
+  };
+  return { ...projection, projection_hash: sha256(projection) };
+}
+
+function projectionRow(rowId, label, value, status, authorityOpen, generatedAt) {
+  const row = {
+    schema_version: "desktop-projection-row.v1",
+    row_id: rowId,
+    label,
+    value,
+    status,
+    authority_open: authorityOpen === true ? false : false,
+    generated_at: generatedAt,
+  };
+  return { ...row, row_hash: sha256(row) };
+}
+
 function buildDesktopReadAuthority({ sourceRows, sections, trustClaimGuardRows, denylistFixtureRows, generatedAt }) {
   const authoritySource = sourceRows.find((row) => row.source_id === "desktop_authority_boundary");
   const authoritySummary = authoritySource?.data_summary ?? {};
@@ -468,6 +563,8 @@ function buildValidationItems(context) {
     validationItem("authority.no_write_or_trust", context.desktopReadAuthority.unsafe_flag_count === 0 && context.desktopReadAuthority.source_of_truth === false && context.desktopReadAuthority.production_pass_enabled === false && context.desktopReadAuthority.enterprise_pass_enabled === false && context.desktopReadAuthority.desktop_write_authority_enabled === false, "Desktop read model opened write/trust authority.", "desktop_read_authority"),
     validationItem("trust_claims.closed", context.trustClaimGuardRows.every((row) => row.claim_allowed === false && row.status === "ready"), "Forbidden trust claim guard rows must stay closed.", "trust_claim_guard_rows"),
     validationItem("denylist.fixtures", context.denylistFixtureRows.every((row) => row.denied_by_policy === true && row.status === "ready"), "Denylist fixtures must all be blocked.", "denylist_fixture_rows"),
+    validationItem("release_projection.authority_closed", context.releaseProjection.deployment_authorized === false && context.releaseProjection.production_pass_enabled === false && context.releaseProjection.enterprise_pass_enabled === false && context.releaseProjection.github_independent_approval_status !== "approved", "Release projection opened production, enterprise, deployment, or independent approval authority.", "release_projection"),
+    validationItem("factory_projection.gate_closed", context.factoryProjection.gate_open_now === 0 && context.factoryProjection.runtime_authority_open === false && context.factoryProjection.stage6_limited_execution_allowed === false && context.factoryProjection.stage7_release_candidate_allowed === false, "Factory projection opened gate/runtime/stage authority.", "factory_projection"),
   ];
 }
 
@@ -590,12 +687,63 @@ function compactJsonSummary(data) {
 }
 
 function compactTextSummary(text) {
-  return {
+  const summary = {
     kind: "markdown_summary",
     line_count: text.split(/\r?\n/).length,
     byte_length: Buffer.byteLength(text),
     has_forbidden_trust_string: containsForbiddenTrustString(text),
   };
+  const candidateCommit = matchText(text, /Candidate commit(?:\s*\|\s*`?|:\s*)([a-f0-9]{40})/i);
+  const localRcTag = matchText(text, /(?:Local RC tag|Tag)(?:\s*\|\s*`?|:\s*)(v[0-9][^\s`|]+)/i);
+  if (candidateCommit) summary.candidate_commit = candidateCommit;
+  if (localRcTag) summary.local_rc_tag = localRcTag;
+  const tagPushed = matchBoolean(text, /(?:Tag pushed|Pushed to GitHub)(?:\s*\|\s*`?|:\s*)(true|false)/i);
+  const githubReleasePublished = matchBoolean(text, /(?:GitHub Release published)(?:\s*\|\s*`?|:\s*)(true|false)/i);
+  if (tagPushed !== null) summary.tag_pushed = tagPushed;
+  if (githubReleasePublished !== null) summary.github_release_published = githubReleasePublished;
+  summary.github_independent_approval_not_pursued = /GitHub independent approval[^.\n|]*(?:not pursued|not pursue)/i.test(text)
+    || /not pursue GitHub independent approval/i.test(text);
+  summary.owner_production_launch_approval_missing = /Owner production launch approval\s*\|\s*missing/i.test(text)
+    || /Owner production launch decision is not recorded/i.test(text);
+
+  for (const key of ["Status", "G1a status"]) {
+    const value = matchText(text, new RegExp(`^${key}:\\s*([^\\n]+)`, "im"));
+    if (value) summary[slug(key)] = value.trim();
+  }
+  const gateOpenNow = matchText(text, /^Gate open now:\s*(\d+)/im);
+  if (gateOpenNow) summary.gate_open_now = Number(gateOpenNow);
+  for (const [key, pattern] of [
+    ["runtime_authority_open", /^Runtime authority open:\s*(true|false)/im],
+    ["stage6_limited_execution_allowed", /^Stage6 limited execution allowed:\s*(true|false)/im],
+    ["stage7_release_candidate_allowed", /^Stage7 release candidate allowed:\s*(true|false)/im],
+    ["contract_development_allowed", /^Contract development allowed:\s*(true|false)/im],
+    ["factory_goal_complete_allowed", /^Factory goal complete allowed:\s*(true|false)/im],
+    ["production_pass_enabled", /^Production PASS enabled:\s*(true|false)/im],
+    ["enterprise_pass_enabled", /^Enterprise PASS enabled:\s*(true|false)/im],
+  ]) {
+    const value = matchBoolean(text, pattern);
+    if (value !== null) summary[key] = value;
+  }
+  return summary;
+}
+
+function firstSummaryValue(summaries, key) {
+  return summaries.find((summary) => summary[key] !== undefined)?.[key];
+}
+
+function firstBooleanSummaryValue(summaries, key) {
+  const value = firstSummaryValue(summaries, key);
+  return typeof value === "boolean" ? value : null;
+}
+
+function matchText(text, pattern) {
+  return text.match(pattern)?.[1]?.replace(/`/g, "").trim() ?? null;
+}
+
+function matchBoolean(text, pattern) {
+  const value = matchText(text, pattern);
+  if (value === null) return null;
+  return value.toLowerCase() === "true";
 }
 
 function sectionLabel(sectionId) {

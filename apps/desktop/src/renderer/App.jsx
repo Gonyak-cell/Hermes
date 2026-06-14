@@ -16,12 +16,22 @@ const fallbackReadModel = {
   },
   source_rows: [],
   sections: [],
+  release_projection: {
+    projection_rows: [
+      { row_id: "deployment_authorization", label: "Deployment authorization", value: "not authorized", status: "closed" },
+    ],
+  },
+  factory_projection: {
+    projection_rows: [
+      { row_id: "gate_open_now", label: "Gate open now", value: "0", status: "closed" },
+    ],
+  },
   desktop_read_authority: SHELL_SEED_STATE.authority_flags,
 };
 
 export default function App() {
   const [language, setLanguage] = usePersistentLanguage();
-  const [activeNav, setActiveNav] = useState("release");
+  const [activeNav, setActiveNav] = useState(getInitialNav());
   const [readModel, setReadModel] = useState(fallbackReadModel);
   const copy = getCopy(language);
 
@@ -49,6 +59,7 @@ export default function App() {
   const rowSummary = summarizeRows(rows);
   const summary = readModel.summary ?? fallbackReadModel.summary;
   const authority = readModel.desktop_read_authority ?? SHELL_SEED_STATE.authority_flags;
+  const projectionRows = projectionRowsForNav(activeNav, readModel);
 
   return (
     <main className="desktop-shell" lang={language}>
@@ -100,7 +111,10 @@ export default function App() {
           {activeNav === "settings" ? (
             <SettingsView copy={copy} language={language} summary={summary} />
           ) : (
-            <EvidenceTable copy={copy} rows={rows} />
+            <>
+              <ProjectionStrip copy={copy} rows={projectionRows} />
+              <EvidenceTable copy={copy} rows={rows} />
+            </>
           )}
         </section>
 
@@ -122,6 +136,21 @@ export default function App() {
         <span>No secret read</span>
       </footer>
     </main>
+  );
+}
+
+function ProjectionStrip({ copy, rows }) {
+  if (rows.length === 0) return null;
+  return (
+    <div className="projection-strip" aria-label={copy.projection}>
+      {rows.map((row) => (
+        <div className="projection-item" key={row.row_id}>
+          <span>{row.label}</span>
+          <strong>{formatProjectionText(row.value)}</strong>
+          <small>{formatProjectionText(row.status)}</small>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -217,4 +246,21 @@ function usePersistentLanguage() {
     setLanguageState(next);
   };
   return [language, setLanguage];
+}
+
+function projectionRowsForNav(activeNav, readModel) {
+  if (activeNav === "release") return readModel.release_projection?.projection_rows ?? [];
+  if (activeNav === "factory") return readModel.factory_projection?.projection_rows ?? [];
+  return [];
+}
+
+function getInitialNav() {
+  const screen = new URLSearchParams(globalThis.location?.search ?? "").get("screen");
+  return SHELL_SEED_STATE.nav_items.some((item) => item.id === screen) ? screen : "release";
+}
+
+function formatProjectionText(value) {
+  const text = String(value ?? "");
+  if (/^[a-f0-9]{32,}$/i.test(text) || text.startsWith("v0.")) return text;
+  return text.replaceAll("_", " ");
 }

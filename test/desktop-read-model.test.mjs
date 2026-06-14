@@ -37,6 +37,16 @@ test("Desktop read model projects release, factory, review, operator, artifact, 
     assert.equal(result.summary.deployment_allowed_now, false);
     assert.equal(result.summary.production_pass_enabled, false);
     assert.equal(result.summary.enterprise_pass_enabled, false);
+    assert.equal(result.release_projection.candidate_commit, "5e332b1c6327b255cf9bf418bc455b7965172658");
+    assert.equal(result.release_projection.local_rc_tag, "v0.1.0-rc.20260614.5e332b1");
+    assert.equal(result.release_projection.github_independent_approval_status, "not_pursued_single_owner_local_rc");
+    assert.equal(result.release_projection.production_launch_approval_status, "missing");
+    assert.equal(result.release_projection.deployment_authorized, false);
+    assert.equal(result.release_projection.production_pass_enabled, false);
+    assert.equal(result.factory_projection.gate_open_now, 0);
+    assert.equal(result.factory_projection.runtime_authority_open, false);
+    assert.equal(result.factory_projection.stage6_limited_execution_allowed, false);
+    assert.equal(result.factory_projection.stage7_release_candidate_allowed, false);
     assert.equal(result.sections.every((section) => section.source_path && section.generated_at && section.status && Object.hasOwn(section, "blocker") && Array.isArray(section.section_refs)), true);
   } finally {
     await rm(fixture.tmpDir, { recursive: true, force: true });
@@ -101,6 +111,54 @@ test("Desktop read model denylist takes precedence over allowlist", () => {
   assert.equal(isAllowedDesktopReadPath(envPath, [envPath]), false);
 });
 
+test("Desktop read model projection refuses malicious authority text", async () => {
+  const fixture = await createReadModelFixture();
+  try {
+    await writeFile(fixture.options.releaseDecisionPacketPath, [
+      "# Malicious Fixture",
+      "",
+      "| Candidate commit | `5e332b1c6327b255cf9bf418bc455b7965172658` |",
+      "| Local RC tag | `v0.1.0-rc.20260614.5e332b1` |",
+      "GitHub independent approval: approved",
+      "Owner production launch approval: approved",
+      "deployment_authorized: true",
+      "production PASS",
+    ].join("\n"), "utf8");
+    await writeFile(fixture.options.factoryGateOpeningSummaryPath, [
+      "# Malicious Factory",
+      "",
+      "Status: ready_factory_gate_opening_readiness",
+      "Gate open now: 9",
+      "G1a status: source_evidence_complete_runtime_authority_closed",
+      "Production PASS enabled: true",
+      "Enterprise PASS enabled: true",
+    ].join("\n"), "utf8");
+
+    const result = await buildDesktopReadModel({
+      runAt: RUN_AT,
+      write: false,
+      ...fixture.options,
+      allowlist: fixture.allowlist,
+    });
+
+    assert.equal(result.release_projection.github_independent_approval_status, "missing");
+    assert.equal(result.release_projection.production_launch_approval_status, "not_approved");
+    assert.equal(result.release_projection.deployment_authorized, false);
+    assert.equal(result.release_projection.production_pass_enabled, false);
+    assert.equal(result.release_projection.enterprise_pass_enabled, false);
+    assert.equal(result.factory_projection.observed_gate_open_now_input, 9);
+    assert.equal(result.factory_projection.gate_open_now, 0);
+    assert.equal(result.factory_projection.runtime_authority_open, false);
+    assert.equal(result.factory_projection.stage6_limited_execution_allowed, false);
+    assert.equal(result.factory_projection.stage7_release_candidate_allowed, false);
+    assert.equal(result.factory_projection.production_pass_enabled, false);
+    assert.equal(result.factory_projection.projection_rows.find((row) => row.row_id === "gate_open_now").status, "input_rejected_closed");
+    assert.equal(result.validation.valid, true);
+  } finally {
+    await rm(fixture.tmpDir, { recursive: true, force: true });
+  }
+});
+
 test("Desktop read model recognizes forbidden trust claim strings", () => {
   assert.equal(containsForbiddenTrustString("This is production PASS."), true);
   assert.equal(containsForbiddenTrustString("desktop write authority enabled"), true);
@@ -147,6 +205,33 @@ async function createReadModelFixture() {
   ]) {
     await writeFile(markdownPath, "# Fixture\n\nsingle-owner lower-trust RC only.\n", "utf8");
   }
+  await writeFile(options.releaseDecisionPacketPath, [
+    "# Release Decision",
+    "",
+    "| Candidate commit | `5e332b1c6327b255cf9bf418bc455b7965172658` |",
+    "| Local RC tag | `v0.1.0-rc.20260614.5e332b1` created locally, not pushed |",
+    "| Trust mode | `single-owner lower-trust RC`; GitHub independent approval not pursued |",
+    "| Owner production launch approval | missing |",
+  ].join("\n"), "utf8");
+  await writeFile(options.factoryGateOpeningSummaryPath, [
+    "# Factory Gate Opening Readiness",
+    "",
+    "Status: ready_factory_gate_opening_readiness",
+    "Gate open now: 0",
+    "G1a status: source_evidence_complete_runtime_authority_closed",
+    "Production PASS enabled: false",
+    "Enterprise PASS enabled: false",
+  ].join("\n"), "utf8");
+  await writeFile(options.factoryStage67SummaryPath, [
+    "# Factory Stage6/7 Execution Readiness",
+    "",
+    "Status: ready_stage6_stage7_contract_development",
+    "Runtime authority open: false",
+    "Stage6 limited execution allowed: false",
+    "Stage7 release candidate allowed: false",
+    "Contract development allowed: true",
+    "Factory goal complete allowed: false",
+  ].join("\n"), "utf8");
   await writeFile(options.operatorHandbookPath, JSON.stringify({ schema_version: "operator-handbook.v1", summary: { operator_handbook_status: "complete", operator_handbook_id: "operator-handbook.test" } }, null, 2), "utf8");
   await writeFile(options.operatorSurfacesPath, JSON.stringify({ schema_version: "operator-surfaces.v1", operator_surface_rows: [] }, null, 2), "utf8");
   await writeFile(options.operatorScreensPath, JSON.stringify({ schema_version: "operator-screens.v1", operator_screen_rows: [] }, null, 2), "utf8");

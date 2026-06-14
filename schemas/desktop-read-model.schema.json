@@ -11,6 +11,8 @@
     "source_rows",
     "sections",
     "screen_map",
+    "release_projection",
+    "factory_projection",
     "trust_claim_guard_rows",
     "denylist_fixture_rows",
     "desktop_read_authority",
@@ -55,6 +57,8 @@
       "minItems": 5,
       "items": { "$ref": "#/$defs/screen" }
     },
+    "release_projection": { "$ref": "#/$defs/releaseProjection" },
+    "factory_projection": { "$ref": "#/$defs/factoryProjection" },
     "trust_claim_guard_rows": {
       "type": "array",
       "minItems": 6,
@@ -252,6 +256,98 @@
         "blocker_state": { "type": ["string", "null"] },
         "no_action_authority_notice": { "type": "string", "minLength": 1 },
         "status": { "enum": ["ready", "blocked"] }
+      }
+    },
+    "releaseProjection": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "candidate_commit",
+        "local_rc_tag",
+        "trust_mode",
+        "release_candidate_freeze_observed",
+        "github_independent_approval_status",
+        "production_launch_approval_status",
+        "deployment_authorized",
+        "tag_pushed",
+        "github_release_published",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "protected_closeout_enabled",
+        "projection_rows"
+      ],
+      "properties": {
+        "schema_version": { "const": "desktop-release-projection.v1" },
+        "candidate_commit": { "type": "string", "minLength": 1 },
+        "local_rc_tag": { "type": "string", "minLength": 1 },
+        "trust_mode": { "const": "single-owner lower-trust RC" },
+        "release_candidate_freeze_observed": { "const": true },
+        "github_independent_approval_status": {
+          "enum": ["not_pursued_single_owner_local_rc", "missing"]
+        },
+        "production_launch_approval_status": {
+          "enum": ["missing", "not_approved"]
+        },
+        "deployment_authorized": { "const": false },
+        "tag_pushed": { "const": false },
+        "github_release_published": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "projection_rows": {
+          "type": "array",
+          "minItems": 5,
+          "items": { "$ref": "#/$defs/projectionRow" }
+        }
+      }
+    },
+    "factoryProjection": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "factory_gate_readiness_status",
+        "stage6_stage7_status",
+        "gate_open_now",
+        "g1a_status",
+        "runtime_authority_open",
+        "stage6_limited_execution_allowed",
+        "stage7_release_candidate_allowed",
+        "contract_development_allowed",
+        "factory_goal_complete_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "projection_rows"
+      ],
+      "properties": {
+        "schema_version": { "const": "desktop-factory-projection.v1" },
+        "factory_gate_readiness_status": { "type": "string", "minLength": 1 },
+        "stage6_stage7_status": { "type": "string", "minLength": 1 },
+        "gate_open_now": { "const": 0 },
+        "g1a_status": { "type": "string", "minLength": 1 },
+        "runtime_authority_open": { "const": false },
+        "stage6_limited_execution_allowed": { "const": false },
+        "stage7_release_candidate_allowed": { "const": false },
+        "contract_development_allowed": { "type": "boolean" },
+        "factory_goal_complete_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "projection_rows": {
+          "type": "array",
+          "minItems": 6,
+          "items": { "$ref": "#/$defs/projectionRow" }
+        }
+      }
+    },
+    "projectionRow": {
+      "type": "object",
+      "required": ["row_id", "label", "value", "status", "authority_open", "generated_at"],
+      "properties": {
+        "row_id": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "value": { "type": "string", "minLength": 1 },
+        "status": { "type": "string", "minLength": 1 },
+        "authority_open": { "const": false },
+        "generated_at": { "type": "string" }
       }
     },
     "guardRow": {

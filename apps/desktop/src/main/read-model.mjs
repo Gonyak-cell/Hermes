@@ -36,6 +36,8 @@ export async function loadDesktopReadModel({ repoRoot }) {
       ],
       source_rows: [],
       screen_map: [],
+      release_projection: defaultReleaseProjection(),
+      factory_projection: defaultFactoryProjection(),
       desktop_read_authority: {
         read_only: true,
         source_of_truth: false,
@@ -56,6 +58,8 @@ export function sanitizeReadModel(readModel, sourcePath = DESKTOP_READ_MODEL_REL
     sections: safeArray(readModel?.sections).map(pickSection),
     source_rows: safeArray(readModel?.source_rows).map(pickSourceRow),
     screen_map: safeArray(readModel?.screen_map).map(pickScreen),
+    release_projection: pickReleaseProjection(readModel?.release_projection),
+    factory_projection: pickFactoryProjection(readModel?.factory_projection),
     desktop_read_authority: pickAuthority(authority),
   };
 }
@@ -160,6 +164,77 @@ function pickScreen(screen) {
     blocker_state: screen?.blocker_state ?? null,
     no_action_authority_notice: screen?.no_action_authority_notice ?? "Read-only screen.",
   };
+}
+
+function pickReleaseProjection(projection = {}) {
+  return {
+    schema_version: "desktop-release-projection.v1",
+    generated_at: projection?.generated_at ?? null,
+    candidate_commit: String(projection?.candidate_commit ?? "unknown"),
+    local_rc_tag: String(projection?.local_rc_tag ?? "not recorded"),
+    trust_mode: "single-owner lower-trust RC",
+    release_candidate_freeze_observed: projection?.release_candidate_freeze_observed === true,
+    github_independent_approval_status: projection?.github_independent_approval_status === "not_pursued_single_owner_local_rc"
+      ? "not_pursued_single_owner_local_rc"
+      : "missing",
+    production_launch_approval_status: projection?.production_launch_approval_status === "missing" ? "missing" : "not_approved",
+    deployment_authorized: false,
+    tag_pushed: false,
+    github_release_published: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    protected_closeout_enabled: false,
+    projection_rows: safeArray(projection?.projection_rows).map(pickProjectionRow),
+  };
+}
+
+function pickFactoryProjection(projection = {}) {
+  return {
+    schema_version: "desktop-factory-projection.v1",
+    generated_at: projection?.generated_at ?? null,
+    factory_gate_readiness_status: String(projection?.factory_gate_readiness_status ?? "not recorded"),
+    stage6_stage7_status: String(projection?.stage6_stage7_status ?? "not recorded"),
+    observed_gate_open_now_input: Number(projection?.observed_gate_open_now_input ?? 0),
+    gate_open_now: 0,
+    g1a_status: String(projection?.g1a_status ?? "not recorded"),
+    runtime_authority_open: false,
+    stage6_limited_execution_allowed: false,
+    stage7_release_candidate_allowed: false,
+    contract_development_allowed: projection?.contract_development_allowed === true,
+    factory_goal_complete_allowed: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    projection_rows: safeArray(projection?.projection_rows).map(pickProjectionRow).map((row) => (
+      row.row_id === "gate_open_now" ? { ...row, value: "0", authority_open: false } : row
+    )),
+  };
+}
+
+function pickProjectionRow(row) {
+  return {
+    row_id: String(row?.row_id ?? "unknown"),
+    label: String(row?.label ?? row?.row_id ?? "Unknown"),
+    value: String(row?.value ?? ""),
+    status: String(row?.status ?? "closed"),
+    authority_open: false,
+    generated_at: row?.generated_at ?? null,
+  };
+}
+
+function defaultReleaseProjection() {
+  return pickReleaseProjection({
+    projection_rows: [
+      { row_id: "deployment_authorization", label: "Deployment authorization", value: "not authorized", status: "closed" },
+    ],
+  });
+}
+
+function defaultFactoryProjection() {
+  return pickFactoryProjection({
+    projection_rows: [
+      { row_id: "gate_open_now", label: "Gate open now", value: "0", status: "closed" },
+    ],
+  });
 }
 
 function safeArray(value) {

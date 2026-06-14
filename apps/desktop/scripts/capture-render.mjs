@@ -20,6 +20,7 @@ const outPath = outputArg?.slice("--out=".length) ?? path.join(REPO_ROOT, "tmp",
 const rendererPath = path.join(APP_DIR, "dist", "renderer", "index.html");
 const width = readPositiveIntArg("--width=", 1440);
 const height = readPositiveIntArg("--height=", 900);
+const screen = readStringArg("--screen=", "release");
 
 app.disableHardwareAcceleration();
 app.setName(`${APP_TITLE} Smoke`);
@@ -51,8 +52,8 @@ app.whenReady().then(async () => {
     if (!isAllowedNavigationUrl(url)) event.preventDefault();
   });
 
-  await window.loadFile(rendererPath);
-  await waitForRenderer(window);
+  await window.loadFile(rendererPath, { query: { screen } });
+  await waitForRenderer(window, screen);
   const image = await window.capturePage();
   await mkdir(path.dirname(outPath), { recursive: true });
   await writeFile(outPath, image.toPNG());
@@ -88,13 +89,19 @@ function readPositiveIntArg(prefix, fallback) {
   return Number.isFinite(value) && value > 0 ? value : fallback;
 }
 
-function waitForRenderer(window) {
+function readStringArg(prefix, fallback) {
+  return process.argv.find((arg) => arg.startsWith(prefix))?.slice(prefix.length) || fallback;
+}
+
+function waitForRenderer(window, targetScreen) {
+  const targetText = targetScreen === "factory" ? "Factory gate readiness" : "Candidate commit";
   return window.webContents.executeJavaScript(`
     new Promise((resolve, reject) => {
       const started = Date.now();
+      const targetText = ${JSON.stringify(targetText)};
       const tick = () => {
         const text = document.body?.innerText ?? "";
-        if (text.includes("Hermes Operator Desktop")) {
+        if (text.includes("Hermes Operator Desktop") && text.includes(targetText)) {
           requestAnimationFrame(() => requestAnimationFrame(() => resolve(text.length)));
           return;
         }

@@ -40,7 +40,12 @@ export const SHELL_SEED_STATE = Object.freeze({
 export const FORBIDDEN_DESKTOP_TRUST_COPY = [
   "production PASS",
   "enterprise PASS",
+  "GitHub independent approval",
+  "Production launch approval",
   "deployment authorization",
+  "protected closeout complete",
+  "independently approved",
+  "production launch approved",
   "desktop write authority enabled",
 ];
 
@@ -49,6 +54,10 @@ export function unsafeAuthorityFlagCount(flags = CLOSED_AUTHORITY_FLAGS) {
 }
 
 export function containsForbiddenDesktopTrustCopy(value) {
+  return findForbiddenDesktopTrustCopy(value).length > 0;
+}
+
+export function findForbiddenDesktopTrustCopy(value) {
   const text = String(value ?? "").toLowerCase();
-  return FORBIDDEN_DESKTOP_TRUST_COPY.some((item) => text.includes(item.toLowerCase()));
+  return FORBIDDEN_DESKTOP_TRUST_COPY.filter((item) => text.includes(item.toLowerCase()));
 }

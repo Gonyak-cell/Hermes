@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "build": "vite build",
+    "smoke:render": "electron scripts/capture-render.mjs --assert-no-forbidden-trust-copy",
     "smoke:screenshot": "electron scripts/capture-render.mjs",
     "start": "electron .",
     "test": "node --test test/*.test.mjs"

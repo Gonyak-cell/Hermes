@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { LOCALE_STORAGE_KEY, getCopy } from "../src/renderer/i18n.js";
 import { sectionForNav, summarizeRows } from "../src/renderer/view-model.js";
+import { containsForbiddenDesktopTrustCopy, findForbiddenDesktopTrustCopy } from "../src/shared/shell-state.mjs";
 
 test("renderer copy supports Korean default and English operator mode", () => {
   assert.equal(LOCALE_STORAGE_KEY, "hermes.locale");
@@ -29,4 +30,13 @@ test("renderer row summaries keep ready and blocked evidence distinct", () => {
     ready: 1,
     blocked: 2,
   });
+});
+
+test("desktop trust copy policy catches approval and production overclaims", () => {
+  assert.equal(containsForbiddenDesktopTrustCopy("Independent review is not pursued."), false);
+  assert.equal(containsForbiddenDesktopTrustCopy("Deploy authority is not authorized."), false);
+  assert.deepEqual(findForbiddenDesktopTrustCopy("This screen claims production PASS and GitHub independent approval."), [
+    "production PASS",
+    "GitHub independent approval",
+  ]);
 });

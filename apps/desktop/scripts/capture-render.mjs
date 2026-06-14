@@ -3,7 +3,7 @@ import { app, BrowserWindow, ipcMain, session } from "electron";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { APP_TITLE, SHELL_SEED_STATE } from "../src/shared/shell-state.mjs";
+import { APP_TITLE, SHELL_SEED_STATE, findForbiddenDesktopTrustCopy } from "../src/shared/shell-state.mjs";
 import {
   ELECTRON_WEB_PREFERENCES,
   buildContentSecurityPolicy,
@@ -22,6 +22,8 @@ const width = readPositiveIntArg("--width=", 1440);
 const height = readPositiveIntArg("--height=", 900);
 const screen = readStringArg("--screen=", "release");
 const previewPath = readStringArg("--preview=", "");
+const textOutPath = readStringArg("--text-out=", "");
+const assertNoForbiddenTrustCopy = process.argv.includes("--assert-no-forbidden-trust-copy");
 
 app.disableHardwareAcceleration();
 app.setName(`${APP_TITLE} Smoke`);
@@ -57,6 +59,20 @@ app.whenReady().then(async () => {
   await window.loadFile(rendererPath, { query: { screen } });
   await waitForRenderer(window, screen);
   if (previewPath) await openPreview(window, previewPath);
+  const renderText = await readRendererText(window);
+  const forbiddenMatches = findForbiddenDesktopTrustCopy(renderText);
+  if (textOutPath) {
+    await writeRenderTextReport({
+      screen,
+      previewPath,
+      renderText,
+      forbiddenMatches,
+      assertedNoForbiddenTrustCopy: assertNoForbiddenTrustCopy,
+    });
+  }
+  if (assertNoForbiddenTrustCopy && forbiddenMatches.length > 0) {
+    throw new Error(`Forbidden desktop trust copy found: ${forbiddenMatches.join(", ")}`);
+  }
   const image = await window.capturePage();
   await mkdir(path.dirname(outPath), { recursive: true });
   await writeFile(outPath, image.toPNG());
@@ -94,6 +110,10 @@ function readPositiveIntArg(prefix, fallback) {
 
 function readStringArg(prefix, fallback) {
   return process.argv.find((arg) => arg.startsWith(prefix))?.slice(prefix.length) || fallback;
+}
+
+function readRendererText(window) {
+  return window.webContents.executeJavaScript("document.body?.innerText ?? ''");
 }
 
 function waitForRenderer(window, targetScreen) {
@@ -146,4 +166,17 @@ function openPreview(window, sourcePath) {
       tick();
     })
   `);
+}
+
+async function writeRenderTextReport({ screen, previewPath, renderText, forbiddenMatches, assertedNoForbiddenTrustCopy }) {
+  await mkdir(path.dirname(textOutPath), { recursive: true });
+  await writeFile(textOutPath, `${JSON.stringify({
+    schema_version: "desktop-render-smoke-report.v1",
+    generated_at: new Date().toISOString(),
+    screen,
+    preview_path: previewPath || null,
+    render_text_length: renderText.length,
+    forbidden_trust_copy_matches: forbiddenMatches,
+    asserted_no_forbidden_trust_copy: assertedNoForbiddenTrustCopy,
+  }, null, 2)}\n`);
 }

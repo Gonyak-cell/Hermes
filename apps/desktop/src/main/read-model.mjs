@@ -1,0 +1,167 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { SHELL_SEED_STATE } from "../shared/shell-state.mjs";
+
+export const DESKTOP_READ_MODEL_RELATIVE_PATH = "artifacts/desktop-read-model/latest/desktop-read-model.json";
+
+export async function loadDesktopReadModel({ repoRoot }) {
+  const sourcePath = path.join(repoRoot, DESKTOP_READ_MODEL_RELATIVE_PATH);
+  try {
+    const raw = await readFile(sourcePath, "utf8");
+    return sanitizeReadModel(JSON.parse(raw), sourcePath);
+  } catch (error) {
+    return {
+      schema_version: "desktop-read-model-missing.v1",
+      generated_at: new Date().toISOString(),
+      summary: {
+        desktop_read_model_status: "blocked_desktop_shell",
+        validation_error_count: 1,
+        source_count: 0,
+        ready_source_count: 0,
+        blocked_source_count: 1,
+        operator_handbook_bound: false,
+        authority_boundary_ready: false,
+        ...SHELL_SEED_STATE.authority_flags,
+      },
+      sections: [
+        {
+          section_id: "artifacts",
+          label: "Artifacts",
+          source_path: DESKTOP_READ_MODEL_RELATIVE_PATH,
+          generated_at: new Date().toISOString(),
+          status: "blocked",
+          blocker: `Missing desktop read model: ${error.message}`,
+          section_refs: [],
+        },
+      ],
+      source_rows: [],
+      screen_map: [],
+      desktop_read_authority: {
+        read_only: true,
+        source_of_truth: false,
+        ...SHELL_SEED_STATE.authority_flags,
+      },
+    };
+  }
+}
+
+export function sanitizeReadModel(readModel, sourcePath = DESKTOP_READ_MODEL_RELATIVE_PATH) {
+  const summary = readModel?.summary ?? {};
+  const authority = readModel?.desktop_read_authority ?? {};
+  return {
+    schema_version: readModel?.schema_version ?? "desktop-read-model.unknown",
+    generated_at: readModel?.generated_at ?? null,
+    source_path: sourcePath,
+    summary: pickSummary(summary),
+    sections: safeArray(readModel?.sections).map(pickSection),
+    source_rows: safeArray(readModel?.source_rows).map(pickSourceRow),
+    screen_map: safeArray(readModel?.screen_map).map(pickScreen),
+    desktop_read_authority: pickAuthority(authority),
+  };
+}
+
+function pickSummary(summary) {
+  return {
+    desktop_read_model_status: summary.desktop_read_model_status ?? "blocked_desktop_shell",
+    source_count: Number(summary.source_count ?? 0),
+    ready_source_count: Number(summary.ready_source_count ?? 0),
+    blocked_source_count: Number(summary.blocked_source_count ?? 0),
+    section_count: Number(summary.section_count ?? 0),
+    ready_section_count: Number(summary.ready_section_count ?? 0),
+    blocked_section_count: Number(summary.blocked_section_count ?? 0),
+    screen_count: Number(summary.screen_count ?? 0),
+    ready_screen_count: Number(summary.ready_screen_count ?? 0),
+    operator_handbook_bound: summary.operator_handbook_bound === true,
+    authority_boundary_ready: summary.authority_boundary_ready === true,
+    validation_error_count: Number(summary.validation_error_count ?? 0),
+    read_only: summary.read_only !== false,
+    source_of_truth: false,
+    raw_payload_read_allowed: false,
+    secret_like_path_read_allowed: false,
+    command_execution_allowed_now: false,
+    shell_execution_allowed_now: false,
+    deployment_allowed_now: false,
+    git_push_allowed_now: false,
+    approval_application_allowed_now: false,
+    receipt_application_allowed_now: false,
+    connector_write_allowed_now: false,
+    secret_read_allowed_now: false,
+    raw_source_exposure_allowed: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    protected_closeout_enabled: false,
+    desktop_write_authority_enabled: false,
+  };
+}
+
+function pickAuthority(authority) {
+  return {
+    read_only: authority.read_only !== false,
+    operator_handbook_bound: authority.operator_handbook_bound === true,
+    authority_boundary_ready: authority.authority_boundary_ready === true,
+    all_sections_ready: authority.all_sections_ready === true,
+    source_of_truth: false,
+    raw_payload_read_allowed: false,
+    secret_like_path_read_allowed: false,
+    command_execution_allowed_now: false,
+    shell_execution_allowed_now: false,
+    deployment_allowed_now: false,
+    git_push_allowed_now: false,
+    approval_application_allowed_now: false,
+    receipt_application_allowed_now: false,
+    connector_write_allowed_now: false,
+    secret_read_allowed_now: false,
+    raw_source_exposure_allowed: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    protected_closeout_enabled: false,
+    desktop_write_authority_enabled: false,
+    unsafe_flag_count: 0,
+    ready_for_desktop_shell: authority.ready_for_desktop_shell === true,
+  };
+}
+
+function pickSourceRow(row) {
+  return {
+    source_id: String(row?.source_id ?? "unknown"),
+    section_id: String(row?.section_id ?? "artifacts"),
+    label: String(row?.label ?? row?.source_id ?? "Unknown source"),
+    source_path: String(row?.source_path ?? ""),
+    source_available: row?.source_available === true,
+    status: row?.status === "ready" ? "ready" : "blocked",
+    blocker: row?.blocker ?? null,
+    generated_at: row?.generated_at ?? null,
+    source_content_hash: row?.source_content_hash ?? null,
+  };
+}
+
+function pickSection(section) {
+  return {
+    section_id: String(section?.section_id ?? "unknown"),
+    label: String(section?.label ?? section?.section_id ?? "Unknown"),
+    source_path: section?.source_path ?? null,
+    generated_at: section?.generated_at ?? null,
+    status: section?.status === "ready" ? "ready" : "blocked",
+    blocker: section?.blocker ?? null,
+    section_refs: safeArray(section?.section_refs).map((ref) => ({
+      source_id: String(ref?.source_id ?? "unknown"),
+      source_path: String(ref?.source_path ?? ""),
+      status: ref?.status === "ready" ? "ready" : "blocked",
+      blocker: ref?.blocker ?? null,
+    })),
+  };
+}
+
+function pickScreen(screen) {
+  return {
+    screen_id: String(screen?.screen_id ?? "unknown"),
+    label: String(screen?.label ?? screen?.screen_id ?? "Unknown"),
+    status: screen?.status === "ready" ? "ready" : "blocked",
+    blocker_state: screen?.blocker_state ?? null,
+    no_action_authority_notice: screen?.no_action_authority_notice ?? "Read-only screen.",
+  };
+}
+
+function safeArray(value) {
+  return Array.isArray(value) ? value : [];
+}

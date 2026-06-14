@@ -6,10 +6,13 @@
 
 - Branch: `codex/p3840-review-hardening`
 - Pull request: `https://github.com/Gonyak-cell/Hermes/pull/1`
-- Candidate commit: `ae88f02cb54e6d916915b53545b46ce8a32abd8c`
+- Candidate commit source of truth: `gh pr view 1 --json headRefOid`
+- Substantive candidate baseline: latest non-documentation implementation commit bound by the release candidate report and PR review packet
 - Release candidate report: `artifacts/release-candidate-report/latest`
 - Non-human launch readiness: `artifacts/launch-non-human-readiness/latest`
 - Release readiness control plane: `artifacts/release-readiness-control-plane/latest`
+
+이 문서는 실행 안내서이므로 commit SHA를 최종 진실로 삼지 않는다. 새 문서-only 커밋, receipt 커밋, 또는 PR refresh가 생기면 현재 후보 SHA는 항상 PR `headRefOid`, release candidate report, CI run, 그리고 signed provenance receipt에서 다시 확인한다.
 
 ## 0. Candidate Freeze
 
@@ -27,7 +30,7 @@ npm run release:candidate -- --check
 통과 조건:
 
 - worktree가 clean이다.
-- PR head SHA가 candidate commit과 일치한다.
+- PR `headRefOid`가 release candidate packet, review receipt, signed provenance receipt에 적힌 후보 SHA와 일치한다.
 - PR CI가 성공 상태다.
 - `release:candidate`가 `Status: complete`, `Validation errors: 0`을 출력한다.
 
@@ -84,7 +87,8 @@ npm run platform:release-check-review-packet -- --check
 외부 리뷰어가 할 일:
 
 - PR #1 또는 release readiness packet을 읽는다.
-- Claude Code Opus max 또는 GitHub reviewer로 독립 review를 수행한다.
+- Claude Code Opus max로 release-readiness review receipt를 만든다.
+- GitHub reviewer나 `claude ultrareview`는 PR approval/diff review evidence로 기록할 수 있지만, 아래 Claude release review receipt를 대체하지 않는다.
 - 실패한 CLI run, quota failure, login failure, empty output, malformed JSON은 유효한 review evidence로 세지 않는다.
 - 발견 사항이 있으면 finding id, severity, affected ref, required change, unresolved 여부를 남긴다.
 
@@ -105,13 +109,19 @@ npm run platform:release-check-review-packet -- --check
 artifacts/release-readiness-control-plane/review/claude-release-readiness-review-receipt.json
 ```
 
+보조 리뷰 경로:
+
+- GitHub PR approval: PR의 `reviewDecision`을 만족하는 별도 채널이다.
+- `claude ultrareview`: branch diff에 대한 독립 코드 리뷰 evidence로 쓸 수 있지만, `claude_release_review_receipt_present_now`를 직접 true로 만들지는 않는다.
+- release-readiness control plane이 관측하는 receipt는 반드시 위 필수 경로에 있고 `review_engine=claude_code_opus_max`, `receipt_status=complete`, `scope_release_readiness_control_plane=true`, `unresolved_finding_count=0`을 만족해야 한다.
+
 통과 조건:
 
 - release review receipt가 위 경로에 존재한다.
 - `unresolved_finding_count`가 `0`이다.
 - PR review decision이 더 이상 `REVIEW_REQUIRED`가 아니다.
 
-현재 판정: packet 준비는 Codex 실행 가능, 독립 approval 자체는 Codex 불가.
+현재 판정: packet 준비와 Claude release review receipt 수집은 Codex가 실행할 수 있다. GitHub approval, merge approval, release approval은 Codex가 자체 발급할 수 없다.
 
 ## 4. Human Owner Adjudication
 
@@ -335,7 +345,7 @@ npm run platform:release-readiness-control-plane -- --check
 
 다음 순서로 진행한다.
 
-1. Independent release review receipt 확보.
+1. Independent release review receipt 확보 또는 현재 PR head 기준 갱신.
 2. Owner adjudication receipt 확보.
 3. Signed provenance receipt 확보.
 4. `platform:human-owner-adjudication-option -- --check` 재실행.

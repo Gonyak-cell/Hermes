@@ -173,6 +173,39 @@ test("Launch non-human readiness records detailed workstreams and commands", asy
   }
 });
 
+test("Launch non-human readiness accepts ready release-readiness source with authority still closed", async () => {
+  const paths = await fixtureInputs();
+  try {
+    await writeJson(paths.releaseReadinessPath, {
+      summary: {
+        release_readiness_control_plane_status: "ready_for_release_readiness_control_plane",
+        source_ready_for_p12801_handoff: true,
+        signed_provenance_receipt_present_now: true,
+        claude_release_review_receipt_present_now: true,
+        ready_for_p13001_handoff: true,
+        release_approval_allowed_now: false,
+        deployment_allowed_now: false,
+        production_pass_enabled: false,
+        enterprise_pass_enabled: false,
+      },
+    });
+
+    const result = await buildLaunchNonHumanReadiness(buildOptions(paths));
+
+    assert.equal(result.validation.valid, true);
+    assert.equal(result.summary.launch_non_human_readiness_status, "ready_for_non_human_launch_readiness_execution");
+    assert.equal(result.non_human_source_rows.find((row) => row.source_id === "release_readiness").current_verdict, "pass");
+    assert.equal(result.non_human_workstream_rows.find((row) => row.workstream_id === "release.evidence_packet").current_verdict, "pass");
+    assert.equal(result.gate_readiness_cross_ref_rows.find((row) => row.gate_id === "gate.release_control").current_verdict, "pass");
+    assert.equal(result.summary.release_approval_allowed_now, false);
+    assert.equal(result.summary.deployment_allowed_now, false);
+    assert.equal(result.summary.production_pass_enabled, false);
+    assert.equal(result.summary.enterprise_pass_enabled, false);
+  } finally {
+    await rm(paths.dir, { recursive: true, force: true });
+  }
+});
+
 test("Launch non-human readiness writes artifacts and check mode does not overwrite", async () => {
   const paths = await fixtureInputs();
   const outDir = await mkdtemp(path.join(os.tmpdir(), "launch-non-human-readiness-out-"));

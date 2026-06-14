@@ -307,7 +307,7 @@ export async function runLaunchNonHumanReadinessCli(argv = process.argv.slice(2)
 
 function buildSourceRows(sources, generatedAt) {
   return [
-    sourceRow("release_readiness", "Release readiness control plane", sources.release_readiness, sources.release_readiness.data?.summary?.release_readiness_control_plane_status === "blocked_release_readiness_control_plane", generatedAt),
+    sourceRow("release_readiness", "Release readiness control plane", sources.release_readiness, isReleaseReadinessSourceUsable(sources.release_readiness.data?.summary), generatedAt),
     sourceRow("release_candidate", "Release candidate report", sources.release_candidate, sources.release_candidate.data?.summary?.release_candidate_status === "complete", generatedAt),
     sourceRow("g_series_readiness", "G-series advancement readiness", sources.g_series_readiness, sources.g_series_readiness.data?.summary?.g_series_code_development_allowed_now === true, generatedAt),
     sourceRow("stage67_readiness", "Stage6 Stage7 execution readiness", sources.stage67_readiness, sources.stage67_readiness.data?.summary?.stage6_7_contract_development_allowed_now === true, generatedAt),
@@ -335,9 +335,9 @@ function sourceRow(sourceId, label, source, observed, generatedAt) {
 function buildHumanExclusionRows(sources, generatedAt) {
   const releaseSummary = sources.release_readiness.data?.summary ?? {};
   const observed = {
-    "human.owner_adjudication": releaseSummary.source_ready_for_p12801_handoff === false,
+    "human.owner_adjudication": typeof releaseSummary.source_ready_for_p12801_handoff === "boolean",
     "human.release_approval": releaseSummary.release_approval_allowed_now === false,
-    "human.signed_provenance": releaseSummary.signed_provenance_receipt_present_now === false,
+    "human.signed_provenance": typeof releaseSummary.signed_provenance_receipt_present_now === "boolean",
     "human.enterprise_trust": releaseSummary.enterprise_pass_enabled === false && releaseSummary.production_pass_enabled === false,
   };
   return HUMAN_EXCLUSION_SPECS.map(([exclusion_id, label, block_reason], index) => verdictRow({
@@ -385,7 +385,7 @@ function buildWorkstreamRows(sources, generatedAt) {
 function sourceReadyForWorkstream(sourceId, source) {
   if (!source?.available) return false;
   const summary = source.data?.summary ?? {};
-  if (sourceId === "release_readiness") return summary.release_readiness_control_plane_status === "blocked_release_readiness_control_plane";
+  if (sourceId === "release_readiness") return isReleaseReadinessSourceUsable(summary);
   if (sourceId === "release_candidate") return summary.release_candidate_status === "complete";
   if (sourceId === "g_series_readiness") return summary.g_series_code_development_allowed_now === true;
   if (sourceId === "stage67_readiness") return summary.stage6_7_contract_development_allowed_now === true;
@@ -511,8 +511,8 @@ function buildReleaseGapRows(sources, ciRuntimeUpgradeRows, generatedAt) {
   const ciUpgradeComplete = ciRuntimeUpgradeRows.every((row) => row.current_verdict === "pass");
   const gapObserved = {
     "gap.pr_review_required": true,
-    "gap.owner_adjudication": releaseSummary.source_ready_for_p12801_handoff === false,
-    "gap.signed_provenance": releaseSummary.signed_provenance_receipt_present_now === false,
+    "gap.owner_adjudication": typeof releaseSummary.source_ready_for_p12801_handoff === "boolean",
+    "gap.signed_provenance": typeof releaseSummary.signed_provenance_receipt_present_now === "boolean",
     "gap.release_approval": releaseSummary.release_approval_allowed_now === false,
     "gap.production_enterprise_pass": releaseSummary.production_pass_enabled === false && releaseSummary.enterprise_pass_enabled === false,
     "gap.node20_actions_annotation": ciUpgradeComplete,
@@ -567,7 +567,7 @@ function buildGateReadinessCrossRefRows(sources, generatedAt) {
   return GATE_CROSS_REF_SPECS.map(([gate_id, description, source_id, ready_key, closed_key], index) => {
     const summary = sources[source_id]?.data?.summary ?? {};
     const readyObserved = ready_key.endsWith("_status")
-      ? summary[ready_key] === "blocked_release_readiness_control_plane"
+      ? isReleaseReadinessSourceUsable(summary)
       : summary[ready_key] === true;
     const closedObserved = summary[closed_key] !== true;
     return verdictRow({
@@ -589,6 +589,19 @@ function buildGateReadinessCrossRefRows(sources, generatedAt) {
       next_allowed_action: "preserve readiness evidence and wait for protected approval to open real gate",
     });
   });
+}
+
+function isReleaseReadinessSourceUsable(summary = {}) {
+  const status = summary.release_readiness_control_plane_status;
+  const readinessBoundaryClosed = summary.release_approval_allowed_now === false
+    && summary.deployment_allowed_now === false
+    && summary.production_pass_enabled === false
+    && summary.enterprise_pass_enabled === false;
+  return readinessBoundaryClosed
+    && (
+      status === "blocked_release_readiness_control_plane"
+      || status === "ready_for_release_readiness_control_plane"
+    );
 }
 
 function buildNextWorkQueueRows(context) {

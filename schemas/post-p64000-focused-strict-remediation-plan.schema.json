@@ -1,0 +1,288 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/post-p64000-focused-strict-remediation-plan.schema.json",
+  "title": "Post-P64000 Focused Strict Remediation Plan",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "review_source_program_range",
+    "next_program_range",
+    "post_p64000_focused_strict_remediation_plan_contract",
+    "p70800_candidate_source_rows",
+    "strict_remediation_plan_rows",
+    "re_review_dispatch_readiness_rows",
+    "evidence_requirement_rows",
+    "finding_state_continuity_rows",
+    "authority_boundary_rows",
+    "negative_fixture_contract_rows",
+    "validation_command_rows",
+    "p71200_wiring_rows",
+    "p71200_closeout_rows",
+    "p71201_handoff_rows",
+    "post_p64000_focused_strict_remediation_plan_boundary",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "post-p64000-focused-strict-remediation-plan.v1" },
+    "capability_id": { "const": "platform.post_p64000_focused_strict_remediation_plan" },
+    "program_range": { "const": "P70801-P71200" },
+    "source_program_range": { "const": "P70401-P70800" },
+    "review_source_program_range": { "const": "P70001-P70400" },
+    "next_program_range": { "const": "P71201-P71600" },
+    "post_p64000_focused_strict_remediation_plan_contract": {
+      "type": "object",
+      "required": [
+        "strict_plan_only",
+        "dispatch_readiness_only",
+        "re_review_evidence_observed",
+        "patch_apply_allowed",
+        "write_action_allowed",
+        "source_mutation_allowed",
+        "finding_resolution_allowed",
+        "clean_checkpoint_allowed",
+        "protected_closeout_allowed",
+        "production_pass_allowed",
+        "enterprise_pass_allowed",
+        "final_approval_allowed"
+      ],
+      "properties": {
+        "strict_plan_only": { "const": true },
+        "dispatch_readiness_only": { "const": true },
+        "re_review_evidence_observed": { "const": false },
+        "patch_apply_allowed": { "const": false },
+        "write_action_allowed": { "const": false },
+        "source_mutation_allowed": { "const": false },
+        "finding_resolution_allowed": { "const": false },
+        "clean_checkpoint_allowed": { "const": false },
+        "protected_closeout_allowed": { "const": false },
+        "production_pass_allowed": { "const": false },
+        "enterprise_pass_allowed": { "const": false },
+        "final_approval_allowed": { "const": false }
+      }
+    },
+    "p70800_candidate_source_rows": { "$ref": "#/$defs/rows" },
+    "strict_remediation_plan_rows": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": [
+              "finding_id",
+              "plan_status",
+              "patch_apply_now",
+              "write_action_now",
+              "source_mutation_now",
+              "fixed_claimed_now",
+              "verified_claimed_now",
+              "resolved_claimed_now",
+              "re_review_evidence_observed_now",
+              "required_steps"
+            ],
+            "properties": {
+              "finding_id": { "enum": ["HRM-04", "HRM-03", "HRM-01"] },
+              "plan_status": { "const": "planned_pending_execution_and_review" },
+              "patch_apply_now": { "const": false },
+              "write_action_now": { "const": false },
+              "source_mutation_now": { "const": false },
+              "fixed_claimed_now": { "const": false },
+              "verified_claimed_now": { "const": false },
+              "resolved_claimed_now": { "const": false },
+              "re_review_evidence_observed_now": { "const": false },
+              "required_steps": {
+                "type": "array",
+                "minItems": 4,
+                "items": { "type": "string" }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "re_review_dispatch_readiness_rows": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": [
+              "finding_id",
+              "dispatch_status",
+              "required_reviewer",
+              "required_reviewer_lane",
+              "required_receipt_type",
+              "re_review_required_now",
+              "re_review_evidence_observed_now",
+              "reviewer_completion_claim_allowed_now"
+            ],
+            "properties": {
+              "finding_id": { "enum": ["HRM-04", "HRM-03", "HRM-01"] },
+              "dispatch_status": { "const": "ready_to_dispatch_not_reviewed" },
+              "required_reviewer": { "const": "claude-code-opus-max" },
+              "required_reviewer_lane": { "const": "independent_read_only" },
+              "required_receipt_type": { "const": "durable_raw_json" },
+              "re_review_required_now": { "const": true },
+              "re_review_evidence_observed_now": { "const": false },
+              "reviewer_completion_claim_allowed_now": { "const": false }
+            }
+          }
+        ]
+      }
+    },
+    "evidence_requirement_rows": { "$ref": "#/$defs/rows" },
+    "finding_state_continuity_rows": { "$ref": "#/$defs/rows" },
+    "authority_boundary_rows": { "$ref": "#/$defs/rows" },
+    "negative_fixture_contract_rows": { "$ref": "#/$defs/rows" },
+    "validation_command_rows": { "$ref": "#/$defs/rows" },
+    "p71200_wiring_rows": { "$ref": "#/$defs/rows" },
+    "p71200_closeout_rows": { "$ref": "#/$defs/rows" },
+    "p71201_handoff_rows": { "$ref": "#/$defs/rows" },
+    "post_p64000_focused_strict_remediation_plan_boundary": {
+      "type": "object",
+      "required": [
+        "p70800_candidate_ready_now",
+        "strict_remediation_plans_ready_now",
+        "re_review_dispatch_ready_now",
+        "evidence_requirements_ready_now",
+        "blocking_findings_preserved_now",
+        "ready_for_p71201_handoff",
+        "re_review_evidence_observed_now",
+        "clean_checkpoint_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "final_approval_enabled",
+        "runtime_execution_allowed_now",
+        "write_action_allowed_now",
+        "connector_write_allowed_now",
+        "protected_closeout_allowed_now",
+        "deployment_allowed_now",
+        "production_pass_allowed_now",
+        "enterprise_pass_allowed_now",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "final_automated_approval_allowed_now",
+        "strict_plan_patch_apply_allowed_now",
+        "strict_plan_write_action_allowed_now",
+        "strict_plan_source_mutation_allowed_now",
+        "strict_plan_fixed_claim_allowed_now",
+        "strict_plan_verified_claim_allowed_now",
+        "strict_plan_resolved_claim_allowed_now",
+        "strict_plan_re_review_evidence_observed_now",
+        "strict_plan_reviewer_completion_claim_allowed_now",
+        "post_p71200_final_approval_claim_allowed_now"
+      ],
+      "properties": {
+        "p70800_candidate_ready_now": { "type": "boolean" },
+        "strict_remediation_plans_ready_now": { "type": "boolean" },
+        "re_review_dispatch_ready_now": { "type": "boolean" },
+        "evidence_requirements_ready_now": { "type": "boolean" },
+        "blocking_findings_preserved_now": { "type": "boolean" },
+        "ready_for_p71201_handoff": { "type": "boolean" },
+        "re_review_evidence_observed_now": { "const": false },
+        "clean_checkpoint_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "final_approval_enabled": { "const": false },
+        "runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "protected_closeout_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "production_pass_allowed_now": { "const": false },
+        "enterprise_pass_allowed_now": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "final_automated_approval_allowed_now": { "const": false },
+        "strict_plan_patch_apply_allowed_now": { "const": false },
+        "strict_plan_write_action_allowed_now": { "const": false },
+        "strict_plan_source_mutation_allowed_now": { "const": false },
+        "strict_plan_fixed_claim_allowed_now": { "const": false },
+        "strict_plan_verified_claim_allowed_now": { "const": false },
+        "strict_plan_resolved_claim_allowed_now": { "const": false },
+        "strict_plan_re_review_evidence_observed_now": { "const": false },
+        "strict_plan_reviewer_completion_claim_allowed_now": { "const": false },
+        "post_p71200_final_approval_claim_allowed_now": { "const": false }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "post_p64000_focused_strict_remediation_plan_status",
+        "program_range",
+        "source_program_range",
+        "next_program_range",
+        "p70800_candidate_ready_now",
+        "strict_remediation_plans_ready_now",
+        "re_review_dispatch_ready_now",
+        "evidence_requirements_ready_now",
+        "blocking_findings_preserved_now",
+        "ready_for_p71201_handoff",
+        "re_review_evidence_observed_now",
+        "clean_checkpoint_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "final_approval_enabled",
+        "validation_error_count"
+      ],
+      "properties": {
+        "post_p64000_focused_strict_remediation_plan_status": {
+          "enum": ["focused_strict_remediation_plan_ready_for_p71201", "blocked"]
+        },
+        "program_range": { "const": "P70801-P71200" },
+        "source_program_range": { "const": "P70401-P70800" },
+        "next_program_range": { "const": "P71201-P71600" },
+        "p70800_candidate_ready_now": { "type": "boolean" },
+        "strict_remediation_plans_ready_now": { "type": "boolean" },
+        "re_review_dispatch_ready_now": { "type": "boolean" },
+        "evidence_requirements_ready_now": { "type": "boolean" },
+        "blocking_findings_preserved_now": { "type": "boolean" },
+        "ready_for_p71201_handoff": { "type": "boolean" },
+        "re_review_evidence_observed_now": { "const": false },
+        "clean_checkpoint_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "final_approval_enabled": { "const": false },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "rows": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/row" }
+    },
+    "row": {
+      "type": "object",
+      "required": ["row_id", "category", "label", "observed", "current_verdict", "generated_at"],
+      "properties": {
+        "row_id": { "type": "string", "minLength": 1 },
+        "category": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "observed": { "type": "boolean" },
+        "current_verdict": { "enum": ["pass", "block"] },
+        "evidence_ref": { "type": ["string", "null"] },
+        "output_ref": { "type": ["string", "null"] },
+        "block_reason": { "type": ["string", "null"] },
+        "next_allowed_action": { "type": ["string", "null"] },
+        "generated_at": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

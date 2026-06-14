@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/patch-candidate-lane.schema.json",
+  "title": "Hermes Patch Candidate Lane",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "patch_candidate_lane_contract",
+    "patch_candidate_phase_rows",
+    "patch_candidate_source_binding_rows",
+    "generated_patch_candidate_rows",
+    "patch_diff_packet_rows",
+    "patch_rollback_binding_rows",
+    "patch_validation_ref_rows",
+    "patch_claude_review_rows",
+    "patch_protected_scope_negative_rows",
+    "patch_operator_projection_rows",
+    "patch_authority_guard_rows",
+    "p12600_freeze_rows",
+    "patch_candidate_boundary",
+    "patch_candidate_validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "patch-candidate-lane.v1" },
+    "capability_id": { "const": "platform.patch_candidate_lane" },
+    "program_range": { "const": "P12401-P12600" },
+    "source_program_range": { "const": "P12201-P12400" },
+    "patch_candidate_phase_rows": { "type": "array", "minItems": 10, "items": { "$ref": "#/$defs/verdictRow" } },
+    "patch_candidate_source_binding_rows": { "type": "array", "minItems": 8, "items": { "$ref": "#/$defs/verdictRow" } },
+    "generated_patch_candidate_rows": { "type": "array", "minItems": 6, "items": { "$ref": "#/$defs/verdictRow" } },
+    "patch_diff_packet_rows": { "type": "array", "minItems": 6, "items": { "$ref": "#/$defs/verdictRow" } },
+    "patch_rollback_binding_rows": { "type": "array", "minItems": 5, "items": { "$ref": "#/$defs/verdictRow" } },
+    "patch_validation_ref_rows": { "type": "array", "minItems": 6, "items": { "$ref": "#/$defs/verdictRow" } },
+    "patch_claude_review_rows": { "type": "array", "minItems": 5, "items": { "$ref": "#/$defs/verdictRow" } },
+    "patch_protected_scope_negative_rows": { "type": "array", "minItems": 6, "items": { "$ref": "#/$defs/verdictRow" } },
+    "patch_operator_projection_rows": { "type": "array", "minItems": 6, "items": { "$ref": "#/$defs/verdictRow" } },
+    "patch_authority_guard_rows": { "type": "array", "minItems": 6, "items": { "$ref": "#/$defs/verdictRow" } },
+    "p12600_freeze_rows": { "type": "array", "minItems": 12, "items": { "$ref": "#/$defs/verdictRow" } },
+    "patch_candidate_boundary": {
+      "type": "object",
+      "required": [
+        "source_controlled_execution_sandbox_available",
+        "source_ready_for_p12401_handoff",
+        "source_block_visible_now",
+        "claude_patch_review_receipt_present_now",
+        "claude_patch_review_block_visible_now",
+        "patch_candidate_contract_ready",
+        "p12600_patch_candidate_lane_freeze_ready",
+        "ready_for_p12601_handoff",
+        "patch_candidate_generation_allowed_with_review",
+        "patch_generated_now",
+        "patch_applied_now",
+        "direct_apply_allowed_now",
+        "write_action_allowed_now",
+        "protected_action_allowed_now",
+        "connector_write_enabled",
+        "runtime_execution_allowed_now",
+        "raw_body_exposure_allowed",
+        "secret_read_allowed_now",
+        "final_approval_ui_enabled",
+        "codex_final_approval_ui_enabled",
+        "claude_final_approval_ui_enabled",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "source_controlled_execution_sandbox_available": { "type": "boolean" },
+        "source_ready_for_p12401_handoff": { "type": "boolean" },
+        "source_block_visible_now": { "type": "boolean" },
+        "claude_patch_review_receipt_present_now": { "type": "boolean" },
+        "claude_patch_review_block_visible_now": { "type": "boolean" },
+        "patch_candidate_contract_ready": { "type": "boolean" },
+        "p12600_patch_candidate_lane_freeze_ready": { "type": "boolean" },
+        "ready_for_p12601_handoff": { "type": "boolean" },
+        "patch_candidate_generation_allowed_with_review": { "type": "boolean" },
+        "patch_generated_now": { "const": false },
+        "patch_applied_now": { "const": false },
+        "direct_apply_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "connector_write_enabled": { "const": false },
+        "runtime_execution_allowed_now": { "const": false },
+        "raw_body_exposure_allowed": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "final_approval_ui_enabled": { "const": false },
+        "codex_final_approval_ui_enabled": { "const": false },
+        "claude_final_approval_ui_enabled": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "patch_candidate_lane_status",
+        "program_range",
+        "source_ready_for_p12401_handoff",
+        "source_block_visible_now",
+        "claude_patch_review_receipt_present_now",
+        "claude_patch_review_block_visible_now",
+        "patch_candidate_row_count",
+        "diff_packet_row_count",
+        "p12600_patch_candidate_lane_freeze_ready",
+        "ready_for_p12601_handoff",
+        "patch_generated_now",
+        "patch_applied_now",
+        "direct_apply_allowed_now",
+        "write_action_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "validation_error_count"
+      ],
+      "properties": {
+        "patch_candidate_lane_status": {
+          "enum": [
+            "ready_for_patch_candidate_lane",
+            "blocked_patch_candidate_lane"
+          ]
+        },
+        "program_range": { "const": "P12401-P12600" },
+        "source_ready_for_p12401_handoff": { "type": "boolean" },
+        "source_block_visible_now": { "type": "boolean" },
+        "claude_patch_review_receipt_present_now": { "type": "boolean" },
+        "claude_patch_review_block_visible_now": { "type": "boolean" },
+        "patch_candidate_row_count": { "type": "integer", "minimum": 6 },
+        "diff_packet_row_count": { "type": "integer", "minimum": 6 },
+        "p12600_patch_candidate_lane_freeze_ready": { "type": "boolean" },
+        "ready_for_p12601_handoff": { "type": "boolean" },
+        "patch_generated_now": { "const": false },
+        "patch_applied_now": { "const": false },
+        "direct_apply_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "verdictRow": {
+      "type": "object",
+      "required": [
+        "row_id",
+        "category",
+        "label",
+        "required",
+        "observed",
+        "evidence_ref",
+        "current_verdict"
+      ],
+      "properties": {
+        "row_id": { "type": "string", "minLength": 1 },
+        "category": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "required": { "type": "boolean" },
+        "observed": { "type": "boolean" },
+        "evidence_ref": { "type": "string", "minLength": 1 },
+        "current_verdict": { "enum": ["pass", "blocked"] },
+        "block_reason": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

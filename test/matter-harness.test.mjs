@@ -7662,8 +7662,8 @@ describe("matter harness", () => {
       assert.equal(agentInstructionRegistry.summary.pack_id, "personal-dev");
       assert.equal(agentInstructionRegistry.summary.repo_profile_detector_status, "complete");
       assert.equal(agentInstructionRegistry.summary.instruction_source_count, 3);
-      assert.equal(agentInstructionRegistry.summary.present_instruction_source_count, 1);
-      assert.equal(agentInstructionRegistry.summary.derived_instruction_source_count, 2);
+      assert.equal(agentInstructionRegistry.summary.present_instruction_source_count, 2);
+      assert.equal(agentInstructionRegistry.summary.derived_instruction_source_count, 1);
       assert.equal(agentInstructionRegistry.summary.missing_instruction_source_count, 0);
       assert.equal(agentInstructionRegistry.summary.instruction_version_count, 3);
       assert.equal(agentInstructionRegistry.summary.locked_instruction_version_count, 3);
@@ -7686,7 +7686,7 @@ describe("matter harness", () => {
       assert.equal(agentInstructionRegistry.summary.ssh_or_cron_control, false);
       assert.equal(agentInstructionRegistry.summary.validation_error_count, 0);
       assert.equal(agentInstructionRegistry.agent_instruction_sources.find((source) => source.instruction_kind === "agents")?.instruction_source_status, "present");
-      assert.equal(agentInstructionRegistry.agent_instruction_sources.find((source) => source.instruction_kind === "claude_code")?.instruction_source_status, "derived_from_agents");
+      assert.equal(agentInstructionRegistry.agent_instruction_sources.find((source) => source.instruction_kind === "claude_code")?.instruction_source_status, "present");
       assert.equal(agentInstructionRegistry.agent_instruction_sources.find((source) => source.instruction_kind === "codex")?.instruction_source_status, "derived_from_agents");
       assert.ok(agentInstructionRegistry.runtime_instruction_bindings.filter((binding) => binding.runtime_kind === "agent_runtime").every((binding) => binding.instruction_application_status === "applied" && binding.binding_status === "bound"));
       assert.equal(agentInstructionRegistry.runtime_instruction_bindings.find((binding) => binding.runtime_id === "local_script")?.instruction_application_status, "tracked_not_prompted");
@@ -18073,8 +18073,8 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.agent_instruction_registry_pack_id, "personal-dev");
       assert.equal(dashboard.summary.agent_instruction_registry_repo_profile_detector_status, "complete");
       assert.equal(dashboard.summary.agent_instruction_registry_instruction_source_count, agentInstructionRegistry.summary.instruction_source_count);
-      assert.equal(dashboard.summary.agent_instruction_registry_present_instruction_source_count, 1);
-      assert.equal(dashboard.summary.agent_instruction_registry_derived_instruction_source_count, 2);
+      assert.equal(dashboard.summary.agent_instruction_registry_present_instruction_source_count, 2);
+      assert.equal(dashboard.summary.agent_instruction_registry_derived_instruction_source_count, 1);
       assert.equal(dashboard.summary.agent_instruction_registry_missing_instruction_source_count, 0);
       assert.equal(dashboard.summary.agent_instruction_registry_instruction_version_count, 3);
       assert.equal(dashboard.summary.agent_instruction_registry_locked_instruction_version_count, 3);
@@ -23095,7 +23095,8 @@ describe("matter harness", () => {
       assert.equal(agentInstructionRegistryStage?.metrics.pack_id, "personal-dev");
       assert.equal(agentInstructionRegistryStage?.metrics.repo_profile_detector_status, "complete");
       assert.equal(agentInstructionRegistryStage?.metrics.instruction_source_count, 3);
-      assert.equal(agentInstructionRegistryStage?.metrics.derived_instruction_source_count, 2);
+      assert.equal(agentInstructionRegistryStage?.metrics.present_instruction_source_count, 2);
+      assert.equal(agentInstructionRegistryStage?.metrics.derived_instruction_source_count, 1);
       assert.equal(agentInstructionRegistryStage?.metrics.missing_instruction_source_count, 0);
       assert.equal(agentInstructionRegistryStage?.metrics.runtime_instruction_binding_count, 4);
       assert.equal(agentInstructionRegistryStage?.metrics.bound_runtime_instruction_binding_count, 4);

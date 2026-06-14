@@ -1,0 +1,570 @@
+import assert from "node:assert/strict";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import test from "node:test";
+import {
+  applyFactoryReceiptDrivenTransition,
+  appendFactoryLedgerEntry,
+  buildFactoryProductRegistryStore,
+  computeFactoryPayloadHash,
+  readFactoryLedgerFile,
+  readFactoryProductScope,
+  recoverFactoryLedgerFile,
+  runFactoryProductRegistryStore,
+  verifyFactorySeedMigration,
+  writeFactorySeedMigration,
+} from "../src/factory-product-registry-store.mjs";
+
+const RUN_AT = "2026-06-11T00:00:00.000Z";
+
+const AUTHORITY_CLOSED = {
+  project_creation_allowed_now: false,
+  review_decision_allowed_now: false,
+  approval_allowed_now: false,
+  apply_allowed_now: false,
+  apply_engine_runtime_enabled_now: false,
+  rollback_executor_runtime_enabled_now: false,
+  source_file_write_allowed_now: false,
+  ledger_append_allowed_now: false,
+  persistent_ledger_append_allowed_now: false,
+  repo_write_allowed_now: false,
+  connector_write_allowed_now: false,
+  deployment_allowed_now: false,
+  protected_action_allowed_now: false,
+  production_pass_enabled: false,
+  enterprise_pass_enabled: false,
+};
+
+function options(overrides = {}) {
+  return {
+    runAt: RUN_AT,
+    write: false,
+    ...overrides,
+  };
+}
+
+function ledgerOptions(ledgerDir) {
+  return {
+    ledgerDir,
+    allowTestLedgerRoot: true,
+  };
+}
+
+function seedOptions(seedDir) {
+  return {
+    seedDir,
+    allowTestSeedRoot: true,
+    runAt: RUN_AT,
+  };
+}
+
+function productDraft(productId, suffix = productId.replace(/^product\./, "")) {
+  return {
+    schema_version: "product-record.v1",
+    product_id: productId,
+    tenant_id: "tenant.local",
+    workspace_id: "workspace.factory",
+    domain_pack_ids: ["pack.personal_dev"],
+    product_state: "PS0_seed",
+    receipt_id: `rcpt-${suffix.replaceAll(".", "-")}`,
+    created_at: RUN_AT,
+    updated_at: RUN_AT,
+    authority_flags: AUTHORITY_CLOSED,
+  };
+}
+
+function transitionDraft(productId, suffix = productId.replace(/^product\./, "")) {
+  return {
+    schema_version: "product-state-transition.v1",
+    transition_id: `transition.${suffix.replaceAll("-", "_")}.ps0_ps1`,
+    product_id: productId,
+    from_state: "PS0_seed",
+    to_state: "PS1_schema_valid",
+    receipt_id: `rcpt-${suffix.replaceAll(".", "-")}`,
+    created_at: RUN_AT,
+    authority_flags: AUTHORITY_CLOSED,
+  };
+}
+
+function receiptDraft(productId, suffix = productId.replace(/^product\./, "")) {
+  return {
+    schema_version: "factory-receipt-envelope.v1",
+    receipt_id: `rcpt-${suffix.replaceAll(".", "-")}`,
+    receipt_kind: "schema_contract_readiness",
+    issued_at: RUN_AT,
+    issuer: {
+      issuer_role: "codex_implementer",
+      issuer_id: "codex",
+      engine_resolved_model_id: null,
+    },
+    subject: {
+      product_id: productId,
+      artifact_id: `artifact.${suffix.replaceAll("-", "_")}`,
+      scope_id: "FCORE-FA.2",
+      reviewed_commit_sha: null,
+    },
+    authority_flags: AUTHORITY_CLOSED,
+  };
+}
+
+function transitionReceiptDraft({ productId, fromState, toState, receiptId, transitionId }) {
+  const transition = {
+    schema_version: "product-state-transition.v1",
+    transition_id: transitionId,
+    product_id: productId,
+    from_state: fromState,
+    to_state: toState,
+    receipt_id: receiptId,
+    created_at: RUN_AT,
+    authority_flags: AUTHORITY_CLOSED,
+  };
+  return {
+    schema_version: "factory-receipt-envelope.v1",
+    receipt_id: receiptId,
+    receipt_kind: "state_transition",
+    issued_at: RUN_AT,
+    issuer: {
+      issuer_role: "codex_implementer",
+      issuer_id: "codex",
+      engine_resolved_model_id: null,
+    },
+    subject: {
+      product_id: productId,
+      artifact_id: `artifact.${transitionId.replaceAll(".", "_")}`,
+      scope_id: "FCORE-FA.3",
+      bound_transition_payload_sha256: computeFactoryPayloadHash(transition),
+      reviewed_commit_sha: null,
+    },
+    authority_flags: AUTHORITY_CLOSED,
+  };
+}
+
+async function withTempLedger(fn) {
+  const ledgerDir = await mkdtemp(path.join(os.tmpdir(), "factory-product-registry-ledger-"));
+  try {
+    return await fn(ledgerDir);
+  } finally {
+    await rm(ledgerDir, { recursive: true, force: true });
+  }
+}
+
+test("Factory Product Registry Store validates FA.4 tracked seed migration contracts", async () => {
+  const result = await buildFactoryProductRegistryStore(options());
+
+  assert.equal(result.validation.valid, true);
+  assert.equal(result.schema_version, "factory-product-registry-store.v1");
+  assert.equal(result.summary.program_range, "FCORE-FA.4");
+  assert.equal(result.summary.factory_product_registry_store_status, "ready_factory_seed_migration");
+  assert.equal(result.summary.append_jsonl_store_ready, true);
+  assert.equal(result.summary.receipt_driven_transition_handlers_ready, true);
+  assert.equal(result.summary.tracked_seed_migration_ready, true);
+  assert.equal(result.summary.seed_product_record_count, 9);
+  assert.equal(result.summary.seed_migration_receipt_count, 1);
+  assert.equal(result.summary.ps3_transition_handler_enabled, false);
+  assert.equal(result.summary.tracked_seed_root, "data/factory/seed/");
+  assert.equal(result.summary.local_operational_ledger_root, "data/factory/local/");
+  assert.equal(result.summary.local_operational_ledger_gitignored, true);
+  assert.match(result.product_record_sample.payload_sha256, /^[a-f0-9]{64}$/);
+  assert.match(result.product_record_sample.entry_hash, /^[a-f0-9]{64}$/);
+  assert.equal(result.product_record_sample.schema_version, "product-record.v1");
+  assert.equal(result.state_transition_sample.schema_version, "product-state-transition.v1");
+  assert.equal(result.receipt_envelope_sample.schema_version, "factory-receipt-envelope.v1");
+  assert.equal(result.summary.project_creation_allowed_now, false);
+  assert.equal(result.summary.repo_write_allowed_now, false);
+  assert.equal(result.summary.production_pass_enabled, false);
+  assert.equal(result.summary.enterprise_pass_enabled, false);
+});
+
+test("Factory Product Registry Store appends and verifies products, transitions, and receipts", async () => {
+  await withTempLedger(async (ledgerDir) => {
+    const opts = ledgerOptions(ledgerDir);
+    const product = await appendFactoryLedgerEntry("products", productDraft("product.alpha"), opts);
+    const transition = await appendFactoryLedgerEntry("state_transitions", transitionDraft("product.alpha"), opts);
+    const receipt = await appendFactoryLedgerEntry("receipts_index", receiptDraft("product.alpha"), opts);
+
+    assert.equal(product.prev_entry_hash, null);
+    assert.match(product.entry_hash, /^[a-f0-9]{64}$/);
+    assert.match(transition.entry_hash, /^[a-f0-9]{64}$/);
+    assert.match(receipt.entry_hash, /^[a-f0-9]{64}$/);
+
+    const result = await buildFactoryProductRegistryStore(options({ ledgerDir }));
+    assert.equal(result.validation.valid, true);
+    assert.equal(result.summary.ledger_total_entry_count, 3);
+  });
+});
+
+test("Factory Seed Migration writes 9 product records and one migration receipt", async () => {
+  const seedDir = await mkdtemp(path.join(os.tmpdir(), "factory-seed-migration-"));
+  try {
+    const result = await writeFactorySeedMigration(seedOptions(seedDir));
+    assert.equal(result.validation.valid, true);
+    assert.equal(result.summary.seed_migration_status, "ready_factory_seed_migration");
+    assert.equal(result.summary.migrated_product_record_count, 9);
+    assert.equal(result.summary.migration_receipt_count, 1);
+    assert.equal(result.files.products.entries.every((row) => row.receipt_id === "rcpt-fa4-seed-migration"), true);
+    assert.equal(result.files.receipts_index.entries[0].receipt_kind, "migration");
+
+    const productLedger = await readFactoryLedgerFile("products", { ledgerDir: seedDir });
+    assert.equal(productLedger.validation.valid, true);
+    assert.equal(productLedger.entries.length, 9);
+    for (let index = 1; index < productLedger.entries.length; index += 1) {
+      assert.equal(productLedger.entries[index].prev_entry_hash, productLedger.entries[index - 1].entry_hash);
+    }
+  } finally {
+    await rm(seedDir, { recursive: true, force: true });
+  }
+});
+
+test("Factory Seed Migration detects tampered tracked seed rows", async () => {
+  const seedDir = await mkdtemp(path.join(os.tmpdir(), "factory-seed-migration-"));
+  try {
+    await writeFactorySeedMigration(seedOptions(seedDir));
+    const productsPath = path.join(seedDir, "products.jsonl");
+    const rows = (await readFile(productsPath, "utf8")).trim().split("\n").map((line) => JSON.parse(line));
+    rows[0].display_name = "Tampered Product";
+    await writeFile(productsPath, `${rows.map((row) => JSON.stringify(row)).join("\n")}\n`, "utf8");
+
+    const result = await verifyFactorySeedMigration(seedOptions(seedDir));
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.validation.errors.some((error) => String(error.item_id).includes("payload_sha256")), true);
+  } finally {
+    await rm(seedDir, { recursive: true, force: true });
+  }
+});
+
+test("Factory Seed Migration rejects writes in --check mode", async () => {
+  const seedDir = await mkdtemp(path.join(os.tmpdir(), "factory-seed-migration-"));
+  try {
+    await assert.rejects(
+      () => writeFactorySeedMigration({
+        ...seedOptions(seedDir),
+        check: true,
+        write: false,
+      }),
+      /no-write mode/,
+    );
+    const result = await verifyFactorySeedMigration(seedOptions(seedDir));
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.migrated_product_record_count, 0);
+  } finally {
+    await rm(seedDir, { recursive: true, force: true });
+  }
+});
+
+test("Factory Product Registry Store rejects schema-invalid appends", async () => {
+  await withTempLedger(async (ledgerDir) => {
+    await assert.rejects(
+      () => appendFactoryLedgerEntry("products", {
+        schema_version: "product-record.v1",
+        tenant_id: "tenant.local",
+        workspace_id: "workspace.factory",
+        domain_pack_ids: ["pack.personal_dev"],
+        product_state: "PS0_seed",
+        receipt_id: "rcpt-invalid-product",
+        created_at: RUN_AT,
+        updated_at: RUN_AT,
+        authority_flags: AUTHORITY_CLOSED,
+      }, ledgerOptions(ledgerDir)),
+      /schema validation/,
+    );
+  });
+});
+
+test("Factory Product Registry Store rejects payload hash mismatch appends", async () => {
+  await withTempLedger(async (ledgerDir) => {
+    const draft = {
+      ...productDraft("product.hash_mismatch", "hash-mismatch"),
+      payload_sha256: "0".repeat(64),
+    };
+
+    assert.notEqual(draft.payload_sha256, computeFactoryPayloadHash(draft));
+    await assert.rejects(
+      () => appendFactoryLedgerEntry("products", draft, ledgerOptions(ledgerDir)),
+      /payload_sha256/,
+    );
+  });
+});
+
+test("Factory Product Registry Store rejects append after existing row rewrite", async () => {
+  await withTempLedger(async (ledgerDir) => {
+    const opts = ledgerOptions(ledgerDir);
+    await appendFactoryLedgerEntry("products", productDraft("product.rewrite_a", "rewrite-a"), opts);
+    await appendFactoryLedgerEntry("products", productDraft("product.rewrite_b", "rewrite-b"), opts);
+
+    const filePath = path.join(ledgerDir, "products.jsonl");
+    const rows = (await readFile(filePath, "utf8")).trim().split("\n").map((line) => JSON.parse(line));
+    rows[0].product_state = "PS1_schema_valid";
+    await writeFile(filePath, `${rows.map((row) => JSON.stringify(row)).join("\n")}\n`, "utf8");
+
+    const ledger = await readFactoryLedgerFile("products", opts);
+    assert.equal(ledger.validation.valid, false);
+    await assert.rejects(
+      () => appendFactoryLedgerEntry("products", productDraft("product.rewrite_c", "rewrite-c"), opts),
+      /invalid products ledger/,
+    );
+  });
+});
+
+test("Factory Product Registry Store recovers a damaged ledger to the last valid prefix", async () => {
+  await withTempLedger(async (ledgerDir) => {
+    const opts = ledgerOptions(ledgerDir);
+    await appendFactoryLedgerEntry("products", productDraft("product.recover_a", "recover-a"), opts);
+    await appendFactoryLedgerEntry("products", productDraft("product.recover_b", "recover-b"), opts);
+
+    const filePath = path.join(ledgerDir, "products.jsonl");
+    const rows = (await readFile(filePath, "utf8")).trim().split("\n").map((line) => JSON.parse(line));
+    rows[1].updated_at = "2026-06-11T00:01:00.000Z";
+    await writeFile(filePath, `${rows.map((row) => JSON.stringify(row)).join("\n")}\n`, "utf8");
+
+    const damaged = await readFactoryLedgerFile("products", opts);
+    assert.equal(damaged.validation.valid, false);
+    assert.equal(damaged.valid_prefix_line_count, 1);
+
+    const recovery = await recoverFactoryLedgerFile("products", opts);
+    assert.equal(recovery.recovered, true);
+    assert.equal(recovery.removed_line_count, 1);
+
+    const recovered = await readFactoryLedgerFile("products", opts);
+    assert.equal(recovered.validation.valid, true);
+    assert.equal(recovered.entries.length, 1);
+
+    const appended = await appendFactoryLedgerEntry("products", productDraft("product.recover_c", "recover-c"), opts);
+    assert.equal(appended.prev_entry_hash, recovered.entries[0].entry_hash);
+  });
+});
+
+test("Factory Product Registry Store serializes concurrent appends", async () => {
+  await withTempLedger(async (ledgerDir) => {
+    const opts = ledgerOptions(ledgerDir);
+    await Promise.all(Array.from({ length: 5 }, (_, index) => (
+      appendFactoryLedgerEntry("products", productDraft(`product.concurrent_${index}`, `concurrent-${index}`), opts)
+    )));
+
+    const ledger = await readFactoryLedgerFile("products", opts);
+    assert.equal(ledger.validation.valid, true);
+    assert.equal(ledger.entries.length, 5);
+    for (let index = 1; index < ledger.entries.length; index += 1) {
+      assert.equal(ledger.entries[index].prev_entry_hash, ledger.entries[index - 1].entry_hash);
+    }
+  });
+});
+
+test("Factory Product Registry Store requires product-scoped reads and rejects cross-scope reads", async () => {
+  await withTempLedger(async (ledgerDir) => {
+    const opts = ledgerOptions(ledgerDir);
+    await appendFactoryLedgerEntry("products", productDraft("product.scope_a", "scope-a"), opts);
+    await appendFactoryLedgerEntry("products", productDraft("product.scope_b", "scope-b"), opts);
+    await appendFactoryLedgerEntry("state_transitions", transitionDraft("product.scope_a", "scope-a"), opts);
+    await appendFactoryLedgerEntry("receipts_index", receiptDraft("product.scope_a", "scope-a"), opts);
+
+    const scoped = await readFactoryProductScope({ ...opts, productId: "product.scope_a" });
+    assert.deepEqual(scoped.products.map((row) => row.product_id), ["product.scope_a"]);
+    assert.deepEqual(scoped.state_transitions.map((row) => row.product_id), ["product.scope_a"]);
+    assert.deepEqual(scoped.receipts.map((row) => row.subject.product_id), ["product.scope_a"]);
+
+    await assert.rejects(
+      () => readFactoryProductScope({ ...opts, productId: "product.scope_b", scopeProductId: "product.scope_a" }),
+      /outside/,
+    );
+    await assert.rejects(
+      () => readFactoryProductScope({ ...opts }),
+      /requires product_id/,
+    );
+  });
+});
+
+test("Factory Product Registry Store applies receipt-driven PS0 to PS2 transitions", async () => {
+  await withTempLedger(async (ledgerDir) => {
+    const opts = ledgerOptions(ledgerDir);
+    await appendFactoryLedgerEntry("products", productDraft("product.fa3_success", "fa3-success"), opts);
+
+    const ps1TransitionId = "transition.fa3_success.ps0_ps1";
+    const ps1Receipt = transitionReceiptDraft({
+      productId: "product.fa3_success",
+      fromState: "PS0_seed",
+      toState: "PS1_schema_valid",
+      receiptId: "rcpt-fa3-success-ps1",
+      transitionId: ps1TransitionId,
+    });
+    const ps1 = await applyFactoryReceiptDrivenTransition({
+      ...opts,
+      productId: "product.fa3_success",
+      fromState: "PS0_seed",
+      toState: "PS1_schema_valid",
+      transitionId: ps1TransitionId,
+      receipt: ps1Receipt,
+      createdAt: RUN_AT,
+    });
+    assert.equal(ps1.stored_transition.to_state, "PS1_schema_valid");
+
+    const ps2TransitionId = "transition.fa3_success.ps1_ps2";
+    const ps2Receipt = transitionReceiptDraft({
+      productId: "product.fa3_success",
+      fromState: "PS1_schema_valid",
+      toState: "PS2_receipt_bound",
+      receiptId: "rcpt-fa3-success-ps2",
+      transitionId: ps2TransitionId,
+    });
+    const ps2 = await applyFactoryReceiptDrivenTransition({
+      ...opts,
+      productId: "product.fa3_success",
+      fromState: "PS1_schema_valid",
+      toState: "PS2_receipt_bound",
+      transitionId: ps2TransitionId,
+      receipt: ps2Receipt,
+      createdAt: RUN_AT,
+    });
+    assert.equal(ps2.stored_transition.to_state, "PS2_receipt_bound");
+
+    const scoped = await readFactoryProductScope({ ...opts, productId: "product.fa3_success" });
+    assert.deepEqual(scoped.state_transitions.map((row) => row.to_state), ["PS1_schema_valid", "PS2_receipt_bound"]);
+    assert.deepEqual(scoped.receipts.map((row) => row.receipt_id), ["rcpt-fa3-success-ps1", "rcpt-fa3-success-ps2"]);
+  });
+});
+
+test("Factory Product Registry Store rejects forged transition receipts", async () => {
+  await withTempLedger(async (ledgerDir) => {
+    const opts = ledgerOptions(ledgerDir);
+    await appendFactoryLedgerEntry("products", productDraft("product.fa3_forged", "fa3-forged"), opts);
+    const receipt = transitionReceiptDraft({
+      productId: "product.fa3_forged",
+      fromState: "PS0_seed",
+      toState: "PS1_schema_valid",
+      receiptId: "rcpt-fa3-forged",
+      transitionId: "transition.fa3_forged.ps0_ps1",
+    });
+    receipt.subject.bound_transition_payload_sha256 = "0".repeat(64);
+
+    await assert.rejects(
+      () => applyFactoryReceiptDrivenTransition({
+        ...opts,
+        productId: "product.fa3_forged",
+        fromState: "PS0_seed",
+        toState: "PS1_schema_valid",
+        transitionId: "transition.fa3_forged.ps0_ps1",
+        receipt,
+        createdAt: RUN_AT,
+      }),
+      /bound_transition_payload_sha256/,
+    );
+  });
+});
+
+test("Factory Product Registry Store rejects receipt replay", async () => {
+  await withTempLedger(async (ledgerDir) => {
+    const opts = ledgerOptions(ledgerDir);
+    await appendFactoryLedgerEntry("products", productDraft("product.fa3_replay", "fa3-replay"), opts);
+    const receipt = transitionReceiptDraft({
+      productId: "product.fa3_replay",
+      fromState: "PS0_seed",
+      toState: "PS1_schema_valid",
+      receiptId: "rcpt-fa3-replay",
+      transitionId: "transition.fa3_replay.ps0_ps1",
+    });
+    await applyFactoryReceiptDrivenTransition({
+      ...opts,
+      productId: "product.fa3_replay",
+      fromState: "PS0_seed",
+      toState: "PS1_schema_valid",
+      transitionId: "transition.fa3_replay.ps0_ps1",
+      receipt,
+      createdAt: RUN_AT,
+    });
+
+    await assert.rejects(
+      () => applyFactoryReceiptDrivenTransition({
+        ...opts,
+        productId: "product.fa3_replay",
+        fromState: "PS0_seed",
+        toState: "PS1_schema_valid",
+        transitionId: "transition.fa3_replay.ps0_ps1",
+        receipt,
+        createdAt: RUN_AT,
+      }),
+      /already used|current state/,
+    );
+  });
+});
+
+test("Factory Product Registry Store rejects PS3 transitions", async () => {
+  await withTempLedger(async (ledgerDir) => {
+    const opts = ledgerOptions(ledgerDir);
+    await appendFactoryLedgerEntry("products", productDraft("product.fa3_ps3", "fa3-ps3"), opts);
+    const receipt = transitionReceiptDraft({
+      productId: "product.fa3_ps3",
+      fromState: "PS2_receipt_bound",
+      toState: "PS3_candidate_ready",
+      receiptId: "rcpt-fa3-ps3",
+      transitionId: "transition.fa3_ps3.ps2_ps3",
+    });
+
+    await assert.rejects(
+      () => applyFactoryReceiptDrivenTransition({
+        ...opts,
+        productId: "product.fa3_ps3",
+        fromState: "PS2_receipt_bound",
+        toState: "PS3_candidate_ready",
+        transitionId: "transition.fa3_ps3.ps2_ps3",
+        receipt,
+        createdAt: RUN_AT,
+      }),
+      /not enabled/,
+    );
+  });
+});
+
+test("Factory Product Registry Store blocks ledger writes in --check mode", async () => {
+  await withTempLedger(async (ledgerDir) => {
+    await assert.rejects(
+      () => appendFactoryLedgerEntry("products", productDraft("product.check_mode", "check-mode"), {
+        ...ledgerOptions(ledgerDir),
+        check: true,
+        write: false,
+      }),
+      /no-write mode/,
+    );
+    const ledger = await readFactoryLedgerFile("products", ledgerOptions(ledgerDir));
+    assert.equal(ledger.entries.length, 0);
+  });
+});
+
+test("Factory Product Registry Store blocks when local ledger root is not gitignored", async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), "factory-product-registry-store-"));
+  const gitignorePath = path.join(tempDir, ".gitignore");
+  await writeFile(gitignorePath, "artifacts/\n", "utf8");
+
+  try {
+    const result = await buildFactoryProductRegistryStore(options({ gitignorePath }));
+    assert.equal(result.validation.valid, false);
+    assert.equal(result.summary.append_jsonl_store_ready, false);
+    assert.equal(result.validation.errors.some((error) => error.item_id === "gitignore.local_ledger"), true);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("Factory Product Registry Store --check does not overwrite artifacts", async () => {
+  const outDir = await mkdtemp(path.join(os.tmpdir(), "factory-product-registry-store-"));
+  const sentinelPath = path.join(outDir, "factory-product-registry-store.json");
+  const sentinel = "{ \"sentinel\": \"factory-product-registry-store\" }\n";
+  await writeFile(sentinelPath, sentinel, "utf8");
+
+  try {
+    const result = await runFactoryProductRegistryStore(options({ outDir, check: true, write: false }));
+    assert.equal(result.validation.valid, true);
+    assert.equal(await readFile(sentinelPath, "utf8"), sentinel);
+  } finally {
+    await rm(outDir, { recursive: true, force: true });
+  }
+});
+
+test("Factory Product Registry Store --require-pass rejects missing documentation", async () => {
+  await assert.rejects(
+    () => runFactoryProductRegistryStore(options({
+      requirePass: true,
+      stateStoreDocPath: "docs/missing-factory-state-store.md",
+    })),
+    /seed migration is not ready/,
+  );
+});

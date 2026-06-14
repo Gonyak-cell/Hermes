@@ -1,0 +1,323 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/claude-review-integration-lane.schema.json",
+  "title": "Hermes Claude Review Integration Lane",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "claude_review_integration_contract",
+    "claude_review_integration_phase_rows",
+    "p10000_source_binding_rows",
+    "review_request_packet_rows",
+    "model_effort_evidence_rows",
+    "review_receipt_intake_rows",
+    "finding_normalization_rows",
+    "unresolved_finding_blocker_rows",
+    "review_revalidation_binding_rows",
+    "review_api_route_rows",
+    "review_api_smoke_rows",
+    "review_browser_smoke_rows",
+    "review_negative_fixture_rows",
+    "p10200_freeze_rows",
+    "review_gate_rows",
+    "review_authority_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "claude-review-integration-lane.v1" },
+    "capability_id": { "const": "platform.claude_review_integration_lane" },
+    "program_range": { "const": "P10001-P10200" },
+    "source_program_range": { "const": "P9801-P10000" },
+    "claude_review_integration_contract": {
+      "type": "object",
+      "required": [
+        "source_product_build_verification_required",
+        "source_review_receipt_required",
+        "review_request_packet_required",
+        "model_effort_evidence_required",
+        "receipt_intake_required",
+        "finding_normalization_required",
+        "unresolved_finding_blocker_required",
+        "revalidation_binding_required",
+        "api_projection_read_only",
+        "reviewer_mutation_allowed",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "human_gate_substituted_by_claude",
+        "production_pass_enabled",
+        "enterprise_pass_enabled"
+      ],
+      "properties": {
+        "source_product_build_verification_required": { "const": true },
+        "source_review_receipt_required": { "const": true },
+        "review_request_packet_required": { "const": true },
+        "model_effort_evidence_required": { "const": true },
+        "receipt_intake_required": { "const": true },
+        "finding_normalization_required": { "const": true },
+        "unresolved_finding_blocker_required": { "const": true },
+        "revalidation_binding_required": { "const": true },
+        "api_projection_read_only": { "const": true },
+        "reviewer_mutation_allowed": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "human_gate_substituted_by_claude": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    },
+    "claude_review_integration_phase_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "p10000_source_binding_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "review_request_packet_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "review_request_id",
+          "review_packet_ref",
+          "prompt_ref",
+          "reviewed_artifact_ref",
+          "requested_model_policy",
+          "requested_effort",
+          "reviewer_write_tools_allowed",
+          "reviewer_mutation_allowed",
+          "current_verdict"
+        ],
+        "properties": {
+          "requested_effort": { "const": "max" },
+          "reviewer_write_tools_allowed": { "const": false },
+          "reviewer_mutation_allowed": { "const": false },
+          "current_verdict": { "enum": ["pass", "block"] }
+        }
+      }
+    },
+    "model_effort_evidence_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [
+          "reviewer_model_requested",
+          "review_effort_requested",
+          "reviewer_mutation_allowed",
+          "claude_final_approval_allowed",
+          "current_verdict"
+        ],
+        "properties": {
+          "reviewer_mutation_allowed": { "const": false },
+          "claude_final_approval_allowed": { "const": false },
+          "current_verdict": { "enum": ["pass", "block"] }
+        }
+      }
+    },
+    "review_receipt_intake_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [
+          "review_status",
+          "finding_count",
+          "blocking_finding_count",
+          "unresolved_finding_count",
+          "reviewer_mutation_allowed",
+          "claude_final_approval_allowed",
+          "current_verdict"
+        ],
+        "properties": {
+          "current_verdict": { "enum": ["pass", "block"] }
+        }
+      }
+    },
+    "finding_normalization_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "finding_id",
+          "severity",
+          "blocking",
+          "unresolved",
+          "normalized",
+          "revalidation_required",
+          "current_verdict"
+        ],
+        "properties": {
+          "blocking": { "type": "boolean" },
+          "unresolved": { "type": "boolean" },
+          "normalized": { "const": true },
+          "current_verdict": { "enum": ["pass", "block"] }
+        }
+      }
+    },
+    "unresolved_finding_blocker_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "review_revalidation_binding_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "finding_id",
+          "revalidation_required",
+          "current_verdict"
+        ],
+        "properties": {
+          "revalidation_required": { "type": "boolean" },
+          "current_verdict": { "enum": ["pass", "block"] }
+        }
+      }
+    },
+    "review_api_route_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "review_api_smoke_rows": {
+      "type": "array",
+      "minItems": 9,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "review_browser_smoke_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "review_negative_fixture_rows": {
+      "type": "array",
+      "minItems": 11,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "p10200_freeze_rows": {
+      "type": "array",
+      "minItems": 12,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "review_gate_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "review_authority_boundary": {
+      "type": "object",
+      "required": [
+        "source_p10000_ready",
+        "source_review_receipt_completed_now",
+        "p10200_claude_review_required_now",
+        "p10200_claude_review_completed_now",
+        "unresolved_findings_block_closeout",
+        "reviewer_mutation_allowed",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "claude_replaces_independent_github_approval",
+        "claude_replaces_human_owner_adjudication",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "p10200_freeze_ready",
+        "ready_for_p10201_handoff"
+      ],
+      "properties": {
+        "p10200_claude_review_required_now": { "const": true },
+        "unresolved_findings_block_closeout": { "const": true },
+        "reviewer_mutation_allowed": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "claude_replaces_independent_github_approval": { "const": false },
+        "claude_replaces_human_owner_adjudication": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validationItem" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "claude_review_integration_status",
+        "source_p10000_ready",
+        "source_review_receipt_completed_now",
+        "p10200_claude_review_required_now",
+        "p10200_claude_review_completed_now",
+        "p10200_freeze_ready",
+        "ready_for_p10201_handoff",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "validation_error_count"
+      ],
+      "properties": {
+        "claude_review_integration_status": {
+          "enum": [
+            "ready_for_claude_review_integration_lane",
+            "ready_for_required_claude_review",
+            "blocked_claude_review_integration_lane"
+          ]
+        },
+        "p10200_claude_review_required_now": { "const": true },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "verdictRow": {
+      "type": "object",
+      "required": [
+        "row_id",
+        "category",
+        "label",
+        "required",
+        "observed",
+        "current_verdict",
+        "evidence_ref"
+      ],
+      "properties": {
+        "schema_version": { "const": "hermes-verdict-row.v1" },
+        "current_verdict": { "enum": ["pass", "block"] }
+      }
+    },
+    "validationItem": {
+      "type": "object",
+      "required": ["validation_id", "category", "pass", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "category": { "type": "string" },
+        "pass": { "type": "boolean" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

@@ -122,6 +122,8 @@ Use the law-firm matter-ops skill and generate a daily brief from examples/proje
 
 ## 다음에 읽을 문서
 
+- 장기 Enterprise SaaS 사양명세서: `docs/hermes-enterprise-saas-specification.md`
+- 장기개발 피라미드 계층 구조: `docs/hermes-saas-development-pyramid.md`
 - 전체 입문 매뉴얼: `docs/USER_MANUAL.ko.md`
 - 개인 개발 하네스: `docs/personal-dev-harness.md`
 - 플랫폼 아키텍처: `docs/architecture.md`

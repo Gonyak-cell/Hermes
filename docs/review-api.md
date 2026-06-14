@@ -1,5 +1,275 @@
 # Review API
 
+## FA.6 Factory Product Routes
+
+Factory Product routes expose the read-only SaaS Factory product registry rows
+from the factory state store. The route reads `data/factory/local/products.jsonl`
+first, then `data/factory/seed/products.jsonl`; it does not silently promote the
+legacy fallback projection to factory-store truth.
+
+Supported filters include `product_id`, `product_state`, `receipt_id`,
+`source_tier`, `seed_record_kind`, and `limit`.
+
+Routes: `/api/factory/products`.
+
+`GET` and `HEAD` are allowed. Mutation methods are blocked by the Review API
+read-only guard and the route-local method guard. `POST`, `PUT`, `PATCH`, and
+`DELETE` return `405 method_not_allowed`.
+
+## FB.2 Factory Stage Routes
+
+Factory Stage routes expose the read-only product PS state read model. The
+route derives current state from the factory product store and local
+state-transition ledger without enabling PS3 transitions, candidate writes, or
+apply behavior. The response is explicitly read-only with
+`mutation_allowed: false` and `raw_confidential_material_visible: false`.
+
+FB.2 extends the rows with read-only control-view fields:
+
+- `stage_progress`
+- `gate_status`
+- `blocker_ids` and `blocker_count`
+- `next_operator_actions`
+- `freshness_status`, `source_age_days`, and `stale_badge_required`
+- `candidate_manifest_preview_status`
+- `candidate_manifest_queue_depth` and `workbench_queue_depth`
+
+The candidate manifest preview remains unavailable until FB.3, and queue depths
+remain `0`. Stale rows display a stale badge and block new adjudication until
+the product source is refreshed.
+
+Supported filters include `product_id`, `current_product_state`,
+`base_product_state`, `product_source_tier`, `gate_status`,
+`freshness_status`, `stale_badge_required`,
+`candidate_manifest_preview_status`, and `limit`.
+
+Routes: `/api/factory/stage`.
+
+`GET` and `HEAD` are allowed. Mutation methods return `405
+method_not_allowed`.
+
+## FB.3-FB.4 Factory Candidate Manifest Routes
+
+Factory Candidate Manifest routes expose the read-only instantiation resolver.
+The route returns one resolver row per product and nests generated
+`factory-candidate-manifest.v1` JSON previews for rows that are fresh, already
+at `PS2_receipt_bound`, and backed by materialized starter artifact refs.
+
+The route is JSON-only. It does not append ledgers, advance products to PS3,
+apply candidates, create projects, write repositories, call connectors, deploy,
+or grant production/enterprise trust.
+
+Default tracked seed state returns 9 blocked resolver rows and 0 candidate
+manifests because seed products are still `PS0_seed`.
+
+Supported filters include `product_id`, `current_product_state`,
+`stage_gate_status`, `freshness_status`, `resolver_status`,
+`candidate_manifest_id`, `candidate_manifest_status`,
+`candidate_manifest_kind`, `candidate_manifest_json_available`, and `limit`.
+
+Routes: `/api/factory/candidate-manifests`.
+
+`visible_candidate_manifest_count` counts candidate manifests visible after
+request filters. `candidate_manifest_count` remains the full resolver manifest
+total before filters.
+
+`GET` and `HEAD` are allowed. Mutation methods return `405
+method_not_allowed`.
+
+## FB.4 Factory Starter Artifact Routes
+
+Factory Starter Artifact routes expose the read-only starter corpus required by
+candidate manifest instantiation. The route returns one row per required starter
+artifact with materialization status, content type, byte count, and SHA-256 hash.
+
+Supported filters include `domain_pack_id`, `artifact_path`, `artifact_role`,
+`artifact_kind`, `content_type`, `exists_now`, `materialized_status`, and
+`limit`.
+
+Routes: `/api/factory/starter-artifacts`.
+
+`GET` and `HEAD` are allowed. Mutation methods return `405
+method_not_allowed`.
+
+## FB.5 Factory Workbench Routes
+
+Factory Workbench routes expose the integrated read-only operator view for the
+Factory Promotion FB tranche. The route composes product PS state, gate status,
+freshness, blockers, next actions, candidate manifest preview status, candidate
+manifest hashes, and starter artifact materialization counts into one row per
+product.
+
+Allowed affordances are view-only, for example `view_stage_status`,
+`view_blockers`, `view_next_operator_actions`, and, when eligible,
+`view_candidate_manifest_json`. Forbidden affordances include project creation,
+ledger append, PS3 advancement, candidate manifest writes, apply, merge,
+connector calls, deploy, production PASS, and enterprise PASS.
+
+Supported filters include `product_id`, `current_product_state`,
+`stage_gate_status`, `freshness_status`, `resolver_status`,
+`workbench_view_status`, `workbench_queue_status`,
+`candidate_manifest_json_available`, `starter_artifact_corpus_status`, and
+`limit`.
+
+Routes: `/api/factory/workbench`.
+
+`GET` and `HEAD` are allowed. Mutation methods return `405
+method_not_allowed`.
+
+## FC.1 Factory Candidate Lane Routes
+
+Factory Candidate Lane routes expose read-only review packets generated from
+visible workbench candidate manifests. The route returns candidate packet rows
+as the primary collection and includes the visible packet rows' diff packets,
+rollback plans, preflight rows, and hash ledger rows.
+
+FC.1 generates unified diff packet content and rollback/preflight metadata, but
+does not create worktrees, write repositories, append ledgers, apply patches,
+call connectors, deploy, or grant production/enterprise trust.
+
+Supported filters include `candidate_packet_id`, `candidate_packet_status`,
+`product_id`, `candidate_manifest_id`, `worktree_lane_status`,
+`diff_packet_status`, `rollback_plan_status`, `preflight_status`, and `limit`.
+
+Routes: `/api/factory/candidate-lane`.
+
+`GET` and `HEAD` are allowed. Mutation methods return `405
+method_not_allowed`.
+
+## FC.4 Factory Candidate Review Docket Routes
+
+Factory Candidate Review Docket routes expose the FC.3 candidate review docket
+as a read-only review surface. The route returns review docket rows as the
+primary collection and includes the visible docket rows' review packets, review
+hash-register rows, and negative fixture rows.
+
+The route is for review only. It does not decide review outcomes, approve
+candidates, apply patches, create worktrees, write source files, append
+persistent ledgers, write repositories, call connectors, deploy, or grant
+production/enterprise trust.
+
+Supported filters include `review_docket_id`, `review_status`,
+`candidate_packet_id`, `product_id`, `candidate_manifest_id`,
+`preflight_status`, `next_allowed_action`, and `limit`.
+
+Routes: `/api/factory/candidate-review-docket`.
+
+`GET` and `HEAD` are allowed. Mutation methods return `405
+method_not_allowed`. If the underlying candidate review docket fails validation,
+the route returns `503 factory_candidate_review_docket_unavailable`.
+
+Hash-register rows in a filtered response are a visibility subset for the
+returned candidate packets. Full chain verification uses the unfiltered route
+response or the canonical FC.3 docket artifact. Unexpected build exceptions are
+fail-closed and follow the same process-level handling pattern as the sibling
+factory routes; blocked validation results return the documented `503` envelope.
+
+## G0 Factory Gate Opening Readiness Routes
+
+Factory Gate Opening Readiness routes expose the read-only G-series gate matrix.
+The route returns one row each for G1a, G1b, G2, and G3, plus prerequisite,
+deferred-gate, negative-fixture, boundary, and summary data.
+
+The route is for readiness and audit only. It does not create projects, write
+repositories, execute commands, deploy, call connectors, approve protected
+actions, grant production PASS, grant enterprise PASS, or mark Factory
+Promotion complete.
+
+Supported filters include `gate_id`, `gate_name`, `authority_flag`,
+`ps_transition`, `prerequisite_status`, `previous_gate_status`, `gate_status`,
+`gate_open_now`, `owner_gate_opening_receipt_present`,
+`source_literal_gate_open_commit_present`, and `limit`.
+
+Routes: `/api/factory/gate-opening-readiness`.
+
+`GET /api/factory/g1a-opening-packet` returns the packet-only G1a opening
+preparation surface: owner receipt template, source-literal opening commit
+plan, Law Firm OS-style independent review packet, first-use audit checklist,
+negative fixtures, boundary, and summary data.
+
+Supported filters include `packet_item_id`, `item_kind`, `item_status`,
+`gate_id`, `authority_flag`, and `limit`.
+
+Routes: `/api/factory/g1a-opening-packet`.
+
+`GET /api/factory/g1a-owner-receipt-intake` returns the read-only owner
+`gate_opening` receipt intake rows for G1a. The default current state is
+`waiting_for_signed_g1a_owner_receipt`; the route does not sign receipts, open
+G1a, or allow project creation.
+
+Supported filters include `row_id`, `category`, `current_verdict`, and `limit`.
+
+Routes: `/api/factory/g1a-owner-receipt-intake`.
+
+`GET /api/factory/g1a-source-literal-preflight` returns the read-only source
+literal opening preflight rows for G1a. The route exposes a preview-only future
+change shape and never edits source, binds a receipt, claims first-use audit, or
+opens project creation.
+
+Supported filters include `row_id`, `category`, `current_verdict`, and `limit`.
+
+Routes: `/api/factory/g1a-source-literal-preflight`.
+
+`GET /api/factory/g1a-source-literal-commit-draft` returns the read-only G1a
+source-literal commit draft rows plus patch metadata, verification command
+previews, and the Law Firm OS-style Opus review packet. The default state is
+`waiting_for_signed_g1a_owner_receipt`; with a valid signed owner receipt the
+draft can expose `source-literal-opening.patch`, but the route never applies the
+patch, edits source, signs receipts, claims first-use audit, opens G1a, or grants
+project creation authority.
+
+Supported filters include `row_id`, `category`, `current_verdict`, and `limit`.
+
+Routes: `/api/factory/g1a-source-literal-commit-draft`.
+
+`GET /api/factory/g1a-opening-closeout-readiness` returns the read-only G1a
+gate-opening closeout chain rows plus blocker rows. The default state is
+`waiting_for_signed_g1a_owner_receipt`; the route does not sign receipts, edit
+source, open G1a, claim first-use audit, or grant project creation authority.
+
+Supported filters include `row_id`, `category`, `current_verdict`, and `limit`.
+
+Routes: `/api/factory/g1a-opening-closeout-readiness`.
+
+`GET /api/factory/g1a-first-use-audit-readiness` returns the read-only G1a
+first-use audit readiness rows plus blocker rows and a preview-only
+`SOURCE_LITERAL_FIRST_USE_AUDITS` source binding. The default state is
+`waiting_for_g1a_opening_source_literal_commit`; the route does not perform
+first use, edit source, bind an audit, open G1a, or grant project creation
+authority.
+
+Supported filters include `row_id`, `category`, `current_verdict`, and `limit`.
+
+Routes: `/api/factory/g1a-first-use-audit-readiness`.
+
+`GET /api/factory/g1a-owner-signing-handoff` returns the read-only owner signing
+handoff rows plus the signable unsigned owner receipt draft, owner completion
+checklist, work order, and Law Firm OS-style Opus review packet. The default
+state is `ready_g1a_owner_signature_handoff`; the route does not sign receipts,
+edit source, open G1a, or grant project creation authority.
+
+Supported filters include `row_id`, `category`, `current_verdict`, and `limit`.
+
+Routes: `/api/factory/g1a-owner-signing-handoff`.
+
+`GET /api/factory/g1a-owner-candidate-selection-docket` returns the read-only
+owner candidate selection docket rows plus prebind command previews, selection
+policy, source-chain rows, owner signing handoff preview, and Law Firm OS-style
+Opus review packet. The default state is
+`ready_g1a_owner_candidate_selection_docket` with
+`owner_selection_required_now: true`; the route lists eligible candidate hashes
+but does not choose a candidate, sign receipts, edit source, open G1a, or grant
+project creation authority.
+
+Supported filters include `selection_row_id`, `review_docket_id`, `product_id`,
+`candidate_packet_id`, `candidate_manifest_id`, `eligibility_status`,
+`selected_now`, `selection_source`, and `limit`.
+
+Routes: `/api/factory/g1a-owner-candidate-selection-docket`.
+
+`GET` and `HEAD` are allowed. Mutation methods return `405
+method_not_allowed`.
+
 ## P511-P515 Platform Claim Registry Routes
 
 Platform Claim Registry routes expose the read-only P500 operations freeze claim

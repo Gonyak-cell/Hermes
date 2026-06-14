@@ -21,10 +21,10 @@ jobs:
       HERMES_ZENDD_PROJECT_ROOT: ${{ github.workspace }}/.ci/zendd-fixture
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "22"
           cache: npm
@@ -171,22 +171,29 @@ jobs:
       - name: Generate verification artifact
         run: |
           npm run platform:verification-trust-activation
+          npm run platform:live-external-verification-evidence
           npm run platform:external-verification-enforcement
           mkdir -p dist
-          tar -czf dist/hermes-verification-trust-artifacts.tgz artifacts/platform-verification-trust-activation/latest artifacts/platform-external-verification-enforcement/latest
+          tar -czf dist/hermes-verification-trust-artifacts.tgz \
+            artifacts/platform-verification-trust-activation/latest \
+            artifacts/platform-external-verification-enforcement/latest \
+            artifacts/platform-external-verification-enforcement/live-evidence/latest \
+            artifacts/platform-external-verification-enforcement/github \
+            artifacts/platform-external-verification-enforcement/attestation \
+            artifacts/platform-external-verification-enforcement/review
 
       - name: Upload verification artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: hermes-verification-trust-artifacts
           path: dist/hermes-verification-trust-artifacts.tgz
 
       - name: Generate artifact attestation
-        if: ${{ github.event.repository.private == false }}
+        if: ${{ github.event.repository.visibility != 'private' }}
         uses: actions/attest@v4
         with:
           subject-path: dist/hermes-verification-trust-artifacts.tgz
 
       - name: Record artifact attestation unavailable
-        if: ${{ github.event.repository.private == true }}
-        run: echo "GitHub artifact attestations are unavailable for user-owned private repositories; attestation evidence remains BLOCK."
+        if: ${{ github.event.repository.visibility == 'private' }}
+        run: echo "GitHub artifact attestations for private/internal repositories require GitHub Enterprise Cloud; attestation evidence remains BLOCK."

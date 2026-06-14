@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { execFile } from "node:child_process";
+import { existsSync, readdirSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -9,7 +10,7 @@ const execFileAsync = promisify(execFile);
 
 export const DEFAULT_ZENDD_INTEGRATION_SETUP_OUT_DIR = "artifacts/zendd-integration-setup/latest";
 export const DEFAULT_ZENDD_PROJECT_ROOT = process.env.HERMES_ZENDD_PROJECT_ROOT
-  ?? "/Users/jws/Library/CloudStorage/GoogleDrive-sweatqoo@gmail.com/내 드라이브/05_CODING/01_CODING/03_Zendd";
+  ?? discoverDefaultZenddProjectRoot();
 export const DEFAULT_ZENDD_INTEGRATION_SETUP_INPUTS = {
   schemaPath: "schemas/zendd-integration-setup.schema.json",
   phaseLedgerPath: "docs/zendd-hermes-integration-phase-ledger.md",
@@ -24,6 +25,25 @@ const PHASE_RANGE = "P521-P525";
 const PHASE_SLOT = "P521";
 const PREVIOUS_PHASE_SLOT = "P520";
 const NEXT_PHASE_SLOT = "P526";
+
+function discoverDefaultZenddProjectRoot() {
+  const cloudStorageRoot = path.join(process.env.HOME ?? "", "Library", "CloudStorage");
+  const relativeZenddPath = ["내 드라이브", "05_CODING", "01_CODING", "03_Zendd"];
+  for (const entry of safeReaddir(cloudStorageRoot)) {
+    if (!entry.startsWith("GoogleDrive-")) continue;
+    const candidate = path.join(cloudStorageRoot, entry, ...relativeZenddPath);
+    if (existsSync(candidate)) return candidate;
+  }
+  return path.resolve(".local/zendd-project");
+}
+
+function safeReaddir(dirPath) {
+  try {
+    return readdirSync(dirPath);
+  } catch {
+    return [];
+  }
+}
 
 export async function runZenddIntegrationSetup(options = {}) {
   const result = await buildZenddIntegrationSetup(options);

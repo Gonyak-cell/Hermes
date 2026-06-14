@@ -1,0 +1,257 @@
+{
+  "$id": "https://hermes.local/schemas/factory-f0-review-dispatch-packet.schema.json",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "capability_id",
+    "command_name",
+    "program_range",
+    "output_dir",
+    "source_refs",
+    "factory_f0_review_dispatch_packet_contract",
+    "dispatch_packet",
+    "dispatch_rows",
+    "factory_f0_review_dispatch_packet_boundary",
+    "factory_f0_review_dispatch_packet_validation_items",
+    "validation",
+    "summary"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": { "const": "factory-f0-review-dispatch-packet.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "capability_id": { "const": "factory.f0_review_dispatch_packet" },
+    "command_name": { "const": "factory:f0-review-dispatch-packet" },
+    "program_range": { "const": "FCORE-F0.1" },
+    "output_dir": { "type": "string", "minLength": 1 },
+    "source_refs": {
+      "type": "object",
+      "required": ["review_request_doctor_path", "reviewed_commit_sha", "branch"],
+      "additionalProperties": true
+    },
+    "factory_f0_review_dispatch_packet_contract": {
+      "type": "object",
+      "required": [
+        "contract_id",
+        "clean_worktree_required",
+        "review_request_doctor_required",
+        "reviewed_commit_sha_required",
+        "dispatch_packet_is_review_evidence",
+        "dispatch_packet_is_validation_substrate",
+        "project_creation_allowed_now",
+        "repo_write_allowed_now",
+        "connector_write_allowed_now",
+        "deployment_allowed_now",
+        "protected_action_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "contract_id": { "const": "factory-f0-review-dispatch-packet.contract.v1" },
+        "clean_worktree_required": { "const": true },
+        "review_request_doctor_required": { "const": true },
+        "reviewed_commit_sha_required": { "const": true },
+        "dispatch_packet_is_review_evidence": { "const": false },
+        "dispatch_packet_is_validation_substrate": { "const": false },
+        "project_creation_allowed_now": { "const": false },
+        "repo_write_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    },
+    "dispatch_packet": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "reviewed_commit_sha",
+        "branch",
+        "worktree_clean",
+        "dispatch_ready",
+        "dispatch_status",
+        "is_review_evidence",
+        "is_validation_substrate",
+        "requests",
+        "post_receipt_commands"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "schema_version": { "const": "factory-f0-review-dispatch-packet.payload.v1" },
+        "reviewed_commit_sha": { "type": ["string", "null"] },
+        "branch": { "type": ["string", "null"] },
+        "worktree_clean": { "type": "boolean" },
+        "dispatch_ready": { "type": "boolean" },
+        "dispatch_status": { "type": "string", "enum": ["ready_f0_review_dispatch_packet", "blocked_f0_review_dispatch_packet"] },
+        "is_review_evidence": { "const": false },
+        "is_validation_substrate": { "const": false },
+        "requests": { "type": "array", "items": { "$ref": "#/$defs/dispatchRequest" } },
+        "post_receipt_commands": { "type": "array", "minItems": 4, "items": { "type": "string" } }
+      }
+    },
+    "dispatch_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/dispatchRow" }
+    },
+    "factory_f0_review_dispatch_packet_boundary": {
+      "type": "object",
+      "required": [
+        "review_request_doctor_passed",
+        "reviewed_commit_sha",
+        "branch",
+        "worktree_clean",
+        "dirty_path_count",
+        "dispatch_rows_passed",
+        "dispatch_packet_is_review_evidence",
+        "dispatch_packet_is_validation_substrate",
+        "project_creation_allowed_now",
+        "repo_write_allowed_now",
+        "connector_write_allowed_now",
+        "deployment_allowed_now",
+        "protected_action_allowed_now",
+        "command_execution_allowed_now",
+        "api_write_methods_allowed_now",
+        "store_mutation_allowed_now",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "fable_final_approval_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "review_request_doctor_passed": { "type": "boolean" },
+        "reviewed_commit_sha": { "type": ["string", "null"] },
+        "branch": { "type": ["string", "null"] },
+        "worktree_clean": { "type": "boolean" },
+        "dirty_path_count": { "type": "integer", "minimum": 0 },
+        "dispatch_rows_passed": { "type": "boolean" },
+        "dispatch_packet_is_review_evidence": { "const": false },
+        "dispatch_packet_is_validation_substrate": { "const": false },
+        "project_creation_allowed_now": { "const": false },
+        "repo_write_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "api_write_methods_allowed_now": { "const": false },
+        "store_mutation_allowed_now": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "fable_final_approval_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    },
+    "factory_f0_review_dispatch_packet_validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validationItem" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "additionalProperties": true,
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "factory_f0_review_dispatch_packet_status",
+        "program_range",
+        "f0_review_dispatch_packet_ready",
+        "review_request_doctor_passed",
+        "worktree_clean",
+        "dispatch_packet_is_review_evidence",
+        "dispatch_packet_is_validation_substrate",
+        "project_creation_allowed_now",
+        "repo_write_allowed_now",
+        "connector_write_allowed_now",
+        "deployment_allowed_now",
+        "protected_action_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "factory_f0_review_dispatch_packet_status": {
+          "type": "string",
+          "enum": ["ready_f0_review_dispatch_packet", "blocked_f0_review_dispatch_packet"]
+        },
+        "program_range": { "const": "FCORE-F0.1" },
+        "f0_review_dispatch_packet_ready": { "type": "boolean" },
+        "review_request_doctor_passed": { "type": "boolean" },
+        "worktree_clean": { "type": "boolean" },
+        "dispatch_packet_is_review_evidence": { "const": false },
+        "dispatch_packet_is_validation_substrate": { "const": false },
+        "project_creation_allowed_now": { "const": false },
+        "repo_write_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "dispatchRequest": {
+      "type": "object",
+      "required": [
+        "scope_id",
+        "prompt_path",
+        "prompt_sha256",
+        "required_receipt_path",
+        "required_validator_command",
+        "reviewed_commit_sha",
+        "intake_dry_run_command"
+      ],
+      "additionalProperties": true
+    },
+    "dispatchRow": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "row_id",
+        "category",
+        "label",
+        "observed",
+        "required",
+        "current_verdict",
+        "evidence_ref",
+        "generated_at"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "schema_version": { "const": "factory-f0-review-dispatch-row.v1" },
+        "row_id": { "type": "string", "minLength": 1 },
+        "category": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "observed": { "type": "boolean" },
+        "required": { "type": "boolean" },
+        "current_verdict": { "type": "string", "enum": ["pass", "blocked"] },
+        "evidence_ref": { "type": "string", "minLength": 1 },
+        "generated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "validationItem": {
+      "type": "object",
+      "required": ["item_id", "category", "observed", "current_verdict", "message"],
+      "additionalProperties": true,
+      "properties": {
+        "item_id": { "type": "string", "minLength": 1 },
+        "category": { "type": "string", "minLength": 1 },
+        "observed": { "type": "boolean" },
+        "current_verdict": { "type": "string", "enum": ["pass", "fail"] },
+        "message": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

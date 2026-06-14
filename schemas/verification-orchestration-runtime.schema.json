@@ -1,0 +1,413 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/verification-orchestration-runtime.schema.json",
+  "title": "Verification Orchestration Runtime",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "verification_orchestration_runtime_id",
+    "capability_id",
+    "program_range",
+    "inputs",
+    "source_development_control_console_summary",
+    "verification_orchestration_contract",
+    "verification_phase_rows",
+    "standard_validator_rows",
+    "dual_run_result_rows",
+    "negative_fixture_rows",
+    "ci_required_check_rows",
+    "github_actions_evidence_rows",
+    "attestation_verify_rows",
+    "claude_review_receipt_rows",
+    "normalized_verification_result_rows",
+    "milestone_trust_decision_rows",
+    "verification_orchestration_freeze_rows",
+    "verification_orchestration_gate_rows",
+    "verification_orchestration_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "verification-orchestration-runtime.v1" },
+    "capability_id": { "const": "platform.verification_orchestration_runtime" },
+    "program_range": { "const": "P5001-P5400" },
+    "verification_orchestration_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "contract_id",
+        "program_range",
+        "standard_validator_adapter_required",
+        "dual_run_result_required",
+        "negative_fixtures_required",
+        "ci_required_check_contract_required",
+        "github_actions_evidence_binding_required",
+        "signed_attestation_verify_contract_required",
+        "claude_review_completion_receipt_required",
+        "durable_claude_raw_json_required",
+        "local_only_pass_can_claim_enterprise_trust",
+        "p5400_closeout_requires_external_evidence",
+        "human_adjudication_in_milestone_gate",
+        "protected_closeout_enabled",
+        "enterprise_trust_claim_enabled",
+        "deterministic_validation_orchestration_enabled",
+        "agent_runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled",
+        "work_os_claim_enabled"
+      ],
+      "properties": {
+        "schema_version": { "const": "verification-orchestration-contract.v1" },
+        "program_range": { "const": "P5001-P5400" },
+        "standard_validator_adapter_required": { "const": true },
+        "dual_run_result_required": { "const": true },
+        "negative_fixtures_required": { "const": true },
+        "ci_required_check_contract_required": { "const": true },
+        "github_actions_evidence_binding_required": { "const": true },
+        "signed_attestation_verify_contract_required": { "const": true },
+        "claude_review_completion_receipt_required": { "const": true },
+        "durable_claude_raw_json_required": { "const": true },
+        "local_only_pass_can_claim_enterprise_trust": { "const": false },
+        "p5400_closeout_requires_external_evidence": { "const": true },
+        "human_adjudication_in_milestone_gate": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "enterprise_trust_claim_enabled": { "const": false },
+        "deterministic_validation_orchestration_enabled": { "const": true },
+        "agent_runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "work_os_claim_enabled": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "verification_phase_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/verdict_row" }
+    },
+    "standard_validator_rows": {
+      "type": "array",
+      "minItems": 7,
+      "items": { "$ref": "#/$defs/standard_validator_row" }
+    },
+    "dual_run_result_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/$defs/dual_run_row" }
+    },
+    "negative_fixture_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/$defs/negative_fixture_row" }
+    },
+    "ci_required_check_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/$defs/ci_required_check_row" }
+    },
+    "github_actions_evidence_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/github_actions_row" }
+    },
+    "attestation_verify_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/attestation_row" }
+    },
+    "claude_review_receipt_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/claude_review_row" }
+    },
+    "normalized_verification_result_rows": {
+      "type": "array",
+      "minItems": 7,
+      "items": { "$ref": "#/$defs/normalized_row" }
+    },
+    "milestone_trust_decision_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/milestone_decision_row" }
+    },
+    "verification_orchestration_freeze_rows": {
+      "type": "array",
+      "minItems": 9,
+      "items": { "$ref": "#/$defs/freeze_row" }
+    },
+    "verification_orchestration_gate_rows": {
+      "type": "array",
+      "minItems": 21,
+      "items": { "$ref": "#/$defs/gate_row" }
+    },
+    "verification_orchestration_boundary": { "$ref": "#/$defs/boundary" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "verification_orchestration_runtime_status",
+        "program_range",
+        "development_control_console_status",
+        "standard_validator_count",
+        "dual_run_result_count",
+        "negative_fixture_count",
+        "ci_required_check_count",
+        "github_actions_passed_now",
+        "attestation_verification_passed_now",
+        "claude_review_completed_now",
+        "durable_claude_raw_json_present_now",
+        "p5400_milestone_closeout_ready",
+        "lower_trust_readiness_allowed",
+        "human_adjudication_in_milestone_gate",
+        "protected_closeout_enabled",
+        "enterprise_trust_claim_enabled",
+        "deterministic_validation_orchestration_enabled",
+        "agent_runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled",
+        "work_os_claim_enabled",
+        "unsafe_flag_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "verification-orchestration-runtime-summary.v1" },
+        "verification_orchestration_runtime_status": { "const": "ready_for_verification_orchestration_runtime_v0" },
+        "program_range": { "const": "P5001-P5400" },
+        "development_control_console_status": { "const": "ready_for_development_control_console_v0" },
+        "standard_validator_count": { "minimum": 7 },
+        "dual_run_result_count": { "minimum": 4 },
+        "negative_fixture_count": { "minimum": 5 },
+        "ci_required_check_count": { "minimum": 5 },
+        "github_actions_passed_now": { "const": false },
+        "attestation_verification_passed_now": { "const": false },
+        "claude_review_completed_now": { "const": false },
+        "durable_claude_raw_json_present_now": { "const": false },
+        "p5400_milestone_closeout_ready": { "const": false },
+        "lower_trust_readiness_allowed": { "const": true },
+        "human_adjudication_in_milestone_gate": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "enterprise_trust_claim_enabled": { "const": false },
+        "deterministic_validation_orchestration_enabled": { "const": true },
+        "agent_runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "work_os_claim_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "item_count", "error_count", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "error_count": { "const": 0 },
+        "errors": { "type": "array", "maxItems": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "verdict_row": {
+      "type": "object",
+      "required": ["row_id", "phase_range", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "current_verdict": { "const": "pass" },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_only" }
+      },
+      "additionalProperties": true
+    },
+    "standard_validator_row": {
+      "type": "object",
+      "required": ["validator_id", "command_name", "adapter_status", "required_for_milestone", "unsafe_flags_false"],
+      "properties": {
+        "adapter_status": { "const": "REGISTERED" },
+        "required_for_milestone": { "const": true },
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "dual_run_row": {
+      "type": "object",
+      "required": ["dual_run_id", "normalized_equivalent", "mismatch_count", "rerun_required", "unsafe_flags_false"],
+      "properties": {
+        "normalized_equivalent": { "const": true },
+        "mismatch_count": { "const": 0 },
+        "rerun_required": { "const": false },
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "negative_fixture_row": {
+      "type": "object",
+      "required": ["fixture_id", "expected_block", "actual_result", "fixture_status", "unsafe_claim_allowed", "unsafe_flags_false"],
+      "properties": {
+        "fixture_status": { "const": "PASS_BLOCKED_AS_EXPECTED" },
+        "unsafe_claim_allowed": { "const": false },
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "ci_required_check_row": {
+      "type": "object",
+      "required": ["required_check_id", "required_check_status", "local_contract_ready", "external_observed_now", "required_for_p5400_closeout", "unsafe_flags_false"],
+      "properties": {
+        "required_check_status": { "const": "CONTRACT_READY" },
+        "local_contract_ready": { "const": true },
+        "external_observed_now": { "const": false },
+        "required_for_p5400_closeout": { "const": true },
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "github_actions_row": {
+      "type": "object",
+      "required": ["workflow_run_observed_now", "workflow_conclusion_passed_now", "commit_sha_bound_now", "evidence_status", "unsafe_flags_false"],
+      "properties": {
+        "workflow_run_observed_now": { "const": false },
+        "workflow_conclusion_passed_now": { "const": false },
+        "commit_sha_bound_now": { "const": false },
+        "evidence_status": { "const": "BLOCKED_PENDING_EXTERNAL_EVIDENCE" },
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "attestation_row": {
+      "type": "object",
+      "required": ["signed_attestation_present_now", "attestation_verification_passed_now", "subject_digest_bound_now", "evidence_status", "unsafe_flags_false"],
+      "properties": {
+        "signed_attestation_present_now": { "const": false },
+        "attestation_verification_passed_now": { "const": false },
+        "subject_digest_bound_now": { "const": false },
+        "evidence_status": { "const": "BLOCKED_PENDING_SIGNED_VERIFY_RECEIPT" },
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "claude_review_row": {
+      "type": "object",
+      "required": ["reviewer_ref", "durable_raw_json_required", "durable_raw_json_present_now", "review_completed_now", "findings_normalized_now", "reviewer_mutation_allowed", "evidence_status", "unsafe_flags_false"],
+      "properties": {
+        "reviewer_ref": { "const": "reviewer.claude_code_opus_max" },
+        "durable_raw_json_required": { "const": true },
+        "durable_raw_json_present_now": { "const": false },
+        "review_completed_now": { "const": false },
+        "findings_normalized_now": { "const": false },
+        "reviewer_mutation_allowed": { "const": false },
+        "evidence_status": { "const": "BLOCKED_PENDING_CLAUDE_REVIEW_RECEIPT" },
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "normalized_row": {
+      "type": "object",
+      "required": ["result_id", "normalized_status", "pass_for_contract_readiness", "pass_for_p5400_closeout", "unsafe_flags_false"],
+      "properties": {
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "milestone_decision_row": {
+      "type": "object",
+      "required": ["milestone_id", "p5400_milestone_closeout_ready", "single_owner_claude_reviewed_mode", "lower_trust_readiness_allowed", "enterprise_trust_claim_allowed", "human_adjudication_required", "protected_closeout_enabled", "unsafe_flags_false"],
+      "properties": {
+        "milestone_id": { "const": "milestone.p5400" },
+        "p5400_milestone_closeout_ready": { "const": false },
+        "single_owner_claude_reviewed_mode": { "const": true },
+        "lower_trust_readiness_allowed": { "const": true },
+        "enterprise_trust_claim_allowed": { "const": false },
+        "human_adjudication_required": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "unsafe_flags_false": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "freeze_row": {
+      "type": "object",
+      "required": ["freeze_id", "freeze_status", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "freeze_status": { "const": "ready" },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_only" }
+      },
+      "additionalProperties": true
+    },
+    "gate_row": {
+      "type": "object",
+      "required": ["gate_id", "gate_status", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "gate_status": { "const": "ready" },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_only" }
+      },
+      "additionalProperties": true
+    },
+    "boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "verification_orchestration_runtime_ready",
+        "development_control_console_ready",
+        "standard_validator_contract_ready",
+        "dual_run_contract_ready",
+        "negative_fixtures_ready",
+        "ci_required_check_contract_ready",
+        "github_actions_observed_now",
+        "github_actions_passed_now",
+        "attestation_verification_passed_now",
+        "claude_review_completed_now",
+        "durable_claude_raw_json_present_now",
+        "p5400_milestone_closeout_ready",
+        "local_only_pass_can_claim_enterprise_trust",
+        "single_owner_claude_reviewed_mode",
+        "lower_trust_readiness_allowed",
+        "human_adjudication_in_milestone_gate",
+        "protected_closeout_enabled",
+        "protected_final_decision_enabled",
+        "enterprise_trust_claim_enabled",
+        "deterministic_validation_orchestration_enabled",
+        "agent_runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled",
+        "work_os_claim_enabled",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "verification-orchestration-boundary.v1" },
+        "program_range": { "const": "P5001-P5400" },
+        "verification_orchestration_runtime_ready": { "const": true },
+        "development_control_console_ready": { "const": true },
+        "standard_validator_contract_ready": { "const": true },
+        "dual_run_contract_ready": { "const": true },
+        "negative_fixtures_ready": { "const": true },
+        "ci_required_check_contract_ready": { "const": true },
+        "github_actions_observed_now": { "const": false },
+        "github_actions_passed_now": { "const": false },
+        "attestation_verification_passed_now": { "const": false },
+        "claude_review_completed_now": { "const": false },
+        "durable_claude_raw_json_present_now": { "const": false },
+        "p5400_milestone_closeout_ready": { "const": false },
+        "local_only_pass_can_claim_enterprise_trust": { "const": false },
+        "single_owner_claude_reviewed_mode": { "const": true },
+        "lower_trust_readiness_allowed": { "const": true },
+        "human_adjudication_in_milestone_gate": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "protected_final_decision_enabled": { "const": false },
+        "enterprise_trust_claim_enabled": { "const": false },
+        "deterministic_validation_orchestration_enabled": { "const": true },
+        "agent_runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "work_os_claim_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

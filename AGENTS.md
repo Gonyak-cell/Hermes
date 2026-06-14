@@ -51,6 +51,21 @@ product as human-approved outputs.
 - Keep audit trails: source, timestamp, confidence, responsible owner, and review status.
 - Use `node --test` for the local harness tests.
 
+## Review Process
+
+- Codex is the primary developer and may plan, implement, test, and prepare
+  review packets, but Codex must not finally approve Codex-created work.
+- Claude Code Opus max is the independent reviewer lane. Claude review can
+  produce findings and verification evidence, but it cannot mutate source,
+  replace human adjudication, or complete a protected closeout gate by itself.
+- The human owner is the final adjudicator for protected closeout. Human
+  adjudication is still not the same as independent GitHub approval.
+- Single-owner mode is lower-trust merge readiness only. It must not be treated
+  as enterprise independent review or enterprise trust.
+- P4000 review process contracts are checked with:
+  `npm run platform:review-authority-contract -- --check` and
+  `npm run platform:review-process-upgrade -- --check`.
+
 ## Commands
 
 - `npm run dev:brief` creates a personal development project operating brief.
@@ -59,6 +74,8 @@ product as human-approved outputs.
 - `npm run validate` checks the core contracts, domain packs, and demo matter data.
 - `npm run operator:handbook -- --check` validates the read-only operator handbook.
 - `npm run api:serve` starts the read-only Review API.
+- `npm run platform:review-authority-contract -- --check` validates role authority boundaries.
+- `npm run platform:review-process-upgrade -- --check` validates the P4000 review process contract.
 - `npm test` runs local tests.
 
 ## Style

@@ -1,6 +1,31 @@
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import {
+  DEFAULT_FACTORY_LEDGER_DIR,
+  DEFAULT_FACTORY_SEED_DIR,
+  readFactoryLedgerFile,
+} from "./factory-product-registry-store.mjs";
+import { buildFactoryStageReadModel } from "./factory-stage-read-model.mjs";
+import { buildFactoryCandidateManifestResolver } from "./factory-candidate-manifest-resolver.mjs";
+import { buildFactoryStarterArtifactCorpus } from "./factory-starter-artifact-corpus.mjs";
+import { buildFactoryWorkbenchReadModel } from "./factory-workbench-read-model.mjs";
+import { buildFactoryCandidateLane } from "./factory-candidate-lane.mjs";
+import { buildFactoryCandidateReviewDocket } from "./factory-candidate-review-docket.mjs";
+import { buildFactoryGateOpeningReadiness } from "./factory-gate-opening-readiness.mjs";
+import { buildFactoryG1aOpeningPacket } from "./factory-g1a-opening-packet.mjs";
+import { buildFactoryG1aOwnerReceiptIntake } from "./factory-g1a-owner-receipt-intake.mjs";
+import { buildFactoryG1aSourceLiteralPreflight } from "./factory-g1a-source-literal-preflight.mjs";
+import { buildFactoryG1aSourceLiteralCommitDraft } from "./factory-g1a-source-literal-commit-draft.mjs";
+import { buildFactoryG1aOpeningCloseoutReadiness } from "./factory-g1a-opening-closeout-readiness.mjs";
+import { buildFactoryG1aFirstUseAuditReadiness } from "./factory-g1a-first-use-audit-readiness.mjs";
+import { buildFactoryG1aOwnerSigningHandoff } from "./factory-g1a-owner-signing-handoff.mjs";
+import { buildFactoryG1aOwnerCandidateSelectionDocket } from "./factory-g1a-owner-candidate-selection-docket.mjs";
+import { buildFactoryG1aOwnerActionPacket } from "./factory-g1a-owner-action-packet.mjs";
+import { buildFactoryGSeriesAdvancementReadiness } from "./factory-g-series-advancement-readiness.mjs";
+import { buildFactoryGSeriesRuntimeGuards } from "./factory-g-series-runtime-guards.mjs";
+import { buildFactoryStage67ExecutionReadiness } from "./factory-stage6-7-execution-readiness.mjs";
+import { buildFactoryPromotionCloseoutReadiness } from "./factory-promotion-closeout-readiness.mjs";
 
 export const DEFAULT_REVIEW_API_HOST = "127.0.0.1";
 export const DEFAULT_REVIEW_API_PORT = 4177;
@@ -8,6 +33,8 @@ export const DEFAULT_REVIEW_API_DASHBOARD_PATH = "artifacts/dashboard/latest/rev
 export const DEFAULT_REVIEW_API_INDEX_PATH = "artifacts/dashboard/latest/index.html";
 export const DEFAULT_REVIEW_API_SUMMARY_PATH = "artifacts/dashboard/latest/summary.md";
 export const DEFAULT_REVIEW_API_PLATFORM_OPERATIONS_FREEZE_PATH = "artifacts/platform-operations-freeze/latest/platform-operations-freeze.json";
+export const DEFAULT_REVIEW_API_FACTORY_LEDGER_DIR = DEFAULT_FACTORY_LEDGER_DIR;
+export const DEFAULT_REVIEW_API_FACTORY_SEED_DIR = DEFAULT_FACTORY_SEED_DIR;
 
 const JSON_HEADERS = {
   "content-type": "application/json; charset=utf-8",
@@ -23,6 +50,208 @@ const TEXT_HEADERS = {
   "content-type": "text/markdown; charset=utf-8",
   "cache-control": "no-store",
 };
+
+const REVIEW_API_READ_ONLY_METHODS = ["GET", "HEAD"];
+
+const FACTORY_PRODUCT_FILTER_KEYS = [
+  "product_id",
+  "product_state",
+  "receipt_id",
+  "source_tier",
+  "seed_record_kind",
+];
+
+const FACTORY_STAGE_FILTER_KEYS = [
+  "product_id",
+  "current_product_state",
+  "base_product_state",
+  "product_source_tier",
+  "gate_status",
+  "freshness_status",
+  "stale_badge_required",
+  "candidate_manifest_preview_status",
+];
+
+const FACTORY_CANDIDATE_MANIFEST_FILTER_KEYS = [
+  "product_id",
+  "current_product_state",
+  "stage_gate_status",
+  "freshness_status",
+  "resolver_status",
+  "candidate_manifest_id",
+  "candidate_manifest_status",
+  "candidate_manifest_kind",
+  "candidate_manifest_json_available",
+];
+
+const FACTORY_STARTER_ARTIFACT_FILTER_KEYS = [
+  "domain_pack_id",
+  "artifact_path",
+  "artifact_role",
+  "artifact_kind",
+  "content_type",
+  "exists_now",
+  "materialized_status",
+];
+
+const FACTORY_WORKBENCH_FILTER_KEYS = [
+  "product_id",
+  "current_product_state",
+  "stage_gate_status",
+  "freshness_status",
+  "resolver_status",
+  "workbench_view_status",
+  "workbench_queue_status",
+  "candidate_manifest_json_available",
+  "starter_artifact_corpus_status",
+];
+
+const FACTORY_CANDIDATE_LANE_FILTER_KEYS = [
+  "candidate_packet_id",
+  "candidate_packet_status",
+  "product_id",
+  "candidate_manifest_id",
+  "worktree_lane_status",
+  "diff_packet_status",
+  "rollback_plan_status",
+  "preflight_status",
+];
+
+const FACTORY_CANDIDATE_REVIEW_DOCKET_FILTER_KEYS = [
+  "review_docket_id",
+  "review_status",
+  "candidate_packet_id",
+  "product_id",
+  "candidate_manifest_id",
+  "preflight_status",
+  "next_allowed_action",
+];
+
+const FACTORY_GATE_OPENING_READINESS_FILTER_KEYS = [
+  "gate_id",
+  "gate_name",
+  "authority_flag",
+  "ps_transition",
+  "prerequisite_status",
+  "previous_gate_status",
+  "gate_status",
+  "gate_open_now",
+  "owner_gate_opening_receipt_present",
+  "source_literal_gate_open_commit_present",
+];
+
+const FACTORY_G1A_OPENING_PACKET_FILTER_KEYS = [
+  "packet_item_id",
+  "item_kind",
+  "item_status",
+  "gate_id",
+  "authority_flag",
+];
+
+const FACTORY_G1A_OWNER_RECEIPT_INTAKE_FILTER_KEYS = [
+  "row_id",
+  "category",
+  "current_verdict",
+];
+
+const FACTORY_G1A_SOURCE_LITERAL_PREFLIGHT_FILTER_KEYS = [
+  "row_id",
+  "category",
+  "current_verdict",
+];
+
+const FACTORY_G1A_SOURCE_LITERAL_COMMIT_DRAFT_FILTER_KEYS = [
+  "row_id",
+  "category",
+  "current_verdict",
+];
+
+const FACTORY_G1A_OPENING_CLOSEOUT_READINESS_FILTER_KEYS = [
+  "row_id",
+  "category",
+  "current_verdict",
+];
+
+const FACTORY_G1A_FIRST_USE_AUDIT_READINESS_FILTER_KEYS = [
+  "row_id",
+  "category",
+  "current_verdict",
+];
+
+const FACTORY_G1A_OWNER_SIGNING_HANDOFF_FILTER_KEYS = [
+  "row_id",
+  "category",
+  "current_verdict",
+];
+
+const FACTORY_G1A_OWNER_CANDIDATE_SELECTION_DOCKET_FILTER_KEYS = [
+  "selection_row_id",
+  "review_docket_id",
+  "product_id",
+  "candidate_packet_id",
+  "candidate_manifest_id",
+  "eligibility_status",
+  "selected_now",
+  "selection_source",
+];
+
+const FACTORY_G1A_OWNER_ACTION_PACKET_FILTER_KEYS = [
+  "row_id",
+  "category",
+  "current_verdict",
+];
+
+const FACTORY_PROMOTION_CLOSEOUT_READINESS_FILTER_KEYS = [
+  "row_id",
+  "category",
+  "current_verdict",
+];
+
+const FACTORY_G_SERIES_ADVANCEMENT_READINESS_FILTER_KEYS = [
+  "advancement_id",
+  "row_kind",
+  "gate_id",
+  "stage_id",
+  "authority_flag",
+  "advancement_status",
+  "code_development_allowed_now",
+  "runtime_authority_allowed_now",
+  "gate_open_now",
+  "stage_runtime_open_now",
+];
+
+const FACTORY_G_SERIES_RUNTIME_GUARD_FILTER_KEYS = [
+  "guard_id",
+  "attempt_kind",
+  "attempted_operation",
+  "protected_surface",
+  "required_gate_id",
+  "required_stage_id",
+  "guard_status",
+  "guard_verdict",
+];
+
+const FACTORY_STAGE6_7_EXECUTION_READINESS_FILTER_KEYS = [
+  "contract_id",
+  "stage_id",
+  "contract_name",
+  "contract_status",
+  "required_gate_id",
+  "code_development_allowed_now",
+  "runtime_execution_allowed_now",
+  "release_candidate_allowed_now",
+  "closeout_status",
+];
+
+const FACTORY_PRODUCT_AUTHORITY_FLAG_KEYS = [
+  "project_creation_allowed_now",
+  "repo_write_allowed_now",
+  "connector_write_allowed_now",
+  "deployment_allowed_now",
+  "protected_action_allowed_now",
+  "production_pass_enabled",
+  "enterprise_pass_enabled",
+];
 
 export function createReviewApiServer(options = {}) {
   return createServer(async (request, response) => {
@@ -55,13 +284,77 @@ export async function startReviewApiServer(options = {}) {
 
 export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
   const method = String(options.method ?? "GET").toUpperCase();
-  if (!["GET", "HEAD"].includes(method)) {
-    return jsonResponse(405, buildError("method_not_allowed", "Review API is read-only."));
-  }
-
   const generatedAt = new Date(options.runAt ?? new Date()).toISOString();
   const url = new URL(requestUrl, "http://127.0.0.1");
   const pathname = normalizePath(url.pathname);
+
+  if (pathname === "/api/factory/products" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/stage" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/candidate-manifests" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/starter-artifacts" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/workbench" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/candidate-lane" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/candidate-review-docket" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/gate-opening-readiness" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/g1a-opening-packet" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/g1a-owner-receipt-intake" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/g1a-source-literal-preflight" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/g1a-source-literal-commit-draft" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/g1a-opening-closeout-readiness" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/g1a-first-use-audit-readiness" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/g1a-owner-signing-handoff" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/g1a-owner-candidate-selection-docket" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/g1a-owner-action-packet" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/g-series-advancement-readiness" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/g-series-runtime-guards" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/stage6-7-execution-readiness" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+  if (pathname === "/api/factory/promotion-closeout-readiness" && !isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
+
+  if (!isReviewApiReadOnlyMethod(method)) {
+    return methodNotAllowedResponse(method);
+  }
 
   if (pathname === "/health") {
     return jsonResponse(200, await buildHealthResponse(options, generatedAt), method);
@@ -69,6 +362,174 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
 
   if (pathname === "/api") {
     return jsonResponse(200, buildRouteIndex(options, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/products") {
+    const factoryProducts = await readFactoryProducts(options);
+    if (!factoryProducts.available) {
+      return jsonResponse(503, buildError("factory_products_unavailable", factoryProducts.error), method);
+    }
+    return jsonResponse(200, buildFactoryProductsResponse(factoryProducts, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/stage") {
+    const factoryStage = await buildFactoryStageReadModel({ ...options, write: false });
+    if (!factoryStage.validation.valid) {
+      return jsonResponse(503, buildError("factory_stage_unavailable", `Factory stage read model is not ready: ${factoryStage.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryStageResponse(factoryStage, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/candidate-manifests") {
+    const candidateResolver = await buildFactoryCandidateManifestResolver({ ...options, write: false });
+    if (!candidateResolver.validation.valid) {
+      return jsonResponse(503, buildError("factory_candidate_manifests_unavailable", `Factory candidate manifest resolver is not ready: ${candidateResolver.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryCandidateManifestsResponse(candidateResolver, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/starter-artifacts") {
+    const starterCorpus = await buildFactoryStarterArtifactCorpus({ ...options, write: false });
+    if (!starterCorpus.validation.valid) {
+      return jsonResponse(503, buildError("factory_starter_artifacts_unavailable", `Factory starter artifact corpus is not ready: ${starterCorpus.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryStarterArtifactsResponse(starterCorpus, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/workbench") {
+    const workbench = await buildFactoryWorkbenchReadModel({ ...options, write: false });
+    if (!workbench.validation.valid) {
+      return jsonResponse(503, buildError("factory_workbench_unavailable", `Factory workbench read model is not ready: ${workbench.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryWorkbenchResponse(workbench, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/candidate-lane") {
+    const candidateLane = await buildFactoryCandidateLane({ ...options, write: false });
+    if (!candidateLane.validation.valid) {
+      return jsonResponse(503, buildError("factory_candidate_lane_unavailable", `Factory candidate lane is not ready: ${candidateLane.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryCandidateLaneResponse(candidateLane, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/candidate-review-docket") {
+    const reviewDocket = await buildFactoryCandidateReviewDocket({ ...options, write: false });
+    if (!reviewDocket.validation.valid) {
+      return jsonResponse(503, buildError("factory_candidate_review_docket_unavailable", `Factory candidate review docket is not ready: ${reviewDocket.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryCandidateReviewDocketResponse(reviewDocket, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/gate-opening-readiness") {
+    const gateReadiness = await buildFactoryGateOpeningReadiness({ ...options, write: false });
+    if (!gateReadiness.validation.valid) {
+      return jsonResponse(503, buildError("factory_gate_opening_readiness_unavailable", `Factory gate opening readiness is not ready: ${gateReadiness.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryGateOpeningReadinessResponse(gateReadiness, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/g1a-opening-packet") {
+    const openingPacket = await buildFactoryG1aOpeningPacket({ ...options, write: false });
+    if (!openingPacket.validation.valid) {
+      return jsonResponse(503, buildError("factory_g1a_opening_packet_unavailable", `Factory G1a opening packet is not ready: ${openingPacket.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryG1aOpeningPacketResponse(openingPacket, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/g1a-owner-receipt-intake") {
+    const ownerReceiptIntake = await buildFactoryG1aOwnerReceiptIntake({ ...options, write: false });
+    if (!ownerReceiptIntake.validation.valid) {
+      return jsonResponse(503, buildError("factory_g1a_owner_receipt_intake_unavailable", `Factory G1a owner receipt intake has hard validation failures: ${ownerReceiptIntake.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryG1aOwnerReceiptIntakeResponse(ownerReceiptIntake, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/g1a-source-literal-preflight") {
+    const sourceLiteralPreflight = await buildFactoryG1aSourceLiteralPreflight({ ...options, write: false });
+    if (!sourceLiteralPreflight.validation.valid) {
+      return jsonResponse(503, buildError("factory_g1a_source_literal_preflight_unavailable", `Factory G1a source literal preflight has hard validation failures: ${sourceLiteralPreflight.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryG1aSourceLiteralPreflightResponse(sourceLiteralPreflight, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/g1a-source-literal-commit-draft") {
+    const sourceLiteralCommitDraft = await buildFactoryG1aSourceLiteralCommitDraft({ ...options, write: false });
+    if (!sourceLiteralCommitDraft.validation.valid) {
+      return jsonResponse(503, buildError("factory_g1a_source_literal_commit_draft_unavailable", `Factory G1a source literal commit draft has hard validation failures: ${sourceLiteralCommitDraft.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryG1aSourceLiteralCommitDraftResponse(sourceLiteralCommitDraft, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/g1a-opening-closeout-readiness") {
+    const closeoutReadiness = await buildFactoryG1aOpeningCloseoutReadiness({ ...options, write: false });
+    if (!closeoutReadiness.validation.valid) {
+      return jsonResponse(503, buildError("factory_g1a_opening_closeout_readiness_unavailable", `Factory G1a opening closeout readiness has hard validation failures: ${closeoutReadiness.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryG1aOpeningCloseoutReadinessResponse(closeoutReadiness, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/g1a-first-use-audit-readiness") {
+    const firstUseAuditReadiness = await buildFactoryG1aFirstUseAuditReadiness({ ...options, write: false });
+    if (!firstUseAuditReadiness.validation.valid) {
+      return jsonResponse(503, buildError("factory_g1a_first_use_audit_readiness_unavailable", `Factory G1a first-use audit readiness has hard validation failures: ${firstUseAuditReadiness.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryG1aFirstUseAuditReadinessResponse(firstUseAuditReadiness, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/g1a-owner-signing-handoff") {
+    const ownerSigningHandoff = await buildFactoryG1aOwnerSigningHandoff({ ...options, write: false });
+    if (!ownerSigningHandoff.validation.valid) {
+      return jsonResponse(503, buildError("factory_g1a_owner_signing_handoff_unavailable", `Factory G1a owner signing handoff has hard validation failures: ${ownerSigningHandoff.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryG1aOwnerSigningHandoffResponse(ownerSigningHandoff, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/g1a-owner-candidate-selection-docket") {
+    const candidateSelectionDocket = await buildFactoryG1aOwnerCandidateSelectionDocket({ ...options, write: false });
+    if (!candidateSelectionDocket.validation.valid) {
+      return jsonResponse(503, buildError("factory_g1a_owner_candidate_selection_docket_unavailable", `Factory G1a owner candidate selection docket has hard validation failures: ${candidateSelectionDocket.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryG1aOwnerCandidateSelectionDocketResponse(candidateSelectionDocket, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/g1a-owner-action-packet") {
+    const ownerActionPacket = await buildFactoryG1aOwnerActionPacket({ ...options, write: false });
+    if (!ownerActionPacket.validation.valid) {
+      return jsonResponse(503, buildError("factory_g1a_owner_action_packet_unavailable", `Factory G1a owner action packet has hard validation failures: ${ownerActionPacket.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryG1aOwnerActionPacketResponse(ownerActionPacket, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/g-series-advancement-readiness") {
+    const advancementReadiness = await buildFactoryGSeriesAdvancementReadiness({ ...options, write: false });
+    if (!advancementReadiness.validation.valid) {
+      return jsonResponse(503, buildError("factory_g_series_advancement_readiness_unavailable", `Factory G-series advancement readiness has hard validation failures: ${advancementReadiness.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryGSeriesAdvancementReadinessResponse(advancementReadiness, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/g-series-runtime-guards") {
+    const runtimeGuards = await buildFactoryGSeriesRuntimeGuards({ ...options, write: false, attemptKind: url.searchParams.get("attempt_kind") ?? options.attemptKind });
+    if (!runtimeGuards.validation.valid) {
+      return jsonResponse(503, buildError("factory_g_series_runtime_guards_unavailable", `Factory G-series runtime guards have hard validation failures: ${runtimeGuards.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryGSeriesRuntimeGuardsResponse(runtimeGuards, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/stage6-7-execution-readiness") {
+    const executionReadiness = await buildFactoryStage67ExecutionReadiness({ ...options, write: false });
+    if (!executionReadiness.validation.valid) {
+      return jsonResponse(503, buildError("factory_stage6_7_execution_readiness_unavailable", `Factory Stage6/7 execution readiness has hard validation failures: ${executionReadiness.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryStage67ExecutionReadinessResponse(executionReadiness, url, generatedAt), method);
+  }
+
+  if (pathname === "/api/factory/promotion-closeout-readiness") {
+    const promotionCloseoutReadiness = await buildFactoryPromotionCloseoutReadiness({ ...options, write: false });
+    if (!promotionCloseoutReadiness.validation.valid) {
+      return jsonResponse(503, buildError("factory_promotion_closeout_readiness_unavailable", `Factory Promotion closeout readiness has hard validation failures: ${promotionCloseoutReadiness.validation.errors.length} error(s).`), method);
+    }
+    return jsonResponse(200, buildFactoryPromotionCloseoutReadinessResponse(promotionCloseoutReadiness, url, generatedAt), method);
   }
 
   if (pathname === "/" || pathname === "/index.html") {
@@ -13372,7 +13833,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/platform-operations-freezes, /api/platform-claim-registry, /api/platform-claim-gates, /api/platform-claim-boundary, /api/platform-claim-validations, /api/resource-contract-freezes, /api/resource-v2-contracts, /api/resource-version-v2-contracts, /api/resource-contract-validations, /api/evidence-review-drafts, /api/evidence-review-items, /api/policy-matrices, /api/policy-classifications, /api/runtime-policies, /api/model-policies, /api/tool-policies, /api/output-policies, /api/gate-policies, /api/policy-snapshot-ledgers, /api/policy-snapshots, /api/policy-snapshot-instances, /api/policy-decisions, /api/policy-usages, /api/context-packet-ledgers, /api/context-packets, /api/context-items, /api/context-retrieval-filters, /api/model-routing-ledgers, /api/model-routing-decisions, /api/cost-budget-ledgers, /api/cost-budget-decisions, /api/token-usage-ledgers, /api/token-usage-records, /api/cost-attribution-ledgers, /api/cost-attribution-records, /api/cost-record-projections, /api/projected-cost-records, /api/run-cost-rollups, /api/cost-category-rollups, /api/cost-record-projection-validations, /api/token-usage-projections, /api/projected-token-usage-records, /api/capability-token-rollups, /api/runtime-token-rollups, /api/capability-runtime-token-rollups, /api/token-usage-projection-validations, /api/budget-alert-ledgers, /api/budget-alert-records, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/contract-inventories, /api/contract-inventory-items, /api/contract-schemas, /api/contract-artifacts, /api/contract-owner-map, /api/contract-dependency-maps, /api/contract-dependency-nodes, /api/contract-dependency-edges, /api/contract-breaking-change-risks, /api/contract-owner-dependencies, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-review-packet-ledgers, /api/human-review-packets, /api/human-review-items, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
+  console.log("Routes: /, /health, /api, /api/factory/products, /api/factory/stage, /api/factory/candidate-manifests, /api/factory/starter-artifacts, /api/factory/workbench, /api/factory/candidate-lane, /api/factory/candidate-review-docket, /api/factory/gate-opening-readiness, /api/factory/g1a-opening-packet, /api/factory/g1a-owner-receipt-intake, /api/factory/g1a-source-literal-preflight, /api/factory/g1a-source-literal-commit-draft, /api/factory/g1a-opening-closeout-readiness, /api/factory/g1a-first-use-audit-readiness, /api/factory/g1a-owner-signing-handoff, /api/factory/g1a-owner-candidate-selection-docket, /api/factory/g1a-owner-action-packet, /api/factory/g-series-advancement-readiness, /api/factory/g-series-runtime-guards, /api/factory/stage6-7-execution-readiness, /api/factory/promotion-closeout-readiness, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/platform-operations-freezes, /api/platform-claim-registry, /api/platform-claim-gates, /api/platform-claim-boundary, /api/platform-claim-validations, /api/resource-contract-freezes, /api/resource-v2-contracts, /api/resource-version-v2-contracts, /api/resource-contract-validations, /api/evidence-review-drafts, /api/evidence-review-items, /api/policy-matrices, /api/policy-classifications, /api/runtime-policies, /api/model-policies, /api/tool-policies, /api/output-policies, /api/gate-policies, /api/policy-snapshot-ledgers, /api/policy-snapshots, /api/policy-snapshot-instances, /api/policy-decisions, /api/policy-usages, /api/context-packet-ledgers, /api/context-packets, /api/context-items, /api/context-retrieval-filters, /api/model-routing-ledgers, /api/model-routing-decisions, /api/cost-budget-ledgers, /api/cost-budget-decisions, /api/token-usage-ledgers, /api/token-usage-records, /api/cost-attribution-ledgers, /api/cost-attribution-records, /api/cost-record-projections, /api/projected-cost-records, /api/run-cost-rollups, /api/cost-category-rollups, /api/cost-record-projection-validations, /api/token-usage-projections, /api/projected-token-usage-records, /api/capability-token-rollups, /api/runtime-token-rollups, /api/capability-runtime-token-rollups, /api/token-usage-projection-validations, /api/budget-alert-ledgers, /api/budget-alert-records, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/contract-inventories, /api/contract-inventory-items, /api/contract-schemas, /api/contract-artifacts, /api/contract-owner-map, /api/contract-dependency-maps, /api/contract-dependency-nodes, /api/contract-dependency-edges, /api/contract-breaking-change-risks, /api/contract-owner-dependencies, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-review-packet-ledgers, /api/human-review-packets, /api/human-review-items, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -13385,6 +13846,27 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/", "Static dashboard HTML"),
       route("GET", "/health", "Readiness and artifact availability"),
       route("GET", "/api", "Route index"),
+      route("GET", "/api/factory/products", "Factory product registry rows"),
+      route("GET", "/api/factory/stage", "Factory product PS stage rows"),
+      route("GET", "/api/factory/candidate-manifests", "Factory candidate manifest JSON-only resolver rows"),
+      route("GET", "/api/factory/starter-artifacts", "Factory starter artifact corpus rows"),
+      route("GET", "/api/factory/workbench", "Factory workbench integrated read-only rows"),
+      route("GET", "/api/factory/candidate-lane", "Factory candidate diff packet lane rows"),
+      route("GET", "/api/factory/candidate-review-docket", "Factory candidate review docket rows"),
+      route("GET", "/api/factory/gate-opening-readiness", "Factory G-series gate opening readiness rows"),
+      route("GET", "/api/factory/g1a-opening-packet", "Factory G1a gate-opening packet items"),
+      route("GET", "/api/factory/g1a-owner-receipt-intake", "Factory G1a owner gate-opening receipt intake rows"),
+      route("GET", "/api/factory/g1a-source-literal-preflight", "Factory G1a source-literal opening preflight rows"),
+      route("GET", "/api/factory/g1a-source-literal-commit-draft", "Factory G1a source-literal opening commit draft rows"),
+      route("GET", "/api/factory/g1a-opening-closeout-readiness", "Factory G1a opening closeout readiness rows"),
+      route("GET", "/api/factory/g1a-first-use-audit-readiness", "Factory G1a first-use audit readiness rows"),
+      route("GET", "/api/factory/g1a-owner-signing-handoff", "Factory G1a owner signing handoff rows"),
+      route("GET", "/api/factory/g1a-owner-candidate-selection-docket", "Factory G1a owner candidate selection docket rows"),
+      route("GET", "/api/factory/g1a-owner-action-packet", "Factory G1a owner action packet rows"),
+      route("GET", "/api/factory/g-series-advancement-readiness", "Factory G1b/G2/G3 plus Stage6/Stage7 advancement readiness rows"),
+      route("GET", "/api/factory/g-series-runtime-guards", "Factory G1b/G2/G3 plus Stage6/Stage7 protected runtime guard rows"),
+      route("GET", "/api/factory/stage6-7-execution-readiness", "Factory Stage6/Stage7 execution and release-candidate contract rows"),
+      route("GET", "/api/factory/promotion-closeout-readiness", "Factory Promotion closeout readiness rows"),
       route("GET", "/api/dashboard", "Full review-dashboard.v1 artifact"),
       route("GET", "/api/summary", "Dashboard summary only"),
       route("GET", "/api/stages", "Control Plane stage statuses"),
@@ -15032,6 +15514,7 @@ function buildRouteIndex(options, generatedAt) {
 
 async function buildHealthResponse(options, generatedAt) {
   const dashboardResult = await readDashboard(options);
+  const factoryProducts = await readFactoryProducts(options);
   return {
     schema_version: "review-api-health.v1",
     generated_at: generatedAt,
@@ -15040,12 +15523,803 @@ async function buildHealthResponse(options, generatedAt) {
     dashboard_available: dashboardResult.available,
     dashboard_generated_at: dashboardResult.dashboard?.generated_at ?? null,
     overall_status: dashboardResult.dashboard?.summary?.overall_status ?? null,
+    factory_products_available: factoryProducts.available,
+    factory_product_source_tier: factoryProducts.source_tier ?? null,
+    factory_product_count: factoryProducts.products?.length ?? 0,
     error: dashboardResult.error,
   };
 }
 
-function buildCollectionResponse(collection, rawItems, url, generatedAt) {
-  const filteredItems = filterItems(rawItems, url.searchParams);
+async function readFactoryProducts(options) {
+  const ledgerDir = resolveFactoryLedgerDir(options);
+  const seedDir = resolveFactorySeedDir(options);
+  const operational = await readFactoryLedgerFile("products", { ledgerDir });
+  if (operational.line_count > 0 && !operational.validation.valid) {
+    return {
+      available: false,
+      source_tier: "operational_ledger",
+      products: [],
+      error: `Operational factory product ledger is invalid: ${operational.validation.errors.length} error(s).`,
+    };
+  }
+  if (operational.entries.length > 0) {
+    return {
+      available: true,
+      source_tier: "operational_ledger",
+      ledger_dir: ledgerDir,
+      seed_dir: seedDir,
+      products: operational.entries,
+      validation_error_count: 0,
+      error: null,
+    };
+  }
+
+  const seed = await readFactoryLedgerFile("products", { ledgerDir: seedDir });
+  if (seed.line_count > 0 && !seed.validation.valid) {
+    return {
+      available: false,
+      source_tier: "tracked_seed",
+      products: [],
+      error: `Tracked factory seed product ledger is invalid: ${seed.validation.errors.length} error(s).`,
+    };
+  }
+  if (seed.entries.length > 0) {
+    return {
+      available: true,
+      source_tier: "tracked_seed",
+      ledger_dir: ledgerDir,
+      seed_dir: seedDir,
+      products: seed.entries,
+      validation_error_count: 0,
+      error: null,
+    };
+  }
+  return {
+    available: false,
+    source_tier: "missing",
+    ledger_dir: ledgerDir,
+    seed_dir: seedDir,
+    products: [],
+    error: "Factory product store is empty.",
+  };
+}
+
+function buildFactoryProductsResponse(factoryProducts, url, generatedAt) {
+  const rows = factoryProducts.products.map((product) => ({
+    schema_version: "review-api-factory-product-row.v1",
+    product_id: product.product_id,
+    tenant_id: product.tenant_id,
+    workspace_id: product.workspace_id,
+    source_project_id: product.source_project_id ?? null,
+    display_name: product.display_name ?? product.product_id,
+    domain_pack_ids: product.domain_pack_ids ?? [],
+    product_state: product.product_state,
+    receipt_id: product.receipt_id,
+    seed_record_kind: product.seed_record_kind ?? null,
+    source_tier: factoryProducts.source_tier,
+    source_module: product.source_module ?? null,
+    source_const: product.source_const ?? null,
+    fallback_const_preserved: product.fallback_const_preserved === true,
+    payload_sha256: product.payload_sha256,
+    prev_entry_hash: product.prev_entry_hash ?? null,
+    entry_hash: product.entry_hash,
+    created_at: product.created_at ?? null,
+    updated_at: product.updated_at ?? null,
+    authority_flags: sanitizeFactoryAuthorityFlags(product.authority_flags),
+  }));
+  return {
+    ...buildCollectionResponse("factory_products", rows, url, generatedAt, FACTORY_PRODUCT_FILTER_KEYS),
+    source_tier: factoryProducts.source_tier,
+    ledger_dir: factoryProducts.ledger_dir,
+    seed_dir: factoryProducts.seed_dir,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+  };
+}
+
+function buildFactoryStageResponse(factoryStage, url, generatedAt) {
+  return {
+    ...buildCollectionResponse("factory_stage_rows", factoryStage.factory_stage_rows, url, generatedAt, FACTORY_STAGE_FILTER_KEYS),
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    product_source_tier: factoryStage.summary.product_source_tier,
+    transition_source_tiers: factoryStage.summary.transition_source_tiers,
+    ps3_transition_handler_enabled: false,
+    ps3_transition_append_allowed_now: false,
+    candidate_manifest_write_allowed_now: false,
+    apply_allowed_now: false,
+    raw_confidential_material_visible: false,
+    validation_error_count: factoryStage.validation.errors.length,
+    summary: factoryStage.summary,
+  };
+}
+
+function buildFactoryCandidateManifestsResponse(candidateResolver, url, generatedAt) {
+  const collection = buildCollectionResponse("factory_candidate_manifest_rows", candidateResolver.candidate_manifest_resolver_rows, url, generatedAt, FACTORY_CANDIDATE_MANIFEST_FILTER_KEYS);
+  const visibleManifestIds = new Set(collection.items.map((item) => item.candidate_manifest_id).filter(Boolean));
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    json_only_manifest_generation: true,
+    starter_artifact_corpus_materialized_now: candidateResolver.summary.starter_artifact_corpus_materialized_now,
+    starter_artifact_required_ref_count: candidateResolver.summary.starter_artifact_required_ref_count,
+    starter_artifact_materialized_count: candidateResolver.summary.starter_artifact_materialized_count,
+    starter_artifact_missing_count: candidateResolver.summary.starter_artifact_missing_count,
+    candidate_manifest_write_allowed_now: false,
+    apply_allowed_now: false,
+    candidate_manifests: candidateResolver.candidate_manifests.filter((manifest) => visibleManifestIds.has(manifest.candidate_manifest_id)),
+    visible_candidate_manifest_count: visibleManifestIds.size,
+    candidate_manifest_count: candidateResolver.candidate_manifests.length,
+    validation_error_count: candidateResolver.validation.errors.length,
+    summary: candidateResolver.summary,
+  };
+}
+
+function buildFactoryStarterArtifactsResponse(starterCorpus, url, generatedAt) {
+  return {
+    ...buildCollectionResponse("factory_starter_artifact_rows", sanitizeFactoryStarterArtifactRowsForApi(starterCorpus.starter_artifact_rows), url, generatedAt, FACTORY_STARTER_ARTIFACT_FILTER_KEYS),
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    starter_artifact_corpus_materialized_now: starterCorpus.summary.starter_artifact_corpus_materialized_now,
+    source_file_write_allowed_now: false,
+    ledger_append_allowed_now: false,
+    candidate_manifest_write_allowed_now: false,
+    apply_allowed_now: false,
+    validation_error_count: starterCorpus.validation.errors.length,
+    summary: starterCorpus.summary,
+  };
+}
+
+function buildFactoryWorkbenchResponse(workbench, url, generatedAt) {
+  const collection = buildCollectionResponse("factory_workbench_rows", workbench.factory_workbench_rows, url, generatedAt, FACTORY_WORKBENCH_FILTER_KEYS);
+  const visibleManifestIds = new Set(collection.items.map((item) => item.candidate_manifest_id).filter(Boolean));
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    candidate_manifest_write_allowed_now: false,
+    apply_allowed_now: false,
+    candidate_preview_available_count: collection.items.filter((item) => item.candidate_manifest_json_available === true).length,
+    candidate_manifests: workbench.candidate_manifests.filter((manifest) => visibleManifestIds.has(manifest.candidate_manifest_id)),
+    validation_error_count: workbench.validation.errors.length,
+    summary: workbench.summary,
+  };
+}
+
+function buildFactoryCandidateLaneResponse(candidateLane, url, generatedAt) {
+  const collection = buildCollectionResponse("factory_candidate_packet_rows", candidateLane.factory_candidate_packet_rows, url, generatedAt, FACTORY_CANDIDATE_LANE_FILTER_KEYS);
+  const visiblePacketIds = new Set(collection.items.map((item) => item.candidate_packet_id));
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    patch_apply_enabled: false,
+    apply_allowed_now: false,
+    source_file_write_allowed_now: false,
+    ledger_append_allowed_now: false,
+    repo_write_allowed_now: false,
+    connector_write_allowed_now: false,
+    deployment_allowed_now: false,
+    protected_action_allowed_now: false,
+    visible_candidate_packet_count: collection.count,
+    candidate_packet_count: candidateLane.summary.candidate_packet_count,
+    diff_packet_count: candidateLane.summary.diff_packet_count,
+    rollback_plan_count: candidateLane.summary.rollback_plan_count,
+    preflight_count: candidateLane.summary.preflight_count,
+    hash_ledger_row_count: candidateLane.summary.hash_ledger_row_count,
+    negative_fixture_count: candidateLane.summary.negative_fixture_count,
+    factory_candidate_diff_packet_rows: candidateLane.factory_candidate_diff_packet_rows.filter((row) => visiblePacketIds.has(row.candidate_packet_id)),
+    factory_candidate_rollback_plan_rows: candidateLane.factory_candidate_rollback_plan_rows.filter((row) => visiblePacketIds.has(row.candidate_packet_id)),
+    factory_candidate_preflight_rows: candidateLane.factory_candidate_preflight_rows.filter((row) => visiblePacketIds.has(row.candidate_packet_id)),
+    factory_candidate_hash_ledger_rows: candidateLane.factory_candidate_hash_ledger_rows.filter((row) => visiblePacketIds.has(row.candidate_packet_id)),
+    factory_candidate_negative_fixture_rows: candidateLane.factory_candidate_negative_fixture_rows,
+    validation_error_count: candidateLane.validation.errors.length,
+    boundary: candidateLane.factory_candidate_lane_boundary,
+    summary: candidateLane.summary,
+  };
+}
+
+function buildFactoryCandidateReviewDocketResponse(reviewDocket, url, generatedAt) {
+  const collection = buildCollectionResponse("factory_candidate_review_docket_rows", reviewDocket.factory_candidate_review_docket_rows, url, generatedAt, FACTORY_CANDIDATE_REVIEW_DOCKET_FILTER_KEYS);
+  const visibleDocketIds = new Set(collection.items.map((item) => item.review_docket_id));
+  const visiblePacketIds = new Set(collection.items.map((item) => item.candidate_packet_id));
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    review_decision_allowed_now: false,
+    approval_allowed_now: false,
+    apply_allowed_now: false,
+    source_file_write_allowed_now: false,
+    ledger_append_allowed_now: false,
+    persistent_ledger_append_allowed_now: false,
+    repo_write_allowed_now: false,
+    connector_write_allowed_now: false,
+    deployment_allowed_now: false,
+    protected_action_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    visible_review_docket_row_count: collection.count,
+    candidate_packet_count: reviewDocket.summary.candidate_packet_count,
+    review_docket_row_count: reviewDocket.summary.review_docket_row_count,
+    review_packet_row_count: reviewDocket.summary.review_packet_row_count,
+    review_hash_register_row_count: reviewDocket.summary.review_hash_register_row_count,
+    negative_fixture_count: reviewDocket.summary.negative_fixture_count,
+    source_candidate_lane: reviewDocket.source_candidate_lane,
+    factory_candidate_review_packet_rows: reviewDocket.factory_candidate_review_packet_rows.filter((row) => visibleDocketIds.has(row.review_docket_id)),
+    factory_candidate_review_hash_register_rows: reviewDocket.factory_candidate_review_hash_register_rows.filter((row) => visiblePacketIds.has(row.candidate_packet_id)),
+    factory_candidate_review_negative_fixture_rows: reviewDocket.factory_candidate_review_negative_fixture_rows,
+    validation_error_count: reviewDocket.validation.errors.length,
+    boundary: reviewDocket.factory_candidate_review_docket_boundary,
+    summary: reviewDocket.summary,
+  };
+}
+
+function buildFactoryGateOpeningReadinessResponse(gateReadiness, url, generatedAt) {
+  const collection = buildCollectionResponse("factory_gate_opening_readiness_rows", gateReadiness.factory_gate_opening_readiness_rows, url, generatedAt, FACTORY_GATE_OPENING_READINESS_FILTER_KEYS);
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    data_driven_gate_opening_allowed_now: false,
+    source_literal_authority_model: true,
+    gate_open_count: gateReadiness.summary.gate_open_count,
+    gate_evidence_complete_count: gateReadiness.summary.gate_evidence_complete_count,
+    g1a_source_evidence_complete_now: gateReadiness.summary.g1a_source_evidence_complete_now,
+    g1a_project_creation_gate_open_now: false,
+    g1b_repo_write_gate_open_now: false,
+    g2_command_execution_gate_open_now: false,
+    g3_deployment_gate_open_now: false,
+    project_creation_allowed_now: false,
+    repo_write_allowed_now: false,
+    command_execution_enabled: false,
+    deployment_allowed_now: false,
+    protected_action_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    factory_gate_opening_prerequisite_rows: gateReadiness.factory_gate_opening_prerequisite_rows,
+    factory_deferred_gate_rows: gateReadiness.factory_deferred_gate_rows,
+    factory_gate_opening_negative_fixture_rows: gateReadiness.factory_gate_opening_negative_fixture_rows,
+    validation_error_count: gateReadiness.validation.errors.length,
+    boundary: gateReadiness.factory_gate_opening_readiness_boundary,
+    summary: gateReadiness.summary,
+  };
+}
+
+function buildFactoryGSeriesAdvancementReadinessResponse(advancementReadiness, url, generatedAt) {
+  const items = buildFactoryGSeriesAdvancementReadinessItems(advancementReadiness);
+  const collection = buildCollectionResponse("factory_g_series_advancement_readiness_items", items, url, generatedAt, FACTORY_G_SERIES_ADVANCEMENT_READINESS_FILTER_KEYS);
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    data_driven_gate_opening_allowed_now: false,
+    source_literal_authority_model: true,
+    g_series_code_development_allowed_now: true,
+    g_series_runtime_authority_open_now: false,
+    human_owner_approval_skipped_for_development_now: true,
+    human_owner_approval_counted_as_closeout: false,
+    g1a_source_evidence_complete_now: advancementReadiness.summary.g1a_source_evidence_complete_now,
+    g1a_project_creation_gate_open_now: advancementReadiness.summary.g1a_project_creation_gate_open_now,
+    g1b_repo_write_gate_open_now: false,
+    g2_command_execution_gate_open_now: false,
+    g3_deployment_gate_open_now: false,
+    stage6_limited_execution_allowed_now: false,
+    stage7_release_candidate_allowed_now: false,
+    project_creation_allowed_now: false,
+    repo_write_allowed_now: false,
+    command_execution_enabled: false,
+    deployment_allowed_now: false,
+    protected_action_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    factory_g_series_gate_advancement_rows: advancementReadiness.factory_g_series_gate_advancement_rows,
+    factory_g_series_stage_advancement_rows: advancementReadiness.factory_g_series_stage_advancement_rows,
+    factory_g_series_advancement_negative_fixture_rows: advancementReadiness.factory_g_series_advancement_negative_fixture_rows,
+    validation_error_count: advancementReadiness.validation.errors.length,
+    boundary: advancementReadiness.factory_g_series_advancement_boundary,
+    summary: advancementReadiness.summary,
+  };
+}
+
+function buildFactoryGSeriesAdvancementReadinessItems(advancementReadiness) {
+  return [
+    ...advancementReadiness.factory_g_series_gate_advancement_rows.map((row) => ({
+      ...row,
+      row_kind: "gate_advancement",
+      stage_runtime_open_now: false,
+    })),
+    ...advancementReadiness.factory_g_series_stage_advancement_rows.map((row) => ({
+      ...row,
+      gate_id: row.required_gate_id,
+      gate_open_now: row.required_gate_open_now,
+      authority_flag: row.required_gate_id === "G2" ? "command_execution_enabled" : "deployment_allowed_now",
+      row_kind: "stage_advancement",
+    })),
+  ];
+}
+
+function buildFactoryGSeriesRuntimeGuardsResponse(runtimeGuards, url, generatedAt) {
+  const collection = buildCollectionResponse("factory_g_series_runtime_guard_rows", runtimeGuards.factory_g_series_runtime_guard_rows, url, generatedAt, FACTORY_G_SERIES_RUNTIME_GUARD_FILTER_KEYS);
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    simulated_only: true,
+    data_driven_gate_opening_allowed_now: false,
+    source_literal_authority_model: true,
+    g_series_code_development_allowed_now: runtimeGuards.summary.g_series_code_development_allowed_now,
+    g_series_runtime_authority_open_now: false,
+    human_owner_approval_skipped_for_development_now: true,
+    human_owner_approval_counted_as_closeout: false,
+    mutation_allowed_now: false,
+    command_spawn_allowed_now: false,
+    project_creation_allowed_now: false,
+    repo_write_allowed_now: false,
+    command_execution_enabled: false,
+    deployment_allowed_now: false,
+    protected_action_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    validation_error_count: runtimeGuards.validation.errors.length,
+    boundary: runtimeGuards.factory_g_series_runtime_guard_boundary,
+    summary: runtimeGuards.summary,
+  };
+}
+
+function buildFactoryStage67ExecutionReadinessResponse(executionReadiness, url, generatedAt) {
+  const items = buildFactoryStage67ExecutionReadinessItems(executionReadiness);
+  const collection = buildCollectionResponse("factory_stage6_7_execution_readiness_items", items, url, generatedAt, FACTORY_STAGE6_7_EXECUTION_READINESS_FILTER_KEYS);
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    stage6_7_contract_development_allowed_now: true,
+    stage6_7_runtime_authority_open_now: false,
+    human_owner_approval_skipped_for_development_now: true,
+    human_owner_approval_counted_as_closeout: false,
+    stage6_limited_execution_allowed_now: false,
+    stage7_release_candidate_allowed_now: false,
+    staging_deployment_allowed_now: false,
+    project_creation_allowed_now: false,
+    repo_write_allowed_now: false,
+    command_execution_enabled: false,
+    deployment_allowed_now: false,
+    protected_action_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    factory_stage6_execution_contract_rows: executionReadiness.factory_stage6_execution_contract_rows,
+    factory_stage7_release_candidate_contract_rows: executionReadiness.factory_stage7_release_candidate_contract_rows,
+    factory_stage6_7_closeout_rows: executionReadiness.factory_stage6_7_closeout_rows,
+    validation_error_count: executionReadiness.validation.errors.length,
+    boundary: executionReadiness.factory_stage6_7_execution_boundary,
+    summary: executionReadiness.summary,
+  };
+}
+
+function buildFactoryStage67ExecutionReadinessItems(executionReadiness) {
+  return [
+    ...executionReadiness.factory_stage6_execution_contract_rows.map((row) => ({
+      ...row,
+      row_kind: "stage6_contract",
+      release_candidate_allowed_now: false,
+      closeout_status: null,
+    })),
+    ...executionReadiness.factory_stage7_release_candidate_contract_rows.map((row) => ({
+      ...row,
+      row_kind: "stage7_contract",
+      runtime_execution_allowed_now: false,
+      closeout_status: null,
+    })),
+    ...executionReadiness.factory_stage6_7_closeout_rows.map((row) => ({
+      ...row,
+      row_kind: "stage6_7_closeout",
+      contract_id: row.closeout_id,
+      stage_id: row.closeout_id.startsWith("stage6.") ? "Stage6" : "Stage7",
+      contract_name: row.description,
+      contract_status: row.closeout_status,
+      required_gate_id: row.closeout_id.startsWith("stage6.") ? "G2" : "G3",
+      code_development_allowed_now: true,
+      runtime_execution_allowed_now: false,
+      release_candidate_allowed_now: false,
+    })),
+  ];
+}
+
+function buildFactoryG1aOpeningPacketResponse(openingPacket, url, generatedAt) {
+  const packetItems = buildFactoryG1aOpeningPacketItems(openingPacket);
+  const collection = buildCollectionResponse("factory_g1a_opening_packet_items", packetItems, url, generatedAt, FACTORY_G1A_OPENING_PACKET_FILTER_KEYS);
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    packet_only: true,
+    opens_gate_now: false,
+    g1a_opening_packet_can_open_gate_now: false,
+    g1a_project_creation_gate_open_now: false,
+    project_creation_allowed_now: false,
+    repo_write_allowed_now: false,
+    command_execution_enabled: false,
+    deployment_allowed_now: false,
+    protected_action_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    owner_gate_opening_receipt_template: openingPacket.owner_gate_opening_receipt_template,
+    source_literal_opening_commit_plan: openingPacket.source_literal_opening_commit_plan,
+    first_use_audit_checklist: openingPacket.first_use_audit_checklist,
+    independent_review_packet: openingPacket.independent_review_packet,
+    factory_g1a_opening_negative_fixture_rows: openingPacket.factory_g1a_opening_negative_fixture_rows,
+    validation_error_count: openingPacket.validation.errors.length,
+    boundary: openingPacket.factory_g1a_opening_packet_boundary,
+    summary: openingPacket.summary,
+  };
+}
+
+function buildFactoryG1aOpeningPacketItems(openingPacket) {
+  return [
+    {
+      packet_item_id: "g1a.owner_gate_opening_receipt_template",
+      item_kind: "owner_gate_opening_receipt_template",
+      item_status: openingPacket.owner_gate_opening_receipt_template.receipt_status,
+      gate_id: "G1a",
+      authority_flag: "project_creation_allowed_now",
+      item_sha256: openingPacket.owner_gate_opening_receipt_template.receipt_template_sha256,
+    },
+    {
+      packet_item_id: "g1a.source_literal_opening_commit_plan",
+      item_kind: "source_literal_opening_commit_plan",
+      item_status: openingPacket.source_literal_opening_commit_plan.plan_status,
+      gate_id: "G1a",
+      authority_flag: "project_creation_allowed_now",
+      item_sha256: openingPacket.source_literal_opening_commit_plan.plan_sha256,
+    },
+    {
+      packet_item_id: "g1a.independent_review_packet",
+      item_kind: "independent_review_packet",
+      item_status: openingPacket.independent_review_packet.review_status,
+      gate_id: "G1a",
+      authority_flag: "project_creation_allowed_now",
+      item_sha256: openingPacket.independent_review_packet.packet_sha256,
+    },
+    {
+      packet_item_id: "g1a.first_use_audit_checklist",
+      item_kind: "first_use_audit_checklist",
+      item_status: openingPacket.first_use_audit_checklist.checklist_status,
+      gate_id: "G1a",
+      authority_flag: "project_creation_allowed_now",
+      item_sha256: openingPacket.first_use_audit_checklist.checklist_sha256,
+    },
+  ];
+}
+
+function buildFactoryG1aOwnerReceiptIntakeResponse(ownerReceiptIntake, url, generatedAt) {
+  const collection = buildCollectionResponse("factory_g1a_owner_receipt_intake_rows", ownerReceiptIntake.owner_receipt_intake_rows, url, generatedAt, FACTORY_G1A_OWNER_RECEIPT_INTAKE_FILTER_KEYS);
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    intake_only: true,
+    opens_gate_now: false,
+    g1a_owner_receipt_intake_can_open_gate_now: false,
+    g1a_project_creation_gate_open_now: false,
+    project_creation_allowed_now: false,
+    repo_write_allowed_now: false,
+    command_execution_enabled: false,
+    deployment_allowed_now: false,
+    protected_action_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    owner_gate_opening_receipt_candidate: ownerReceiptIntake.owner_gate_opening_receipt_candidate,
+    validation_error_count: ownerReceiptIntake.validation.errors.length,
+    boundary: ownerReceiptIntake.factory_g1a_owner_receipt_intake_boundary,
+    summary: ownerReceiptIntake.summary,
+  };
+}
+
+function buildFactoryG1aSourceLiteralPreflightResponse(sourceLiteralPreflight, url, generatedAt) {
+  const collection = buildCollectionResponse("factory_g1a_source_literal_preflight_rows", sourceLiteralPreflight.source_literal_preflight_rows, url, generatedAt, FACTORY_G1A_SOURCE_LITERAL_PREFLIGHT_FILTER_KEYS);
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    preflight_only: true,
+    source_mutation_allowed_now: false,
+    source_literal_opening_commit_applied_now: sourceLiteralPreflight.summary.source_literal_opening_commit_applied_now,
+    opens_gate_now: false,
+    g1a_source_literal_preflight_can_open_gate_now: false,
+    g1a_project_creation_gate_open_now: false,
+    project_creation_allowed_now: false,
+    repo_write_allowed_now: false,
+    command_execution_enabled: false,
+    deployment_allowed_now: false,
+    protected_action_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    owner_receipt_sha256: sourceLiteralPreflight.owner_receipt_sha256,
+    proposed_source_literal_change: sourceLiteralPreflight.proposed_source_literal_change,
+    validation_error_count: sourceLiteralPreflight.validation.errors.length,
+    boundary: sourceLiteralPreflight.factory_g1a_source_literal_preflight_boundary,
+    summary: sourceLiteralPreflight.summary,
+  };
+}
+
+function buildFactoryG1aSourceLiteralCommitDraftResponse(sourceLiteralCommitDraft, url, generatedAt) {
+  const collection = buildCollectionResponse("factory_g1a_source_literal_commit_draft_rows", sourceLiteralCommitDraft.source_literal_commit_draft_rows, url, generatedAt, FACTORY_G1A_SOURCE_LITERAL_COMMIT_DRAFT_FILTER_KEYS);
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    commit_draft_only: true,
+    patch_available_now: sourceLiteralCommitDraft.summary.patch_available_now,
+    patch_applied_now: sourceLiteralCommitDraft.summary.patch_applied_now,
+    source_mutation_allowed_now: false,
+    source_literal_opening_commit_applied_now: sourceLiteralCommitDraft.summary.source_literal_opening_commit_applied_now,
+    opens_gate_now: false,
+    g1a_source_literal_commit_draft_can_open_gate_now: false,
+    g1a_project_creation_gate_open_now: false,
+    project_creation_allowed_now: false,
+    repo_write_allowed_now: false,
+    command_execution_enabled: false,
+    deployment_allowed_now: false,
+    protected_action_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    source_literal_commit_patch: sourceLiteralCommitDraft.source_literal_commit_patch,
+    verification_command_rows: sourceLiteralCommitDraft.verification_command_rows,
+    independent_review_packet: sourceLiteralCommitDraft.independent_review_packet,
+    validation_error_count: sourceLiteralCommitDraft.validation.errors.length,
+    boundary: sourceLiteralCommitDraft.factory_g1a_source_literal_commit_draft_boundary,
+    summary: sourceLiteralCommitDraft.summary,
+  };
+}
+
+function buildFactoryG1aOpeningCloseoutReadinessResponse(closeoutReadiness, url, generatedAt) {
+  const collection = buildCollectionResponse("factory_g1a_opening_closeout_chain_rows", closeoutReadiness.g1a_opening_closeout_chain_rows, url, generatedAt, FACTORY_G1A_OPENING_CLOSEOUT_READINESS_FILTER_KEYS);
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    closeout_readiness_only: true,
+    owner_adjudication_required: true,
+    g1a_source_evidence_complete_now: closeoutReadiness.summary.g1a_source_evidence_complete_now,
+    source_mutation_allowed_now: false,
+    source_literal_opening_commit_applied_by_this_command: false,
+    first_use_audit_claimed_by_this_command: false,
+    opens_gate_now: false,
+    g1a_project_creation_gate_open_now: false,
+    project_creation_allowed_now: false,
+    repo_write_allowed_now: false,
+    command_execution_enabled: false,
+    deployment_allowed_now: false,
+    protected_action_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    blocker_rows: closeoutReadiness.g1a_opening_closeout_blocker_rows,
+    validation_error_count: closeoutReadiness.validation.errors.length,
+    boundary: closeoutReadiness.factory_g1a_opening_closeout_readiness_boundary,
+    summary: closeoutReadiness.summary,
+  };
+}
+
+function buildFactoryG1aFirstUseAuditReadinessResponse(firstUseAuditReadiness, url, generatedAt) {
+  const collection = buildCollectionResponse("factory_g1a_first_use_audit_readiness_rows", firstUseAuditReadiness.g1a_first_use_audit_readiness_rows, url, generatedAt, FACTORY_G1A_FIRST_USE_AUDIT_READINESS_FILTER_KEYS);
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    first_use_audit_readiness_only: true,
+    source_mutation_allowed_now: false,
+    first_use_audit_source_binding_closed_now: firstUseAuditReadiness.summary.first_use_audit_already_bound,
+    first_use_audit_bound_by_this_command: false,
+    opens_gate_now: false,
+    g1a_project_creation_gate_open_now: false,
+    project_creation_allowed_now: false,
+    repo_write_allowed_now: false,
+    command_execution_enabled: false,
+    deployment_allowed_now: false,
+    protected_action_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    audit_candidate_sha256: firstUseAuditReadiness.audit_candidate_sha256,
+    proposed_first_use_audit_source_binding: firstUseAuditReadiness.proposed_first_use_audit_source_binding,
+    blocker_rows: firstUseAuditReadiness.g1a_first_use_audit_blocker_rows,
+    validation_error_count: firstUseAuditReadiness.validation.errors.length,
+    boundary: firstUseAuditReadiness.factory_g1a_first_use_audit_readiness_boundary,
+    summary: firstUseAuditReadiness.summary,
+  };
+}
+
+function buildFactoryG1aOwnerSigningHandoffResponse(ownerSigningHandoff, url, generatedAt) {
+  const collection = buildCollectionResponse("factory_g1a_owner_signing_handoff_rows", ownerSigningHandoff.g1a_owner_signing_handoff_rows, url, generatedAt, FACTORY_G1A_OWNER_SIGNING_HANDOFF_FILTER_KEYS);
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    handoff_only: true,
+    owner_completion_required: true,
+    signs_owner_receipt_now: false,
+    source_mutation_allowed_now: false,
+    source_literal_opening_commit_applied_now: false,
+    first_use_audit_present: false,
+    opens_gate_now: false,
+    g1a_project_creation_gate_open_now: false,
+    project_creation_allowed_now: false,
+    repo_write_allowed_now: false,
+    command_execution_enabled: false,
+    deployment_allowed_now: false,
+    protected_action_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    signable_owner_receipt_draft: ownerSigningHandoff.signable_owner_receipt_draft,
+    owner_completion_checklist: ownerSigningHandoff.owner_completion_checklist,
+    owner_signing_work_order: ownerSigningHandoff.owner_signing_work_order,
+    independent_review_packet: ownerSigningHandoff.independent_review_packet,
+    validation_error_count: ownerSigningHandoff.validation.errors.length,
+    boundary: ownerSigningHandoff.factory_g1a_owner_signing_handoff_boundary,
+    summary: ownerSigningHandoff.summary,
+  };
+}
+
+function buildFactoryG1aOwnerCandidateSelectionDocketResponse(candidateSelectionDocket, url, generatedAt) {
+  const collection = buildCollectionResponse("factory_g1a_owner_candidate_selection_rows", candidateSelectionDocket.g1a_owner_candidate_selection_rows, url, generatedAt, FACTORY_G1A_OWNER_CANDIDATE_SELECTION_DOCKET_FILTER_KEYS);
+  const visibleSelectionIds = new Set(collection.items.map((item) => item.selection_row_id));
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    docket_only: true,
+    owner_selection_required: candidateSelectionDocket.summary.owner_selection_required_now,
+    selected_candidate_now: candidateSelectionDocket.summary.selected_candidate_now,
+    candidate_hash_bound_now: candidateSelectionDocket.summary.candidate_hash_bound_now,
+    signs_owner_receipt_now: false,
+    source_mutation_allowed_now: false,
+    source_literal_opening_commit_applied_now: false,
+    first_use_audit_present: false,
+    opens_gate_now: false,
+    g1a_project_creation_gate_open_now: false,
+    project_creation_allowed_now: false,
+    repo_write_allowed_now: false,
+    command_execution_enabled: false,
+    deployment_allowed_now: false,
+    protected_action_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    eligible_candidate_count: candidateSelectionDocket.summary.eligible_candidate_count,
+    selection_row_count: candidateSelectionDocket.summary.selection_row_count,
+    prebind_command_count: candidateSelectionDocket.summary.prebind_command_count,
+    owner_prebind_command_rows: candidateSelectionDocket.owner_prebind_command_rows.filter((row) => visibleSelectionIds.has(row.selection_row_id)),
+    selection_policy: candidateSelectionDocket.selection_policy,
+    source_chain_rows: candidateSelectionDocket.source_chain_rows,
+    owner_signing_handoff_preview: candidateSelectionDocket.owner_signing_handoff_preview,
+    independent_review_packet: candidateSelectionDocket.independent_review_packet,
+    validation_error_count: candidateSelectionDocket.validation.errors.length,
+    boundary: candidateSelectionDocket.factory_g1a_owner_candidate_selection_docket_boundary,
+    summary: candidateSelectionDocket.summary,
+  };
+}
+
+function buildFactoryG1aOwnerActionPacketResponse(ownerActionPacket, url, generatedAt) {
+  const collection = buildCollectionResponse("factory_g1a_owner_action_rows", ownerActionPacket.owner_action_rows, url, generatedAt, FACTORY_G1A_OWNER_ACTION_PACKET_FILTER_KEYS);
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    action_packet_only: true,
+    owner_completion_required: true,
+    signs_owner_receipt_now: false,
+    source_mutation_allowed_now: false,
+    source_literal_opening_commit_applied_now: false,
+    first_use_audit_present: false,
+    opens_gate_now: false,
+    g1a_project_creation_gate_open_now: false,
+    project_creation_allowed_now: false,
+    repo_write_allowed_now: false,
+    command_execution_enabled: false,
+    deployment_allowed_now: false,
+    protected_action_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    owner_candidate_action_cards: ownerActionPacket.owner_candidate_action_cards,
+    owner_work_order: ownerActionPacket.owner_work_order,
+    source_summaries: ownerActionPacket.source_summaries,
+    validation_error_count: ownerActionPacket.validation.errors.length,
+    boundary: ownerActionPacket.factory_g1a_owner_action_packet_boundary,
+    summary: ownerActionPacket.summary,
+  };
+}
+
+function buildFactoryPromotionCloseoutReadinessResponse(promotionCloseoutReadiness, url, generatedAt) {
+  const collection = buildCollectionResponse("factory_promotion_closeout_readiness_rows", promotionCloseoutReadiness.factory_promotion_closeout_readiness_rows, url, generatedAt, FACTORY_PROMOTION_CLOSEOUT_READINESS_FILTER_KEYS);
+  return {
+    ...collection,
+    read_only: true,
+    method_allowlist: ["GET", "HEAD"],
+    mutation_allowed: false,
+    raw_confidential_material_visible: false,
+    closeout_readiness_only: true,
+    human_owner_protected_closeout_required: true,
+    independent_reviewer_final_approval_allowed_now: false,
+    source_mutation_allowed_now: false,
+    source_literal_opening_commit_applied_now: false,
+    first_use_audit_claimed_by_this_command: false,
+    opens_gate_now: false,
+    fcore_closeout_chain_ready: promotionCloseoutReadiness.summary.fcore_closeout_chain_ready,
+    g1a_owner_gate_opening_chain_ready: promotionCloseoutReadiness.summary.g1a_owner_gate_opening_chain_ready,
+    ready_for_human_owner_protected_closeout: promotionCloseoutReadiness.summary.ready_for_human_owner_protected_closeout,
+    factory_promotion_goal_complete_allowed_now: false,
+    g1a_project_creation_gate_open_now: false,
+    project_creation_allowed_now: false,
+    repo_write_allowed_now: false,
+    command_execution_enabled: false,
+    deployment_allowed_now: false,
+    protected_action_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    blocker_rows: promotionCloseoutReadiness.factory_promotion_closeout_blocker_rows,
+    source_state: promotionCloseoutReadiness.factory_promotion_closeout_source_state,
+    validation_error_count: promotionCloseoutReadiness.validation.errors.length,
+    boundary: promotionCloseoutReadiness.factory_promotion_closeout_readiness_boundary,
+    summary: promotionCloseoutReadiness.summary,
+  };
+}
+
+function sanitizeFactoryStarterArtifactRowsForApi(rows = []) {
+  return rows.map(({ resolved_path: _resolvedPath, ...row }) => ({
+    ...row,
+    resolved_path_visible: false,
+  }));
+}
+
+function sanitizeFactoryAuthorityFlags(authorityFlags = {}) {
+  return Object.fromEntries(
+    FACTORY_PRODUCT_AUTHORITY_FLAG_KEYS
+      .filter((key) => Object.prototype.hasOwnProperty.call(authorityFlags, key))
+      .map((key) => [key, authorityFlags[key]]),
+  );
+}
+
+function buildCollectionResponse(collection, rawItems, url, generatedAt, extraFilterKeys = []) {
+  const filteredItems = filterItems(rawItems, url.searchParams, extraFilterKeys);
   const limitedItems = limitItems(filteredItems, url.searchParams);
   return {
     schema_version: "review-api-collection.v1",
@@ -15058,9 +16332,10 @@ function buildCollectionResponse(collection, rawItems, url, generatedAt) {
   };
 }
 
-function filterItems(items, searchParams) {
+function filterItems(items, searchParams, extraFilterKeys = []) {
   const filterKeys = [
     "status",
+    ...extraFilterKeys,
     "evidence_item_store_status",
     "resource_dedup_hash_status",
     "resource_quarantine_status",
@@ -18481,6 +19756,10 @@ function jsonResponse(status, value, method = "GET") {
   };
 }
 
+function methodNotAllowedResponse(method = "GET") {
+  return jsonResponse(405, buildError("method_not_allowed", "Review API is read-only."), method);
+}
+
 function buildError(code, message) {
   return {
     schema_version: "review-api-error.v1",
@@ -18502,6 +19781,10 @@ function normalizePath(pathname) {
   return pathname.endsWith("/") && pathname !== "/" ? pathname.slice(0, -1) : pathname;
 }
 
+function isReviewApiReadOnlyMethod(method) {
+  return REVIEW_API_READ_ONLY_METHODS.includes(method);
+}
+
 function resolveDashboardPath(options) {
   return path.resolve(options.dashboardPath ?? DEFAULT_REVIEW_API_DASHBOARD_PATH);
 }
@@ -18514,6 +19797,14 @@ function resolveSummaryPath(options) {
   return path.resolve(options.summaryPath ?? DEFAULT_REVIEW_API_SUMMARY_PATH);
 }
 
+function resolveFactoryLedgerDir(options) {
+  return path.resolve(options.factoryLedgerDir ?? DEFAULT_REVIEW_API_FACTORY_LEDGER_DIR);
+}
+
+function resolveFactorySeedDir(options) {
+  return path.resolve(options.factorySeedDir ?? DEFAULT_REVIEW_API_FACTORY_SEED_DIR);
+}
+
 function parseArgs(argv) {
   const parsed = {
     host: DEFAULT_REVIEW_API_HOST,
@@ -18521,6 +19812,8 @@ function parseArgs(argv) {
     dashboardPath: DEFAULT_REVIEW_API_DASHBOARD_PATH,
     indexPath: DEFAULT_REVIEW_API_INDEX_PATH,
     summaryPath: DEFAULT_REVIEW_API_SUMMARY_PATH,
+    factoryLedgerDir: DEFAULT_REVIEW_API_FACTORY_LEDGER_DIR,
+    factorySeedDir: DEFAULT_REVIEW_API_FACTORY_SEED_DIR,
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -18532,6 +19825,8 @@ function parseArgs(argv) {
     else if (arg === "--index") parsed.indexPath = argv[++index];
     else if (arg === "--summary") parsed.summaryPath = argv[++index];
     else if (arg === "--platform-operations-freeze") parsed.platformOperationsFreezePath = argv[++index];
+    else if (arg === "--factory-ledger-dir") parsed.factoryLedgerDir = argv[++index];
+    else if (arg === "--factory-seed-dir") parsed.factorySeedDir = argv[++index];
     else if (arg === "--run-at") parsed.runAt = argv[++index];
     else if (arg === "--once") parsed.once = argv[++index];
     else throw new Error(`Unknown argument: ${arg}`);
@@ -18551,6 +19846,10 @@ Options:
   --summary <path>       Static dashboard summary.md path.
   --platform-operations-freeze <path>
                          Platform operations freeze artifact path.
+  --factory-ledger-dir <path>
+                         Factory operational ledger directory.
+  --factory-seed-dir <path>
+                         Factory tracked seed directory.
   --once <route>         Render one route and exit instead of starting a server.
   --run-at <iso>         Deterministic generated_at timestamp for API wrappers.
   -h, --help             Show this help.

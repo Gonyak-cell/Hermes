@@ -31,7 +31,7 @@ function usage() {
   node scripts/resource-audit.mjs [--root <folder>] [--out <folder>]
 
 Defaults:
-  --root /Users/jws/Library/CloudStorage/OneDrive-개인/02_Template
+  --root $HERMES_RESOURCE_AUDIT_ROOT or .local/resource-audit-root
   --out  ${DEFAULT_OUT_DIR}
 `;
 }

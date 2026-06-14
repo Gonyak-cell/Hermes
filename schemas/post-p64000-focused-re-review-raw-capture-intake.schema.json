@@ -1,0 +1,236 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/post-p64000-focused-re-review-raw-capture-intake.schema.json",
+  "title": "Post-P64000 Focused Re-Review Raw Capture Intake",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "reviewed_program_range",
+    "review_source_program_range",
+    "next_program_range",
+    "post_p64000_focused_re_review_raw_capture_intake_contract",
+    "p71600_dispatch_gate_source_rows",
+    "focused_re_review_raw_intake_rows",
+    "missing_evidence_block_rows",
+    "invalid_evidence_block_rows",
+    "raw_review_output_shape_rows",
+    "failure_mode_block_rows",
+    "authority_boundary_rows",
+    "negative_fixture_contract_rows",
+    "validation_command_rows",
+    "p72000_wiring_rows",
+    "p72000_closeout_rows",
+    "p72001_handoff_rows",
+    "raw_capture_state",
+    "post_p64000_focused_re_review_raw_capture_intake_boundary",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "post-p64000-focused-re-review-raw-capture-intake.v1" },
+    "capability_id": { "const": "platform.post_p64000_focused_re_review_raw_capture_intake" },
+    "program_range": { "const": "P71601-P72000" },
+    "source_program_range": { "const": "P71201-P71600" },
+    "reviewed_program_range": { "const": "P70801-P71200" },
+    "review_source_program_range": { "const": "P70401-P70800" },
+    "next_program_range": { "const": "P72001-P72400" },
+    "post_p64000_focused_re_review_raw_capture_intake_contract": {
+      "type": "object",
+      "required": [
+        "missing_or_invalid_raw_is_block_not_evidence",
+        "raw_capture_requires_later_normalization",
+        "review_evidence_counted",
+        "reviewer_mutation_allowed",
+        "source_mutation_allowed",
+        "finding_resolution_allowed",
+        "patch_apply_allowed",
+        "write_action_allowed",
+        "clean_checkpoint_allowed",
+        "protected_closeout_allowed",
+        "production_pass_allowed",
+        "enterprise_pass_allowed",
+        "final_approval_allowed"
+      ],
+      "properties": {
+        "missing_or_invalid_raw_is_block_not_evidence": { "const": true },
+        "raw_capture_requires_later_normalization": { "const": true },
+        "review_evidence_counted": { "const": false },
+        "reviewer_mutation_allowed": { "const": false },
+        "source_mutation_allowed": { "const": false },
+        "finding_resolution_allowed": { "const": false },
+        "patch_apply_allowed": { "const": false },
+        "write_action_allowed": { "const": false },
+        "clean_checkpoint_allowed": { "const": false },
+        "protected_closeout_allowed": { "const": false },
+        "production_pass_allowed": { "const": false },
+        "enterprise_pass_allowed": { "const": false },
+        "final_approval_allowed": { "const": false }
+      }
+    },
+    "p71600_dispatch_gate_source_rows": { "$ref": "#/$defs/rows" },
+    "focused_re_review_raw_intake_rows": { "$ref": "#/$defs/rows" },
+    "missing_evidence_block_rows": { "$ref": "#/$defs/rows" },
+    "invalid_evidence_block_rows": { "$ref": "#/$defs/rows" },
+    "raw_review_output_shape_rows": { "$ref": "#/$defs/rows" },
+    "failure_mode_block_rows": { "$ref": "#/$defs/rows" },
+    "authority_boundary_rows": { "$ref": "#/$defs/rows" },
+    "negative_fixture_contract_rows": { "$ref": "#/$defs/rows" },
+    "validation_command_rows": { "$ref": "#/$defs/rows" },
+    "p72000_wiring_rows": { "$ref": "#/$defs/rows" },
+    "p72000_closeout_rows": { "$ref": "#/$defs/rows" },
+    "p72001_handoff_rows": { "$ref": "#/$defs/rows" },
+    "raw_capture_state": {
+      "type": "object",
+      "required": ["classified", "state", "valid", "missing", "invalid", "raw_sha256"],
+      "properties": {
+        "classified": { "const": true },
+        "state": {
+          "enum": [
+            "valid_raw_capture_candidate",
+            "missing_evidence_block",
+            "invalid_evidence_block"
+          ]
+        },
+        "valid": { "type": "boolean" },
+        "missing": { "type": "boolean" },
+        "invalid": { "type": "boolean" },
+        "raw_sha256": { "type": "string" }
+      }
+    },
+    "post_p64000_focused_re_review_raw_capture_intake_boundary": {
+      "type": "object",
+      "required": [
+        "p71600_dispatch_gate_source_ready_now",
+        "raw_review_available_now",
+        "durable_raw_json_captured_now",
+        "missing_evidence_block_now",
+        "invalid_evidence_block_now",
+        "focused_re_review_event_candidate_now",
+        "review_evidence_counted_now",
+        "raw_review_counted_as_evidence_now",
+        "ready_for_p72001_handoff",
+        "clean_checkpoint_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "final_approval_enabled",
+        "runtime_execution_allowed_now",
+        "write_action_allowed_now",
+        "connector_write_allowed_now",
+        "protected_closeout_allowed_now",
+        "deployment_allowed_now",
+        "production_pass_allowed_now",
+        "enterprise_pass_allowed_now",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "final_automated_approval_allowed_now"
+      ],
+      "properties": {
+        "p71600_dispatch_gate_source_ready_now": { "type": "boolean" },
+        "raw_review_available_now": { "type": "boolean" },
+        "durable_raw_json_captured_now": { "type": "boolean" },
+        "missing_evidence_block_now": { "type": "boolean" },
+        "invalid_evidence_block_now": { "type": "boolean" },
+        "focused_re_review_event_candidate_now": { "type": "boolean" },
+        "review_evidence_counted_now": { "const": false },
+        "raw_review_counted_as_evidence_now": { "const": false },
+        "ready_for_p72001_handoff": { "type": "boolean" },
+        "clean_checkpoint_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "final_approval_enabled": { "const": false },
+        "runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "protected_closeout_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "production_pass_allowed_now": { "const": false },
+        "enterprise_pass_allowed_now": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "final_automated_approval_allowed_now": { "const": false }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "post_p64000_focused_re_review_raw_capture_intake_status",
+        "program_range",
+        "source_program_range",
+        "next_program_range",
+        "p71600_dispatch_gate_source_ready_now",
+        "raw_review_available_now",
+        "durable_raw_json_captured_now",
+        "missing_evidence_block_now",
+        "invalid_evidence_block_now",
+        "focused_re_review_event_candidate_now",
+        "review_evidence_counted_now",
+        "ready_for_p72001_handoff",
+        "clean_checkpoint_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "final_approval_enabled",
+        "validation_error_count"
+      ],
+      "properties": {
+        "post_p64000_focused_re_review_raw_capture_intake_status": {
+          "enum": [
+            "focused_re_review_raw_capture_ready_for_p72001",
+            "focused_re_review_raw_capture_missing_evidence_block_ready_for_p72001",
+            "focused_re_review_raw_capture_invalid_evidence_block_ready_for_p72001",
+            "blocked_post_p64000_focused_re_review_raw_capture_intake"
+          ]
+        },
+        "program_range": { "const": "P71601-P72000" },
+        "source_program_range": { "const": "P71201-P71600" },
+        "next_program_range": { "const": "P72001-P72400" },
+        "p71600_dispatch_gate_source_ready_now": { "type": "boolean" },
+        "raw_review_available_now": { "type": "boolean" },
+        "durable_raw_json_captured_now": { "type": "boolean" },
+        "missing_evidence_block_now": { "type": "boolean" },
+        "invalid_evidence_block_now": { "type": "boolean" },
+        "focused_re_review_event_candidate_now": { "type": "boolean" },
+        "review_evidence_counted_now": { "const": false },
+        "ready_for_p72001_handoff": { "type": "boolean" },
+        "clean_checkpoint_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "final_approval_enabled": { "const": false },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "rows": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/row" }
+    },
+    "row": {
+      "type": "object",
+      "required": ["row_id", "category", "label", "observed", "current_verdict", "generated_at"],
+      "properties": {
+        "row_id": { "type": "string", "minLength": 1 },
+        "category": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "observed": { "type": "boolean" },
+        "current_verdict": { "enum": ["pass", "block"] },
+        "evidence_ref": { "type": ["string", "null"] },
+        "output_ref": { "type": ["string", "null"] },
+        "block_reason": { "type": ["string", "null"] },
+        "next_allowed_action": { "type": ["string", "null"] },
+        "generated_at": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

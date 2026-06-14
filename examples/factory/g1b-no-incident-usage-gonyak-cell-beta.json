@@ -1,0 +1,35 @@
+{
+  "schema_version": "factory-g1b-no-incident-usage-ledger.v1",
+  "ledger_id": "G1B-NO-INCIDENT-USAGE-GONYAK-CELL-20260612-BETA",
+  "gate_id": "G1b",
+  "source_literal_opening_commit_sha": "3a42cb07f6cf618db7710d50e1182bbffcda227c",
+  "usage_rows": [
+    {
+      "usage_id": "G1B-USAGE-GONYAK-CELL-BETA-001",
+      "action_kind": "worktree_scoped_patch_apply",
+      "result": "success",
+      "incident_detected": false,
+      "protected_paths_touched": []
+    },
+    {
+      "usage_id": "G1B-USAGE-GONYAK-CELL-BETA-002",
+      "action_kind": "worktree_scoped_patch_apply",
+      "result": "success",
+      "incident_detected": false,
+      "protected_paths_touched": []
+    },
+    {
+      "usage_id": "G1B-USAGE-GONYAK-CELL-BETA-003",
+      "action_kind": "worktree_scoped_patch_apply",
+      "result": "success",
+      "incident_detected": false,
+      "protected_paths_touched": []
+    }
+  ],
+  "no_incident_usage_count": 3,
+  "repo_write_allowed_now": false,
+  "command_execution_enabled": false,
+  "deployment_allowed_now": false,
+  "production_pass_enabled": false,
+  "enterprise_pass_enabled": false
+}

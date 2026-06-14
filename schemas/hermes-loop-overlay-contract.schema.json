@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/hermes-loop-overlay-contract.schema.json",
+  "title": "Hermes Loop System v1.1 Overlay Contract",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "next_program_range",
+    "source_refs",
+    "hermes_loop_overlay_contract",
+    "p60400_source_binding_rows",
+    "loop_definition_schema_rows",
+    "loop_run_schema_rows",
+    "loop_dag_schema_rows",
+    "existing_mapping_projection_rows",
+    "state_mapping_projection_rows",
+    "authority_boundary_carryover_rows",
+    "negative_fixture_contract_rows",
+    "validation_command_rows",
+    "hermes_loop_overlay_wiring_rows",
+    "p60800_closeout_rows",
+    "p60801_next_phase_handoff_rows",
+    "hermes_loop_overlay_boundary",
+    "hermes_loop_overlay_validation_items",
+    "summary",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "hermes-loop-overlay-contract.v1" },
+    "capability_id": { "const": "platform.hermes_loop_system_v1_1_overlay_contract" },
+    "program_range": { "const": "P60401-P60800" },
+    "source_program_range": { "const": "P60001-P60400" },
+    "next_program_range": { "const": "P60801-P61200" },
+    "p60400_source_binding_rows": { "type": "array", "minItems": 5, "items": { "$ref": "#/$defs/verdictRow" } },
+    "loop_definition_schema_rows": { "type": "array", "minItems": 25, "items": { "$ref": "#/$defs/verdictRow" } },
+    "loop_run_schema_rows": { "type": "array", "minItems": 23, "items": { "$ref": "#/$defs/verdictRow" } },
+    "loop_dag_schema_rows": { "type": "array", "minItems": 17, "items": { "$ref": "#/$defs/verdictRow" } },
+    "existing_mapping_projection_rows": { "type": "array", "minItems": 17, "items": { "$ref": "#/$defs/verdictRow" } },
+    "state_mapping_projection_rows": { "type": "array", "minItems": 13, "items": { "$ref": "#/$defs/verdictRow" } },
+    "authority_boundary_carryover_rows": { "type": "array", "minItems": 21, "items": { "$ref": "#/$defs/verdictRow" } },
+    "negative_fixture_contract_rows": { "type": "array", "minItems": 11, "items": { "$ref": "#/$defs/verdictRow" } },
+    "validation_command_rows": { "type": "array", "minItems": 6, "items": { "$ref": "#/$defs/verdictRow" } },
+    "p60800_closeout_rows": { "type": "array", "minItems": 10, "items": { "$ref": "#/$defs/verdictRow" } },
+    "p60801_next_phase_handoff_rows": { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/verdictRow" } },
+    "hermes_loop_overlay_boundary": {
+      "type": "object",
+      "required": [
+        "p60800_contract_ready",
+        "p60400_source_ready_now",
+        "loop_definition_schema_rows_ready_now",
+        "loop_run_schema_rows_ready_now",
+        "loop_dag_schema_rows_ready_now",
+        "authority_boundary_carryover_closed_now",
+        "ready_for_p60801_handoff",
+        "runtime_execution_allowed_now",
+        "command_execution_allowed_now",
+        "write_action_allowed_now",
+        "connector_write_allowed_now",
+        "protected_action_allowed_now",
+        "deployment_allowed_now",
+        "production_pass_allowed_now",
+        "enterprise_pass_allowed_now",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "final_automated_approval_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "final_approval_enabled"
+      ],
+      "properties": {
+        "p60800_contract_ready": { "type": "boolean" },
+        "p60400_source_ready_now": { "type": "boolean" },
+        "loop_definition_schema_rows_ready_now": { "type": "boolean" },
+        "loop_run_schema_rows_ready_now": { "type": "boolean" },
+        "loop_dag_schema_rows_ready_now": { "type": "boolean" },
+        "authority_boundary_carryover_closed_now": { "type": "boolean" },
+        "ready_for_p60801_handoff": { "type": "boolean" },
+        "runtime_execution_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "production_pass_allowed_now": { "const": false },
+        "enterprise_pass_allowed_now": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "final_automated_approval_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "final_approval_enabled": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "hermes_loop_overlay_status",
+        "program_range",
+        "source_program_range",
+        "next_program_range",
+        "p60400_source_ready_now",
+        "p60800_contract_ready",
+        "ready_for_p60801_handoff",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "final_approval_enabled"
+      ],
+      "properties": {
+        "hermes_loop_overlay_status": {
+          "enum": [
+            "ready_for_p60801_handoff",
+            "valid_block_p60801_handoff_pending",
+            "blocked_hermes_loop_overlay_contract"
+          ]
+        },
+        "program_range": { "const": "P60401-P60800" },
+        "source_program_range": { "const": "P60001-P60400" },
+        "next_program_range": { "const": "P60801-P61200" },
+        "p60400_source_ready_now": { "type": "boolean" },
+        "p60800_contract_ready": { "type": "boolean" },
+        "ready_for_p60801_handoff": { "type": "boolean" },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "final_approval_enabled": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "number" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "verdictRow": {
+      "type": "object",
+      "required": [
+        "row_id",
+        "category",
+        "label",
+        "observed",
+        "current_verdict",
+        "evidence_ref",
+        "block_reason",
+        "next_allowed_action",
+        "generated_at"
+      ],
+      "properties": {
+        "row_id": { "type": "string" },
+        "category": { "type": "string" },
+        "label": { "type": "string" },
+        "observed": { "type": "boolean" },
+        "current_verdict": { "enum": ["pass", "block"] },
+        "evidence_ref": { "type": ["string", "null"] },
+        "block_reason": { "type": ["string", "null"] },
+        "next_allowed_action": { "type": "string" },
+        "generated_at": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

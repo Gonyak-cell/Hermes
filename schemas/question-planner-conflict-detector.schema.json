@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/question-planner-conflict-detector.schema.json",
+  "title": "Hermes Question Planner Conflict Detector",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "question_planner_conflict_detector_phase_rows",
+    "p31600_source_binding_rows",
+    "question_planner_rows",
+    "question_conflict_detector_rows",
+    "clarification_bundle_rows",
+    "question_priority_policy_rows",
+    "no_auto_question_boundary_rows",
+    "p32000_clean_checkpoint_rows",
+    "question_planner_conflict_detector_boundary",
+    "question_planner_conflict_detector_validation_items",
+    "summary",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "question-planner-conflict-detector.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "capability_id": { "const": "platform.question_planner_conflict_detector" },
+    "program_range": { "const": "P31601-P32000" },
+    "source_program_range": { "const": "P31201-P31600" },
+    "question_planner_conflict_detector_phase_rows": { "type": "array", "minItems": 7, "items": { "$ref": "#/$defs/verdictRow" } },
+    "p31600_source_binding_rows": { "type": "array", "minItems": 14, "items": { "$ref": "#/$defs/verdictRow" } },
+    "question_planner_rows": { "type": "array", "minItems": 3, "items": { "$ref": "#/$defs/verdictRow" } },
+    "question_conflict_detector_rows": { "type": "array", "minItems": 3, "items": { "$ref": "#/$defs/verdictRow" } },
+    "clarification_bundle_rows": { "type": "array", "minItems": 3, "items": { "$ref": "#/$defs/verdictRow" } },
+    "question_priority_policy_rows": { "type": "array", "minItems": 3, "items": { "$ref": "#/$defs/verdictRow" } },
+    "no_auto_question_boundary_rows": { "type": "array", "minItems": 300, "items": { "$ref": "#/$defs/verdictRow" } },
+    "p32000_clean_checkpoint_rows": { "type": "array", "minItems": 8, "items": { "$ref": "#/$defs/verdictRow" } },
+    "question_planner_conflict_detector_validation_items": { "type": "array", "minItems": 15, "items": { "$ref": "#/$defs/validationItem" } },
+    "summary": {
+      "type": "object",
+      "required": [
+        "question_planner_conflict_detector_status",
+        "source_p31600_ready_for_question_planner",
+        "question_candidate_count",
+        "conflict_detector_count",
+        "clarification_bundle_count",
+        "high_priority_question_count",
+        "ready_for_answer_capture_state_machine",
+        "question_planner_auto_question_send_allowed_now",
+        "question_planner_answer_capture_allowed_now",
+        "question_planner_seed_synthesis_allowed_now",
+        "question_planner_runtime_execution_allowed_now",
+        "question_planner_write_action_allowed_now",
+        "question_planner_protected_action_allowed_now",
+        "question_planner_final_approval_allowed_now",
+        "question_planner_production_pass_allowed_now",
+        "production_pass_enabled"
+      ],
+      "properties": {
+        "question_planner_conflict_detector_status": {
+          "enum": [
+            "ready_for_question_planner_conflict_detector",
+            "valid_block_question_planner_conflict_detector_pending",
+            "blocked_question_planner_conflict_detector"
+          ]
+        },
+        "source_p31600_ready_for_question_planner": { "type": "boolean" },
+        "question_candidate_count": { "type": "number" },
+        "conflict_detector_count": { "type": "number" },
+        "conflict_present_count": { "type": "number" },
+        "clarification_bundle_count": { "type": "number" },
+        "high_priority_question_count": { "type": "number" },
+        "ready_for_answer_capture_state_machine": { "type": "boolean" },
+        "question_planner_auto_question_send_allowed_now": { "const": false },
+        "question_planner_answer_capture_allowed_now": { "const": false },
+        "question_planner_seed_synthesis_allowed_now": { "const": false },
+        "question_planner_runtime_execution_allowed_now": { "const": false },
+        "question_planner_write_action_allowed_now": { "const": false },
+        "question_planner_protected_action_allowed_now": { "const": false },
+        "question_planner_final_approval_allowed_now": { "const": false },
+        "question_planner_production_pass_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_trust_claim_allowed_now": { "const": false },
+        "validation_error_count": { "type": "number" }
+      }
+    },
+    "question_planner_conflict_detector_boundary": {
+      "type": "object",
+      "required": [
+        "p32000_contract_ready",
+        "ready_for_answer_capture_state_machine",
+        "source_p31600_ready_for_question_planner",
+        "question_planner_visible_now",
+        "question_conflict_detector_visible_now",
+        "clarification_bundle_visible_now",
+        "question_priority_policy_visible_now",
+        "no_auto_question_boundary_closed_now",
+        "question_candidate_count",
+        "question_planner_auto_question_send_allowed_now",
+        "question_planner_answer_capture_allowed_now",
+        "question_planner_seed_synthesis_allowed_now",
+        "question_planner_runtime_execution_allowed_now",
+        "question_planner_write_action_allowed_now",
+        "question_planner_protected_action_allowed_now",
+        "question_planner_final_approval_allowed_now",
+        "question_planner_production_pass_allowed_now"
+      ],
+      "properties": {
+        "p32000_contract_ready": { "type": "boolean" },
+        "ready_for_answer_capture_state_machine": { "type": "boolean" },
+        "source_p31600_ready_for_question_planner": { "type": "boolean" },
+        "source_validation_valid_now": { "type": "boolean" },
+        "question_planner_visible_now": { "type": "boolean" },
+        "question_conflict_detector_visible_now": { "type": "boolean" },
+        "clarification_bundle_visible_now": { "type": "boolean" },
+        "question_priority_policy_visible_now": { "type": "boolean" },
+        "no_auto_question_boundary_closed_now": { "type": "boolean" },
+        "question_candidate_count": { "type": "number" },
+        "conflict_detector_count": { "type": "number" },
+        "conflict_present_count": { "type": "number" },
+        "clarification_bundle_count": { "type": "number" },
+        "high_priority_question_count": { "type": "number" },
+        "question_planner_auto_question_send_allowed_now": { "const": false },
+        "question_planner_answer_capture_allowed_now": { "const": false },
+        "question_planner_seed_synthesis_allowed_now": { "const": false },
+        "question_planner_seed_auto_apply_allowed_now": { "const": false },
+        "question_planner_runtime_execution_allowed_now": { "const": false },
+        "question_planner_write_action_allowed_now": { "const": false },
+        "question_planner_protected_action_allowed_now": { "const": false },
+        "question_planner_connector_write_allowed_now": { "const": false },
+        "question_planner_deployment_allowed_now": { "const": false },
+        "question_planner_review_completion_allowed_now": { "const": false },
+        "question_planner_final_approval_allowed_now": { "const": false },
+        "question_planner_production_pass_allowed_now": { "const": false },
+        "question_planner_enterprise_trust_claim_allowed_now": { "const": false },
+        "question_planner_raw_prompt_exposure_allowed_now": { "const": false },
+        "question_planner_secret_read_allowed_now": { "const": false },
+        "question_planner_human_gate_bypass_allowed_now": { "const": false },
+        "question_planner_independent_review_bypass_allowed_now": { "const": false },
+        "question_planner_final_automated_approval_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_trust_claim_allowed_now": { "const": false }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "number" },
+        "errors": { "type": "array" }
+      }
+    }
+  },
+  "$defs": {
+    "verdictRow": {
+      "type": "object",
+      "required": ["row_id", "category", "label", "observed", "current_verdict", "block_reason", "evidence_ref"],
+      "properties": {
+        "row_id": { "type": "string" },
+        "category": { "type": "string" },
+        "label": { "type": "string" },
+        "observed": { "type": "boolean" },
+        "current_verdict": { "enum": ["pass", "block"] },
+        "block_reason": { "type": ["string", "null"] },
+        "evidence_ref": { "type": ["string", "null"] },
+        "generated_at": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "validationItem": {
+      "allOf": [{ "$ref": "#/$defs/verdictRow" }]
+    }
+  }
+}

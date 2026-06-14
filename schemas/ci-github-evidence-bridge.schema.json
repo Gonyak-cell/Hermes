@@ -1,0 +1,301 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/ci-github-evidence-bridge.schema.json",
+  "title": "Hermes CI/GitHub Evidence Bridge",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "ci_github_evidence_contract",
+    "ci_github_evidence_phase_rows",
+    "p10200_source_binding_rows",
+    "github_remote_binding_rows",
+    "branch_protection_evidence_rows",
+    "required_check_evidence_rows",
+    "actions_run_evidence_rows",
+    "pr_commit_evidence_rows",
+    "attestation_evidence_rows",
+    "evidence_freshness_rows",
+    "external_evidence_closeout_rows",
+    "ci_github_api_route_rows",
+    "ci_github_api_smoke_rows",
+    "ci_github_browser_smoke_rows",
+    "ci_github_negative_fixture_rows",
+    "p10400_freeze_rows",
+    "ci_github_gate_rows",
+    "ci_github_evidence_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "ci-github-evidence-bridge.v1" },
+    "capability_id": { "const": "platform.ci_github_evidence_bridge" },
+    "program_range": { "const": "P10201-P10400" },
+    "source_program_range": { "const": "P10001-P10200" },
+    "ci_github_evidence_contract": {
+      "type": "object",
+      "required": [
+        "source_claude_review_integration_required",
+        "github_remote_binding_required",
+        "branch_protection_evidence_required",
+        "required_check_evidence_required",
+        "actions_run_evidence_required",
+        "pull_request_commit_evidence_required",
+        "signed_attestation_evidence_required",
+        "evidence_freshness_required",
+        "missing_external_evidence_must_block_closeout",
+        "api_projection_read_only",
+        "github_write_allowed",
+        "merge_allowed",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled"
+      ],
+      "properties": {
+        "source_claude_review_integration_required": { "const": true },
+        "github_remote_binding_required": { "const": true },
+        "branch_protection_evidence_required": { "const": true },
+        "required_check_evidence_required": { "const": true },
+        "actions_run_evidence_required": { "const": true },
+        "pull_request_commit_evidence_required": { "const": true },
+        "signed_attestation_evidence_required": { "const": true },
+        "evidence_freshness_required": { "const": true },
+        "missing_external_evidence_must_block_closeout": { "const": true },
+        "api_projection_read_only": { "const": true },
+        "github_write_allowed": { "const": false },
+        "merge_allowed": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    },
+    "ci_github_evidence_phase_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "p10200_source_binding_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "github_remote_binding_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/evidenceRow" }
+    },
+    "branch_protection_evidence_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/$defs/evidenceRow" }
+    },
+    "required_check_evidence_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/evidenceRow" }
+    },
+    "actions_run_evidence_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/evidenceRow" }
+    },
+    "pr_commit_evidence_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/evidenceRow" }
+    },
+    "attestation_evidence_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/evidenceRow" }
+    },
+    "evidence_freshness_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/evidenceRow" }
+    },
+    "external_evidence_closeout_rows": {
+      "type": "array",
+      "minItems": 9,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "ci_github_api_route_rows": {
+      "type": "array",
+      "minItems": 9,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "ci_github_api_smoke_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "ci_github_browser_smoke_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "ci_github_negative_fixture_rows": {
+      "type": "array",
+      "minItems": 11,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "p10400_freeze_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "ci_github_gate_rows": {
+      "type": "array",
+      "minItems": 7,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "ci_github_evidence_boundary": {
+      "type": "object",
+      "required": [
+        "source_p10200_ready",
+        "source_review_receipt_completed_now",
+        "p10400_claude_review_required_now",
+        "p10400_claude_review_completed_now",
+        "external_evidence_complete_now",
+        "external_closeout_blocker_count",
+        "external_closeout_allowed_now",
+        "release_closeout_allowed_now",
+        "enterprise_trust_allowed_now",
+        "missing_external_evidence_blocks_closeout",
+        "stale_external_evidence_blocks_closeout",
+        "github_write_allowed",
+        "github_merge_allowed",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "raw_payload_visible",
+        "secret_keys_returned",
+        "api_write_methods_enabled",
+        "p10400_bridge_ready",
+        "ready_for_p10401_handoff"
+      ],
+      "properties": {
+        "p10400_claude_review_required_now": { "const": true },
+        "external_closeout_allowed_now": { "const": false },
+        "release_closeout_allowed_now": { "const": false },
+        "enterprise_trust_allowed_now": { "const": false },
+        "missing_external_evidence_blocks_closeout": { "const": true },
+        "stale_external_evidence_blocks_closeout": { "const": true },
+        "github_write_allowed": { "const": false },
+        "github_merge_allowed": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "secret_keys_returned": { "const": false },
+        "api_write_methods_enabled": { "const": false }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validationItem" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "ci_github_evidence_bridge_status",
+        "source_p10200_ready",
+        "source_review_receipt_completed_now",
+        "external_evidence_complete_now",
+        "external_closeout_blocker_count",
+        "p10400_claude_review_required_now",
+        "p10400_claude_review_completed_now",
+        "p10400_bridge_ready",
+        "ready_for_p10401_handoff",
+        "github_write_allowed",
+        "github_merge_allowed",
+        "release_closeout_allowed_now",
+        "enterprise_trust_allowed_now",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "validation_error_count"
+      ],
+      "properties": {
+        "ci_github_evidence_bridge_status": {
+          "enum": [
+            "ready_for_ci_github_evidence_bridge",
+            "ready_for_required_claude_review",
+            "blocked_ci_github_evidence_bridge"
+          ]
+        },
+        "p10400_claude_review_required_now": { "const": true },
+        "github_write_allowed": { "const": false },
+        "github_merge_allowed": { "const": false },
+        "release_closeout_allowed_now": { "const": false },
+        "enterprise_trust_allowed_now": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "evidenceRow": {
+      "type": "object",
+      "required": [
+        "row_id",
+        "category",
+        "label",
+        "evidence_ref",
+        "evidence_present_now",
+        "external_check_passed_now",
+        "current_verdict",
+        "raw_payload_inlined",
+        "github_write_allowed",
+        "verdict_authority"
+      ],
+      "properties": {
+        "schema_version": { "const": "ci-github-evidence-row.v1" },
+        "evidence_present_now": { "type": "boolean" },
+        "external_check_passed_now": { "type": "boolean" },
+        "current_verdict": { "enum": ["pass", "block"] },
+        "raw_payload_inlined": { "const": false },
+        "github_write_allowed": { "const": false },
+        "verdict_authority": { "const": "harness_only" }
+      }
+    },
+    "verdictRow": {
+      "type": "object",
+      "required": [
+        "row_id",
+        "category",
+        "label",
+        "required",
+        "observed",
+        "current_verdict",
+        "evidence_ref"
+      ],
+      "properties": {
+        "schema_version": { "const": "hermes-verdict-row.v1" },
+        "current_verdict": { "enum": ["pass", "block"] }
+      }
+    },
+    "validationItem": {
+      "type": "object",
+      "required": ["validation_id", "category", "pass", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "category": { "type": "string" },
+        "pass": { "type": "boolean" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

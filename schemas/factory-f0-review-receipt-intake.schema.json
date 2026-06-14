@@ -1,0 +1,213 @@
+{
+  "$id": "https://hermes.local/schemas/factory-f0-review-receipt-intake.schema.json",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "capability_id",
+    "command_name",
+    "program_range",
+    "output_dir",
+    "source_refs",
+    "factory_f0_review_receipt_intake_contract",
+    "generated_receipt_path",
+    "receipt_intake_rows",
+    "factory_f0_review_receipt_intake_boundary",
+    "factory_f0_review_receipt_intake_validation_items",
+    "validation",
+    "summary"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": { "const": "factory-f0-review-receipt-intake.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "capability_id": { "const": "factory.f0_review_receipt_intake" },
+    "command_name": { "const": "factory:f0-review-receipt-intake" },
+    "program_range": { "const": "FCORE-F0.1" },
+    "output_dir": { "type": "string", "minLength": 1 },
+    "source_refs": {
+      "type": "object",
+      "required": ["request_index_path", "prompt_path", "raw_output_path", "target_receipt_path"],
+      "additionalProperties": true
+    },
+    "factory_f0_review_receipt_intake_contract": {
+      "type": "object",
+      "required": [
+        "contract_id",
+        "raw_review_output_required",
+        "request_prompt_hash_verified",
+        "receipt_write_target_limited_to_f0_1_review_paths",
+        "failed_claude_cli_result_allowed",
+        "fable_planning_receipt_allowed",
+        "label_only_engine_id_allowed",
+        "project_creation_allowed_now",
+        "repo_write_allowed_now",
+        "connector_write_allowed_now",
+        "deployment_allowed_now",
+        "protected_action_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "contract_id": { "const": "factory-f0-review-receipt-intake.contract.v1" },
+        "raw_review_output_required": { "const": true },
+        "request_prompt_hash_verified": { "const": true },
+        "receipt_write_target_limited_to_f0_1_review_paths": { "const": true },
+        "failed_claude_cli_result_allowed": { "const": false },
+        "fable_planning_receipt_allowed": { "const": false },
+        "label_only_engine_id_allowed": { "const": false },
+        "project_creation_allowed_now": { "const": false },
+        "repo_write_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    },
+    "generated_receipt_path": { "type": ["string", "null"] },
+    "generated_receipt": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    },
+    "receipt_intake_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/intakeRow" }
+    },
+    "factory_f0_review_receipt_intake_boundary": {
+      "type": "object",
+      "required": [
+        "generated_receipt_available_now",
+        "target_preflight_passed",
+        "intake_rows_passed",
+        "intake_row_count",
+        "intake_row_pass_count",
+        "project_creation_allowed_now",
+        "repo_write_allowed_now",
+        "connector_write_allowed_now",
+        "deployment_allowed_now",
+        "protected_action_allowed_now",
+        "command_execution_allowed_now",
+        "api_write_methods_allowed_now",
+        "store_mutation_allowed_now",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "fable_final_approval_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "generated_receipt_available_now": { "type": "boolean" },
+        "target_preflight_passed": { "type": "boolean" },
+        "intake_rows_passed": { "type": "boolean" },
+        "intake_row_count": { "type": "integer", "minimum": 0 },
+        "intake_row_pass_count": { "type": "integer", "minimum": 0 },
+        "project_creation_allowed_now": { "const": false },
+        "repo_write_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "api_write_methods_allowed_now": { "const": false },
+        "store_mutation_allowed_now": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "fable_final_approval_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    },
+    "factory_f0_review_receipt_intake_validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validationItem" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "additionalProperties": true,
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "factory_f0_review_receipt_intake_status",
+        "program_range",
+        "generated_receipt_available_now",
+        "target_preflight_passed",
+        "intake_rows_passed",
+        "project_creation_allowed_now",
+        "repo_write_allowed_now",
+        "connector_write_allowed_now",
+        "deployment_allowed_now",
+        "protected_action_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "factory_f0_review_receipt_intake_status": {
+          "type": "string",
+          "enum": ["ready_f0_review_receipt_intake", "blocked_f0_review_receipt_intake"]
+        },
+        "program_range": { "const": "FCORE-F0.1" },
+        "generated_receipt_available_now": { "type": "boolean" },
+        "target_preflight_passed": { "type": "boolean" },
+        "intake_rows_passed": { "type": "boolean" },
+        "project_creation_allowed_now": { "const": false },
+        "repo_write_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "intakeRow": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "row_id",
+        "category",
+        "label",
+        "observed",
+        "required",
+        "current_verdict",
+        "evidence_ref",
+        "generated_at"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "schema_version": { "const": "factory-f0-review-receipt-intake-row.v1" },
+        "row_id": { "type": "string", "minLength": 1 },
+        "category": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "observed": { "type": "boolean" },
+        "required": { "type": "boolean" },
+        "current_verdict": { "type": "string", "enum": ["pass", "blocked"] },
+        "evidence_ref": { "type": "string", "minLength": 1 },
+        "generated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "validationItem": {
+      "type": "object",
+      "required": ["item_id", "category", "observed", "current_verdict", "message"],
+      "additionalProperties": true,
+      "properties": {
+        "item_id": { "type": "string", "minLength": 1 },
+        "category": { "type": "string", "minLength": 1 },
+        "observed": { "type": "boolean" },
+        "current_verdict": { "type": "string", "enum": ["pass", "fail"] },
+        "message": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

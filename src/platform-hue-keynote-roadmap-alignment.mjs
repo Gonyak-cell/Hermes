@@ -7,7 +7,7 @@ export const DEFAULT_PLATFORM_HUE_KEYNOTE_ROADMAP_ALIGNMENT_INPUTS = {
   schemaPath: "schemas/platform-hue-keynote-roadmap-alignment.schema.json",
   packagePath: "package.json",
   principleDocPath: "docs/hue-keynote-harness-operating-loop.md",
-  roadmapDocPath: "docs/hermes-long-range-roadmap-p1200-p3200.md",
+  roadmapDocPath: "docs/hermes-long-range-roadmap-p4001-p8000.md",
   architectureDocPath: "docs/architecture.md",
 };
 
@@ -15,7 +15,7 @@ const COMMAND_NAME = "platform:hue-keynote-roadmap-alignment";
 const SCHEMA_VERSION = "platform-hue-keynote-roadmap-alignment.v1";
 const CAPABILITY_ID = "platform.hue_keynote_roadmap_alignment";
 const READY_STATUS = "ready_for_platform_hue_keynote_roadmap_alignment";
-const PROGRAM_RANGE = "P1200-P3200";
+const PROGRAM_RANGE = "P4001-P8000";
 const SOURCE_REFERENCE = "Hue_Keynote.pdf";
 const SOURCE_PAGE_COUNT = 50;
 
@@ -30,25 +30,29 @@ const PRINCIPLE_SPECS = [
   ["pass_ownership", "PASS has an owner", ["PASS requires an owner", "Whose PASS standard"]],
   ["enterprise_scaling", "Scale depends on domain, goal, workflow", ["DOMAIN", "GOAL", "WORKFLOW"]],
   ["good_result_definition", "Good result is repeatable, verifiable, recoverable, memorable, scalable", ["repeatable", "reviewable", "recoverable", "memorable", "scalable"]],
+  ["conversation_source_contract", "Codex and Claude conversations are source material", ["Codex conversation source", "Claude Code transcript source", "raw transcript"]],
+  ["conversation_improvement_signal", "Prior conversation becomes an improvement signal", ["conversation improvement signal", "user correction", "plan amendment candidate"]],
+  ["seven_step_memory_lifecycle", "Memory Bank follows the seven-step lifecycle", ["Sync", "Index", "Search", "Extract", "Consolidate", "Relate", "Recall"]],
+  ["self_improvement_loop", "Self-improvement changes the next session", ["self-improvement loop", "rule extraction", "next execution condition"]],
+  ["cross_model_qa_loop", "Single-model completion is checked by another loop", ["cross-model QA", "Claude Code review", "Codex cross-review"]],
+  ["scope_based_pass_standard", "PASS standard changes by scope", ["Personal", "Peer", "Team", "Org QA", "Operating OS"]],
+  ["conversation_source_queue_ui", "Conversation Source Queue is the first UI surface", ["Conversation Source Queue", "source -> claim -> citation -> review -> Harness truth", "NoSourceNoClaimNotice"]],
+  ["queue_first_not_kpi", "Queue-first UI rejects KPI trust theater", ["queue-first", "KPI cards are not the home surface", "AI confidence score"]],
 ];
 
 const PHASE_SPECS = [
-  ["P1200", "Agent Runtime Pilot Readiness Freeze"],
-  ["P1201-P1320", "Agent Runtime Activation Bridge"],
-  ["P1321-P1440", "Domain Agent No-Write Pilot Expansion"],
-  ["P1441-P1500", "Agent Operator Console v0"],
-  ["P1501-P1640", "Kernel Manifest and Contract Baseline"],
-  ["P1641-P1760", "Spec/Status Reconciliation and Hard Gate Promotion"],
-  ["P1761-P1880", "Claim/Evidence/Gate and Artifact/Check/Receipt Kernel"],
-  ["P1881-P2040", "Harness-Native Cutover Freeze"],
-  ["P2041-P2120", "Nous Non-Adoption Reversal"],
-  ["P2121-P2240", "Hermes Runtime Governance Restore"],
-  ["P2241-P2400", "Human-Approved Limited Execution"],
-  ["P2401-P2560", "Controlled Write and Operator Console v2"],
-  ["P2561-P2720", "Memory Bank, Storage/Event, and Observability Plane"],
-  ["P2721-P2880", "Connectors and Data Governance"],
-  ["P2881-P3040", "Domain Pack Ecosystem"],
-  ["P3041-P3200", "Production Governance and Work OS Freeze"],
+  ["P4001-P4300", "Local Conversation and Session Archive Foundation"],
+  ["P4301-P4600", "Conversation Improvement Signal Mining"],
+  ["P4601-P5000", "Development Control Console and Jira-Inspired Evidence UI"],
+  ["P5001-P5400", "Verification Orchestration Runtime"],
+  ["P5401-P5800", "Multi-Engine Orchestration and Cross-Model QA"],
+  ["P5801-P6200", "Review and Enterprise Trust Hardening"],
+  ["P6201-P6600", "Product and Domain SaaS Factory"],
+  ["P6601-P7000", "Controlled Execution Write and Deploy"],
+  ["P7001-P7300", "Memory Bank Storage Event and Observability Plane"],
+  ["P7301-P7600", "Retrieval Ontology and Context Recall Layer"],
+  ["P7601-P7800", "Security Governance Compliance and Rule Conflict Plane"],
+  ["P7801-P8000", "Full Work OS UI and Production Freeze"],
 ];
 
 const ARCHITECTURE_TERMS = [
@@ -101,8 +105,8 @@ export async function buildPlatformHueKeynoteRoadmapAlignment(options = {}) {
       schema_version: "hue-keynote-source-reference.v1",
       file_name: SOURCE_REFERENCE,
       reviewed_page_count: SOURCE_PAGE_COUNT,
-      reviewed_on: "2026-06-04",
-      extraction_note: "Image-based PDF reviewed through OCR and rendered page checks; repository stores the paraphrased operating requirements, not deck text.",
+      reviewed_on: "2026-06-05",
+      extraction_note: "Image-based PDF reviewed through rendered page checks; repository stores the paraphrased operating requirements, not deck text.",
     },
     keynote_principle_rows: principleRows,
     roadmap_phase_alignment_rows: phaseRows,
@@ -206,7 +210,7 @@ function buildPhaseRows(roadmapText) {
 function buildDocRows({ principleDoc, roadmapDoc, architectureDoc }) {
   const specs = [
     ["hue_keynote_principles", principleDoc, ["Hue_Keynote.pdf", "Harness Invariants", "Memory Bank Requirement", "Enterprise Scaling Constraint"]],
-    ["long_range_roadmap", roadmapDoc, ["P1200-P3200", "P2041-P2120", "P3041-P3200", "no L6 closed loop = no Work OS claim"]],
+    ["long_range_roadmap", roadmapDoc, ["P4001-P8000", "Conversation Improvement Signal Mining", "Conversation Source Queue", "Jira-inspired evidence console", "No source citation; memory recall blocked", "Full Work OS UI and Production Freeze", "no changed next condition = no learning claim"]],
     ["architecture_alignment", architectureDoc, ARCHITECTURE_TERMS],
   ];
   return specs.map(([docId, source, terms], index) => {
@@ -235,9 +239,15 @@ function buildGateRows({ packageJson, principleRows, phaseRows, docRows, archite
     ["package_script_registered", Boolean(packageJson.data?.scripts?.[COMMAND_NAME]), "package.json must expose the alignment command"],
     ["validation_chain_registered", Boolean(packageJson.data?.scripts?.validate?.includes(`${COMMAND_NAME} -- --check`)), "validate script must include the alignment command"],
     ["principles_reflected", principleRows.every((row) => row.current_verdict === "pass"), "all keynote principles must be reflected"],
-    ["phases_reflected", phaseRows.every((row) => row.current_verdict === "pass"), "all P1200-P3200 phase rows must be reflected"],
+    ["phases_reflected", phaseRows.every((row) => row.current_verdict === "pass"), "all P4001-P8000 phase rows must be reflected"],
     ["documents_aligned", docRows.every((row) => row.current_verdict === "pass"), "all roadmap documents must be aligned"],
     ["architecture_linked", includesToken(architectureText, "Hue Keynote"), "architecture must link the keynote operating loop"],
+    ["conversation_sources_governed", principleRows.some((row) => row.principle_id === "conversation_source_contract" && row.current_verdict === "pass"), "Codex and Claude transcript sources must be governed as source material"],
+    ["improvement_signals_governed", principleRows.some((row) => row.principle_id === "conversation_improvement_signal" && row.current_verdict === "pass"), "prior conversation must become governed improvement signal candidates"],
+    ["memory_lifecycle_complete", principleRows.some((row) => row.principle_id === "seven_step_memory_lifecycle" && row.current_verdict === "pass"), "Memory Bank lifecycle must include sync, index, search, extract, consolidate, relate, and recall"],
+    ["self_improvement_loop_registered", principleRows.some((row) => row.principle_id === "self_improvement_loop" && row.current_verdict === "pass"), "self-improvement loop must change next execution conditions"],
+    ["conversation_source_queue_ui_registered", principleRows.some((row) => row.principle_id === "conversation_source_queue_ui" && row.current_verdict === "pass"), "Conversation Source Queue must be the first P4001-P4300 UI surface"],
+    ["queue_first_not_kpi_registered", principleRows.some((row) => row.principle_id === "queue_first_not_kpi" && row.current_verdict === "pass"), "queue-first evidence UI must reject KPI or confidence-score trust framing"],
   ];
   return gates.map(([gateId, pass, description], index) => ({
     schema_version: "roadmap-gate-row.v1",
@@ -293,6 +303,7 @@ function buildValidationItems({ packageJson, principleRows, phaseRows, docRows, 
     validationItem("gates.ready", "gates", gateRows.every((row) => row.gate_status === "ready"), "all roadmap alignment gates must be ready"),
     validationItem("boundary.safe", "boundary", boundary.unsafe_flag_count === 0, "unsafe flag count must be zero"),
     validationItem("boundary.no_execution", "boundary", boundary.runtime_execution_enabled === false && boundary.write_action_enabled === false, "roadmap alignment must not enable execution or write"),
+    validationItem("boundary.no_work_os_claim", "boundary", boundary.work_os_claim_enabled === false, "alignment may plan Work OS but must not claim production Work OS before P8000 freeze"),
   ];
 }
 
@@ -353,7 +364,7 @@ function renderMarkdown(result) {
     "",
     "## Next Allowed Action",
     "",
-    "Use the aligned P1200-P3200 roadmap as planning input. This alignment does not enable runtime execution, write action, protected action, or Agent final PASS.",
+    "Use the aligned P4001-P8000 roadmap as planning input. This alignment does not enable runtime execution, write action, protected action, Work OS production claim, or Agent final PASS.",
     "",
   ].join("\n");
 }

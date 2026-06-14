@@ -1,0 +1,491 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/work-os-goal-execution-view.schema.json",
+  "title": "Work OS Goal Execution View",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "work_os_goal_execution_view_id",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "inputs",
+    "source_work_os_read_only_api_ui_smoke_summary",
+    "work_os_goal_execution_view_contract",
+    "work_os_goal_execution_phase_rows",
+    "project_runtime_handoff_rows",
+    "goal_phase_execution_rows",
+    "validation_state_lens_rows",
+    "review_lane_view_rows",
+    "session_handoff_ref_rows",
+    "next_action_queue_rows",
+    "commit_checkpoint_view_rows",
+    "api_ui_projection_rows",
+    "work_os_goal_execution_negative_fixture_rows",
+    "p9200_freeze_rows",
+    "work_os_goal_execution_gate_rows",
+    "work_os_goal_execution_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "work-os-goal-execution-view.v1" },
+    "capability_id": { "const": "platform.work_os_goal_execution_view" },
+    "program_range": { "const": "P9001-P9200" },
+    "source_program_range": { "const": "P8801-P9000" },
+    "work_os_goal_execution_view_contract": {
+      "type": "object",
+      "required": [
+        "program_range",
+        "source_program_range",
+        "source_ready_status_required",
+        "runtime_handoff_source_map_required",
+        "project_registry_projection_required",
+        "goal_phase_execution_model_required",
+        "validation_state_lens_required",
+        "review_lane_view_required",
+        "session_handoff_refs_required",
+        "next_action_queue_required",
+        "commit_checkpoint_view_required",
+        "api_ui_projection_required",
+        "p9200_freeze_required",
+        "read_only_projection",
+        "domain_pack_as_product_allowed",
+        "p9000_endpoint_locked",
+        "raw_session_body_visible",
+        "human_gate_in_scope",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "reviewer_mutation_allowed",
+        "single_owner_enterprise_trust_allowed",
+        "protected_closeout_enabled",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "runtime_execution_enabled",
+        "write_action_enabled",
+        "external_connector_write_enabled"
+      ],
+      "properties": {
+        "program_range": { "const": "P9001-P9200" },
+        "source_program_range": { "const": "P8801-P9000" },
+        "source_ready_status_required": { "const": "ready_for_work_os_read_only_api_ui_smoke" },
+        "runtime_handoff_source_map_required": { "const": true },
+        "project_registry_projection_required": { "const": true },
+        "goal_phase_execution_model_required": { "const": true },
+        "validation_state_lens_required": { "const": true },
+        "review_lane_view_required": { "const": true },
+        "session_handoff_refs_required": { "const": true },
+        "next_action_queue_required": { "const": true },
+        "commit_checkpoint_view_required": { "const": true },
+        "api_ui_projection_required": { "const": true },
+        "p9200_freeze_required": { "const": true },
+        "read_only_projection": { "const": true },
+        "domain_pack_as_product_allowed": { "const": false },
+        "p9000_endpoint_locked": { "const": false },
+        "raw_session_body_visible": { "const": false },
+        "human_gate_in_scope": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "reviewer_mutation_allowed": { "const": false },
+        "single_owner_enterprise_trust_allowed": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "external_connector_write_enabled": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "work_os_goal_execution_phase_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/row" }
+    },
+    "project_runtime_handoff_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": [
+              "project_id",
+              "project_name",
+              "domain_pack",
+              "domain_pack_scope",
+              "domain_pack_is_whole_product",
+              "hermes_product_identity",
+              "target_phase_range",
+              "read_only",
+              "protected_action_enabled",
+              "runtime_execution_enabled",
+              "write_action_enabled"
+            ],
+            "properties": {
+              "domain_pack_scope": { "const": "project_workflow_context" },
+              "domain_pack_is_whole_product": { "const": false },
+              "hermes_product_identity": { "const": "general_project_workflow_control_plane" },
+              "target_phase_range": { "const": "P9001-P9200" },
+              "read_only": { "const": true },
+              "protected_action_enabled": { "const": false },
+              "runtime_execution_enabled": { "const": false },
+              "write_action_enabled": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "goal_phase_execution_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": [
+              "project_id",
+              "goal_id",
+              "goal_name",
+              "phase_range",
+              "owner_engine_ref",
+              "reviewer_engine_ref",
+              "harness_validator_ref",
+              "claim_ref",
+              "evidence_ref",
+              "gate_ref",
+              "check_ref",
+              "review_receipt_ref",
+              "codex_final_approval_allowed",
+              "claude_final_approval_allowed",
+              "protected_closeout_enabled",
+              "read_only"
+            ],
+            "properties": {
+              "phase_range": { "const": "P9001-P9200" },
+              "owner_engine_ref": { "const": "engine.codex.primary_developer" },
+              "reviewer_engine_ref": { "const": "engine.claude_code_opus_max" },
+              "harness_validator_ref": { "const": "engine.harness.deterministic_validator" },
+              "codex_final_approval_allowed": { "const": false },
+              "claude_final_approval_allowed": { "const": false },
+              "protected_closeout_enabled": { "const": false },
+              "read_only": { "const": true }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "validation_state_lens_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": [
+              "lens_id",
+              "validation_scope",
+              "command_ref",
+              "required_for_this_tranche",
+              "read_only",
+              "mutates_state"
+            ],
+            "properties": {
+              "read_only": { "const": true },
+              "mutates_state": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "review_lane_view_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": [
+              "lane_id",
+              "lane_name",
+              "engine_ref",
+              "status",
+              "final_approval_allowed",
+              "reviewer_mutation_allowed",
+              "protected_closeout_allowed",
+              "read_only_surface"
+            ],
+            "properties": {
+              "final_approval_allowed": { "const": false },
+              "reviewer_mutation_allowed": { "const": false },
+              "protected_closeout_allowed": { "const": false },
+              "read_only_surface": { "const": true }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "session_handoff_ref_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": [
+              "source_id",
+              "engine_id",
+              "session_id",
+              "transcript_ref",
+              "redacted_summary_ref",
+              "raw_body_visible",
+              "full_transcript_body_visible",
+              "redacted_summary_visible",
+              "source_cited",
+              "mutates_source_store",
+              "mutates_plan_state",
+              "read_only"
+            ],
+            "properties": {
+              "raw_body_visible": { "const": false },
+              "full_transcript_body_visible": { "const": false },
+              "redacted_summary_visible": { "const": true },
+              "source_cited": { "const": true },
+              "mutates_source_store": { "const": false },
+              "mutates_plan_state": { "const": false },
+              "read_only": { "const": true }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "next_action_queue_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": [
+              "action_id",
+              "action_type",
+              "protected_action",
+              "mutates_state",
+              "requires_human_gate_completion"
+            ],
+            "properties": {
+              "action_type": { "const": "read_only_operator_guidance" },
+              "protected_action": { "const": false },
+              "mutates_state": { "const": false },
+              "requires_human_gate_completion": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "commit_checkpoint_view_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": [
+              "checkpoint_id",
+              "read_only",
+              "git_write_enabled",
+              "commit_created_by_ui",
+              "push_enabled",
+              "merge_enabled"
+            ],
+            "properties": {
+              "read_only": { "const": true },
+              "git_write_enabled": { "const": false },
+              "commit_created_by_ui": { "const": false },
+              "push_enabled": { "const": false },
+              "merge_enabled": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "api_ui_projection_rows": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": [
+              "surface_id",
+              "source_api_path",
+              "projection_mode",
+              "read_only",
+              "source_cited",
+              "raw_payload_visible",
+              "secret_visible",
+              "protected_action_controls_enabled",
+              "mutation_allowed"
+            ],
+            "properties": {
+              "projection_mode": { "const": "static_read_only_view_model" },
+              "read_only": { "const": true },
+              "source_cited": { "const": true },
+              "raw_payload_visible": { "const": false },
+              "secret_visible": { "const": false },
+              "protected_action_controls_enabled": { "const": false },
+              "mutation_allowed": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "work_os_goal_execution_negative_fixture_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/row" },
+          {
+            "type": "object",
+            "required": ["fixture_id", "expected_blocked", "observed_blocked", "unsafe_claim_allowed"],
+            "properties": {
+              "expected_blocked": { "const": true },
+              "observed_blocked": { "const": true },
+              "unsafe_claim_allowed": { "const": false }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "p9200_freeze_rows": { "type": "array", "minItems": 12, "items": { "$ref": "#/$defs/row" } },
+    "work_os_goal_execution_gate_rows": { "type": "array", "minItems": 20, "items": { "$ref": "#/$defs/row" } },
+    "work_os_goal_execution_boundary": {
+      "type": "object",
+      "required": [
+        "program_range",
+        "source_program_range",
+        "source_p9000_ready",
+        "project_runtime_handoff_ready",
+        "goal_phase_execution_ready",
+        "validation_state_lens_ready",
+        "review_lane_view_ready",
+        "session_handoff_refs_ready",
+        "next_action_queue_ready",
+        "commit_checkpoint_view_ready",
+        "api_ui_projection_ready",
+        "p9200_freeze_ready",
+        "ready_for_p9201_handoff",
+        "domain_pack_as_product_allowed",
+        "p9000_endpoint_locked",
+        "raw_session_body_visible",
+        "codex_final_approval_allowed",
+        "claude_final_approval_allowed",
+        "reviewer_mutation_allowed",
+        "single_owner_enterprise_trust_allowed",
+        "protected_closeout_enabled",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "runtime_execution_enabled",
+        "write_action_enabled",
+        "external_connector_write_enabled",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "program_range": { "const": "P9001-P9200" },
+        "source_program_range": { "const": "P8801-P9000" },
+        "source_p9000_ready": { "const": true },
+        "ready_for_p9201_handoff": { "const": true },
+        "domain_pack_as_product_allowed": { "const": false },
+        "p9000_endpoint_locked": { "const": false },
+        "raw_session_body_visible": { "const": false },
+        "codex_final_approval_allowed": { "const": false },
+        "claude_final_approval_allowed": { "const": false },
+        "reviewer_mutation_allowed": { "const": false },
+        "single_owner_enterprise_trust_allowed": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "external_connector_write_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validationItem" } },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "work_os_goal_execution_view_status",
+        "program_range",
+        "source_program_range",
+        "ready_for_p9201_handoff",
+        "validation_error_count"
+      ],
+      "properties": {
+        "work_os_goal_execution_view_status": { "const": "ready_for_work_os_goal_execution_view" },
+        "program_range": { "const": "P9001-P9200" },
+        "source_program_range": { "const": "P8801-P9000" },
+        "ready_for_p9201_handoff": { "const": true },
+        "validation_error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "row": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "row_id",
+        "current_verdict",
+        "unsafe_flags_false",
+        "verdict_authority"
+      ],
+      "properties": {
+        "current_verdict": { "const": "pass" },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_deterministic_validator" }
+      },
+      "additionalProperties": true
+    },
+    "validationItem": {
+      "type": "object",
+      "required": ["schema_version", "path", "category", "status", "message"],
+      "properties": {
+        "status": { "const": "pass" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

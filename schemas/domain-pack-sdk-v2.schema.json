@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/domain-pack-sdk-v2.schema.json",
+  "title": "Hermes Domain Pack SDK v2",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "domain_pack_sdk_v2_contract",
+    "domain_pack_sdk_phase_rows",
+    "domain_pack_sdk_source_binding_rows",
+    "domain_pack_sdk_domain_rows",
+    "pack_manifest_v2_contract_rows",
+    "capability_interface_contract_rows",
+    "domain_data_boundary_rows",
+    "domain_review_authority_rows",
+    "domain_gate_pack_binding_rows",
+    "domain_compatibility_migration_rows",
+    "domain_contribution_contract_rows",
+    "domain_pack_sdk_registry_rows",
+    "p12200_freeze_rows",
+    "domain_pack_sdk_boundary",
+    "domain_pack_sdk_validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "domain-pack-sdk-v2.v1" },
+    "capability_id": { "const": "platform.domain_pack_sdk_v2" },
+    "program_range": { "const": "P12001-P12200" },
+    "source_program_range": { "const": "P11801-P12000" },
+    "domain_pack_sdk_phase_rows": { "type": "array", "minItems": 10, "items": { "$ref": "#/$defs/verdictRow" } },
+    "domain_pack_sdk_source_binding_rows": { "type": "array", "minItems": 8, "items": { "$ref": "#/$defs/verdictRow" } },
+    "domain_pack_sdk_domain_rows": { "type": "array", "minItems": 7, "items": { "$ref": "#/$defs/verdictRow" } },
+    "pack_manifest_v2_contract_rows": { "type": "array", "minItems": 6, "items": { "$ref": "#/$defs/verdictRow" } },
+    "capability_interface_contract_rows": { "type": "array", "minItems": 6, "items": { "$ref": "#/$defs/verdictRow" } },
+    "domain_data_boundary_rows": { "type": "array", "minItems": 6, "items": { "$ref": "#/$defs/verdictRow" } },
+    "domain_review_authority_rows": { "type": "array", "minItems": 5, "items": { "$ref": "#/$defs/verdictRow" } },
+    "domain_gate_pack_binding_rows": { "type": "array", "minItems": 9, "items": { "$ref": "#/$defs/verdictRow" } },
+    "domain_compatibility_migration_rows": { "type": "array", "minItems": 5, "items": { "$ref": "#/$defs/verdictRow" } },
+    "domain_contribution_contract_rows": { "type": "array", "minItems": 5, "items": { "$ref": "#/$defs/verdictRow" } },
+    "domain_pack_sdk_registry_rows": { "type": "array", "minItems": 7, "items": { "$ref": "#/$defs/verdictRow" } },
+    "p12200_freeze_rows": { "type": "array", "minItems": 12, "items": { "$ref": "#/$defs/verdictRow" } },
+    "domain_pack_sdk_boundary": {
+      "type": "object",
+      "required": [
+        "source_saas_quality_gate_packs_available",
+        "source_ready_for_p12001_handoff",
+        "source_block_visible_now",
+        "domain_pack_sdk_registry_ready",
+        "p12200_domain_pack_sdk_freeze_ready",
+        "ready_for_p12201_handoff",
+        "raw_body_exposure_allowed",
+        "secret_key_exposure_allowed",
+        "write_control_enabled",
+        "protected_action_enabled",
+        "connector_write_enabled",
+        "final_approval_ui_enabled",
+        "codex_final_approval_ui_enabled",
+        "claude_final_approval_ui_enabled",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "domain_pack_product_identity_enabled",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "source_saas_quality_gate_packs_available": { "type": "boolean" },
+        "source_ready_for_p12001_handoff": { "type": "boolean" },
+        "source_block_visible_now": { "type": "boolean" },
+        "domain_pack_sdk_registry_ready": { "type": "boolean" },
+        "p12200_domain_pack_sdk_freeze_ready": { "type": "boolean" },
+        "ready_for_p12201_handoff": { "type": "boolean" },
+        "raw_body_exposure_allowed": { "const": false },
+        "secret_key_exposure_allowed": { "const": false },
+        "write_control_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "connector_write_enabled": { "const": false },
+        "final_approval_ui_enabled": { "const": false },
+        "codex_final_approval_ui_enabled": { "const": false },
+        "claude_final_approval_ui_enabled": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "domain_pack_product_identity_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "domain_pack_sdk_v2_status",
+        "program_range",
+        "source_ready_for_p12001_handoff",
+        "source_block_visible_now",
+        "domain_count",
+        "sdk_contract_row_count",
+        "p12200_domain_pack_sdk_freeze_ready",
+        "ready_for_p12201_handoff",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "validation_error_count"
+      ],
+      "properties": {
+        "domain_pack_sdk_v2_status": {
+          "enum": [
+            "ready_for_domain_pack_sdk_v2",
+            "blocked_domain_pack_sdk_v2"
+          ]
+        },
+        "program_range": { "const": "P12001-P12200" },
+        "source_ready_for_p12001_handoff": { "type": "boolean" },
+        "source_block_visible_now": { "type": "boolean" },
+        "domain_count": { "type": "integer", "minimum": 7 },
+        "sdk_contract_row_count": { "type": "integer", "minimum": 36 },
+        "p12200_domain_pack_sdk_freeze_ready": { "type": "boolean" },
+        "ready_for_p12201_handoff": { "type": "boolean" },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "verdictRow": {
+      "type": "object",
+      "required": [
+        "row_id",
+        "category",
+        "label",
+        "required",
+        "observed",
+        "evidence_ref",
+        "current_verdict"
+      ],
+      "properties": {
+        "row_id": { "type": "string", "minLength": 1 },
+        "category": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "required": { "type": "boolean" },
+        "observed": { "type": "boolean" },
+        "evidence_ref": { "type": "string", "minLength": 1 },
+        "current_verdict": { "enum": ["pass", "blocked"] },
+        "block_reason": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/trust-debt-recalibration.schema.json",
+  "title": "Hermes Trust Debt Recalibration",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "trust_recalibration_phase_rows",
+    "p18800_source_binding_rows",
+    "closed_debt_credit_rows",
+    "remaining_trust_debt_rows",
+    "validation_freshness_recheck_rows",
+    "review_evidence_recheck_rows",
+    "authority_boundary_recheck_rows",
+    "operator_next_action_rows",
+    "p19200_freeze_rows",
+    "trust_recalibration_boundary",
+    "trust_recalibration_validation_items",
+    "summary",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "trust-debt-recalibration.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "capability_id": { "const": "platform.trust_debt_recalibration" },
+    "program_range": { "const": "P18801-P19200" },
+    "source_program_range": { "const": "P18401-P18800" },
+    "trust_recalibration_phase_rows": { "type": "array", "minItems": 8, "items": { "$ref": "#/$defs/verdictRow" } },
+    "p18800_source_binding_rows": { "type": "array", "minItems": 5, "items": { "$ref": "#/$defs/verdictRow" } },
+    "closed_debt_credit_rows": { "type": "array", "minItems": 5, "items": { "$ref": "#/$defs/verdictRow" } },
+    "remaining_trust_debt_rows": { "type": "array", "minItems": 6, "items": { "$ref": "#/$defs/verdictRow" } },
+    "validation_freshness_recheck_rows": { "type": "array", "minItems": 5, "items": { "$ref": "#/$defs/verdictRow" } },
+    "review_evidence_recheck_rows": { "type": "array", "minItems": 7, "items": { "$ref": "#/$defs/verdictRow" } },
+    "authority_boundary_recheck_rows": { "type": "array", "minItems": 18, "items": { "$ref": "#/$defs/verdictRow" } },
+    "operator_next_action_rows": { "type": "array", "minItems": 5, "items": { "$ref": "#/$defs/verdictRow" } },
+    "p19200_freeze_rows": { "type": "array", "minItems": 6, "items": { "$ref": "#/$defs/verdictRow" } },
+    "trust_recalibration_validation_items": { "type": "array", "minItems": 12, "items": { "$ref": "#/$defs/validationItem" } },
+    "summary": {
+      "type": "object",
+      "required": [
+        "trust_recalibration_status",
+        "source_p18800_ready_for_p18801_handoff",
+        "closed_debt_credit_count",
+        "remaining_trust_debt_count",
+        "review_receipt_present_now",
+        "validation_receipt_present_now",
+        "ready_for_p19201_handoff",
+        "production_pass_enabled"
+      ],
+      "properties": {
+        "trust_recalibration_status": {
+          "enum": [
+            "ready_for_trust_debt_recalibration",
+            "valid_block_receipts_pending",
+            "blocked_trust_debt_recalibration"
+          ]
+        },
+        "source_p18800_ready_for_p18801_handoff": { "type": "boolean" },
+        "closed_debt_credit_count": { "type": "number" },
+        "remaining_trust_debt_count": { "type": "number" },
+        "review_receipt_present_now": { "type": "boolean" },
+        "validation_receipt_present_now": { "type": "boolean" },
+        "ready_for_p19201_handoff": { "type": "boolean" },
+        "production_pass_enabled": { "const": false }
+      }
+    },
+    "trust_recalibration_boundary": {
+      "type": "object",
+      "required": [
+        "p19200_contract_ready",
+        "ready_for_p19201_handoff",
+        "source_p18800_ready_for_p18801_handoff",
+        "closed_debt_credit_count",
+        "remaining_trust_debt_count",
+        "review_receipt_present_now",
+        "review_evidence_passed_now",
+        "validation_receipt_present_now",
+        "validation_evidence_passed_now",
+        "deployment_allowed_now",
+        "release_approval_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "enterprise_trust_claim_allowed_now",
+        "protected_closeout_enabled",
+        "human_gate_bypass_allowed_now",
+        "independent_review_bypass_allowed_now",
+        "single_owner_enterprise_trust_allowed_now",
+        "runtime_execution_allowed_now",
+        "write_action_allowed_now",
+        "protected_action_allowed_now",
+        "connector_write_enabled",
+        "external_service_mutation_allowed_now",
+        "raw_source_exposure_allowed",
+        "secret_read_allowed_now",
+        "reviewer_mutation_allowed_now",
+        "final_automated_approval_allowed"
+      ],
+      "properties": {
+        "p19200_contract_ready": { "type": "boolean" },
+        "ready_for_p19201_handoff": { "type": "boolean" },
+        "source_p18800_ready_for_p18801_handoff": { "type": "boolean" },
+        "closed_debt_credit_count": { "type": "number" },
+        "remaining_trust_debt_count": { "type": "number" },
+        "review_receipt_present_now": { "type": "boolean" },
+        "review_evidence_passed_now": { "type": "boolean" },
+        "validation_receipt_present_now": { "type": "boolean" },
+        "validation_evidence_passed_now": { "type": "boolean" },
+        "deployment_allowed_now": { "const": false },
+        "release_approval_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "enterprise_trust_claim_allowed_now": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "human_gate_bypass_allowed_now": { "const": false },
+        "independent_review_bypass_allowed_now": { "const": false },
+        "single_owner_enterprise_trust_allowed_now": { "const": false },
+        "runtime_execution_allowed_now": { "const": false },
+        "write_action_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "connector_write_enabled": { "const": false },
+        "external_service_mutation_allowed_now": { "const": false },
+        "raw_source_exposure_allowed": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "reviewer_mutation_allowed_now": { "const": false },
+        "final_automated_approval_allowed": { "const": false }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "number" },
+        "errors": { "type": "array" }
+      }
+    }
+  },
+  "$defs": {
+    "verdictRow": {
+      "type": "object",
+      "required": [
+        "row_id",
+        "category",
+        "label",
+        "observed",
+        "current_verdict",
+        "block_reason",
+        "evidence_ref",
+        "generated_at"
+      ],
+      "properties": {
+        "row_id": { "type": "string", "minLength": 1 },
+        "category": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "observed": { "type": "boolean" },
+        "current_verdict": { "enum": ["pass", "blocked"] },
+        "block_reason": { "type": ["string", "null"] },
+        "evidence_ref": { "type": "string", "minLength": 1 },
+        "generated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "validationItem": {
+      "type": "object",
+      "required": ["item_id", "category", "passed", "message", "evidence_ref"],
+      "properties": {
+        "item_id": { "type": "string", "minLength": 1 },
+        "category": { "type": "string", "minLength": 1 },
+        "passed": { "type": "boolean" },
+        "message": { "type": "string" },
+        "evidence_ref": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

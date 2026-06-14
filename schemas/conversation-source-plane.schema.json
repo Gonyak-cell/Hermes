@@ -1,0 +1,426 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/conversation-source-plane.schema.json",
+  "title": "Conversation Source Plane",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "conversation_source_plane_id",
+    "capability_id",
+    "program_range",
+    "inputs",
+    "conversation_source_contract",
+    "conversation_source_phase_rows",
+    "conversation_source_rows",
+    "transcript_archive_rows",
+    "adapter_lineage_rows",
+    "redaction_classification_rows",
+    "extracted_claim_rows",
+    "plan_candidate_rows",
+    "context_recovery_bundle_rows",
+    "conversation_source_queue_rows",
+    "transcript_ui_component_rows",
+    "ui_copy_rule_rows",
+    "conversation_source_gate_rows",
+    "conversation_source_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "conversation-source-plane.v1" },
+    "capability_id": { "const": "platform.conversation_source_plane" },
+    "program_range": { "const": "P4001-P4300" },
+    "conversation_source_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "contract_id",
+        "program_range",
+        "required_source_fields",
+        "source_status_enum",
+        "claim_status_enum",
+        "plan_status_enum",
+        "context_status_enum",
+        "queue_first_surface",
+        "ui_invariant",
+        "raw_transcript_is_source_material",
+        "summary_is_claim",
+        "plan_change_is_reviewed_candidate",
+        "harness_ui_status_is_source_of_truth",
+        "raw_transcript_body_default_visible",
+        "kpi_home_surface_allowed",
+        "runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled"
+      ],
+      "properties": {
+        "schema_version": { "const": "conversation-source-contract.v1" },
+        "program_range": { "const": "P4001-P4300" },
+        "queue_first_surface": { "const": "Conversation Source Queue" },
+        "ui_invariant": { "const": "source -> claim -> citation -> review -> Harness truth" },
+        "raw_transcript_is_source_material": { "const": true },
+        "summary_is_claim": { "const": true },
+        "plan_change_is_reviewed_candidate": { "const": true },
+        "harness_ui_status_is_source_of_truth": { "const": true },
+        "raw_transcript_body_default_visible": { "const": false },
+        "kpi_home_surface_allowed": { "const": false },
+        "runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "conversation_source_phase_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": { "$ref": "#/$defs/verdict_row" }
+    },
+    "conversation_source_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/source_row" }
+    },
+    "transcript_archive_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/archive_row" }
+    },
+    "adapter_lineage_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/adapter_row" }
+    },
+    "redaction_classification_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/redaction_row" }
+    },
+    "extracted_claim_rows": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/$defs/claim_row" }
+    },
+    "plan_candidate_rows": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/$defs/plan_row" }
+    },
+    "context_recovery_bundle_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/context_row" }
+    },
+    "conversation_source_queue_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/queue_row" }
+    },
+    "transcript_ui_component_rows": {
+      "type": "array",
+      "minItems": 12,
+      "items": { "$ref": "#/$defs/ui_component_row" }
+    },
+    "ui_copy_rule_rows": {
+      "type": "array",
+      "minItems": 12,
+      "items": { "$ref": "#/$defs/copy_rule_row" }
+    },
+    "conversation_source_gate_rows": {
+      "type": "array",
+      "minItems": 14,
+      "items": { "$ref": "#/$defs/gate_row" }
+    },
+    "conversation_source_boundary": { "$ref": "#/$defs/boundary" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "conversation_source_plane_status",
+        "program_range",
+        "first_surface",
+        "source_count",
+        "transcript_archive_count",
+        "adapter_count",
+        "redaction_classification_count",
+        "claim_count",
+        "plan_candidate_count",
+        "context_bundle_count",
+        "queue_row_count",
+        "ui_component_count",
+        "allowed_copy_count",
+        "forbidden_copy_count",
+        "gate_count",
+        "pass_gate_count",
+        "runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled",
+        "raw_transcript_body_default_visible",
+        "kpi_home_surface_allowed",
+        "work_os_claim_enabled",
+        "unsafe_flag_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "conversation-source-plane-summary.v1" },
+        "conversation_source_plane_status": { "const": "ready_for_conversation_source_plane_v0" },
+        "program_range": { "const": "P4001-P4300" },
+        "first_surface": { "const": "Conversation Source Queue" },
+        "source_count": { "minimum": 2 },
+        "transcript_archive_count": { "minimum": 2 },
+        "adapter_count": { "minimum": 2 },
+        "redaction_classification_count": { "minimum": 2 },
+        "claim_count": { "minimum": 5 },
+        "plan_candidate_count": { "minimum": 3 },
+        "context_bundle_count": { "minimum": 1 },
+        "queue_row_count": { "minimum": 2 },
+        "ui_component_count": { "minimum": 12 },
+        "allowed_copy_count": { "minimum": 6 },
+        "forbidden_copy_count": { "minimum": 6 },
+        "gate_count": { "minimum": 14 },
+        "pass_gate_count": { "minimum": 14 },
+        "runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "raw_transcript_body_default_visible": { "const": false },
+        "kpi_home_surface_allowed": { "const": false },
+        "work_os_claim_enabled": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "item_count", "error_count", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "error_count": { "const": 0 },
+        "errors": { "type": "array", "maxItems": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "verdict_row": {
+      "type": "object",
+      "required": ["schema_version", "row_id", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "current_verdict": { "const": "pass" },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_only" }
+      },
+      "additionalProperties": true
+    },
+    "source_row": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "source_id",
+        "engine",
+        "thread_or_session",
+        "project_or_goal",
+        "source_status",
+        "redaction_status",
+        "review_status",
+        "raw_transcript_is_source_material",
+        "raw_transcript_body_included",
+        "raw_transcript_body_default_visible",
+        "raw_secret_material_allowed",
+        "raw_client_material_allowed",
+        "source_citation_required",
+        "memory_recall_allowed_without_citation",
+        "harness_truth_allowed_now",
+        "unsafe_flags_false",
+        "verdict_authority"
+      ],
+      "properties": {
+        "engine": { "enum": ["Codex", "Claude Code"] },
+        "source_status": { "enum": ["ARCHIVED", "REDACTION_REQUIRED", "REDACTED", "CLASSIFIED", "EXTRACTED", "REVIEW_PENDING", "REVIEWED", "BLOCKED"] },
+        "raw_transcript_is_source_material": { "const": true },
+        "raw_transcript_body_included": { "const": false },
+        "raw_transcript_body_default_visible": { "const": false },
+        "raw_secret_material_allowed": { "const": false },
+        "raw_client_material_allowed": { "const": false },
+        "source_citation_required": { "const": true },
+        "memory_recall_allowed_without_citation": { "const": false },
+        "harness_truth_allowed_now": { "const": false },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_only" }
+      },
+      "additionalProperties": true
+    },
+    "archive_row": {
+      "type": "object",
+      "required": ["archive_status", "source_boundary_complete", "raw_transcript_body_included", "provenance_first_display"],
+      "properties": {
+        "archive_status": { "const": "ARCHIVED" },
+        "source_boundary_complete": { "const": true },
+        "raw_transcript_body_included": { "const": false },
+        "provenance_first_display": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "adapter_row": {
+      "type": "object",
+      "required": ["engine", "adapter_status", "mutation_allowed", "approval_allowed", "final_pass_allowed"],
+      "properties": {
+        "engine": { "enum": ["Codex", "Claude Code"] },
+        "mutation_allowed": { "const": false },
+        "approval_allowed": { "const": false },
+        "final_pass_allowed": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "redaction_row": {
+      "type": "object",
+      "required": ["redaction_status", "secret_span_present", "client_span_present", "privileged_span_present", "raw_body_default_visible"],
+      "properties": {
+        "secret_span_present": { "const": false },
+        "client_span_present": { "const": false },
+        "privileged_span_present": { "const": false },
+        "raw_body_default_visible": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "claim_row": {
+      "type": "object",
+      "required": ["claim_status", "source_citation_required", "harness_truth_allowed_now", "adopted_as_truth", "reviewer_required"],
+      "properties": {
+        "claim_status": { "enum": ["CANDIDATE", "NEEDS_SOURCE", "NEEDS_REVIEW", "ACCEPTED", "REJECTED", "STALE"] },
+        "source_citation_required": { "const": true },
+        "harness_truth_allowed_now": { "const": false },
+        "adopted_as_truth": { "const": false },
+        "reviewer_required": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "plan_row": {
+      "type": "object",
+      "required": ["plan_status", "adopted", "adopted_without_review", "source_citation_ref", "reviewer_ref"],
+      "properties": {
+        "plan_status": { "enum": ["PROPOSED", "REVIEWED_CANDIDATE", "ADOPTED", "BLOCKED"] },
+        "adopted": { "const": false },
+        "adopted_without_review": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "context_row": {
+      "type": "object",
+      "required": ["context_status", "citation_missing", "memory_recall_allowed_now", "harness_truth_allowed_now"],
+      "properties": {
+        "context_status": { "const": "READY_FOR_NEXT_SESSION" },
+        "citation_missing": { "const": false },
+        "memory_recall_allowed_now": { "const": true },
+        "harness_truth_allowed_now": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "queue_row": {
+      "type": "object",
+      "required": [
+        "source_id",
+        "engine",
+        "thread_or_session",
+        "project_or_goal",
+        "source_status",
+        "redaction_status",
+        "claim_count",
+        "plan_candidate_count",
+        "reviewer",
+        "next_allowed_action",
+        "first_surface",
+        "queue_first",
+        "kpi_home_surface",
+        "no_source_no_claim_notice_visible",
+        "raw_transcript_body_default_visible",
+        "harness_truth_allowed_now"
+      ],
+      "properties": {
+        "first_surface": { "const": "Conversation Source Queue" },
+        "queue_first": { "const": true },
+        "kpi_home_surface": { "const": false },
+        "no_source_no_claim_notice_visible": { "const": true },
+        "raw_transcript_body_default_visible": { "const": false },
+        "harness_truth_allowed_now": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "ui_component_row": {
+      "type": "object",
+      "required": ["component_name", "component_status", "read_only", "mutation_allowed", "raw_transcript_body_default_visible", "kpi_card_component"],
+      "properties": {
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "raw_transcript_body_default_visible": { "const": false },
+        "kpi_card_component": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "copy_rule_row": {
+      "type": "object",
+      "required": ["copy_text", "copy_rule_type", "copy_status", "trust_signal_allowed", "forbidden"],
+      "additionalProperties": true
+    },
+    "gate_row": {
+      "type": "object",
+      "required": ["gate_id", "gate_status", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "gate_status": { "const": "ready" },
+        "unsafe_flags_false": { "const": true },
+        "verdict_authority": { "const": "harness_only" }
+      },
+      "additionalProperties": true
+    },
+    "boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "conversation_source_plane_ready",
+        "first_surface",
+        "ui_invariant",
+        "raw_transcript_is_source_material",
+        "summary_is_claim",
+        "plan_change_is_reviewed_candidate",
+        "harness_ui_status_is_source_of_truth",
+        "runtime_execution_enabled",
+        "write_action_enabled",
+        "protected_action_enabled",
+        "receipt_application_enabled",
+        "raw_transcript_body_default_visible",
+        "raw_secret_material_allowed",
+        "raw_client_material_allowed",
+        "agent_final_pass_enabled",
+        "work_os_claim_enabled",
+        "kpi_home_surface_allowed",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "conversation-source-boundary.v1" },
+        "program_range": { "const": "P4001-P4300" },
+        "conversation_source_plane_ready": { "const": true },
+        "first_surface": { "const": "Conversation Source Queue" },
+        "ui_invariant": { "const": "source -> claim -> citation -> review -> Harness truth" },
+        "raw_transcript_is_source_material": { "const": true },
+        "summary_is_claim": { "const": true },
+        "plan_change_is_reviewed_candidate": { "const": true },
+        "harness_ui_status_is_source_of_truth": { "const": true },
+        "runtime_execution_enabled": { "const": false },
+        "write_action_enabled": { "const": false },
+        "protected_action_enabled": { "const": false },
+        "receipt_application_enabled": { "const": false },
+        "raw_transcript_body_default_visible": { "const": false },
+        "raw_secret_material_allowed": { "const": false },
+        "raw_client_material_allowed": { "const": false },
+        "agent_final_pass_enabled": { "const": false },
+        "work_os_claim_enabled": { "const": false },
+        "kpi_home_surface_allowed": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

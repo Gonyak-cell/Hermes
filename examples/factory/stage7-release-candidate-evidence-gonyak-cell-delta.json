@@ -1,0 +1,16 @@
+{
+  "schema_version": "factory-stage7-release-candidate-evidence.v1",
+  "evidence_id": "STAGE7-RC-EVIDENCE-GONYAK-CELL-20260612-DELTA",
+  "stage_id": "Stage7",
+  "required_gate_id": "G3",
+  "source_literal_opening_commit_sha": "3a42cb07f6cf618db7710d50e1182bbffcda227c",
+  "pilot_product_id": "project.hermes_harness",
+  "release_candidate_manifest_bound": true,
+  "staging_deployment_packet_bound": true,
+  "rollback_rehearsal_receipts": 1,
+  "scale_closeout_ledger_bound": true,
+  "runtime_authority_open_now": false,
+  "deployment_allowed_now": false,
+  "production_pass_enabled": false,
+  "enterprise_pass_enabled": false
+}

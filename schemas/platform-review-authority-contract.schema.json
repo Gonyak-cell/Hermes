@@ -1,0 +1,334 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/platform-review-authority-contract.schema.json",
+  "title": "Platform Review Authority Contract",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "platform_review_authority_contract_id",
+    "capability_id",
+    "inputs",
+    "review_authority_anchor",
+    "review_authority_manifest",
+    "authority_actor_rows",
+    "authority_rule_rows",
+    "single_owner_boundary_rows",
+    "closeout_control_rows",
+    "evidence_provenance_rows",
+    "review_authority_gate_rows",
+    "review_authority_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "platform-review-authority-contract.v1" },
+    "capability_id": { "const": "platform.review_process.authority_contract" },
+    "review_authority_anchor": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "phase_range",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "command_name",
+        "source_command_name",
+        "package_script_registered",
+        "external_verification_ledger_registered",
+        "authority_actor_count",
+        "authority_rule_count",
+        "single_owner_boundary_count",
+        "closeout_control_count",
+        "evidence_provenance_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "review-authority-anchor.v1" },
+        "program_range": { "const": "P3841-P4000" },
+        "phase_range": { "const": "P3841-P3860" },
+        "phase_slot": { "const": "P3841" },
+        "previous_phase_slot": { "const": "P3840" },
+        "next_phase_slot": { "const": "P3861" },
+        "command_name": { "const": "platform:review-authority-contract" },
+        "source_command_name": { "const": "platform:external-verification-enforcement" },
+        "package_script_registered": { "const": true },
+        "external_verification_ledger_registered": { "const": true },
+        "authority_actor_count": { "const": 5 },
+        "authority_rule_count": { "const": 8 },
+        "single_owner_boundary_count": { "const": 4 },
+        "closeout_control_count": { "const": 8 },
+        "evidence_provenance_count": { "const": 5 }
+      }
+    },
+    "review_authority_manifest": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "phase_range",
+        "review_authority_contract_status",
+        "authority_actor_count",
+        "authority_rule_count",
+        "single_owner_boundary_count",
+        "closeout_control_count",
+        "evidence_provenance_count",
+        "p4000_role_authority_contract_ready",
+        "enterprise_trust_requires_independent_github_review_now",
+        "single_owner_enterprise_trust_allowed_now"
+      ],
+      "properties": {
+        "schema_version": { "const": "review-authority-manifest.v1" },
+        "program_range": { "const": "P3841-P4000" },
+        "phase_range": { "const": "P3841-P3860" },
+        "review_authority_contract_status": { "const": "ready_for_review_authority_contract" },
+        "authority_actor_count": { "const": 5 },
+        "authority_rule_count": { "const": 8 },
+        "single_owner_boundary_count": { "const": 4 },
+        "closeout_control_count": { "const": 8 },
+        "evidence_provenance_count": { "const": 5 },
+        "p4000_role_authority_contract_ready": { "const": true },
+        "enterprise_trust_requires_independent_github_review_now": { "const": true },
+        "single_owner_enterprise_trust_allowed_now": { "const": false }
+      }
+    },
+    "authority_actor_rows": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "actor_id",
+          "actor_type",
+          "tool_family",
+          "can_create_plan",
+          "can_modify_source",
+          "can_review_findings",
+          "can_finally_approve",
+          "can_complete_enterprise_trust_gate",
+          "can_self_approve",
+          "requires_human_adjudication_for_protected_closeout",
+          "current_verdict"
+        ],
+        "properties": {
+          "schema_version": { "const": "authority-actor-row.v1" },
+          "actor_id": { "type": "string", "minLength": 1 },
+          "actor_type": { "type": "string", "minLength": 1 },
+          "tool_family": { "type": "string", "minLength": 1 },
+          "can_create_plan": { "type": "boolean" },
+          "can_modify_source": { "type": "boolean" },
+          "can_review_findings": { "type": "boolean" },
+          "can_finally_approve": { "type": "boolean" },
+          "can_complete_enterprise_trust_gate": { "type": "boolean" },
+          "can_self_approve": { "const": false },
+          "requires_human_adjudication_for_protected_closeout": { "type": "boolean" },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "authority_rule_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "rule_id",
+          "actor_id",
+          "action_id",
+          "authority_status",
+          "overclaim_blocks_closeout",
+          "required_for_p4000_freeze",
+          "current_verdict"
+        ],
+        "properties": {
+          "schema_version": { "const": "authority-rule-row.v1" },
+          "rule_id": { "type": "string", "minLength": 1 },
+          "actor_id": { "type": "string", "minLength": 1 },
+          "action_id": { "type": "string", "minLength": 1 },
+          "authority_status": { "enum": ["blocked", "allowed_when_observed"] },
+          "overclaim_blocks_closeout": { "type": "boolean" },
+          "required_for_p4000_freeze": { "const": true },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "single_owner_boundary_rows": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "control_id",
+          "observed_now",
+          "expected_safe_state_now",
+          "required_for_p4000_freeze",
+          "current_verdict"
+        ],
+        "properties": {
+          "schema_version": { "const": "single-owner-boundary-row.v1" },
+          "control_id": { "type": "string", "minLength": 1 },
+          "observed_now": { "type": "boolean" },
+          "expected_safe_state_now": { "const": true },
+          "required_for_p4000_freeze": { "const": true },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "closeout_control_rows": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "control_id",
+          "required_signal",
+          "phase_range",
+          "required_for_p4000_freeze",
+          "closeout_blocks_without_signal",
+          "current_verdict"
+        ],
+        "properties": {
+          "schema_version": { "const": "closeout-control-row.v1" },
+          "control_id": { "type": "string", "minLength": 1 },
+          "required_signal": { "type": "string", "minLength": 1 },
+          "phase_range": { "type": "string", "minLength": 1 },
+          "required_for_p4000_freeze": { "const": true },
+          "closeout_blocks_without_signal": { "const": true },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "evidence_provenance_rows": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "source_id",
+          "source_uri",
+          "available_now",
+          "required_for_p4000_freeze",
+          "current_verdict"
+        ],
+        "properties": {
+          "schema_version": { "const": "review-authority-evidence-row.v1" },
+          "source_id": { "type": "string", "minLength": 1 },
+          "source_uri": { "type": "string", "minLength": 1 },
+          "available_now": { "const": true },
+          "required_for_p4000_freeze": { "const": true },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "review_authority_gate_rows": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "gate_id",
+          "gate_status",
+          "required_for_p4000_freeze",
+          "current_verdict"
+        ],
+        "properties": {
+          "schema_version": { "const": "review-authority-gate-row.v1" },
+          "gate_id": { "type": "string", "minLength": 1 },
+          "gate_status": { "const": "ready" },
+          "required_for_p4000_freeze": { "const": true },
+          "current_verdict": { "const": "pass" }
+        }
+      }
+    },
+    "review_authority_boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "phase_range",
+        "codex_final_approval_allowed_now",
+        "codex_self_approval_allowed_now",
+        "claude_final_approval_allowed_now",
+        "claude_write_permission_allowed_now",
+        "human_final_adjudication_authority_now",
+        "single_owner_exception_observed_now",
+        "single_owner_merge_readiness_now",
+        "single_owner_enterprise_trust_allowed_now",
+        "enterprise_trust_requires_independent_github_review_now",
+        "blocked_authority_rule_count",
+        "p4000_role_authority_contract_ready"
+      ],
+      "properties": {
+        "schema_version": { "const": "review-authority-boundary.v1" },
+        "program_range": { "const": "P3841-P4000" },
+        "phase_range": { "const": "P3841-P3860" },
+        "codex_final_approval_allowed_now": { "const": false },
+        "codex_self_approval_allowed_now": { "const": false },
+        "claude_final_approval_allowed_now": { "const": false },
+        "claude_write_permission_allowed_now": { "const": false },
+        "human_final_adjudication_authority_now": { "const": true },
+        "single_owner_exception_observed_now": { "const": true },
+        "single_owner_merge_readiness_now": { "const": true },
+        "single_owner_enterprise_trust_allowed_now": { "const": false },
+        "enterprise_trust_requires_independent_github_review_now": { "const": true },
+        "blocked_authority_rule_count": { "const": 7 },
+        "p4000_role_authority_contract_ready": { "const": true }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "errors": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "program_range",
+        "phase_range",
+        "review_authority_contract_status",
+        "codex_final_approval_allowed_now",
+        "claude_final_approval_allowed_now",
+        "human_final_adjudication_authority_now",
+        "single_owner_exception_observed_now",
+        "single_owner_merge_readiness_now",
+        "single_owner_enterprise_trust_allowed_now",
+        "enterprise_trust_requires_independent_github_review_now",
+        "p4000_role_authority_contract_ready",
+        "validation_error_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "review-authority-summary.v1" },
+        "program_range": { "const": "P3841-P4000" },
+        "phase_range": { "const": "P3841-P3860" },
+        "review_authority_contract_status": { "const": "ready_for_review_authority_contract" },
+        "codex_final_approval_allowed_now": { "const": false },
+        "claude_final_approval_allowed_now": { "const": false },
+        "human_final_adjudication_authority_now": { "const": true },
+        "single_owner_exception_observed_now": { "const": true },
+        "single_owner_merge_readiness_now": { "const": true },
+        "single_owner_enterprise_trust_allowed_now": { "const": false },
+        "enterprise_trust_requires_independent_github_review_now": { "const": true },
+        "p4000_role_authority_contract_ready": { "const": true },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  },
+  "additionalProperties": true
+}

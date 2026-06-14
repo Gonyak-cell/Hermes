@@ -8,6 +8,7 @@ import {
   containsForbiddenTrustString,
   isAllowedDesktopReadPath,
   isDeniedDesktopReadPath,
+  parseDesktopReadModelArgs,
   runDesktopReadModel,
 } from "../src/desktop-read-model.mjs";
 
@@ -163,6 +164,16 @@ test("Desktop read model recognizes forbidden trust claim strings", () => {
   assert.equal(containsForbiddenTrustString("This is production PASS."), true);
   assert.equal(containsForbiddenTrustString("desktop write authority enabled"), true);
   assert.equal(containsForbiddenTrustString("single-owner lower-trust RC only"), false);
+});
+
+test("Desktop read model CLI parser accepts only known flags", () => {
+  assert.deepEqual(parseDesktopReadModelArgs(["--check", "--schema-path", "schemas/example.json"]), {
+    check: true,
+    write: false,
+    schemaPath: "schemas/example.json",
+  });
+  assert.throws(() => parseDesktopReadModelArgs(["--allowlist", "docs/example.md"]), /Unknown argument: --allowlist/);
+  assert.throws(() => parseDesktopReadModelArgs(["--schema-path"]), /Missing value for --schema-path/);
 });
 
 async function createReadModelFixture() {

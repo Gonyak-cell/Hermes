@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, realpath } from "node:fs/promises";
 import path from "node:path";
 import { SHELL_SEED_STATE } from "../shared/shell-state.mjs";
 
@@ -56,12 +56,16 @@ export async function loadDesktopSourcePreview({ repoRoot, sourcePath }) {
   if (isDeniedPreviewPath(normalized)) return blockedPreview(normalized, "Source path is blocked by the desktop preview denylist.");
   if (!normalized.endsWith(".md")) return blockedPreview(normalized, "Preview is limited to allowlisted markdown summaries.");
 
-  const absolutePath = path.resolve(repoRoot, normalized);
-  const rootWithSep = path.resolve(repoRoot) + path.sep;
-  if (!absolutePath.startsWith(rootWithSep)) return blockedPreview(normalized, "Source path escapes the repository root.");
-
   try {
-    const text = await readFile(absolutePath, "utf8");
+    const repoRootRealPath = await realpath(repoRoot);
+    const absolutePath = path.resolve(repoRootRealPath, normalized);
+    const sourceRealPath = await realpath(absolutePath);
+    const rootWithSep = repoRootRealPath.endsWith(path.sep) ? repoRootRealPath : `${repoRootRealPath}${path.sep}`;
+    if (sourceRealPath !== repoRootRealPath && !sourceRealPath.startsWith(rootWithSep)) {
+      return blockedPreview(normalized, "Source path escapes the repository root.");
+    }
+
+    const text = await readFile(sourceRealPath, "utf8");
     const redacted = redactPreviewText(text);
     return {
       schema_version: "desktop-source-preview.v1",
@@ -312,7 +316,8 @@ function redactPreviewText(text) {
     .replace(/production launch approval/gi, "[redacted production launch claim]")
     .replace(/production launch approved/gi, "[redacted production launch claim]")
     .replace(/deployment authorization/gi, "[redacted deployment claim]")
-    .replace(/protected closeout/gi, "[redacted protected closeout claim]");
+    .replace(/protected closeout/gi, "[redacted protected closeout claim]")
+    .replace(/desktop write authority enabled/gi, "[redacted desktop write authority claim]");
 }
 
 function normalizePolicyPath(filePath) {

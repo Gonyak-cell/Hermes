@@ -64,6 +64,8 @@ test("navigation policy blocks external navigation", () => {
 test("content security policy keeps object and external network surfaces closed", () => {
   const policy = buildContentSecurityPolicy({ devServerUrl: DEV_SERVER_URL });
   assert.match(policy, /default-src 'self'/);
+  assert.match(policy, /style-src 'self'(?:;|$)/);
+  assert.doesNotMatch(policy, /'unsafe-inline'/);
   assert.match(policy, /object-src 'none'/);
   assert.match(policy, /connect-src 'self' http:\/\/127\.0\.0\.1:5173 ws:\/\/127\.0\.0\.1:5173/);
 });

@@ -5,6 +5,7 @@ import path from "node:path";
 import test from "node:test";
 import {
   buildDesktopAuthorityBoundary,
+  parseDesktopAuthorityBoundaryArgs,
   runDesktopAuthorityBoundary,
 } from "../src/desktop-authority-boundary.mjs";
 
@@ -73,6 +74,16 @@ test("Desktop authority boundary check mode can validate without writing artifac
   } finally {
     await rm(fixture.tmpDir, { recursive: true, force: true });
   }
+});
+
+test("Desktop authority boundary CLI parser accepts only known flags", () => {
+  assert.deepEqual(parseDesktopAuthorityBoundaryArgs(["--check", "--desktop-plan-path", "docs/desktop.md"]), {
+    check: true,
+    write: false,
+    desktopPlanPath: "docs/desktop.md",
+  });
+  assert.throws(() => parseDesktopAuthorityBoundaryArgs(["--allowlist", "docs/example.md"]), /Unknown argument: --allowlist/);
+  assert.throws(() => parseDesktopAuthorityBoundaryArgs(["--desktop-plan-path"]), /Missing value for --desktop-plan-path/);
 });
 
 async function createAuthorityFixture(overrides = {}) {

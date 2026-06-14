@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -160,6 +160,7 @@ test("desktop source preview reads only allowlisted markdown and redacts unsafe 
       "This is not production PASS.",
       "This is not ENTERPRISE PASS.",
       "GitHub independent approval is not pursued.",
+      "desktop write authority enabled is not a valid desktop claim.",
     ].join("\n"), "utf8");
     await writeFileTree(path.join(artifactDir, "desktop-read-model.json"), JSON.stringify({
       schema_version: "desktop-read-model.v1",
@@ -193,7 +194,7 @@ test("desktop source preview reads only allowlisted markdown and redacts unsafe 
     const ready = await loadDesktopSourcePreview({ repoRoot: tmpDir, sourcePath: "docs/release.md" });
     assert.equal(ready.status, "ready");
     assert.equal(ready.redacted, true);
-    assert.doesNotMatch(ready.preview_text, /production PASS|enterprise PASS|GitHub independent approval|deployment authorization|protected closeout|production launch approval/i);
+    assert.doesNotMatch(ready.preview_text, /production PASS|enterprise PASS|GitHub independent approval|deployment authorization|protected closeout|production launch approval|desktop write authority enabled/i);
     assert.match(ready.preview_text, /redacted/);
 
     const nonMarkdown = await loadDesktopSourcePreview({ repoRoot: tmpDir, sourcePath: "artifacts/operator-handbook/latest/operator-handbook.json" });
@@ -204,6 +205,45 @@ test("desktop source preview reads only allowlisted markdown and redacts unsafe 
     assert.equal(raw.status, "blocked");
   } finally {
     await rm(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test("desktop source preview blocks allowlisted symlinks that resolve outside the repository", async () => {
+  const tmpDir = await mkdtemp(path.join(os.tmpdir(), "hermes-desktop-preview-"));
+  const outsideDir = await mkdtemp(path.join(os.tmpdir(), "hermes-desktop-preview-outside-"));
+  const artifactDir = path.join(tmpDir, "artifacts", "desktop-read-model", "latest");
+  const docPath = path.join(tmpDir, "docs", "release.md");
+  const outsidePath = path.join(outsideDir, "release.md");
+  try {
+    await mkdir(path.dirname(docPath), { recursive: true });
+    await writeFile(outsidePath, "# Outside\n\nThis must not be previewed.\n", "utf8");
+    await symlink(outsidePath, docPath);
+    await writeFileTree(path.join(artifactDir, "desktop-read-model.json"), JSON.stringify({
+      schema_version: "desktop-read-model.v1",
+      generated_at: "2026-06-14T00:00:00.000Z",
+      summary: { desktop_read_model_status: "ready_for_desktop_shell" },
+      source_rows: [
+        {
+          source_id: "release_doc",
+          section_id: "release",
+          label: "Release doc",
+          source_path: "docs/release.md",
+          source_available: true,
+          status: "ready",
+          generated_at: "2026-06-14T00:00:00.000Z",
+        },
+      ],
+      sections: [],
+      screen_map: [],
+      desktop_read_authority: { read_only: true },
+    }, null, 2));
+
+    const preview = await loadDesktopSourcePreview({ repoRoot: tmpDir, sourcePath: "docs/release.md" });
+    assert.equal(preview.status, "blocked");
+    assert.match(preview.blocker, /escapes the repository root/);
+  } finally {
+    await rm(tmpDir, { recursive: true, force: true });
+    await rm(outsideDir, { recursive: true, force: true });
   }
 });
 

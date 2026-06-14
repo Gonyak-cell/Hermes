@@ -111,12 +111,12 @@ export async function writeDesktopPackagingManifest(result, outDir = result.outp
 }
 
 export async function runDesktopPackagingManifestCli(argv = process.argv.slice(2)) {
-  const args = parseArgs(argv);
-  if (args.help) {
-    printHelp();
-    return;
-  }
   try {
+    const args = parseDesktopPackagingManifestArgs(argv);
+    if (args.help) {
+      printHelp();
+      return;
+    }
     const result = await runDesktopPackagingManifest(args);
     console.log(`Desktop packaging manifest ${args.check ? "validated" : "written"} at ${result.output_dir}`);
     console.log(`Status: ${result.summary.desktop_packaging_status}`);
@@ -353,7 +353,12 @@ function summarizeValidation(items) {
   return { valid: errors.length === 0, item_count: items.length, error_count: errors.length, errors };
 }
 
-function parseArgs(argv) {
+export function parseDesktopPackagingManifestArgs(argv) {
+  const valueFlags = new Map([
+    ["--out-dir", "outDir"],
+    ["--run-at", "runAt"],
+    ...Object.keys(DEFAULT_DESKTOP_PACKAGING_MANIFEST_INPUTS).map((key) => [`--${camelToKebab(key)}`, key]),
+  ]);
   const parsed = {};
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -362,9 +367,8 @@ function parseArgs(argv) {
       parsed.check = true;
       parsed.write = false;
     } else if (arg === "--no-write") parsed.write = false;
-    else if (arg === "--out-dir") parsed.outDir = argv[++index];
-    else if (arg === "--run-at") parsed.runAt = argv[++index];
-    else if (arg.startsWith("--")) parsed[kebabToCamel(arg.slice(2))] = argv[++index];
+    else if (valueFlags.has(arg)) parsed[valueFlags.get(arg)] = readRequiredArgValue(argv, ++index, arg);
+    else if (arg.startsWith("--")) throw new Error(`Unknown argument: ${arg}`);
     else throw new Error(`Unknown argument: ${arg}`);
   }
   return parsed;
@@ -386,6 +390,12 @@ function camelToSnake(value) {
   return value.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 }
 
-function kebabToCamel(value) {
-  return value.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+function camelToKebab(value) {
+  return value.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+}
+
+function readRequiredArgValue(argv, index, flag) {
+  const value = argv[index];
+  if (value === undefined || value.startsWith("--")) throw new Error(`Missing value for ${flag}`);
+  return value;
 }

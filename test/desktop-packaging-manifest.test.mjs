@@ -5,6 +5,7 @@ import path from "node:path";
 import test from "node:test";
 import {
   buildDesktopPackagingManifest,
+  parseDesktopPackagingManifestArgs,
   runDesktopPackagingManifest,
 } from "../src/desktop-packaging-manifest.mjs";
 
@@ -75,6 +76,16 @@ test("Desktop packaging manifest check mode validates without writing artifacts"
   } finally {
     await rm(fixture.tmpDir, { recursive: true, force: true });
   }
+});
+
+test("Desktop packaging manifest CLI parser accepts only known flags", () => {
+  assert.deepEqual(parseDesktopPackagingManifestArgs(["--check", "--desktop-main-path", "apps/desktop/main.mjs"]), {
+    check: true,
+    write: false,
+    desktopMainPath: "apps/desktop/main.mjs",
+  });
+  assert.throws(() => parseDesktopPackagingManifestArgs(["--allowlist", "docs/example.md"]), /Unknown argument: --allowlist/);
+  assert.throws(() => parseDesktopPackagingManifestArgs(["--desktop-main-path"]), /Missing value for --desktop-main-path/);
 });
 
 async function createPackagingFixture(overrides = {}) {

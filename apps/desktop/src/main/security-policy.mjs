@@ -27,7 +27,7 @@ export function buildContentSecurityPolicy({ devServerUrl = null } = {}) {
   return [
     "default-src 'self'",
     "script-src 'self'",
-    "style-src 'self' 'unsafe-inline'",
+    "style-src 'self'",
     "img-src 'self' data:",
     `connect-src ${connectSources.join(" ")}`,
     "font-src 'self' data:",

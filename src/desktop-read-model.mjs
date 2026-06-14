@@ -202,12 +202,12 @@ export async function writeDesktopReadModel(result, outDir = result.output_dir) 
 }
 
 export async function runDesktopReadModelCli(argv = process.argv.slice(2)) {
-  const args = parseArgs(argv);
-  if (args.help) {
-    printHelp();
-    return;
-  }
   try {
+    const args = parseDesktopReadModelArgs(argv);
+    if (args.help) {
+      printHelp();
+      return;
+    }
     const result = await runDesktopReadModel(args);
     console.log(`Desktop read model ${args.check ? "validated" : "written"} at ${result.output_dir}`);
     console.log(`Status: ${result.summary.desktop_read_model_status}`);
@@ -433,8 +433,6 @@ function buildReleaseProjection(sourceRows, generatedAt) {
   const summaries = sourceRows.filter((row) => row.section_id === "release").map((row) => row.data_summary ?? {});
   const candidateCommit = firstSummaryValue(summaries, "candidate_commit") ?? "unknown";
   const localRcTag = firstSummaryValue(summaries, "local_rc_tag") ?? "not recorded";
-  const tagPushed = firstBooleanSummaryValue(summaries, "tag_pushed") ?? false;
-  const githubReleasePublished = firstBooleanSummaryValue(summaries, "github_release_published") ?? false;
   const githubIndependentApprovalNotPursued = summaries.some((summary) => summary.github_independent_approval_not_pursued === true);
   const ownerProductionApprovalMissing = summaries.some((summary) => summary.owner_production_launch_approval_missing === true);
   const projection = {
@@ -447,8 +445,9 @@ function buildReleaseProjection(sourceRows, generatedAt) {
     github_independent_approval_status: githubIndependentApprovalNotPursued ? "not_pursued_single_owner_local_rc" : "missing",
     production_launch_approval_status: ownerProductionApprovalMissing ? "missing" : "not_approved",
     deployment_authorized: false,
-    tag_pushed: tagPushed === true ? false : false,
-    github_release_published: githubReleasePublished === true ? false : false,
+    // Artifact-supplied publish state is observed only; desktop never opens tag or release publish authority.
+    tag_pushed: false,
+    github_release_published: false,
     production_pass_enabled: false,
     enterprise_pass_enabled: false,
     protected_closeout_enabled: false,
@@ -464,29 +463,33 @@ function buildReleaseProjection(sourceRows, generatedAt) {
 }
 
 function buildFactoryProjection(sourceRows, generatedAt) {
+  const factoryGateSummary = sourceRows.find((row) => row.source_id === "factory_gate_opening")?.data_summary ?? {};
+  const stage67Summary = sourceRows.find((row) => row.source_id === "factory_stage_6_7")?.data_summary ?? {};
   const summaries = sourceRows.filter((row) => row.section_id === "factory").map((row) => row.data_summary ?? {});
   const observedGateOpenNow = Number(firstSummaryValue(summaries, "gate_open_now") ?? 0);
-  const g1aStatus = firstSummaryValue(summaries, "g1a_status") ?? "not recorded";
+  const factoryGateReadinessStatus = factoryGateSummary.status ?? "not recorded";
+  const stage67Status = stage67Summary.status ?? "not recorded";
+  const g1aStatus = factoryGateSummary.g1a_status ?? firstSummaryValue(summaries, "g1a_status") ?? "not recorded";
   const runtimeAuthorityOpen = firstBooleanSummaryValue(summaries, "runtime_authority_open") ?? false;
   const stage6LimitedExecutionAllowed = firstBooleanSummaryValue(summaries, "stage6_limited_execution_allowed") ?? false;
   const stage7ReleaseCandidateAllowed = firstBooleanSummaryValue(summaries, "stage7_release_candidate_allowed") ?? false;
   const projection = {
     schema_version: "desktop-factory-projection.v1",
     generated_at: generatedAt,
-    factory_gate_readiness_status: firstSummaryValue(summaries, "status") ?? "not recorded",
-    stage6_stage7_status: firstSummaryValue(summaries.slice(1), "status") ?? "not recorded",
+    factory_gate_readiness_status: factoryGateReadinessStatus,
+    stage6_stage7_status: stage67Status,
     observed_gate_open_now_input: observedGateOpenNow,
     gate_open_now: 0,
     g1a_status: g1aStatus,
     runtime_authority_open: false,
     stage6_limited_execution_allowed: false,
     stage7_release_candidate_allowed: false,
-    contract_development_allowed: firstBooleanSummaryValue(summaries, "contract_development_allowed") ?? false,
+    contract_development_allowed: stage67Summary.contract_development_allowed === true,
     factory_goal_complete_allowed: false,
     production_pass_enabled: false,
     enterprise_pass_enabled: false,
     projection_rows: [
-      projectionRow("gate_readiness", "Factory gate readiness", firstSummaryValue(summaries, "status") ?? "not recorded", "evidence_ready", false, generatedAt),
+      projectionRow("gate_readiness", "Factory gate readiness", factoryGateReadinessStatus, "evidence_ready", false, generatedAt),
       projectionRow("gate_open_now", "Gate open now", "0", observedGateOpenNow === 0 ? "closed" : "input_rejected_closed", false, generatedAt),
       projectionRow("g1a_status", "G1a status", g1aStatus, "evidence_ready_runtime_closed", false, generatedAt),
       projectionRow("runtime_authority", "Runtime authority", runtimeAuthorityOpen ? "open input rejected" : "closed", "closed", false, generatedAt),
@@ -788,7 +791,12 @@ function collectionEnvelope(schemaVersion, key, rows, generatedAt) {
   return { schema_version: schemaVersion, generated_at: generatedAt, [`${key}_count`]: rows.length, [key]: rows };
 }
 
-function parseArgs(argv) {
+export function parseDesktopReadModelArgs(argv) {
+  const valueFlags = new Map([
+    ["--out-dir", "outDir"],
+    ["--run-at", "runAt"],
+    ...Object.keys(DEFAULT_DESKTOP_READ_MODEL_INPUTS).map((key) => [`--${camelToKebab(key)}`, key]),
+  ]);
   const parsed = {};
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -797,9 +805,8 @@ function parseArgs(argv) {
       parsed.check = true;
       parsed.write = false;
     } else if (arg === "--no-write") parsed.write = false;
-    else if (arg === "--out-dir") parsed.outDir = argv[++index];
-    else if (arg === "--run-at") parsed.runAt = argv[++index];
-    else if (arg.startsWith("--")) parsed[kebabToCamel(arg.slice(2))] = argv[++index];
+    else if (valueFlags.has(arg)) parsed[valueFlags.get(arg)] = readRequiredArgValue(argv, ++index, arg);
+    else if (arg.startsWith("--")) throw new Error(`Unknown argument: ${arg}`);
     else throw new Error(`Unknown argument: ${arg}`);
   }
   return parsed;
@@ -825,6 +832,12 @@ function camelToSnake(value) {
   return value.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 }
 
-function kebabToCamel(value) {
-  return value.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+function camelToKebab(value) {
+  return value.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+}
+
+function readRequiredArgValue(argv, index, flag) {
+  const value = argv[index];
+  if (value === undefined || value.startsWith("--")) throw new Error(`Missing value for ${flag}`);
+  return value;
 }

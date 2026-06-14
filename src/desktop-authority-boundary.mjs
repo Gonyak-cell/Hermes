@@ -132,12 +132,12 @@ export async function writeDesktopAuthorityBoundary(result, outDir = result.outp
 }
 
 export async function runDesktopAuthorityBoundaryCli(argv = process.argv.slice(2)) {
-  const args = parseArgs(argv);
-  if (args.help) {
-    printHelp();
-    return;
-  }
   try {
+    const args = parseDesktopAuthorityBoundaryArgs(argv);
+    if (args.help) {
+      printHelp();
+      return;
+    }
     const result = await runDesktopAuthorityBoundary(args);
     console.log(`Desktop authority boundary ${args.check ? "validated" : "written"} at ${result.output_dir}`);
     console.log(`Status: ${result.summary.desktop_authority_boundary_status}`);
@@ -402,7 +402,12 @@ async function readTextSource(filePath) {
   }
 }
 
-function parseArgs(argv) {
+export function parseDesktopAuthorityBoundaryArgs(argv) {
+  const valueFlags = new Map([
+    ["--out-dir", "outDir"],
+    ["--run-at", "runAt"],
+    ...Object.keys(DEFAULT_DESKTOP_AUTHORITY_BOUNDARY_INPUTS).map((key) => [`--${camelToKebab(key)}`, key]),
+  ]);
   const parsed = {};
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -411,9 +416,8 @@ function parseArgs(argv) {
       parsed.check = true;
       parsed.write = false;
     } else if (arg === "--no-write") parsed.write = false;
-    else if (arg === "--out-dir") parsed.outDir = argv[++index];
-    else if (arg === "--run-at") parsed.runAt = argv[++index];
-    else if (arg.startsWith("--")) parsed[kebabToCamel(arg.slice(2))] = argv[++index];
+    else if (valueFlags.has(arg)) parsed[valueFlags.get(arg)] = readRequiredArgValue(argv, ++index, arg);
+    else if (arg.startsWith("--")) throw new Error(`Unknown argument: ${arg}`);
     else throw new Error(`Unknown argument: ${arg}`);
   }
   return parsed;
@@ -435,6 +439,12 @@ function sha256(value) {
   return createHash("sha256").update(JSON.stringify(value)).digest("hex");
 }
 
-function kebabToCamel(value) {
-  return value.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+function camelToKebab(value) {
+  return value.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+}
+
+function readRequiredArgValue(argv, index, flag) {
+  const value = argv[index];
+  if (value === undefined || value.startsWith("--")) throw new Error(`Missing value for ${flag}`);
+  return value;
 }

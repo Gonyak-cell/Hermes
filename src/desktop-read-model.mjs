@@ -449,9 +449,9 @@ function buildReleaseProjection(sourceRows, generatedAt) {
     projection_rows: [
       projectionRow("candidate_commit", "Candidate commit", candidateCommit, "observed", false, generatedAt),
       projectionRow("local_rc_tag", "Local RC tag", localRcTag, "local_only_not_pushed", false, generatedAt),
-      projectionRow("github_independent_approval", "GitHub independent approval", githubIndependentApprovalNotPursued ? "not pursued" : "missing", "closed", false, generatedAt),
-      projectionRow("production_launch_approval", "Production launch approval", ownerProductionApprovalMissing ? "missing" : "not approved", "closed", false, generatedAt),
-      projectionRow("deployment_authorization", "Deployment authorization", "not authorized", "closed", false, generatedAt),
+      projectionRow("github_independent_approval", "Independent review", githubIndependentApprovalNotPursued ? "not pursued" : "missing", "closed", false, generatedAt),
+      projectionRow("production_launch_approval", "Launch approval", ownerProductionApprovalMissing ? "missing" : "not approved", "closed", false, generatedAt),
+      projectionRow("deployment_authorization", "Deploy authority", "not authorized", "closed", false, generatedAt),
     ],
   };
   return { ...projection, projection_hash: sha256(projection) };

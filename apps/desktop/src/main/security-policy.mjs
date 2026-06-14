@@ -14,6 +14,7 @@ export const PRELOAD_API_KEYS = Object.freeze([
   "getAppInfo",
   "getShellState",
   "getReadModel",
+  "getSourcePreview",
 ]);
 
 export function buildContentSecurityPolicy({ devServerUrl = null } = {}) {

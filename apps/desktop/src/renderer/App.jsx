@@ -33,6 +33,7 @@ export default function App() {
   const [language, setLanguage] = usePersistentLanguage();
   const [activeNav, setActiveNav] = useState(getInitialNav());
   const [readModel, setReadModel] = useState(fallbackReadModel);
+  const [sourcePreview, setSourcePreview] = useState(null);
   const copy = getCopy(language);
 
   useEffect(() => {
@@ -113,7 +114,8 @@ export default function App() {
           ) : (
             <>
               <ProjectionStrip copy={copy} rows={projectionRows} />
-              <EvidenceTable copy={copy} rows={rows} />
+              <EvidenceTable copy={copy} rows={rows} onPreview={setSourcePreview} />
+              <SourcePreview copy={copy} preview={sourcePreview} />
             </>
           )}
         </section>
@@ -154,7 +156,7 @@ function ProjectionStrip({ copy, rows }) {
   );
 }
 
-function EvidenceTable({ copy, rows }) {
+function EvidenceTable({ copy, rows, onPreview }) {
   if (rows.length === 0) {
     return <div className="empty-state">{copy.empty}</div>;
   }
@@ -178,7 +180,11 @@ function EvidenceTable({ copy, rows }) {
                 <small>{row.source_id}</small>
               </td>
               <td><StatusPill tone={row.status === "ready" ? "green" : "red"} label={row.status} /></td>
-              <td className="path-cell">{row.source_path}</td>
+              <td className="path-cell">
+                <button className="path-button" type="button" onClick={() => requestPreview(row.source_path, onPreview)}>
+                  {row.source_path}
+                </button>
+              </td>
               <td>{row.blocker ?? "-"}</td>
               <td>{row.generated_at ?? "-"}</td>
             </tr>
@@ -186,6 +192,23 @@ function EvidenceTable({ copy, rows }) {
         </tbody>
       </table>
     </div>
+  );
+}
+
+function SourcePreview({ copy, preview }) {
+  if (!preview) return null;
+  return (
+    <section className={`source-preview ${preview.status}`} aria-label={copy.preview}>
+      <div className="source-preview-heading">
+        <strong>{preview.source_path}</strong>
+        <StatusPill tone={preview.status === "ready" ? "green" : "red"} label={preview.status} />
+      </div>
+      {preview.status === "ready" ? (
+        <pre>{preview.preview_text}</pre>
+      ) : (
+        <p>{preview.blocker}</p>
+      )}
+    </section>
   );
 }
 
@@ -263,4 +286,23 @@ function formatProjectionText(value) {
   const text = String(value ?? "");
   if (/^[a-f0-9]{32,}$/i.test(text) || text.startsWith("v0.")) return text;
   return text.replaceAll("_", " ");
+}
+
+async function requestPreview(sourcePath, onPreview) {
+  try {
+    const preview = await window.hermesOperator?.getSourcePreview?.(sourcePath);
+    onPreview(preview ?? {
+      source_path: sourcePath,
+      status: "blocked",
+      blocker: "Preview API unavailable.",
+      preview_text: "",
+    });
+  } catch (error) {
+    onPreview({
+      source_path: sourcePath,
+      status: "blocked",
+      blocker: error.message,
+      preview_text: "",
+    });
+  }
 }

@@ -10,7 +10,7 @@ import {
   isAllowedNavigationUrl,
   isAllowedRendererRequestUrl,
 } from "../src/main/security-policy.mjs";
-import { loadDesktopReadModel } from "../src/main/read-model.mjs";
+import { loadDesktopReadModel, loadDesktopSourcePreview } from "../src/main/read-model.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const APP_DIR = path.resolve(__dirname, "..");
@@ -21,6 +21,7 @@ const rendererPath = path.join(APP_DIR, "dist", "renderer", "index.html");
 const width = readPositiveIntArg("--width=", 1440);
 const height = readPositiveIntArg("--height=", 900);
 const screen = readStringArg("--screen=", "release");
+const previewPath = readStringArg("--preview=", "");
 
 app.disableHardwareAcceleration();
 app.setName(`${APP_TITLE} Smoke`);
@@ -32,6 +33,7 @@ ipcMain.handle("desktop:get-app-info", () => ({
 }));
 ipcMain.handle("desktop:get-shell-state", () => SHELL_SEED_STATE);
 ipcMain.handle("desktop:get-read-model", async () => loadDesktopReadModel({ repoRoot: REPO_ROOT }));
+ipcMain.handle("desktop:get-source-preview", async (_event, sourcePath) => loadDesktopSourcePreview({ repoRoot: REPO_ROOT, sourcePath }));
 
 app.whenReady().then(async () => {
   installSessionGuards();
@@ -54,6 +56,7 @@ app.whenReady().then(async () => {
 
   await window.loadFile(rendererPath, { query: { screen } });
   await waitForRenderer(window, screen);
+  if (previewPath) await openPreview(window, previewPath);
   const image = await window.capturePage();
   await mkdir(path.dirname(outPath), { recursive: true });
   await writeFile(outPath, image.toPNG());
@@ -107,6 +110,35 @@ function waitForRenderer(window, targetScreen) {
         }
         if (Date.now() - started > 5000) {
           reject(new Error("Timed out waiting for Hermes Operator Desktop renderer text"));
+          return;
+        }
+        setTimeout(tick, 100);
+      };
+      tick();
+    })
+  `);
+}
+
+function openPreview(window, sourcePath) {
+  return window.webContents.executeJavaScript(`
+    new Promise((resolve, reject) => {
+      const sourcePath = ${JSON.stringify(sourcePath)};
+      const button = [...document.querySelectorAll(".path-button")]
+        .find((candidate) => candidate.textContent.includes(sourcePath));
+      if (!button) {
+        reject(new Error("Preview source button not found: " + sourcePath));
+        return;
+      }
+      button.click();
+      const started = Date.now();
+      const tick = () => {
+        const text = document.body?.innerText ?? "";
+        if (text.includes(sourcePath) && text.includes("redacted")) {
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve(text.length)));
+          return;
+        }
+        if (Date.now() - started > 5000) {
+          reject(new Error("Timed out waiting for source preview: " + sourcePath));
           return;
         }
         setTimeout(tick, 100);

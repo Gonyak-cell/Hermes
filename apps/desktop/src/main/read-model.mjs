@@ -47,6 +47,37 @@ export async function loadDesktopReadModel({ repoRoot }) {
   }
 }
 
+export async function loadDesktopSourcePreview({ repoRoot, sourcePath }) {
+  const readModel = await loadDesktopReadModel({ repoRoot });
+  const normalized = normalizePolicyPath(sourcePath);
+  const row = (readModel.source_rows ?? []).find((item) => normalizePolicyPath(item.source_path) === normalized);
+  if (!row) return blockedPreview(normalized, "Source path is not part of the desktop read model.");
+  if (row.status !== "ready") return blockedPreview(normalized, row.blocker ?? "Source row is blocked.");
+  if (isDeniedPreviewPath(normalized)) return blockedPreview(normalized, "Source path is blocked by the desktop preview denylist.");
+  if (!normalized.endsWith(".md")) return blockedPreview(normalized, "Preview is limited to allowlisted markdown summaries.");
+
+  const absolutePath = path.resolve(repoRoot, normalized);
+  const rootWithSep = path.resolve(repoRoot) + path.sep;
+  if (!absolutePath.startsWith(rootWithSep)) return blockedPreview(normalized, "Source path escapes the repository root.");
+
+  try {
+    const text = await readFile(absolutePath, "utf8");
+    const redacted = redactPreviewText(text);
+    return {
+      schema_version: "desktop-source-preview.v1",
+      source_path: normalized,
+      status: "ready",
+      blocker: null,
+      preview_text: redacted.slice(0, 12000),
+      truncated: redacted.length > 12000,
+      redacted: redacted !== text,
+      byte_length: Buffer.byteLength(text),
+    };
+  } catch (error) {
+    return blockedPreview(normalized, error.message);
+  }
+}
+
 export function sanitizeReadModel(readModel, sourcePath = DESKTOP_READ_MODEL_RELATIVE_PATH) {
   const summary = readModel?.summary ?? {};
   const authority = readModel?.desktop_read_authority ?? {};
@@ -211,9 +242,10 @@ function pickFactoryProjection(projection = {}) {
 }
 
 function pickProjectionRow(row) {
+  const rowId = String(row?.row_id ?? "unknown");
   return {
-    row_id: String(row?.row_id ?? "unknown"),
-    label: String(row?.label ?? row?.row_id ?? "Unknown"),
+    row_id: rowId,
+    label: safeProjectionLabel(rowId, row?.label),
     value: String(row?.value ?? ""),
     status: String(row?.status ?? "closed"),
     authority_open: false,
@@ -224,7 +256,7 @@ function pickProjectionRow(row) {
 function defaultReleaseProjection() {
   return pickReleaseProjection({
     projection_rows: [
-      { row_id: "deployment_authorization", label: "Deployment authorization", value: "not authorized", status: "closed" },
+      { row_id: "deployment_authorization", label: "Deploy authority", value: "not authorized", status: "closed" },
     ],
   });
 }
@@ -235,6 +267,56 @@ function defaultFactoryProjection() {
       { row_id: "gate_open_now", label: "Gate open now", value: "0", status: "closed" },
     ],
   });
+}
+
+function blockedPreview(sourcePath, blocker) {
+  return {
+    schema_version: "desktop-source-preview.v1",
+    source_path: sourcePath,
+    status: "blocked",
+    blocker,
+    preview_text: "",
+    truncated: false,
+    redacted: false,
+    byte_length: 0,
+  };
+}
+
+function isDeniedPreviewPath(sourcePath) {
+  const normalized = normalizePolicyPath(sourcePath);
+  const base = path.posix.basename(normalized);
+  return base.startsWith(".env")
+    || /(^|\/)[^/]*(secret|credential|token|private-key)[^/]*($|\/)/i.test(normalized)
+    || (normalized.startsWith("artifacts/") && /^raw.*\.json$/i.test(base))
+    || (normalized.startsWith("artifacts/") && /^raw-output.*\.json$/i.test(base))
+    || normalized.endsWith("/provenance/signed-provenance-receipt.json")
+    || normalized.endsWith("/review/raw-output.json");
+}
+
+function safeProjectionLabel(rowId, fallback) {
+  const labels = {
+    github_independent_approval: "Independent review",
+    production_launch_approval: "Launch approval",
+    deployment_authorization: "Deploy authority",
+  };
+  return labels[rowId] ?? String(fallback ?? rowId ?? "Unknown");
+}
+
+function redactPreviewText(text) {
+  return String(text ?? "")
+    .replace(/production PASS/gi, "[redacted production trust claim]")
+    .replace(/enterprise PASS/gi, "[redacted enterprise trust claim]")
+    .replace(/enterprise trust/gi, "[redacted enterprise trust claim]")
+    .replace(/GitHub independent approval/gi, "[redacted independent approval claim]")
+    .replace(/independently approved/gi, "[redacted independent approval claim]")
+    .replace(/production launch approval/gi, "[redacted production launch claim]")
+    .replace(/production launch approved/gi, "[redacted production launch claim]")
+    .replace(/deployment authorization/gi, "[redacted deployment claim]")
+    .replace(/protected closeout/gi, "[redacted protected closeout claim]");
+}
+
+function normalizePolicyPath(filePath) {
+  return String(filePath ?? "").replaceAll("\\", "/").replace(/^\.\//, "");
 }
 
 function safeArray(value) {

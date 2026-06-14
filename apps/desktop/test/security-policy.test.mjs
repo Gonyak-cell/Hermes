@@ -33,7 +33,7 @@ test("Electron webPreferences keep the desktop renderer sandboxed and isolated",
 });
 
 test("preload API exposes read-only methods only", () => {
-  assert.deepEqual(PRELOAD_API_KEYS, ["getAppInfo", "getShellState", "getReadModel"]);
+  assert.deepEqual(PRELOAD_API_KEYS, ["getAppInfo", "getShellState", "getReadModel", "getSourcePreview"]);
   assert.equal(hasUnsafePreloadApi(PRELOAD_API_KEYS), false);
   assert.equal(hasUnsafePreloadApi(["writeArtifact"]), true);
   assert.equal(hasUnsafePreloadApi(["runShellCommand"]), true);

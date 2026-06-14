@@ -18,6 +18,7 @@ const copy = {
     mode: "Mode",
     boundary: "Boundary",
     projection: "Projection",
+    preview: "Preview",
     navSub: {
       release: "RC / tag / launch",
       factory: "gate / stage",
@@ -67,6 +68,7 @@ const copy = {
     mode: "Mode",
     boundary: "Boundary",
     projection: "Projection",
+    preview: "Preview",
     navSub: {
       release: "RC / tag / launch",
       factory: "gate / stage",

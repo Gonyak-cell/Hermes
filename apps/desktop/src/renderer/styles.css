@@ -299,6 +299,59 @@ td strong {
   word-break: break-word;
 }
 
+.path-button {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #475467;
+  text-align: left;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.path-button:hover {
+  color: #174ea6;
+}
+
+.source-preview {
+  max-height: 220px;
+  display: grid;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid #e7ebf0;
+  background: #fbfcfe;
+}
+
+.source-preview-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.source-preview-heading strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: #1f2937;
+  font-size: 12px;
+}
+
+.source-preview pre {
+  max-height: 150px;
+  margin: 0;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #344054;
+  font: 11px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.source-preview p {
+  color: #9a3412;
+}
+
 .decision-panel {
   padding: 14px;
   display: grid;
@@ -521,5 +574,10 @@ td strong {
   .path-cell {
     max-width: none;
     overflow-wrap: anywhere;
+  }
+
+  .source-preview {
+    max-height: 260px;
+    padding: 10px 12px;
   }
 }

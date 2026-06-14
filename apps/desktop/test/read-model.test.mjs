@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { loadDesktopReadModel, sanitizeReadModel } from "../src/main/read-model.mjs";
+import { loadDesktopReadModel, loadDesktopSourcePreview, sanitizeReadModel } from "../src/main/read-model.mjs";
 
 test("desktop read model loader returns visible blocker when artifact is missing", async () => {
   const tmpDir = await mkdtemp(path.join(os.tmpdir(), "hermes-desktop-loader-"));
@@ -74,6 +74,8 @@ test("desktop read model loader sanitizes authority flags from artifact input", 
         enterprise_pass_enabled: true,
         protected_closeout_enabled: true,
         projection_rows: [
+          { row_id: "github_independent_approval", label: "GitHub independent approval", value: "approved", status: "open", authority_open: true },
+          { row_id: "production_launch_approval", label: "Production launch approval", value: "approved", status: "open", authority_open: true },
           { row_id: "deployment_authorization", label: "Deployment authorization", value: "authorized", status: "open", authority_open: true },
         ],
       },
@@ -100,7 +102,8 @@ test("desktop read model loader sanitizes authority flags from artifact input", 
   assert.equal(result.release_projection.deployment_authorized, false);
   assert.equal(result.release_projection.production_pass_enabled, false);
   assert.equal(result.release_projection.enterprise_pass_enabled, false);
-  assert.equal(result.release_projection.projection_rows[0].authority_open, false);
+  assert.deepEqual(result.release_projection.projection_rows.map((row) => row.label), ["Independent review", "Launch approval", "Deploy authority"]);
+  assert.equal(result.release_projection.projection_rows.every((row) => row.authority_open === false), true);
   assert.equal(result.factory_projection.gate_open_now, 0);
   assert.equal(result.factory_projection.runtime_authority_open, false);
   assert.equal(result.factory_projection.stage6_limited_execution_allowed, false);
@@ -140,6 +143,65 @@ test("desktop read model loader reads the repository artifact shape when present
     assert.equal(result.summary.desktop_read_model_status, "ready_for_desktop_shell");
     assert.equal(result.summary.operator_handbook_bound, true);
     assert.equal(result.desktop_read_authority.ready_for_desktop_shell, true);
+  } finally {
+    await rm(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test("desktop source preview reads only allowlisted markdown and redacts unsafe trust strings", async () => {
+  const tmpDir = await mkdtemp(path.join(os.tmpdir(), "hermes-desktop-preview-"));
+  const artifactDir = path.join(tmpDir, "artifacts", "desktop-read-model", "latest");
+  const docPath = path.join(tmpDir, "docs", "release.md");
+  try {
+    await mkdir(path.dirname(docPath), { recursive: true });
+    await writeFile(docPath, [
+      "# Release",
+      "",
+      "This is not production PASS.",
+      "This is not ENTERPRISE PASS.",
+      "GitHub independent approval is not pursued.",
+    ].join("\n"), "utf8");
+    await writeFileTree(path.join(artifactDir, "desktop-read-model.json"), JSON.stringify({
+      schema_version: "desktop-read-model.v1",
+      generated_at: "2026-06-14T00:00:00.000Z",
+      summary: { desktop_read_model_status: "ready_for_desktop_shell" },
+      source_rows: [
+        {
+          source_id: "release_doc",
+          section_id: "release",
+          label: "Release doc",
+          source_path: "docs/release.md",
+          source_available: true,
+          status: "ready",
+          generated_at: "2026-06-14T00:00:00.000Z",
+        },
+        {
+          source_id: "operator_json",
+          section_id: "operator_handbook",
+          label: "Operator json",
+          source_path: "artifacts/operator-handbook/latest/operator-handbook.json",
+          source_available: true,
+          status: "ready",
+          generated_at: "2026-06-14T00:00:00.000Z",
+        },
+      ],
+      sections: [],
+      screen_map: [],
+      desktop_read_authority: { read_only: true },
+    }, null, 2));
+
+    const ready = await loadDesktopSourcePreview({ repoRoot: tmpDir, sourcePath: "docs/release.md" });
+    assert.equal(ready.status, "ready");
+    assert.equal(ready.redacted, true);
+    assert.doesNotMatch(ready.preview_text, /production PASS|enterprise PASS|GitHub independent approval|deployment authorization|protected closeout|production launch approval/i);
+    assert.match(ready.preview_text, /redacted/);
+
+    const nonMarkdown = await loadDesktopSourcePreview({ repoRoot: tmpDir, sourcePath: "artifacts/operator-handbook/latest/operator-handbook.json" });
+    assert.equal(nonMarkdown.status, "blocked");
+    assert.match(nonMarkdown.blocker, /markdown/);
+
+    const raw = await loadDesktopSourcePreview({ repoRoot: tmpDir, sourcePath: "artifacts/example/review/raw-output.json" });
+    assert.equal(raw.status, "blocked");
   } finally {
     await rm(tmpDir, { recursive: true, force: true });
   }

@@ -8,7 +8,7 @@ import {
   isAllowedNavigationUrl,
   isAllowedRendererRequestUrl,
 } from "./security-policy.mjs";
-import { loadDesktopReadModel } from "./read-model.mjs";
+import { loadDesktopReadModel, loadDesktopSourcePreview } from "./read-model.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const APP_DIR = path.resolve(__dirname, "../..");
@@ -25,6 +25,7 @@ ipcMain.handle("desktop:get-app-info", () => ({
 
 ipcMain.handle("desktop:get-shell-state", () => SHELL_SEED_STATE);
 ipcMain.handle("desktop:get-read-model", async () => loadDesktopReadModel({ repoRoot: REPO_ROOT }));
+ipcMain.handle("desktop:get-source-preview", async (_event, sourcePath) => loadDesktopSourcePreview({ repoRoot: REPO_ROOT, sourcePath }));
 
 app.whenReady().then(async () => {
   installSessionGuards();

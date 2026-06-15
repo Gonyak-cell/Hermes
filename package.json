@@ -620,6 +620,7 @@
     "platform:work-os-goal-drilldown-surface": "node scripts/work-os-goal-drilldown-surface.mjs",
     "platform:multi-project-saas-control-plane": "node scripts/multi-project-saas-control-plane.mjs",
     "platform:project-operating-contract": "node scripts/project-operating-contract.mjs",
+    "platform:agent-bridge-manifest": "node scripts/agent-bridge-manifest.mjs",
     "platform:requirement-traceability-kernel": "node scripts/requirement-traceability-kernel.mjs",
     "platform:product-build-verification-loop": "node scripts/product-build-verification-loop.mjs",
     "platform:claude-review-integration-lane": "node scripts/claude-review-integration-lane.mjs",

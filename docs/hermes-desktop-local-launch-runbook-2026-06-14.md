@@ -20,6 +20,26 @@
 | Desktop dependencies | `apps/desktop/package-lock.json` 기준 설치 완료 |
 | Desktop posture | read-only, single-owner lower-trust RC |
 
+## Repository Root Override
+
+기본적으로 desktop main process와 smoke capture script는 `apps/desktop` 기준 상위 Hermes repository를 읽는다. 로컬 검증에서 다른 checkout을 임시로 보려면 `HERMES_REPO_ROOT`를 지정할 수 있다.
+
+```bash
+HERMES_REPO_ROOT=/Users/jws/Documents/Codex/Hermes npm run desktop:start
+HERMES_REPO_ROOT=/Users/jws/Documents/Codex/Hermes npm run desktop:smoke:render
+```
+
+이 override는 local operator convenience only다. production packaging, release tagging, GitHub release publication, deployment, enterprise PASS, protected closeout 권한을 열지 않는다.
+
+`HERMES_REPO_ROOT`가 설정되어도 desktop은 다음 조건을 만족하지 않는 경로를 무시하고 기본 repo root로 fail closed 한다.
+
+- root `package.json`의 `name`이 `hermes-project-ops-harness`여야 한다.
+- `src/desktop-read-model.mjs`가 존재해야 한다.
+- `apps/desktop/package.json`이 존재해야 한다.
+- symlink는 realpath 기준으로 해석된다.
+
+release 또는 package rehearsal 전에는 의도하지 않은 checkout을 읽지 않도록 `unset HERMES_REPO_ROOT` 상태를 권장한다. `apps/desktop/scripts/capture-render.mjs`도 main process와 같은 resolver를 사용한다.
+
 ## One-Command Local Preflight
 
 출시 후보로 데스크톱 UI를 볼 수 있는지 확인하려면 아래 명령을 실행한다.

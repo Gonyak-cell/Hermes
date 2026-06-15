@@ -9,10 +9,11 @@ import {
   isAllowedRendererRequestUrl,
 } from "./security-policy.mjs";
 import { loadDesktopReadModel, loadDesktopSourcePreview } from "./read-model.mjs";
+import { resolveHermesRepoRoot } from "./repo-root.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const APP_DIR = path.resolve(__dirname, "../..");
-const REPO_ROOT = process.env.HERMES_REPO_ROOT ?? path.resolve(APP_DIR, "../..");
+const REPO_ROOT = resolveHermesRepoRoot({ appDir: APP_DIR });
 const DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL ?? null;
 
 app.setName(APP_TITLE);

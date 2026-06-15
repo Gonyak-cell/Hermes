@@ -507,7 +507,8 @@ function projectionRow(rowId, label, value, status, authorityOpen, generatedAt) 
     label,
     value,
     status,
-    authority_open: authorityOpen === true ? false : false,
+    // Artifact-supplied projection authority is observed only; desktop never opens it.
+    authority_open: false,
     generated_at: generatedAt,
   };
   return { ...row, row_hash: sha256(row) };

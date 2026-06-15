@@ -11,10 +11,11 @@ import {
   isAllowedRendererRequestUrl,
 } from "../src/main/security-policy.mjs";
 import { loadDesktopReadModel, loadDesktopSourcePreview } from "../src/main/read-model.mjs";
+import { resolveHermesRepoRoot } from "../src/main/repo-root.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const APP_DIR = path.resolve(__dirname, "..");
-const REPO_ROOT = process.env.HERMES_REPO_ROOT ?? path.resolve(APP_DIR, "../..");
+const REPO_ROOT = resolveHermesRepoRoot({ appDir: APP_DIR });
 const outPath = resolveRepoPath(readStringArg("--out=", "tmp/desktop-render-smoke.png"));
 const rendererPath = path.join(APP_DIR, "dist", "renderer", "index.html");
 const width = readPositiveIntArg("--width=", 1440);

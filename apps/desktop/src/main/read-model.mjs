@@ -3,6 +3,14 @@ import path from "node:path";
 import { SHELL_SEED_STATE } from "../shared/shell-state.mjs";
 
 export const DESKTOP_READ_MODEL_RELATIVE_PATH = "artifacts/desktop-read-model/latest/desktop-read-model.json";
+const SAFE_PROJECT_AFFORDANCE_TYPES = Object.freeze([
+  "inspect",
+  "copy_command",
+  "open_artifact",
+  "prepare_review_packet",
+  "draft_owner_decision",
+  "refresh_artifact",
+]);
 
 export async function loadDesktopReadModel({ repoRoot }) {
   const sourcePath = path.join(repoRoot, DESKTOP_READ_MODEL_RELATIVE_PATH);
@@ -38,6 +46,7 @@ export async function loadDesktopReadModel({ repoRoot }) {
       screen_map: [],
       release_projection: defaultReleaseProjection(),
       factory_projection: defaultFactoryProjection(),
+      project_projection: defaultProjectProjection(),
       desktop_read_authority: {
         read_only: true,
         source_of_truth: false,
@@ -95,6 +104,7 @@ export function sanitizeReadModel(readModel, sourcePath = DESKTOP_READ_MODEL_REL
     screen_map: safeArray(readModel?.screen_map).map(pickScreen),
     release_projection: pickReleaseProjection(readModel?.release_projection),
     factory_projection: pickFactoryProjection(readModel?.factory_projection),
+    project_projection: pickProjectProjection(readModel?.project_projection),
     desktop_read_authority: pickAuthority(authority),
   };
 }
@@ -110,6 +120,10 @@ function pickSummary(summary) {
     blocked_section_count: Number(summary.blocked_section_count ?? 0),
     screen_count: Number(summary.screen_count ?? 0),
     ready_screen_count: Number(summary.ready_screen_count ?? 0),
+    project_count: Number(summary.project_count ?? 0),
+    ready_project_count: Number(summary.ready_project_count ?? 0),
+    blocked_project_count: Number(summary.blocked_project_count ?? 0),
+    stale_project_count: Number(summary.stale_project_count ?? 0),
     operator_handbook_bound: summary.operator_handbook_bound === true,
     authority_boundary_ready: summary.authority_boundary_ready === true,
     validation_error_count: Number(summary.validation_error_count ?? 0),
@@ -245,6 +259,100 @@ function pickFactoryProjection(projection = {}) {
   };
 }
 
+function pickProjectProjection(projection = {}) {
+  return {
+    schema_version: "desktop-project-projection.v1",
+    generated_at: projection?.generated_at ?? null,
+    project_operating_contract_status: String(projection?.project_operating_contract_status ?? "not recorded"),
+    source_status: projection?.source_status === "ready" ? "ready" : "blocked",
+    project_count: Number(projection?.project_count ?? 0),
+    ready_project_count: Number(projection?.ready_project_count ?? 0),
+    blocked_project_count: Number(projection?.blocked_project_count ?? 0),
+    review_needed_project_count: Number(projection?.review_needed_project_count ?? 0),
+    stale_project_count: Number(projection?.stale_project_count ?? 0),
+    ready_for_desktop_multi_project_projection: projection?.ready_for_desktop_multi_project_projection === true,
+    read_only: true,
+    local_only: true,
+    source_of_truth: false,
+    command_execution_allowed_now: false,
+    git_write_allowed_now: false,
+    deploy_allowed_now: false,
+    approval_application_allowed_now: false,
+    receipt_application_allowed_now: false,
+    connector_write_allowed_now: false,
+    raw_source_exposure_allowed: false,
+    secret_read_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    protected_closeout_enabled: false,
+    project_rows: safeArray(projection?.project_rows).map((row) => ({
+      project_id: String(row?.project_id ?? "unknown"),
+      project_name: String(row?.project_name ?? row?.project_id ?? "Unknown project"),
+      domain_pack: String(row?.domain_pack ?? "unknown"),
+      project_state: String(row?.project_state ?? "blocked"),
+      current_goal_id: row?.current_goal_id ?? null,
+      current_phase_range: row?.current_phase_range ?? null,
+      blocker_count: Number(row?.blocker_count ?? 0),
+      freshness_status: String(row?.freshness_status ?? "missing"),
+      progress_confidence: String(row?.progress_confidence ?? "unknown"),
+      next_allowed_action: String(row?.next_allowed_action ?? "inspect project state"),
+    })),
+    project_detail_rows: safeArray(projection?.project_detail_rows).map((row) => ({
+      project_id: String(row?.project_id ?? "unknown"),
+      state_reason: String(row?.state_reason ?? "not recorded"),
+      blocker_type: row?.blocker_type ? String(row.blocker_type) : null,
+      blocker_hint: String(row?.blocker_hint ?? "No blocker remediation hint recorded."),
+      risk_level: String(row?.risk_level ?? "unknown"),
+      validation_ready: row?.validation_ready === true,
+      review_boundary_ready: row?.review_boundary_ready === true,
+      completed_units: Number(row?.completed_units ?? 0),
+      remaining_units: Number(row?.remaining_units ?? 0),
+      next_action_count: Number(row?.next_action_count ?? 0),
+      source_generated_at: row?.source_generated_at ?? null,
+      source_age_days: Number(row?.source_age_days ?? 0),
+      source_artifact_path: String(row?.source_artifact_path ?? ""),
+      source_artifact_sha256: String(row?.source_artifact_sha256 ?? ""),
+      source_parse_status: String(row?.source_parse_status ?? "unknown"),
+      refresh_required: row?.refresh_required === true,
+      unsafe_flag_count: Number(row?.unsafe_flag_count ?? 0),
+      authority_boundary_closed: row?.authority_boundary_closed === true,
+      data_boundary_closed: row?.data_boundary_closed === true,
+      next_allowed_action: String(row?.next_allowed_action ?? "inspect project detail"),
+    })),
+    project_drift_rows: safeArray(projection?.project_drift_rows).map((row) => ({
+      project_id: String(row?.project_id ?? "unknown"),
+      source_generated_at: row?.source_generated_at ?? null,
+      source_age_days: Number(row?.source_age_days ?? 0),
+      freshness_status: String(row?.freshness_status ?? "missing"),
+      refresh_required: row?.refresh_required === true,
+      source_hash: String(row?.source_hash ?? ""),
+      next_allowed_action: String(row?.next_allowed_action ?? "inspect freshness"),
+    })),
+    project_attention_rows: safeArray(projection?.project_attention_rows).map((row) => ({
+      project_id: String(row?.project_id ?? "unknown"),
+      attention_type: String(row?.attention_type ?? "status"),
+      severity: String(row?.severity ?? "info"),
+      label: String(row?.label ?? row?.attention_type ?? "Project attention"),
+      detail: String(row?.detail ?? ""),
+      next_safe_action: String(row?.next_safe_action ?? "inspect project state"),
+      mutates_state: false,
+      opens_authority: false,
+    })),
+    safe_affordance_rows: safeArray(projection?.safe_affordance_rows).map((row) => ({
+      action_type: String(row?.action_type ?? "inspect"),
+      action_class: String(row?.action_class ?? "safe_read_only"),
+      allowed: row?.allowed === true
+        && row?.action_class === "safe_read_only"
+        && SAFE_PROJECT_AFFORDANCE_TYPES.includes(row?.action_type),
+      mutates_state: false,
+      opens_authority: false,
+      display_label: String(row?.display_label ?? row?.action_type ?? "inspect"),
+      hint: String(row?.hint ?? "Display only."),
+    })),
+    projection_rows: safeArray(projection?.projection_rows).map(pickProjectionRow),
+  };
+}
+
 function pickProjectionRow(row) {
   const rowId = String(row?.row_id ?? "unknown");
   return {
@@ -269,6 +377,15 @@ function defaultFactoryProjection() {
   return pickFactoryProjection({
     projection_rows: [
       { row_id: "gate_open_now", label: "Gate open now", value: "0", status: "closed" },
+    ],
+  });
+}
+
+function defaultProjectProjection() {
+  return pickProjectProjection({
+    source_status: "blocked",
+    projection_rows: [
+      { row_id: "project_count", label: "Projects", value: "0", status: "blocked" },
     ],
   });
 }

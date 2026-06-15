@@ -27,10 +27,13 @@ test("Desktop read model projects release, factory, review, operator, artifact, 
     assert.equal(result.validation.valid, true);
     assert.equal(result.schema_version, "desktop-read-model.v1");
     assert.equal(result.summary.desktop_read_model_status, "ready_for_desktop_shell");
-    assert.equal(result.summary.source_count, 20);
-    assert.equal(result.summary.ready_source_count, 20);
-    assert.equal(result.summary.section_count, 6);
-    assert.equal(result.summary.ready_section_count, 6);
+    assert.equal(result.summary.source_count, 22);
+    assert.equal(result.summary.ready_source_count, 22);
+    assert.equal(result.summary.section_count, 7);
+    assert.equal(result.summary.ready_section_count, 7);
+    assert.equal(result.summary.project_count, 2);
+    assert.equal(result.summary.ready_project_count, 1);
+    assert.equal(result.summary.blocked_project_count, 1);
     assert.equal(result.summary.operator_handbook_bound, true);
     assert.equal(result.summary.authority_boundary_ready, true);
     assert.equal(result.summary.raw_payload_read_allowed, false);
@@ -48,6 +51,19 @@ test("Desktop read model projects release, factory, review, operator, artifact, 
     assert.equal(result.factory_projection.runtime_authority_open, false);
     assert.equal(result.factory_projection.stage6_limited_execution_allowed, false);
     assert.equal(result.factory_projection.stage7_release_candidate_allowed, false);
+    assert.equal(result.project_projection.project_count, 2);
+    assert.equal(result.project_projection.ready_project_count, 1);
+    assert.equal(result.project_projection.blocked_project_count, 1);
+    assert.equal(result.project_projection.git_write_allowed_now, false);
+    assert.equal(result.project_projection.production_pass_enabled, false);
+    assert.equal(result.project_projection.enterprise_pass_enabled, false);
+    assert.equal(result.project_projection.project_rows.map((row) => row.project_id).join(","), "project.hermes,project.law_firm_os");
+    assert.equal(result.project_projection.project_detail_rows.length, 2);
+    assert.equal(result.project_projection.project_detail_rows[0].project_id, "project.hermes");
+    assert.equal(result.project_projection.project_detail_rows[1].state_reason, "blocked_by_validation");
+    assert.equal(result.project_projection.project_drift_rows.length, 2);
+    assert.equal(result.project_projection.project_attention_rows.some((row) => row.attention_type === "blocked"), true);
+    assert.equal(result.project_projection.safe_affordance_rows.some((row) => row.action_type === "copy_command" && row.mutates_state === false && row.opens_authority === false), true);
     assert.equal(result.sections.every((section) => section.source_path && section.generated_at && section.status && Object.hasOwn(section, "blocker") && Array.isArray(section.section_refs)), true);
   } finally {
     await rm(fixture.tmpDir, { recursive: true, force: true });
@@ -160,6 +176,41 @@ test("Desktop read model projection refuses malicious authority text", async () 
   }
 });
 
+test("Desktop read model surfaces blocked, stale, review-needed, owner-action, and safe affordance fixtures without opening authority", async () => {
+  const fixture = await createReadModelFixture();
+  try {
+    await writeFile(fixture.options.projectOperatingContractPath, JSON.stringify(projectContractStateFixture(), null, 2), "utf8");
+    const result = await buildDesktopReadModel({
+      runAt: RUN_AT,
+      write: false,
+      ...fixture.options,
+      allowlist: fixture.allowlist,
+    });
+
+    assert.equal(result.validation.valid, true);
+    assert.equal(result.project_projection.project_rows.length, 4);
+    assert.deepEqual(result.project_projection.project_rows.map((row) => row.project_state), [
+      "blocked",
+      "stale",
+      "review_needed",
+      "owner_action_needed",
+    ]);
+    assert.equal(result.project_projection.project_drift_rows.find((row) => row.project_id === "project.stale").refresh_required, true);
+    assert.equal(result.project_projection.project_attention_rows.some((row) => row.attention_type === "stale" && row.next_safe_action.includes("refresh")), true);
+    assert.equal(result.project_projection.project_attention_rows.some((row) => row.attention_type === "review_needed"), true);
+    assert.equal(result.project_projection.project_attention_rows.some((row) => row.attention_type === "owner_action_needed"), true);
+    assert.equal(result.project_projection.project_detail_rows.find((row) => row.project_id === "project.blocked").blocker_type, "failed_validation");
+    assert.equal(result.project_projection.safe_affordance_rows.every((row) => row.mutates_state === false && row.opens_authority === false), true);
+    assert.equal(result.project_projection.safe_affordance_rows.find((row) => row.action_type === "deploy").allowed, false);
+    assert.equal(result.project_projection.git_write_allowed_now, false);
+    assert.equal(result.project_projection.deploy_allowed_now, false);
+    assert.equal(result.project_projection.production_pass_enabled, false);
+    assert.equal(result.project_projection.enterprise_pass_enabled, false);
+  } finally {
+    await rm(fixture.tmpDir, { recursive: true, force: true });
+  }
+});
+
 test("Desktop read model recognizes forbidden trust claim strings", () => {
   assert.equal(containsForbiddenTrustString("This is production PASS."), true);
   assert.equal(containsForbiddenTrustString("desktop write authority enabled"), true);
@@ -189,6 +240,8 @@ async function createReadModelFixture() {
     desktopPlanPath: file("desktop-plan.md"),
     desktopLocalLaunchRunbookPath: file("desktop-local-launch-runbook.md"),
     desktopPackagingManifestSummaryPath: file("desktop-packaging-manifest-summary.md"),
+    projectOperatingContractPath: file("project-operating-contract.json"),
+    projectOperatingContractSummaryPath: file("project-operating-contract-summary.md"),
     operatorHandbookPath: file("operator-handbook.json"),
     operatorSurfacesPath: file("operator-surfaces.json"),
     operatorScreensPath: file("operator-screens.json"),
@@ -212,6 +265,7 @@ async function createReadModelFixture() {
     options.desktopPlanPath,
     options.desktopLocalLaunchRunbookPath,
     options.desktopPackagingManifestSummaryPath,
+    options.projectOperatingContractSummaryPath,
     options.releaseReadinessSummaryPath,
     options.productionGovernanceSummaryPath,
     options.p16800FreezeSummaryPath,
@@ -254,6 +308,74 @@ async function createReadModelFixture() {
     "Contract development allowed: true",
     "Factory goal complete allowed: false",
   ].join("\n"), "utf8");
+  await writeFile(options.projectOperatingContractPath, JSON.stringify({
+    schema_version: "project-operating-contract.v1",
+    summary: {
+      project_operating_contract_status: "ready_for_project_operating_contract",
+      project_count: 2,
+      ready_project_count: 1,
+      blocked_project_count: 1,
+      review_needed_project_count: 0,
+      stale_project_count: 0,
+      validation_error_count: 0,
+    },
+    project_operating_boundary: {
+      ready_for_desktop_multi_project_projection: true,
+      unsafe_flag_count: 0,
+      production_pass_enabled: false,
+      enterprise_pass_enabled: false,
+      protected_closeout_enabled: false,
+    },
+    project_identity_rows: [
+      { project_id: "project.hermes", project_name: "Hermes", domain_pack: "personal-dev" },
+      { project_id: "project.law_firm_os", project_name: "Law Firm OS", domain_pack: "law-firm" },
+    ],
+    project_progress_rows: [
+      { project_id: "project.hermes", current_goal_id: "goal.hermes", current_phase_range: "TUW-001-TUW-009", risk_level: "low", completed_units: 6, remaining_units: 0, next_action_count: 1 },
+      { project_id: "project.law_firm_os", current_goal_id: "goal.law", current_phase_range: "CP690-722", risk_level: "high", completed_units: 1, remaining_units: 3, next_action_count: 2 },
+    ],
+    project_source_inventory_rows: [
+      { project_id: "project.hermes", source_artifact_path: "artifacts/project-operating-contract/latest/project-operating-contract.json", source_artifact_sha256: "sha256:hermes", source_generated_at: "2026-06-14T09:00:00.000Z", source_parse_status: "parsed" },
+      { project_id: "project.law_firm_os", source_artifact_path: "artifacts/project-operating-contract/latest/project-operating-contract.json", source_artifact_sha256: "sha256:law", source_generated_at: "2026-06-14T09:00:00.000Z", source_parse_status: "parsed" },
+    ],
+    project_authority_boundary_rows: [
+      { project_id: "project.hermes", unsafe_flag_count: 0, cross_project_data_mixing_allowed: false },
+      { project_id: "project.law_firm_os", unsafe_flag_count: 0, cross_project_data_mixing_allowed: false },
+    ],
+    project_freshness_rows: [
+      { project_id: "project.hermes", source_age_days: 0.02, refresh_required: false },
+      { project_id: "project.law_firm_os", source_age_days: 0.02, refresh_required: false },
+    ],
+    project_next_action_taxonomy_rows: [
+      { action_type: "inspect", action_class: "safe_read_only", allowed: true },
+      { action_type: "copy_command", action_class: "safe_read_only", allowed: true },
+      { action_type: "open_artifact", action_class: "safe_read_only", allowed: true },
+      { action_type: "prepare_review_packet", action_class: "safe_read_only", allowed: true },
+      { action_type: "draft_owner_decision", action_class: "safe_read_only", allowed: true },
+      { action_type: "refresh_artifact", action_class: "safe_read_only", allowed: true },
+      { action_type: "deploy", action_class: "forbidden_protected", allowed: false },
+    ],
+    project_state_rows: [
+      {
+        project_id: "project.hermes",
+        project_state: "ready_read_only",
+        state_reason: "read_only_contract_ready",
+        blocker_count: 0,
+        freshness_status: "fresh",
+        progress_confidence: "high",
+        next_allowed_action: "inspect project state",
+      },
+      {
+        project_id: "project.law_firm_os",
+        project_state: "blocked",
+        state_reason: "blocked_by_validation",
+        blocker_count: 2,
+        freshness_status: "fresh",
+        progress_confidence: "medium",
+        next_allowed_action: "inspect blockers",
+      },
+    ],
+  }, null, 2), "utf8");
   await writeFile(options.operatorHandbookPath, JSON.stringify({ schema_version: "operator-handbook.v1", summary: { operator_handbook_status: "complete", operator_handbook_id: "operator-handbook.test" } }, null, 2), "utf8");
   await writeFile(options.operatorSurfacesPath, JSON.stringify({ schema_version: "operator-surfaces.v1", operator_surface_rows: [] }, null, 2), "utf8");
   await writeFile(options.operatorScreensPath, JSON.stringify({ schema_version: "operator-screens.v1", operator_screen_rows: [] }, null, 2), "utf8");
@@ -280,5 +402,92 @@ async function createReadModelFixture() {
     tmpDir,
     options,
     allowlist: Object.values(options),
+  };
+}
+
+function projectContractStateFixture() {
+  const ids = ["blocked", "stale", "review", "owner"];
+  const stateById = {
+    blocked: ["blocked", "failed_validation", "validation_failed", 2],
+    stale: ["stale", "stale_artifact", "source_stale", 1],
+    review: ["review_needed", "missing_review", "review_missing", 1],
+    owner: ["owner_action_needed", "missing_owner_decision", "owner_decision_missing", 1],
+  };
+  return {
+    schema_version: "project-operating-contract.v1",
+    summary: {
+      project_operating_contract_status: "ready_for_project_operating_contract",
+      project_count: 4,
+      ready_project_count: 0,
+      blocked_project_count: 4,
+      review_needed_project_count: 1,
+      stale_project_count: 1,
+      validation_error_count: 0,
+    },
+    project_operating_boundary: {
+      ready_for_desktop_multi_project_projection: true,
+      unsafe_flag_count: 0,
+      production_pass_enabled: false,
+      enterprise_pass_enabled: false,
+      protected_closeout_enabled: false,
+    },
+    project_identity_rows: ids.map((id) => ({
+      project_id: `project.${id}`,
+      project_name: `${id} project`,
+      domain_pack: "personal-dev",
+    })),
+    project_progress_rows: ids.map((id, index) => ({
+      project_id: `project.${id}`,
+      current_goal_id: `goal.${id}`,
+      current_phase_range: `TUW-${String(index + 1).padStart(3, "0")}`,
+      risk_level: id === "blocked" ? "high" : "medium",
+      completed_units: 1,
+      remaining_units: 2,
+      next_action_count: 1,
+      progress_confidence: id === "stale" ? "low" : "medium",
+    })),
+    project_source_inventory_rows: ids.map((id) => ({
+      project_id: `project.${id}`,
+      source_artifact_path: "artifacts/project-operating-contract/latest/project-operating-contract.json",
+      source_artifact_sha256: `sha256:${id}`,
+      source_generated_at: "2026-06-01T00:00:00.000Z",
+      source_parse_status: "parsed",
+    })),
+    project_authority_boundary_rows: ids.map((id) => ({
+      project_id: `project.${id}`,
+      unsafe_flag_count: 0,
+      cross_project_data_mixing_allowed: false,
+    })),
+    project_freshness_rows: ids.map((id) => ({
+      project_id: `project.${id}`,
+      source_age_days: id === "stale" ? 21 : 1,
+      freshness_status: id === "stale" ? "stale" : "fresh",
+      refresh_required: id === "stale",
+      source_hash: `sha256:${id}`,
+    })),
+    project_next_action_taxonomy_rows: [
+      { action_type: "inspect", action_class: "safe_read_only", allowed: true },
+      { action_type: "copy_command", action_class: "safe_read_only", allowed: true },
+      { action_type: "open_artifact", action_class: "safe_read_only", allowed: true },
+      { action_type: "prepare_review_packet", action_class: "safe_read_only", allowed: true },
+      { action_type: "draft_owner_decision", action_class: "safe_read_only", allowed: true },
+      { action_type: "refresh_artifact", action_class: "safe_read_only", allowed: true },
+      { action_type: "deploy", action_class: "forbidden_protected", allowed: false },
+    ],
+    project_state_rows: ids.map((id) => {
+      const [projectState, blockerType, stateReason, blockerCount] = stateById[id];
+      return {
+        project_id: `project.${id}`,
+        project_state: projectState,
+        state_reason: stateReason,
+        blocker_type: blockerType,
+        blocker_count: blockerCount,
+        validation_ready: id !== "blocked",
+        review_boundary_ready: id !== "review",
+        freshness_status: id === "stale" ? "stale" : "fresh",
+        progress_confidence: id === "stale" ? "low" : "medium",
+        next_allowed_action: id === "owner" ? "draft owner decision" : id === "review" ? "prepare review packet" : id === "stale" ? "refresh artifact request draft only" : "inspect blockers",
+      };
+    }),
   };
 }

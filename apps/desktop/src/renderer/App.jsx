@@ -26,6 +26,15 @@ const fallbackReadModel = {
       { row_id: "gate_open_now", label: "Gate open now", value: "0", status: "closed" },
     ],
   },
+  project_projection: {
+    projection_rows: [
+      { row_id: "project_count", label: "Projects", value: "0", status: "blocked" },
+    ],
+    project_rows: [],
+    project_detail_rows: [],
+    project_attention_rows: [],
+    safe_affordance_rows: [],
+  },
   desktop_read_authority: SHELL_SEED_STATE.authority_flags,
 };
 
@@ -35,6 +44,7 @@ export default function App() {
   const [readModel, setReadModel] = useState(fallbackReadModel);
   const [sourcePreview, setSourcePreview] = useState(null);
   const [selectedRowKey, setSelectedRowKey] = useState(null);
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
   const copy = getCopy(language);
 
   useEffect(() => {
@@ -55,8 +65,19 @@ export default function App() {
     return rowsForNav(activeNav, readModel);
   }, [activeNav, readModel]);
 
-  const rowSummary = summarizeRows(rows);
+  const isProjectControlNav = activeNav === "projects" || activeNav === "queue";
+  const isProjectContextNav = ["projects", "queue", "governance", "reviews", "gates", "evidence", "sources"].includes(activeNav);
+  const projectRows = readModel.project_projection?.project_rows ?? [];
+  const rowSummary = isProjectControlNav
+    ? {
+      total: projectRows.length,
+      ready: readModel.project_projection?.ready_project_count ?? projectRows.filter((row) => row.project_state === "ready_read_only").length,
+      blocked: readModel.project_projection?.blocked_project_count ?? projectRows.filter((row) => row.project_state !== "ready_read_only").length,
+    }
+    : summarizeRows(rows);
   const selectedRow = rows.find((row) => rowKey(row) === selectedRowKey) ?? rows[0] ?? null;
+  const selectedProject = projectRows.find((row) => row.project_id === selectedProjectId) ?? projectRows[0] ?? null;
+  const selectedProjectDetail = (readModel.project_projection?.project_detail_rows ?? []).find((row) => row.project_id === selectedProject?.project_id) ?? null;
   const summary = readModel.summary ?? fallbackReadModel.summary;
   const authority = readModel.desktop_read_authority ?? SHELL_SEED_STATE.authority_flags;
   const projectionRows = projectionRowsForNav(activeNav, readModel);
@@ -68,6 +89,14 @@ export default function App() {
     }
     if (!rows.some((row) => rowKey(row) === selectedRowKey)) setSelectedRowKey(rowKey(rows[0]));
   }, [rows, selectedRowKey]);
+
+  useEffect(() => {
+    if (!isProjectContextNav || projectRows.length === 0) {
+      setSelectedProjectId(null);
+      return;
+    }
+    if (!projectRows.some((row) => row.project_id === selectedProjectId)) setSelectedProjectId(projectRows[0].project_id);
+  }, [isProjectContextNav, projectRows, selectedProjectId]);
 
   return (
     <main className="desktop-shell" lang={language}>
@@ -121,6 +150,24 @@ export default function App() {
           ) : (
             <>
               <ProjectionStrip copy={copy} rows={projectionRows} />
+              {isProjectControlNav ? (
+                <ProjectControlTable
+                  copy={copy}
+                  rows={projectRows}
+                  selectedProjectId={selectedProject?.project_id ?? null}
+                  onSelectProject={setSelectedProjectId}
+                />
+              ) : null}
+              {isProjectContextNav ? (
+                <ProjectAttentionPanel
+                  copy={copy}
+                  rows={readModel.project_projection?.project_attention_rows ?? []}
+                  selectedProjectId={selectedProject?.project_id ?? null}
+                />
+              ) : null}
+              {isProjectContextNav ? (
+                <SafeAffordancePanel copy={copy} rows={readModel.project_projection?.safe_affordance_rows ?? []} />
+              ) : null}
               <EvidenceTable copy={copy} rows={rows} selectedRowKey={selectedRow ? rowKey(selectedRow) : null} onSelect={setSelectedRowKey} onPreview={setSourcePreview} />
               <SourcePreview copy={copy} preview={sourcePreview} />
             </>
@@ -132,8 +179,10 @@ export default function App() {
           <div className="score-grid">
             <Metric label={copy.sources} value={`${summary.ready_source_count ?? 0}/${summary.source_count ?? 0}`} />
             <Metric label={copy.sections} value={`${summary.ready_section_count ?? 0}/${summary.section_count ?? 0}`} />
+            <Metric label="Projects" value={`${summary.ready_project_count ?? 0}/${summary.project_count ?? 0}`} />
             <Metric label={copy.errors} value={summary.validation_error_count ?? 0} />
           </div>
+          {isProjectContextNav ? <ProjectInspector copy={copy} project={selectedProject} detail={selectedProjectDetail} /> : null}
           <BoundaryList copy={copy} authority={authority} />
           <ObjectInspector copy={copy} row={selectedRow} onPreview={setSourcePreview} />
         </aside>
@@ -160,6 +209,150 @@ function ProjectionStrip({ copy, rows }) {
           <small>{formatProjectionText(row.status)}</small>
         </div>
       ))}
+    </div>
+  );
+}
+
+function ProjectControlTable({ copy, rows, selectedProjectId, onSelectProject }) {
+  if (rows.length === 0) return <div className="empty-state">{copy.empty}</div>;
+  return (
+    <section className="project-control" aria-label={copy.projectTable}>
+      <div className="project-control-heading">
+        <h3>{copy.projectTable}</h3>
+        <small>{rows.length} projects</small>
+      </div>
+      <div className="project-table-wrap">
+        <table className="project-table">
+          <thead>
+            <tr>
+              <th>{copy.projectName}</th>
+              <th>{copy.projectState}</th>
+              <th>{copy.projectDomain}</th>
+              <th>{copy.projectPhase}</th>
+              <th>{copy.projectBlockers}</th>
+              <th>{copy.projectFreshness}</th>
+              <th>{copy.projectNextAction}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr className={selectedProjectId === row.project_id ? "selected-row" : ""} key={row.project_id} onClick={() => onSelectProject(row.project_id)}>
+                <td>
+                  <strong>{row.project_name}</strong>
+                  <small>{row.project_id}</small>
+                </td>
+                <td><StatusPill tone={projectStateTone(row.project_state)} label={formatProjectionText(row.project_state)} /></td>
+                <td>{row.domain_pack}</td>
+                <td>
+                  <strong>{row.current_phase_range ?? "-"}</strong>
+                  <small>{row.current_goal_id ?? "-"}</small>
+                </td>
+                <td>{row.blocker_count}</td>
+                <td>{formatProjectionText(row.freshness_status)}</td>
+                <td><span className="safe-action-chip">{row.next_allowed_action}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+function ProjectAttentionPanel({ copy, rows, selectedProjectId }) {
+  const visibleRows = rows.filter((row) => !selectedProjectId || row.project_id === selectedProjectId).slice(0, 4);
+  if (visibleRows.length === 0) return null;
+  return (
+    <section className="project-attention" aria-label={copy.projectAttention}>
+      <div className="project-control-heading">
+        <h3>{copy.projectAttention}</h3>
+        <small>{visibleRows.length} rows</small>
+      </div>
+      <div className="attention-grid">
+        {visibleRows.map((row) => (
+          <div className={`attention-card ${row.severity}`} key={`${row.project_id}.${row.attention_type}`}>
+            <span>{formatProjectionText(row.attention_type)}</span>
+            <strong>{row.label}</strong>
+            <p>{row.detail}</p>
+            <small>{row.next_safe_action}</small>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function SafeAffordancePanel({ copy, rows }) {
+  const visibleRows = rows.filter((row) => row.allowed === true).slice(0, 6);
+  if (visibleRows.length === 0) return null;
+  return (
+    <section className="safe-affordances" aria-label={copy.safeAffordances}>
+      <div className="project-control-heading">
+        <h3>{copy.safeAffordances}</h3>
+        <small>{copy.displayOnly}</small>
+      </div>
+      <div className="safe-affordance-row">
+        {visibleRows.map((row) => (
+          <span className="safe-action-chip" title={row.hint} key={row.action_type}>
+            {row.display_label}
+          </span>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ProjectInspector({ copy, project, detail }) {
+  return (
+    <section className="project-inspector" aria-label={copy.projectTable}>
+      <h3>{copy.projectTable}</h3>
+      {project ? (
+        <>
+          <div className="inspector-title">
+            <strong>{project.project_name}</strong>
+            <StatusPill tone={projectStateTone(project.project_state)} label={formatProjectionText(project.project_state)} />
+          </div>
+          {detail ? (
+            <div className="project-detail-strip">
+              <ProjectDetailItem label="Risk" value={formatProjectionText(detail.risk_level)} />
+              <ProjectDetailItem label="Remaining" value={String(detail.remaining_units)} />
+              <ProjectDetailItem label="Source age" value={`${detail.source_age_days}d`} />
+              <ProjectDetailItem label="Unsafe flags" value={String(detail.unsafe_flag_count)} />
+            </div>
+          ) : null}
+          <InspectorField label="project_id" value={project.project_id} />
+          <InspectorField label={copy.projectDomain} value={project.domain_pack} />
+          <InspectorField label={copy.projectPhase} value={project.current_phase_range ?? "-"} />
+          <InspectorField label="goal" value={project.current_goal_id ?? "-"} />
+          <InspectorField label={copy.projectBlockers} value={String(project.blocker_count)} />
+          <InspectorField label={copy.projectFreshness} value={formatProjectionText(project.freshness_status)} />
+          <InspectorField label="confidence" value={formatProjectionText(project.progress_confidence)} />
+          <InspectorField label={copy.projectNextAction} value={project.next_allowed_action} />
+          {detail ? (
+            <>
+              <InspectorField label="state reason" value={formatProjectionText(detail.state_reason)} />
+              <InspectorField label="risk" value={formatProjectionText(detail.risk_level)} />
+              <InspectorField label="validation" value={detail.validation_ready ? "ready" : "blocked"} />
+              <InspectorField label="review boundary" value={detail.review_boundary_ready ? "ready" : "blocked"} />
+              <InspectorField label="remaining units" value={String(detail.remaining_units)} />
+              <InspectorField label="source age days" value={String(detail.source_age_days)} />
+              <InspectorField label="source path" value={detail.source_artifact_path || "-"} />
+              <InspectorField label="authority unsafe flags" value={String(detail.unsafe_flag_count)} />
+            </>
+          ) : null}
+        </>
+      ) : (
+        <p>{copy.noSelection}</p>
+      )}
+    </section>
+  );
+}
+
+function ProjectDetailItem({ label, value }) {
+  return (
+    <div className="project-detail-item">
+      <span>{label}</span>
+      <strong>{value}</strong>
     </div>
   );
 }
@@ -307,6 +500,12 @@ function StatusPill({ tone, label }) {
   return <span className={`status-pill ${tone}`}>{label}</span>;
 }
 
+function projectStateTone(state) {
+  if (state === "ready_read_only") return "green";
+  if (state === "blocked" || state === "stale") return "red";
+  return "amber";
+}
+
 function usePersistentLanguage() {
   const [language, setLanguageState] = useState(() => {
     const stored = globalThis.localStorage?.getItem(LOCALE_STORAGE_KEY);
@@ -320,13 +519,25 @@ function usePersistentLanguage() {
 }
 
 function projectionRowsForNav(activeNav, readModel) {
+  if (["projects", "queue"].includes(activeNav)) return readModel.project_projection?.projection_rows ?? [];
   if (["queue", "release", "requirements"].includes(activeNav)) return readModel.release_projection?.projection_rows ?? [];
-  if (["factory", "gates"].includes(activeNav)) return readModel.factory_projection?.projection_rows ?? [];
+  if (activeNav === "reviews") return pickProjectionRows(readModel.project_projection?.projection_rows, ["review_needed_projects", "blocked_projects", "project_authority"]);
+  if (activeNav === "gates") return [
+    ...(readModel.factory_projection?.projection_rows ?? []).slice(0, 3),
+    ...pickProjectionRows(readModel.project_projection?.projection_rows, ["blocked_projects", "stale_projects"]),
+  ].slice(0, 5);
+  if (["factory"].includes(activeNav)) return readModel.factory_projection?.projection_rows ?? [];
   if (activeNav === "governance") return [
+    ...pickProjectionRows(readModel.project_projection?.projection_rows, ["project_authority", "blocked_projects", "review_needed_projects"]),
     ...(readModel.release_projection?.projection_rows ?? []),
     ...(readModel.factory_projection?.projection_rows ?? []),
   ].slice(0, 5);
+  if (["evidence", "sources"].includes(activeNav)) return pickProjectionRows(readModel.project_projection?.projection_rows, ["project_count", "refresh_required", "project_authority"]);
   return [];
+}
+
+function pickProjectionRows(rows = [], ids = []) {
+  return ids.map((id) => rows.find((row) => row.row_id === id)).filter(Boolean);
 }
 
 function getInitialNav() {

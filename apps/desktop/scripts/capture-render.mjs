@@ -128,8 +128,12 @@ function waitForRenderer(window, targetScreen) {
   const targetText = targetScreen === "factory"
     ? "Factory gate readiness"
     : targetScreen === "queue"
-      ? "work queue"
-      : "Candidate commit";
+      ? "Hermes Harness"
+      : targetScreen === "projects"
+        ? "Hermes Harness"
+        : ["governance", "reviews", "gates", "evidence", "sources"].includes(targetScreen)
+          ? "Project control"
+          : "Candidate commit";
   return window.webContents.executeJavaScript(`
     new Promise((resolve, reject) => {
       const started = Date.now();

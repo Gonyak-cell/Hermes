@@ -16,6 +16,8 @@ export const DEFAULT_DESKTOP_READ_MODEL_INPUTS = {
   desktopPlanPath: "docs/hermes-desktop-app-plan-2026-06-14.md",
   desktopLocalLaunchRunbookPath: "docs/hermes-desktop-local-launch-runbook-2026-06-14.md",
   desktopPackagingManifestSummaryPath: "artifacts/desktop-packaging-manifest/latest/summary.md",
+  projectOperatingContractPath: "artifacts/project-operating-contract/latest/project-operating-contract.json",
+  projectOperatingContractSummaryPath: "artifacts/project-operating-contract/latest/summary.md",
   operatorHandbookPath: "artifacts/operator-handbook/latest/operator-handbook.json",
   operatorSurfacesPath: "artifacts/operator-handbook/latest/operator-surfaces.json",
   operatorScreensPath: "artifacts/operator-handbook/latest/operator-screens.json",
@@ -38,6 +40,8 @@ export const DESKTOP_READ_ALLOWLIST = Object.freeze([
   "docs/hermes-desktop-app-plan-2026-06-14.md",
   "docs/hermes-desktop-local-launch-runbook-2026-06-14.md",
   "artifacts/desktop-packaging-manifest/latest/summary.md",
+  "artifacts/project-operating-contract/latest/project-operating-contract.json",
+  "artifacts/project-operating-contract/latest/summary.md",
   "docs/operator-handbook.md",
   "docs/dashboard-api-freeze.md",
   "artifacts/desktop-authority-boundary/latest/desktop-authority-boundary.json",
@@ -91,6 +95,15 @@ const RELEASE_SUMMARY_PRIORITY = Object.freeze([
   "desktop_packaging_manifest",
 ]);
 
+const SAFE_PROJECT_AFFORDANCE_TYPES = Object.freeze([
+  "inspect",
+  "copy_command",
+  "open_artifact",
+  "prepare_review_packet",
+  "draft_owner_decision",
+  "refresh_artifact",
+]);
+
 const SOURCE_DEFINITIONS = [
   sourceDefinition("release_owner_decision", "release", "Release owner decision", "releaseOwnerDecisionPath", true),
   sourceDefinition("release_decision_packet", "release", "Release decision packet", "releaseDecisionPacketPath", true),
@@ -99,6 +112,8 @@ const SOURCE_DEFINITIONS = [
   sourceDefinition("desktop_plan", "release", "Desktop app plan", "desktopPlanPath", true),
   sourceDefinition("desktop_local_launch_runbook", "release", "Desktop local launch runbook", "desktopLocalLaunchRunbookPath", true),
   sourceDefinition("desktop_packaging_manifest", "release", "Desktop packaging manifest", "desktopPackagingManifestSummaryPath", true),
+  sourceDefinition("project_operating_contract", "projects", "Project operating contract", "projectOperatingContractPath", true),
+  sourceDefinition("project_operating_contract_summary", "projects", "Project operating contract summary", "projectOperatingContractSummaryPath", true),
   sourceDefinition("factory_gate_opening", "factory", "Factory gate opening readiness", "factoryGateOpeningSummaryPath", true),
   sourceDefinition("factory_stage_6_7", "factory", "Factory Stage6/Stage7 readiness", "factoryStage67SummaryPath", true),
   sourceDefinition("release_readiness", "factory", "Release readiness control plane", "releaseReadinessSummaryPath", true),
@@ -158,6 +173,7 @@ export async function buildDesktopReadModel(options = {}) {
   const desktopReadAuthority = buildDesktopReadAuthority({ sourceRows, sections, trustClaimGuardRows, denylistFixtureRows, generatedAt });
   const releaseProjection = buildReleaseProjection(sourceRows, generatedAt);
   const factoryProjection = buildFactoryProjection(sourceRows, generatedAt);
+  const projectProjection = buildProjectProjection(sourceRows, generatedAt);
   const validationItems = buildValidationItems({
     packageJson,
     sourceRows,
@@ -168,6 +184,7 @@ export async function buildDesktopReadModel(options = {}) {
     artifactAccessPolicy,
     releaseProjection,
     factoryProjection,
+    projectProjection,
   });
   const preliminaryValidation = summarizeValidation(validationItems);
   const result = {
@@ -182,12 +199,13 @@ export async function buildDesktopReadModel(options = {}) {
     screen_map: screenMap,
     release_projection: releaseProjection,
     factory_projection: factoryProjection,
+    project_projection: projectProjection,
     trust_claim_guard_rows: trustClaimGuardRows,
     denylist_fixture_rows: denylistFixtureRows,
     desktop_read_authority: desktopReadAuthority,
     validation_items: validationItems,
     validation: preliminaryValidation,
-    summary: buildSummary({ sourceRows, sections, screenMap, desktopReadAuthority, validation: preliminaryValidation }),
+    summary: buildSummary({ sourceRows, sections, screenMap, desktopReadAuthority, projectProjection, validation: preliminaryValidation }),
   };
 
   const schemaErrors = schema.available
@@ -196,7 +214,7 @@ export async function buildDesktopReadModel(options = {}) {
   const schemaValidationItems = schemaErrors.map((error, index) => validationItem(`schema.${index}`, false, error.message, error.path));
   result.validation_items = [...validationItems, ...schemaValidationItems];
   result.validation = summarizeValidation(result.validation_items);
-  result.summary = buildSummary({ sourceRows, sections, screenMap, desktopReadAuthority, validation: result.validation });
+  result.summary = buildSummary({ sourceRows, sections, screenMap, desktopReadAuthority, projectProjection, validation: result.validation });
   return { ...result, markdown: renderMarkdown(result) };
 }
 
@@ -350,7 +368,7 @@ function sourceRow({ definition, sourcePath, allowed, available, parseStatus, co
 }
 
 function buildSections(sourceRows, generatedAt) {
-  const sectionIds = ["release", "factory", "reviews", "operator_handbook", "artifacts", "authority_boundary"];
+  const sectionIds = ["projects", "release", "factory", "reviews", "operator_handbook", "artifacts", "authority_boundary"];
   return sectionIds.map((sectionId) => {
     const rows = sectionId === "artifacts"
       ? sourceRows
@@ -525,6 +543,117 @@ function buildFactoryProjection(sourceRows, generatedAt) {
   return { ...projection, projection_hash: sha256(projection) };
 }
 
+function buildProjectProjection(sourceRows, generatedAt) {
+  const projectSource = sourceRows.find((row) => row.source_id === "project_operating_contract");
+  const summary = projectSource?.data_summary ?? {};
+  const projectRows = Array.isArray(summary.project_rows) ? summary.project_rows : [];
+  const projectDetailRows = Array.isArray(summary.project_detail_rows) ? summary.project_detail_rows : [];
+  const projectDriftRows = Array.isArray(summary.project_drift_rows) ? summary.project_drift_rows : [];
+  const projectAttentionRows = Array.isArray(summary.project_attention_rows) ? summary.project_attention_rows : [];
+  const safeAffordanceRows = Array.isArray(summary.safe_affordance_rows) ? summary.safe_affordance_rows : [];
+  const refreshRequiredCount = projectDriftRows.filter((row) => row.refresh_required === true).length;
+  const projection = {
+    schema_version: "desktop-project-projection.v1",
+    generated_at: generatedAt,
+    project_operating_contract_status: summary.project_operating_contract_status ?? "not recorded",
+    source_status: projectSource?.status ?? "blocked",
+    project_count: Number(summary.project_count ?? 0),
+    ready_project_count: Number(summary.ready_project_count ?? 0),
+    blocked_project_count: Number(summary.blocked_project_count ?? 0),
+    review_needed_project_count: Number(summary.review_needed_project_count ?? 0),
+    stale_project_count: Number(summary.stale_project_count ?? 0),
+    ready_for_desktop_multi_project_projection: summary.ready_for_desktop_multi_project_projection === true,
+    read_only: true,
+    local_only: true,
+    source_of_truth: false,
+    command_execution_allowed_now: false,
+    git_write_allowed_now: false,
+    deploy_allowed_now: false,
+    approval_application_allowed_now: false,
+    receipt_application_allowed_now: false,
+    connector_write_allowed_now: false,
+    raw_source_exposure_allowed: false,
+    secret_read_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    protected_closeout_enabled: false,
+    project_rows: projectRows.map((row) => ({
+      project_id: String(row.project_id ?? "unknown"),
+      project_name: String(row.project_name ?? row.project_id ?? "Unknown project"),
+      domain_pack: String(row.domain_pack ?? "unknown"),
+      project_state: String(row.project_state ?? "blocked"),
+      current_goal_id: row.current_goal_id ?? null,
+      current_phase_range: row.current_phase_range ?? null,
+      blocker_count: Number(row.blocker_count ?? 0),
+      freshness_status: String(row.freshness_status ?? "missing"),
+      progress_confidence: String(row.progress_confidence ?? "unknown"),
+      next_allowed_action: String(row.next_allowed_action ?? "inspect project state"),
+    })),
+    project_detail_rows: projectDetailRows.map((row) => ({
+      project_id: String(row.project_id ?? "unknown"),
+      state_reason: String(row.state_reason ?? "not recorded"),
+      blocker_type: row.blocker_type ? String(row.blocker_type) : null,
+      blocker_hint: String(row.blocker_hint ?? "No blocker remediation hint recorded."),
+      risk_level: String(row.risk_level ?? "unknown"),
+      validation_ready: row.validation_ready === true,
+      review_boundary_ready: row.review_boundary_ready === true,
+      completed_units: Number(row.completed_units ?? 0),
+      remaining_units: Number(row.remaining_units ?? 0),
+      next_action_count: Number(row.next_action_count ?? 0),
+      source_generated_at: row.source_generated_at ?? null,
+      source_age_days: Number(row.source_age_days ?? 0),
+      source_artifact_path: String(row.source_artifact_path ?? ""),
+      source_artifact_sha256: String(row.source_artifact_sha256 ?? ""),
+      source_parse_status: String(row.source_parse_status ?? "unknown"),
+      refresh_required: row.refresh_required === true,
+      unsafe_flag_count: Number(row.unsafe_flag_count ?? 0),
+      authority_boundary_closed: row.authority_boundary_closed === true,
+      data_boundary_closed: row.data_boundary_closed === true,
+      next_allowed_action: String(row.next_allowed_action ?? "inspect project detail"),
+    })),
+    project_drift_rows: projectDriftRows.map((row) => ({
+      project_id: String(row.project_id ?? "unknown"),
+      source_generated_at: row.source_generated_at ?? null,
+      source_age_days: Number(row.source_age_days ?? 0),
+      freshness_status: String(row.freshness_status ?? "missing"),
+      refresh_required: row.refresh_required === true,
+      source_hash: String(row.source_hash ?? ""),
+      next_allowed_action: String(row.next_allowed_action ?? "inspect freshness"),
+    })),
+    project_attention_rows: projectAttentionRows.map((row) => ({
+      project_id: String(row.project_id ?? "unknown"),
+      attention_type: String(row.attention_type ?? "status"),
+      severity: String(row.severity ?? "info"),
+      label: String(row.label ?? row.attention_type ?? "Project attention"),
+      detail: String(row.detail ?? ""),
+      next_safe_action: String(row.next_safe_action ?? "inspect project state"),
+      mutates_state: false,
+      opens_authority: false,
+    })),
+    safe_affordance_rows: safeAffordanceRows.map((row) => ({
+      action_type: String(row.action_type ?? "inspect"),
+      action_class: String(row.action_class ?? "safe_read_only"),
+      allowed: row.allowed === true
+        && row.action_class === "safe_read_only"
+        && SAFE_PROJECT_AFFORDANCE_TYPES.includes(row.action_type),
+      mutates_state: false,
+      opens_authority: false,
+      display_label: String(row.display_label ?? row.action_type ?? "inspect"),
+      hint: String(row.hint ?? "Display only."),
+    })),
+    projection_rows: [
+      projectionRow("project_count", "Projects", String(summary.project_count ?? 0), summary.project_count > 0 ? "observed" : "blocked", false, generatedAt),
+      projectionRow("ready_projects", "Ready", String(summary.ready_project_count ?? 0), "read_only", false, generatedAt),
+      projectionRow("blocked_projects", "Blocked", String(summary.blocked_project_count ?? 0), Number(summary.blocked_project_count ?? 0) > 0 ? "attention" : "clear", false, generatedAt),
+      projectionRow("review_needed_projects", "Review needed", String(summary.review_needed_project_count ?? 0), Number(summary.review_needed_project_count ?? 0) > 0 ? "attention" : "clear", false, generatedAt),
+      projectionRow("stale_projects", "Stale", String(summary.stale_project_count ?? 0), Number(summary.stale_project_count ?? 0) > 0 ? "refresh" : "clear", false, generatedAt),
+      projectionRow("refresh_required", "Refresh required", String(refreshRequiredCount), refreshRequiredCount > 0 ? "refresh" : "clear", false, generatedAt),
+      projectionRow("project_authority", "Project authority", Number(summary.unsafe_flag_count ?? 0) === 0 ? "closed" : "input rejected", "closed", false, generatedAt),
+    ],
+  };
+  return { ...projection, projection_hash: sha256(projection) };
+}
+
 function projectionRow(rowId, label, value, status, authorityOpen, generatedAt) {
   const row = {
     schema_version: "desktop-projection-row.v1",
@@ -588,10 +717,10 @@ function buildDesktopReadAuthority({ sourceRows, sections, trustClaimGuardRows, 
 function buildValidationItems(context) {
   return [
     validationItem("package.script.desktop_read_model", Boolean(context.packageJson.data?.scripts?.[COMMAND_NAME]), `${COMMAND_NAME} missing from package.json`, "package.json"),
-    validationItem("policy.allowlist.explicit", context.artifactAccessPolicy.allowlist.length >= 18 && context.artifactAccessPolicy.denylist_precedence === true, "Desktop read policy must use explicit allowlist with denylist precedence.", "artifact_access_policy"),
+    validationItem("policy.allowlist.explicit", context.artifactAccessPolicy.allowlist.length >= 22 && context.artifactAccessPolicy.denylist_precedence === true, "Desktop read policy must use explicit allowlist with denylist precedence.", "artifact_access_policy"),
     validationItem("sources.blocker_visible", context.sourceRows.every((row) => row.status === "ready" || row.blocker), "Missing or blocked sources must render visible blockers.", "source_rows"),
     validationItem("sources.no_denied_reads", context.sourceRows.every((row) => row.source_allowed_by_policy === true), "Desktop read model attempted to read a denied or non-allowlisted source.", "source_rows"),
-    validationItem("sections.required", ["release", "factory", "reviews", "operator_handbook", "artifacts", "authority_boundary"].every((sectionId) => context.sections.some((section) => section.section_id === sectionId)), "Desktop sections are incomplete.", "sections"),
+    validationItem("sections.required", ["release", "projects", "factory", "reviews", "operator_handbook", "artifacts", "authority_boundary"].every((sectionId) => context.sections.some((section) => section.section_id === sectionId)), "Desktop sections are incomplete.", "sections"),
     validationItem("sections.ready", context.sections.every((section) => section.status === "ready"), "Required desktop read-model sections must be ready; missing inputs must fail closed with blocker rows.", "sections"),
     validationItem("operator_handbook.bound", context.desktopReadAuthority.operator_handbook_bound === true, "Desktop read model must bind to existing operator-handbook artifacts.", "operator_handbook"),
     validationItem("authority_boundary.ready", context.desktopReadAuthority.authority_boundary_ready === true, "Desktop read model requires a ready desktop authority boundary artifact.", "desktop_authority_boundary"),
@@ -600,10 +729,14 @@ function buildValidationItems(context) {
     validationItem("denylist.fixtures", context.denylistFixtureRows.every((row) => row.denied_by_policy === true && row.status === "ready"), "Denylist fixtures must all be blocked.", "denylist_fixture_rows"),
     validationItem("release_projection.authority_closed", context.releaseProjection.deployment_authorized === false && context.releaseProjection.production_pass_enabled === false && context.releaseProjection.enterprise_pass_enabled === false && context.releaseProjection.github_independent_approval_status !== "approved", "Release projection opened production, enterprise, deployment, or independent approval authority.", "release_projection"),
     validationItem("factory_projection.gate_closed", context.factoryProjection.gate_open_now === 0 && context.factoryProjection.runtime_authority_open === false && context.factoryProjection.stage6_limited_execution_allowed === false && context.factoryProjection.stage7_release_candidate_allowed === false, "Factory projection opened gate/runtime/stage authority.", "factory_projection"),
+    validationItem("project_projection.ready", context.projectProjection.source_status === "ready" && context.projectProjection.ready_for_desktop_multi_project_projection === true && context.projectProjection.project_count > 0, "Project projection must bind the project operating contract source.", "project_projection"),
+    validationItem("project_projection.authority_closed", context.projectProjection.git_write_allowed_now === false && context.projectProjection.deploy_allowed_now === false && context.projectProjection.production_pass_enabled === false && context.projectProjection.enterprise_pass_enabled === false, "Project projection opened write, deploy, production, or enterprise authority.", "project_projection"),
+    validationItem("project_projection.safe_affordances_closed", context.projectProjection.safe_affordance_rows.every((row) => row.mutates_state === false && row.opens_authority === false), "Project safe affordances must remain display-only.", "project_projection.safe_affordance_rows"),
+    validationItem("project_projection.detail_rows", context.projectProjection.project_rows.length === context.projectProjection.project_detail_rows.length, "Project projection must expose one detail row per project row.", "project_projection.project_detail_rows"),
   ];
 }
 
-function buildSummary({ sourceRows, sections, screenMap, desktopReadAuthority, validation }) {
+function buildSummary({ sourceRows, sections, screenMap, desktopReadAuthority, projectProjection, validation }) {
   const readySourceCount = sourceRows.filter((row) => row.status === "ready").length;
   const readySectionCount = sections.filter((section) => section.status === "ready").length;
   return {
@@ -617,6 +750,10 @@ function buildSummary({ sourceRows, sections, screenMap, desktopReadAuthority, v
     blocked_section_count: sections.length - readySectionCount,
     screen_count: screenMap.length,
     ready_screen_count: screenMap.filter((screen) => screen.status === "ready").length,
+    project_count: projectProjection?.project_count ?? 0,
+    ready_project_count: projectProjection?.ready_project_count ?? 0,
+    blocked_project_count: projectProjection?.blocked_project_count ?? 0,
+    stale_project_count: projectProjection?.stale_project_count ?? 0,
     operator_handbook_bound: desktopReadAuthority.operator_handbook_bound,
     authority_boundary_ready: desktopReadAuthority.authority_boundary_ready,
     read_only: desktopReadAuthority.read_only,
@@ -698,6 +835,99 @@ async function readAnySource(filePath) {
 }
 
 function compactJsonSummary(data) {
+  if (data?.schema_version === "project-operating-contract.v1") {
+    const summary = data.summary ?? {};
+    const boundary = data.project_operating_boundary ?? {};
+    const identityByProject = new Map((data.project_identity_rows ?? []).map((row) => [row.project_id, row]));
+    const progressByProject = new Map((data.project_progress_rows ?? []).map((row) => [row.project_id, row]));
+    const sourceByProject = new Map((data.project_source_inventory_rows ?? []).map((row) => [row.project_id, row]));
+    const authorityByProject = new Map((data.project_authority_boundary_rows ?? []).map((row) => [row.project_id, row]));
+    const freshnessByProject = new Map((data.project_freshness_rows ?? []).map((row) => [row.project_id, row]));
+    return {
+      schema_version: data.schema_version,
+      project_operating_contract_status: summary.project_operating_contract_status,
+      project_count: Number(summary.project_count ?? 0),
+      ready_project_count: Number(summary.ready_project_count ?? 0),
+      blocked_project_count: Number(summary.blocked_project_count ?? 0),
+      review_needed_project_count: Number(summary.review_needed_project_count ?? 0),
+      stale_project_count: Number(summary.stale_project_count ?? 0),
+      validation_error_count: Number(summary.validation_error_count ?? 0),
+      ready_for_desktop_multi_project_projection: boundary.ready_for_desktop_multi_project_projection === true,
+      unsafe_flag_count: Number(boundary.unsafe_flag_count ?? 0),
+      production_pass_enabled: boundary.production_pass_enabled === true,
+      enterprise_pass_enabled: boundary.enterprise_pass_enabled === true,
+      protected_closeout_enabled: boundary.protected_closeout_enabled === true,
+      project_rows: (data.project_state_rows ?? []).map((stateRow) => {
+        const identity = identityByProject.get(stateRow.project_id) ?? {};
+        const progress = progressByProject.get(stateRow.project_id) ?? {};
+        return {
+          project_id: stateRow.project_id,
+          project_name: identity.project_name ?? stateRow.project_id,
+          domain_pack: identity.domain_pack ?? "unknown",
+          project_state: stateRow.project_state,
+          current_goal_id: progress.current_goal_id ?? null,
+          current_phase_range: progress.current_phase_range ?? null,
+          blocker_count: Number(stateRow.blocker_count ?? 0),
+          freshness_status: stateRow.freshness_status ?? "missing",
+          progress_confidence: stateRow.progress_confidence ?? "unknown",
+          next_allowed_action: stateRow.next_allowed_action ?? "inspect project state",
+        };
+      }),
+      project_detail_rows: (data.project_state_rows ?? []).map((stateRow) => {
+        const progress = progressByProject.get(stateRow.project_id) ?? {};
+        const source = sourceByProject.get(stateRow.project_id) ?? {};
+        const authority = authorityByProject.get(stateRow.project_id) ?? {};
+        const freshness = freshnessByProject.get(stateRow.project_id) ?? {};
+        return {
+          project_id: stateRow.project_id,
+          state_reason: stateRow.state_reason ?? "not recorded",
+          blocker_type: stateRow.blocker_type ?? null,
+          blocker_hint: blockerHintForState(stateRow),
+          risk_level: progress.risk_level ?? "unknown",
+          validation_ready: stateRow.validation_ready === true,
+          review_boundary_ready: stateRow.review_boundary_ready === true,
+          completed_units: Number(progress.completed_units ?? 0),
+          remaining_units: Number(progress.remaining_units ?? 0),
+          next_action_count: Number(progress.next_action_count ?? 0),
+          source_generated_at: source.source_generated_at ?? freshness.source_generated_at ?? null,
+          source_age_days: Number(freshness.source_age_days ?? 0),
+          source_artifact_path: source.source_artifact_path ?? "",
+          source_artifact_sha256: source.source_artifact_sha256 ?? freshness.source_hash ?? "",
+          source_parse_status: source.source_parse_status ?? "unknown",
+          refresh_required: freshness.refresh_required === true,
+          unsafe_flag_count: Number(authority.unsafe_flag_count ?? 0),
+          authority_boundary_closed: authority.unsafe_flag_count === 0,
+          data_boundary_closed: authority.cross_project_data_mixing_allowed === false,
+          next_allowed_action: stateRow.next_allowed_action ?? "inspect project detail",
+        };
+      }),
+      project_drift_rows: (data.project_freshness_rows ?? []).map((row) => ({
+        project_id: row.project_id,
+        source_generated_at: row.source_generated_at ?? null,
+        source_age_days: Number(row.source_age_days ?? 0),
+        freshness_status: row.freshness_status ?? "missing",
+        refresh_required: row.refresh_required === true,
+        source_hash: row.source_hash ?? "",
+        next_allowed_action: row.refresh_required === true ? "refresh artifact request draft only" : "inspect freshness",
+      })),
+      project_attention_rows: buildProjectAttentionSummaryRows({
+        stateRows: data.project_state_rows ?? [],
+        freshnessRows: data.project_freshness_rows ?? [],
+        progressRows: data.project_progress_rows ?? [],
+      }),
+      safe_affordance_rows: (data.project_next_action_taxonomy_rows ?? []).map((row) => ({
+        action_type: row.action_type,
+        action_class: row.action_class,
+        allowed: row.allowed === true,
+        mutates_state: false,
+        opens_authority: false,
+        display_label: displayLabelForAction(row.action_type),
+        hint: row.allowed === true
+          ? "Display-only affordance. It may guide inspection or draft preparation but cannot execute protected work."
+          : "Forbidden action remains closed in Desktop.",
+      })),
+    };
+  }
   const summary = data?.summary ?? data?.desktop_authority_boundary ?? data?.operator_handbook_boundary ?? data;
   const picked = {};
   for (const key of [
@@ -719,6 +949,69 @@ function compactJsonSummary(data) {
     if (summary && Object.prototype.hasOwnProperty.call(summary, key)) picked[key] = summary[key];
   }
   return picked;
+}
+
+function buildProjectAttentionSummaryRows({ stateRows, freshnessRows, progressRows }) {
+  const rows = [];
+  const freshnessByProject = new Map(freshnessRows.map((row) => [row.project_id, row]));
+  const progressByProject = new Map(progressRows.map((row) => [row.project_id, row]));
+  for (const stateRow of stateRows) {
+    const freshness = freshnessByProject.get(stateRow.project_id) ?? {};
+    const progress = progressByProject.get(stateRow.project_id) ?? {};
+    if (Number(stateRow.blocker_count ?? 0) > 0 || stateRow.project_state === "blocked") {
+      rows.push(projectAttentionRow(stateRow.project_id, "blocked", "high", "Blocked project", blockerHintForState(stateRow), stateRow.next_allowed_action ?? "inspect blockers"));
+    }
+    if (stateRow.project_state === "review_needed" || stateRow.review_boundary_ready === false) {
+      rows.push(projectAttentionRow(stateRow.project_id, "review_needed", "medium", "Review needed", "Prepare a read-only review packet. Desktop does not submit or approve review.", "prepare review packet draft"));
+    }
+    if (stateRow.project_state === "owner_action_needed") {
+      rows.push(projectAttentionRow(stateRow.project_id, "owner_action_needed", "medium", "Owner action needed", "Prepare an owner decision draft. Desktop does not apply owner approval.", "draft owner decision"));
+    }
+    if (stateRow.project_state === "stale" || freshness.refresh_required === true) {
+      rows.push(projectAttentionRow(stateRow.project_id, "stale", "medium", "Refresh needed", "Project source is stale. Create a refresh request or rerun the deterministic source generator outside Desktop.", "refresh artifact request draft only"));
+    }
+    if (String(progress.progress_confidence ?? stateRow.progress_confidence ?? "") === "low") {
+      rows.push(projectAttentionRow(stateRow.project_id, "low_confidence", "medium", "Low confidence", "Progress confidence is low; inspect source binding before relying on this projection.", "inspect source binding"));
+    }
+  }
+  return rows;
+}
+
+function projectAttentionRow(projectId, attentionType, severity, label, detail, nextSafeAction) {
+  return {
+    project_id: projectId,
+    attention_type: attentionType,
+    severity,
+    label,
+    detail,
+    next_safe_action: nextSafeAction,
+    mutates_state: false,
+    opens_authority: false,
+  };
+}
+
+function blockerHintForState(stateRow) {
+  const blockerType = stateRow.blocker_type ?? (Number(stateRow.blocker_count ?? 0) > 0 ? "blocked" : null);
+  if (blockerType === "missing_review") return "Prepare a read-only review packet; do not approve or submit it from Desktop.";
+  if (blockerType === "missing_owner_decision") return "Draft an owner decision note; do not apply approval from Desktop.";
+  if (blockerType === "failed_validation") return "Inspect validation evidence and rerun deterministic checks outside Desktop.";
+  if (blockerType === "stale_artifact") return "Create a refresh request draft; Desktop does not mutate artifacts.";
+  if (blockerType === "external_auth") return "External authentication is required outside Desktop.";
+  if (blockerType === "protected_action_required") return "Protected action remains closed; prepare a request packet only.";
+  if (blockerType === "data_boundary_risk") return "Inspect project boundary evidence before any handoff.";
+  if (blockerType) return "Inspect blocker evidence and choose a safe next action.";
+  return "No blocker remediation hint recorded.";
+}
+
+function displayLabelForAction(actionType) {
+  return {
+    inspect: "Inspect",
+    copy_command: "Copy command text",
+    open_artifact: "Preview artifact",
+    prepare_review_packet: "Prepare review packet",
+    draft_owner_decision: "Draft owner decision",
+    refresh_artifact: "Draft refresh request",
+  }[actionType] ?? String(actionType ?? "inspect").replaceAll("_", " ");
 }
 
 function compactTextSummary(text) {
@@ -785,6 +1078,7 @@ function matchBoolean(text, pattern) {
 
 function sectionLabel(sectionId) {
   return {
+    projects: "Projects",
     release: "Release",
     factory: "Factory",
     reviews: "Reviews",

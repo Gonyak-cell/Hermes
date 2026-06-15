@@ -1,7 +1,7 @@
 export function sectionForNav(navId) {
   return {
     queue: "__queue__",
-    projects: "operator_handbook",
+    projects: "projects",
     requirements: "release",
     evidence: "__all__",
     release: "release",

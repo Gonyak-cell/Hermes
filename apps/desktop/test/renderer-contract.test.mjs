@@ -13,7 +13,7 @@ test("renderer copy supports Korean default and English operator mode", () => {
 
 test("renderer navigation maps to read-model sections deterministically", () => {
   assert.equal(sectionForNav("queue"), "__queue__");
-  assert.equal(sectionForNav("projects"), "operator_handbook");
+  assert.equal(sectionForNav("projects"), "projects");
   assert.equal(sectionForNav("requirements"), "release");
   assert.equal(sectionForNav("evidence"), "__all__");
   assert.equal(sectionForNav("release"), "release");

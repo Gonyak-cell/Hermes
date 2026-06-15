@@ -90,6 +90,64 @@ test("desktop read model loader sanitizes authority flags from artifact input", 
           { row_id: "gate_open_now", label: "Gate open now", value: "9", status: "open", authority_open: true },
         ],
       },
+      project_projection: {
+        project_operating_contract_status: "ready_for_project_operating_contract",
+        source_status: "ready",
+        project_count: 1,
+        ready_project_count: 1,
+        blocked_project_count: 0,
+        stale_project_count: 0,
+        ready_for_desktop_multi_project_projection: true,
+        git_write_allowed_now: true,
+        deploy_allowed_now: true,
+        production_pass_enabled: true,
+        enterprise_pass_enabled: true,
+        protected_closeout_enabled: true,
+        project_rows: [
+          {
+            project_id: "project.hermes",
+            project_name: "Hermes",
+            domain_pack: "personal-dev",
+            project_state: "ready_read_only",
+          },
+        ],
+        project_detail_rows: [
+          {
+            project_id: "project.hermes",
+            validation_ready: true,
+            review_boundary_ready: true,
+            source_artifact_path: "artifacts/project-operating-contract/latest/project-operating-contract.json",
+            unsafe_flag_count: 77,
+            authority_boundary_closed: false,
+            data_boundary_closed: false,
+          },
+        ],
+        project_attention_rows: [
+          {
+            project_id: "project.hermes",
+            attention_type: "blocked",
+            severity: "high",
+            label: "Blocked",
+            detail: "Injected mutation attempt",
+            next_safe_action: "deploy now",
+            mutates_state: true,
+            opens_authority: true,
+          },
+        ],
+        safe_affordance_rows: [
+          {
+            action_type: "deploy",
+            action_class: "forbidden_protected",
+            allowed: true,
+            mutates_state: true,
+            opens_authority: true,
+            display_label: "Deploy",
+          },
+        ],
+        projection_rows: [
+          { row_id: "project_count", label: "Projects", value: "1", status: "open", authority_open: true },
+        ],
+      },
     });
 
   assert.equal(result.summary.deployment_allowed_now, false);
@@ -110,6 +168,19 @@ test("desktop read model loader sanitizes authority flags from artifact input", 
   assert.equal(result.factory_projection.stage7_release_candidate_allowed, false);
   assert.equal(result.factory_projection.projection_rows[0].value, "0");
   assert.equal(result.factory_projection.projection_rows[0].authority_open, false);
+  assert.equal(result.project_projection.project_count, 1);
+  assert.equal(result.project_projection.git_write_allowed_now, false);
+  assert.equal(result.project_projection.deploy_allowed_now, false);
+  assert.equal(result.project_projection.production_pass_enabled, false);
+  assert.equal(result.project_projection.enterprise_pass_enabled, false);
+  assert.equal(result.project_projection.project_detail_rows[0].unsafe_flag_count, 77);
+  assert.equal(result.project_projection.project_detail_rows[0].authority_boundary_closed, false);
+  assert.equal(result.project_projection.project_attention_rows[0].mutates_state, false);
+  assert.equal(result.project_projection.project_attention_rows[0].opens_authority, false);
+  assert.equal(result.project_projection.safe_affordance_rows[0].mutates_state, false);
+  assert.equal(result.project_projection.safe_affordance_rows[0].opens_authority, false);
+  assert.equal(result.project_projection.safe_affordance_rows[0].allowed, false);
+  assert.equal(result.project_projection.projection_rows[0].authority_open, false);
   assert.equal(result.source_rows[0].status, "ready");
 });
 

@@ -4,6 +4,8 @@
 
 이 절차는 로컬 실행 절차일 뿐이며 production launch approval, production PASS, enterprise PASS, protected closeout, deployment authorization, GitHub independent approval이 아니다. 현재 데스크톱 앱은 Hermes evidence를 읽는 operator surface이며 source of truth가 아니다.
 
+현재 multi-project control room 구현 범위와 남은 테스트 단위는 `docs/hermes-desktop-multi-project-control-room-tuw-001-053.md`를 기준으로 추적한다.
+
 ## Who Should Use This
 
 - Hermes를 로컬 데스크톱 앱 형태로 열어 보고 싶은 owner/operator.
@@ -52,13 +54,15 @@ npm run desktop:local-preflight
 
 1. `desktop:packaging-manifest`: local build, packaging, signing, notarization, publish, auto-update boundary artifact를 생성한다.
 2. `desktop:packaging-manifest -- --check`: autoUpdater와 packaging authority가 닫혀 있는지 확인한다.
-3. `desktop:read-model`: desktop read model artifact를 최신 source 기준으로 생성한다.
-4. `desktop:read-model -- --check`: desktop read model이 20개 source와 6개 section을 fail-closed 방식으로 읽을 수 있는지 확인한다.
-5. `desktop:authority-boundary`: desktop authority boundary artifact를 최신 source 기준으로 생성한다.
-6. `desktop:authority-boundary -- --check`: deploy, git push, approval apply, receipt apply, connector write, secret read, raw exposure, desktop write authority가 닫혀 있는지 확인한다.
-7. `test:desktop`: Electron security policy, renderer contract, read model sanitizer, preview redaction, forbidden trust-copy policy를 테스트한다.
-8. `desktop:build`: Vite renderer bundle을 생성한다.
-9. `desktop:smoke:render`: Electron으로 실제 화면을 열고 DOM text에서 금지 trust/approval 문구가 새지 않는지 검사한다.
+3. `platform:project-operating-contract`: multi-project source에서 Project Operating Contract를 생성한다.
+4. `platform:project-operating-contract -- --check`: 프로젝트 identity, source inventory, state, progress, blocker, freshness, authority boundary가 fail-closed/read-only인지 확인한다.
+5. `desktop:read-model`: desktop read model artifact를 최신 source 기준으로 생성한다.
+6. `desktop:read-model -- --check`: desktop read model이 22개 source와 7개 section을 fail-closed 방식으로 읽을 수 있는지 확인한다.
+7. `desktop:authority-boundary`: desktop authority boundary artifact를 최신 source 기준으로 생성한다.
+8. `desktop:authority-boundary -- --check`: deploy, git push, approval apply, receipt apply, connector write, secret read, raw exposure, desktop write authority가 닫혀 있는지 확인한다.
+9. `test:desktop`: Electron security policy, renderer contract, read model sanitizer, preview redaction, forbidden trust-copy policy를 테스트한다.
+10. `desktop:build`: Vite renderer bundle을 생성한다.
+11. `desktop:preflight-smokes`: Electron으로 Queue, Projects, Governance, Reviews, Gates, Evidence, Sources preview, Factory, narrow viewport, Preview 화면을 열고 DOM text에서 금지 trust/approval 문구가 새지 않는지 검사한다.
 
 생성되는 스모크 산출물은 `tmp/` 아래에 있으며 커밋 대상이 아니다.
 
@@ -116,6 +120,12 @@ npm run desktop:start
 
 ```bash
 npm run desktop:smoke:render -- --out=tmp/desktop-render-smoke.png --text-out=tmp/desktop-render-smoke-report.json
+npm run desktop:smoke:render -- --screen=projects --out=tmp/desktop-render-smoke-projects.png --text-out=tmp/desktop-render-smoke-projects-report.json
+npm run desktop:smoke:render -- --screen=governance --out=tmp/desktop-render-smoke-governance.png --text-out=tmp/desktop-render-smoke-governance-report.json
+npm run desktop:smoke:render -- --screen=reviews --out=tmp/desktop-render-smoke-reviews.png --text-out=tmp/desktop-render-smoke-reviews-report.json
+npm run desktop:smoke:render -- --screen=gates --out=tmp/desktop-render-smoke-gates.png --text-out=tmp/desktop-render-smoke-gates-report.json
+npm run desktop:smoke:render -- --screen=evidence --out=tmp/desktop-render-smoke-evidence.png --text-out=tmp/desktop-render-smoke-evidence-report.json
+npm run desktop:smoke:render -- --screen=sources --preview=artifacts/project-operating-contract/latest/summary.md --out=tmp/desktop-render-smoke-project-source-preview.png --text-out=tmp/desktop-render-smoke-project-source-preview-report.json
 npm run desktop:smoke:render -- --screen=factory --out=tmp/desktop-render-smoke-factory.png --text-out=tmp/desktop-render-smoke-factory-report.json
 npm run desktop:smoke:render -- --width=430 --height=900 --out=tmp/desktop-render-smoke-narrow.png --text-out=tmp/desktop-render-smoke-narrow-report.json
 npm run desktop:smoke:render -- --preview=docs/release-owner-decision-2026-06-14.md --out=tmp/desktop-render-smoke-preview.png --text-out=tmp/desktop-render-smoke-preview-report.json

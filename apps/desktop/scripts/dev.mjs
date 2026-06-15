@@ -3,19 +3,20 @@ import http from "node:http";
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { buildViteArgs, resolveDevServerOptions } from "./dev-options.mjs";
 
 const APP_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const DEV_SERVER_URL = "http://127.0.0.1:5173";
 const BIN_DIR = path.join(APP_DIR, "node_modules", ".bin");
 const VITE_BIN = path.join(BIN_DIR, process.platform === "win32" ? "vite.cmd" : "vite");
 const ELECTRON_BIN = path.join(BIN_DIR, process.platform === "win32" ? "electron.cmd" : "electron");
+const devServer = await resolveDevServerOptions({ argv: process.argv.slice(2), env: process.env });
 
-if (process.argv.includes("--smoke")) {
-  console.log(`Hermes Operator Desktop dev command target: ${DEV_SERVER_URL}`);
+if (devServer.smoke) {
+  console.log(`Hermes Operator Desktop dev command target: ${devServer.url}`);
   process.exit(0);
 }
 
-const vite = spawn(VITE_BIN, ["--host", "127.0.0.1", "--port", "5173"], {
+const vite = spawn(VITE_BIN, buildViteArgs(devServer), {
   cwd: APP_DIR,
   stdio: "inherit",
 });
@@ -34,11 +35,11 @@ process.on("SIGTERM", () => {
 });
 
 try {
-  await waitForServer(DEV_SERVER_URL);
+  await waitForServer(devServer.url);
   const electron = spawn(ELECTRON_BIN, ["."], {
     cwd: APP_DIR,
     stdio: "inherit",
-    env: { ...process.env, VITE_DEV_SERVER_URL: DEV_SERVER_URL },
+    env: { ...process.env, VITE_DEV_SERVER_URL: devServer.url },
   });
   electron.on("exit", (code) => {
     cleanup();

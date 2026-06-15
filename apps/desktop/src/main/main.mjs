@@ -10,6 +10,7 @@ import {
 } from "./security-policy.mjs";
 import { loadDesktopReadModel, loadDesktopSourcePreview } from "./read-model.mjs";
 import { resolveHermesRepoRoot } from "./repo-root.mjs";
+import { resolveRendererEntry } from "./renderer-entry.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const APP_DIR = path.resolve(__dirname, "../..");
@@ -34,7 +35,8 @@ app.whenReady().then(async () => {
   if (DEV_SERVER_URL) {
     await window.loadURL(DEV_SERVER_URL);
   } else {
-    await window.loadFile(path.join(APP_DIR, "dist", "renderer", "index.html"));
+    const rendererEntry = await resolveRendererEntry({ appDir: APP_DIR });
+    await window.loadFile(rendererEntry.load_path, rendererEntry.query ? { query: rendererEntry.query } : undefined);
   }
 });
 

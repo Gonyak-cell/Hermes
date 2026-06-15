@@ -9,10 +9,10 @@ export const DEFAULT_DESKTOP_READ_MODEL_INPUTS = {
   packagePath: "package.json",
   desktopAuthorityBoundaryPath: "artifacts/desktop-authority-boundary/latest/desktop-authority-boundary.json",
   releaseOwnerDecisionPath: "docs/release-owner-decision-2026-06-14.md",
-  releaseDecisionPacketPath: "docs/release-decision-packet-2026-06-14.md",
-  productionLaunchChecklistPath: "docs/production-launch-checklist-2026-06-14.md",
-  githubFinalReviewPacketPath: "docs/github-final-review-packet-2026-06-14.md",
-  releaseNoteTagDraftPath: "docs/release-note-tag-draft-2026-06-14.md",
+  releaseDecisionPacketPath: "docs/release-decision-packet-2026-06-15.md",
+  productionLaunchChecklistPath: "docs/production-launch-checklist-2026-06-15.md",
+  claudeFinalReviewPacketPath: "docs/claude-final-review-packet-2026-06-15.md",
+  releaseNoteTagDraftPath: "docs/release-note-tag-draft-2026-06-15.md",
   desktopPlanPath: "docs/hermes-desktop-app-plan-2026-06-14.md",
   desktopLocalLaunchRunbookPath: "docs/hermes-desktop-local-launch-runbook-2026-06-14.md",
   desktopPackagingManifestSummaryPath: "artifacts/desktop-packaging-manifest/latest/summary.md",
@@ -31,10 +31,10 @@ export const DEFAULT_DESKTOP_READ_MODEL_INPUTS = {
 
 export const DESKTOP_READ_ALLOWLIST = Object.freeze([
   "docs/release-owner-decision-2026-06-14.md",
-  "docs/release-decision-packet-2026-06-14.md",
-  "docs/production-launch-checklist-2026-06-14.md",
-  "docs/github-final-review-packet-2026-06-14.md",
-  "docs/release-note-tag-draft-2026-06-14.md",
+  "docs/release-decision-packet-2026-06-15.md",
+  "docs/production-launch-checklist-2026-06-15.md",
+  "docs/claude-final-review-packet-2026-06-15.md",
+  "docs/release-note-tag-draft-2026-06-15.md",
   "docs/hermes-desktop-app-plan-2026-06-14.md",
   "docs/hermes-desktop-local-launch-runbook-2026-06-14.md",
   "artifacts/desktop-packaging-manifest/latest/summary.md",
@@ -81,6 +81,15 @@ const CAPABILITY_ID = "desktop.read_model";
 const COMMAND_NAME = "desktop:read-model";
 const READY_STATUS = "ready_for_desktop_shell";
 const BLOCKED_STATUS = "blocked_desktop_shell";
+const RELEASE_SUMMARY_PRIORITY = Object.freeze([
+  "release_decision_packet",
+  "release_note_tag_draft",
+  "production_launch_checklist",
+  "release_owner_decision",
+  "desktop_plan",
+  "desktop_local_launch_runbook",
+  "desktop_packaging_manifest",
+]);
 
 const SOURCE_DEFINITIONS = [
   sourceDefinition("release_owner_decision", "release", "Release owner decision", "releaseOwnerDecisionPath", true),
@@ -95,7 +104,7 @@ const SOURCE_DEFINITIONS = [
   sourceDefinition("release_readiness", "factory", "Release readiness control plane", "releaseReadinessSummaryPath", true),
   sourceDefinition("production_governance", "factory", "Production governance hardening", "productionGovernanceSummaryPath", true),
   sourceDefinition("p16800_freeze", "factory", "P16800 platform freeze", "p16800FreezeSummaryPath", true),
-  sourceDefinition("github_final_review_packet", "reviews", "GitHub final review packet", "githubFinalReviewPacketPath", true),
+  sourceDefinition("claude_final_review_packet", "reviews", "Claude final review packet", "claudeFinalReviewPacketPath", true),
   sourceDefinition("operator_handbook", "operator_handbook", "Operator handbook", "operatorHandbookPath", true),
   sourceDefinition("operator_surfaces", "operator_handbook", "Operator surfaces", "operatorSurfacesPath", true),
   sourceDefinition("operator_screens", "operator_handbook", "Operator screens", "operatorScreensPath", true),
@@ -106,10 +115,17 @@ const SOURCE_DEFINITIONS = [
 ];
 
 const SCREEN_SPECS = [
+  ["queue", "Queue", "Global operator queue across local-only RC, review, gate, and evidence blockers."],
+  ["projects", "Projects", "Project and operator-handbook surfaces for the local Hermes workspace."],
+  ["requirements", "Requirements", "Release requirements and launch-class boundaries without production authority."],
+  ["evidence", "Evidence", "Safe evidence rows from release, factory, review, operator, and authority sources."],
+  ["reviews", "Reviews", "Review packet status and independent-review caveats without treating review as approval."],
+  ["gates", "Gates", "Factory readiness, Stage6/Stage7 evidence, and production governance blockers."],
+  ["conversations", "Conversations", "Conversation and operator context placeholders backed only by safe source refs."],
+  ["governance", "Governance", "Authority boundary and policy surfaces that keep protected actions closed."],
+  ["sources", "Sources", "Complete safe source index with ready and blocked evidence rows."],
   ["release", "Release", "Release baseline, local tag, launch checklist, and single-owner lower-trust RC status."],
   ["factory", "Factory", "Factory readiness, Stage6/Stage7 evidence, and production governance blockers."],
-  ["reviews", "Reviews", "Review packet status and independent-review caveats without treating review as approval."],
-  ["artifacts", "Artifacts", "Safe artifact index with source refs and blockers."],
   ["settings", "Settings", "Language, local paths, and read-only authority notices."],
 ];
 
@@ -431,8 +447,8 @@ function buildDenylistFixtureRows(generatedAt) {
 
 function buildReleaseProjection(sourceRows, generatedAt) {
   const summaries = sourceRows.filter((row) => row.section_id === "release").map((row) => row.data_summary ?? {});
-  const candidateCommit = firstSummaryValue(summaries, "candidate_commit") ?? "unknown";
-  const localRcTag = firstSummaryValue(summaries, "local_rc_tag") ?? "not recorded";
+  const candidateCommit = prioritizedReleaseSummaryValue(sourceRows, "candidate_commit") ?? "unknown";
+  const localRcTag = prioritizedReleaseSummaryValue(sourceRows, "local_rc_tag") ?? "not recorded";
   const githubIndependentApprovalNotPursued = summaries.some((summary) => summary.github_independent_approval_not_pursued === true);
   const ownerProductionApprovalMissing = summaries.some((summary) => summary.owner_production_launch_approval_missing === true);
   const projection = {
@@ -460,6 +476,15 @@ function buildReleaseProjection(sourceRows, generatedAt) {
     ],
   };
   return { ...projection, projection_hash: sha256(projection) };
+}
+
+function prioritizedReleaseSummaryValue(sourceRows, key) {
+  const releaseRows = sourceRows.filter((row) => row.section_id === "release");
+  for (const sourceId of RELEASE_SUMMARY_PRIORITY) {
+    const summary = releaseRows.find((row) => row.source_id === sourceId)?.data_summary ?? {};
+    if (summary[key] !== undefined) return summary[key];
+  }
+  return firstSummaryValue(releaseRows.map((row) => row.data_summary ?? {}), key);
 }
 
 function buildFactoryProjection(sourceRows, generatedAt) {
@@ -704,7 +729,9 @@ function compactTextSummary(text) {
     has_forbidden_trust_string: containsForbiddenTrustString(text),
   };
   const candidateCommit = matchText(text, /Candidate commit(?:\s*\|\s*`?|:\s*)([a-f0-9]{40})/i);
-  const localRcTag = matchText(text, /(?:Local RC tag|Tag)(?:\s*\|\s*`?|:\s*)(v[0-9][^\s`|]+)/i);
+  const localRcTag = matchText(text, /Proposed local RC tag(?:\s*\|\s*`?|:\s*`?)(v[0-9][^\s`|]+)/i)
+    ?? matchText(text, /^\s*(?:\|\s*)?Local RC tag(?:\s*\|\s*`?|:\s*`?)(v[0-9][^\s`|]+)/im)
+    ?? matchText(text, /^\s*(?:\|\s*)?Tag(?:\s*\|\s*`?|:\s*`?)(v[0-9][^\s`|]+)/im);
   if (candidateCommit) summary.candidate_commit = candidateCommit;
   if (localRcTag) summary.local_rc_tag = localRcTag;
   const tagPushed = matchBoolean(text, /(?:Tag pushed|Pushed to GitHub)(?:\s*\|\s*`?|:\s*)(true|false)/i);

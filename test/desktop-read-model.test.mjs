@@ -38,8 +38,8 @@ test("Desktop read model projects release, factory, review, operator, artifact, 
     assert.equal(result.summary.deployment_allowed_now, false);
     assert.equal(result.summary.production_pass_enabled, false);
     assert.equal(result.summary.enterprise_pass_enabled, false);
-    assert.equal(result.release_projection.candidate_commit, "5e332b1c6327b255cf9bf418bc455b7965172658");
-    assert.equal(result.release_projection.local_rc_tag, "v0.1.0-rc.20260614.5e332b1");
+    assert.equal(result.release_projection.candidate_commit, "8200ed3b754b74900a95fe5a48875a1daf707335");
+    assert.equal(result.release_projection.local_rc_tag, "v0.1.0-rc.20260615.8200ed3");
     assert.equal(result.release_projection.github_independent_approval_status, "not_pursued_single_owner_local_rc");
     assert.equal(result.release_projection.production_launch_approval_status, "missing");
     assert.equal(result.release_projection.deployment_authorized, false);
@@ -184,7 +184,7 @@ async function createReadModelFixture() {
     releaseOwnerDecisionPath: file("release-owner.md"),
     releaseDecisionPacketPath: file("release-decision.md"),
     productionLaunchChecklistPath: file("production-checklist.md"),
-    githubFinalReviewPacketPath: file("github-review.md"),
+    claudeFinalReviewPacketPath: file("claude-review.md"),
     releaseNoteTagDraftPath: file("release-note.md"),
     desktopPlanPath: file("desktop-plan.md"),
     desktopLocalLaunchRunbookPath: file("desktop-local-launch-runbook.md"),
@@ -207,7 +207,7 @@ async function createReadModelFixture() {
     options.releaseOwnerDecisionPath,
     options.releaseDecisionPacketPath,
     options.productionLaunchChecklistPath,
-    options.githubFinalReviewPacketPath,
+    options.claudeFinalReviewPacketPath,
     options.releaseNoteTagDraftPath,
     options.desktopPlanPath,
     options.desktopLocalLaunchRunbookPath,
@@ -223,10 +223,17 @@ async function createReadModelFixture() {
   await writeFile(options.releaseDecisionPacketPath, [
     "# Release Decision",
     "",
-    "| Candidate commit | `5e332b1c6327b255cf9bf418bc455b7965172658` |",
-    "| Local RC tag | `v0.1.0-rc.20260614.5e332b1` created locally, not pushed |",
+    "| Candidate commit | `8200ed3b754b74900a95fe5a48875a1daf707335` |",
+    "| Previous local RC tag | `v0.1.0-rc.20260614.5e332b1` |",
+    "| Proposed local RC tag | `v0.1.0-rc.20260615.8200ed3` |",
     "| Trust mode | `single-owner lower-trust RC`; GitHub independent approval not pursued |",
     "| Owner production launch approval | missing |",
+  ].join("\n"), "utf8");
+  await writeFile(options.releaseOwnerDecisionPath, [
+    "# Historical Release Owner Decision",
+    "",
+    "| Candidate commit | `5e332b1c6327b255cf9bf418bc455b7965172658` |",
+    "| Local RC tag | `v0.1.0-rc.20260614.5e332b1` |",
   ].join("\n"), "utf8");
   await writeFile(options.factoryGateOpeningSummaryPath, [
     "# Factory Gate Opening Readiness",

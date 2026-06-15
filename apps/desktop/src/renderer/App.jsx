@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { SHELL_SEED_STATE } from "../shared/shell-state.mjs";
 import { LOCALE_STORAGE_KEY, getCopy } from "./i18n.js";
-import { sectionForNav, summarizeRows } from "./view-model.js";
+import { rowKey, rowsForNav, summarizeRows } from "./view-model.js";
 
 const fallbackReadModel = {
   summary: {
@@ -34,6 +34,7 @@ export default function App() {
   const [activeNav, setActiveNav] = useState(getInitialNav());
   const [readModel, setReadModel] = useState(fallbackReadModel);
   const [sourcePreview, setSourcePreview] = useState(null);
+  const [selectedRowKey, setSelectedRowKey] = useState(null);
   const copy = getCopy(language);
 
   useEffect(() => {
@@ -51,16 +52,22 @@ export default function App() {
   }, []);
 
   const rows = useMemo(() => {
-    const sectionId = sectionForNav(activeNav);
-    if (activeNav === "settings") return [];
-    if (activeNav === "artifacts") return readModel.source_rows ?? [];
-    return (readModel.source_rows ?? []).filter((row) => row.section_id === sectionId);
+    return rowsForNav(activeNav, readModel);
   }, [activeNav, readModel]);
 
   const rowSummary = summarizeRows(rows);
+  const selectedRow = rows.find((row) => rowKey(row) === selectedRowKey) ?? rows[0] ?? null;
   const summary = readModel.summary ?? fallbackReadModel.summary;
   const authority = readModel.desktop_read_authority ?? SHELL_SEED_STATE.authority_flags;
   const projectionRows = projectionRowsForNav(activeNav, readModel);
+
+  useEffect(() => {
+    if (rows.length === 0) {
+      setSelectedRowKey(null);
+      return;
+    }
+    if (!rows.some((row) => rowKey(row) === selectedRowKey)) setSelectedRowKey(rowKey(rows[0]));
+  }, [rows, selectedRowKey]);
 
   return (
     <main className="desktop-shell" lang={language}>
@@ -114,7 +121,7 @@ export default function App() {
           ) : (
             <>
               <ProjectionStrip copy={copy} rows={projectionRows} />
-              <EvidenceTable copy={copy} rows={rows} onPreview={setSourcePreview} />
+              <EvidenceTable copy={copy} rows={rows} selectedRowKey={selectedRow ? rowKey(selectedRow) : null} onSelect={setSelectedRowKey} onPreview={setSourcePreview} />
               <SourcePreview copy={copy} preview={sourcePreview} />
             </>
           )}
@@ -128,6 +135,7 @@ export default function App() {
             <Metric label={copy.errors} value={summary.validation_error_count ?? 0} />
           </div>
           <BoundaryList copy={copy} authority={authority} />
+          <ObjectInspector copy={copy} row={selectedRow} onPreview={setSourcePreview} />
         </aside>
       </section>
 
@@ -156,7 +164,7 @@ function ProjectionStrip({ copy, rows }) {
   );
 }
 
-function EvidenceTable({ copy, rows, onPreview }) {
+function EvidenceTable({ copy, rows, selectedRowKey, onSelect, onPreview }) {
   if (rows.length === 0) {
     return <div className="empty-state">{copy.empty}</div>;
   }
@@ -174,14 +182,18 @@ function EvidenceTable({ copy, rows, onPreview }) {
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={`${row.section_id}.${row.source_id}`}>
+            <tr className={selectedRowKey === rowKey(row) ? "selected-row" : ""} key={rowKey(row)} onClick={() => onSelect(rowKey(row))}>
               <td>
                 <strong>{row.label}</strong>
                 <small>{row.source_id}</small>
               </td>
               <td><StatusPill tone={row.status === "ready" ? "green" : "red"} label={row.status} /></td>
               <td className="path-cell">
-                <button className="path-button" type="button" onClick={() => requestPreview(row.source_path, onPreview)}>
+                <button className="path-button" type="button" onClick={(event) => {
+                  event.stopPropagation();
+                  onSelect(rowKey(row));
+                  requestPreview(row.source_path, onPreview);
+                }}>
                   {row.source_path}
                 </button>
               </td>
@@ -191,6 +203,42 @@ function EvidenceTable({ copy, rows, onPreview }) {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function ObjectInspector({ copy, row, onPreview }) {
+  return (
+    <section className="object-inspector" aria-label={copy.objectInspector}>
+      <h3>{copy.objectInspector}</h3>
+      {row ? (
+        <>
+          <div className="inspector-title">
+            <strong>{row.label}</strong>
+            <StatusPill tone={row.status === "ready" ? "green" : "red"} label={row.status} />
+          </div>
+          <InspectorField label="source_id" value={row.source_id} />
+          <InspectorField label="section_id" value={row.section_id} />
+          <InspectorField label={copy.path} value={row.source_path} />
+          <InspectorField label="generated_at" value={row.generated_at ?? "-"} />
+          <InspectorField label={copy.hash} value={row.source_content_hash ?? "-"} />
+          <InspectorField label="blocker" value={row.blocker ?? "-"} />
+          <button className="preview-button" type="button" onClick={() => requestPreview(row.source_path, onPreview)}>
+            {copy.previewSource}
+          </button>
+        </>
+      ) : (
+        <p>{copy.noSelection}</p>
+      )}
+    </section>
+  );
+}
+
+function InspectorField({ label, value }) {
+  return (
+    <div className="inspector-field">
+      <span>{label}</span>
+      <code>{value}</code>
     </div>
   );
 }
@@ -272,14 +320,18 @@ function usePersistentLanguage() {
 }
 
 function projectionRowsForNav(activeNav, readModel) {
-  if (activeNav === "release") return readModel.release_projection?.projection_rows ?? [];
-  if (activeNav === "factory") return readModel.factory_projection?.projection_rows ?? [];
+  if (["queue", "release", "requirements"].includes(activeNav)) return readModel.release_projection?.projection_rows ?? [];
+  if (["factory", "gates"].includes(activeNav)) return readModel.factory_projection?.projection_rows ?? [];
+  if (activeNav === "governance") return [
+    ...(readModel.release_projection?.projection_rows ?? []),
+    ...(readModel.factory_projection?.projection_rows ?? []),
+  ].slice(0, 5);
   return [];
 }
 
 function getInitialNav() {
   const screen = new URLSearchParams(globalThis.location?.search ?? "").get("screen");
-  return SHELL_SEED_STATE.nav_items.some((item) => item.id === screen) ? screen : "release";
+  return SHELL_SEED_STATE.nav_items.some((item) => item.id === screen) ? screen : "queue";
 }
 
 function formatProjectionText(value) {

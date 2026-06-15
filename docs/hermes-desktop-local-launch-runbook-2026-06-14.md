@@ -80,7 +80,35 @@ UI를 수정하면서 바로 확인하려면 아래 명령을 실행한다.
 npm run desktop:dev
 ```
 
-development mode는 Vite dev server를 `127.0.0.1:5173`에 띄우고 Electron이 해당 local URL만 읽도록 한다. 외부 origin, navigation, permission request는 main-process guard에서 차단된다.
+development mode는 기본적으로 Vite dev server를 `127.0.0.1:5173`에 띄운다. 이미 다른 로컬 앱이 `5173`을 사용 중이면 Hermes는 다음 빈 포트로 자동 fallback하고 Electron이 그 local URL만 읽도록 한다. 외부 origin, navigation, permission request는 main-process guard에서 차단된다.
+
+특정 포트를 직접 선택하려면 CLI flag 또는 환경변수를 사용한다.
+
+```bash
+npm run desktop:dev -- --port 5174
+DESKTOP_DEV_PORT=5174 npm run desktop:dev
+HERMES_DESKTOP_DEV_PORT=5174 npm run desktop:dev
+```
+
+현재 선택될 dev server URL만 확인하려면 smoke mode를 사용할 수 있다.
+
+```bash
+npm --prefix apps/desktop run dev -- --smoke
+npm --prefix apps/desktop run dev -- --smoke --port 5174
+```
+
+명시적으로 지정한 포트가 이미 사용 중이면 command는 fail closed 한다. 포트를 지정하지 않은 기본 실행에서만 자동 fallback한다.
+
+## Missing Build Fallback
+
+`npm run desktop:start`는 `apps/desktop/dist/renderer/index.html`을 연다. build 산출물이 없으면 빈 화면 대신 local fallback page를 표시하고, repository root에서 다음 명령을 실행하라고 안내한다.
+
+```bash
+npm run desktop:build
+npm run desktop:start
+```
+
+이 fallback page도 local-only 안내 화면이며 deploy, approval apply, receipt apply, connector write, secret read, raw source exposure 권한을 열지 않는다.
 
 ## Manual Smoke Commands
 
@@ -122,6 +150,7 @@ npm run desktop:smoke:render -- --preview=docs/release-owner-decision-2026-06-14
 | Symptom | First Check |
 |---|---|
 | Desktop opens blank | `npm run desktop:build`를 다시 실행한다. |
+| `desktop:dev` fails with port in use | `npm run desktop:dev -- --port 5174` 또는 `DESKTOP_DEV_PORT=5174 npm run desktop:dev`를 사용한다. |
 | `desktop:smoke:render` fails with forbidden copy | 최근 UI label 또는 preview redaction 변경에서 unsafe claim이 새었는지 확인한다. |
 | source preview blocked | 해당 path가 desktop read model source row에 있고 markdown allowlist에 포함되어 있는지 확인한다. |
 | artifact rows missing | `npm run desktop:read-model -- --check` 결과의 blocker row를 먼저 확인한다. |

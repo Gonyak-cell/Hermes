@@ -1,10 +1,17 @@
 export const APP_TITLE = "Hermes Operator Desktop";
 
 export const NAV_ITEMS = [
+  { id: "queue", label_en: "Queue", label_ko: "Queue" },
+  { id: "projects", label_en: "Projects", label_ko: "Projects" },
+  { id: "requirements", label_en: "Requirements", label_ko: "Requirements" },
+  { id: "evidence", label_en: "Evidence", label_ko: "Evidence" },
+  { id: "reviews", label_en: "Reviews", label_ko: "Reviews" },
+  { id: "gates", label_en: "Gates", label_ko: "Gates" },
+  { id: "conversations", label_en: "Conversations", label_ko: "Conversations" },
+  { id: "governance", label_en: "Governance", label_ko: "Governance" },
+  { id: "sources", label_en: "Sources", label_ko: "Sources" },
   { id: "release", label_en: "Release", label_ko: "Release" },
   { id: "factory", label_en: "Factory", label_ko: "Factory" },
-  { id: "reviews", label_en: "Reviews", label_ko: "Reviews" },
-  { id: "artifacts", label_en: "Artifacts", label_ko: "Artifacts" },
   { id: "settings", label_en: "Settings", label_ko: "Settings" },
 ];
 

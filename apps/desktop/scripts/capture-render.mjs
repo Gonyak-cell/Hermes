@@ -20,7 +20,7 @@ const outPath = resolveRepoPath(readStringArg("--out=", "tmp/desktop-render-smok
 const rendererPath = path.join(APP_DIR, "dist", "renderer", "index.html");
 const width = readPositiveIntArg("--width=", 1440);
 const height = readPositiveIntArg("--height=", 900);
-const screen = readStringArg("--screen=", "release");
+const screen = readStringArg("--screen=", "queue");
 const previewPath = readStringArg("--preview=", "");
 const textOutPath = resolveOptionalRepoPath(readStringArg("--text-out=", ""));
 const assertNoForbiddenTrustCopy = process.argv.includes("--assert-no-forbidden-trust-copy");
@@ -125,7 +125,11 @@ function readRendererText(window) {
 }
 
 function waitForRenderer(window, targetScreen) {
-  const targetText = targetScreen === "factory" ? "Factory gate readiness" : "Candidate commit";
+  const targetText = targetScreen === "factory"
+    ? "Factory gate readiness"
+    : targetScreen === "queue"
+      ? "work queue"
+      : "Candidate commit";
   return window.webContents.executeJavaScript(`
     new Promise((resolve, reject) => {
       const started = Date.now();

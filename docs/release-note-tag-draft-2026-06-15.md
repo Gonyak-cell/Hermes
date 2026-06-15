@@ -46,13 +46,14 @@ Do not use `v1.0.0` unless the owner explicitly changes version policy. Existing
 
 ## Tag Commands Draft
 
-Do not run until owner tag creation approval:
+Local RC tag already created:
 
 ```bash
 git tag -a v0.1.0-rc.20260615.8200ed3 8200ed3b754b74900a95fe5a48875a1daf707335 -m "Hermes v0.1.0 desktop RC - 2026-06-15"
 ```
 
-Do not run until explicit tag-push approval:
+Do not run until explicit tag-push approval. The current decision is local-only,
+so tag push is not approved:
 
 ```bash
 git push github v0.1.0-rc.20260615.8200ed3
@@ -150,18 +151,18 @@ The following remain intentionally blocked:
 ### Known Non-Launch Items
 
 - P4 closure Claude review receipt is captured for this exact candidate: `PASS_WITH_FINDINGS`, `0` blocking findings, `1` P3 document-pointer drift finding resolved by this packet refresh.
-- Owner RC re-freeze decision is not yet recorded for `8200ed3b...`.
-- Production deployment target is not selected.
-- Production secrets/environment owner is not recorded.
+- Owner selected local-only RC closeout for `8200ed3b...`.
+- Production deployment target is intentionally not selected.
+- Production secrets/environment owner is not applicable while local-only.
 - Independent GitHub approval is not pursued for this single-owner local RC.
-- Owner production launch decision is not recorded.
-- Final `platform:release-check -- --check` envelope remains optional before tag publication unless the owner requires a single umbrella receipt; the latest attempt was interrupted and is not a pass.
+- Owner production launch decision is not approved because the selected path is local-only.
+- Final `platform:release-check -- --check` envelope is not required for local-only closeout; the latest attempt was interrupted and is not a pass.
 
 ### Upgrade / Deployment Notes
 
 - No production migration is approved by this release note.
 - No runtime deployment is performed by this release note.
-- No local or remote tag is created by this release note.
+- Local RC tag exists; no remote tag is created or pushed by this release note.
 - Use `docs/production-launch-checklist-2026-06-15.md` before staging, package publication, or production deployment.
 - Use `docs/release-decision-packet-2026-06-15.md` for owner decision capture.
 

@@ -15,9 +15,10 @@
 | Package | `hermes-project-ops-harness@0.1.0` |
 | Desktop package | `@hermes/operator-desktop@0.1.0` |
 | Packet date | 2026-06-15 KST |
-| Recommended decision | Approve release-candidate re-freeze only; do not mark production PASS |
+| Selected decision | Local-only release-candidate closeout; do not mark production PASS |
 | Proposed local RC tag | `v0.1.0-rc.20260615.8200ed3` |
 | Tag status | created locally only; not pushed |
+| Launch path | `local-only`; no staging, production, package publication, or GitHub Release |
 | Trust mode | `single-owner lower-trust RC`; GitHub independent approval not pursued |
 
 ## Why This Supersedes The 2026-06-14 Packet
@@ -169,14 +170,29 @@ PASS_WITH_FINDINGS with 0 blocking findings. The one P3 document-pointer drift
 finding is resolved by the refreshed 2026-06-15 release packet.
 ```
 
+## Recorded Local-Only Decision
+
+At 2026-06-15 15:08 KST, the owner selected `local-only` handling for the
+desktop RC line.
+
+- `8200ed3b754b74900a95fe5a48875a1daf707335` is the local desktop RC code
+  evidence baseline.
+- `v0.1.0-rc.20260615.8200ed3` remains a local-only RC tag.
+- No tag push is approved.
+- No GitHub Release publication is approved.
+- No package publication is approved.
+- No staging or production deployment is approved.
+- Production PASS, enterprise PASS, enterprise trust, protected closeout, and
+  deployment authority remain false.
+
 ## Next Required Human Inputs After Step 4
 
 | Input | Required for | Current status |
 |---|---|---|
-| Owner RC re-freeze decision | making `8200ed3b...` the active RC baseline | pending |
+| Owner RC re-freeze decision | making `8200ed3b...` the local RC baseline | completed for local-only |
 | Local RC tag creation | `v0.1.0-rc.20260615.8200ed3` created locally only | completed locally; not pushed |
-| Tag push approval | publishing tag to GitHub | missing |
-| Owner production launch approval | production deployment | missing |
-| Deployment target selection | staging or production | missing |
-| Secrets/environment owner confirmation | staging or production | missing |
-| Monitoring/incident owner confirmation | production launch | missing |
+| Tag push approval | publishing tag to GitHub | not requested; not approved |
+| Owner production launch approval | production deployment | not requested; not approved |
+| Deployment target selection | release handling path | local-only selected |
+| Secrets/environment owner confirmation | staging or production | not applicable while local-only |
+| Monitoring/incident owner confirmation | production launch | not applicable while local-only |

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { SHELL_SEED_STATE } from "../shared/shell-state.mjs";
 import { LOCALE_STORAGE_KEY, getCopy } from "./i18n.js";
 import { rowKey, rowsForNav, summarizeRows } from "./view-model.js";
+import hermesControlLogo from "./hermes-control-logo.svg";
 
 const fallbackReadModel = {
   summary: {
@@ -102,7 +103,9 @@ export default function App() {
     <main className="desktop-shell" lang={language}>
       <header className="top-band">
         <div className="brand-block">
-          <div className="brand-mark">H</div>
+          <div className="brand-mark" aria-hidden="true">
+            <img src={hermesControlLogo} alt="" />
+          </div>
           <div>
             <h1>Hermes Operator Desktop</h1>
             <p>{copy.statusLine}</p>

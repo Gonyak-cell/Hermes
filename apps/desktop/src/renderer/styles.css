@@ -272,6 +272,13 @@ p {
   background: #ffffff;
 }
 
+.agent-bridge-panel {
+  display: grid;
+  gap: 0;
+  border-bottom: 1px solid #e7ebf0;
+  background: #ffffff;
+}
+
 .project-control-heading {
   min-height: 46px;
   display: flex;
@@ -390,6 +397,75 @@ p {
   flex-wrap: wrap;
   gap: 7px;
   padding: 10px 16px 12px;
+}
+
+.agent-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px 16px 0;
+}
+
+.agent-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 10px 16px 12px;
+}
+
+.agent-table-card {
+  min-width: 0;
+  border: 1px solid #e3e8ef;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.agent-table-card h4 {
+  margin: 0;
+  padding: 9px 10px;
+  border-bottom: 1px solid #e7ebf0;
+  color: #344054;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.mini-table {
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.mini-table th,
+.mini-table td {
+  padding: 8px 10px;
+  font-size: 12px;
+  vertical-align: top;
+}
+
+.mini-table strong,
+.mini-table small {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.agent-control-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 0 16px 12px;
+}
+
+.disabled-control-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 5px 9px;
+  border: 1px solid #d9e0ea;
+  border-radius: 7px;
+  background: #f7f8fa;
+  color: #667085;
+  font-size: 12px;
 }
 
 .table-wrap {
@@ -757,6 +833,13 @@ td strong {
   .projection-strip {
     grid-template-columns: 1fr;
     padding: 10px 12px;
+  }
+
+  .agent-summary-grid,
+  .agent-grid {
+    grid-template-columns: 1fr;
+    padding-left: 12px;
+    padding-right: 12px;
   }
 
   .table-wrap {

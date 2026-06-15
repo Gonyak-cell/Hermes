@@ -148,6 +148,42 @@ test("desktop read model loader sanitizes authority flags from artifact input", 
           { row_id: "project_count", label: "Projects", value: "1", status: "open", authority_open: true },
         ],
       },
+      agent_projection: {
+        agent_bridge_manifest_status: "ready_for_agent_bridge_manifest",
+        agent_bridge_request_receipt_status: "ready_for_agent_bridge_request_receipt",
+        source_status: "ready",
+        runtime_count: 1,
+        capability_count: 1,
+        request_count: 1,
+        receipt_count: 1,
+        evidence_binding_count: 1,
+        ready_for_desktop_agents_projection: true,
+        request_queue_enabled_now: true,
+        receipt_intake_enabled_now: true,
+        execution_allowed_now: true,
+        receipt_application_allowed_now: true,
+        approval_application_allowed_now: true,
+        production_pass_enabled: true,
+        enterprise_pass_enabled: true,
+        runtime_rows: [
+          { runtime_id: "runtime.bad", runtime_kind: "codex", display_name: "Bad runtime", executable: true, can_execute_from_desktop_now: true },
+        ],
+        capability_rows: [
+          { capability_id: "capability.bad", runtime_id: "runtime.bad", capability_kind: "tool", capability_name: "Bad tool", executable: true },
+        ],
+        request_rows: [
+          { request_id: "request.bad", request_type: "code_review", request_status: "draft", request_title: "Bad request", execution_allowed_now: true, command_executed_now: true },
+        ],
+        receipt_rows: [
+          { receipt_id: "receipt.bad", request_id: "request.bad", request_type: "code_review", receipt_kind: "review", normalized_verdict: "approved", receipt_applied: true, opens_authority: true },
+        ],
+        agent_control_rows: [
+          { control_id: "execute", label: "Execute", control_enabled: true, opens_authority: true },
+        ],
+        projection_rows: [
+          { row_id: "agent_execution", label: "Execution", value: "open", status: "open", authority_open: true },
+        ],
+      },
     });
 
   assert.equal(result.summary.deployment_allowed_now, false);
@@ -181,6 +217,16 @@ test("desktop read model loader sanitizes authority flags from artifact input", 
   assert.equal(result.project_projection.safe_affordance_rows[0].opens_authority, false);
   assert.equal(result.project_projection.safe_affordance_rows[0].allowed, false);
   assert.equal(result.project_projection.projection_rows[0].authority_open, false);
+  assert.equal(result.agent_projection.execution_allowed_now, false);
+  assert.equal(result.agent_projection.receipt_application_allowed_now, false);
+  assert.equal(result.agent_projection.approval_application_allowed_now, false);
+  assert.equal(result.agent_projection.production_pass_enabled, false);
+  assert.equal(result.agent_projection.enterprise_pass_enabled, false);
+  assert.equal(result.agent_projection.runtime_rows[0].executable, false);
+  assert.equal(result.agent_projection.request_rows[0].execution_allowed_now, false);
+  assert.equal(result.agent_projection.receipt_rows[0].receipt_applied, false);
+  assert.equal(result.agent_projection.agent_control_rows[0].control_enabled, false);
+  assert.equal(result.agent_projection.projection_rows[0].authority_open, false);
   assert.equal(result.source_rows[0].status, "ready");
 });
 

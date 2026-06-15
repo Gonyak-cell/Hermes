@@ -2,6 +2,7 @@ export function sectionForNav(navId) {
   return {
     queue: "__queue__",
     projects: "projects",
+    agents: "agents",
     requirements: "release",
     evidence: "__all__",
     release: "release",
@@ -24,7 +25,7 @@ export function rowsForNav(navId, readModel = {}) {
   if (sectionId === "__none__") return [];
   if (sectionId === "__queue__") {
     const blockedRows = rows.filter((row) => row.status !== "ready");
-    return blockedRows.length > 0 ? blockedRows : rows.filter((row) => ["release", "factory", "reviews"].includes(row.section_id));
+    return blockedRows.length > 0 ? blockedRows : rows.filter((row) => ["release", "factory", "reviews", "agents"].includes(row.section_id));
   }
   return rows.filter((row) => row.section_id === sectionId);
 }

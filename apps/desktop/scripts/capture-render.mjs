@@ -127,6 +127,8 @@ function readRendererText(window) {
 function waitForRenderer(window, targetScreen) {
   const targetText = targetScreen === "factory"
     ? "Factory gate readiness"
+    : targetScreen === "agents"
+      ? "Agent Bridge"
     : targetScreen === "queue"
       ? "Hermes Harness"
       : targetScreen === "projects"

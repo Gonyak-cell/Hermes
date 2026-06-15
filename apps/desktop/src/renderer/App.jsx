@@ -36,6 +36,16 @@ const fallbackReadModel = {
     project_attention_rows: [],
     safe_affordance_rows: [],
   },
+  agent_projection: {
+    projection_rows: [
+      { row_id: "agent_execution", label: "Execution", value: "closed", status: "blocked" },
+    ],
+    runtime_rows: [],
+    capability_rows: [],
+    request_rows: [],
+    receipt_rows: [],
+    agent_control_rows: [],
+  },
   desktop_read_authority: SHELL_SEED_STATE.authority_flags,
 };
 
@@ -68,6 +78,7 @@ export default function App() {
 
   const isProjectControlNav = activeNav === "projects" || activeNav === "queue";
   const isProjectContextNav = ["projects", "queue", "governance", "reviews", "gates", "evidence", "sources"].includes(activeNav);
+  const isAgentNav = activeNav === "agents";
   const projectRows = readModel.project_projection?.project_rows ?? [];
   const rowSummary = isProjectControlNav
     ? {
@@ -171,6 +182,9 @@ export default function App() {
               {isProjectContextNav ? (
                 <SafeAffordancePanel copy={copy} rows={readModel.project_projection?.safe_affordance_rows ?? []} />
               ) : null}
+              {isAgentNav ? (
+                <AgentBridgePanel copy={copy} projection={readModel.agent_projection ?? fallbackReadModel.agent_projection} />
+              ) : null}
               <EvidenceTable copy={copy} rows={rows} selectedRowKey={selectedRow ? rowKey(selectedRow) : null} onSelect={setSelectedRowKey} onPreview={setSourcePreview} />
               <SourcePreview copy={copy} preview={sourcePreview} />
             </>
@@ -198,6 +212,145 @@ export default function App() {
         <span>No secret read</span>
       </footer>
     </main>
+  );
+}
+
+function AgentBridgePanel({ copy, projection }) {
+  const runtimeRows = projection?.runtime_rows ?? [];
+  const capabilityRows = projection?.capability_rows ?? [];
+  const requestRows = projection?.request_rows ?? [];
+  const receiptRows = projection?.receipt_rows ?? [];
+  const controlRows = projection?.agent_control_rows ?? [];
+  return (
+    <section className="agent-bridge-panel" aria-label={copy.agentPanel}>
+      <div className="project-control-heading">
+        <h3>{copy.agentPanel}</h3>
+        <small>{copy.displayOnly}</small>
+      </div>
+      <div className="agent-summary-grid">
+        <Metric label={copy.agentRuntimeTable} value={projection?.runtime_count ?? runtimeRows.length} />
+        <Metric label={copy.agentCapabilityTable} value={projection?.capability_count ?? capabilityRows.length} />
+        <Metric label={copy.agentRequestTable} value={projection?.request_count ?? requestRows.length} />
+        <Metric label={copy.agentReceiptTable} value={projection?.receipt_count ?? receiptRows.length} />
+      </div>
+      <div className="agent-grid">
+        <AgentRuntimeTable copy={copy} rows={runtimeRows} />
+        <AgentCapabilityTable copy={copy} rows={capabilityRows.slice(0, 8)} />
+        <AgentRequestTable copy={copy} rows={requestRows} />
+        <AgentReceiptTable copy={copy} rows={receiptRows} />
+      </div>
+      <div className="agent-control-strip" aria-label={copy.agentControls}>
+        {controlRows.map((row) => (
+          <span className="disabled-control-chip" key={row.control_id} title={row.disabled_reason}>
+            {row.label}
+          </span>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function AgentRuntimeTable({ copy, rows }) {
+  return (
+    <div className="agent-table-card">
+      <h4>{copy.agentRuntimeTable}</h4>
+      <table className="mini-table">
+        <thead>
+          <tr>
+            <th>Runtime</th>
+            <th>Model</th>
+            <th>State</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.runtime_id}>
+              <td><strong>{row.display_name}</strong><small>{row.runtime_kind}</small></td>
+              <td>{row.model_label_observed}</td>
+              <td><StatusPill tone={row.executable ? "red" : "green"} label={row.executable ? "open" : "closed"} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function AgentCapabilityTable({ copy, rows }) {
+  return (
+    <div className="agent-table-card">
+      <h4>{copy.agentCapabilityTable}</h4>
+      <table className="mini-table">
+        <thead>
+          <tr>
+            <th>Capability</th>
+            <th>Kind</th>
+            <th>Permission</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.capability_id}>
+              <td><strong>{row.capability_name}</strong><small>{row.runtime_id}</small></td>
+              <td>{formatProjectionText(row.capability_kind)}</td>
+              <td><StatusPill tone={row.executable ? "red" : "green"} label={row.executable ? "open" : "closed"} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function AgentRequestTable({ copy, rows }) {
+  return (
+    <div className="agent-table-card">
+      <h4>{copy.agentRequestTable}</h4>
+      <table className="mini-table">
+        <thead>
+          <tr>
+            <th>Request</th>
+            <th>Status</th>
+            <th>Boundary</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.request_id}>
+              <td><strong>{row.request_title}</strong><small>{formatProjectionText(row.request_type)}</small></td>
+              <td>{formatProjectionText(row.request_status)}</td>
+              <td><StatusPill tone={row.execution_allowed_now ? "red" : "green"} label={row.execution_allowed_now ? "open" : "closed"} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function AgentReceiptTable({ copy, rows }) {
+  return (
+    <div className="agent-table-card">
+      <h4>{copy.agentReceiptTable}</h4>
+      <table className="mini-table">
+        <thead>
+          <tr>
+            <th>Receipt</th>
+            <th>Verdict</th>
+            <th>Apply</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.receipt_id}>
+              <td><strong>{row.receipt_id}</strong><small>{formatProjectionText(row.receipt_kind)}</small></td>
+              <td>{formatProjectionText(row.normalized_verdict)}</td>
+              <td><StatusPill tone={row.receipt_applied ? "red" : "green"} label={row.receipt_applied ? "open" : "closed"} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -523,6 +676,7 @@ function usePersistentLanguage() {
 
 function projectionRowsForNav(activeNav, readModel) {
   if (["projects", "queue"].includes(activeNav)) return readModel.project_projection?.projection_rows ?? [];
+  if (activeNav === "agents") return readModel.agent_projection?.projection_rows ?? [];
   if (["queue", "release", "requirements"].includes(activeNav)) return readModel.release_projection?.projection_rows ?? [];
   if (activeNav === "reviews") return pickProjectionRows(readModel.project_projection?.projection_rows, ["review_needed_projects", "blocked_projects", "project_authority"]);
   if (activeNav === "gates") return [

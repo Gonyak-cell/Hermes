@@ -18,6 +18,9 @@ export const DEFAULT_DESKTOP_READ_MODEL_INPUTS = {
   desktopPackagingManifestSummaryPath: "artifacts/desktop-packaging-manifest/latest/summary.md",
   projectOperatingContractPath: "artifacts/project-operating-contract/latest/project-operating-contract.json",
   projectOperatingContractSummaryPath: "artifacts/project-operating-contract/latest/summary.md",
+  agentBridgeManifestPath: "artifacts/agent-bridge-manifest/latest/agent-bridge-manifest.json",
+  agentBridgeRequestReceiptPath: "artifacts/agent-bridge-request-receipt/latest/agent-bridge-request-receipt.json",
+  agentBridgeRequestReceiptSummaryPath: "artifacts/agent-bridge-request-receipt/latest/summary.md",
   operatorHandbookPath: "artifacts/operator-handbook/latest/operator-handbook.json",
   operatorSurfacesPath: "artifacts/operator-handbook/latest/operator-surfaces.json",
   operatorScreensPath: "artifacts/operator-handbook/latest/operator-screens.json",
@@ -42,6 +45,9 @@ export const DESKTOP_READ_ALLOWLIST = Object.freeze([
   "artifacts/desktop-packaging-manifest/latest/summary.md",
   "artifacts/project-operating-contract/latest/project-operating-contract.json",
   "artifacts/project-operating-contract/latest/summary.md",
+  "artifacts/agent-bridge-manifest/latest/agent-bridge-manifest.json",
+  "artifacts/agent-bridge-request-receipt/latest/agent-bridge-request-receipt.json",
+  "artifacts/agent-bridge-request-receipt/latest/summary.md",
   "docs/operator-handbook.md",
   "docs/dashboard-api-freeze.md",
   "artifacts/desktop-authority-boundary/latest/desktop-authority-boundary.json",
@@ -114,6 +120,9 @@ const SOURCE_DEFINITIONS = [
   sourceDefinition("desktop_packaging_manifest", "release", "Desktop packaging manifest", "desktopPackagingManifestSummaryPath", true),
   sourceDefinition("project_operating_contract", "projects", "Project operating contract", "projectOperatingContractPath", true),
   sourceDefinition("project_operating_contract_summary", "projects", "Project operating contract summary", "projectOperatingContractSummaryPath", true),
+  sourceDefinition("agent_bridge_manifest", "agents", "Agent Bridge manifest", "agentBridgeManifestPath", true),
+  sourceDefinition("agent_bridge_request_receipt", "agents", "Agent Bridge request/receipt", "agentBridgeRequestReceiptPath", true),
+  sourceDefinition("agent_bridge_request_receipt_summary", "agents", "Agent Bridge request/receipt summary", "agentBridgeRequestReceiptSummaryPath", true),
   sourceDefinition("factory_gate_opening", "factory", "Factory gate opening readiness", "factoryGateOpeningSummaryPath", true),
   sourceDefinition("factory_stage_6_7", "factory", "Factory Stage6/Stage7 readiness", "factoryStage67SummaryPath", true),
   sourceDefinition("release_readiness", "factory", "Release readiness control plane", "releaseReadinessSummaryPath", true),
@@ -132,6 +141,7 @@ const SOURCE_DEFINITIONS = [
 const SCREEN_SPECS = [
   ["queue", "Queue", "Global operator queue across local-only RC, review, gate, and evidence blockers."],
   ["projects", "Projects", "Project and operator-handbook surfaces for the local Hermes workspace."],
+  ["agents", "Agents", "Agent identities, capabilities, request queue, receipts, and permission boundaries without execution."],
   ["requirements", "Requirements", "Release requirements and launch-class boundaries without production authority."],
   ["evidence", "Evidence", "Safe evidence rows from release, factory, review, operator, and authority sources."],
   ["reviews", "Reviews", "Review packet status and independent-review caveats without treating review as approval."],
@@ -174,6 +184,7 @@ export async function buildDesktopReadModel(options = {}) {
   const releaseProjection = buildReleaseProjection(sourceRows, generatedAt);
   const factoryProjection = buildFactoryProjection(sourceRows, generatedAt);
   const projectProjection = buildProjectProjection(sourceRows, generatedAt);
+  const agentProjection = buildAgentProjection(sourceRows, generatedAt);
   const validationItems = buildValidationItems({
     packageJson,
     sourceRows,
@@ -185,6 +196,7 @@ export async function buildDesktopReadModel(options = {}) {
     releaseProjection,
     factoryProjection,
     projectProjection,
+    agentProjection,
   });
   const preliminaryValidation = summarizeValidation(validationItems);
   const result = {
@@ -200,12 +212,13 @@ export async function buildDesktopReadModel(options = {}) {
     release_projection: releaseProjection,
     factory_projection: factoryProjection,
     project_projection: projectProjection,
+    agent_projection: agentProjection,
     trust_claim_guard_rows: trustClaimGuardRows,
     denylist_fixture_rows: denylistFixtureRows,
     desktop_read_authority: desktopReadAuthority,
     validation_items: validationItems,
     validation: preliminaryValidation,
-    summary: buildSummary({ sourceRows, sections, screenMap, desktopReadAuthority, projectProjection, validation: preliminaryValidation }),
+    summary: buildSummary({ sourceRows, sections, screenMap, desktopReadAuthority, projectProjection, agentProjection, validation: preliminaryValidation }),
   };
 
   const schemaErrors = schema.available
@@ -214,7 +227,7 @@ export async function buildDesktopReadModel(options = {}) {
   const schemaValidationItems = schemaErrors.map((error, index) => validationItem(`schema.${index}`, false, error.message, error.path));
   result.validation_items = [...validationItems, ...schemaValidationItems];
   result.validation = summarizeValidation(result.validation_items);
-  result.summary = buildSummary({ sourceRows, sections, screenMap, desktopReadAuthority, projectProjection, validation: result.validation });
+  result.summary = buildSummary({ sourceRows, sections, screenMap, desktopReadAuthority, projectProjection, agentProjection, validation: result.validation });
   return { ...result, markdown: renderMarkdown(result) };
 }
 
@@ -368,7 +381,7 @@ function sourceRow({ definition, sourcePath, allowed, available, parseStatus, co
 }
 
 function buildSections(sourceRows, generatedAt) {
-  const sectionIds = ["projects", "release", "factory", "reviews", "operator_handbook", "artifacts", "authority_boundary"];
+  const sectionIds = ["projects", "agents", "release", "factory", "reviews", "operator_handbook", "artifacts", "authority_boundary"];
   return sectionIds.map((sectionId) => {
     const rows = sectionId === "artifacts"
       ? sourceRows
@@ -654,6 +667,155 @@ function buildProjectProjection(sourceRows, generatedAt) {
   return { ...projection, projection_hash: sha256(projection) };
 }
 
+function buildAgentProjection(sourceRows, generatedAt) {
+  const manifestSource = sourceRows.find((row) => row.source_id === "agent_bridge_manifest");
+  const requestReceiptSource = sourceRows.find((row) => row.source_id === "agent_bridge_request_receipt");
+  const manifestSummary = manifestSource?.data_summary ?? {};
+  const requestReceiptSummary = requestReceiptSource?.data_summary ?? {};
+  const runtimeRows = Array.isArray(manifestSummary.runtime_rows) ? manifestSummary.runtime_rows : [];
+  const capabilityRows = Array.isArray(manifestSummary.capability_rows) ? manifestSummary.capability_rows : [];
+  const permissionRows = Array.isArray(manifestSummary.permission_rows) ? manifestSummary.permission_rows : [];
+  const requestRows = Array.isArray(requestReceiptSummary.request_rows) ? requestReceiptSummary.request_rows : [];
+  const receiptRows = Array.isArray(requestReceiptSummary.receipt_rows) ? requestReceiptSummary.receipt_rows : [];
+  const evidenceBindingRows = Array.isArray(requestReceiptSummary.evidence_binding_rows) ? requestReceiptSummary.evidence_binding_rows : [];
+  const agentControlRows = buildAgentControlRows(generatedAt);
+  const ready = manifestSource?.status === "ready"
+    && requestReceiptSource?.status === "ready"
+    && manifestSummary.agent_bridge_manifest_status === "ready_for_agent_bridge_manifest"
+    && requestReceiptSummary.agent_bridge_request_receipt_status === "ready_for_agent_bridge_request_receipt";
+  const projection = {
+    schema_version: "desktop-agent-projection.v1",
+    generated_at: generatedAt,
+    agent_bridge_manifest_status: manifestSummary.agent_bridge_manifest_status ?? "not recorded",
+    agent_bridge_request_receipt_status: requestReceiptSummary.agent_bridge_request_receipt_status ?? "not recorded",
+    source_status: ready ? "ready" : "blocked",
+    runtime_count: Number(manifestSummary.runtime_count ?? runtimeRows.length),
+    capability_count: Number(manifestSummary.capability_count ?? capabilityRows.length),
+    permission_row_count: Number(manifestSummary.permission_row_count ?? permissionRows.length),
+    request_count: Number(requestReceiptSummary.request_count ?? requestRows.length),
+    receipt_count: Number(requestReceiptSummary.receipt_count ?? receiptRows.length),
+    evidence_binding_count: Number(requestReceiptSummary.evidence_binding_count ?? evidenceBindingRows.length),
+    ready_for_desktop_agents_projection: ready,
+    local_only: true,
+    read_only: true,
+    source_of_truth: false,
+    request_queue_enabled_now: requestReceiptSummary.request_queue_enabled_now === true,
+    receipt_intake_enabled_now: requestReceiptSummary.receipt_intake_enabled_now === true,
+    request_transport_submission_allowed_now: false,
+    execution_allowed_now: false,
+    command_executed_now: false,
+    mutation_performed: false,
+    receipt_application_allowed_now: false,
+    approval_application_allowed_now: false,
+    connector_write_allowed_now: false,
+    secret_read_allowed_now: false,
+    raw_source_exposure_allowed: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    protected_closeout_enabled: false,
+    desktop_write_authority_enabled: false,
+    no_latent_execution_ui: true,
+    runtime_rows: runtimeRows.map((row) => ({
+      runtime_id: String(row.runtime_id ?? "unknown"),
+      runtime_kind: String(row.runtime_kind ?? "unknown"),
+      display_name: String(row.display_name ?? row.runtime_id ?? "Unknown runtime"),
+      model_label_observed: String(row.model_label_observed ?? "not recorded"),
+      model_proof_trusted: false,
+      state: String(row.state ?? "blocked"),
+      trust_class: String(row.trust_class ?? "unknown"),
+      requestable: false,
+      executable: false,
+      can_execute_from_desktop_now: false,
+    })),
+    capability_rows: capabilityRows.map((row) => ({
+      capability_id: String(row.capability_id ?? "unknown"),
+      capability_kind: String(row.capability_kind ?? "unknown"),
+      capability_name: String(row.capability_name ?? row.capability_id ?? "Unknown capability"),
+      runtime_id: String(row.runtime_id ?? "unknown"),
+      state: String(row.state ?? "blocked"),
+      passive_collection_only: row.passive_collection_only === true,
+      requestable: false,
+      executable: false,
+      trust_class: String(row.trust_class ?? "unknown"),
+    })),
+    permission_rows: permissionRows.map((row) => ({
+      capability_id: String(row.capability_id ?? "unknown"),
+      runtime_id: String(row.runtime_id ?? "unknown"),
+      authority_namespace: String(row.authority_namespace ?? "unknown"),
+      capability_state: String(row.capability_state ?? "blocked"),
+      desktop_display_allowed: row.desktop_display_allowed === true,
+      requestable: false,
+      executable: false,
+      opens_authority: false,
+    })),
+    request_rows: requestRows.map((row) => ({
+      request_id: String(row.request_id ?? "unknown"),
+      request_type: String(row.request_type ?? "unknown"),
+      request_status: String(row.request_status ?? "blocked"),
+      target_runtime_id: String(row.target_runtime_id ?? "unknown"),
+      request_title: String(row.request_title ?? "Untitled request"),
+      risk_level: String(row.risk_level ?? "unknown"),
+      request_packet_generated: row.request_packet_generated === true,
+      transport_submitted_now: false,
+      execution_allowed_now: false,
+      command_executed_now: false,
+      receipt_applied: false,
+    })),
+    receipt_rows: receiptRows.map((row) => ({
+      receipt_id: String(row.receipt_id ?? "unknown"),
+      request_id: String(row.request_id ?? "unknown"),
+      request_type: String(row.request_type ?? "unknown"),
+      receipt_kind: String(row.receipt_kind ?? "unknown"),
+      normalized_verdict: String(row.normalized_verdict ?? "missing"),
+      receipt_validated: row.receipt_validated === true,
+      receipt_quarantined: row.receipt_quarantined === true,
+      raw_output_included: false,
+      receipt_applied: false,
+      opens_authority: false,
+    })),
+    evidence_binding_rows: evidenceBindingRows.map((row) => ({
+      binding_id: String(row.binding_id ?? "unknown"),
+      request_id: String(row.request_id ?? "unknown"),
+      receipt_id: row.receipt_id ? String(row.receipt_id) : null,
+      binding_status: String(row.binding_status ?? "unknown"),
+      target_runtime_id: String(row.target_runtime_id ?? "unknown"),
+      target_capability_id: String(row.target_capability_id ?? "unknown"),
+      opens_authority: false,
+      receipt_applied: false,
+    })),
+    agent_control_rows: agentControlRows,
+    projection_rows: [
+      projectionRow("agent_runtimes", "Agent runtimes", String(manifestSummary.runtime_count ?? runtimeRows.length), ready ? "observed" : "blocked", false, generatedAt),
+      projectionRow("agent_capabilities", "Agent capabilities", String(manifestSummary.capability_count ?? capabilityRows.length), ready ? "observed" : "blocked", false, generatedAt),
+      projectionRow("agent_requests", "Request packets", String(requestReceiptSummary.request_count ?? requestRows.length), "request_only", false, generatedAt),
+      projectionRow("agent_receipts", "Receipts", String(requestReceiptSummary.receipt_count ?? receiptRows.length), "normalized_only", false, generatedAt),
+      projectionRow("agent_execution", "Execution", "closed", "closed", false, generatedAt),
+      projectionRow("agent_receipt_apply", "Receipt apply", "closed", "closed", false, generatedAt),
+    ],
+  };
+  return { ...projection, projection_hash: sha256(projection) };
+}
+
+function buildAgentControlRows(generatedAt) {
+  return [
+    ["submit_prompt", "Submit prompt", "disabled_request_packet_only"],
+    ["execute_command", "Execute command", "disabled_no_execution_policy"],
+    ["approve", "Approve", "disabled_agent_cannot_approve"],
+    ["apply_receipt", "Apply receipt", "disabled_receipt_import_only"],
+    ["deploy", "Deploy", "disabled_protected_action"],
+    ["git_write", "Git write", "disabled_protected_action"],
+  ].map(([controlId, label, disabledReason], index) => ({
+    schema_version: "desktop-agent-control-row.v1",
+    row_id: `desktop.agent.control.${String(index + 1).padStart(2, "0")}`,
+    control_id: controlId,
+    label,
+    control_enabled: false,
+    disabled_reason: disabledReason,
+    opens_authority: false,
+    generated_at: generatedAt,
+  }));
+}
+
 function projectionRow(rowId, label, value, status, authorityOpen, generatedAt) {
   const row = {
     schema_version: "desktop-projection-row.v1",
@@ -717,10 +879,10 @@ function buildDesktopReadAuthority({ sourceRows, sections, trustClaimGuardRows, 
 function buildValidationItems(context) {
   return [
     validationItem("package.script.desktop_read_model", Boolean(context.packageJson.data?.scripts?.[COMMAND_NAME]), `${COMMAND_NAME} missing from package.json`, "package.json"),
-    validationItem("policy.allowlist.explicit", context.artifactAccessPolicy.allowlist.length >= 22 && context.artifactAccessPolicy.denylist_precedence === true, "Desktop read policy must use explicit allowlist with denylist precedence.", "artifact_access_policy"),
+    validationItem("policy.allowlist.explicit", context.artifactAccessPolicy.allowlist.length >= 25 && context.artifactAccessPolicy.denylist_precedence === true, "Desktop read policy must use explicit allowlist with denylist precedence.", "artifact_access_policy"),
     validationItem("sources.blocker_visible", context.sourceRows.every((row) => row.status === "ready" || row.blocker), "Missing or blocked sources must render visible blockers.", "source_rows"),
     validationItem("sources.no_denied_reads", context.sourceRows.every((row) => row.source_allowed_by_policy === true), "Desktop read model attempted to read a denied or non-allowlisted source.", "source_rows"),
-    validationItem("sections.required", ["release", "projects", "factory", "reviews", "operator_handbook", "artifacts", "authority_boundary"].every((sectionId) => context.sections.some((section) => section.section_id === sectionId)), "Desktop sections are incomplete.", "sections"),
+    validationItem("sections.required", ["release", "projects", "agents", "factory", "reviews", "operator_handbook", "artifacts", "authority_boundary"].every((sectionId) => context.sections.some((section) => section.section_id === sectionId)), "Desktop sections are incomplete.", "sections"),
     validationItem("sections.ready", context.sections.every((section) => section.status === "ready"), "Required desktop read-model sections must be ready; missing inputs must fail closed with blocker rows.", "sections"),
     validationItem("operator_handbook.bound", context.desktopReadAuthority.operator_handbook_bound === true, "Desktop read model must bind to existing operator-handbook artifacts.", "operator_handbook"),
     validationItem("authority_boundary.ready", context.desktopReadAuthority.authority_boundary_ready === true, "Desktop read model requires a ready desktop authority boundary artifact.", "desktop_authority_boundary"),
@@ -733,10 +895,13 @@ function buildValidationItems(context) {
     validationItem("project_projection.authority_closed", context.projectProjection.git_write_allowed_now === false && context.projectProjection.deploy_allowed_now === false && context.projectProjection.production_pass_enabled === false && context.projectProjection.enterprise_pass_enabled === false, "Project projection opened write, deploy, production, or enterprise authority.", "project_projection"),
     validationItem("project_projection.safe_affordances_closed", context.projectProjection.safe_affordance_rows.every((row) => row.mutates_state === false && row.opens_authority === false), "Project safe affordances must remain display-only.", "project_projection.safe_affordance_rows"),
     validationItem("project_projection.detail_rows", context.projectProjection.project_rows.length === context.projectProjection.project_detail_rows.length, "Project projection must expose one detail row per project row.", "project_projection.project_detail_rows"),
+    validationItem("agent_projection.ready", context.agentProjection.source_status === "ready" && context.agentProjection.ready_for_desktop_agents_projection === true && context.agentProjection.runtime_count >= 4, "Agent projection must bind Agent Bridge manifest and request/receipt sources.", "agent_projection"),
+    validationItem("agent_projection.authority_closed", context.agentProjection.execution_allowed_now === false && context.agentProjection.receipt_application_allowed_now === false && context.agentProjection.approval_application_allowed_now === false && context.agentProjection.production_pass_enabled === false && context.agentProjection.enterprise_pass_enabled === false, "Agent projection opened execution, receipt, approval, production, or enterprise authority.", "agent_projection"),
+    validationItem("agent_projection.no_latent_execution_ui", context.agentProjection.no_latent_execution_ui === true && context.agentProjection.agent_control_rows.every((row) => row.control_enabled === false && row.opens_authority === false), "Agent projection exposed latent execution UI controls.", "agent_projection.agent_control_rows"),
   ];
 }
 
-function buildSummary({ sourceRows, sections, screenMap, desktopReadAuthority, projectProjection, validation }) {
+function buildSummary({ sourceRows, sections, screenMap, desktopReadAuthority, projectProjection, agentProjection, validation }) {
   const readySourceCount = sourceRows.filter((row) => row.status === "ready").length;
   const readySectionCount = sections.filter((section) => section.status === "ready").length;
   return {
@@ -754,6 +919,9 @@ function buildSummary({ sourceRows, sections, screenMap, desktopReadAuthority, p
     ready_project_count: projectProjection?.ready_project_count ?? 0,
     blocked_project_count: projectProjection?.blocked_project_count ?? 0,
     stale_project_count: projectProjection?.stale_project_count ?? 0,
+    agent_runtime_count: agentProjection?.runtime_count ?? 0,
+    agent_request_count: agentProjection?.request_count ?? 0,
+    agent_receipt_count: agentProjection?.receipt_count ?? 0,
     operator_handbook_bound: desktopReadAuthority.operator_handbook_bound,
     authority_boundary_ready: desktopReadAuthority.authority_boundary_ready,
     read_only: desktopReadAuthority.read_only,
@@ -835,6 +1003,110 @@ async function readAnySource(filePath) {
 }
 
 function compactJsonSummary(data) {
+  if (data?.schema_version === "agent-bridge-manifest.v1") {
+    const summary = data.summary ?? {};
+    const boundary = data.agent_bridge_boundary ?? {};
+    return {
+      schema_version: data.schema_version,
+      agent_bridge_manifest_status: summary.agent_bridge_manifest_status,
+      runtime_count: Number(summary.runtime_count ?? 0),
+      capability_count: Number(summary.capability_count ?? 0),
+      permission_row_count: Number(summary.permission_row_count ?? 0),
+      validation_error_count: Number(summary.validation_error_count ?? 0),
+      unsafe_flag_count: Number(boundary.unsafe_flag_count ?? 0),
+      production_pass_enabled: boundary.production_pass_enabled === true,
+      enterprise_pass_enabled: boundary.enterprise_pass_enabled === true,
+      protected_closeout_enabled: boundary.protected_closeout_enabled === true,
+      runtime_rows: (data.runtime_identity_rows ?? []).map((row) => ({
+        runtime_id: row.runtime_id,
+        runtime_kind: row.runtime_kind,
+        display_name: row.display_name,
+        model_label_observed: row.model_label_observed,
+        model_proof_trusted: false,
+        state: row.state,
+        trust_class: row.trust_class,
+        requestable: false,
+        executable: false,
+        can_execute_from_desktop_now: false,
+      })),
+      capability_rows: (data.capability_inventory_rows ?? []).map((row) => ({
+        capability_id: row.capability_id,
+        capability_kind: row.capability_kind,
+        capability_name: row.capability_name,
+        runtime_id: row.runtime_id,
+        state: row.state,
+        passive_collection_only: row.passive_collection_only === true,
+        requestable: false,
+        executable: false,
+        trust_class: row.trust_class,
+      })),
+      permission_rows: (data.permission_matrix_rows ?? []).map((row) => ({
+        capability_id: row.capability_id,
+        runtime_id: row.runtime_id,
+        authority_namespace: row.authority_namespace,
+        capability_state: row.capability_state,
+        desktop_display_allowed: row.desktop_display_allowed === true,
+        requestable: false,
+        executable: false,
+        opens_authority: false,
+      })),
+    };
+  }
+  if (data?.schema_version === "agent-bridge-request-receipt.v1") {
+    const summary = data.summary ?? {};
+    const boundary = data.agent_request_receipt_boundary ?? {};
+    return {
+      schema_version: data.schema_version,
+      agent_bridge_request_receipt_status: summary.agent_bridge_request_receipt_status,
+      source_agent_bridge_manifest_status: summary.source_agent_bridge_manifest_status,
+      request_count: Number(summary.request_count ?? 0),
+      receipt_count: Number(summary.receipt_count ?? 0),
+      evidence_binding_count: Number(summary.evidence_binding_count ?? 0),
+      request_queue_enabled_now: summary.request_queue_enabled_now === true,
+      receipt_intake_enabled_now: summary.receipt_intake_enabled_now === true,
+      request_transport_submission_allowed_now: false,
+      execution_allowed_now: false,
+      receipt_application_allowed_now: false,
+      approval_application_allowed_now: false,
+      unsafe_flag_count: Number(boundary.unsafe_flag_count ?? 0),
+      validation_error_count: Number(summary.validation_error_count ?? 0),
+      request_rows: (data.agent_task_request_queue_rows ?? []).map((row) => ({
+        request_id: row.request_id,
+        request_type: row.request_type,
+        request_status: row.request_status,
+        target_runtime_id: row.target_runtime_id,
+        request_title: row.request_title,
+        risk_level: row.risk_level,
+        request_packet_generated: row.request_packet_generated === true,
+        transport_submitted_now: false,
+        execution_allowed_now: false,
+        command_executed_now: false,
+        receipt_applied: false,
+      })),
+      receipt_rows: (data.agent_receipt_intake_rows ?? []).map((row) => ({
+        receipt_id: row.receipt_id,
+        request_id: row.request_id,
+        request_type: row.request_type,
+        receipt_kind: row.receipt_kind,
+        normalized_verdict: row.normalized_verdict,
+        receipt_validated: row.receipt_validated === true,
+        receipt_quarantined: row.receipt_quarantined === true,
+        raw_output_included: false,
+        receipt_applied: false,
+        opens_authority: false,
+      })),
+      evidence_binding_rows: (data.agent_evidence_binding_rows ?? []).map((row) => ({
+        binding_id: row.binding_id,
+        request_id: row.request_id,
+        receipt_id: row.receipt_id ?? null,
+        binding_status: row.binding_status,
+        target_runtime_id: row.target_runtime_id,
+        target_capability_id: row.target_capability_id,
+        opens_authority: false,
+        receipt_applied: false,
+      })),
+    };
+  }
   if (data?.schema_version === "project-operating-contract.v1") {
     const summary = data.summary ?? {};
     const boundary = data.project_operating_boundary ?? {};
@@ -1079,6 +1351,7 @@ function matchBoolean(text, pattern) {
 function sectionLabel(sectionId) {
   return {
     projects: "Projects",
+    agents: "Agents",
     release: "Release",
     factory: "Factory",
     reviews: "Reviews",

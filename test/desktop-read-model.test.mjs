@@ -27,10 +27,10 @@ test("Desktop read model projects release, factory, review, operator, artifact, 
     assert.equal(result.validation.valid, true);
     assert.equal(result.schema_version, "desktop-read-model.v1");
     assert.equal(result.summary.desktop_read_model_status, "ready_for_desktop_shell");
-    assert.equal(result.summary.source_count, 22);
-    assert.equal(result.summary.ready_source_count, 22);
-    assert.equal(result.summary.section_count, 7);
-    assert.equal(result.summary.ready_section_count, 7);
+    assert.equal(result.summary.source_count, 25);
+    assert.equal(result.summary.ready_source_count, 25);
+    assert.equal(result.summary.section_count, 8);
+    assert.equal(result.summary.ready_section_count, 8);
     assert.equal(result.summary.project_count, 2);
     assert.equal(result.summary.ready_project_count, 1);
     assert.equal(result.summary.blocked_project_count, 1);
@@ -64,6 +64,13 @@ test("Desktop read model projects release, factory, review, operator, artifact, 
     assert.equal(result.project_projection.project_drift_rows.length, 2);
     assert.equal(result.project_projection.project_attention_rows.some((row) => row.attention_type === "blocked"), true);
     assert.equal(result.project_projection.safe_affordance_rows.some((row) => row.action_type === "copy_command" && row.mutates_state === false && row.opens_authority === false), true);
+    assert.equal(result.agent_projection.runtime_count, 4);
+    assert.equal(result.agent_projection.request_count, 4);
+    assert.equal(result.agent_projection.receipt_count, 4);
+    assert.equal(result.agent_projection.ready_for_desktop_agents_projection, true);
+    assert.equal(result.agent_projection.execution_allowed_now, false);
+    assert.equal(result.agent_projection.receipt_application_allowed_now, false);
+    assert.equal(result.agent_projection.agent_control_rows.every((row) => row.control_enabled === false && row.opens_authority === false), true);
     assert.equal(result.sections.every((section) => section.source_path && section.generated_at && section.status && Object.hasOwn(section, "blocker") && Array.isArray(section.section_refs)), true);
   } finally {
     await rm(fixture.tmpDir, { recursive: true, force: true });
@@ -242,6 +249,9 @@ async function createReadModelFixture() {
     desktopPackagingManifestSummaryPath: file("desktop-packaging-manifest-summary.md"),
     projectOperatingContractPath: file("project-operating-contract.json"),
     projectOperatingContractSummaryPath: file("project-operating-contract-summary.md"),
+    agentBridgeManifestPath: file("agent-bridge-manifest.json"),
+    agentBridgeRequestReceiptPath: file("agent-bridge-request-receipt.json"),
+    agentBridgeRequestReceiptSummaryPath: file("agent-bridge-request-receipt-summary.md"),
     operatorHandbookPath: file("operator-handbook.json"),
     operatorSurfacesPath: file("operator-surfaces.json"),
     operatorScreensPath: file("operator-screens.json"),
@@ -266,6 +276,7 @@ async function createReadModelFixture() {
     options.desktopLocalLaunchRunbookPath,
     options.desktopPackagingManifestSummaryPath,
     options.projectOperatingContractSummaryPath,
+    options.agentBridgeRequestReceiptSummaryPath,
     options.releaseReadinessSummaryPath,
     options.productionGovernanceSummaryPath,
     options.p16800FreezeSummaryPath,
@@ -376,6 +387,8 @@ async function createReadModelFixture() {
       },
     ],
   }, null, 2), "utf8");
+  await writeFile(options.agentBridgeManifestPath, JSON.stringify(agentBridgeManifestFixture(), null, 2), "utf8");
+  await writeFile(options.agentBridgeRequestReceiptPath, JSON.stringify(agentBridgeRequestReceiptFixture(), null, 2), "utf8");
   await writeFile(options.operatorHandbookPath, JSON.stringify({ schema_version: "operator-handbook.v1", summary: { operator_handbook_status: "complete", operator_handbook_id: "operator-handbook.test" } }, null, 2), "utf8");
   await writeFile(options.operatorSurfacesPath, JSON.stringify({ schema_version: "operator-surfaces.v1", operator_surface_rows: [] }, null, 2), "utf8");
   await writeFile(options.operatorScreensPath, JSON.stringify({ schema_version: "operator-screens.v1", operator_screen_rows: [] }, null, 2), "utf8");
@@ -402,6 +415,85 @@ async function createReadModelFixture() {
     tmpDir,
     options,
     allowlist: Object.values(options),
+  };
+}
+
+function agentBridgeManifestFixture() {
+  return {
+    schema_version: "agent-bridge-manifest.v1",
+    summary: {
+      agent_bridge_manifest_status: "ready_for_agent_bridge_manifest",
+      runtime_count: 4,
+      capability_count: 4,
+      permission_row_count: 4,
+      validation_error_count: 0,
+    },
+    agent_bridge_boundary: {
+      unsafe_flag_count: 0,
+      production_pass_enabled: false,
+      enterprise_pass_enabled: false,
+      protected_closeout_enabled: false,
+    },
+    runtime_identity_rows: [
+      { runtime_id: "runtime.codex.desktop", runtime_kind: "codex", display_name: "Codex Desktop", model_label_observed: "codex", state: "observed", trust_class: "developer_session_context" },
+      { runtime_id: "runtime.claude_code.opus_max", runtime_kind: "claude_code", display_name: "Claude Code", model_label_observed: "opus_max", state: "observed", trust_class: "external_review_lane_evidence" },
+      { runtime_id: "runtime.chatgpt.web_agbrowse", runtime_kind: "chatgpt_web_agbrowse", display_name: "ChatGPT via Agbrowse", model_label_observed: "chatgpt_pro", state: "observed", trust_class: "browser_automation_status_evidence" },
+      { runtime_id: "runtime.local.hermes_scripts", runtime_kind: "local_script", display_name: "Local scripts", model_label_observed: "none", state: "observed", trust_class: "deterministic_local_file" },
+    ],
+    capability_inventory_rows: [
+      { capability_id: "capability.codex.skills.visible_catalog", capability_kind: "skill_catalog", capability_name: "Codex skills", runtime_id: "runtime.codex.desktop", state: "observed", passive_collection_only: true, trust_class: "developer_session_context" },
+      { capability_id: "capability.claude.review_lane", capability_kind: "review_lane", capability_name: "Claude review", runtime_id: "runtime.claude_code.opus_max", state: "observed", passive_collection_only: true, trust_class: "external_review_evidence" },
+      { capability_id: "capability.chatgpt.agbrowse.web_ai", capability_kind: "browser_automation_adapter", capability_name: "Agbrowse web AI", runtime_id: "runtime.chatgpt.web_agbrowse", state: "observed", passive_collection_only: true, trust_class: "browser_automation_status_evidence" },
+      { capability_id: "capability.local.hermes.agent_bridge_manifest", capability_kind: "package_script", capability_name: "platform:agent-bridge-manifest", runtime_id: "runtime.local.hermes_scripts", state: "observed", passive_collection_only: false, trust_class: "deterministic_local_file" },
+    ],
+    permission_matrix_rows: [
+      { capability_id: "capability.codex.skills.visible_catalog", runtime_id: "runtime.codex.desktop", authority_namespace: "external_provider_authority", capability_state: "observed", desktop_display_allowed: true },
+      { capability_id: "capability.claude.review_lane", runtime_id: "runtime.claude_code.opus_max", authority_namespace: "external_provider_authority", capability_state: "observed", desktop_display_allowed: true },
+      { capability_id: "capability.chatgpt.agbrowse.web_ai", runtime_id: "runtime.chatgpt.web_agbrowse", authority_namespace: "external_provider_authority", capability_state: "observed", desktop_display_allowed: true },
+      { capability_id: "capability.local.hermes.agent_bridge_manifest", runtime_id: "runtime.local.hermes_scripts", authority_namespace: "developer_preflight", capability_state: "observed", desktop_display_allowed: true },
+    ],
+  };
+}
+
+function agentBridgeRequestReceiptFixture() {
+  return {
+    schema_version: "agent-bridge-request-receipt.v1",
+    summary: {
+      agent_bridge_request_receipt_status: "ready_for_agent_bridge_request_receipt",
+      source_agent_bridge_manifest_status: "ready_for_agent_bridge_manifest",
+      request_count: 4,
+      receipt_count: 4,
+      evidence_binding_count: 4,
+      request_queue_enabled_now: true,
+      receipt_intake_enabled_now: true,
+      validation_error_count: 0,
+    },
+    agent_request_receipt_boundary: {
+      unsafe_flag_count: 0,
+      request_queue_enabled_now: true,
+      receipt_intake_enabled_now: true,
+      execution_allowed_now: false,
+      receipt_application_allowed_now: false,
+      approval_application_allowed_now: false,
+    },
+    agent_task_request_queue_rows: [
+      { request_id: "request.plan", request_type: "plan_review", request_status: "draft", target_runtime_id: "runtime.chatgpt.web_agbrowse", request_title: "Plan review", risk_level: "medium", request_packet_generated: true },
+      { request_id: "request.code", request_type: "code_review", request_status: "draft", target_runtime_id: "runtime.claude_code.opus_max", request_title: "Code review", risk_level: "medium", request_packet_generated: true },
+      { request_id: "request.proposal", request_type: "implementation_proposal", request_status: "draft", target_runtime_id: "runtime.codex.desktop", request_title: "Proposal", risk_level: "low", request_packet_generated: true },
+      { request_id: "request.command", request_type: "command_suggestion", request_status: "draft", target_runtime_id: "runtime.local.hermes_scripts", request_title: "Command suggestion", risk_level: "medium", request_packet_generated: true },
+    ],
+    agent_receipt_intake_rows: [
+      { receipt_id: "receipt.plan", request_id: "request.plan", request_type: "plan_review", receipt_kind: "external_review_summary", normalized_verdict: "approve_with_findings", receipt_validated: true, receipt_quarantined: false },
+      { receipt_id: "receipt.code", request_id: "request.code", request_type: "code_review", receipt_kind: "external_review_summary", normalized_verdict: "missing", receipt_validated: false, receipt_quarantined: true },
+      { receipt_id: "receipt.proposal", request_id: "request.proposal", request_type: "implementation_proposal", receipt_kind: "local_work_summary", normalized_verdict: "missing", receipt_validated: false, receipt_quarantined: true },
+      { receipt_id: "receipt.command", request_id: "request.command", request_type: "command_suggestion", receipt_kind: "command_suggestion_summary", normalized_verdict: "text_only_command_suggestion", receipt_validated: true, receipt_quarantined: false },
+    ],
+    agent_evidence_binding_rows: [
+      { binding_id: "binding.plan", request_id: "request.plan", receipt_id: "receipt.plan", binding_status: "bound_to_normalized_receipt", target_runtime_id: "runtime.chatgpt.web_agbrowse", target_capability_id: "capability.chatgpt.agbrowse.web_ai" },
+      { binding_id: "binding.code", request_id: "request.code", receipt_id: "receipt.code", binding_status: "pending_or_quarantined_receipt", target_runtime_id: "runtime.claude_code.opus_max", target_capability_id: "capability.claude.review_lane" },
+      { binding_id: "binding.proposal", request_id: "request.proposal", receipt_id: "receipt.proposal", binding_status: "pending_or_quarantined_receipt", target_runtime_id: "runtime.codex.desktop", target_capability_id: "capability.codex.skills.visible_catalog" },
+      { binding_id: "binding.command", request_id: "request.command", receipt_id: "receipt.command", binding_status: "bound_to_normalized_receipt", target_runtime_id: "runtime.local.hermes_scripts", target_capability_id: "capability.local.hermes.agent_bridge_manifest" },
+    ],
   };
 }
 

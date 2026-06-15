@@ -3,6 +3,7 @@ export const APP_TITLE = "Hermes Operator Desktop";
 export const NAV_ITEMS = [
   { id: "queue", label_en: "Queue", label_ko: "Queue" },
   { id: "projects", label_en: "Projects", label_ko: "Projects" },
+  { id: "agents", label_en: "Agents", label_ko: "Agents" },
   { id: "requirements", label_en: "Requirements", label_ko: "Requirements" },
   { id: "evidence", label_en: "Evidence", label_ko: "Evidence" },
   { id: "reviews", label_en: "Reviews", label_ko: "Reviews" },

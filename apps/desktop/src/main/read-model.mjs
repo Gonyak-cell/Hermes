@@ -47,6 +47,7 @@ export async function loadDesktopReadModel({ repoRoot }) {
       release_projection: defaultReleaseProjection(),
       factory_projection: defaultFactoryProjection(),
       project_projection: defaultProjectProjection(),
+      agent_projection: defaultAgentProjection(),
       desktop_read_authority: {
         read_only: true,
         source_of_truth: false,
@@ -105,6 +106,7 @@ export function sanitizeReadModel(readModel, sourcePath = DESKTOP_READ_MODEL_REL
     release_projection: pickReleaseProjection(readModel?.release_projection),
     factory_projection: pickFactoryProjection(readModel?.factory_projection),
     project_projection: pickProjectProjection(readModel?.project_projection),
+    agent_projection: pickAgentProjection(readModel?.agent_projection),
     desktop_read_authority: pickAuthority(authority),
   };
 }
@@ -124,6 +126,9 @@ function pickSummary(summary) {
     ready_project_count: Number(summary.ready_project_count ?? 0),
     blocked_project_count: Number(summary.blocked_project_count ?? 0),
     stale_project_count: Number(summary.stale_project_count ?? 0),
+    agent_runtime_count: Number(summary.agent_runtime_count ?? 0),
+    agent_request_count: Number(summary.agent_request_count ?? 0),
+    agent_receipt_count: Number(summary.agent_receipt_count ?? 0),
     operator_handbook_bound: summary.operator_handbook_bound === true,
     authority_boundary_ready: summary.authority_boundary_ready === true,
     validation_error_count: Number(summary.validation_error_count ?? 0),
@@ -144,6 +149,118 @@ function pickSummary(summary) {
     enterprise_pass_enabled: false,
     protected_closeout_enabled: false,
     desktop_write_authority_enabled: false,
+  };
+}
+
+function pickAgentProjection(projection = {}) {
+  return {
+    schema_version: "desktop-agent-projection.v1",
+    generated_at: projection?.generated_at ?? null,
+    agent_bridge_manifest_status: String(projection?.agent_bridge_manifest_status ?? "not recorded"),
+    agent_bridge_request_receipt_status: String(projection?.agent_bridge_request_receipt_status ?? "not recorded"),
+    source_status: projection?.source_status === "ready" ? "ready" : "blocked",
+    runtime_count: Number(projection?.runtime_count ?? 0),
+    capability_count: Number(projection?.capability_count ?? 0),
+    permission_row_count: Number(projection?.permission_row_count ?? 0),
+    request_count: Number(projection?.request_count ?? 0),
+    receipt_count: Number(projection?.receipt_count ?? 0),
+    evidence_binding_count: Number(projection?.evidence_binding_count ?? 0),
+    ready_for_desktop_agents_projection: projection?.ready_for_desktop_agents_projection === true,
+    local_only: true,
+    read_only: true,
+    source_of_truth: false,
+    request_queue_enabled_now: projection?.request_queue_enabled_now === true,
+    receipt_intake_enabled_now: projection?.receipt_intake_enabled_now === true,
+    request_transport_submission_allowed_now: false,
+    execution_allowed_now: false,
+    command_executed_now: false,
+    mutation_performed: false,
+    receipt_application_allowed_now: false,
+    approval_application_allowed_now: false,
+    connector_write_allowed_now: false,
+    secret_read_allowed_now: false,
+    raw_source_exposure_allowed: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    protected_closeout_enabled: false,
+    desktop_write_authority_enabled: false,
+    no_latent_execution_ui: true,
+    runtime_rows: safeArray(projection?.runtime_rows).map((row) => ({
+      runtime_id: String(row?.runtime_id ?? "unknown"),
+      runtime_kind: String(row?.runtime_kind ?? "unknown"),
+      display_name: String(row?.display_name ?? row?.runtime_id ?? "Unknown runtime"),
+      model_label_observed: String(row?.model_label_observed ?? "not recorded"),
+      model_proof_trusted: false,
+      state: String(row?.state ?? "blocked"),
+      trust_class: String(row?.trust_class ?? "unknown"),
+      requestable: false,
+      executable: false,
+      can_execute_from_desktop_now: false,
+    })),
+    capability_rows: safeArray(projection?.capability_rows).map((row) => ({
+      capability_id: String(row?.capability_id ?? "unknown"),
+      capability_kind: String(row?.capability_kind ?? "unknown"),
+      capability_name: String(row?.capability_name ?? row?.capability_id ?? "Unknown capability"),
+      runtime_id: String(row?.runtime_id ?? "unknown"),
+      state: String(row?.state ?? "blocked"),
+      passive_collection_only: row?.passive_collection_only === true,
+      requestable: false,
+      executable: false,
+      trust_class: String(row?.trust_class ?? "unknown"),
+    })),
+    permission_rows: safeArray(projection?.permission_rows).map((row) => ({
+      capability_id: String(row?.capability_id ?? "unknown"),
+      runtime_id: String(row?.runtime_id ?? "unknown"),
+      authority_namespace: String(row?.authority_namespace ?? "unknown"),
+      capability_state: String(row?.capability_state ?? "blocked"),
+      desktop_display_allowed: row?.desktop_display_allowed === true,
+      requestable: false,
+      executable: false,
+      opens_authority: false,
+    })),
+    request_rows: safeArray(projection?.request_rows).map((row) => ({
+      request_id: String(row?.request_id ?? "unknown"),
+      request_type: String(row?.request_type ?? "unknown"),
+      request_status: String(row?.request_status ?? "blocked"),
+      target_runtime_id: String(row?.target_runtime_id ?? "unknown"),
+      request_title: String(row?.request_title ?? "Untitled request"),
+      risk_level: String(row?.risk_level ?? "unknown"),
+      request_packet_generated: row?.request_packet_generated === true,
+      transport_submitted_now: false,
+      execution_allowed_now: false,
+      command_executed_now: false,
+      receipt_applied: false,
+    })),
+    receipt_rows: safeArray(projection?.receipt_rows).map((row) => ({
+      receipt_id: String(row?.receipt_id ?? "unknown"),
+      request_id: String(row?.request_id ?? "unknown"),
+      request_type: String(row?.request_type ?? "unknown"),
+      receipt_kind: String(row?.receipt_kind ?? "unknown"),
+      normalized_verdict: String(row?.normalized_verdict ?? "missing"),
+      receipt_validated: row?.receipt_validated === true,
+      receipt_quarantined: row?.receipt_quarantined === true,
+      raw_output_included: false,
+      receipt_applied: false,
+      opens_authority: false,
+    })),
+    evidence_binding_rows: safeArray(projection?.evidence_binding_rows).map((row) => ({
+      binding_id: String(row?.binding_id ?? "unknown"),
+      request_id: String(row?.request_id ?? "unknown"),
+      receipt_id: row?.receipt_id ? String(row.receipt_id) : null,
+      binding_status: String(row?.binding_status ?? "unknown"),
+      target_runtime_id: String(row?.target_runtime_id ?? "unknown"),
+      target_capability_id: String(row?.target_capability_id ?? "unknown"),
+      opens_authority: false,
+      receipt_applied: false,
+    })),
+    agent_control_rows: safeArray(projection?.agent_control_rows).map((row) => ({
+      control_id: String(row?.control_id ?? "unknown"),
+      label: String(row?.label ?? row?.control_id ?? "Unknown control"),
+      control_enabled: false,
+      disabled_reason: String(row?.disabled_reason ?? "disabled"),
+      opens_authority: false,
+    })),
+    projection_rows: safeArray(projection?.projection_rows).map(pickProjectionRow),
   };
 }
 
@@ -386,6 +503,15 @@ function defaultProjectProjection() {
     source_status: "blocked",
     projection_rows: [
       { row_id: "project_count", label: "Projects", value: "0", status: "blocked" },
+    ],
+  });
+}
+
+function defaultAgentProjection() {
+  return pickAgentProjection({
+    source_status: "blocked",
+    projection_rows: [
+      { row_id: "agent_execution", label: "Execution", value: "closed", status: "blocked" },
     ],
   });
 }

@@ -76,7 +76,7 @@ Claude must review in read-only mode. It may inspect files and run read-only com
 
 The review should focus on:
 
-1. Whether all six findings from `artifacts/hermes-desktop-claude-review/latest/review-receipt.json` remain addressed in candidate `8200ed3b754b74900a95fe5a48875a1daf707335`.
+1. Whether all six initial findings from the historical initial review receipt `artifacts/hermes-desktop-claude-review/latest/review-receipt.json` at head `64ab0fe24c0cf2d8be1e5941c112138b64b99fe4` remain addressed in candidate `8200ed3b754b74900a95fe5a48875a1daf707335`, with closure evidence also recorded in `artifacts/hermes-desktop-claude-review/final-1d98ee0d/review-receipt.json` and `artifacts/hermes-desktop-claude-review/final-8200ed3b/review-receipt.json`.
 2. Whether the candidate introduces any new P0/P1/P2 issue in:
    - `apps/desktop/src/main/read-model.mjs`
    - `apps/desktop/src/main/security-policy.mjs`

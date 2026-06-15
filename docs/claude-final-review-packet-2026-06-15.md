@@ -11,7 +11,7 @@ This is the human-readable review packet for a fresh Claude Code read-only final
 | Branch | `codex/hermes-desktop-shell` |
 | Prior RC baseline | `5e332b1c6327b255cf9bf418bc455b7965172658` |
 | Prior desktop review head | `64ab0fe24c0cf2d8be1e5941c112138b64b99fe4` |
-| Candidate head | `1d98ee0d0744cd419d9762bb98f4aad90a24d362` |
+| Candidate head | `8200ed3b754b74900a95fe5a48875a1daf707335` |
 | Review target | Verify prior desktop review findings are remediated and no new P0/P1/P2 desktop or authority-boundary regression is introduced |
 | Requested engine | `Claude Code Opus 4.8 Ultracode xhigh` |
 | Expected observed model | `claude-opus-4-7` or newer Opus-family equivalent |
@@ -31,7 +31,7 @@ This is the human-readable review packet for a fresh Claude Code read-only final
 
 ## Review Result
 
-The fresh Claude final review was captured under `artifacts/hermes-desktop-claude-review/final-1d98ee0d/`.
+The first fresh Claude final review was captured under `artifacts/hermes-desktop-claude-review/final-1d98ee0d/`.
 
 | Field | Value |
 |---|---|
@@ -51,13 +51,32 @@ The two P4 notes are non-blocking hardening follow-ups:
 - Replace a residual fail-closed dead ternary in `src/desktop-read-model.mjs`.
 - Document or gate the `HERMES_REPO_ROOT` local desktop override in the desktop runbook and mirrored capture flow.
 
+## P4 Closure Review Result
+
+The P4 closure Claude review was captured under `artifacts/hermes-desktop-claude-review/final-8200ed3b/`.
+
+| Field | Value |
+|---|---|
+| Receipt status | `observed_valid_review` |
+| Review status | `PASS_WITH_FINDINGS` |
+| Observed model | `claude-opus-4-7` |
+| Prior/P4 findings fixed | `8/8` |
+| Findings | `1` |
+| Blocking findings | `0` |
+| Findings by severity | `P3: 1` |
+| Receipt path | `artifacts/hermes-desktop-claude-review/final-8200ed3b/review-receipt.json` |
+| Raw output path | `artifacts/hermes-desktop-claude-review/final-8200ed3b/raw-output.json` |
+| Raw SHA256 | `191df0f6caefa08b67034d00722153afd4f35e1e36a2fa4c10cf4c602194632b` |
+
+The P3 finding was document-pointer drift: the release packet, production checklist, and tag draft still cited `1d98ee0d...`. This packet now points those release documents at `8200ed3b...`.
+
 ## Review Instructions
 
 Claude must review in read-only mode. It may inspect files and run read-only commands, but must not edit source, stage files, commit, tag, push, publish releases, start deployments, mutate artifacts as review evidence, or claim final approval.
 
 The review should focus on:
 
-1. Whether all six findings from `artifacts/hermes-desktop-claude-review/latest/review-receipt.json` were actually addressed in candidate `1d98ee0d0744cd419d9762bb98f4aad90a24d362`.
+1. Whether all six findings from `artifacts/hermes-desktop-claude-review/latest/review-receipt.json` remain addressed in candidate `8200ed3b754b74900a95fe5a48875a1daf707335`.
 2. Whether the candidate introduces any new P0/P1/P2 issue in:
    - `apps/desktop/src/main/read-model.mjs`
    - `apps/desktop/src/main/security-policy.mjs`
@@ -79,7 +98,7 @@ The review should focus on:
 
 ## Required Output Shape
 
-The durable raw output should be a JSON object captured from `claude --output-format json` and normalized into `artifacts/hermes-desktop-claude-review/final-1d98ee0d/review-receipt.json`.
+The durable raw output should be a JSON object captured from `claude --output-format json` and normalized into `artifacts/hermes-desktop-claude-review/final-8200ed3b/review-receipt.json`.
 
 The structured review payload must include:
 

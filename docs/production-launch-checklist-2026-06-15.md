@@ -1,6 +1,6 @@
 # Hermes Production Launch Checklist - 2026-06-15
 
-이 체크리스트는 Hermes desktop candidate commit `1d98ee0d0744cd419d9762bb98f4aad90a24d362`를 release-candidate re-freeze 이후 staging 또는 production launch까지 가져갈 때 사용할 실행 전 점검표다. 현재 자동화 증거는 desktop RC 후보를 준비할 수 있음을 보여주지만, production deployment authority는 아직 열려 있지 않다.
+이 체크리스트는 Hermes desktop candidate commit `8200ed3b754b74900a95fe5a48875a1daf707335`를 release-candidate re-freeze 이후 staging 또는 production launch까지 가져갈 때 사용할 실행 전 점검표다. 현재 자동화 증거는 desktop RC 후보를 준비할 수 있음을 보여주지만, production deployment authority는 아직 열려 있지 않다.
 
 ## Launch Class
 
@@ -15,7 +15,7 @@
 
 ### Source And Version
 
-- [x] Candidate commit selected: `1d98ee0d0744cd419d9762bb98f4aad90a24d362`.
+- [x] Candidate commit selected: `8200ed3b754b74900a95fe5a48875a1daf707335`.
 - [x] Current branch checked: `codex/hermes-desktop-shell`.
 - [x] Worktree clean before document packet creation.
 - [x] Package version recorded: `hermes-project-ops-harness@0.1.0`.
@@ -35,8 +35,11 @@
 - [x] `npm run platform:release-readiness-control-plane -- --check` passed with deployment allowed false.
 - [x] `npm run platform:release-bundle-provenance -- --check` passed.
 - [x] `npm run platform:launch-non-human-readiness -- --check` passed.
-- [x] `npm test` completed with `2670 pass / 0 fail`.
-- [ ] Optional final single-command envelope before tag push: `npm run platform:release-check -- --check`.
+- [x] `node --test test/desktop-read-model.test.mjs` completed with `7 pass / 0 fail`.
+- [x] `npm run test:desktop` completed with `19 pass / 0 fail`.
+- [x] Previous full `npm test` on `1d98ee0d...` completed with `2670 pass / 0 fail`.
+- [ ] Full `npm test` rerun after P4-only hardening.
+- [ ] Optional final single-command envelope before tag push: `npm run platform:release-check -- --check` was attempted and interrupted after long-running `project:zendd-active-operator-dashboard --check`; not counted as pass.
 
 ### Desktop-Specific Readiness
 
@@ -57,6 +60,9 @@
 - [x] Prior findings were remediated in commit `1d98ee0d0744cd419d9762bb98f4aad90a24d362`.
 - [x] Fresh Claude final review receipt captured under `artifacts/hermes-desktop-claude-review/final-1d98ee0d/`.
 - [x] Fresh Claude final review result: `PASS_WITH_FINDINGS`, `6/6` prior findings fixed, `0` blocking findings, `2` P4 hardening notes.
+- [x] P4 closure commit recorded: `8200ed3b754b74900a95fe5a48875a1daf707335`.
+- [x] P4 closure Claude review receipt captured under `artifacts/hermes-desktop-claude-review/final-8200ed3b/`.
+- [x] P4 closure Claude review result: `PASS_WITH_FINDINGS`, `8/8` prior/P4 findings fixed, `0` blocking findings, `1` P3 document-pointer drift finding resolved by this packet refresh.
 - [ ] Owner reviews the fresh Claude result.
 - [ ] Owner records RC re-freeze decision if acceptable.
 
@@ -145,6 +151,8 @@ Optional final umbrella receipt:
 npm run platform:release-check -- --check
 ```
 
+The optional umbrella command was attempted after `8200ed3b...` and interrupted after a long-running `project:zendd-active-operator-dashboard --check` substep. Do not count it as a pass unless rerun to completion.
+
 ### 2. Review Capture
 
 - [ ] Attach validation summary.
@@ -160,7 +168,7 @@ Use the tag draft in `docs/release-note-tag-draft-2026-06-15.md`.
 Draft local RC tag:
 
 ```bash
-git tag -a v0.1.0-rc.20260615.1d98ee0 1d98ee0d0744cd419d9762bb98f4aad90a24d362 -m "Hermes v0.1.0 desktop RC - 2026-06-15"
+git tag -a v0.1.0-rc.20260615.8200ed3 8200ed3b754b74900a95fe5a48875a1daf707335 -m "Hermes v0.1.0 desktop RC - 2026-06-15"
 ```
 
 Do not create or push the tag until owner tag approval is recorded.

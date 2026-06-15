@@ -8,15 +8,15 @@
 |---|---|
 | Repository | `Gonyak-cell/Hermes` |
 | Branch | `codex/hermes-desktop-shell` |
-| Candidate commit | `1d98ee0d0744cd419d9762bb98f4aad90a24d362` |
-| Candidate commit title | `fix: address desktop review hardening findings` |
+| Candidate commit | `8200ed3b754b74900a95fe5a48875a1daf707335` |
+| Candidate commit title | `fix: close desktop final review p4 findings` |
 | Previous RC baseline | `5e332b1c6327b255cf9bf418bc455b7965172658` |
 | Previous local RC tag | `v0.1.0-rc.20260614.5e332b1` |
 | Package | `hermes-project-ops-harness@0.1.0` |
 | Desktop package | `@hermes/operator-desktop@0.1.0` |
 | Packet date | 2026-06-15 KST |
 | Recommended decision | Approve release-candidate re-freeze only; do not mark production PASS |
-| Proposed local RC tag | `v0.1.0-rc.20260615.1d98ee0` |
+| Proposed local RC tag | `v0.1.0-rc.20260615.8200ed3` |
 | Tag status | draft only, not created, not pushed |
 | Trust mode | `single-owner lower-trust RC`; GitHub independent approval not pursued |
 
@@ -32,7 +32,7 @@ This 2026-06-15 packet is needed because the desktop review hardening findings w
 - safe source preview;
 - release and factory state projection into the desktop shell;
 - desktop render smoke tests;
-- Claude review finding remediation for redaction, symlink containment, CSP, parser hardening, and projection cleanup.
+- Claude review finding remediation for redaction, symlink containment, CSP, parser hardening, projection cleanup, projection-row authority cleanup, and `HERMES_REPO_ROOT` guard/documentation.
 
 ## Current Evidence
 
@@ -50,14 +50,17 @@ This 2026-06-15 packet is needed because the desktop review hardening findings w
 | `npm run platform:release-readiness-control-plane -- --check` | `Status: ready_for_release_readiness_control_plane`, `Deployment allowed: false`, `Validation errors: 0` |
 | `npm run platform:release-bundle-provenance -- --check` | `Status: ready`, bundle requirements `5/5`, validation errors `0` |
 | `npm run platform:launch-non-human-readiness -- --check` | `Status: ready_for_non_human_launch_readiness_execution`, authority flags closed `12/12`, validation errors `0` |
-| `npm test` | `2670 pass / 0 fail` |
+| `node --test test/desktop-read-model.test.mjs` | `7 pass / 0 fail` |
+| `npm run test:desktop` | `19 pass / 0 fail` |
+| Previous full `npm test` on `1d98ee0d...` | `2670 pass / 0 fail`; not rerun after P4-only hardening |
+| Optional `npm run platform:release-check -- --check` | interrupted after long-running `project:zendd-active-operator-dashboard --check`; not counted as pass |
 
 ### Desktop Evidence
 
 | Evidence | Result |
 |---|---|
 | Desktop package audit | 0 vulnerabilities |
-| Desktop tests | `16 pass / 0 fail` during `desktop:local-preflight` |
+| Desktop tests | `19 pass / 0 fail` during `desktop:local-preflight` |
 | Desktop build | Vite production build pass |
 | Render smoke | `tmp/desktop-render-smoke.png` |
 | Factory render smoke | `tmp/desktop-render-smoke-factory.png` |
@@ -69,18 +72,21 @@ This 2026-06-15 packet is needed because the desktop review hardening findings w
 | Evidence | Result |
 |---|---|
 | Prior Claude review | `PASS_WITH_FINDINGS` on `64ab0fe24c0cf2d8be1e5941c112138b64b99fe4` |
-| Prior findings fixed in candidate | yes, by `1d98ee0d0744cd419d9762bb98f4aad90a24d362` |
-| Fresh Claude final review | `PASS_WITH_FINDINGS`; `observed_valid_review`; `6/6` prior findings fixed; `0` blocking findings; `2` P4 hardening notes |
+| First final Claude review | `PASS_WITH_FINDINGS` on `1d98ee0d0744cd419d9762bb98f4aad90a24d362`; `6/6` prior findings fixed; `0` blocking findings; `2` P4 hardening notes |
 | Fresh Claude receipt | `artifacts/hermes-desktop-claude-review/final-1d98ee0d/review-receipt.json` |
 | Fresh Claude raw SHA256 | `0e689e880b1262c16da73b6d3dbec60af6854620ac0151c9ee71dda125cc9313` |
+| P4 closure Claude review | `PASS_WITH_FINDINGS` on `8200ed3b754b74900a95fe5a48875a1daf707335`; `8/8` prior/P4 findings fixed; `0` blocking findings; `1` P3 doc-pointer drift finding |
+| P4 closure Claude receipt | `artifacts/hermes-desktop-claude-review/final-8200ed3b/review-receipt.json` |
+| P4 closure Claude raw SHA256 | `191df0f6caefa08b67034d00722153afd4f35e1e36a2fa4c10cf4c602194632b` |
+| P3 doc-pointer drift | resolved by this packet refresh from `1d98ee0d...` to `8200ed3b...` |
 
 ## Decision Choices
 
 ### A. Approve Release-Candidate Re-Freeze
 
-Recommended now if the owner accepts the fresh Claude final review result and the two P4 notes as non-blocking follow-up items.
+Recommended now if the owner accepts the P4 closure review result and this packet refresh.
 
-- Approves `1d98ee0d0744cd419d9762bb98f4aad90a24d362` as the current release-candidate evidence baseline.
+- Approves `8200ed3b754b74900a95fe5a48875a1daf707335` as the current desktop code release-candidate evidence baseline.
 - Supersedes the prior `5e332b1c...` RC baseline for future desktop RC discussion.
 - Allows preparing a local RC tag draft, reviewer handoff, and deployment rehearsal materials.
 - Does not allow production deployment.
@@ -91,8 +97,7 @@ Recommended now if the owner accepts the fresh Claude final review result and th
 
 Use this if the owner wants any of the following before re-freeze:
 
-- remediation of the two P4 Claude hardening notes;
-- another Claude review after remediation;
+- another Claude review after this packet refresh;
 - external GitHub collaborator review;
 - fresh CI run on a PR;
 - final umbrella `npm run platform:release-check -- --check`;
@@ -142,12 +147,12 @@ The following remain false unless a separate authorized receipt changes them:
 
 ## Owner Decision Template
 
-Copy this block only if the fresh Claude final review result is accepted.
+Copy this block only if the P4 closure Claude review result and this packet refresh are accepted.
 
 ```text
 Hermes desktop RC re-freeze decision.
 
-Candidate commit: 1d98ee0d0744cd419d9762bb98f4aad90a24d362
+Candidate commit: 8200ed3b754b74900a95fe5a48875a1daf707335
 Repository: Gonyak-cell/Hermes
 Branch: codex/hermes-desktop-shell
 Decision selected: A release-candidate re-freeze
@@ -159,16 +164,17 @@ This is not production launch approval, production PASS, enterprise PASS,
 GitHub independent approval, protected closeout, tag-push approval, GitHub Release
 publication approval, or deployment authorization.
 
-I accept the fresh Claude final review result for this candidate as
-PASS_WITH_FINDINGS with 0 blocking findings and 2 non-blocking P4 hardening notes.
+I accept the P4 closure Claude review result for this candidate as
+PASS_WITH_FINDINGS with 0 blocking findings. The one P3 document-pointer drift
+finding is resolved by the refreshed 2026-06-15 release packet.
 ```
 
 ## Next Required Human Inputs After Step 4
 
 | Input | Required for | Current status |
 |---|---|---|
-| Owner RC re-freeze decision | making `1d98ee0d...` the active RC baseline | pending |
-| Local RC tag creation approval | creating `v0.1.0-rc.20260615.1d98ee0` | pending |
+| Owner RC re-freeze decision | making `8200ed3b...` the active RC baseline | pending |
+| Local RC tag creation approval | creating `v0.1.0-rc.20260615.8200ed3` | pending |
 | Tag push approval | publishing tag to GitHub | missing |
 | Owner production launch approval | production deployment | missing |
 | Deployment target selection | staging or production | missing |

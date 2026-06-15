@@ -621,6 +621,7 @@
     "platform:multi-project-saas-control-plane": "node scripts/multi-project-saas-control-plane.mjs",
     "platform:project-operating-contract": "node scripts/project-operating-contract.mjs",
     "platform:agent-bridge-manifest": "node scripts/agent-bridge-manifest.mjs",
+    "platform:agent-bridge-request-receipt": "node scripts/agent-bridge-request-receipt.mjs",
     "platform:requirement-traceability-kernel": "node scripts/requirement-traceability-kernel.mjs",
     "platform:product-build-verification-loop": "node scripts/product-build-verification-loop.mjs",
     "platform:claude-review-integration-lane": "node scripts/claude-review-integration-lane.mjs",

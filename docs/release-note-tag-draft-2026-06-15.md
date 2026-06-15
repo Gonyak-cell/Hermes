@@ -1,6 +1,6 @@
 # Hermes Release Note And Tag Draft - 2026-06-15
 
-이 문서는 Hermes desktop candidate commit `8200ed3b754b74900a95fe5a48875a1daf707335` 기준 release note와 tag 초안이다. 실제 tag 생성, tag push, GitHub Release publication, package publication, production deployment는 owner approval 이후에만 수행한다.
+이 문서는 Hermes desktop candidate commit `8200ed3b754b74900a95fe5a48875a1daf707335` 기준 release note와 tag 초안이다. 로컬 RC tag는 증거 기준점으로만 생성되었고, tag push, GitHub Release publication, package publication, production deployment는 owner approval 이후에만 수행한다.
 
 ## Tag Policy Draft
 
@@ -20,7 +20,7 @@ v0.1.0-rc.20260615.8200ed3
 Current RC tag status:
 
 ```text
-Created locally: false
+Created locally: true
 Pushed to GitHub: false
 GitHub Release published: false
 Desktop package published: false
@@ -126,7 +126,7 @@ Known current checks for candidate `8200ed3b754b74900a95fe5a48875a1daf707335`:
 - `npm run platform:launch-non-human-readiness -- --check`: ready, authority flags closed
 - `node --test test/desktop-read-model.test.mjs`: `7 pass / 0 fail`
 - `npm run test:desktop`: `19 pass / 0 fail`
-- Previous full `npm test` on `1d98ee0d...`: `2670 pass / 0 fail`; not rerun after P4-only hardening
+- Full `npm test` after P4 hardening: `2670 pass / 0 fail`; completed 2026-06-15 12:01 KST; `duration_ms 3721539.720667`
 - Optional `npm run platform:release-check -- --check`: attempted and interrupted after long-running `project:zendd-active-operator-dashboard --check`; not counted as pass
 
 ### Authority Boundary
@@ -169,7 +169,8 @@ The following remain intentionally blocked:
 
 If the release candidate is rejected:
 
-- Do not create or push the tag.
+- Delete the local RC tag if it should no longer remain as historical local evidence.
+- Do not push the tag.
 - Do not publish GitHub Release.
 - Keep `8200ed3b754b74900a95fe5a48875a1daf707335` as a reviewed candidate attempt only.
 - Open a new patch lane from the intended baseline.

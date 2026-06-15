@@ -37,8 +37,7 @@
 - [x] `npm run platform:launch-non-human-readiness -- --check` passed.
 - [x] `node --test test/desktop-read-model.test.mjs` completed with `7 pass / 0 fail`.
 - [x] `npm run test:desktop` completed with `19 pass / 0 fail`.
-- [x] Previous full `npm test` on `1d98ee0d...` completed with `2670 pass / 0 fail`.
-- [ ] Full `npm test` rerun after P4-only hardening.
+- [x] Full `npm test` rerun after P4-only hardening completed 2026-06-15 12:01 KST with `2670 pass / 0 fail` and `duration_ms 3721539.720667`.
 - [ ] Optional final single-command envelope before tag push: `npm run platform:release-check -- --check` was attempted and interrupted after long-running `project:zendd-active-operator-dashboard --check`; not counted as pass.
 
 ### Desktop-Specific Readiness
@@ -165,13 +164,13 @@ The optional umbrella command was attempted after `8200ed3b...` and interrupted 
 
 Use the tag draft in `docs/release-note-tag-draft-2026-06-15.md`.
 
-Draft local RC tag:
+Local RC tag created locally:
 
 ```bash
 git tag -a v0.1.0-rc.20260615.8200ed3 8200ed3b754b74900a95fe5a48875a1daf707335 -m "Hermes v0.1.0 desktop RC - 2026-06-15"
 ```
 
-Do not create or push the tag until owner tag approval is recorded.
+Do not push the tag until owner tag push approval is recorded. Local tag creation is not production launch approval.
 
 ### 4. Staging Deployment Or Desktop Package Rehearsal
 

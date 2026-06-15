@@ -17,7 +17,7 @@
 | Packet date | 2026-06-15 KST |
 | Recommended decision | Approve release-candidate re-freeze only; do not mark production PASS |
 | Proposed local RC tag | `v0.1.0-rc.20260615.8200ed3` |
-| Tag status | draft only, not created, not pushed |
+| Tag status | created locally only; not pushed |
 | Trust mode | `single-owner lower-trust RC`; GitHub independent approval not pursued |
 
 ## Why This Supersedes The 2026-06-14 Packet
@@ -52,7 +52,7 @@ This 2026-06-15 packet is needed because the desktop review hardening findings w
 | `npm run platform:launch-non-human-readiness -- --check` | `Status: ready_for_non_human_launch_readiness_execution`, authority flags closed `12/12`, validation errors `0` |
 | `node --test test/desktop-read-model.test.mjs` | `7 pass / 0 fail` |
 | `npm run test:desktop` | `19 pass / 0 fail` |
-| Previous full `npm test` on `1d98ee0d...` | `2670 pass / 0 fail`; not rerun after P4-only hardening |
+| Full `npm test` after P4 hardening | `2670 pass / 0 fail`; completed 2026-06-15 12:01 KST; `duration_ms 3721539.720667` |
 | Optional `npm run platform:release-check -- --check` | interrupted after long-running `project:zendd-active-operator-dashboard --check`; not counted as pass |
 
 ### Desktop Evidence
@@ -174,7 +174,7 @@ finding is resolved by the refreshed 2026-06-15 release packet.
 | Input | Required for | Current status |
 |---|---|---|
 | Owner RC re-freeze decision | making `8200ed3b...` the active RC baseline | pending |
-| Local RC tag creation approval | creating `v0.1.0-rc.20260615.8200ed3` | pending |
+| Local RC tag creation | `v0.1.0-rc.20260615.8200ed3` created locally only | completed locally; not pushed |
 | Tag push approval | publishing tag to GitHub | missing |
 | Owner production launch approval | production deployment | missing |
 | Deployment target selection | staging or production | missing |

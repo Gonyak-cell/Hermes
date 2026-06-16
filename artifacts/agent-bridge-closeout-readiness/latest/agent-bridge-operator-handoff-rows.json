@@ -1,12 +1,12 @@
 {
   "schema_version": "agent-bridge-operator-handoff-rows.v1",
-  "generated_at": "2026-06-16T01:50:48.804Z",
+  "generated_at": "2026-06-16T01:54:09.887Z",
   "agent_bridge_operator_handoff_rows_count": 8,
   "agent_bridge_operator_handoff_rows": [
     {
       "schema_version": "agent-bridge-operator-handoff-row.v1",
       "row_id": "agent.bridge.operator.handoff.row.01",
-      "generated_at": "2026-06-16T01:50:48.804Z",
+      "generated_at": "2026-06-16T01:54:09.887Z",
       "handoff_id": "identity_inventory_visible",
       "description": "Agent runtime/capability identity is visible",
       "handoff_status": "ready",
@@ -35,7 +35,7 @@
     {
       "schema_version": "agent-bridge-operator-handoff-row.v1",
       "row_id": "agent.bridge.operator.handoff.row.02",
-      "generated_at": "2026-06-16T01:50:48.804Z",
+      "generated_at": "2026-06-16T01:54:09.887Z",
       "handoff_id": "request_receipt_visible",
       "description": "Request and receipt chain is visible",
       "handoff_status": "ready",
@@ -64,7 +64,7 @@
     {
       "schema_version": "agent-bridge-operator-handoff-row.v1",
       "row_id": "agent.bridge.operator.handoff.row.03",
-      "generated_at": "2026-06-16T01:50:48.804Z",
+      "generated_at": "2026-06-16T01:54:09.887Z",
       "handoff_id": "request_packet_export_visible",
       "description": "Request packet export chain is visible and transport remains closed",
       "handoff_status": "ready",
@@ -93,7 +93,7 @@
     {
       "schema_version": "agent-bridge-operator-handoff-row.v1",
       "row_id": "agent.bridge.operator.handoff.row.04",
-      "generated_at": "2026-06-16T01:50:48.804Z",
+      "generated_at": "2026-06-16T01:54:09.887Z",
       "handoff_id": "receipt_import_workspace_visible",
       "description": "Receipt import workspace is visible and raw receipt storage remains closed",
       "handoff_status": "ready",
@@ -122,7 +122,7 @@
     {
       "schema_version": "agent-bridge-operator-handoff-row.v1",
       "row_id": "agent.bridge.operator.handoff.row.05",
-      "generated_at": "2026-06-16T01:50:48.804Z",
+      "generated_at": "2026-06-16T01:54:09.887Z",
       "handoff_id": "review_findings_visible",
       "description": "Review finding workbench is visible and cannot resolve findings",
       "handoff_status": "ready",
@@ -151,7 +151,7 @@
     {
       "schema_version": "agent-bridge-operator-handoff-row.v1",
       "row_id": "agent.bridge.operator.handoff.row.06",
-      "generated_at": "2026-06-16T01:50:48.804Z",
+      "generated_at": "2026-06-16T01:54:09.887Z",
       "handoff_id": "execution_candidates_visible",
       "description": "Execution candidates and gates are visible",
       "handoff_status": "ready",
@@ -180,7 +180,7 @@
     {
       "schema_version": "agent-bridge-operator-handoff-row.v1",
       "row_id": "agent.bridge.operator.handoff.row.07",
-      "generated_at": "2026-06-16T01:50:48.804Z",
+      "generated_at": "2026-06-16T01:54:09.887Z",
       "handoff_id": "desktop_agents_projection_visible",
       "description": "Desktop Agents projection includes packet, import, finding, and execution rows",
       "handoff_status": "ready",
@@ -209,7 +209,7 @@
     {
       "schema_version": "agent-bridge-operator-handoff-row.v1",
       "row_id": "agent.bridge.operator.handoff.row.08",
-      "generated_at": "2026-06-16T01:50:48.804Z",
+      "generated_at": "2026-06-16T01:54:09.887Z",
       "handoff_id": "authority_boundary_closed",
       "description": "No closeout source opens authority",
       "handoff_status": "ready",

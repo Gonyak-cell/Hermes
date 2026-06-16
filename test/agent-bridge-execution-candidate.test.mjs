@@ -21,6 +21,7 @@ test("Agent Bridge execution candidate builds a receipt-gated command candidate 
   assert.equal(result.summary.agent_bridge_execution_candidate_status, "ready_for_agent_bridge_execution_candidate");
   assert.equal(result.summary.source_agent_bridge_manifest_status, "ready_for_agent_bridge_manifest");
   assert.equal(result.summary.source_agent_bridge_request_receipt_status, "ready_for_agent_bridge_request_receipt");
+  assert.equal(result.summary.execution_candidate_count, 13);
   assert.equal(result.summary.controlled_execution_candidate_enabled_now, true);
   assert.equal(result.summary.candidate_queue_enabled_now, true);
   assert.equal(result.summary.execution_allowed_now, false);
@@ -34,7 +35,22 @@ test("Agent Bridge execution candidate builds a receipt-gated command candidate 
 test("Agent Bridge execution candidates are allowlisted, receipt gated, and non-executable", async () => {
   const result = await buildAgentBridgeExecutionCandidate({ runAt: RUN_AT, write: false });
 
-  assert.equal(result.agent_bridge_execution_candidate_rows.length >= 5, true);
+  assert.equal(result.agent_bridge_execution_candidate_rows.length, 13);
+  assert.deepEqual(result.agent_bridge_execution_candidate_rows.map((row) => row.candidate_title), [
+    "Validate Agent Bridge manifest",
+    "Validate Agent Bridge request/receipt",
+    "Validate Agent Bridge request packet export",
+    "Validate Agent Bridge receipt import workspace",
+    "Validate Agent Bridge review finding workbench",
+    "Validate Agent Bridge execution candidates",
+    "Validate Desktop read model",
+    "Validate Agent Bridge closeout readiness",
+    "Run Agent Bridge full targeted tests",
+    "Build Hermes Desktop renderer",
+    "Smoke render Desktop Agents screen",
+    "Validate core contracts",
+    "Check whitespace-safe diff",
+  ]);
   assert.equal(result.agent_bridge_execution_candidate_rows.every((row) => row.current_verdict === "pass"), true);
   assert.equal(result.agent_bridge_execution_candidate_rows.every((row) => row.allowlist_match === true), true);
   assert.equal(result.agent_bridge_execution_candidate_rows.every((row) => row.package_script_registered === true), true);

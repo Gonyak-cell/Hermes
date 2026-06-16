@@ -3,7 +3,7 @@
 - Status: ready_for_agent_bridge_execution_candidate
 - Program: AGENT-BRIDGE-L8-SLICE-D
 - Source readiness: 4/4
-- Execution candidates: 5
+- Execution candidates: 13
 - Blocked command fixtures: 9
 - Controlled execution candidate enabled: true
 - Execution allowed now: false

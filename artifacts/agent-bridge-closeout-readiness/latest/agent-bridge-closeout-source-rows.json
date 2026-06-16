@@ -1,12 +1,12 @@
 {
   "schema_version": "agent-bridge-closeout-source-rows.v1",
-  "generated_at": "2026-06-16T01:50:48.804Z",
+  "generated_at": "2026-06-16T01:54:09.887Z",
   "agent_bridge_closeout_source_rows_count": 7,
   "agent_bridge_closeout_source_rows": [
     {
       "schema_version": "agent-bridge-closeout-source-row.v1",
       "row_id": "agent.bridge.closeout.source.row.01",
-      "generated_at": "2026-06-16T01:50:48.804Z",
+      "generated_at": "2026-06-16T01:54:09.887Z",
       "source_id": "agent_bridge_manifest",
       "source_path": "artifacts/agent-bridge-manifest/latest/agent-bridge-manifest.json",
       "source_available": true,
@@ -40,7 +40,7 @@
     {
       "schema_version": "agent-bridge-closeout-source-row.v1",
       "row_id": "agent.bridge.closeout.source.row.02",
-      "generated_at": "2026-06-16T01:50:48.804Z",
+      "generated_at": "2026-06-16T01:54:09.887Z",
       "source_id": "agent_bridge_request_receipt",
       "source_path": "artifacts/agent-bridge-request-receipt/latest/agent-bridge-request-receipt.json",
       "source_available": true,
@@ -74,7 +74,7 @@
     {
       "schema_version": "agent-bridge-closeout-source-row.v1",
       "row_id": "agent.bridge.closeout.source.row.03",
-      "generated_at": "2026-06-16T01:50:48.804Z",
+      "generated_at": "2026-06-16T01:54:09.887Z",
       "source_id": "agent_bridge_request_packet_export",
       "source_path": "artifacts/agent-bridge-request-packet-export/latest/agent-bridge-request-packet-export.json",
       "source_available": true,
@@ -108,7 +108,7 @@
     {
       "schema_version": "agent-bridge-closeout-source-row.v1",
       "row_id": "agent.bridge.closeout.source.row.04",
-      "generated_at": "2026-06-16T01:50:48.804Z",
+      "generated_at": "2026-06-16T01:54:09.887Z",
       "source_id": "agent_bridge_receipt_import_workspace",
       "source_path": "artifacts/agent-bridge-receipt-import-workspace/latest/agent-bridge-receipt-import-workspace.json",
       "source_available": true,
@@ -142,7 +142,7 @@
     {
       "schema_version": "agent-bridge-closeout-source-row.v1",
       "row_id": "agent.bridge.closeout.source.row.05",
-      "generated_at": "2026-06-16T01:50:48.804Z",
+      "generated_at": "2026-06-16T01:54:09.887Z",
       "source_id": "agent_bridge_review_finding_workbench",
       "source_path": "artifacts/agent-bridge-review-finding-workbench/latest/agent-bridge-review-finding-workbench.json",
       "source_available": true,
@@ -176,12 +176,12 @@
     {
       "schema_version": "agent-bridge-closeout-source-row.v1",
       "row_id": "agent.bridge.closeout.source.row.06",
-      "generated_at": "2026-06-16T01:50:48.804Z",
+      "generated_at": "2026-06-16T01:54:09.887Z",
       "source_id": "agent_bridge_execution_candidate",
       "source_path": "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json",
       "source_available": true,
       "source_parse_status": "parsed",
-      "source_hash": "sha256:10670abd50cd7fb5133cbd496d0a3e280e6606529395507f0e36db2cc6347a90",
+      "source_hash": "sha256:503ea6f8469a79d293ce2d6f01568df36605d48d1f98b8049c965d19f2f9f7ba",
       "observed_status": "ready_for_agent_bridge_execution_candidate",
       "ready_status": "ready_for_agent_bridge_execution_candidate",
       "source_ready": true,
@@ -210,12 +210,12 @@
     {
       "schema_version": "agent-bridge-closeout-source-row.v1",
       "row_id": "agent.bridge.closeout.source.row.07",
-      "generated_at": "2026-06-16T01:50:48.804Z",
+      "generated_at": "2026-06-16T01:54:09.887Z",
       "source_id": "desktop_read_model",
       "source_path": "artifacts/desktop-read-model/latest/desktop-read-model.json",
       "source_available": true,
       "source_parse_status": "parsed",
-      "source_hash": "sha256:90f34205ef597b7216ac8d752db622e15aad12af41144205f971957c30aa4abe",
+      "source_hash": "sha256:b652548d60e9f2875bb9479d400fe3876bf9189bb4ff46200adb19c71816801c",
       "observed_status": "ready_for_desktop_shell",
       "ready_status": "ready_for_desktop_shell",
       "source_ready": true,

@@ -1,6 +1,6 @@
 {
   "schema_version": "desktop-read-model-source-rows.v1",
-  "generated_at": "2026-06-16T01:50:48.602Z",
+  "generated_at": "2026-06-16T01:54:09.708Z",
   "source_rows_count": 29,
   "source_rows": [
     {
@@ -28,8 +28,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "3aa4ed81df1742aeeae6e5124e79f25f17ad06d309d69214c04481a154f5b2c8"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "afe793e104ad9b4980bec36ba4300828d238f6e3d34cd0d5f2550cd6e7b2c587"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -54,8 +54,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "76d1c6beb1c76386ef5f592b0f4d0e0c0dbf0e30aa2a48afeea75d2a529993ee"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "6b0cd89a035ba9fdf35a65fa85474ea5d871d10686d0980d8b15ca20c8425593"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -78,8 +78,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "9e895beddde96d8a7a9405000ba216d69547deac770754d0eccc37fbf8f3100d"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "3fccfcd6ff7d8e8278bcb4701edfca20c9d20bb1fd0051b862d4751aabfe3779"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -104,8 +104,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "c4f22fc55a49360d9352a86c94264ca58064281f0407b726c88d114aa6ba507a"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "575e19e6280a974462e3876e0bc8a4c76b6bffa41e6a24b31d6542e26d937a1c"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -129,8 +129,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "9328a7c937176f165436cc5d4a4ac327c9904f7adef0d9987962de5e97e1ea0f"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "2e55ea7f05864ecc0c802799a157e35860b8ea910f9e91429cb5370ce5f2cb8c"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -153,8 +153,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "0152bb6d6c344aa2b1b6db0b06d2e0bf65666a877870aca0e9a41a92f8fbbc37"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "d3d475a33fbd66239a717a37d4239f0e6e3ea7366a360a164be80495a811ec9a"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -178,8 +178,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "3454a1dff7bfd6b43d887ac890f3b404c38d3990da3a5cb783c2ee57a0a52439"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "cada4ec981e8e49de12ed073b569e43ea603053aa782ad09f183bc15a9ea224d"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -595,8 +595,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "c61f1bf56da9053d5d2422ab8858018ce1c7b9a479b599d2b538d2b14d809011"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "13dbfa3c7187fc4a48d04b0c3e7191c7d627308b3960a02b4612559feaeaad50"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -619,8 +619,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "91378f7784e52e88f2f6e8b6fa47b3d4e9c3f3d751442911b3e8a3f622a9362c"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "ff1c2c953f1a4b5d8b3702ab667df3a9b726ff79c8efbbe94590931b97eccc72"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -1289,8 +1289,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "a1aeb7427b05a54273edfca241b726e7527ac4ca7defd19f412508527cc07201"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "753a3d6ec2c5eb5d3b35dcc1d8a516bf30b15ac746a1891ba7af825aa80b55d9"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -1467,8 +1467,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "6141ee9b209bc00b8d5c06c1e3ef55f24f68bf18a9f14f23df8345f697cda617"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "a7bb05ced12c87dd9f7111866cce286d35fc11939ad74a3756c1275bf54d3d1b"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -1491,8 +1491,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "af0899f998899109be050ed262a0d141134aec0c1d15b3000150040ec814bb07"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "ae3b0675a24155ae54634c1e1cdb8d3fabafe086f98be6a7d81f8735b84234a1"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -1691,8 +1691,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "ba24ebd3e8f5a1796b9d0d3707b409918a18f73d76a18047c35dedfdf9a17559"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "e618a9ef0204cfc40b6c215cca91728fcef29c58ecb78e18d081fc41503ffb51"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -1951,8 +1951,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "09008a2c222d7d3a183a8da331f199486e569dd9fe7e52549e17ffb0eccb96d8"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "ad45c0a811b0f7a3ddbbc38c66b03877aa780b29924e1546504d484dda70f8e7"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2105,8 +2105,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "585a2ff8675e9a9e40054e26bbe80b5b8470bf3804a5ae0d7a514327b78dd35e"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "8a3539014161bef5e86c00e5e5d6b5fe05f014d6770f847713452dede8452098"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2118,7 +2118,7 @@
       "source_allowed_by_policy": true,
       "source_available": true,
       "parse_status": "parsed",
-      "source_content_hash": "sha256:10670abd50cd7fb5133cbd496d0a3e280e6606529395507f0e36db2cc6347a90",
+      "source_content_hash": "sha256:503ea6f8469a79d293ce2d6f01568df36605d48d1f98b8049c965d19f2f9f7ba",
       "data_summary": {
         "schema_version": "agent-bridge-execution-candidate.v1",
         "agent_bridge_execution_candidate_status": "ready_for_agent_bridge_execution_candidate",
@@ -2126,7 +2126,7 @@
         "source_agent_bridge_request_receipt_status": "ready_for_agent_bridge_request_receipt",
         "source_controlled_execution_sandbox_status": "ready_for_controlled_execution_sandbox",
         "source_human_approved_limited_execution_status": "ready_for_platform_human_approved_limited_execution",
-        "execution_candidate_count": 5,
+        "execution_candidate_count": 13,
         "blocked_command_fixture_count": 9,
         "gate_count": 10,
         "gate_pass_count": 10,
@@ -2183,6 +2183,60 @@
             "opens_authority": false
           },
           {
+            "candidate_id": "agent.bridge.execution.candidate.99439397f9da1cee",
+            "candidate_type": "platform_check",
+            "candidate_title": "Validate Agent Bridge request packet export",
+            "candidate_status": "candidate_requires_human_execution_receipt",
+            "command_text": "npm run platform:agent-bridge-request-packet-export -- --check",
+            "command_family": "npm_platform_check",
+            "allowlist_match": true,
+            "timeout_ms": 120000,
+            "sandbox_profile": "repo_local_read_only",
+            "human_receipt_required_before_execution": true,
+            "limited_execution_receipt_required": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.80c0530454291989",
+            "candidate_type": "platform_check",
+            "candidate_title": "Validate Agent Bridge receipt import workspace",
+            "candidate_status": "candidate_requires_human_execution_receipt",
+            "command_text": "npm run platform:agent-bridge-receipt-import-workspace -- --check",
+            "command_family": "npm_platform_check",
+            "allowlist_match": true,
+            "timeout_ms": 120000,
+            "sandbox_profile": "repo_local_read_only",
+            "human_receipt_required_before_execution": true,
+            "limited_execution_receipt_required": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.7cf78904ef1d7c5d",
+            "candidate_type": "platform_check",
+            "candidate_title": "Validate Agent Bridge review finding workbench",
+            "candidate_status": "candidate_requires_human_execution_receipt",
+            "command_text": "npm run platform:agent-bridge-review-finding-workbench -- --check",
+            "command_family": "npm_platform_check",
+            "allowlist_match": true,
+            "timeout_ms": 120000,
+            "sandbox_profile": "repo_local_read_only",
+            "human_receipt_required_before_execution": true,
+            "limited_execution_receipt_required": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
             "candidate_id": "agent.bridge.execution.candidate.cbb829cf58f80d20",
             "candidate_type": "platform_check",
             "candidate_title": "Validate Agent Bridge execution candidates",
@@ -2201,14 +2255,104 @@
             "opens_authority": false
           },
           {
-            "candidate_id": "agent.bridge.execution.candidate.8a5143423efda9cd",
-            "candidate_type": "targeted_test",
-            "candidate_title": "Run Agent Bridge targeted tests",
+            "candidate_id": "agent.bridge.execution.candidate.6b35e6bf1ec2fc2f",
+            "candidate_type": "platform_check",
+            "candidate_title": "Validate Desktop read model",
             "candidate_status": "candidate_requires_human_execution_receipt",
-            "command_text": "node --test test/agent-bridge-manifest.test.mjs test/agent-bridge-request-receipt.test.mjs test/agent-bridge-execution-candidate.test.mjs",
+            "command_text": "npm run desktop:read-model -- --check",
+            "command_family": "npm_desktop_check",
+            "allowlist_match": true,
+            "timeout_ms": 120000,
+            "sandbox_profile": "repo_local_read_only",
+            "human_receipt_required_before_execution": true,
+            "limited_execution_receipt_required": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.35a34334df62c451",
+            "candidate_type": "platform_check",
+            "candidate_title": "Validate Agent Bridge closeout readiness",
+            "candidate_status": "candidate_requires_human_execution_receipt",
+            "command_text": "npm run platform:agent-bridge-closeout-readiness -- --check",
+            "command_family": "npm_platform_check",
+            "allowlist_match": true,
+            "timeout_ms": 120000,
+            "sandbox_profile": "repo_local_read_only",
+            "human_receipt_required_before_execution": true,
+            "limited_execution_receipt_required": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.28e8c268250f706a",
+            "candidate_type": "targeted_test",
+            "candidate_title": "Run Agent Bridge full targeted tests",
+            "candidate_status": "candidate_requires_human_execution_receipt",
+            "command_text": "node --test test/agent-bridge-manifest.test.mjs test/agent-bridge-request-receipt.test.mjs test/agent-bridge-request-packet-export.test.mjs test/agent-bridge-receipt-import-workspace.test.mjs test/agent-bridge-review-finding-workbench.test.mjs test/agent-bridge-execution-candidate.test.mjs test/agent-bridge-closeout-readiness.test.mjs test/desktop-read-model.test.mjs apps/desktop/test/read-model.test.mjs",
             "command_family": "node_test",
             "allowlist_match": true,
+            "timeout_ms": 300000,
+            "sandbox_profile": "repo_local_read_only",
+            "human_receipt_required_before_execution": true,
+            "limited_execution_receipt_required": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.6a23252203f034b6",
+            "candidate_type": "desktop_build",
+            "candidate_title": "Build Hermes Desktop renderer",
+            "candidate_status": "candidate_requires_human_execution_receipt",
+            "command_text": "npm run desktop:build",
+            "command_family": "npm_desktop_check",
+            "allowlist_match": true,
+            "timeout_ms": 120000,
+            "sandbox_profile": "repo_local_read_only",
+            "human_receipt_required_before_execution": true,
+            "limited_execution_receipt_required": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.e4472036200d192d",
+            "candidate_type": "desktop_smoke",
+            "candidate_title": "Smoke render Desktop Agents screen",
+            "candidate_status": "candidate_requires_human_execution_receipt",
+            "command_text": "npm run desktop:smoke:render -- --screen=agents",
+            "command_family": "npm_desktop_check",
+            "allowlist_match": true,
             "timeout_ms": 180000,
+            "sandbox_profile": "repo_local_read_only",
+            "human_receipt_required_before_execution": true,
+            "limited_execution_receipt_required": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.0cecca77236ddb59",
+            "candidate_type": "core_validation",
+            "candidate_title": "Validate core contracts",
+            "candidate_status": "candidate_requires_human_execution_receipt",
+            "command_text": "npm run validate:core",
+            "command_family": "npm_core_validation",
+            "allowlist_match": true,
+            "timeout_ms": 120000,
             "sandbox_profile": "repo_local_read_only",
             "human_receipt_required_before_execution": true,
             "limited_execution_receipt_required": true,
@@ -2393,7 +2537,7 @@
           {
             "gate_id": "candidate.count",
             "gate_status": "pass",
-            "description": "Execution candidate queue has the minimum candidate set",
+            "description": "Execution candidate queue has the full local handoff candidate set",
             "current_verdict": "pass",
             "blocks_execution_when_failed": true,
             "execution_allowed_now": false,
@@ -2471,8 +2615,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "f132fe6b59cd3995f0a51560900708760f874deaf81290460661479328be6265"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "9ebc095799181a6d18aaab48f953ff575c2ad06e81d1bbe35b6c6f620720cc43"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2501,8 +2645,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "5658e418d04c7c7c5001f59a03e4021adbe29ac8285ef836c495d39ddf525eda"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "5885144eb179f177f099db14aa6132285e8c312d86988a1b27ca36e114a1f972"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2531,8 +2675,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "b7436922cee0898b1616f9cc6e5aa634ffdfc99a8c2ce76010e2278e85d695c9"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "04a9b39ab573034b2466802b6ad0bb4560edfef0637a3dc8f54b1319640fa007"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2556,8 +2700,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "a9b7d9b363dda9e3b2089945de11f1de68a9e063ccf25414d5afff9d21cd4a1a"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "1d394759c21ae84239095489e9dbcbb1cbc8b298161c19b1499e014e43015dab"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2582,8 +2726,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "1c914fc81b69d8b43c5a8a0f67d467a954a7f8e90071346619860ec49837646e"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "a56d4eadb0165b26f3ccf28ffc54dfcae3590123849843538ff97a63421bbb75"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2607,8 +2751,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "6769c7addda89af8ea11fd894b8f1814f24dd5daca960ee7a2a78b0c1696ba54"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "fbcc46f84b6ca22ae8286cf184b90ca47a0d84918a11b1c3cde9d96d82e62801"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2631,8 +2775,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "59f540b32fe99cd29d00ba2d038687ef691800dd16b82023ad872c03b31d75a6"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "2b636c0bd1c4ccd37b5fcc7eca7308153c763f08fe04fd048799f299791bf682"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2656,8 +2800,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "f8fc3f52b4d8e16469300286e6c1592a9ae3ca5a13f797b8cd236eac05463df7"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "6bedff955a838eda9ba56530b87290b8a3454047d33f969523d129ebf88834a9"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2675,8 +2819,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "f05eecf2279c60ed237a9a8640bd6e0ec716edc7335395279ec2b407112c15bf"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "f64e1f45f5a70140c19126e4cb054e1ef2bb052ee536f8840e8cd36c34a07c81"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2694,8 +2838,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "92b85ab3b368dda04800b38fe8a207483c94e29784198a5558ae88446fc82397"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "fabfe1605ed85f020d7b06b034312e8e70d28458d725b8ed6377f89a20671178"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2713,8 +2857,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "202e3adfac9a5773b8a3ba9d3e771ecb3d5648b7bf84dff4337bfd488cac2ae7"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "a394994988810761c118a43a6f51fad3b338120075f835518b86836c22041dae"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2732,8 +2876,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "035ed74070bfc0f83de00c49884fe8b441328b1d50c56a81d9a146cdbafa37fc"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "241e6e0d409f3886c5b9fa711a0cd210d1e51e02e99a0446306ab5ba52fe143d"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2754,8 +2898,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "afbbf8353933f3aa44e74893360f21a98154b261cbd8f0d2a88bccf9b05a69f6"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "8554ba594ecdebeb53f7056fd74e577f9160c09e3b0b148e4d79507a3b76e1e0"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2781,8 +2925,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:50:48.602Z",
-      "source_row_hash": "46e5754c024d85fa40be522ade4cb3f5f94cce627da2b3a8e07fa5c836421c31"
+      "generated_at": "2026-06-16T01:54:09.708Z",
+      "source_row_hash": "dc950fe05f77eb41e167aefe4df9b9ed8933af37fce0bbb39f263060943f774f"
     }
   ]
 }

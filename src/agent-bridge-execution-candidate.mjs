@@ -43,17 +43,73 @@ const EXECUTION_CANDIDATE_SPECS = [
   },
   {
     candidate_type: "platform_check",
+    candidate_title: "Validate Agent Bridge request packet export",
+    command_text: "npm run platform:agent-bridge-request-packet-export -- --check",
+    timeout_ms: 120000,
+    source_ref: "artifacts/agent-bridge-request-packet-export/latest/agent-bridge-request-packet-export.json",
+  },
+  {
+    candidate_type: "platform_check",
+    candidate_title: "Validate Agent Bridge receipt import workspace",
+    command_text: "npm run platform:agent-bridge-receipt-import-workspace -- --check",
+    timeout_ms: 120000,
+    source_ref: "artifacts/agent-bridge-receipt-import-workspace/latest/agent-bridge-receipt-import-workspace.json",
+  },
+  {
+    candidate_type: "platform_check",
+    candidate_title: "Validate Agent Bridge review finding workbench",
+    command_text: "npm run platform:agent-bridge-review-finding-workbench -- --check",
+    timeout_ms: 120000,
+    source_ref: "artifacts/agent-bridge-review-finding-workbench/latest/agent-bridge-review-finding-workbench.json",
+  },
+  {
+    candidate_type: "platform_check",
     candidate_title: "Validate Agent Bridge execution candidates",
     command_text: "npm run platform:agent-bridge-execution-candidate -- --check",
     timeout_ms: 120000,
     source_ref: "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json",
   },
   {
+    candidate_type: "platform_check",
+    candidate_title: "Validate Desktop read model",
+    command_text: "npm run desktop:read-model -- --check",
+    timeout_ms: 120000,
+    source_ref: "artifacts/desktop-read-model/latest/desktop-read-model.json",
+  },
+  {
+    candidate_type: "platform_check",
+    candidate_title: "Validate Agent Bridge closeout readiness",
+    command_text: "npm run platform:agent-bridge-closeout-readiness -- --check",
+    timeout_ms: 120000,
+    source_ref: "artifacts/agent-bridge-closeout-readiness/latest/agent-bridge-closeout-readiness.json",
+  },
+  {
     candidate_type: "targeted_test",
-    candidate_title: "Run Agent Bridge targeted tests",
-    command_text: "node --test test/agent-bridge-manifest.test.mjs test/agent-bridge-request-receipt.test.mjs test/agent-bridge-execution-candidate.test.mjs",
-    timeout_ms: 180000,
+    candidate_title: "Run Agent Bridge full targeted tests",
+    command_text: "node --test test/agent-bridge-manifest.test.mjs test/agent-bridge-request-receipt.test.mjs test/agent-bridge-request-packet-export.test.mjs test/agent-bridge-receipt-import-workspace.test.mjs test/agent-bridge-review-finding-workbench.test.mjs test/agent-bridge-execution-candidate.test.mjs test/agent-bridge-closeout-readiness.test.mjs test/desktop-read-model.test.mjs apps/desktop/test/read-model.test.mjs",
+    timeout_ms: 300000,
     source_ref: "test/agent-bridge-execution-candidate.test.mjs",
+  },
+  {
+    candidate_type: "desktop_build",
+    candidate_title: "Build Hermes Desktop renderer",
+    command_text: "npm run desktop:build",
+    timeout_ms: 120000,
+    source_ref: "apps/desktop/package.json",
+  },
+  {
+    candidate_type: "desktop_smoke",
+    candidate_title: "Smoke render Desktop Agents screen",
+    command_text: "npm run desktop:smoke:render -- --screen=agents",
+    timeout_ms: 180000,
+    source_ref: "tmp/desktop-render-smoke.png",
+  },
+  {
+    candidate_type: "core_validation",
+    candidate_title: "Validate core contracts",
+    command_text: "npm run validate:core",
+    timeout_ms: 120000,
+    source_ref: "examples/core",
   },
   {
     candidate_type: "diff_check",
@@ -363,7 +419,7 @@ function buildGateRows({ context, sourceRows, executionCandidateRows, blockedCom
     ["source.manifest.ready", "Agent Bridge manifest source is ready", context.sourceManifest.data?.summary?.agent_bridge_manifest_status === "ready_for_agent_bridge_manifest"],
     ["source.request_receipt.ready", "Agent Bridge request/receipt source is ready", context.sourceRequestReceipt.data?.summary?.agent_bridge_request_receipt_status === "ready_for_agent_bridge_request_receipt"],
     ["source.execution_contracts.ready", "Controlled sandbox and limited execution contracts are observed ready", sourceRows.filter((row) => row.source_role === "supporting_contract").every((row) => row.source_ready === true)],
-    ["candidate.count", "Execution candidate queue has the minimum candidate set", executionCandidateRows.length >= 5],
+    ["candidate.count", "Execution candidate queue has the full local handoff candidate set", executionCandidateRows.length >= 13],
     ["candidate.allowlist", "All candidates match the restricted allowlist", executionCandidateRows.every((row) => row.allowlist_match === true && row.blocked === false)],
     ["candidate.no_execution", "No candidate executed or captured command output", executionCandidateRows.every((row) => row.execution_allowed_now === false && row.command_executed_now === false && row.command_output_captured_now === false && row.mutation_performed === false)],
     ["candidate.receipt_required", "Every candidate requires human limited-execution receipt before execution", executionCandidateRows.every((row) => row.human_receipt_required_before_execution === true && row.limited_execution_receipt_required === true)],
@@ -436,7 +492,7 @@ function buildValidationItems(result) {
     validationItem("source.request_receipt.ready", result.source_agent_bridge_request_receipt_summary?.agent_bridge_request_receipt_status === "ready_for_agent_bridge_request_receipt", "Agent Bridge request/receipt source is not ready.", result.inputs?.source_agent_bridge_request_receipt_path),
     validationItem("source.execution_contracts.ready", result.agent_bridge_execution_source_rows.filter((row) => row.source_role === "supporting_contract").every((row) => row.source_ready === true), "Controlled execution supporting contracts are not ready.", "agent_bridge_execution_source_rows"),
     validationItem("contract.no_execution", result.agent_bridge_execution_candidate_contract.execution_allowed_now === false && result.agent_bridge_execution_candidate_contract.command_executed_now === false && result.agent_bridge_execution_candidate_contract.mutation_performed === false, "Execution contract opened command execution.", "agent_bridge_execution_candidate_contract"),
-    validationItem("candidate.count", result.agent_bridge_execution_candidate_rows.length >= 5, "Execution candidate queue is incomplete.", "agent_bridge_execution_candidate_rows"),
+    validationItem("candidate.count", result.agent_bridge_execution_candidate_rows.length >= 13, "Execution candidate queue is incomplete.", "agent_bridge_execution_candidate_rows"),
     validationItem("candidate.allowlist", result.agent_bridge_execution_candidate_rows.every((row) => row.allowlist_match === true && row.blocked === false), "Candidate command outside allowlist.", "agent_bridge_execution_candidate_rows"),
     validationItem("candidate.no_execution", result.agent_bridge_execution_candidate_rows.every((row) => row.execution_allowed_now === false && row.command_executed_now === false && row.command_output_captured_now === false && row.mutation_performed === false), "Candidate command executed or mutated state.", "agent_bridge_execution_candidate_rows"),
     validationItem("candidate.receipt_required", result.agent_bridge_execution_candidate_rows.every((row) => row.human_receipt_required_before_execution === true && row.limited_execution_receipt_required === true), "Candidate is missing human receipt requirements.", "agent_bridge_execution_candidate_rows"),
@@ -532,8 +588,16 @@ function isAllowlistedCandidateCommand(command) {
   return [
     /^npm run platform:agent-bridge-manifest -- --check$/,
     /^npm run platform:agent-bridge-request-receipt -- --check$/,
+    /^npm run platform:agent-bridge-request-packet-export -- --check$/,
+    /^npm run platform:agent-bridge-receipt-import-workspace -- --check$/,
+    /^npm run platform:agent-bridge-review-finding-workbench -- --check$/,
     /^npm run platform:agent-bridge-execution-candidate -- --check$/,
-    /^node --test test\/agent-bridge-manifest\.test\.mjs test\/agent-bridge-request-receipt\.test\.mjs test\/agent-bridge-execution-candidate\.test\.mjs$/,
+    /^npm run desktop:read-model -- --check$/,
+    /^npm run platform:agent-bridge-closeout-readiness -- --check$/,
+    /^node --test test\/agent-bridge-manifest\.test\.mjs test\/agent-bridge-request-receipt\.test\.mjs test\/agent-bridge-request-packet-export\.test\.mjs test\/agent-bridge-receipt-import-workspace\.test\.mjs test\/agent-bridge-review-finding-workbench\.test\.mjs test\/agent-bridge-execution-candidate\.test\.mjs test\/agent-bridge-closeout-readiness\.test\.mjs test\/desktop-read-model\.test\.mjs apps\/desktop\/test\/read-model\.test\.mjs$/,
+    /^npm run desktop:build$/,
+    /^npm run desktop:smoke:render -- --screen=agents$/,
+    /^npm run validate:core$/,
     /^git diff --check$/,
   ].some((pattern) => pattern.test(normalized));
 }
@@ -547,6 +611,8 @@ function commandReferencesRegisteredScript(command, scripts) {
 function commandFamily(command) {
   const normalized = normalizeCommand(command);
   if (normalized.startsWith("npm run platform:")) return "npm_platform_check";
+  if (normalized.startsWith("npm run desktop:")) return "npm_desktop_check";
+  if (normalized === "npm run validate:core") return "npm_core_validation";
   if (normalized.startsWith("node --test")) return "node_test";
   if (normalized.startsWith("git diff")) return "git_diff_check";
   return "unknown";

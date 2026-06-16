@@ -100,7 +100,7 @@
     },
     "agent_bridge_execution_candidate_rows": {
       "type": "array",
-      "minItems": 5,
+      "minItems": 13,
       "items": { "$ref": "#/$defs/candidateRow" }
     },
     "blocked_command_fixture_rows": {
@@ -236,7 +236,7 @@
         "agent_bridge_execution_candidate_status": {
           "enum": ["ready_for_agent_bridge_execution_candidate", "blocked_agent_bridge_execution_candidate"]
         },
-        "execution_candidate_count": { "type": "integer", "minimum": 5 },
+        "execution_candidate_count": { "type": "integer", "minimum": 13 },
         "blocked_command_fixture_count": { "type": "integer", "minimum": 9 },
         "controlled_execution_candidate_enabled_now": { "const": true },
         "candidate_queue_enabled_now": { "const": true },

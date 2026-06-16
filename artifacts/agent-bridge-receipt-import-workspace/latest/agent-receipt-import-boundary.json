@@ -1,6 +1,6 @@
 {
   "schema_version": "agent-receipt-import-boundary.v1",
-  "generated_at": "2026-06-16T01:02:20.430Z",
+  "generated_at": "2026-06-16T01:50:48.043Z",
   "program_range": "AGENT-BRIDGE-L12-SLICE-H",
   "source_agent_bridge_request_receipt_status": "ready_for_agent_bridge_request_receipt",
   "source_agent_bridge_request_packet_export_status": "ready_for_agent_bridge_request_packet_export",

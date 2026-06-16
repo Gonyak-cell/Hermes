@@ -1,12 +1,12 @@
 {
   "schema_version": "malicious-manifest-fixture-rows.v1",
-  "generated_at": "2026-06-16T00:17:38.849Z",
+  "generated_at": "2026-06-16T01:50:47.496Z",
   "malicious_manifest_fixture_rows_count": 9,
   "malicious_manifest_fixture_rows": [
     {
       "schema_version": "agent-malicious-manifest-fixture-row.v1",
       "row_id": "agent.bridge.malicious.fixture.row.01",
-      "generated_at": "2026-06-16T00:17:38.849Z",
+      "generated_at": "2026-06-16T01:50:47.496Z",
       "fixture_id": "fake.execution.allowed",
       "malicious_patch": {
         "command_execution_allowed_now": true
@@ -24,7 +24,7 @@
     {
       "schema_version": "agent-malicious-manifest-fixture-row.v1",
       "row_id": "agent.bridge.malicious.fixture.row.02",
-      "generated_at": "2026-06-16T00:17:38.849Z",
+      "generated_at": "2026-06-16T01:50:47.496Z",
       "fixture_id": "fake.agent.runtime.execution",
       "malicious_patch": {
         "agent_runtime_execution_allowed_now": true
@@ -42,7 +42,7 @@
     {
       "schema_version": "agent-malicious-manifest-fixture-row.v1",
       "row_id": "agent.bridge.malicious.fixture.row.03",
-      "generated_at": "2026-06-16T00:17:38.849Z",
+      "generated_at": "2026-06-16T01:50:47.496Z",
       "fixture_id": "fake.owner.approval",
       "malicious_patch": {
         "approval_application_allowed_now": true
@@ -60,7 +60,7 @@
     {
       "schema_version": "agent-malicious-manifest-fixture-row.v1",
       "row_id": "agent.bridge.malicious.fixture.row.04",
-      "generated_at": "2026-06-16T00:17:38.849Z",
+      "generated_at": "2026-06-16T01:50:47.496Z",
       "fixture_id": "fake.receipt.applied",
       "malicious_patch": {
         "receipt_application_allowed_now": true
@@ -78,7 +78,7 @@
     {
       "schema_version": "agent-malicious-manifest-fixture-row.v1",
       "row_id": "agent.bridge.malicious.fixture.row.05",
-      "generated_at": "2026-06-16T00:17:38.849Z",
+      "generated_at": "2026-06-16T01:50:47.496Z",
       "fixture_id": "fake.production.pass",
       "malicious_patch": {
         "production_pass_enabled": true
@@ -96,7 +96,7 @@
     {
       "schema_version": "agent-malicious-manifest-fixture-row.v1",
       "row_id": "agent.bridge.malicious.fixture.row.06",
-      "generated_at": "2026-06-16T00:17:38.849Z",
+      "generated_at": "2026-06-16T01:50:47.496Z",
       "fixture_id": "fake.enterprise.pass",
       "malicious_patch": {
         "enterprise_pass_enabled": true
@@ -114,7 +114,7 @@
     {
       "schema_version": "agent-malicious-manifest-fixture-row.v1",
       "row_id": "agent.bridge.malicious.fixture.row.07",
-      "generated_at": "2026-06-16T00:17:38.849Z",
+      "generated_at": "2026-06-16T01:50:47.496Z",
       "fixture_id": "fake.protected.closeout",
       "malicious_patch": {
         "protected_closeout_enabled": true
@@ -132,7 +132,7 @@
     {
       "schema_version": "agent-malicious-manifest-fixture-row.v1",
       "row_id": "agent.bridge.malicious.fixture.row.08",
-      "generated_at": "2026-06-16T00:17:38.849Z",
+      "generated_at": "2026-06-16T01:50:47.496Z",
       "fixture_id": "fake.plugin.installed.allows.execution",
       "malicious_patch": {
         "installed_implies_executable": true
@@ -150,7 +150,7 @@
     {
       "schema_version": "agent-malicious-manifest-fixture-row.v1",
       "row_id": "agent.bridge.malicious.fixture.row.09",
-      "generated_at": "2026-06-16T00:17:38.849Z",
+      "generated_at": "2026-06-16T01:50:47.496Z",
       "fixture_id": "fake.model.self.proof",
       "malicious_patch": {
         "model_label_is_proof": true

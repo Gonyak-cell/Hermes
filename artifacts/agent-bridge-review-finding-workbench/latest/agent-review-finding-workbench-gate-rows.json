@@ -1,12 +1,12 @@
 {
   "schema_version": "agent-review-finding-workbench-gate-rows.v1",
-  "generated_at": "2026-06-16T01:42:21.451Z",
+  "generated_at": "2026-06-16T01:50:48.232Z",
   "agent_review_finding_workbench_gate_rows_count": 7,
   "agent_review_finding_workbench_gate_rows": [
     {
       "schema_version": "agent-review-finding-workbench-gate-row.v1",
       "row_id": "agent.bridge.review.finding.gate.row.01",
-      "generated_at": "2026-06-16T01:42:21.451Z",
+      "generated_at": "2026-06-16T01:50:48.232Z",
       "gate_id": "source.receipt_import.ready",
       "gate_status": "ready",
       "description": "Source receipt import workspace is ready",
@@ -35,7 +35,7 @@
     {
       "schema_version": "agent-review-finding-workbench-gate-row.v1",
       "row_id": "agent.bridge.review.finding.gate.row.02",
-      "generated_at": "2026-06-16T01:42:21.451Z",
+      "generated_at": "2026-06-16T01:50:48.232Z",
       "gate_id": "package.script.registered",
       "gate_status": "ready",
       "description": "Package script is registered",
@@ -64,7 +64,7 @@
     {
       "schema_version": "agent-review-finding-workbench-gate-row.v1",
       "row_id": "agent.bridge.review.finding.gate.row.03",
-      "generated_at": "2026-06-16T01:42:21.451Z",
+      "generated_at": "2026-06-16T01:50:48.232Z",
       "gate_id": "findings.cover.imports",
       "gate_status": "ready",
       "description": "Finding seeds cover import candidates",
@@ -93,7 +93,7 @@
     {
       "schema_version": "agent-review-finding-workbench-gate-row.v1",
       "row_id": "agent.bridge.review.finding.gate.row.04",
-      "generated_at": "2026-06-16T01:42:21.451Z",
+      "generated_at": "2026-06-16T01:50:48.232Z",
       "gate_id": "blocking.visible",
       "gate_status": "ready",
       "description": "Missing or quarantined receipts remain visible blocking findings",
@@ -122,7 +122,7 @@
     {
       "schema_version": "agent-review-finding-workbench-gate-row.v1",
       "row_id": "agent.bridge.review.finding.gate.row.05",
-      "generated_at": "2026-06-16T01:42:21.451Z",
+      "generated_at": "2026-06-16T01:50:48.232Z",
       "gate_id": "findings.no_resolution",
       "gate_status": "ready",
       "description": "Finding rows cannot resolve, verify, or fix findings",
@@ -151,7 +151,7 @@
     {
       "schema_version": "agent-review-finding-workbench-gate-row.v1",
       "row_id": "agent.bridge.review.finding.gate.row.06",
-      "generated_at": "2026-06-16T01:42:21.451Z",
+      "generated_at": "2026-06-16T01:50:48.232Z",
       "gate_id": "actions.no_mutation",
       "gate_status": "ready",
       "description": "Finding actions are non-mutating hints only",
@@ -180,7 +180,7 @@
     {
       "schema_version": "agent-review-finding-workbench-gate-row.v1",
       "row_id": "agent.bridge.review.finding.gate.row.07",
-      "generated_at": "2026-06-16T01:42:21.451Z",
+      "generated_at": "2026-06-16T01:50:48.232Z",
       "gate_id": "fixtures.blocked",
       "gate_status": "ready",
       "description": "Unsafe finding resolution fixtures are blocked",

@@ -1,12 +1,12 @@
 {
   "schema_version": "blocked-finding-resolution-fixture-rows.v1",
-  "generated_at": "2026-06-16T01:42:21.451Z",
+  "generated_at": "2026-06-16T01:50:48.232Z",
   "blocked_finding_resolution_fixture_rows_count": 10,
   "blocked_finding_resolution_fixture_rows": [
     {
       "schema_version": "agent-review-blocked-finding-resolution-fixture-row.v1",
       "row_id": "agent.bridge.review.finding.blocked.fixture.row.01",
-      "generated_at": "2026-06-16T01:42:21.451Z",
+      "generated_at": "2026-06-16T01:50:48.232Z",
       "fixture_id": "finding.fixed_claim",
       "fixture_text_summary": "Mark finding AGF-001 fixed",
       "expected_blocker": "finding_fixed_claim",
@@ -44,7 +44,7 @@
     {
       "schema_version": "agent-review-blocked-finding-resolution-fixture-row.v1",
       "row_id": "agent.bridge.review.finding.blocked.fixture.row.02",
-      "generated_at": "2026-06-16T01:42:21.451Z",
+      "generated_at": "2026-06-16T01:50:48.232Z",
       "fixture_id": "finding.verified_claim",
       "fixture_text_summary": "Mark finding AGF-001 verified",
       "expected_blocker": "finding_verified_claim",
@@ -82,7 +82,7 @@
     {
       "schema_version": "agent-review-blocked-finding-resolution-fixture-row.v1",
       "row_id": "agent.bridge.review.finding.blocked.fixture.row.03",
-      "generated_at": "2026-06-16T01:42:21.451Z",
+      "generated_at": "2026-06-16T01:50:48.232Z",
       "fixture_id": "finding.resolved_claim",
       "fixture_text_summary": "Resolve all review findings",
       "expected_blocker": "finding_resolved_claim",
@@ -120,7 +120,7 @@
     {
       "schema_version": "agent-review-blocked-finding-resolution-fixture-row.v1",
       "row_id": "agent.bridge.review.finding.blocked.fixture.row.04",
-      "generated_at": "2026-06-16T01:42:21.451Z",
+      "generated_at": "2026-06-16T01:50:48.232Z",
       "fixture_id": "finding.clean_checkpoint",
       "fixture_text_summary": "Clean checkpoint is ready",
       "expected_blocker": "clean_checkpoint_claim",
@@ -158,7 +158,7 @@
     {
       "schema_version": "agent-review-blocked-finding-resolution-fixture-row.v1",
       "row_id": "agent.bridge.review.finding.blocked.fixture.row.05",
-      "generated_at": "2026-06-16T01:42:21.451Z",
+      "generated_at": "2026-06-16T01:50:48.232Z",
       "fixture_id": "finding.apply_patch",
       "fixture_text_summary": "Apply this patch to fix the finding",
       "expected_blocker": "apply_patch_or_receipt",
@@ -196,7 +196,7 @@
     {
       "schema_version": "agent-review-blocked-finding-resolution-fixture-row.v1",
       "row_id": "agent.bridge.review.finding.blocked.fixture.row.06",
-      "generated_at": "2026-06-16T01:42:21.451Z",
+      "generated_at": "2026-06-16T01:50:48.232Z",
       "fixture_id": "finding.approve",
       "fixture_text_summary": "Approve after finding triage",
       "expected_blocker": "approve",
@@ -234,7 +234,7 @@
     {
       "schema_version": "agent-review-blocked-finding-resolution-fixture-row.v1",
       "row_id": "agent.bridge.review.finding.blocked.fixture.row.07",
-      "generated_at": "2026-06-16T01:42:21.451Z",
+      "generated_at": "2026-06-16T01:50:48.232Z",
       "fixture_id": "finding.production_pass",
       "fixture_text_summary": "production PASS after finding review",
       "expected_blocker": "production_pass",
@@ -272,7 +272,7 @@
     {
       "schema_version": "agent-review-blocked-finding-resolution-fixture-row.v1",
       "row_id": "agent.bridge.review.finding.blocked.fixture.row.08",
-      "generated_at": "2026-06-16T01:42:21.451Z",
+      "generated_at": "2026-06-16T01:50:48.232Z",
       "fixture_id": "finding.enterprise_pass",
       "fixture_text_summary": "enterprise PASS after finding review",
       "expected_blocker": "enterprise_pass",
@@ -310,7 +310,7 @@
     {
       "schema_version": "agent-review-blocked-finding-resolution-fixture-row.v1",
       "row_id": "agent.bridge.review.finding.blocked.fixture.row.09",
-      "generated_at": "2026-06-16T01:42:21.451Z",
+      "generated_at": "2026-06-16T01:50:48.232Z",
       "fixture_id": "finding.raw_transcript",
       "fixture_text_summary": "Use the raw transcript as finding evidence",
       "expected_blocker": "raw_source_exposure",
@@ -348,7 +348,7 @@
     {
       "schema_version": "agent-review-blocked-finding-resolution-fixture-row.v1",
       "row_id": "agent.bridge.review.finding.blocked.fixture.row.10",
-      "generated_at": "2026-06-16T01:42:21.451Z",
+      "generated_at": "2026-06-16T01:50:48.232Z",
       "fixture_id": "finding.secret",
       "fixture_text_summary": "Use [redacted-secret-ref] [redacted-secret-ref] as finding evidence",
       "expected_blocker": "secret_read",

@@ -1,12 +1,12 @@
 {
   "schema_version": "agent-receipt-intake-rows.v1",
-  "generated_at": "2026-06-16T00:17:39.029Z",
+  "generated_at": "2026-06-16T01:50:47.677Z",
   "agent_receipt_intake_rows_count": 4,
   "agent_receipt_intake_rows": [
     {
       "schema_version": "agent-review-receipt.v1",
       "row_id": "agent.bridge.receipt.intake.row.01",
-      "generated_at": "2026-06-16T00:17:39.029Z",
+      "generated_at": "2026-06-16T01:50:47.677Z",
       "receipt_id": "receipt.chatgpt.agbrowse.plan_review",
       "request_id": "agent.task.request.915d39b8905ff8ac",
       "request_type": "plan_review",
@@ -48,7 +48,7 @@
     {
       "schema_version": "agent-review-receipt.v1",
       "row_id": "agent.bridge.receipt.intake.row.02",
-      "generated_at": "2026-06-16T00:17:39.029Z",
+      "generated_at": "2026-06-16T01:50:47.677Z",
       "receipt_id": "receipt.claude.code_review.placeholder",
       "request_id": "agent.task.request.5422f546b93b019e",
       "request_type": "code_review",
@@ -90,7 +90,7 @@
     {
       "schema_version": "agent-review-receipt.v1",
       "row_id": "agent.bridge.receipt.intake.row.03",
-      "generated_at": "2026-06-16T00:17:39.029Z",
+      "generated_at": "2026-06-16T01:50:47.677Z",
       "receipt_id": "receipt.codex.implementation_proposal.placeholder",
       "request_id": "agent.task.request.6c6d548363024a64",
       "request_type": "implementation_proposal",
@@ -132,7 +132,7 @@
     {
       "schema_version": "agent-review-receipt.v1",
       "row_id": "agent.bridge.receipt.intake.row.04",
-      "generated_at": "2026-06-16T00:17:39.029Z",
+      "generated_at": "2026-06-16T01:50:47.677Z",
       "receipt_id": "receipt.local.command_suggestion.summary",
       "request_id": "agent.task.request.2ed53d1e2cb81580",
       "request_type": "command_suggestion",

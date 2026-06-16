@@ -1,12 +1,12 @@
 {
   "schema_version": "agent-receipt-import-gate-rows.v1",
-  "generated_at": "2026-06-16T01:02:20.430Z",
+  "generated_at": "2026-06-16T01:50:48.043Z",
   "agent_receipt_import_gate_rows_count": 8,
   "agent_receipt_import_gate_rows": [
     {
       "schema_version": "agent-receipt-import-gate-row.v1",
       "row_id": "agent.bridge.receipt.import.gate.row.01",
-      "generated_at": "2026-06-16T01:02:20.430Z",
+      "generated_at": "2026-06-16T01:50:48.043Z",
       "gate_id": "source.request_receipt.ready",
       "gate_status": "ready",
       "description": "Source Agent Bridge request/receipt is ready",
@@ -35,7 +35,7 @@
     {
       "schema_version": "agent-receipt-import-gate-row.v1",
       "row_id": "agent.bridge.receipt.import.gate.row.02",
-      "generated_at": "2026-06-16T01:02:20.430Z",
+      "generated_at": "2026-06-16T01:50:48.043Z",
       "gate_id": "source.request_packet_export.ready",
       "gate_status": "ready",
       "description": "Source request packet export is ready",
@@ -64,7 +64,7 @@
     {
       "schema_version": "agent-receipt-import-gate-row.v1",
       "row_id": "agent.bridge.receipt.import.gate.row.03",
-      "generated_at": "2026-06-16T01:02:20.430Z",
+      "generated_at": "2026-06-16T01:50:48.043Z",
       "gate_id": "package.script.registered",
       "gate_status": "ready",
       "description": "Package script is registered",
@@ -93,7 +93,7 @@
     {
       "schema_version": "agent-receipt-import-gate-row.v1",
       "row_id": "agent.bridge.receipt.import.gate.row.04",
-      "generated_at": "2026-06-16T01:02:20.430Z",
+      "generated_at": "2026-06-16T01:50:48.043Z",
       "gate_id": "imports.cover.receipts",
       "gate_status": "ready",
       "description": "Import candidates cover source receipt rows",
@@ -122,7 +122,7 @@
     {
       "schema_version": "agent-receipt-import-gate-row.v1",
       "row_id": "agent.bridge.receipt.import.gate.row.05",
-      "generated_at": "2026-06-16T01:02:20.430Z",
+      "generated_at": "2026-06-16T01:50:48.043Z",
       "gate_id": "imports.normalized_only",
       "gate_status": "ready",
       "description": "Import candidates are normalized summaries only",
@@ -151,7 +151,7 @@
     {
       "schema_version": "agent-receipt-import-gate-row.v1",
       "row_id": "agent.bridge.receipt.import.gate.row.06",
-      "generated_at": "2026-06-16T01:02:20.430Z",
+      "generated_at": "2026-06-16T01:50:48.043Z",
       "gate_id": "imports.no_application",
       "gate_status": "ready",
       "description": "Import candidates cannot apply receipts or approvals",
@@ -180,7 +180,7 @@
     {
       "schema_version": "agent-receipt-import-gate-row.v1",
       "row_id": "agent.bridge.receipt.import.gate.row.07",
-      "generated_at": "2026-06-16T01:02:20.430Z",
+      "generated_at": "2026-06-16T01:50:48.043Z",
       "gate_id": "summaries.display_only",
       "gate_status": "ready",
       "description": "Normalized summary rows are display only",
@@ -209,7 +209,7 @@
     {
       "schema_version": "agent-receipt-import-gate-row.v1",
       "row_id": "agent.bridge.receipt.import.gate.row.08",
-      "generated_at": "2026-06-16T01:02:20.430Z",
+      "generated_at": "2026-06-16T01:50:48.043Z",
       "gate_id": "fixtures.blocked",
       "gate_status": "ready",
       "description": "Unsafe import fixtures are quarantined",

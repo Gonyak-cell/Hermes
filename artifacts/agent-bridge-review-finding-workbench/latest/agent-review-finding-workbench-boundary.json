@@ -1,6 +1,6 @@
 {
   "schema_version": "agent-review-finding-workbench-boundary.v1",
-  "generated_at": "2026-06-16T01:42:21.451Z",
+  "generated_at": "2026-06-16T01:50:48.232Z",
   "program_range": "AGENT-BRIDGE-L13-SLICE-I",
   "source_agent_bridge_receipt_import_workspace_status": "ready_for_agent_bridge_receipt_import_workspace",
   "ready_for_agent_review_finding_workbench": true,

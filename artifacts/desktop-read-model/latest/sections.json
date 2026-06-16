@@ -1,6 +1,6 @@
 {
   "schema_version": "desktop-read-model-sections.v1",
-  "generated_at": "2026-06-16T01:42:26.407Z",
+  "generated_at": "2026-06-16T01:50:48.602Z",
   "sections_count": 8,
   "sections": [
     {
@@ -8,7 +8,7 @@
       "section_id": "projects",
       "label": "Projects",
       "source_path": "artifacts/project-operating-contract/latest/project-operating-contract.json",
-      "generated_at": "2026-06-16T01:42:26.407Z",
+      "generated_at": "2026-06-16T01:50:48.602Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -31,14 +31,14 @@
       "ready_row_count": 2,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "aeefd7229769485ca5115fec00fac20a24431abe3524f2249070656968504727"
+      "section_hash": "9b5fca7d78fa2cc2a5f5019489633f8ca039f1a2c4a1da1e01bc48ba0e7625c9"
     },
     {
       "schema_version": "desktop-read-model-section.v1",
       "section_id": "agents",
       "label": "Agents",
       "source_path": "artifacts/agent-bridge-manifest/latest/agent-bridge-manifest.json",
-      "generated_at": "2026-06-16T01:42:26.407Z",
+      "generated_at": "2026-06-16T01:50:48.602Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -47,14 +47,14 @@
           "source_path": "artifacts/agent-bridge-manifest/latest/agent-bridge-manifest.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:ad846d28d74df0fd69cf1208d078138f0a87d90b6fdac51508c08beb1636ef45"
+          "source_content_hash": "sha256:6f979da90f30847e7f52a9d3a9571403ac504dda7318a30d57f7f624549a6ccf"
         },
         {
           "source_id": "agent_bridge_request_receipt",
           "source_path": "artifacts/agent-bridge-request-receipt/latest/agent-bridge-request-receipt.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:412c652af493760e572e07896d34bd6d2237566ffaca10fcc241a1c7fdccd098"
+          "source_content_hash": "sha256:4cd186a6593c45584a34d7ae09a89ab0e33b03fa182dcbbffee13bb9f7ad7739"
         },
         {
           "source_id": "agent_bridge_request_receipt_summary",
@@ -68,42 +68,42 @@
           "source_path": "artifacts/agent-bridge-request-packet-export/latest/agent-bridge-request-packet-export.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:7b96fa44a2c3f6c87147a2c62447851513e8a6eefceccf770f0b1d831519100b"
+          "source_content_hash": "sha256:7a10b121a7581c74ee53c1890d6a6e878827ed6f4d320a8364fe02434655cbbf"
         },
         {
           "source_id": "agent_bridge_receipt_import_workspace",
           "source_path": "artifacts/agent-bridge-receipt-import-workspace/latest/agent-bridge-receipt-import-workspace.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:d27264b0ff03670bef4e24a5a287f9eeed78f786bee6ee8ca4af9da76f56b59f"
+          "source_content_hash": "sha256:30abb8269a3c23845f14eaccfb54b8f3bf3cf1a1f2bcfa1d20900ecaf391fc11"
         },
         {
           "source_id": "agent_bridge_review_finding_workbench",
           "source_path": "artifacts/agent-bridge-review-finding-workbench/latest/agent-bridge-review-finding-workbench.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:0bf1d5a8484a9f597acdcd8c28ac8d8520ccb34609f71a55c086ca5db2cfc686"
+          "source_content_hash": "sha256:9f7d01c009ea3eb00852bfa265ff768222ffa9d80683ab43b42db5952fa2c4cb"
         },
         {
           "source_id": "agent_bridge_execution_candidate",
           "source_path": "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:d0e1a045db67413d218e5c67b8b5d1c6b213410d3a44c85fa93121899b37bf83"
+          "source_content_hash": "sha256:10670abd50cd7fb5133cbd496d0a3e280e6606529395507f0e36db2cc6347a90"
         }
       ],
       "primary_row_count": 7,
       "ready_row_count": 7,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "15cf5acaf67c26b5589b0f23599e4e42f3f042311762791f9043cded38f02645"
+      "section_hash": "1937a90a606ab3321e7b4dea26116394df78dde95eade77e621238ee847cce1e"
     },
     {
       "schema_version": "desktop-read-model-section.v1",
       "section_id": "release",
       "label": "Release",
       "source_path": "docs/release-owner-decision-2026-06-14.md",
-      "generated_at": "2026-06-16T01:42:26.407Z",
+      "generated_at": "2026-06-16T01:50:48.602Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -161,14 +161,14 @@
       "ready_row_count": 7,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "39e8252425a6b9251989513b893efe32b7db00efd7932fe27fc8cac002415732"
+      "section_hash": "0d0ded6e37d052164305a5a734222a60113d1925380f6756af90557643d18910"
     },
     {
       "schema_version": "desktop-read-model-section.v1",
       "section_id": "factory",
       "label": "Factory",
       "source_path": "artifacts/factory-gate-opening-readiness/latest/summary.md",
-      "generated_at": "2026-06-16T01:42:26.407Z",
+      "generated_at": "2026-06-16T01:50:48.602Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -212,14 +212,14 @@
       "ready_row_count": 5,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "e094fceeb81b428c5b37700d7f0ecfe9565747b04d1d22ca812da49675c0ecc9"
+      "section_hash": "8804e83038684a1f7e285719bc2aa2d5d4433dcbd0c277b77030b5d371b62a13"
     },
     {
       "schema_version": "desktop-read-model-section.v1",
       "section_id": "reviews",
       "label": "Reviews",
       "source_path": "docs/claude-final-review-packet-2026-06-15.md",
-      "generated_at": "2026-06-16T01:42:26.407Z",
+      "generated_at": "2026-06-16T01:50:48.602Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -235,14 +235,14 @@
       "ready_row_count": 1,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "cace27552dad5e6eaab969e3dd21ce7c3bd27bb2128d8f3aaacd7794c274c84b"
+      "section_hash": "afd1256dbde551e7674722f3167e9cb10717a83e029fad93bf9405e6b3310ec3"
     },
     {
       "schema_version": "desktop-read-model-section.v1",
       "section_id": "operator_handbook",
       "label": "Operator Handbook",
       "source_path": "artifacts/operator-handbook/latest/operator-handbook.json",
-      "generated_at": "2026-06-16T01:42:26.407Z",
+      "generated_at": "2026-06-16T01:50:48.602Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -293,14 +293,14 @@
       "ready_row_count": 6,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "0d86aa676b297f92367b1d52c0d11f10bdbee0ee172af57af0e0879d207c3d3a"
+      "section_hash": "a86ce8a9f490a95cb761919f0fd82007605aeb6563ce47c554b06a864f2d4159"
     },
     {
       "schema_version": "desktop-read-model-section.v1",
       "section_id": "artifacts",
       "label": "Artifacts",
       "source_path": "docs/release-owner-decision-2026-06-14.md",
-      "generated_at": "2026-06-16T01:42:26.407Z",
+      "generated_at": "2026-06-16T01:50:48.602Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -372,14 +372,14 @@
           "source_path": "artifacts/agent-bridge-manifest/latest/agent-bridge-manifest.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:ad846d28d74df0fd69cf1208d078138f0a87d90b6fdac51508c08beb1636ef45"
+          "source_content_hash": "sha256:6f979da90f30847e7f52a9d3a9571403ac504dda7318a30d57f7f624549a6ccf"
         },
         {
           "source_id": "agent_bridge_request_receipt",
           "source_path": "artifacts/agent-bridge-request-receipt/latest/agent-bridge-request-receipt.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:412c652af493760e572e07896d34bd6d2237566ffaca10fcc241a1c7fdccd098"
+          "source_content_hash": "sha256:4cd186a6593c45584a34d7ae09a89ab0e33b03fa182dcbbffee13bb9f7ad7739"
         },
         {
           "source_id": "agent_bridge_request_receipt_summary",
@@ -393,28 +393,28 @@
           "source_path": "artifacts/agent-bridge-request-packet-export/latest/agent-bridge-request-packet-export.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:7b96fa44a2c3f6c87147a2c62447851513e8a6eefceccf770f0b1d831519100b"
+          "source_content_hash": "sha256:7a10b121a7581c74ee53c1890d6a6e878827ed6f4d320a8364fe02434655cbbf"
         },
         {
           "source_id": "agent_bridge_receipt_import_workspace",
           "source_path": "artifacts/agent-bridge-receipt-import-workspace/latest/agent-bridge-receipt-import-workspace.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:d27264b0ff03670bef4e24a5a287f9eeed78f786bee6ee8ca4af9da76f56b59f"
+          "source_content_hash": "sha256:30abb8269a3c23845f14eaccfb54b8f3bf3cf1a1f2bcfa1d20900ecaf391fc11"
         },
         {
           "source_id": "agent_bridge_review_finding_workbench",
           "source_path": "artifacts/agent-bridge-review-finding-workbench/latest/agent-bridge-review-finding-workbench.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:0bf1d5a8484a9f597acdcd8c28ac8d8520ccb34609f71a55c086ca5db2cfc686"
+          "source_content_hash": "sha256:9f7d01c009ea3eb00852bfa265ff768222ffa9d80683ab43b42db5952fa2c4cb"
         },
         {
           "source_id": "agent_bridge_execution_candidate",
           "source_path": "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:d0e1a045db67413d218e5c67b8b5d1c6b213410d3a44c85fa93121899b37bf83"
+          "source_content_hash": "sha256:10670abd50cd7fb5133cbd496d0a3e280e6606529395507f0e36db2cc6347a90"
         },
         {
           "source_id": "factory_gate_opening",
@@ -512,14 +512,14 @@
       "ready_row_count": 29,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "142a64feedcdc4165e6c8fabd278a449c151bc686deb45335989dc203f72a227"
+      "section_hash": "74a5f94e29601d5c020382c3fa6f88a3a45293ada3edd537dde401141f224ba7"
     },
     {
       "schema_version": "desktop-read-model-section.v1",
       "section_id": "authority_boundary",
       "label": "Authority Boundary",
       "source_path": "artifacts/desktop-authority-boundary/latest/desktop-authority-boundary.json",
-      "generated_at": "2026-06-16T01:42:26.407Z",
+      "generated_at": "2026-06-16T01:50:48.602Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -535,7 +535,7 @@
       "ready_row_count": 1,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "60568a45f53f683067a7a5403b6e4a3564401462c671f3244af345151a20d886"
+      "section_hash": "b2cecf6f87080c1499e656eed3ac86be04b4b6ee1a461ae35a876af4aaa4c6b4"
     }
   ]
 }

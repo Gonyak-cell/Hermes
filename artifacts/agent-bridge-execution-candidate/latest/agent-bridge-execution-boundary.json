@@ -1,6 +1,6 @@
 {
   "schema_version": "agent-bridge-execution-boundary.v1",
-  "generated_at": "2026-06-16T00:17:39.210Z",
+  "generated_at": "2026-06-16T01:50:48.423Z",
   "ready_for_limited_execution_gate_projection": true,
   "local_only": true,
   "read_only": true,

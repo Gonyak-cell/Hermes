@@ -1,12 +1,12 @@
 {
   "schema_version": "agent-bridge-execution-gate-rows.v1",
-  "generated_at": "2026-06-16T00:17:39.210Z",
+  "generated_at": "2026-06-16T01:50:48.423Z",
   "agent_bridge_execution_gate_rows_count": 10,
   "agent_bridge_execution_gate_rows": [
     {
       "schema_version": "agent-bridge-execution-gate-row.v1",
       "row_id": "agent.bridge.execution.gate.row.01",
-      "generated_at": "2026-06-16T00:17:39.210Z",
+      "generated_at": "2026-06-16T01:50:48.423Z",
       "gate_id": "source.manifest.ready",
       "gate_status": "pass",
       "description": "Agent Bridge manifest source is ready",
@@ -38,7 +38,7 @@
     {
       "schema_version": "agent-bridge-execution-gate-row.v1",
       "row_id": "agent.bridge.execution.gate.row.02",
-      "generated_at": "2026-06-16T00:17:39.210Z",
+      "generated_at": "2026-06-16T01:50:48.423Z",
       "gate_id": "source.request_receipt.ready",
       "gate_status": "pass",
       "description": "Agent Bridge request/receipt source is ready",
@@ -70,7 +70,7 @@
     {
       "schema_version": "agent-bridge-execution-gate-row.v1",
       "row_id": "agent.bridge.execution.gate.row.03",
-      "generated_at": "2026-06-16T00:17:39.210Z",
+      "generated_at": "2026-06-16T01:50:48.423Z",
       "gate_id": "source.execution_contracts.ready",
       "gate_status": "pass",
       "description": "Controlled sandbox and limited execution contracts are observed ready",
@@ -102,7 +102,7 @@
     {
       "schema_version": "agent-bridge-execution-gate-row.v1",
       "row_id": "agent.bridge.execution.gate.row.04",
-      "generated_at": "2026-06-16T00:17:39.210Z",
+      "generated_at": "2026-06-16T01:50:48.423Z",
       "gate_id": "candidate.count",
       "gate_status": "pass",
       "description": "Execution candidate queue has the minimum candidate set",
@@ -134,7 +134,7 @@
     {
       "schema_version": "agent-bridge-execution-gate-row.v1",
       "row_id": "agent.bridge.execution.gate.row.05",
-      "generated_at": "2026-06-16T00:17:39.210Z",
+      "generated_at": "2026-06-16T01:50:48.423Z",
       "gate_id": "candidate.allowlist",
       "gate_status": "pass",
       "description": "All candidates match the restricted allowlist",
@@ -166,7 +166,7 @@
     {
       "schema_version": "agent-bridge-execution-gate-row.v1",
       "row_id": "agent.bridge.execution.gate.row.06",
-      "generated_at": "2026-06-16T00:17:39.210Z",
+      "generated_at": "2026-06-16T01:50:48.423Z",
       "gate_id": "candidate.no_execution",
       "gate_status": "pass",
       "description": "No candidate executed or captured command output",
@@ -198,7 +198,7 @@
     {
       "schema_version": "agent-bridge-execution-gate-row.v1",
       "row_id": "agent.bridge.execution.gate.row.07",
-      "generated_at": "2026-06-16T00:17:39.210Z",
+      "generated_at": "2026-06-16T01:50:48.423Z",
       "gate_id": "candidate.receipt_required",
       "gate_status": "pass",
       "description": "Every candidate requires human limited-execution receipt before execution",
@@ -230,7 +230,7 @@
     {
       "schema_version": "agent-bridge-execution-gate-row.v1",
       "row_id": "agent.bridge.execution.gate.row.08",
-      "generated_at": "2026-06-16T00:17:39.210Z",
+      "generated_at": "2026-06-16T01:50:48.423Z",
       "gate_id": "blocked.fixtures",
       "gate_status": "pass",
       "description": "Protected command fixtures are blocked",
@@ -262,7 +262,7 @@
     {
       "schema_version": "agent-bridge-execution-gate-row.v1",
       "row_id": "agent.bridge.execution.gate.row.09",
-      "generated_at": "2026-06-16T00:17:39.210Z",
+      "generated_at": "2026-06-16T01:50:48.423Z",
       "gate_id": "blocked.no_execution",
       "gate_status": "pass",
       "description": "Blocked fixtures do not open execution or mutation authority",
@@ -294,7 +294,7 @@
     {
       "schema_version": "agent-bridge-execution-gate-row.v1",
       "row_id": "agent.bridge.execution.gate.row.10",
-      "generated_at": "2026-06-16T00:17:39.210Z",
+      "generated_at": "2026-06-16T01:50:48.423Z",
       "gate_id": "authority.closed",
       "gate_status": "pass",
       "description": "All authority flags remain closed",

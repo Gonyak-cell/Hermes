@@ -1,12 +1,12 @@
 {
   "schema_version": "agent-bridge-closeout-gate-rows.v1",
-  "generated_at": "2026-06-16T01:49:18.932Z",
+  "generated_at": "2026-06-16T01:50:48.804Z",
   "agent_bridge_closeout_gate_rows_count": 5,
   "agent_bridge_closeout_gate_rows": [
     {
       "schema_version": "agent-bridge-closeout-gate-row.v1",
       "row_id": "agent.bridge.closeout.gate.row.01",
-      "generated_at": "2026-06-16T01:49:18.932Z",
+      "generated_at": "2026-06-16T01:50:48.804Z",
       "gate_id": "package.script.registered",
       "gate_status": "pass",
       "description": "platform:agent-bridge-closeout-readiness is registered",
@@ -38,7 +38,7 @@
     {
       "schema_version": "agent-bridge-closeout-gate-row.v1",
       "row_id": "agent.bridge.closeout.gate.row.02",
-      "generated_at": "2026-06-16T01:49:18.932Z",
+      "generated_at": "2026-06-16T01:50:48.804Z",
       "gate_id": "sources.ready",
       "gate_status": "pass",
       "description": "All Agent Bridge closeout sources are ready",
@@ -70,7 +70,7 @@
     {
       "schema_version": "agent-bridge-closeout-gate-row.v1",
       "row_id": "agent.bridge.closeout.gate.row.03",
-      "generated_at": "2026-06-16T01:49:18.932Z",
+      "generated_at": "2026-06-16T01:50:48.804Z",
       "gate_id": "runbook.ready",
       "gate_status": "pass",
       "description": "Runbook declares required authority boundaries",
@@ -102,7 +102,7 @@
     {
       "schema_version": "agent-bridge-closeout-gate-row.v1",
       "row_id": "agent.bridge.closeout.gate.row.04",
-      "generated_at": "2026-06-16T01:49:18.932Z",
+      "generated_at": "2026-06-16T01:50:48.804Z",
       "gate_id": "handoff.ready",
       "gate_status": "pass",
       "description": "Local operator handoff rows are ready",
@@ -134,7 +134,7 @@
     {
       "schema_version": "agent-bridge-closeout-gate-row.v1",
       "row_id": "agent.bridge.closeout.gate.row.05",
-      "generated_at": "2026-06-16T01:49:18.932Z",
+      "generated_at": "2026-06-16T01:50:48.804Z",
       "gate_id": "authority.closed",
       "gate_status": "pass",
       "description": "Closeout readiness does not open authority",

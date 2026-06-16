@@ -1,6 +1,6 @@
 {
   "schema_version": "desktop-read-model-source-rows.v1",
-  "generated_at": "2026-06-16T01:42:26.407Z",
+  "generated_at": "2026-06-16T01:50:48.602Z",
   "source_rows_count": 29,
   "source_rows": [
     {
@@ -28,8 +28,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "d43764d4c1ff44351f0f248bf92af922835de803ff46c3f163fdf112d6ff14c4"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "3aa4ed81df1742aeeae6e5124e79f25f17ad06d309d69214c04481a154f5b2c8"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -54,8 +54,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "b861827b858ace749abc4ec9d5fe3295a1764572c99936464eeb88c5d084df75"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "76d1c6beb1c76386ef5f592b0f4d0e0c0dbf0e30aa2a48afeea75d2a529993ee"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -78,8 +78,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "2479ba109ffbc67e7a797eff6816d6ff5130061f46a12e86b8760455eae7be4c"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "9e895beddde96d8a7a9405000ba216d69547deac770754d0eccc37fbf8f3100d"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -104,8 +104,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "410e9752fdd5b4000f4ae8dd76762b28b22edf25e8a99c3cccbf251dd0685765"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "c4f22fc55a49360d9352a86c94264ca58064281f0407b726c88d114aa6ba507a"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -129,8 +129,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "9292d484442e3b6d9debf95fc2f6ed82c622c730968a5c4ba52b1f3cbf8170a4"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "9328a7c937176f165436cc5d4a4ac327c9904f7adef0d9987962de5e97e1ea0f"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -153,8 +153,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "b6933e04352bfd738a2e8b112a53d1aff3663a3860d4e480aa133cbaafe64b42"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "0152bb6d6c344aa2b1b6db0b06d2e0bf65666a877870aca0e9a41a92f8fbbc37"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -178,8 +178,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "adfa246925a9e5afdbf894f4fc6a04f8cadbcae62f133ce4217402e268a94065"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "3454a1dff7bfd6b43d887ac890f3b404c38d3990da3a5cb783c2ee57a0a52439"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -595,8 +595,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "44fbd9de37617410fcdecfe431d1ef55aac67a132bf96293af2e7eff73ef21a3"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "c61f1bf56da9053d5d2422ab8858018ce1c7b9a479b599d2b538d2b14d809011"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -619,8 +619,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "fcd322be6796f30af56d9c273d39e9d6601f4e551da3792f111464ae0c26d0c4"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "91378f7784e52e88f2f6e8b6fa47b3d4e9c3f3d751442911b3e8a3f622a9362c"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -632,13 +632,13 @@
       "source_allowed_by_policy": true,
       "source_available": true,
       "parse_status": "parsed",
-      "source_content_hash": "sha256:ad846d28d74df0fd69cf1208d078138f0a87d90b6fdac51508c08beb1636ef45",
+      "source_content_hash": "sha256:6f979da90f30847e7f52a9d3a9571403ac504dda7318a30d57f7f624549a6ccf",
       "data_summary": {
         "schema_version": "agent-bridge-manifest.v1",
         "agent_bridge_manifest_status": "ready_for_agent_bridge_manifest",
         "runtime_count": 4,
-        "capability_count": 26,
-        "permission_row_count": 26,
+        "capability_count": 28,
+        "permission_row_count": 28,
         "validation_error_count": 0,
         "unsafe_flag_count": 0,
         "production_pass_enabled": false,
@@ -795,9 +795,42 @@
             "trust_class": "deterministic_local_file"
           },
           {
+            "capability_id": "capability.local_script.platform.agent.bridge.receipt.import.workspace",
+            "capability_kind": "package_script",
+            "capability_name": "platform:agent-bridge-receipt-import-workspace",
+            "runtime_id": "runtime.local.hermes_scripts",
+            "state": "observed",
+            "passive_collection_only": false,
+            "requestable": false,
+            "executable": false,
+            "trust_class": "deterministic_local_file"
+          },
+          {
+            "capability_id": "capability.local_script.platform.agent.bridge.request.packet.export",
+            "capability_kind": "package_script",
+            "capability_name": "platform:agent-bridge-request-packet-export",
+            "runtime_id": "runtime.local.hermes_scripts",
+            "state": "observed",
+            "passive_collection_only": false,
+            "requestable": false,
+            "executable": false,
+            "trust_class": "deterministic_local_file"
+          },
+          {
             "capability_id": "capability.local_script.platform.agent.bridge.request.receipt",
             "capability_kind": "package_script",
             "capability_name": "platform:agent-bridge-request-receipt",
+            "runtime_id": "runtime.local.hermes_scripts",
+            "state": "observed",
+            "passive_collection_only": false,
+            "requestable": false,
+            "executable": false,
+            "trust_class": "deterministic_local_file"
+          },
+          {
+            "capability_id": "capability.local_script.platform.agent.bridge.review.finding.workbench",
+            "capability_kind": "package_script",
+            "capability_name": "platform:agent-bridge-review-finding-workbench",
             "runtime_id": "runtime.local.hermes_scripts",
             "state": "observed",
             "passive_collection_only": false,
@@ -969,17 +1002,6 @@
             "requestable": false,
             "executable": false,
             "trust_class": "deterministic_local_file"
-          },
-          {
-            "capability_id": "capability.local_script.platform.agent.zendd.candidate.bridge",
-            "capability_kind": "package_script",
-            "capability_name": "platform:agent-zendd-candidate-bridge",
-            "runtime_id": "runtime.local.hermes_scripts",
-            "state": "observed",
-            "passive_collection_only": false,
-            "requestable": false,
-            "executable": false,
-            "trust_class": "deterministic_local_file"
           }
         ],
         "permission_rows": [
@@ -1074,7 +1096,37 @@
             "opens_authority": false
           },
           {
+            "capability_id": "capability.local_script.platform.agent.bridge.receipt.import.workspace",
+            "runtime_id": "runtime.local.hermes_scripts",
+            "authority_namespace": "developer_preflight",
+            "capability_state": "observed",
+            "desktop_display_allowed": true,
+            "requestable": false,
+            "executable": false,
+            "opens_authority": false
+          },
+          {
+            "capability_id": "capability.local_script.platform.agent.bridge.request.packet.export",
+            "runtime_id": "runtime.local.hermes_scripts",
+            "authority_namespace": "developer_preflight",
+            "capability_state": "observed",
+            "desktop_display_allowed": true,
+            "requestable": false,
+            "executable": false,
+            "opens_authority": false
+          },
+          {
             "capability_id": "capability.local_script.platform.agent.bridge.request.receipt",
+            "runtime_id": "runtime.local.hermes_scripts",
+            "authority_namespace": "developer_preflight",
+            "capability_state": "observed",
+            "desktop_display_allowed": true,
+            "requestable": false,
+            "executable": false,
+            "opens_authority": false
+          },
+          {
+            "capability_id": "capability.local_script.platform.agent.bridge.review.finding.workbench",
             "runtime_id": "runtime.local.hermes_scripts",
             "authority_namespace": "developer_preflight",
             "capability_state": "observed",
@@ -1232,23 +1284,13 @@
             "requestable": false,
             "executable": false,
             "opens_authority": false
-          },
-          {
-            "capability_id": "capability.local_script.platform.agent.zendd.candidate.bridge",
-            "runtime_id": "runtime.local.hermes_scripts",
-            "authority_namespace": "developer_preflight",
-            "capability_state": "observed",
-            "desktop_display_allowed": true,
-            "requestable": false,
-            "executable": false,
-            "opens_authority": false
           }
         ]
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "3bed7cd30a52c58bb0df851d6dfc63706ecfba5a6d91b2b8c6f907664ecc0208"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "a1aeb7427b05a54273edfca241b726e7527ac4ca7defd19f412508527cc07201"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -1260,7 +1302,7 @@
       "source_allowed_by_policy": true,
       "source_available": true,
       "parse_status": "parsed",
-      "source_content_hash": "sha256:412c652af493760e572e07896d34bd6d2237566ffaca10fcc241a1c7fdccd098",
+      "source_content_hash": "sha256:4cd186a6593c45584a34d7ae09a89ab0e33b03fa182dcbbffee13bb9f7ad7739",
       "data_summary": {
         "schema_version": "agent-bridge-request-receipt.v1",
         "agent_bridge_request_receipt_status": "ready_for_agent_bridge_request_receipt",
@@ -1425,8 +1467,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "30e1e81a3d520d2fa73092716e69ce89d277052d625edd2266f9773473add5f8"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "6141ee9b209bc00b8d5c06c1e3ef55f24f68bf18a9f14f23df8345f697cda617"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -1449,8 +1491,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "153004104ab07c0775cae0a1b09100110bab42f151de7f98ff2ea1c4d997dfcb"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "af0899f998899109be050ed262a0d141134aec0c1d15b3000150040ec814bb07"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -1462,7 +1504,7 @@
       "source_allowed_by_policy": true,
       "source_available": true,
       "parse_status": "parsed",
-      "source_content_hash": "sha256:7b96fa44a2c3f6c87147a2c62447851513e8a6eefceccf770f0b1d831519100b",
+      "source_content_hash": "sha256:7a10b121a7581c74ee53c1890d6a6e878827ed6f4d320a8364fe02434655cbbf",
       "data_summary": {
         "schema_version": "agent-bridge-request-packet-export.v1",
         "agent_bridge_request_packet_export_status": "ready_for_agent_bridge_request_packet_export",
@@ -1490,7 +1532,7 @@
             "target_capability_id": "capability.chatgpt.agbrowse.web_ai",
             "packet_status": "ready_to_copy",
             "packet_file_name": "plan_review-db2e3fea.md",
-            "packet_markdown_hash": "sha256:3ff8e7ea0a04984e26822ffc67a71fbd2c7666b25a2e03518d4e6eb9685ca8a0",
+            "packet_markdown_hash": "sha256:2de93338987de8e3530654672f98a874302c31a594ab0cb548f6597db5c1a176",
             "copy_allowed_now": true,
             "file_export_allowed_now": true,
             "request_transport_submission_allowed_now": false,
@@ -1508,7 +1550,7 @@
             "target_capability_id": "capability.claude.review_lane",
             "packet_status": "ready_to_copy",
             "packet_file_name": "code_review-1ce5af2e.md",
-            "packet_markdown_hash": "sha256:3a659941bbc099c90230600bb9a3b5ff198e1aba539ac0c36d496bdd05b00be4",
+            "packet_markdown_hash": "sha256:064a6f501ef04c3a03f114c142eb1824fcb0fec56e8b86f8b3695445d127595f",
             "copy_allowed_now": true,
             "file_export_allowed_now": true,
             "request_transport_submission_allowed_now": false,
@@ -1526,7 +1568,7 @@
             "target_capability_id": "capability.codex.skills.visible_catalog",
             "packet_status": "ready_to_copy",
             "packet_file_name": "implementation_proposal-7e701d60.md",
-            "packet_markdown_hash": "sha256:48bef365e78ca2647d8406a905ada68f7b3ac6b1a76ece288b8efde622bd6a6c",
+            "packet_markdown_hash": "sha256:4df2b904de8ed266790e81feb69d14d90eba61ddfe1e2d65b5cb92da9b03035c",
             "copy_allowed_now": true,
             "file_export_allowed_now": true,
             "request_transport_submission_allowed_now": false,
@@ -1544,7 +1586,7 @@
             "target_capability_id": "capability.local.hermes.agent_bridge_manifest",
             "packet_status": "ready_to_copy",
             "packet_file_name": "command_suggestion-8c453e5b.md",
-            "packet_markdown_hash": "sha256:8f9a80ff220df77b8ea26e69ae2871239e4dadca48a741430b156b76503c4132",
+            "packet_markdown_hash": "sha256:abe06caf1a8ed23b4d3ac20cb47e72b771987845e6bcfd6d3102089c592732a0",
             "copy_allowed_now": true,
             "file_export_allowed_now": true,
             "request_transport_submission_allowed_now": false,
@@ -1649,8 +1691,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "7ef848d8e9555ff960bf0707fd8f3d188b80cbeacef66d2291c0c22edf43020d"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "ba24ebd3e8f5a1796b9d0d3707b409918a18f73d76a18047c35dedfdf9a17559"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -1662,7 +1704,7 @@
       "source_allowed_by_policy": true,
       "source_available": true,
       "parse_status": "parsed",
-      "source_content_hash": "sha256:d27264b0ff03670bef4e24a5a287f9eeed78f786bee6ee8ca4af9da76f56b59f",
+      "source_content_hash": "sha256:30abb8269a3c23845f14eaccfb54b8f3bf3cf1a1f2bcfa1d20900ecaf391fc11",
       "data_summary": {
         "schema_version": "agent-bridge-receipt-import-workspace.v1",
         "agent_bridge_receipt_import_workspace_status": "ready_for_agent_bridge_receipt_import_workspace",
@@ -1909,8 +1951,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "f22d68834c1ab15ad66a6945dde02ff76629005d40d7cdaf39ff47bdc19c07d3"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "09008a2c222d7d3a183a8da331f199486e569dd9fe7e52549e17ffb0eccb96d8"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -1922,7 +1964,7 @@
       "source_allowed_by_policy": true,
       "source_available": true,
       "parse_status": "parsed",
-      "source_content_hash": "sha256:0bf1d5a8484a9f597acdcd8c28ac8d8520ccb34609f71a55c086ca5db2cfc686",
+      "source_content_hash": "sha256:9f7d01c009ea3eb00852bfa265ff768222ffa9d80683ab43b42db5952fa2c4cb",
       "data_summary": {
         "schema_version": "agent-bridge-review-finding-workbench.v1",
         "agent_bridge_review_finding_workbench_status": "ready_for_agent_bridge_review_finding_workbench",
@@ -2063,8 +2105,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "679fbc59574f66275d80b521fed827506dec4a2efaefec227fbd2e438a94c712"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "585a2ff8675e9a9e40054e26bbe80b5b8470bf3804a5ae0d7a514327b78dd35e"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2076,7 +2118,7 @@
       "source_allowed_by_policy": true,
       "source_available": true,
       "parse_status": "parsed",
-      "source_content_hash": "sha256:d0e1a045db67413d218e5c67b8b5d1c6b213410d3a44c85fa93121899b37bf83",
+      "source_content_hash": "sha256:10670abd50cd7fb5133cbd496d0a3e280e6606529395507f0e36db2cc6347a90",
       "data_summary": {
         "schema_version": "agent-bridge-execution-candidate.v1",
         "agent_bridge_execution_candidate_status": "ready_for_agent_bridge_execution_candidate",
@@ -2429,8 +2471,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "d88fe400d0dfe49f499e61032c40d6600f05596b080844128bfb49a2c3a3123f"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "f132fe6b59cd3995f0a51560900708760f874deaf81290460661479328be6265"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2459,8 +2501,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "bd92164a95912f4811accf5d3d173ef4ea75379343e7544186858a855d42883f"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "5658e418d04c7c7c5001f59a03e4021adbe29ac8285ef836c495d39ddf525eda"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2489,8 +2531,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "47524ebaacb89b460b48d86ca597c9b258f18250b881b9cb2a6fd85918d3fb46"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "b7436922cee0898b1616f9cc6e5aa634ffdfc99a8c2ce76010e2278e85d695c9"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2514,8 +2556,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "af36507ed95e248680c90c6029127bfc6414c0c60f56aa27b24e934e24e2d200"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "a9b7d9b363dda9e3b2089945de11f1de68a9e063ccf25414d5afff9d21cd4a1a"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2540,8 +2582,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "cacefa20d6dc0b61920b2c88aa446ed55a104dc02f9d74d222c0a5f5bf178ba7"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "1c914fc81b69d8b43c5a8a0f67d467a954a7f8e90071346619860ec49837646e"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2565,8 +2607,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "4025d26bb4463fea49932d9f8ee20661cfa18b8bd642592b5f4afaafcc4ece5b"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "6769c7addda89af8ea11fd894b8f1814f24dd5daca960ee7a2a78b0c1696ba54"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2589,8 +2631,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "d986aa4157ececd896cda8cd2e89212a08336fd71c47bc9a933a8fb2d71401c8"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "59f540b32fe99cd29d00ba2d038687ef691800dd16b82023ad872c03b31d75a6"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2614,8 +2656,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "8ddcb611ac7e07ce60e476ea68fc01d04dd0bb3cd3884720f9a0ab0faa34c2a0"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "f8fc3f52b4d8e16469300286e6c1592a9ae3ca5a13f797b8cd236eac05463df7"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2633,8 +2675,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "ffeb14f6441bb119888f7ddfa6cf6f49e98493c8aeac9362556192265211a935"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "f05eecf2279c60ed237a9a8640bd6e0ec716edc7335395279ec2b407112c15bf"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2652,8 +2694,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "fb4c2354b860ce3c5dfa137a159ffa4d3f41e805dd48855350cb8bc6ee9bbaee"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "92b85ab3b368dda04800b38fe8a207483c94e29784198a5558ae88446fc82397"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2671,8 +2713,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "87cdf65bcca5b32887674556f635937435d2281b4c26b5da43a7fd1bf4e44c32"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "202e3adfac9a5773b8a3ba9d3e771ecb3d5648b7bf84dff4337bfd488cac2ae7"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2690,8 +2732,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "943e6a744d2c6622fbda2451100ca733804c80448179ec7aec5d15504be80e3f"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "035ed74070bfc0f83de00c49884fe8b441328b1d50c56a81d9a146cdbafa37fc"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2712,8 +2754,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "42ac708ae186b65d9668049800acf029325c4c9c86241ee19f355e834eb10a4a"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "afbbf8353933f3aa44e74893360f21a98154b261cbd8f0d2a88bccf9b05a69f6"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2739,8 +2781,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:42:26.407Z",
-      "source_row_hash": "46b23d6b8cabc3ef19fa7cd01cf20c2a8cd0a1b7f8118a4152714108c919aac3"
+      "generated_at": "2026-06-16T01:50:48.602Z",
+      "source_row_hash": "46e5754c024d85fa40be522ade4cb3f5f94cce627da2b3a8e07fa5c836421c31"
     }
   ]
 }

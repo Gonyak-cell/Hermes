@@ -1,12 +1,12 @@
 {
   "schema_version": "agent-request-packet-export-gate-rows.v1",
-  "generated_at": "2026-06-16T01:02:15.226Z",
+  "generated_at": "2026-06-16T01:50:47.861Z",
   "agent_request_packet_export_gate_rows_count": 9,
   "agent_request_packet_export_gate_rows": [
     {
       "schema_version": "agent-request-packet-export-gate-row.v1",
       "row_id": "agent.bridge.request.packet.export.gate.row.01",
-      "generated_at": "2026-06-16T01:02:15.226Z",
+      "generated_at": "2026-06-16T01:50:47.861Z",
       "gate_id": "source.manifest.ready",
       "gate_status": "ready",
       "description": "Source Agent Bridge manifest is ready",
@@ -35,7 +35,7 @@
     {
       "schema_version": "agent-request-packet-export-gate-row.v1",
       "row_id": "agent.bridge.request.packet.export.gate.row.02",
-      "generated_at": "2026-06-16T01:02:15.226Z",
+      "generated_at": "2026-06-16T01:50:47.861Z",
       "gate_id": "source.request_receipt.ready",
       "gate_status": "ready",
       "description": "Source Agent Bridge request/receipt is ready",
@@ -64,7 +64,7 @@
     {
       "schema_version": "agent-request-packet-export-gate-row.v1",
       "row_id": "agent.bridge.request.packet.export.gate.row.03",
-      "generated_at": "2026-06-16T01:02:15.226Z",
+      "generated_at": "2026-06-16T01:50:47.861Z",
       "gate_id": "package.script.registered",
       "gate_status": "ready",
       "description": "Package script is registered",
@@ -93,7 +93,7 @@
     {
       "schema_version": "agent-request-packet-export-gate-row.v1",
       "row_id": "agent.bridge.request.packet.export.gate.row.04",
-      "generated_at": "2026-06-16T01:02:15.226Z",
+      "generated_at": "2026-06-16T01:50:47.861Z",
       "gate_id": "packets.cover.requests",
       "gate_status": "ready",
       "description": "Export packets cover every request row",
@@ -122,7 +122,7 @@
     {
       "schema_version": "agent-request-packet-export-gate-row.v1",
       "row_id": "agent.bridge.request.packet.export.gate.row.05",
-      "generated_at": "2026-06-16T01:02:15.226Z",
+      "generated_at": "2026-06-16T01:50:47.861Z",
       "gate_id": "packets.copy_only",
       "gate_status": "ready",
       "description": "Packets are copy/file export only",
@@ -151,7 +151,7 @@
     {
       "schema_version": "agent-request-packet-export-gate-row.v1",
       "row_id": "agent.bridge.request.packet.export.gate.row.06",
-      "generated_at": "2026-06-16T01:02:15.226Z",
+      "generated_at": "2026-06-16T01:50:47.861Z",
       "gate_id": "packets.no_raw_prompt",
       "gate_status": "ready",
       "description": "Packets exclude raw prompts, raw sources, and secrets",
@@ -180,7 +180,7 @@
     {
       "schema_version": "agent-request-packet-export-gate-row.v1",
       "row_id": "agent.bridge.request.packet.export.gate.row.07",
-      "generated_at": "2026-06-16T01:02:15.226Z",
+      "generated_at": "2026-06-16T01:50:47.861Z",
       "gate_id": "packets.no_execution",
       "gate_status": "ready",
       "description": "Packets do not execute, mutate, approve, or apply receipts",
@@ -209,7 +209,7 @@
     {
       "schema_version": "agent-request-packet-export-gate-row.v1",
       "row_id": "agent.bridge.request.packet.export.gate.row.08",
-      "generated_at": "2026-06-16T01:02:15.226Z",
+      "generated_at": "2026-06-16T01:50:47.861Z",
       "gate_id": "markdown.ready",
       "gate_status": "ready",
       "description": "Markdown packet rows are ready",
@@ -238,7 +238,7 @@
     {
       "schema_version": "agent-request-packet-export-gate-row.v1",
       "row_id": "agent.bridge.request.packet.export.gate.row.09",
-      "generated_at": "2026-06-16T01:02:15.226Z",
+      "generated_at": "2026-06-16T01:50:47.861Z",
       "gate_id": "fixtures.blocked",
       "gate_status": "ready",
       "description": "Unsafe export fixtures are blocked",

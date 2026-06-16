@@ -1,12 +1,12 @@
 {
   "schema_version": "capability-state-lattice-rows.v1",
-  "generated_at": "2026-06-16T00:17:38.849Z",
+  "generated_at": "2026-06-16T01:50:47.496Z",
   "capability_state_lattice_rows_count": 8,
   "capability_state_lattice_rows": [
     {
       "schema_version": "agent-capability-state-lattice-row.v1",
       "row_id": "agent.bridge.state.lattice.row.01",
-      "generated_at": "2026-06-16T00:17:38.849Z",
+      "generated_at": "2026-06-16T01:50:47.496Z",
       "from_state": "installed",
       "to_state": "observed",
       "automatic_transition_allowed": false,
@@ -19,7 +19,7 @@
     {
       "schema_version": "agent-capability-state-lattice-row.v1",
       "row_id": "agent.bridge.state.lattice.row.02",
-      "generated_at": "2026-06-16T00:17:38.849Z",
+      "generated_at": "2026-06-16T01:50:47.496Z",
       "from_state": "installed",
       "to_state": "requestable",
       "automatic_transition_allowed": false,
@@ -32,7 +32,7 @@
     {
       "schema_version": "agent-capability-state-lattice-row.v1",
       "row_id": "agent.bridge.state.lattice.row.03",
-      "generated_at": "2026-06-16T00:17:38.849Z",
+      "generated_at": "2026-06-16T01:50:47.496Z",
       "from_state": "installed",
       "to_state": "executable",
       "automatic_transition_allowed": false,
@@ -45,7 +45,7 @@
     {
       "schema_version": "agent-capability-state-lattice-row.v1",
       "row_id": "agent.bridge.state.lattice.row.04",
-      "generated_at": "2026-06-16T00:17:38.849Z",
+      "generated_at": "2026-06-16T01:50:47.496Z",
       "from_state": "observed",
       "to_state": "requestable",
       "automatic_transition_allowed": false,
@@ -58,7 +58,7 @@
     {
       "schema_version": "agent-capability-state-lattice-row.v1",
       "row_id": "agent.bridge.state.lattice.row.05",
-      "generated_at": "2026-06-16T00:17:38.849Z",
+      "generated_at": "2026-06-16T01:50:47.496Z",
       "from_state": "observed",
       "to_state": "executable",
       "automatic_transition_allowed": false,
@@ -71,7 +71,7 @@
     {
       "schema_version": "agent-capability-state-lattice-row.v1",
       "row_id": "agent.bridge.state.lattice.row.06",
-      "generated_at": "2026-06-16T00:17:38.849Z",
+      "generated_at": "2026-06-16T01:50:47.496Z",
       "from_state": "requestable",
       "to_state": "executable",
       "automatic_transition_allowed": false,
@@ -84,7 +84,7 @@
     {
       "schema_version": "agent-capability-state-lattice-row.v1",
       "row_id": "agent.bridge.state.lattice.row.07",
-      "generated_at": "2026-06-16T00:17:38.849Z",
+      "generated_at": "2026-06-16T01:50:47.496Z",
       "from_state": "reviewed",
       "to_state": "approved",
       "automatic_transition_allowed": false,
@@ -97,7 +97,7 @@
     {
       "schema_version": "agent-capability-state-lattice-row.v1",
       "row_id": "agent.bridge.state.lattice.row.08",
-      "generated_at": "2026-06-16T00:17:38.849Z",
+      "generated_at": "2026-06-16T01:50:47.496Z",
       "from_state": "receipt_imported",
       "to_state": "receipt_applied",
       "automatic_transition_allowed": false,

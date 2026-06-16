@@ -1,12 +1,12 @@
 {
   "schema_version": "agent-request-receipt-gate-rows.v1",
-  "generated_at": "2026-06-16T00:17:39.029Z",
+  "generated_at": "2026-06-16T01:50:47.677Z",
   "agent_request_receipt_gate_rows_count": 11,
   "agent_request_receipt_gate_rows": [
     {
       "schema_version": "agent-request-receipt-gate-row.v1",
       "row_id": "agent.bridge.request.receipt.gate.row.01",
-      "generated_at": "2026-06-16T00:17:39.029Z",
+      "generated_at": "2026-06-16T01:50:47.677Z",
       "gate_id": "source.manifest.ready",
       "gate_status": "ready",
       "description": "Source Agent Bridge manifest is ready",
@@ -35,7 +35,7 @@
     {
       "schema_version": "agent-request-receipt-gate-row.v1",
       "row_id": "agent.bridge.request.receipt.gate.row.02",
-      "generated_at": "2026-06-16T00:17:39.029Z",
+      "generated_at": "2026-06-16T01:50:47.677Z",
       "gate_id": "package.script.registered",
       "gate_status": "ready",
       "description": "Package script is registered",
@@ -64,7 +64,7 @@
     {
       "schema_version": "agent-request-receipt-gate-row.v1",
       "row_id": "agent.bridge.request.receipt.gate.row.03",
-      "generated_at": "2026-06-16T00:17:39.029Z",
+      "generated_at": "2026-06-16T01:50:47.677Z",
       "gate_id": "request.types.complete",
       "gate_status": "ready",
       "description": "All request types are generated",
@@ -93,7 +93,7 @@
     {
       "schema_version": "agent-request-receipt-gate-row.v1",
       "row_id": "agent.bridge.request.receipt.gate.row.04",
-      "generated_at": "2026-06-16T00:17:39.029Z",
+      "generated_at": "2026-06-16T01:50:47.677Z",
       "gate_id": "request.ids.unique",
       "gate_status": "ready",
       "description": "Request ids are stable and unique",
@@ -122,7 +122,7 @@
     {
       "schema_version": "agent-request-receipt-gate-row.v1",
       "row_id": "agent.bridge.request.receipt.gate.row.05",
-      "generated_at": "2026-06-16T00:17:39.029Z",
+      "generated_at": "2026-06-16T01:50:47.677Z",
       "gate_id": "request.no_execution",
       "gate_status": "ready",
       "description": "Request queue does not execute or submit transport",
@@ -151,7 +151,7 @@
     {
       "schema_version": "agent-request-receipt-gate-row.v1",
       "row_id": "agent.bridge.request.receipt.gate.row.06",
-      "generated_at": "2026-06-16T00:17:39.029Z",
+      "generated_at": "2026-06-16T01:50:47.677Z",
       "gate_id": "request.data_minimized",
       "gate_status": "ready",
       "description": "Request rows pass data minimization",
@@ -180,7 +180,7 @@
     {
       "schema_version": "agent-request-receipt-gate-row.v1",
       "row_id": "agent.bridge.request.receipt.gate.row.07",
-      "generated_at": "2026-06-16T00:17:39.029Z",
+      "generated_at": "2026-06-16T01:50:47.677Z",
       "gate_id": "receipt.normalized_only",
       "gate_status": "ready",
       "description": "Receipt intake stores normalized summaries only",
@@ -209,7 +209,7 @@
     {
       "schema_version": "agent-request-receipt-gate-row.v1",
       "row_id": "agent.bridge.request.receipt.gate.row.08",
-      "generated_at": "2026-06-16T00:17:39.029Z",
+      "generated_at": "2026-06-16T01:50:47.677Z",
       "gate_id": "receipt.no_application",
       "gate_status": "ready",
       "description": "Receipt intake cannot apply or approve",
@@ -238,7 +238,7 @@
     {
       "schema_version": "agent-request-receipt-gate-row.v1",
       "row_id": "agent.bridge.request.receipt.gate.row.09",
-      "generated_at": "2026-06-16T00:17:39.029Z",
+      "generated_at": "2026-06-16T01:50:47.677Z",
       "gate_id": "evidence.bindings.cover_requests",
       "gate_status": "ready",
       "description": "Evidence binding rows cover all request rows",
@@ -267,7 +267,7 @@
     {
       "schema_version": "agent-request-receipt-gate-row.v1",
       "row_id": "agent.bridge.request.receipt.gate.row.10",
-      "generated_at": "2026-06-16T00:17:39.029Z",
+      "generated_at": "2026-06-16T01:50:47.677Z",
       "gate_id": "malicious.requests.blocked",
       "gate_status": "ready",
       "description": "Malicious request fixtures are blocked",
@@ -296,7 +296,7 @@
     {
       "schema_version": "agent-request-receipt-gate-row.v1",
       "row_id": "agent.bridge.request.receipt.gate.row.11",
-      "generated_at": "2026-06-16T00:17:39.029Z",
+      "generated_at": "2026-06-16T01:50:47.677Z",
       "gate_id": "malicious.receipts.blocked",
       "gate_status": "ready",
       "description": "Malicious receipt fixtures are quarantined",

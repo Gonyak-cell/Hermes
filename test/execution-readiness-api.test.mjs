@@ -14,7 +14,7 @@ import { buildReviewApiResponse } from "../src/review-api.mjs";
 
 const RUN_AT = "2026-06-16T09:00:00.000Z";
 
-test("execution readiness model projects L0 and L1 ready while keeping execution levels blocked", async () => {
+test("execution readiness model projects L0 through L2 ready while keeping mutation levels blocked", async () => {
   const result = await buildExecutionReadinessModel({ runAt: RUN_AT, write: false });
 
   assert.equal(result.validation.valid, true);
@@ -22,7 +22,8 @@ test("execution readiness model projects L0 and L1 ready while keeping execution
   assert.equal(result.summary.ready_source_count, result.summary.source_count);
   assert.equal(result.execution_readiness_rows.find((row) => row.level === "L0").readiness_status, "ready");
   assert.equal(result.execution_readiness_rows.find((row) => row.level === "L1").readiness_status, "ready");
-  assert.equal(result.execution_readiness_rows.find((row) => row.level === "L2").readiness_status, "blocked");
+  assert.equal(result.execution_readiness_rows.find((row) => row.level === "L2").readiness_status, "ready");
+  assert.equal(result.execution_readiness_rows.find((row) => row.level === "L3").readiness_status, "blocked");
   assert.equal(result.execution_readiness_boundary.execution_allowed_now, false);
   assert.equal(result.execution_readiness_boundary.route_handler_invokes_runtime, false);
   assert.equal(result.execution_readiness_boundary.route_handler_writes_ledger, false);
@@ -39,6 +40,7 @@ test("execution readiness model turns missing sources into blocker rows", async 
       factory_stage_read_model: { available: false, validation_valid: false, error: "fixture_missing_factory_stage", data: null },
       factory_g_series_runtime_guards: { available: false, validation_valid: false, error: "fixture_missing_runtime_guards", data: null },
       personal_dev_execution_candidate_lane: { available: false, validation_valid: false, error: "fixture_missing_personal_dev_candidates", data: null },
+      personal_dev_dry_run_sandbox_lane: { available: false, validation_valid: false, error: "fixture_missing_personal_dev_dry_runs", data: null },
     },
   });
 
@@ -123,6 +125,43 @@ test("review API exposes execution readiness as a read-only route", async () => 
 
   const index = await buildReviewApiResponse("/api", { method: "GET", runAt: RUN_AT });
   assert.equal(JSON.parse(index.body).routes.some((route) => route.path === "/api/execution/readiness"), true);
+});
+
+test("execution dry-run API route is GET and HEAD only", async () => {
+  const url = new URL("http://127.0.0.1/api/execution/personal-dev-dry-runs?source_panel_section=test");
+  const get = await buildExecutionApiRouteResponse({
+    pathname: "/api/execution/personal-dev-dry-runs",
+    url,
+    method: "GET",
+    options: { runAt: RUN_AT },
+    generatedAt: RUN_AT,
+  });
+  assert.equal(get.handled, true);
+  assert.equal(get.status, 200);
+  assert.equal(get.body.collection, "personal_dev_dry_run_sandbox_rows");
+  assert.equal(get.body.count, 1);
+  assert.equal(get.body.items[0].source_panel_section, "test");
+  assert.equal(get.body.items[0].actual_command_executed_now, false);
+  assert.equal(get.body.boundary.ready_for_l2_handoff, true);
+  assert.equal(get.body.boundary.actual_runtime_called_now, false);
+
+  const head = await buildExecutionApiRouteResponse({
+    pathname: "/api/execution/personal-dev-dry-runs",
+    url,
+    method: "HEAD",
+    options: { runAt: RUN_AT },
+    generatedAt: RUN_AT,
+  });
+  assert.equal(head.status, 200);
+
+  const denied = await buildExecutionApiRouteResponse({
+    pathname: "/api/execution/personal-dev-dry-runs",
+    url,
+    method: "POST",
+    options: { runAt: RUN_AT },
+    generatedAt: RUN_AT,
+  });
+  assert.equal(denied.status, 405);
 });
 
 test("execution readiness --check validates without overwriting artifacts", async () => {

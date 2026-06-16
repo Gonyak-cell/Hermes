@@ -13854,6 +13854,7 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api", "Route index"),
       route("GET", "/api/execution/readiness", "Read-only execution maturity readiness rows and blockers"),
       route("GET", "/api/execution/personal-dev-candidates", "Read-only personal-dev execution candidate rows"),
+      route("GET", "/api/execution/personal-dev-dry-runs", "Read-only personal-dev dry-run sandbox rows"),
       route("GET", "/api/factory/products", "Factory product registry rows"),
       route("GET", "/api/factory/stage", "Factory product PS stage rows"),
       route("GET", "/api/factory/candidate-manifests", "Factory candidate manifest JSON-only resolver rows"),

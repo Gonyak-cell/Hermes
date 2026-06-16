@@ -1,0 +1,615 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/personal-dev-dry-run-sandbox-lane.schema.json",
+  "title": "personal-dev-dry-run-sandbox-lane",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "product_id",
+    "project_id",
+    "domain_pack_id",
+    "capability_id",
+    "personal_dev_dry_run_sandbox_contract",
+    "personal_dev_dry_run_sandbox_rows",
+    "personal_dev_dry_run_invocation_rows",
+    "personal_dev_dry_run_route_rows",
+    "personal_dev_dry_run_boundary",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "personal-dev-dry-run-sandbox-lane.v1"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "product_id": {
+      "const": "product.hermes_harness"
+    },
+    "project_id": {
+      "const": "project.personal_dev_fixture"
+    },
+    "domain_pack_id": {
+      "const": "personal-dev"
+    },
+    "capability_id": {
+      "const": "personal_dev.dry_run_sandbox_lane"
+    },
+    "personal_dev_dry_run_sandbox_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "$ref": "#/$defs/dryRunRow"
+      }
+    },
+    "personal_dev_dry_run_invocation_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "$ref": "#/$defs/invocationRow"
+      }
+    },
+    "personal_dev_dry_run_route_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/routeRow"
+      }
+    },
+    "personal_dev_dry_run_boundary": {
+      "type": "object",
+      "required": [
+        "source_personal_dev_execution_candidate_lane_ready",
+        "source_agent_bridge_limited_runtime_plan_ready",
+        "dry_run_sandbox_rows_ready",
+        "dry_run_invocation_rows_ready",
+        "route_rows_ready",
+        "ready_for_l2_handoff",
+        "l2_blocker_resolved_now",
+        "read_only",
+        "get_head_only",
+        "sandbox_manifest_projected_now",
+        "dry_run_invocation_projected_now",
+        "runtime_invocation_ledger_projected_now",
+        "execution_request_created_now",
+        "sandbox_session_created_now",
+        "command_invocation_created_now",
+        "execution_receipt_created_now",
+        "worktree_created_now",
+        "actual_runtime_called_now",
+        "actual_command_executed_now",
+        "command_output_captured_now",
+        "patch_generated_now",
+        "patch_applied_now",
+        "execution_allowed_now",
+        "runtime_execution_allowed_now",
+        "command_execution_allowed_now",
+        "file_write_allowed_now",
+        "git_command_allowed_now",
+        "github_api_allowed_now",
+        "pull_request_creation_allowed_now",
+        "merge_allowed_now",
+        "release_allowed_now",
+        "deployment_allowed_now",
+        "production_allowed_now",
+        "protected_output_allowed_now",
+        "connector_write_allowed_now",
+        "desktop_shell_execution_allowed_now",
+        "network_allowed_now",
+        "raw_secret_access_allowed_now",
+        "raw_stdout_stored",
+        "raw_stderr_stored",
+        "final_approval_allowed_now",
+        "owner_approval_counts_as_independent_review",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "source_personal_dev_execution_candidate_lane_ready": {
+          "type": "boolean"
+        },
+        "source_agent_bridge_limited_runtime_plan_ready": {
+          "type": "boolean"
+        },
+        "dry_run_sandbox_rows_ready": {
+          "type": "boolean"
+        },
+        "dry_run_invocation_rows_ready": {
+          "type": "boolean"
+        },
+        "route_rows_ready": {
+          "type": "boolean"
+        },
+        "ready_for_l2_handoff": {
+          "type": "boolean"
+        },
+        "l2_blocker_resolved_now": {
+          "type": "boolean"
+        },
+        "read_only": {
+          "const": true
+        },
+        "get_head_only": {
+          "const": true
+        },
+        "sandbox_manifest_projected_now": {
+          "const": true
+        },
+        "dry_run_invocation_projected_now": {
+          "const": true
+        },
+        "runtime_invocation_ledger_projected_now": {
+          "const": true
+        },
+        "execution_request_created_now": {
+          "const": false
+        },
+        "sandbox_session_created_now": {
+          "const": false
+        },
+        "command_invocation_created_now": {
+          "const": false
+        },
+        "execution_receipt_created_now": {
+          "const": false
+        },
+        "worktree_created_now": {
+          "const": false
+        },
+        "actual_runtime_called_now": {
+          "const": false
+        },
+        "actual_command_executed_now": {
+          "const": false
+        },
+        "command_output_captured_now": {
+          "const": false
+        },
+        "patch_generated_now": {
+          "const": false
+        },
+        "patch_applied_now": {
+          "const": false
+        },
+        "execution_allowed_now": {
+          "const": false
+        },
+        "runtime_execution_allowed_now": {
+          "const": false
+        },
+        "command_execution_allowed_now": {
+          "const": false
+        },
+        "file_write_allowed_now": {
+          "const": false
+        },
+        "git_command_allowed_now": {
+          "const": false
+        },
+        "github_api_allowed_now": {
+          "const": false
+        },
+        "pull_request_creation_allowed_now": {
+          "const": false
+        },
+        "merge_allowed_now": {
+          "const": false
+        },
+        "release_allowed_now": {
+          "const": false
+        },
+        "deployment_allowed_now": {
+          "const": false
+        },
+        "production_allowed_now": {
+          "const": false
+        },
+        "protected_output_allowed_now": {
+          "const": false
+        },
+        "connector_write_allowed_now": {
+          "const": false
+        },
+        "desktop_shell_execution_allowed_now": {
+          "const": false
+        },
+        "network_allowed_now": {
+          "const": false
+        },
+        "raw_secret_access_allowed_now": {
+          "const": false
+        },
+        "raw_stdout_stored": {
+          "const": false
+        },
+        "raw_stderr_stored": {
+          "const": false
+        },
+        "final_approval_allowed_now": {
+          "const": false
+        },
+        "owner_approval_counts_as_independent_review": {
+          "const": false
+        },
+        "production_pass_enabled": {
+          "const": false
+        },
+        "enterprise_pass_enabled": {
+          "const": false
+        },
+        "unsafe_flag_count": {
+          "const": 0
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": [
+        "valid",
+        "errors"
+      ],
+      "properties": {
+        "valid": {
+          "type": "boolean"
+        },
+        "errors": {
+          "type": "array"
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "personal_dev_dry_run_sandbox_lane_status",
+        "dry_run_row_count",
+        "ready_dry_run_row_count",
+        "invocation_row_count",
+        "planned_invocation_row_count",
+        "ready_for_l2_handoff",
+        "l2_blocker_resolved_now",
+        "worktree_created_now",
+        "actual_runtime_called_now",
+        "actual_command_executed_now",
+        "command_output_captured_now",
+        "execution_allowed_now",
+        "command_execution_allowed_now",
+        "file_write_allowed_now",
+        "pull_request_creation_allowed_now",
+        "deployment_allowed_now",
+        "production_allowed_now",
+        "protected_output_allowed_now",
+        "raw_stdout_stored",
+        "raw_stderr_stored",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "validation_error_count"
+      ],
+      "properties": {
+        "personal_dev_dry_run_sandbox_lane_status": {
+          "enum": [
+            "ready_for_personal_dev_dry_run_sandbox_lane",
+            "blocked_personal_dev_dry_run_sandbox_lane"
+          ]
+        },
+        "dry_run_row_count": {
+          "type": "integer",
+          "minimum": 6
+        },
+        "ready_dry_run_row_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "invocation_row_count": {
+          "type": "integer",
+          "minimum": 6
+        },
+        "planned_invocation_row_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ready_for_l2_handoff": {
+          "type": "boolean"
+        },
+        "l2_blocker_resolved_now": {
+          "type": "boolean"
+        },
+        "worktree_created_now": {
+          "const": false
+        },
+        "actual_runtime_called_now": {
+          "const": false
+        },
+        "actual_command_executed_now": {
+          "const": false
+        },
+        "command_output_captured_now": {
+          "const": false
+        },
+        "execution_allowed_now": {
+          "const": false
+        },
+        "command_execution_allowed_now": {
+          "const": false
+        },
+        "file_write_allowed_now": {
+          "const": false
+        },
+        "pull_request_creation_allowed_now": {
+          "const": false
+        },
+        "deployment_allowed_now": {
+          "const": false
+        },
+        "production_allowed_now": {
+          "const": false
+        },
+        "protected_output_allowed_now": {
+          "const": false
+        },
+        "raw_stdout_stored": {
+          "const": false
+        },
+        "raw_stderr_stored": {
+          "const": false
+        },
+        "production_pass_enabled": {
+          "const": false
+        },
+        "enterprise_pass_enabled": {
+          "const": false
+        },
+        "validation_error_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  },
+  "$defs": {
+    "dryRunRow": {
+      "type": "object",
+      "required": [
+        "dry_run_id",
+        "candidate_id",
+        "dry_run_mode",
+        "dry_run_status",
+        "printed_intended_command",
+        "requested_isolation",
+        "actual_isolation",
+        "read_only",
+        "sandbox_manifest_projected_now",
+        "dry_run_invocation_projected_now",
+        "runtime_invocation_ledger_projected_now",
+        "execution_request_created_now",
+        "sandbox_session_created_now",
+        "command_invocation_created_now",
+        "worktree_created_now",
+        "actual_command_executed_now",
+        "command_output_captured_now",
+        "file_write_allowed_now",
+        "command_execution_allowed_now",
+        "pull_request_creation_allowed_now",
+        "deployment_allowed_now",
+        "raw_stdout_stored",
+        "raw_stderr_stored"
+      ],
+      "properties": {
+        "dry_run_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "candidate_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dry_run_mode": {
+          "const": "dry-run"
+        },
+        "dry_run_status": {
+          "enum": [
+            "ready",
+            "blocked"
+          ]
+        },
+        "printed_intended_command": {
+          "type": "string",
+          "pattern": "^DRY RUN ONLY: "
+        },
+        "requested_isolation": {
+          "const": "git_worktree"
+        },
+        "actual_isolation": {
+          "const": "not_created"
+        },
+        "read_only": {
+          "const": true
+        },
+        "sandbox_manifest_projected_now": {
+          "const": true
+        },
+        "dry_run_invocation_projected_now": {
+          "const": true
+        },
+        "runtime_invocation_ledger_projected_now": {
+          "const": true
+        },
+        "execution_request_created_now": {
+          "const": false
+        },
+        "sandbox_session_created_now": {
+          "const": false
+        },
+        "command_invocation_created_now": {
+          "const": false
+        },
+        "worktree_created_now": {
+          "const": false
+        },
+        "actual_command_executed_now": {
+          "const": false
+        },
+        "command_output_captured_now": {
+          "const": false
+        },
+        "file_write_allowed_now": {
+          "const": false
+        },
+        "command_execution_allowed_now": {
+          "const": false
+        },
+        "pull_request_creation_allowed_now": {
+          "const": false
+        },
+        "deployment_allowed_now": {
+          "const": false
+        },
+        "raw_stdout_stored": {
+          "const": false
+        },
+        "raw_stderr_stored": {
+          "const": false
+        }
+      }
+    },
+    "invocationRow": {
+      "type": "object",
+      "required": [
+        "invocation_row_id",
+        "dry_run_id",
+        "runtime_invocation_id",
+        "runtime_id",
+        "mode",
+        "invocation_status",
+        "read_only",
+        "runtime_invocation_ledger_projected_now",
+        "actual_runtime_called_now",
+        "command_invocation_created_now",
+        "actual_command_executed_now",
+        "command_output_captured_now",
+        "raw_stdout_stored",
+        "raw_stderr_stored"
+      ],
+      "properties": {
+        "invocation_row_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dry_run_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "runtime_invocation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "runtime_id": {
+          "const": "codex"
+        },
+        "mode": {
+          "const": "dry-run"
+        },
+        "invocation_status": {
+          "const": "planned"
+        },
+        "read_only": {
+          "const": true
+        },
+        "runtime_invocation_ledger_projected_now": {
+          "const": true
+        },
+        "actual_runtime_called_now": {
+          "const": false
+        },
+        "command_invocation_created_now": {
+          "const": false
+        },
+        "actual_command_executed_now": {
+          "const": false
+        },
+        "command_output_captured_now": {
+          "const": false
+        },
+        "raw_stdout_stored": {
+          "const": false
+        },
+        "raw_stderr_stored": {
+          "const": false
+        }
+      }
+    },
+    "routeRow": {
+      "type": "object",
+      "required": [
+        "route_id",
+        "path",
+        "method_policy",
+        "collection",
+        "route_invokes_runtime",
+        "route_writes_ledger",
+        "route_executes_command",
+        "route_creates_worktree",
+        "route_applies_patch",
+        "route_creates_pull_request",
+        "route_deploys"
+      ],
+      "properties": {
+        "route_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "const": "/api/execution/personal-dev-dry-runs"
+        },
+        "method_policy": {
+          "const": "GET_HEAD_ONLY"
+        },
+        "collection": {
+          "const": "personal_dev_dry_run_sandbox_rows"
+        },
+        "route_invokes_runtime": {
+          "const": false
+        },
+        "route_writes_ledger": {
+          "const": false
+        },
+        "route_executes_command": {
+          "const": false
+        },
+        "route_creates_worktree": {
+          "const": false
+        },
+        "route_applies_patch": {
+          "const": false
+        },
+        "route_creates_pull_request": {
+          "const": false
+        },
+        "route_deploys": {
+          "const": false
+        }
+      }
+    }
+  },
+  "x-forbidden-fields": [
+    "raw_secret",
+    "raw_stdout",
+    "raw_stderr",
+    "shell_execution_action",
+    "patch_body",
+    "provider_key",
+    "worktree_realpath"
+  ],
+  "x-validation-invariants": [
+    "dry-run sandbox lane projects only planned execution",
+    "dry-run sandbox lane does not create worktrees",
+    "dry-run sandbox lane does not execute commands or call runtimes",
+    "dry-run sandbox lane does not persist raw stdout or stderr",
+    "dry-run sandbox lane does not write files, create pull requests, or deploy",
+    "owner approval is not independent review"
+  ]
+}

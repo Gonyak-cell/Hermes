@@ -1,9 +1,9 @@
 {
   "schema_version": "desktop-read-model-validation-report.v1",
-  "generated_at": "2026-06-16T01:02:57.994Z",
+  "generated_at": "2026-06-16T01:42:26.407Z",
   "validation": {
     "valid": true,
-    "item_count": 22,
+    "item_count": 23,
     "error_count": 0,
     "errors": []
   },
@@ -140,6 +140,13 @@
       "status": "passed",
       "message": "ok",
       "evidence_ref": "agent_projection"
+    },
+    {
+      "path": "agent_projection.findings_closed",
+      "check_id": "agent_projection.findings_closed",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_projection.review_finding_seed_rows"
     },
     {
       "path": "agent_projection.execution_candidates_closed",

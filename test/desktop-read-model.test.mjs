@@ -27,8 +27,8 @@ test("Desktop read model projects release, factory, review, operator, artifact, 
     assert.equal(result.validation.valid, true);
     assert.equal(result.schema_version, "desktop-read-model.v1");
     assert.equal(result.summary.desktop_read_model_status, "ready_for_desktop_shell");
-    assert.equal(result.summary.source_count, 28);
-    assert.equal(result.summary.ready_source_count, 28);
+    assert.equal(result.summary.source_count, 29);
+    assert.equal(result.summary.ready_source_count, 29);
     assert.equal(result.summary.section_count, 8);
     assert.equal(result.summary.ready_section_count, 8);
     assert.equal(result.summary.project_count, 2);
@@ -70,6 +70,8 @@ test("Desktop read model projects release, factory, review, operator, artifact, 
     assert.equal(result.agent_projection.receipt_count, 4);
     assert.equal(result.agent_projection.receipt_import_candidate_count, 4);
     assert.equal(result.agent_projection.receipt_normalized_summary_count, 4);
+    assert.equal(result.agent_projection.review_finding_count, 4);
+    assert.equal(result.agent_projection.blocking_finding_count, 2);
     assert.equal(result.agent_projection.execution_candidate_count, 5);
     assert.equal(result.agent_projection.execution_gate_count, 10);
     assert.equal(result.agent_projection.ready_for_desktop_agents_projection, true);
@@ -77,8 +79,13 @@ test("Desktop read model projects release, factory, review, operator, artifact, 
     assert.equal(result.agent_projection.command_output_captured_now, false);
     assert.equal(result.agent_projection.receipt_application_allowed_now, false);
     assert.equal(result.agent_projection.request_transport_submission_allowed_now, false);
+    assert.equal(result.agent_projection.finding_resolution_allowed_now, false);
+    assert.equal(result.agent_projection.clean_checkpoint_allowed_now, false);
+    assert.equal(result.agent_projection.patch_apply_allowed_now, false);
     assert.equal(result.agent_projection.packet_export_rows.every((row) => row.copy_allowed_now === true && row.request_transport_submission_allowed_now === false), true);
     assert.equal(result.agent_projection.receipt_import_candidate_rows.every((row) => row.raw_output_included === false && row.receipt_applied === false && row.opens_authority === false), true);
+    assert.equal(result.agent_projection.review_finding_seed_rows.every((row) => row.finding_resolution_allowed_now === false && row.clean_checkpoint_allowed_now === false && row.patch_apply_allowed_now === false && row.opens_authority === false), true);
+    assert.equal(result.agent_projection.review_finding_action_rows.every((row) => row.action_mutates_state === false && row.action_executes_command === false && row.action_applies_patch === false && row.opens_authority === false), true);
     assert.equal(result.agent_projection.execution_candidate_rows.every((row) => row.execution_allowed_now === false && row.command_executed_now === false && row.command_output_captured_now === false), true);
     assert.equal(result.agent_projection.agent_control_rows.every((row) => row.control_enabled === false && row.opens_authority === false), true);
     assert.equal(result.sections.every((section) => section.source_path && section.generated_at && section.status && Object.hasOwn(section, "blocker") && Array.isArray(section.section_refs)), true);
@@ -264,6 +271,7 @@ async function createReadModelFixture() {
     agentBridgeRequestReceiptSummaryPath: file("agent-bridge-request-receipt-summary.md"),
     agentBridgeRequestPacketExportPath: file("agent-bridge-request-packet-export.json"),
     agentBridgeReceiptImportWorkspacePath: file("agent-bridge-receipt-import-workspace.json"),
+    agentBridgeReviewFindingWorkbenchPath: file("agent-bridge-review-finding-workbench.json"),
     agentBridgeExecutionCandidatePath: file("agent-bridge-execution-candidate.json"),
     operatorHandbookPath: file("operator-handbook.json"),
     operatorSurfacesPath: file("operator-surfaces.json"),
@@ -404,6 +412,7 @@ async function createReadModelFixture() {
   await writeFile(options.agentBridgeRequestReceiptPath, JSON.stringify(agentBridgeRequestReceiptFixture(), null, 2), "utf8");
   await writeFile(options.agentBridgeRequestPacketExportPath, JSON.stringify(agentBridgeRequestPacketExportFixture(), null, 2), "utf8");
   await writeFile(options.agentBridgeReceiptImportWorkspacePath, JSON.stringify(agentBridgeReceiptImportWorkspaceFixture(), null, 2), "utf8");
+  await writeFile(options.agentBridgeReviewFindingWorkbenchPath, JSON.stringify(agentBridgeReviewFindingWorkbenchFixture(), null, 2), "utf8");
   await writeFile(options.agentBridgeExecutionCandidatePath, JSON.stringify(agentBridgeExecutionCandidateFixture(), null, 2), "utf8");
   await writeFile(options.operatorHandbookPath, JSON.stringify({ schema_version: "operator-handbook.v1", summary: { operator_handbook_status: "complete", operator_handbook_id: "operator-handbook.test" } }, null, 2), "utf8");
   await writeFile(options.operatorSurfacesPath, JSON.stringify({ schema_version: "operator-surfaces.v1", operator_surface_rows: [] }, null, 2), "utf8");
@@ -598,6 +607,97 @@ function agentBridgeReceiptImportWorkspaceFixture() {
     blocked_import_fixture_rows: [
       { fixture_id: "import.fake_approval", expected_blocker: "approve", observed_blocker: "approve", blocked: true, receipt_quarantined: true },
     ],
+  };
+}
+
+function agentBridgeReviewFindingWorkbenchFixture() {
+  const findingRows = [
+    ["finding.plan", "receipt.plan", "request.plan", "plan_review", "review_followup", "p2", false, "triage_ready", "Review normalized plan_review receipt summary before any next step."],
+    ["finding.code", "receipt.code", "request.code", "code_review", "missing_or_quarantined_receipt", "p1", true, "blocking_open", "Collect a valid redacted receipt for code_review."],
+    ["finding.proposal", "receipt.proposal", "request.proposal", "implementation_proposal", "missing_or_quarantined_receipt", "p1", true, "blocking_open", "Collect a valid redacted receipt for implementation_proposal."],
+    ["finding.command", "receipt.command", "request.command", "command_suggestion", "review_followup", "p3", false, "triage_ready", "Review normalized command_suggestion receipt summary before any next step."],
+  ].map(([findingId, receiptId, requestId, requestType, category, severity, blocking, status, summary], index) => ({
+    schema_version: "agent-review-finding-seed-row.v1",
+    row_id: `agent.bridge.review.finding.seed.row.${String(index + 1).padStart(2, "0")}`,
+    finding_id: findingId,
+    receipt_id: receiptId,
+    request_id: requestId,
+    request_type: requestType,
+    finding_category: category,
+    severity,
+    blocking,
+    finding_status: status,
+    finding_summary: summary,
+    finding_seed_visible_now: true,
+    finding_resolution_allowed_now: false,
+    finding_status_fixed_allowed_now: false,
+    finding_status_verified_allowed_now: false,
+    finding_status_resolved_allowed_now: false,
+    clean_checkpoint_allowed_now: false,
+    patch_apply_allowed_now: false,
+    approval_application_allowed_now: false,
+    execution_allowed_now: false,
+    opens_authority: false,
+    current_verdict: "pass",
+  }));
+  return {
+    schema_version: "agent-bridge-review-finding-workbench.v1",
+    summary: {
+      agent_bridge_review_finding_workbench_status: "ready_for_agent_bridge_review_finding_workbench",
+      source_agent_bridge_receipt_import_workspace_status: "ready_for_agent_bridge_receipt_import_workspace",
+      finding_seed_count: 4,
+      finding_action_count: 4,
+      blocking_finding_count: 2,
+      blocked_finding_fixture_count: 10,
+      review_finding_workbench_enabled_now: true,
+      finding_seed_visible_now: true,
+      finding_action_visible_now: true,
+      blocking_findings_visible_now: true,
+      finding_resolution_allowed_now: false,
+      clean_checkpoint_allowed_now: false,
+      patch_apply_allowed_now: false,
+      receipt_application_allowed_now: false,
+      approval_application_allowed_now: false,
+      execution_allowed_now: false,
+      provider_output_authoritative: false,
+      validation_error_count: 0,
+    },
+    agent_review_finding_workbench_boundary: {
+      ready_for_agent_review_finding_workbench: true,
+      ready_for_desktop_agents_projection: true,
+      finding_seed_count: 4,
+      finding_action_count: 4,
+      blocking_finding_count: 2,
+      unsafe_flag_count: 0,
+      finding_resolution_allowed_now: false,
+      clean_checkpoint_allowed_now: false,
+      patch_apply_allowed_now: false,
+      receipt_application_allowed_now: false,
+      approval_application_allowed_now: false,
+      execution_allowed_now: false,
+      provider_output_authoritative: false,
+    },
+    agent_review_finding_seed_rows: findingRows,
+    agent_review_finding_action_rows: findingRows.map((row, index) => ({
+      schema_version: "agent-review-finding-action-row.v1",
+      row_id: `agent.bridge.review.finding.action.row.${String(index + 1).padStart(2, "0")}`,
+      finding_id: row.finding_id,
+      action_status: row.blocking ? "blocked_until_receipt" : "triage_candidate",
+      action_label: row.blocking ? "Collect redacted receipt" : "Inspect normalized finding",
+      next_allowed_action: row.blocking ? "collect_redacted_receipt_before_resolution" : "triage_normalized_review_summary",
+      finding_action_visible_now: true,
+      action_mutates_state: false,
+      action_executes_command: false,
+      action_applies_patch: false,
+      action_applies_receipt: false,
+      finding_resolution_allowed_now: false,
+      clean_checkpoint_allowed_now: false,
+      patch_apply_allowed_now: false,
+      approval_application_allowed_now: false,
+      execution_allowed_now: false,
+      opens_authority: false,
+      current_verdict: "pass",
+    })),
   };
 }
 

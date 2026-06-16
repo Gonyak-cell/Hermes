@@ -151,6 +151,9 @@ test("desktop read model loader sanitizes authority flags from artifact input", 
       agent_projection: {
         agent_bridge_manifest_status: "ready_for_agent_bridge_manifest",
         agent_bridge_request_receipt_status: "ready_for_agent_bridge_request_receipt",
+        agent_bridge_request_packet_export_status: "ready_for_agent_bridge_request_packet_export",
+        agent_bridge_receipt_import_workspace_status: "ready_for_agent_bridge_receipt_import_workspace",
+        agent_bridge_review_finding_workbench_status: "ready_for_agent_bridge_review_finding_workbench",
         agent_bridge_execution_candidate_status: "ready_for_agent_bridge_execution_candidate",
         source_status: "ready",
         runtime_count: 1,
@@ -158,6 +161,12 @@ test("desktop read model loader sanitizes authority flags from artifact input", 
         request_count: 1,
         receipt_count: 1,
         evidence_binding_count: 1,
+        request_packet_export_count: 1,
+        request_packet_markdown_count: 1,
+        receipt_import_candidate_count: 1,
+        receipt_normalized_summary_count: 1,
+        review_finding_count: 1,
+        blocking_finding_count: 1,
         execution_candidate_count: 1,
         blocked_command_fixture_count: 1,
         execution_gate_count: 1,
@@ -165,6 +174,18 @@ test("desktop read model loader sanitizes authority flags from artifact input", 
         ready_for_desktop_agents_projection: true,
         request_queue_enabled_now: true,
         receipt_intake_enabled_now: true,
+        request_packet_export_enabled_now: true,
+        copy_markdown_allowed_now: true,
+        file_export_allowed_now: true,
+        receipt_import_workspace_enabled_now: true,
+        normalized_summary_import_allowed_now: true,
+        import_preview_allowed_now: true,
+        review_finding_workbench_enabled_now: true,
+        finding_seed_visible_now: true,
+        finding_action_visible_now: true,
+        finding_resolution_allowed_now: true,
+        clean_checkpoint_allowed_now: true,
+        patch_apply_allowed_now: true,
         controlled_execution_candidate_enabled_now: true,
         candidate_queue_enabled_now: true,
         candidate_export_allowed_now: true,
@@ -186,6 +207,21 @@ test("desktop read model loader sanitizes authority flags from artifact input", 
         ],
         receipt_rows: [
           { receipt_id: "receipt.bad", request_id: "request.bad", request_type: "code_review", receipt_kind: "review", normalized_verdict: "approved", receipt_applied: true, opens_authority: true },
+        ],
+        packet_export_rows: [
+          { packet_id: "packet.bad", request_id: "request.bad", request_type: "code_review", request_title: "Bad packet", target_runtime_id: "runtime.bad", target_capability_id: "capability.bad", packet_status: "ready", packet_file_name: "bad.md", copy_allowed_now: true, request_transport_submission_allowed_now: true, provider_automation_allowed_now: true, execution_allowed_now: true, opens_authority: true },
+        ],
+        receipt_import_candidate_rows: [
+          { import_candidate_id: "import.bad", receipt_id: "receipt.bad", request_id: "request.bad", packet_id: "packet.bad", request_type: "code_review", receipt_kind: "review", workspace_status: "ready", normalized_verdict: "approved", raw_output_included: true, raw_receipt_stored: true, receipt_applied: true, receipt_application_allowed_now: true, opens_authority: true },
+        ],
+        receipt_normalized_summary_rows: [
+          { import_candidate_id: "import.bad", receipt_id: "receipt.bad", request_id: "request.bad", request_type: "code_review", normalized_verdict: "approved", summary_label: "Bad summary", raw_output_included: true, receipt_applied: true, opens_authority: true },
+        ],
+        review_finding_seed_rows: [
+          { finding_id: "finding.bad", receipt_id: "receipt.bad", request_id: "request.bad", request_type: "code_review", finding_category: "unsafe", severity: "p1", blocking: true, finding_status: "resolved", finding_summary: "Bad finding", finding_resolution_allowed_now: true, clean_checkpoint_allowed_now: true, patch_apply_allowed_now: true, approval_application_allowed_now: true, execution_allowed_now: true, opens_authority: true },
+        ],
+        review_finding_action_rows: [
+          { finding_id: "finding.bad", action_status: "apply", action_label: "Apply patch", next_allowed_action: "apply patch", action_mutates_state: true, action_executes_command: true, action_applies_patch: true, finding_resolution_allowed_now: true, opens_authority: true },
         ],
         execution_candidate_rows: [
           { candidate_id: "candidate.bad", candidate_title: "Bad candidate", command_text: "git push origin main", execution_allowed_now: true, command_executed_now: true, command_output_captured_now: true, mutation_performed: true, opens_authority: true },
@@ -240,11 +276,30 @@ test("desktop read model loader sanitizes authority flags from artifact input", 
   assert.equal(result.agent_projection.command_output_captured_now, false);
   assert.equal(result.agent_projection.receipt_application_allowed_now, false);
   assert.equal(result.agent_projection.approval_application_allowed_now, false);
+  assert.equal(result.agent_projection.request_packet_export_count, 1);
+  assert.equal(result.agent_projection.receipt_import_candidate_count, 1);
+  assert.equal(result.agent_projection.review_finding_count, 1);
+  assert.equal(result.agent_projection.finding_resolution_allowed_now, false);
+  assert.equal(result.agent_projection.clean_checkpoint_allowed_now, false);
+  assert.equal(result.agent_projection.patch_apply_allowed_now, false);
   assert.equal(result.agent_projection.production_pass_enabled, false);
   assert.equal(result.agent_projection.enterprise_pass_enabled, false);
   assert.equal(result.agent_projection.runtime_rows[0].executable, false);
   assert.equal(result.agent_projection.request_rows[0].execution_allowed_now, false);
   assert.equal(result.agent_projection.receipt_rows[0].receipt_applied, false);
+  assert.equal(result.agent_projection.packet_export_rows[0].request_transport_submission_allowed_now, false);
+  assert.equal(result.agent_projection.packet_export_rows[0].opens_authority, false);
+  assert.equal(result.agent_projection.receipt_import_candidate_rows[0].raw_output_included, false);
+  assert.equal(result.agent_projection.receipt_import_candidate_rows[0].receipt_application_allowed_now, false);
+  assert.equal(result.agent_projection.receipt_normalized_summary_rows[0].raw_output_included, false);
+  assert.equal(result.agent_projection.review_finding_seed_rows[0].finding_resolution_allowed_now, false);
+  assert.equal(result.agent_projection.review_finding_seed_rows[0].clean_checkpoint_allowed_now, false);
+  assert.equal(result.agent_projection.review_finding_seed_rows[0].patch_apply_allowed_now, false);
+  assert.equal(result.agent_projection.review_finding_seed_rows[0].opens_authority, false);
+  assert.equal(result.agent_projection.review_finding_action_rows[0].action_mutates_state, false);
+  assert.equal(result.agent_projection.review_finding_action_rows[0].action_executes_command, false);
+  assert.equal(result.agent_projection.review_finding_action_rows[0].action_applies_patch, false);
+  assert.equal(result.agent_projection.review_finding_action_rows[0].opens_authority, false);
   assert.equal(result.agent_projection.execution_candidate_rows[0].execution_allowed_now, false);
   assert.equal(result.agent_projection.execution_candidate_rows[0].command_executed_now, false);
   assert.equal(result.agent_projection.execution_candidate_rows[0].command_output_captured_now, false);

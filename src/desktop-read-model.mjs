@@ -23,6 +23,7 @@ export const DEFAULT_DESKTOP_READ_MODEL_INPUTS = {
   agentBridgeRequestReceiptSummaryPath: "artifacts/agent-bridge-request-receipt/latest/summary.md",
   agentBridgeRequestPacketExportPath: "artifacts/agent-bridge-request-packet-export/latest/agent-bridge-request-packet-export.json",
   agentBridgeReceiptImportWorkspacePath: "artifacts/agent-bridge-receipt-import-workspace/latest/agent-bridge-receipt-import-workspace.json",
+  agentBridgeReviewFindingWorkbenchPath: "artifacts/agent-bridge-review-finding-workbench/latest/agent-bridge-review-finding-workbench.json",
   agentBridgeExecutionCandidatePath: "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json",
   operatorHandbookPath: "artifacts/operator-handbook/latest/operator-handbook.json",
   operatorSurfacesPath: "artifacts/operator-handbook/latest/operator-surfaces.json",
@@ -53,6 +54,7 @@ export const DESKTOP_READ_ALLOWLIST = Object.freeze([
   "artifacts/agent-bridge-request-receipt/latest/summary.md",
   "artifacts/agent-bridge-request-packet-export/latest/agent-bridge-request-packet-export.json",
   "artifacts/agent-bridge-receipt-import-workspace/latest/agent-bridge-receipt-import-workspace.json",
+  "artifacts/agent-bridge-review-finding-workbench/latest/agent-bridge-review-finding-workbench.json",
   "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json",
   "docs/operator-handbook.md",
   "docs/dashboard-api-freeze.md",
@@ -131,6 +133,7 @@ const SOURCE_DEFINITIONS = [
   sourceDefinition("agent_bridge_request_receipt_summary", "agents", "Agent Bridge request/receipt summary", "agentBridgeRequestReceiptSummaryPath", true),
   sourceDefinition("agent_bridge_request_packet_export", "agents", "Agent Bridge request packet export", "agentBridgeRequestPacketExportPath", true),
   sourceDefinition("agent_bridge_receipt_import_workspace", "agents", "Agent Bridge receipt import workspace", "agentBridgeReceiptImportWorkspacePath", true),
+  sourceDefinition("agent_bridge_review_finding_workbench", "agents", "Agent Bridge review finding workbench", "agentBridgeReviewFindingWorkbenchPath", true),
   sourceDefinition("agent_bridge_execution_candidate", "agents", "Agent Bridge execution candidate", "agentBridgeExecutionCandidatePath", true),
   sourceDefinition("factory_gate_opening", "factory", "Factory gate opening readiness", "factoryGateOpeningSummaryPath", true),
   sourceDefinition("factory_stage_6_7", "factory", "Factory Stage6/Stage7 readiness", "factoryStage67SummaryPath", true),
@@ -681,11 +684,13 @@ function buildAgentProjection(sourceRows, generatedAt) {
   const requestReceiptSource = sourceRows.find((row) => row.source_id === "agent_bridge_request_receipt");
   const requestPacketExportSource = sourceRows.find((row) => row.source_id === "agent_bridge_request_packet_export");
   const receiptImportWorkspaceSource = sourceRows.find((row) => row.source_id === "agent_bridge_receipt_import_workspace");
+  const reviewFindingWorkbenchSource = sourceRows.find((row) => row.source_id === "agent_bridge_review_finding_workbench");
   const executionCandidateSource = sourceRows.find((row) => row.source_id === "agent_bridge_execution_candidate");
   const manifestSummary = manifestSource?.data_summary ?? {};
   const requestReceiptSummary = requestReceiptSource?.data_summary ?? {};
   const requestPacketExportSummary = requestPacketExportSource?.data_summary ?? {};
   const receiptImportWorkspaceSummary = receiptImportWorkspaceSource?.data_summary ?? {};
+  const reviewFindingWorkbenchSummary = reviewFindingWorkbenchSource?.data_summary ?? {};
   const executionCandidateSummary = executionCandidateSource?.data_summary ?? {};
   const runtimeRows = Array.isArray(manifestSummary.runtime_rows) ? manifestSummary.runtime_rows : [];
   const capabilityRows = Array.isArray(manifestSummary.capability_rows) ? manifestSummary.capability_rows : [];
@@ -696,6 +701,8 @@ function buildAgentProjection(sourceRows, generatedAt) {
   const packetExportRows = Array.isArray(requestPacketExportSummary.packet_export_rows) ? requestPacketExportSummary.packet_export_rows : [];
   const receiptImportCandidateRows = Array.isArray(receiptImportWorkspaceSummary.receipt_import_candidate_rows) ? receiptImportWorkspaceSummary.receipt_import_candidate_rows : [];
   const receiptNormalizedSummaryRows = Array.isArray(receiptImportWorkspaceSummary.receipt_normalized_summary_rows) ? receiptImportWorkspaceSummary.receipt_normalized_summary_rows : [];
+  const reviewFindingRows = Array.isArray(reviewFindingWorkbenchSummary.review_finding_seed_rows) ? reviewFindingWorkbenchSummary.review_finding_seed_rows : [];
+  const reviewFindingActionRows = Array.isArray(reviewFindingWorkbenchSummary.review_finding_action_rows) ? reviewFindingWorkbenchSummary.review_finding_action_rows : [];
   const executionCandidateRows = Array.isArray(executionCandidateSummary.execution_candidate_rows) ? executionCandidateSummary.execution_candidate_rows : [];
   const blockedCommandFixtureRows = Array.isArray(executionCandidateSummary.blocked_command_fixture_rows) ? executionCandidateSummary.blocked_command_fixture_rows : [];
   const executionGateRows = Array.isArray(executionCandidateSummary.execution_gate_rows) ? executionCandidateSummary.execution_gate_rows : [];
@@ -704,11 +711,13 @@ function buildAgentProjection(sourceRows, generatedAt) {
     && requestReceiptSource?.status === "ready"
     && requestPacketExportSource?.status === "ready"
     && receiptImportWorkspaceSource?.status === "ready"
+    && reviewFindingWorkbenchSource?.status === "ready"
     && executionCandidateSource?.status === "ready"
     && manifestSummary.agent_bridge_manifest_status === "ready_for_agent_bridge_manifest"
     && requestReceiptSummary.agent_bridge_request_receipt_status === "ready_for_agent_bridge_request_receipt"
     && requestPacketExportSummary.agent_bridge_request_packet_export_status === "ready_for_agent_bridge_request_packet_export"
     && receiptImportWorkspaceSummary.agent_bridge_receipt_import_workspace_status === "ready_for_agent_bridge_receipt_import_workspace"
+    && reviewFindingWorkbenchSummary.agent_bridge_review_finding_workbench_status === "ready_for_agent_bridge_review_finding_workbench"
     && executionCandidateSummary.agent_bridge_execution_candidate_status === "ready_for_agent_bridge_execution_candidate";
   const projection = {
     schema_version: "desktop-agent-projection.v1",
@@ -717,6 +726,7 @@ function buildAgentProjection(sourceRows, generatedAt) {
     agent_bridge_request_receipt_status: requestReceiptSummary.agent_bridge_request_receipt_status ?? "not recorded",
     agent_bridge_request_packet_export_status: requestPacketExportSummary.agent_bridge_request_packet_export_status ?? "not recorded",
     agent_bridge_receipt_import_workspace_status: receiptImportWorkspaceSummary.agent_bridge_receipt_import_workspace_status ?? "not recorded",
+    agent_bridge_review_finding_workbench_status: reviewFindingWorkbenchSummary.agent_bridge_review_finding_workbench_status ?? "not recorded",
     agent_bridge_execution_candidate_status: executionCandidateSummary.agent_bridge_execution_candidate_status ?? "not recorded",
     source_status: ready ? "ready" : "blocked",
     runtime_count: Number(manifestSummary.runtime_count ?? runtimeRows.length),
@@ -729,6 +739,8 @@ function buildAgentProjection(sourceRows, generatedAt) {
     request_packet_markdown_count: Number(requestPacketExportSummary.markdown_packet_count ?? packetExportRows.length),
     receipt_import_candidate_count: Number(receiptImportWorkspaceSummary.import_candidate_count ?? receiptImportCandidateRows.length),
     receipt_normalized_summary_count: Number(receiptImportWorkspaceSummary.normalized_summary_count ?? receiptNormalizedSummaryRows.length),
+    review_finding_count: Number(reviewFindingWorkbenchSummary.finding_seed_count ?? reviewFindingRows.length),
+    blocking_finding_count: Number(reviewFindingWorkbenchSummary.blocking_finding_count ?? reviewFindingRows.filter((row) => row.blocking === true).length),
     execution_candidate_count: Number(executionCandidateSummary.execution_candidate_count ?? executionCandidateRows.length),
     blocked_command_fixture_count: Number(executionCandidateSummary.blocked_command_fixture_count ?? blockedCommandFixtureRows.length),
     execution_gate_count: Number(executionCandidateSummary.gate_count ?? executionGateRows.length),
@@ -745,6 +757,12 @@ function buildAgentProjection(sourceRows, generatedAt) {
     receipt_import_workspace_enabled_now: receiptImportWorkspaceSummary.receipt_import_workspace_enabled_now === true,
     normalized_summary_import_allowed_now: receiptImportWorkspaceSummary.normalized_summary_import_allowed_now === true,
     import_preview_allowed_now: receiptImportWorkspaceSummary.import_preview_allowed_now === true,
+    review_finding_workbench_enabled_now: reviewFindingWorkbenchSummary.review_finding_workbench_enabled_now === true,
+    finding_seed_visible_now: reviewFindingWorkbenchSummary.finding_seed_visible_now === true,
+    finding_action_visible_now: reviewFindingWorkbenchSummary.finding_action_visible_now === true,
+    finding_resolution_allowed_now: false,
+    clean_checkpoint_allowed_now: false,
+    patch_apply_allowed_now: false,
     controlled_execution_candidate_enabled_now: executionCandidateSummary.controlled_execution_candidate_enabled_now === true,
     candidate_queue_enabled_now: executionCandidateSummary.candidate_queue_enabled_now === true,
     candidate_export_allowed_now: executionCandidateSummary.candidate_export_allowed_now === true,
@@ -885,6 +903,34 @@ function buildAgentProjection(sourceRows, generatedAt) {
       receipt_applied: false,
       opens_authority: false,
     })),
+    review_finding_seed_rows: reviewFindingRows.map((row) => ({
+      finding_id: String(row.finding_id ?? "unknown"),
+      receipt_id: String(row.receipt_id ?? "unknown"),
+      request_id: String(row.request_id ?? "unknown"),
+      request_type: String(row.request_type ?? "unknown"),
+      finding_category: String(row.finding_category ?? "unknown"),
+      severity: String(row.severity ?? "unknown"),
+      blocking: row.blocking === true,
+      finding_status: String(row.finding_status ?? "blocked"),
+      finding_summary: String(row.finding_summary ?? "not recorded"),
+      finding_resolution_allowed_now: false,
+      clean_checkpoint_allowed_now: false,
+      patch_apply_allowed_now: false,
+      approval_application_allowed_now: false,
+      execution_allowed_now: false,
+      opens_authority: false,
+    })),
+    review_finding_action_rows: reviewFindingActionRows.map((row) => ({
+      finding_id: String(row.finding_id ?? "unknown"),
+      action_status: String(row.action_status ?? "blocked"),
+      action_label: String(row.action_label ?? "Inspect finding"),
+      next_allowed_action: String(row.next_allowed_action ?? "inspect finding"),
+      action_mutates_state: false,
+      action_executes_command: false,
+      action_applies_patch: false,
+      finding_resolution_allowed_now: false,
+      opens_authority: false,
+    })),
     execution_candidate_rows: executionCandidateRows.map((row) => ({
       candidate_id: String(row.candidate_id ?? "unknown"),
       candidate_type: String(row.candidate_type ?? "unknown"),
@@ -935,6 +981,7 @@ function buildAgentProjection(sourceRows, generatedAt) {
       projectionRow("agent_packet_export", "Packet export", String(requestPacketExportSummary.packet_count ?? packetExportRows.length), "copy_only", false, generatedAt),
       projectionRow("agent_receipts", "Receipts", String(requestReceiptSummary.receipt_count ?? receiptRows.length), "normalized_only", false, generatedAt),
       projectionRow("agent_receipt_import", "Receipt import workspace", String(receiptImportWorkspaceSummary.import_candidate_count ?? receiptImportCandidateRows.length), "normalized_preview_only", false, generatedAt),
+      projectionRow("agent_review_findings", "Review findings", String(reviewFindingWorkbenchSummary.finding_seed_count ?? reviewFindingRows.length), "visible_unresolved_only", false, generatedAt),
       projectionRow("agent_execution_candidates", "Execution candidates", String(executionCandidateSummary.execution_candidate_count ?? executionCandidateRows.length), "candidate_only", false, generatedAt),
       projectionRow("agent_execution_gates", "Execution gates", `${executionCandidateSummary.gate_pass_count ?? 0}/${executionCandidateSummary.gate_count ?? executionGateRows.length}`, ready ? "pass" : "blocked", false, generatedAt),
       projectionRow("agent_execution", "Execution", "closed", "closed", false, generatedAt),
@@ -1043,8 +1090,9 @@ function buildValidationItems(context) {
     validationItem("project_projection.authority_closed", context.projectProjection.git_write_allowed_now === false && context.projectProjection.deploy_allowed_now === false && context.projectProjection.production_pass_enabled === false && context.projectProjection.enterprise_pass_enabled === false, "Project projection opened write, deploy, production, or enterprise authority.", "project_projection"),
     validationItem("project_projection.safe_affordances_closed", context.projectProjection.safe_affordance_rows.every((row) => row.mutates_state === false && row.opens_authority === false), "Project safe affordances must remain display-only.", "project_projection.safe_affordance_rows"),
     validationItem("project_projection.detail_rows", context.projectProjection.project_rows.length === context.projectProjection.project_detail_rows.length, "Project projection must expose one detail row per project row.", "project_projection.project_detail_rows"),
-    validationItem("agent_projection.ready", context.agentProjection.source_status === "ready" && context.agentProjection.ready_for_desktop_agents_projection === true && context.agentProjection.runtime_count >= 4 && context.agentProjection.execution_candidate_count >= 5, "Agent projection must bind Agent Bridge manifest, request/receipt, and execution candidate sources.", "agent_projection"),
+    validationItem("agent_projection.ready", context.agentProjection.source_status === "ready" && context.agentProjection.ready_for_desktop_agents_projection === true && context.agentProjection.runtime_count >= 4 && context.agentProjection.review_finding_count >= 4 && context.agentProjection.execution_candidate_count >= 5, "Agent projection must bind Agent Bridge manifest, request/receipt, review finding, and execution candidate sources.", "agent_projection"),
     validationItem("agent_projection.authority_closed", context.agentProjection.execution_allowed_now === false && context.agentProjection.command_output_captured_now === false && context.agentProjection.receipt_application_allowed_now === false && context.agentProjection.approval_application_allowed_now === false && context.agentProjection.production_pass_enabled === false && context.agentProjection.enterprise_pass_enabled === false, "Agent projection opened execution, output capture, receipt, approval, production, or enterprise authority.", "agent_projection"),
+    validationItem("agent_projection.findings_closed", context.agentProjection.finding_resolution_allowed_now === false && context.agentProjection.clean_checkpoint_allowed_now === false && context.agentProjection.patch_apply_allowed_now === false && context.agentProjection.review_finding_seed_rows.every((row) => row.finding_resolution_allowed_now === false && row.clean_checkpoint_allowed_now === false && row.patch_apply_allowed_now === false && row.opens_authority === false) && context.agentProjection.review_finding_action_rows.every((row) => row.action_mutates_state === false && row.action_executes_command === false && row.action_applies_patch === false && row.opens_authority === false), "Agent review finding projection opened finding resolution, clean checkpoint, patch, mutation, or authority.", "agent_projection.review_finding_seed_rows"),
     validationItem("agent_projection.execution_candidates_closed", context.agentProjection.execution_candidate_rows.every((row) => row.execution_allowed_now === false && row.command_executed_now === false && row.command_output_captured_now === false && row.mutation_performed === false && row.opens_authority === false), "Agent execution candidate rows must remain display-only.", "agent_projection.execution_candidate_rows"),
     validationItem("agent_projection.execution_gates_closed", context.agentProjection.execution_gate_rows.every((row) => row.execution_allowed_now === false && row.command_executed_now === false && row.mutation_performed === false && row.opens_authority === false), "Agent execution gate rows must remain display-only.", "agent_projection.execution_gate_rows"),
     validationItem("agent_projection.no_latent_execution_ui", context.agentProjection.no_latent_execution_ui === true && context.agentProjection.agent_control_rows.every((row) => row.control_enabled === false && row.opens_authority === false), "Agent projection exposed latent execution UI controls.", "agent_projection.agent_control_rows"),
@@ -1368,6 +1416,60 @@ function compactJsonSummary(data) {
         blocked: row.blocked === true,
         receipt_quarantined: row.receipt_quarantined === true,
         receipt_applied: false,
+        opens_authority: false,
+      })),
+    };
+  }
+  if (data?.schema_version === "agent-bridge-review-finding-workbench.v1") {
+    const summary = data.summary ?? {};
+    const boundary = data.agent_review_finding_workbench_boundary ?? {};
+    return {
+      schema_version: data.schema_version,
+      agent_bridge_review_finding_workbench_status: summary.agent_bridge_review_finding_workbench_status,
+      source_agent_bridge_receipt_import_workspace_status: summary.source_agent_bridge_receipt_import_workspace_status,
+      finding_seed_count: Number(summary.finding_seed_count ?? 0),
+      finding_action_count: Number(summary.finding_action_count ?? 0),
+      blocking_finding_count: Number(summary.blocking_finding_count ?? 0),
+      blocked_finding_fixture_count: Number(summary.blocked_finding_fixture_count ?? 0),
+      review_finding_workbench_enabled_now: summary.review_finding_workbench_enabled_now === true,
+      finding_seed_visible_now: summary.finding_seed_visible_now === true,
+      finding_action_visible_now: summary.finding_action_visible_now === true,
+      blocking_findings_visible_now: summary.blocking_findings_visible_now === true,
+      finding_resolution_allowed_now: false,
+      clean_checkpoint_allowed_now: false,
+      patch_apply_allowed_now: false,
+      receipt_application_allowed_now: false,
+      approval_application_allowed_now: false,
+      execution_allowed_now: false,
+      provider_output_authoritative: false,
+      unsafe_flag_count: Number(boundary.unsafe_flag_count ?? 0),
+      validation_error_count: Number(summary.validation_error_count ?? 0),
+      review_finding_seed_rows: (data.agent_review_finding_seed_rows ?? []).map((row) => ({
+        finding_id: row.finding_id,
+        receipt_id: row.receipt_id,
+        request_id: row.request_id,
+        request_type: row.request_type,
+        finding_category: row.finding_category,
+        severity: row.severity,
+        blocking: row.blocking === true,
+        finding_status: row.finding_status,
+        finding_summary: row.finding_summary,
+        finding_resolution_allowed_now: false,
+        clean_checkpoint_allowed_now: false,
+        patch_apply_allowed_now: false,
+        approval_application_allowed_now: false,
+        execution_allowed_now: false,
+        opens_authority: false,
+      })),
+      review_finding_action_rows: (data.agent_review_finding_action_rows ?? []).map((row) => ({
+        finding_id: row.finding_id,
+        action_status: row.action_status,
+        action_label: row.action_label,
+        next_allowed_action: row.next_allowed_action,
+        action_mutates_state: false,
+        action_executes_command: false,
+        action_applies_patch: false,
+        finding_resolution_allowed_now: false,
         opens_authority: false,
       })),
     };

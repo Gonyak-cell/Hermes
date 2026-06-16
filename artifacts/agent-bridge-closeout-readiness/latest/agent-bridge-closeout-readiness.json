@@ -1,6 +1,6 @@
 {
   "schema_version": "agent-bridge-closeout-readiness.v1",
-  "generated_at": "2026-06-16T01:02:58.184Z",
+  "generated_at": "2026-06-16T01:42:32.810Z",
   "capability_id": "platform.agent_bridge_closeout_readiness",
   "program_range": "AGENT-BRIDGE-L9-L10-SLICE-F",
   "output_dir": "/Users/jws/Documents/Codex/Hermes/artifacts/agent-bridge-closeout-readiness/latest",
@@ -135,8 +135,8 @@
   "source_desktop_read_model_summary": {
     "schema_version": "desktop-read-model-summary.v1",
     "desktop_read_model_status": "ready_for_desktop_shell",
-    "source_count": 28,
-    "ready_source_count": 28,
+    "source_count": 29,
+    "ready_source_count": 29,
     "blocked_source_count": 0,
     "section_count": 8,
     "ready_section_count": 8,
@@ -175,7 +175,7 @@
   },
   "agent_bridge_closeout_contract": {
     "schema_version": "agent-bridge-closeout-contract.v1",
-    "generated_at": "2026-06-16T01:02:58.184Z",
+    "generated_at": "2026-06-16T01:42:32.810Z",
     "contract_id": "contract.hermes.agent_bridge_closeout_readiness.local_operator_handoff",
     "local_only": true,
     "read_only": true,
@@ -213,7 +213,7 @@
     {
       "schema_version": "agent-bridge-closeout-source-row.v1",
       "row_id": "agent.bridge.closeout.source.row.01",
-      "generated_at": "2026-06-16T01:02:58.184Z",
+      "generated_at": "2026-06-16T01:42:32.810Z",
       "source_id": "agent_bridge_manifest",
       "source_path": "artifacts/agent-bridge-manifest/latest/agent-bridge-manifest.json",
       "source_available": true,
@@ -247,7 +247,7 @@
     {
       "schema_version": "agent-bridge-closeout-source-row.v1",
       "row_id": "agent.bridge.closeout.source.row.02",
-      "generated_at": "2026-06-16T01:02:58.184Z",
+      "generated_at": "2026-06-16T01:42:32.810Z",
       "source_id": "agent_bridge_request_receipt",
       "source_path": "artifacts/agent-bridge-request-receipt/latest/agent-bridge-request-receipt.json",
       "source_available": true,
@@ -281,7 +281,7 @@
     {
       "schema_version": "agent-bridge-closeout-source-row.v1",
       "row_id": "agent.bridge.closeout.source.row.03",
-      "generated_at": "2026-06-16T01:02:58.184Z",
+      "generated_at": "2026-06-16T01:42:32.810Z",
       "source_id": "agent_bridge_execution_candidate",
       "source_path": "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json",
       "source_available": true,
@@ -315,12 +315,12 @@
     {
       "schema_version": "agent-bridge-closeout-source-row.v1",
       "row_id": "agent.bridge.closeout.source.row.04",
-      "generated_at": "2026-06-16T01:02:58.184Z",
+      "generated_at": "2026-06-16T01:42:32.810Z",
       "source_id": "desktop_read_model",
       "source_path": "artifacts/desktop-read-model/latest/desktop-read-model.json",
       "source_available": true,
       "source_parse_status": "parsed",
-      "source_hash": "sha256:84a642b26bf08ab52f60fc79ac4753aefeebca9c11320b8af4bd8097006d6585",
+      "source_hash": "sha256:dc8286ad405a791c706005fb36bd78cbbd4c0e71769712ab81b8beb00b2a5e44",
       "observed_status": "ready_for_desktop_shell",
       "ready_status": "ready_for_desktop_shell",
       "source_ready": true,
@@ -351,7 +351,7 @@
     {
       "schema_version": "agent-bridge-closeout-runbook-row.v1",
       "row_id": "agent.bridge.closeout.runbook.row.01",
-      "generated_at": "2026-06-16T01:02:58.184Z",
+      "generated_at": "2026-06-16T01:42:32.810Z",
       "term": "Desktop cannot execute commands",
       "term_present": true,
       "runbook_path": "docs/hermes-agent-bridge-local-operator-runbook-2026-06-16.md",
@@ -379,7 +379,7 @@
     {
       "schema_version": "agent-bridge-closeout-runbook-row.v1",
       "row_id": "agent.bridge.closeout.runbook.row.02",
-      "generated_at": "2026-06-16T01:02:58.184Z",
+      "generated_at": "2026-06-16T01:42:32.810Z",
       "term": "Desktop cannot apply receipts",
       "term_present": true,
       "runbook_path": "docs/hermes-agent-bridge-local-operator-runbook-2026-06-16.md",
@@ -407,7 +407,7 @@
     {
       "schema_version": "agent-bridge-closeout-runbook-row.v1",
       "row_id": "agent.bridge.closeout.runbook.row.03",
-      "generated_at": "2026-06-16T01:02:58.184Z",
+      "generated_at": "2026-06-16T01:42:32.810Z",
       "term": "Desktop cannot create production PASS",
       "term_present": true,
       "runbook_path": "docs/hermes-agent-bridge-local-operator-runbook-2026-06-16.md",
@@ -435,7 +435,7 @@
     {
       "schema_version": "agent-bridge-closeout-runbook-row.v1",
       "row_id": "agent.bridge.closeout.runbook.row.04",
-      "generated_at": "2026-06-16T01:02:58.184Z",
+      "generated_at": "2026-06-16T01:42:32.810Z",
       "term": "Desktop cannot create enterprise PASS",
       "term_present": true,
       "runbook_path": "docs/hermes-agent-bridge-local-operator-runbook-2026-06-16.md",
@@ -463,7 +463,7 @@
     {
       "schema_version": "agent-bridge-closeout-runbook-row.v1",
       "row_id": "agent.bridge.closeout.runbook.row.05",
-      "generated_at": "2026-06-16T01:02:58.184Z",
+      "generated_at": "2026-06-16T01:42:32.810Z",
       "term": "Desktop cannot complete protected closeout",
       "term_present": true,
       "runbook_path": "docs/hermes-agent-bridge-local-operator-runbook-2026-06-16.md",
@@ -491,7 +491,7 @@
     {
       "schema_version": "agent-bridge-closeout-runbook-row.v1",
       "row_id": "agent.bridge.closeout.runbook.row.06",
-      "generated_at": "2026-06-16T01:02:58.184Z",
+      "generated_at": "2026-06-16T01:42:32.810Z",
       "term": "not production launch approval",
       "term_present": true,
       "runbook_path": "docs/hermes-agent-bridge-local-operator-runbook-2026-06-16.md",
@@ -521,7 +521,7 @@
     {
       "schema_version": "agent-bridge-operator-handoff-row.v1",
       "row_id": "agent.bridge.operator.handoff.row.01",
-      "generated_at": "2026-06-16T01:02:58.184Z",
+      "generated_at": "2026-06-16T01:42:32.810Z",
       "handoff_id": "identity_inventory_visible",
       "description": "Agent runtime/capability identity is visible",
       "handoff_status": "ready",
@@ -550,7 +550,7 @@
     {
       "schema_version": "agent-bridge-operator-handoff-row.v1",
       "row_id": "agent.bridge.operator.handoff.row.02",
-      "generated_at": "2026-06-16T01:02:58.184Z",
+      "generated_at": "2026-06-16T01:42:32.810Z",
       "handoff_id": "request_receipt_visible",
       "description": "Request and receipt chain is visible",
       "handoff_status": "ready",
@@ -579,7 +579,7 @@
     {
       "schema_version": "agent-bridge-operator-handoff-row.v1",
       "row_id": "agent.bridge.operator.handoff.row.03",
-      "generated_at": "2026-06-16T01:02:58.184Z",
+      "generated_at": "2026-06-16T01:42:32.810Z",
       "handoff_id": "execution_candidates_visible",
       "description": "Execution candidates and gates are visible",
       "handoff_status": "ready",
@@ -608,7 +608,7 @@
     {
       "schema_version": "agent-bridge-operator-handoff-row.v1",
       "row_id": "agent.bridge.operator.handoff.row.04",
-      "generated_at": "2026-06-16T01:02:58.184Z",
+      "generated_at": "2026-06-16T01:42:32.810Z",
       "handoff_id": "desktop_agents_projection_visible",
       "description": "Desktop Agents projection includes execution candidates",
       "handoff_status": "ready",
@@ -637,7 +637,7 @@
     {
       "schema_version": "agent-bridge-operator-handoff-row.v1",
       "row_id": "agent.bridge.operator.handoff.row.05",
-      "generated_at": "2026-06-16T01:02:58.184Z",
+      "generated_at": "2026-06-16T01:42:32.810Z",
       "handoff_id": "authority_boundary_closed",
       "description": "No closeout source opens authority",
       "handoff_status": "ready",
@@ -668,7 +668,7 @@
     {
       "schema_version": "agent-bridge-closeout-gate-row.v1",
       "row_id": "agent.bridge.closeout.gate.row.01",
-      "generated_at": "2026-06-16T01:02:58.184Z",
+      "generated_at": "2026-06-16T01:42:32.810Z",
       "gate_id": "package.script.registered",
       "gate_status": "pass",
       "description": "platform:agent-bridge-closeout-readiness is registered",
@@ -700,7 +700,7 @@
     {
       "schema_version": "agent-bridge-closeout-gate-row.v1",
       "row_id": "agent.bridge.closeout.gate.row.02",
-      "generated_at": "2026-06-16T01:02:58.184Z",
+      "generated_at": "2026-06-16T01:42:32.810Z",
       "gate_id": "sources.ready",
       "gate_status": "pass",
       "description": "All Agent Bridge closeout sources are ready",
@@ -732,7 +732,7 @@
     {
       "schema_version": "agent-bridge-closeout-gate-row.v1",
       "row_id": "agent.bridge.closeout.gate.row.03",
-      "generated_at": "2026-06-16T01:02:58.184Z",
+      "generated_at": "2026-06-16T01:42:32.810Z",
       "gate_id": "runbook.ready",
       "gate_status": "pass",
       "description": "Runbook declares required authority boundaries",
@@ -764,7 +764,7 @@
     {
       "schema_version": "agent-bridge-closeout-gate-row.v1",
       "row_id": "agent.bridge.closeout.gate.row.04",
-      "generated_at": "2026-06-16T01:02:58.184Z",
+      "generated_at": "2026-06-16T01:42:32.810Z",
       "gate_id": "handoff.ready",
       "gate_status": "pass",
       "description": "Local operator handoff rows are ready",
@@ -796,7 +796,7 @@
     {
       "schema_version": "agent-bridge-closeout-gate-row.v1",
       "row_id": "agent.bridge.closeout.gate.row.05",
-      "generated_at": "2026-06-16T01:02:58.184Z",
+      "generated_at": "2026-06-16T01:42:32.810Z",
       "gate_id": "authority.closed",
       "gate_status": "pass",
       "description": "Closeout readiness does not open authority",
@@ -828,7 +828,7 @@
   ],
   "agent_bridge_closeout_boundary": {
     "schema_version": "agent-bridge-closeout-contract.v1",
-    "generated_at": "2026-06-16T01:02:58.184Z",
+    "generated_at": "2026-06-16T01:42:32.810Z",
     "ready_for_agent_bridge_local_operator_handoff": true,
     "contract_id": "contract.hermes.agent_bridge_closeout_readiness.local_operator_handoff",
     "local_only": true,

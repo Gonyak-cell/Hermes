@@ -1,6 +1,6 @@
 {
   "schema_version": "desktop-read-model-sections.v1",
-  "generated_at": "2026-06-16T01:02:57.994Z",
+  "generated_at": "2026-06-16T01:42:26.407Z",
   "sections_count": 8,
   "sections": [
     {
@@ -8,7 +8,7 @@
       "section_id": "projects",
       "label": "Projects",
       "source_path": "artifacts/project-operating-contract/latest/project-operating-contract.json",
-      "generated_at": "2026-06-16T01:02:57.994Z",
+      "generated_at": "2026-06-16T01:42:26.407Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -31,14 +31,14 @@
       "ready_row_count": 2,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "f364d3c8cacfc78e4b52e70780f599505a8d6d4ea35c6d83bbb32792701798ba"
+      "section_hash": "aeefd7229769485ca5115fec00fac20a24431abe3524f2249070656968504727"
     },
     {
       "schema_version": "desktop-read-model-section.v1",
       "section_id": "agents",
       "label": "Agents",
       "source_path": "artifacts/agent-bridge-manifest/latest/agent-bridge-manifest.json",
-      "generated_at": "2026-06-16T01:02:57.994Z",
+      "generated_at": "2026-06-16T01:42:26.407Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -78,6 +78,13 @@
           "source_content_hash": "sha256:d27264b0ff03670bef4e24a5a287f9eeed78f786bee6ee8ca4af9da76f56b59f"
         },
         {
+          "source_id": "agent_bridge_review_finding_workbench",
+          "source_path": "artifacts/agent-bridge-review-finding-workbench/latest/agent-bridge-review-finding-workbench.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:0bf1d5a8484a9f597acdcd8c28ac8d8520ccb34609f71a55c086ca5db2cfc686"
+        },
+        {
           "source_id": "agent_bridge_execution_candidate",
           "source_path": "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json",
           "status": "ready",
@@ -85,18 +92,18 @@
           "source_content_hash": "sha256:d0e1a045db67413d218e5c67b8b5d1c6b213410d3a44c85fa93121899b37bf83"
         }
       ],
-      "primary_row_count": 6,
-      "ready_row_count": 6,
+      "primary_row_count": 7,
+      "ready_row_count": 7,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "bdb828e7be5748ad9890e5b8ebedc89203c79d79549d5e42456acc292f65ba25"
+      "section_hash": "15cf5acaf67c26b5589b0f23599e4e42f3f042311762791f9043cded38f02645"
     },
     {
       "schema_version": "desktop-read-model-section.v1",
       "section_id": "release",
       "label": "Release",
       "source_path": "docs/release-owner-decision-2026-06-14.md",
-      "generated_at": "2026-06-16T01:02:57.994Z",
+      "generated_at": "2026-06-16T01:42:26.407Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -154,14 +161,14 @@
       "ready_row_count": 7,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "d28ca1005a1139cd29c6fbaa00990ada0371befd72f7798ac9b5b2f3571a31a8"
+      "section_hash": "39e8252425a6b9251989513b893efe32b7db00efd7932fe27fc8cac002415732"
     },
     {
       "schema_version": "desktop-read-model-section.v1",
       "section_id": "factory",
       "label": "Factory",
       "source_path": "artifacts/factory-gate-opening-readiness/latest/summary.md",
-      "generated_at": "2026-06-16T01:02:57.994Z",
+      "generated_at": "2026-06-16T01:42:26.407Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -205,14 +212,14 @@
       "ready_row_count": 5,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "c9b1f297f027d52510ff457a96c855560e3558c0255ceaa55733ddfe941b5d5a"
+      "section_hash": "e094fceeb81b428c5b37700d7f0ecfe9565747b04d1d22ca812da49675c0ecc9"
     },
     {
       "schema_version": "desktop-read-model-section.v1",
       "section_id": "reviews",
       "label": "Reviews",
       "source_path": "docs/claude-final-review-packet-2026-06-15.md",
-      "generated_at": "2026-06-16T01:02:57.994Z",
+      "generated_at": "2026-06-16T01:42:26.407Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -228,14 +235,14 @@
       "ready_row_count": 1,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "ad9e97f66cd2014d42271a4db7927cb4173401a5c72a974a2affedb8983f9e26"
+      "section_hash": "cace27552dad5e6eaab969e3dd21ce7c3bd27bb2128d8f3aaacd7794c274c84b"
     },
     {
       "schema_version": "desktop-read-model-section.v1",
       "section_id": "operator_handbook",
       "label": "Operator Handbook",
       "source_path": "artifacts/operator-handbook/latest/operator-handbook.json",
-      "generated_at": "2026-06-16T01:02:57.994Z",
+      "generated_at": "2026-06-16T01:42:26.407Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -286,14 +293,14 @@
       "ready_row_count": 6,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "a55b1e3f3a3257877fc362b0d20969106916e21c2a5fac5dcd2df61dc143e2fc"
+      "section_hash": "0d86aa676b297f92367b1d52c0d11f10bdbee0ee172af57af0e0879d207c3d3a"
     },
     {
       "schema_version": "desktop-read-model-section.v1",
       "section_id": "artifacts",
       "label": "Artifacts",
       "source_path": "docs/release-owner-decision-2026-06-14.md",
-      "generated_at": "2026-06-16T01:02:57.994Z",
+      "generated_at": "2026-06-16T01:42:26.407Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -396,6 +403,13 @@
           "source_content_hash": "sha256:d27264b0ff03670bef4e24a5a287f9eeed78f786bee6ee8ca4af9da76f56b59f"
         },
         {
+          "source_id": "agent_bridge_review_finding_workbench",
+          "source_path": "artifacts/agent-bridge-review-finding-workbench/latest/agent-bridge-review-finding-workbench.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:0bf1d5a8484a9f597acdcd8c28ac8d8520ccb34609f71a55c086ca5db2cfc686"
+        },
+        {
           "source_id": "agent_bridge_execution_candidate",
           "source_path": "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json",
           "status": "ready",
@@ -494,18 +508,18 @@
           "source_content_hash": "sha256:07613809de2f457913c86ffacdefba3340354180fe44c40cf45a928e00b33185"
         }
       ],
-      "primary_row_count": 28,
-      "ready_row_count": 28,
+      "primary_row_count": 29,
+      "ready_row_count": 29,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "3fd12cdca10cce176b840fdf9b3a2d31bfec2ebdd93be4ad734e45a6d46d67f7"
+      "section_hash": "142a64feedcdc4165e6c8fabd278a449c151bc686deb45335989dc203f72a227"
     },
     {
       "schema_version": "desktop-read-model-section.v1",
       "section_id": "authority_boundary",
       "label": "Authority Boundary",
       "source_path": "artifacts/desktop-authority-boundary/latest/desktop-authority-boundary.json",
-      "generated_at": "2026-06-16T01:02:57.994Z",
+      "generated_at": "2026-06-16T01:42:26.407Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -521,7 +535,7 @@
       "ready_row_count": 1,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "0c7f3e11a438cea16d472c8e5cbbe87ffaa9b200f2ee33a323d6c35bfb59f6a1"
+      "section_hash": "60568a45f53f683067a7a5403b6e4a3564401462c671f3244af345151a20d886"
     }
   ]
 }

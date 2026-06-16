@@ -1,0 +1,293 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/agent-bridge-review-finding-workbench.schema.json",
+  "title": "Hermes Agent Bridge Review Finding Workbench",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "capability_id",
+    "program_range",
+    "source_agent_bridge_receipt_import_workspace_summary",
+    "agent_bridge_review_finding_workbench_contract",
+    "agent_review_finding_seed_rows",
+    "agent_review_finding_action_rows",
+    "blocked_finding_resolution_fixture_rows",
+    "agent_review_finding_workbench_gate_rows",
+    "agent_review_finding_workbench_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "agent-bridge-review-finding-workbench.v1" },
+    "capability_id": { "const": "platform.agent_bridge_review_finding_workbench" },
+    "program_range": { "const": "AGENT-BRIDGE-L13-SLICE-I" },
+    "agent_bridge_review_finding_workbench_contract": {
+      "type": "object",
+      "required": [
+        "contract_id",
+        "local_only",
+        "read_only",
+        "source_of_truth",
+        "review_finding_workbench_enabled_now",
+        "finding_seed_visible_now",
+        "finding_action_visible_now",
+        "blocking_findings_visible_now",
+        "finding_resolution_allowed_now",
+        "finding_status_fixed_allowed_now",
+        "finding_status_verified_allowed_now",
+        "finding_status_resolved_allowed_now",
+        "clean_checkpoint_allowed_now",
+        "patch_apply_allowed_now",
+        "receipt_application_allowed_now",
+        "approval_application_allowed_now",
+        "execution_allowed_now",
+        "command_executed_now",
+        "mutation_performed",
+        "provider_output_authoritative",
+        "desktop_mutation_allowed",
+        "agent_runtime_execution_allowed_now",
+        "command_execution_allowed_now",
+        "shell_execution_allowed_now",
+        "git_write_allowed_now",
+        "deploy_allowed_now",
+        "connector_write_allowed_now",
+        "secret_read_allowed_now",
+        "raw_source_exposure_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "protected_closeout_enabled",
+        "agent_final_pass_allowed_now"
+      ],
+      "properties": {
+        "contract_id": { "const": "contract.hermes.agent_bridge_review_finding_workbench.visible_unresolved_only" },
+        "local_only": { "const": true },
+        "read_only": { "const": true },
+        "source_of_truth": { "const": false },
+        "review_finding_workbench_enabled_now": { "const": true },
+        "finding_seed_visible_now": { "const": true },
+        "finding_action_visible_now": { "const": true },
+        "blocking_findings_visible_now": { "const": true },
+        "finding_resolution_allowed_now": { "const": false },
+        "finding_status_fixed_allowed_now": { "const": false },
+        "finding_status_verified_allowed_now": { "const": false },
+        "finding_status_resolved_allowed_now": { "const": false },
+        "clean_checkpoint_allowed_now": { "const": false },
+        "patch_apply_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "approval_application_allowed_now": { "const": false },
+        "execution_allowed_now": { "const": false },
+        "command_executed_now": { "const": false },
+        "mutation_performed": { "const": false },
+        "provider_output_authoritative": { "const": false },
+        "desktop_mutation_allowed": { "const": false },
+        "agent_runtime_execution_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "shell_execution_allowed_now": { "const": false },
+        "git_write_allowed_now": { "const": false },
+        "deploy_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "raw_source_exposure_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "agent_final_pass_allowed_now": { "const": false }
+      }
+    },
+    "agent_review_finding_seed_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/$defs/findingRow" }
+    },
+    "agent_review_finding_action_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "blocked_finding_resolution_fixture_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "agent_review_finding_workbench_gate_rows": {
+      "type": "array",
+      "minItems": 7,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "agent_review_finding_workbench_boundary": {
+      "type": "object",
+      "required": [
+        "ready_for_agent_review_finding_workbench",
+        "ready_for_desktop_agents_projection",
+        "local_only",
+        "read_only",
+        "source_of_truth",
+        "review_finding_workbench_enabled_now",
+        "finding_seed_visible_now",
+        "finding_action_visible_now",
+        "blocking_findings_visible_now",
+        "finding_resolution_allowed_now",
+        "finding_status_fixed_allowed_now",
+        "finding_status_verified_allowed_now",
+        "finding_status_resolved_allowed_now",
+        "clean_checkpoint_allowed_now",
+        "patch_apply_allowed_now",
+        "receipt_application_allowed_now",
+        "approval_application_allowed_now",
+        "execution_allowed_now",
+        "command_executed_now",
+        "mutation_performed",
+        "provider_output_authoritative",
+        "desktop_mutation_allowed",
+        "agent_runtime_execution_allowed_now",
+        "command_execution_allowed_now",
+        "shell_execution_allowed_now",
+        "git_write_allowed_now",
+        "deploy_allowed_now",
+        "connector_write_allowed_now",
+        "secret_read_allowed_now",
+        "raw_source_exposure_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "protected_closeout_enabled",
+        "agent_final_pass_allowed_now",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "ready_for_agent_review_finding_workbench": { "type": "boolean" },
+        "ready_for_desktop_agents_projection": { "type": "boolean" },
+        "local_only": { "const": true },
+        "read_only": { "const": true },
+        "source_of_truth": { "const": false },
+        "review_finding_workbench_enabled_now": { "const": true },
+        "finding_seed_visible_now": { "const": true },
+        "finding_action_visible_now": { "const": true },
+        "blocking_findings_visible_now": { "const": true },
+        "finding_resolution_allowed_now": { "const": false },
+        "finding_status_fixed_allowed_now": { "const": false },
+        "finding_status_verified_allowed_now": { "const": false },
+        "finding_status_resolved_allowed_now": { "const": false },
+        "clean_checkpoint_allowed_now": { "const": false },
+        "patch_apply_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "approval_application_allowed_now": { "const": false },
+        "execution_allowed_now": { "const": false },
+        "command_executed_now": { "const": false },
+        "mutation_performed": { "const": false },
+        "provider_output_authoritative": { "const": false },
+        "desktop_mutation_allowed": { "const": false },
+        "agent_runtime_execution_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "shell_execution_allowed_now": { "const": false },
+        "git_write_allowed_now": { "const": false },
+        "deploy_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "raw_source_exposure_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "agent_final_pass_allowed_now": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "item_count", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "item_count": { "type": "integer", "minimum": 0 },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "agent_bridge_review_finding_workbench_status",
+        "finding_seed_count",
+        "finding_action_count",
+        "blocking_finding_count",
+        "blocked_finding_fixture_count",
+        "finding_resolution_allowed_now",
+        "clean_checkpoint_allowed_now",
+        "patch_apply_allowed_now",
+        "local_only",
+        "read_only",
+        "source_of_truth",
+        "unsafe_flag_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "agent_bridge_review_finding_workbench_status": {
+          "enum": [
+            "ready_for_agent_bridge_review_finding_workbench",
+            "blocked_agent_bridge_review_finding_workbench"
+          ]
+        },
+        "finding_seed_count": { "type": "integer", "minimum": 4 },
+        "finding_action_count": { "type": "integer", "minimum": 4 },
+        "blocking_finding_count": { "type": "integer", "minimum": 1 },
+        "blocked_finding_fixture_count": { "type": "integer", "minimum": 10 },
+        "finding_resolution_allowed_now": { "const": false },
+        "clean_checkpoint_allowed_now": { "const": false },
+        "patch_apply_allowed_now": { "const": false },
+        "local_only": { "const": true },
+        "read_only": { "const": true },
+        "source_of_truth": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "verdictRow": {
+      "type": "object",
+      "required": ["row_id", "current_verdict", "unsafe_flags_false", "verdict_authority", "opens_authority"],
+      "properties": {
+        "row_id": { "type": "string", "minLength": 1 },
+        "current_verdict": { "enum": ["pass", "blocked"] },
+        "unsafe_flags_false": { "type": "boolean" },
+        "verdict_authority": { "const": "harness_deterministic_validator" },
+        "opens_authority": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "findingRow": {
+      "allOf": [
+        { "$ref": "#/$defs/verdictRow" },
+        {
+          "type": "object",
+          "required": [
+            "finding_id",
+            "finding_status",
+            "blocking",
+            "finding_resolution_allowed_now",
+            "finding_status_fixed_allowed_now",
+            "finding_status_verified_allowed_now",
+            "finding_status_resolved_allowed_now",
+            "clean_checkpoint_allowed_now",
+            "patch_apply_allowed_now",
+            "approval_application_allowed_now",
+            "execution_allowed_now"
+          ],
+          "properties": {
+            "finding_id": { "type": "string", "minLength": 1 },
+            "finding_status": { "type": "string", "minLength": 1 },
+            "blocking": { "type": "boolean" },
+            "finding_resolution_allowed_now": { "const": false },
+            "finding_status_fixed_allowed_now": { "const": false },
+            "finding_status_verified_allowed_now": { "const": false },
+            "finding_status_resolved_allowed_now": { "const": false },
+            "clean_checkpoint_allowed_now": { "const": false },
+            "patch_apply_allowed_now": { "const": false },
+            "approval_application_allowed_now": { "const": false },
+            "execution_allowed_now": { "const": false }
+          }
+        }
+      ]
+    }
+  }
+}

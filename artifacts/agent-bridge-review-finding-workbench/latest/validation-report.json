@@ -1,0 +1,92 @@
+{
+  "schema_version": "agent-bridge-review-finding-workbench-validation-report.v1",
+  "generated_at": "2026-06-16T01:42:21.451Z",
+  "validation": {
+    "valid": true,
+    "item_count": 10,
+    "error_count": 0,
+    "errors": []
+  },
+  "validation_items": [
+    {
+      "schema_version": "agent-bridge-review-finding-workbench-validation-item.v1",
+      "path": "source.receipt_import.ready",
+      "check_id": "source.receipt_import.ready",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "artifacts/agent-bridge-receipt-import-workspace/latest/agent-bridge-receipt-import-workspace.json"
+    },
+    {
+      "schema_version": "agent-bridge-review-finding-workbench-validation-item.v1",
+      "path": "contract.no_resolution",
+      "check_id": "contract.no_resolution",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_bridge_review_finding_workbench_contract"
+    },
+    {
+      "schema_version": "agent-bridge-review-finding-workbench-validation-item.v1",
+      "path": "findings.cover.imports",
+      "check_id": "findings.cover.imports",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_review_finding_seed_rows"
+    },
+    {
+      "schema_version": "agent-bridge-review-finding-workbench-validation-item.v1",
+      "path": "blocking.visible",
+      "check_id": "blocking.visible",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_review_finding_seed_rows"
+    },
+    {
+      "schema_version": "agent-bridge-review-finding-workbench-validation-item.v1",
+      "path": "findings.no_resolution",
+      "check_id": "findings.no_resolution",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_review_finding_seed_rows"
+    },
+    {
+      "schema_version": "agent-bridge-review-finding-workbench-validation-item.v1",
+      "path": "actions.no_mutation",
+      "check_id": "actions.no_mutation",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_review_finding_action_rows"
+    },
+    {
+      "schema_version": "agent-bridge-review-finding-workbench-validation-item.v1",
+      "path": "fixtures.blocked",
+      "check_id": "fixtures.blocked",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "blocked_finding_resolution_fixture_rows"
+    },
+    {
+      "schema_version": "agent-bridge-review-finding-workbench-validation-item.v1",
+      "path": "gates.ready",
+      "check_id": "gates.ready",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_review_finding_workbench_gate_rows"
+    },
+    {
+      "schema_version": "agent-bridge-review-finding-workbench-validation-item.v1",
+      "path": "boundary.ready",
+      "check_id": "boundary.ready",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_review_finding_workbench_boundary"
+    },
+    {
+      "schema_version": "agent-bridge-review-finding-workbench-validation-item.v1",
+      "path": "boundary.no_authority",
+      "check_id": "boundary.no_authority",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_review_finding_workbench_boundary"
+    }
+  ]
+}

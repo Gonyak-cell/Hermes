@@ -1,7 +1,7 @@
 {
   "schema_version": "desktop-read-model-source-rows.v1",
-  "generated_at": "2026-06-16T01:02:57.994Z",
-  "source_rows_count": 28,
+  "generated_at": "2026-06-16T01:42:26.407Z",
+  "source_rows_count": 29,
   "source_rows": [
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -28,8 +28,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "7032f884332b68d49a85a5900305ab3f8872818d318d8a1c067c001f099d6a03"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "d43764d4c1ff44351f0f248bf92af922835de803ff46c3f163fdf112d6ff14c4"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -54,8 +54,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "676baaf58b2c6c87625a8f9dcd6870954b3c8c4cdbfb69965a7e9e957c8941a3"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "b861827b858ace749abc4ec9d5fe3295a1764572c99936464eeb88c5d084df75"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -78,8 +78,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "0b16ea9c1e5fcdaeb0a62c1bb56f45c7a84d11365412a94dcb52e80e477eeb44"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "2479ba109ffbc67e7a797eff6816d6ff5130061f46a12e86b8760455eae7be4c"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -104,8 +104,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "a3f29081e7d9934ff8dc4c8d01d888f5f5631636d40c898bcb7f95495e058b58"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "410e9752fdd5b4000f4ae8dd76762b28b22edf25e8a99c3cccbf251dd0685765"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -129,8 +129,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "8a44243cf4d3ec93ea3ad373c8c7d4941d6ffcbb384b858acd52e5391e63b109"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "9292d484442e3b6d9debf95fc2f6ed82c622c730968a5c4ba52b1f3cbf8170a4"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -153,8 +153,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "cde43d5787ec0d26f112f895101b7be4a222cf5be95430d22cd65c0e64013f77"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "b6933e04352bfd738a2e8b112a53d1aff3663a3860d4e480aa133cbaafe64b42"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -178,8 +178,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "da12960e7bd00540eec75b1bfb18fc0ebb7590d6edeb358c696659ac81c94839"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "adfa246925a9e5afdbf894f4fc6a04f8cadbcae62f133ce4217402e268a94065"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -595,8 +595,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "31b0a259c0775c6198756f7f3a7b3ae8b3ca978a798542d9e1573b824271ea14"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "44fbd9de37617410fcdecfe431d1ef55aac67a132bf96293af2e7eff73ef21a3"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -619,8 +619,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "82104366c5b10e67d6ec1dd5781da1a23ba92cbaa6bb18d4ec30c5d1f876f932"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "fcd322be6796f30af56d9c273d39e9d6601f4e551da3792f111464ae0c26d0c4"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -1247,8 +1247,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "fc04c7052a7e20ec7d3c9dff562be00b37ea0b618a84979817daa997baba7ceb"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "3bed7cd30a52c58bb0df851d6dfc63706ecfba5a6d91b2b8c6f907664ecc0208"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -1425,8 +1425,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "5c3e2581f64ada415091f8f4f02443d33a4721d5cdbfe98cabe50cd6eb64f533"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "30e1e81a3d520d2fa73092716e69ce89d277052d625edd2266f9773473add5f8"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -1449,8 +1449,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "35504dc357336d0176ec976deabf9d1606e5c82bb955ccb16555135fe6d69fd6"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "153004104ab07c0775cae0a1b09100110bab42f151de7f98ff2ea1c4d997dfcb"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -1649,8 +1649,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "68d7dbcca5848083025dca943de6d7f79c8ec4ec1adf1c802896af6494a9a3c8"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "7ef848d8e9555ff960bf0707fd8f3d188b80cbeacef66d2291c0c22edf43020d"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -1909,8 +1909,162 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "49886d3debf77660820b4754f2c81c58281bc4d128604dd3be6deabfaa127804"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "f22d68834c1ab15ad66a6945dde02ff76629005d40d7cdaf39ff47bdc19c07d3"
+    },
+    {
+      "schema_version": "desktop-read-model-source-row.v1",
+      "source_id": "agent_bridge_review_finding_workbench",
+      "section_id": "agents",
+      "label": "Agent Bridge review finding workbench",
+      "required": true,
+      "source_path": "artifacts/agent-bridge-review-finding-workbench/latest/agent-bridge-review-finding-workbench.json",
+      "source_allowed_by_policy": true,
+      "source_available": true,
+      "parse_status": "parsed",
+      "source_content_hash": "sha256:0bf1d5a8484a9f597acdcd8c28ac8d8520ccb34609f71a55c086ca5db2cfc686",
+      "data_summary": {
+        "schema_version": "agent-bridge-review-finding-workbench.v1",
+        "agent_bridge_review_finding_workbench_status": "ready_for_agent_bridge_review_finding_workbench",
+        "source_agent_bridge_receipt_import_workspace_status": "ready_for_agent_bridge_receipt_import_workspace",
+        "finding_seed_count": 4,
+        "finding_action_count": 4,
+        "blocking_finding_count": 2,
+        "blocked_finding_fixture_count": 10,
+        "review_finding_workbench_enabled_now": true,
+        "finding_seed_visible_now": true,
+        "finding_action_visible_now": true,
+        "blocking_findings_visible_now": true,
+        "finding_resolution_allowed_now": false,
+        "clean_checkpoint_allowed_now": false,
+        "patch_apply_allowed_now": false,
+        "receipt_application_allowed_now": false,
+        "approval_application_allowed_now": false,
+        "execution_allowed_now": false,
+        "provider_output_authoritative": false,
+        "unsafe_flag_count": 0,
+        "validation_error_count": 0,
+        "review_finding_seed_rows": [
+          {
+            "finding_id": "agent.review.finding.bdd00c9eb4455f66",
+            "receipt_id": "receipt.chatgpt.agbrowse.plan_review",
+            "request_id": "agent.task.request.915d39b8905ff8ac",
+            "request_type": "plan_review",
+            "finding_category": "review_followup",
+            "severity": "p2",
+            "blocking": false,
+            "finding_status": "triage_ready",
+            "finding_summary": "Review normalized plan_review receipt summary before any next step.",
+            "finding_resolution_allowed_now": false,
+            "clean_checkpoint_allowed_now": false,
+            "patch_apply_allowed_now": false,
+            "approval_application_allowed_now": false,
+            "execution_allowed_now": false,
+            "opens_authority": false
+          },
+          {
+            "finding_id": "agent.review.finding.dd4c82b0104ed45c",
+            "receipt_id": "receipt.claude.code_review.placeholder",
+            "request_id": "agent.task.request.5422f546b93b019e",
+            "request_type": "code_review",
+            "finding_category": "missing_or_quarantined_receipt",
+            "severity": "p1",
+            "blocking": true,
+            "finding_status": "blocking_open",
+            "finding_summary": "Collect a valid redacted receipt for code_review.",
+            "finding_resolution_allowed_now": false,
+            "clean_checkpoint_allowed_now": false,
+            "patch_apply_allowed_now": false,
+            "approval_application_allowed_now": false,
+            "execution_allowed_now": false,
+            "opens_authority": false
+          },
+          {
+            "finding_id": "agent.review.finding.35ce0b642e18d55b",
+            "receipt_id": "receipt.codex.implementation_proposal.placeholder",
+            "request_id": "agent.task.request.6c6d548363024a64",
+            "request_type": "implementation_proposal",
+            "finding_category": "missing_or_quarantined_receipt",
+            "severity": "p1",
+            "blocking": true,
+            "finding_status": "blocking_open",
+            "finding_summary": "Collect a valid redacted receipt for implementation_proposal.",
+            "finding_resolution_allowed_now": false,
+            "clean_checkpoint_allowed_now": false,
+            "patch_apply_allowed_now": false,
+            "approval_application_allowed_now": false,
+            "execution_allowed_now": false,
+            "opens_authority": false
+          },
+          {
+            "finding_id": "agent.review.finding.5279faa2881d29ea",
+            "receipt_id": "receipt.local.command_suggestion.summary",
+            "request_id": "agent.task.request.2ed53d1e2cb81580",
+            "request_type": "command_suggestion",
+            "finding_category": "review_followup",
+            "severity": "p3",
+            "blocking": false,
+            "finding_status": "triage_ready",
+            "finding_summary": "Review normalized command_suggestion receipt summary before any next step.",
+            "finding_resolution_allowed_now": false,
+            "clean_checkpoint_allowed_now": false,
+            "patch_apply_allowed_now": false,
+            "approval_application_allowed_now": false,
+            "execution_allowed_now": false,
+            "opens_authority": false
+          }
+        ],
+        "review_finding_action_rows": [
+          {
+            "finding_id": "agent.review.finding.bdd00c9eb4455f66",
+            "action_status": "triage_candidate",
+            "action_label": "Inspect normalized finding",
+            "next_allowed_action": "triage_normalized_review_summary",
+            "action_mutates_state": false,
+            "action_executes_command": false,
+            "action_applies_patch": false,
+            "finding_resolution_allowed_now": false,
+            "opens_authority": false
+          },
+          {
+            "finding_id": "agent.review.finding.dd4c82b0104ed45c",
+            "action_status": "blocked_until_receipt",
+            "action_label": "Collect redacted receipt",
+            "next_allowed_action": "collect_redacted_receipt_before_resolution",
+            "action_mutates_state": false,
+            "action_executes_command": false,
+            "action_applies_patch": false,
+            "finding_resolution_allowed_now": false,
+            "opens_authority": false
+          },
+          {
+            "finding_id": "agent.review.finding.35ce0b642e18d55b",
+            "action_status": "blocked_until_receipt",
+            "action_label": "Collect redacted receipt",
+            "next_allowed_action": "collect_redacted_receipt_before_resolution",
+            "action_mutates_state": false,
+            "action_executes_command": false,
+            "action_applies_patch": false,
+            "finding_resolution_allowed_now": false,
+            "opens_authority": false
+          },
+          {
+            "finding_id": "agent.review.finding.5279faa2881d29ea",
+            "action_status": "triage_candidate",
+            "action_label": "Inspect normalized finding",
+            "next_allowed_action": "triage_normalized_review_summary",
+            "action_mutates_state": false,
+            "action_executes_command": false,
+            "action_applies_patch": false,
+            "finding_resolution_allowed_now": false,
+            "opens_authority": false
+          }
+        ]
+      },
+      "status": "ready",
+      "blocker": null,
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "679fbc59574f66275d80b521fed827506dec4a2efaefec227fbd2e438a94c712"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2275,8 +2429,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "da4679288d82b15ca151221629da27872c7ae447d151027b94c7e3ed338b3a5c"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "d88fe400d0dfe49f499e61032c40d6600f05596b080844128bfb49a2c3a3123f"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2305,8 +2459,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "cad6f28e3d5a14b6638c37d4e8bf870e6672fc297e3531e140c6291d13f810f1"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "bd92164a95912f4811accf5d3d173ef4ea75379343e7544186858a855d42883f"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2335,8 +2489,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "3cc3dc45dcc641d627ea576c02d60ba4688dda6ce5e2f8b32cdd9d9dc5c0cc63"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "47524ebaacb89b460b48d86ca597c9b258f18250b881b9cb2a6fd85918d3fb46"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2360,8 +2514,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "56002f06ee3e9a3b2d3232b11c48369e266e72a2118a2c236c4f3107a00b28b1"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "af36507ed95e248680c90c6029127bfc6414c0c60f56aa27b24e934e24e2d200"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2386,8 +2540,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "a984b9eead45c8076ae96b5b9a2532991c74ecca327940c56943b6c0f16bfd00"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "cacefa20d6dc0b61920b2c88aa446ed55a104dc02f9d74d222c0a5f5bf178ba7"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2411,8 +2565,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "05e273c94572a55b541c4031448b4acae4aded56cd29435917f4311fbdc04d77"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "4025d26bb4463fea49932d9f8ee20661cfa18b8bd642592b5f4afaafcc4ece5b"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2435,8 +2589,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "28ae96174c5c2f8057cbb1f2169b36b7144c9c4f170f617f55a432a57584b0ec"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "d986aa4157ececd896cda8cd2e89212a08336fd71c47bc9a933a8fb2d71401c8"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2460,8 +2614,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "2ece723e4eb7a70772e17d2564c19525ff3b0d573a9750061a91d74949b048d2"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "8ddcb611ac7e07ce60e476ea68fc01d04dd0bb3cd3884720f9a0ab0faa34c2a0"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2479,8 +2633,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "aa6dac364071830720bfb98da1be097a41f39126e1f8a5255b53177f312dd2cd"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "ffeb14f6441bb119888f7ddfa6cf6f49e98493c8aeac9362556192265211a935"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2498,8 +2652,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "ca45b5242df2e647040f520ce69ab38fe59c8428f252d2fe2f07f3acaa338be3"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "fb4c2354b860ce3c5dfa137a159ffa4d3f41e805dd48855350cb8bc6ee9bbaee"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2517,8 +2671,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "99cb10b8fb1395d122e6be0ac02700fd6dc26930eb93aa6b266e7eb63e07004f"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "87cdf65bcca5b32887674556f635937435d2281b4c26b5da43a7fd1bf4e44c32"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2536,8 +2690,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "454d58e0831be0a482468438f287d4a5c027736215c59848b495a8ddd6fe193a"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "943e6a744d2c6622fbda2451100ca733804c80448179ec7aec5d15504be80e3f"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2558,8 +2712,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "2a9762997897b74006fc93c01fe816b363682539c6be2b52f4b5862e993a0e51"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "42ac708ae186b65d9668049800acf029325c4c9c86241ee19f355e834eb10a4a"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2585,8 +2739,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:02:57.994Z",
-      "source_row_hash": "82fef14848301527251a983f7f602d741358f10939abf38de3d9dda201b54990"
+      "generated_at": "2026-06-16T01:42:26.407Z",
+      "source_row_hash": "46b23d6b8cabc3ef19fa7cd01cf20c2a8cd0a1b7f8118a4152714108c919aac3"
     }
   ]
 }

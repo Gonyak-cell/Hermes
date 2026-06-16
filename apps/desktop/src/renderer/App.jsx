@@ -52,6 +52,11 @@ const fallbackReadModel = {
     execution_candidate_rows: [],
     blocked_command_fixture_rows: [],
     execution_gate_rows: [],
+    dry_run_executor_rows: [],
+    provider_adapter_request_rows: [],
+    owner_limited_execution_gate_rows: [],
+    l10_preflight_candidate_rows: [],
+    limited_runtime_gate_rows: [],
     agent_control_rows: [],
   },
   desktop_read_authority: SHELL_SEED_STATE.authority_flags,
@@ -233,6 +238,9 @@ function AgentBridgePanel({ copy, projection }) {
   const findingRows = projection?.review_finding_seed_rows ?? [];
   const candidateRows = projection?.execution_candidate_rows ?? [];
   const gateRows = projection?.execution_gate_rows ?? [];
+  const dryRunRows = projection?.dry_run_executor_rows ?? [];
+  const providerRows = projection?.provider_adapter_request_rows ?? [];
+  const preflightRows = projection?.l10_preflight_candidate_rows ?? [];
   const controlRows = projection?.agent_control_rows ?? [];
   return (
     <section className="agent-bridge-panel" aria-label={copy.agentPanel}>
@@ -250,6 +258,9 @@ function AgentBridgePanel({ copy, projection }) {
         <Metric label={copy.agentFindingTable} value={projection?.review_finding_count ?? findingRows.length} />
         <Metric label={copy.agentCandidateTable} value={projection?.execution_candidate_count ?? candidateRows.length} />
         <Metric label={copy.agentGateTable} value={`${projection?.execution_gate_pass_count ?? 0}/${projection?.execution_gate_count ?? gateRows.length}`} />
+        <Metric label={copy.agentDryRunTable} value={projection?.dry_run_executor_count ?? dryRunRows.length} />
+        <Metric label={copy.agentProviderTable} value={projection?.provider_adapter_request_count ?? providerRows.length} />
+        <Metric label={copy.agentPreflightTable} value={projection?.l10_preflight_candidate_count ?? preflightRows.length} />
       </div>
       <div className="agent-grid">
         <AgentRuntimeTable copy={copy} rows={runtimeRows} />
@@ -261,6 +272,9 @@ function AgentBridgePanel({ copy, projection }) {
         <AgentFindingTable copy={copy} rows={findingRows} />
         <AgentCandidateTable copy={copy} rows={candidateRows} />
         <AgentGateTable copy={copy} rows={gateRows} />
+        <AgentDryRunTable copy={copy} rows={dryRunRows} />
+        <AgentProviderTable copy={copy} rows={providerRows} />
+        <AgentPreflightTable copy={copy} rows={preflightRows} />
       </div>
       <div className="agent-control-strip" aria-label={copy.agentControls}>
         {controlRows.map((row) => (
@@ -499,6 +513,84 @@ function AgentGateTable({ copy, rows }) {
               <td><strong>{formatProjectionText(row.gate_id)}</strong><small>{row.description}</small></td>
               <td>{formatProjectionText(row.gate_status)}</td>
               <td><StatusPill tone={row.opens_authority ? "red" : "green"} label={row.opens_authority ? "open" : "closed"} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function AgentDryRunTable({ copy, rows }) {
+  return (
+    <div className="agent-table-card wide">
+      <h4>{copy.agentDryRunTable}</h4>
+      <table className="mini-table">
+        <thead>
+          <tr>
+            <th>Trace</th>
+            <th>Command</th>
+            <th>Run</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.candidate_id}>
+              <td><strong>{formatProjectionText(row.executor_adapter_status)}</strong><small>{formatProjectionText(row.candidate_type)}</small></td>
+              <td><code>{row.printed_intended_command || row.command_text}</code></td>
+              <td><StatusPill tone={row.command_executed_now ? "red" : "green"} label={row.command_executed_now ? "open" : "closed"} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function AgentProviderTable({ copy, rows }) {
+  return (
+    <div className="agent-table-card wide">
+      <h4>{copy.agentProviderTable}</h4>
+      <table className="mini-table">
+        <thead>
+          <tr>
+            <th>Adapter</th>
+            <th>Packet</th>
+            <th>Submit</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.adapter_id}>
+              <td><strong>{row.adapter_title}</strong><small>{formatProjectionText(row.target_runtime_id)}</small></td>
+              <td>{row.packet_id ?? "missing"}<small>{formatProjectionText(row.adapter_request_status)}</small></td>
+              <td><StatusPill tone={row.request_transport_submission_allowed_now ? "red" : "green"} label={row.request_transport_submission_allowed_now ? "open" : "closed"} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function AgentPreflightTable({ copy, rows }) {
+  return (
+    <div className="agent-table-card wide">
+      <h4>{copy.agentPreflightTable}</h4>
+      <table className="mini-table">
+        <thead>
+          <tr>
+            <th>Preflight</th>
+            <th>Command</th>
+            <th>Run</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.preflight_id}>
+              <td><strong>{formatProjectionText(row.preflight_id)}</strong><small>{formatProjectionText(row.preflight_status)}</small></td>
+              <td><code>{row.command_text}</code></td>
+              <td><StatusPill tone={row.command_executed_now ? "red" : "green"} label={row.command_executed_now ? "open" : "closed"} /></td>
             </tr>
           ))}
         </tbody>

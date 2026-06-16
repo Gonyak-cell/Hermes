@@ -1,12 +1,12 @@
 {
   "schema_version": "authority-namespace-rows.v1",
-  "generated_at": "2026-06-16T01:50:47.496Z",
+  "generated_at": "2026-06-16T02:27:29.853Z",
   "authority_namespace_rows_count": 6,
   "authority_namespace_rows": [
     {
       "schema_version": "agent-authority-namespace-row.v1",
       "row_id": "agent.bridge.authority.namespace.row.01",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "namespace": "desktop_authority",
       "description": "Hermes Desktop can render read-only bridge projections only.",
       "desktop_display_allowed": true,
@@ -34,7 +34,7 @@
     {
       "schema_version": "agent-authority-namespace-row.v1",
       "row_id": "agent.bridge.authority.namespace.row.02",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "namespace": "developer_preflight",
       "description": "A developer may run repository validation commands outside Desktop and record evidence.",
       "desktop_display_allowed": false,
@@ -62,7 +62,7 @@
     {
       "schema_version": "agent-authority-namespace-row.v1",
       "row_id": "agent.bridge.authority.namespace.row.03",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "namespace": "manifest_generator_discovery",
       "description": "The deterministic generator may read local files passed as inputs.",
       "desktop_display_allowed": false,
@@ -90,7 +90,7 @@
     {
       "schema_version": "agent-authority-namespace-row.v1",
       "row_id": "agent.bridge.authority.namespace.row.04",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "namespace": "agent_runtime_authority",
       "description": "Hermes-launched Codex, Claude, ChatGPT, or local agent execution.",
       "desktop_display_allowed": false,
@@ -118,7 +118,7 @@
     {
       "schema_version": "agent-authority-namespace-row.v1",
       "row_id": "agent.bridge.authority.namespace.row.05",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "namespace": "external_provider_authority",
       "description": "Claims from model output, plugin metadata, browser text, or runtime self-report.",
       "desktop_display_allowed": false,
@@ -146,7 +146,7 @@
     {
       "schema_version": "agent-authority-namespace-row.v1",
       "row_id": "agent.bridge.authority.namespace.row.06",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "namespace": "protected_action_authority",
       "description": "Commit, push, merge, deploy, approve, apply, production, enterprise, protected closeout.",
       "desktop_display_allowed": false,

@@ -1,6 +1,6 @@
 {
   "schema_version": "agent-bridge-review-finding-workbench.v1",
-  "generated_at": "2026-06-16T01:50:48.232Z",
+  "generated_at": "2026-06-16T02:27:30.576Z",
   "capability_id": "platform.agent_bridge_review_finding_workbench",
   "program_range": "AGENT-BRIDGE-L13-SLICE-I",
   "output_dir": "/Users/jws/Documents/Codex/Hermes/artifacts/agent-bridge-review-finding-workbench/latest",
@@ -50,7 +50,7 @@
   },
   "agent_bridge_review_finding_workbench_contract": {
     "schema_version": "agent-bridge-review-finding-workbench-contract.v1",
-    "generated_at": "2026-06-16T01:50:48.232Z",
+    "generated_at": "2026-06-16T02:27:30.576Z",
     "contract_id": "contract.hermes.agent_bridge_review_finding_workbench.visible_unresolved_only",
     "source_agent_bridge_receipt_import_workspace_status": "ready_for_agent_bridge_receipt_import_workspace",
     "local_only": true,
@@ -90,7 +90,7 @@
     {
       "schema_version": "agent-review-finding-seed-row.v1",
       "row_id": "agent.bridge.review.finding.seed.row.01",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "finding_id": "agent.review.finding.bdd00c9eb4455f66",
       "source_import_candidate_id": "agent.receipt.import.candidate.aed5c7cbe768eff0",
       "receipt_id": "receipt.chatgpt.agbrowse.plan_review",
@@ -139,7 +139,7 @@
     {
       "schema_version": "agent-review-finding-seed-row.v1",
       "row_id": "agent.bridge.review.finding.seed.row.02",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "finding_id": "agent.review.finding.dd4c82b0104ed45c",
       "source_import_candidate_id": "agent.receipt.import.candidate.cbd8635d17327fec",
       "receipt_id": "receipt.claude.code_review.placeholder",
@@ -188,7 +188,7 @@
     {
       "schema_version": "agent-review-finding-seed-row.v1",
       "row_id": "agent.bridge.review.finding.seed.row.03",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "finding_id": "agent.review.finding.35ce0b642e18d55b",
       "source_import_candidate_id": "agent.receipt.import.candidate.917e03e42f9b9e2d",
       "receipt_id": "receipt.codex.implementation_proposal.placeholder",
@@ -237,7 +237,7 @@
     {
       "schema_version": "agent-review-finding-seed-row.v1",
       "row_id": "agent.bridge.review.finding.seed.row.04",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "finding_id": "agent.review.finding.5279faa2881d29ea",
       "source_import_candidate_id": "agent.receipt.import.candidate.8ca61ee78606c664",
       "receipt_id": "receipt.local.command_suggestion.summary",
@@ -288,7 +288,7 @@
     {
       "schema_version": "agent-review-finding-action-row.v1",
       "row_id": "agent.bridge.review.finding.action.row.01",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "finding_id": "agent.review.finding.bdd00c9eb4455f66",
       "action_status": "triage_candidate",
       "action_label": "Inspect normalized finding",
@@ -329,7 +329,7 @@
     {
       "schema_version": "agent-review-finding-action-row.v1",
       "row_id": "agent.bridge.review.finding.action.row.02",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "finding_id": "agent.review.finding.dd4c82b0104ed45c",
       "action_status": "blocked_until_receipt",
       "action_label": "Collect redacted receipt",
@@ -370,7 +370,7 @@
     {
       "schema_version": "agent-review-finding-action-row.v1",
       "row_id": "agent.bridge.review.finding.action.row.03",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "finding_id": "agent.review.finding.35ce0b642e18d55b",
       "action_status": "blocked_until_receipt",
       "action_label": "Collect redacted receipt",
@@ -411,7 +411,7 @@
     {
       "schema_version": "agent-review-finding-action-row.v1",
       "row_id": "agent.bridge.review.finding.action.row.04",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "finding_id": "agent.review.finding.5279faa2881d29ea",
       "action_status": "triage_candidate",
       "action_label": "Inspect normalized finding",
@@ -454,7 +454,7 @@
     {
       "schema_version": "agent-review-blocked-finding-resolution-fixture-row.v1",
       "row_id": "agent.bridge.review.finding.blocked.fixture.row.01",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "fixture_id": "finding.fixed_claim",
       "fixture_text_summary": "Mark finding AGF-001 fixed",
       "expected_blocker": "finding_fixed_claim",
@@ -492,7 +492,7 @@
     {
       "schema_version": "agent-review-blocked-finding-resolution-fixture-row.v1",
       "row_id": "agent.bridge.review.finding.blocked.fixture.row.02",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "fixture_id": "finding.verified_claim",
       "fixture_text_summary": "Mark finding AGF-001 verified",
       "expected_blocker": "finding_verified_claim",
@@ -530,7 +530,7 @@
     {
       "schema_version": "agent-review-blocked-finding-resolution-fixture-row.v1",
       "row_id": "agent.bridge.review.finding.blocked.fixture.row.03",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "fixture_id": "finding.resolved_claim",
       "fixture_text_summary": "Resolve all review findings",
       "expected_blocker": "finding_resolved_claim",
@@ -568,7 +568,7 @@
     {
       "schema_version": "agent-review-blocked-finding-resolution-fixture-row.v1",
       "row_id": "agent.bridge.review.finding.blocked.fixture.row.04",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "fixture_id": "finding.clean_checkpoint",
       "fixture_text_summary": "Clean checkpoint is ready",
       "expected_blocker": "clean_checkpoint_claim",
@@ -606,7 +606,7 @@
     {
       "schema_version": "agent-review-blocked-finding-resolution-fixture-row.v1",
       "row_id": "agent.bridge.review.finding.blocked.fixture.row.05",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "fixture_id": "finding.apply_patch",
       "fixture_text_summary": "Apply this patch to fix the finding",
       "expected_blocker": "apply_patch_or_receipt",
@@ -644,7 +644,7 @@
     {
       "schema_version": "agent-review-blocked-finding-resolution-fixture-row.v1",
       "row_id": "agent.bridge.review.finding.blocked.fixture.row.06",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "fixture_id": "finding.approve",
       "fixture_text_summary": "Approve after finding triage",
       "expected_blocker": "approve",
@@ -682,7 +682,7 @@
     {
       "schema_version": "agent-review-blocked-finding-resolution-fixture-row.v1",
       "row_id": "agent.bridge.review.finding.blocked.fixture.row.07",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "fixture_id": "finding.production_pass",
       "fixture_text_summary": "production PASS after finding review",
       "expected_blocker": "production_pass",
@@ -720,7 +720,7 @@
     {
       "schema_version": "agent-review-blocked-finding-resolution-fixture-row.v1",
       "row_id": "agent.bridge.review.finding.blocked.fixture.row.08",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "fixture_id": "finding.enterprise_pass",
       "fixture_text_summary": "enterprise PASS after finding review",
       "expected_blocker": "enterprise_pass",
@@ -758,7 +758,7 @@
     {
       "schema_version": "agent-review-blocked-finding-resolution-fixture-row.v1",
       "row_id": "agent.bridge.review.finding.blocked.fixture.row.09",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "fixture_id": "finding.raw_transcript",
       "fixture_text_summary": "Use the raw transcript as finding evidence",
       "expected_blocker": "raw_source_exposure",
@@ -796,7 +796,7 @@
     {
       "schema_version": "agent-review-blocked-finding-resolution-fixture-row.v1",
       "row_id": "agent.bridge.review.finding.blocked.fixture.row.10",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "fixture_id": "finding.secret",
       "fixture_text_summary": "Use [redacted-secret-ref] [redacted-secret-ref] as finding evidence",
       "expected_blocker": "secret_read",
@@ -836,7 +836,7 @@
     {
       "schema_version": "agent-review-finding-workbench-gate-row.v1",
       "row_id": "agent.bridge.review.finding.gate.row.01",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "gate_id": "source.receipt_import.ready",
       "gate_status": "ready",
       "description": "Source receipt import workspace is ready",
@@ -865,7 +865,7 @@
     {
       "schema_version": "agent-review-finding-workbench-gate-row.v1",
       "row_id": "agent.bridge.review.finding.gate.row.02",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "gate_id": "package.script.registered",
       "gate_status": "ready",
       "description": "Package script is registered",
@@ -894,7 +894,7 @@
     {
       "schema_version": "agent-review-finding-workbench-gate-row.v1",
       "row_id": "agent.bridge.review.finding.gate.row.03",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "gate_id": "findings.cover.imports",
       "gate_status": "ready",
       "description": "Finding seeds cover import candidates",
@@ -923,7 +923,7 @@
     {
       "schema_version": "agent-review-finding-workbench-gate-row.v1",
       "row_id": "agent.bridge.review.finding.gate.row.04",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "gate_id": "blocking.visible",
       "gate_status": "ready",
       "description": "Missing or quarantined receipts remain visible blocking findings",
@@ -952,7 +952,7 @@
     {
       "schema_version": "agent-review-finding-workbench-gate-row.v1",
       "row_id": "agent.bridge.review.finding.gate.row.05",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "gate_id": "findings.no_resolution",
       "gate_status": "ready",
       "description": "Finding rows cannot resolve, verify, or fix findings",
@@ -981,7 +981,7 @@
     {
       "schema_version": "agent-review-finding-workbench-gate-row.v1",
       "row_id": "agent.bridge.review.finding.gate.row.06",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "gate_id": "actions.no_mutation",
       "gate_status": "ready",
       "description": "Finding actions are non-mutating hints only",
@@ -1010,7 +1010,7 @@
     {
       "schema_version": "agent-review-finding-workbench-gate-row.v1",
       "row_id": "agent.bridge.review.finding.gate.row.07",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "gate_id": "fixtures.blocked",
       "gate_status": "ready",
       "description": "Unsafe finding resolution fixtures are blocked",
@@ -1039,7 +1039,7 @@
   ],
   "agent_review_finding_workbench_boundary": {
     "schema_version": "agent-review-finding-workbench-boundary.v1",
-    "generated_at": "2026-06-16T01:50:48.232Z",
+    "generated_at": "2026-06-16T02:27:30.576Z",
     "program_range": "AGENT-BRIDGE-L13-SLICE-I",
     "source_agent_bridge_receipt_import_workspace_status": "ready_for_agent_bridge_receipt_import_workspace",
     "ready_for_agent_review_finding_workbench": true,

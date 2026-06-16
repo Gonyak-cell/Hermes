@@ -1,7 +1,7 @@
 # Desktop Read Model
 
 - Status: ready_for_desktop_shell
-- Sources: 29/29
+- Sources: 30/30
 - Sections: 8/8
 - Screens: 13/13
 - Operator handbook bound: true

@@ -1,6 +1,6 @@
 {
   "schema_version": "desktop-read-model.v1",
-  "generated_at": "2026-06-16T01:54:09.708Z",
+  "generated_at": "2026-06-16T02:28:21.181Z",
   "capability_id": "desktop.read_model",
   "output_dir": "/Users/jws/Documents/Codex/Hermes/artifacts/desktop-read-model/latest",
   "inputs": {
@@ -24,6 +24,7 @@
     "agent_bridge_receipt_import_workspace_path": "artifacts/agent-bridge-receipt-import-workspace/latest/agent-bridge-receipt-import-workspace.json",
     "agent_bridge_review_finding_workbench_path": "artifacts/agent-bridge-review-finding-workbench/latest/agent-bridge-review-finding-workbench.json",
     "agent_bridge_execution_candidate_path": "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json",
+    "agent_bridge_limited_runtime_plan_path": "artifacts/agent-bridge-limited-runtime-plan/latest/agent-bridge-limited-runtime-plan.json",
     "operator_handbook_path": "artifacts/operator-handbook/latest/operator-handbook.json",
     "operator_surfaces_path": "artifacts/operator-handbook/latest/operator-surfaces.json",
     "operator_screens_path": "artifacts/operator-handbook/latest/operator-screens.json",
@@ -38,7 +39,7 @@
   },
   "artifact_access_policy": {
     "schema_version": "desktop-artifact-access-policy.v1",
-    "generated_at": "2026-06-16T01:54:09.708Z",
+    "generated_at": "2026-06-16T02:28:21.181Z",
     "mode": "explicit_allowlist_with_denylist_precedence",
     "allowlist": [
       "docs/release-owner-decision-2026-06-14.md",
@@ -58,6 +59,7 @@
       "artifacts/agent-bridge-receipt-import-workspace/latest/agent-bridge-receipt-import-workspace.json",
       "artifacts/agent-bridge-review-finding-workbench/latest/agent-bridge-review-finding-workbench.json",
       "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json",
+      "artifacts/agent-bridge-limited-runtime-plan/latest/agent-bridge-limited-runtime-plan.json",
       "docs/operator-handbook.md",
       "docs/dashboard-api-freeze.md",
       "artifacts/desktop-authority-boundary/latest/desktop-authority-boundary.json",
@@ -115,8 +117,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "afe793e104ad9b4980bec36ba4300828d238f6e3d34cd0d5f2550cd6e7b2c587"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "d92b7e2363c3a33749add843f147aefd5b145e98466af1a9d35501b646f140d8"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -141,8 +143,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "6b0cd89a035ba9fdf35a65fa85474ea5d871d10686d0980d8b15ca20c8425593"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "3c47686a828eb1313ce4718a1d29905d7678339cdf69441a9b5b28037279c839"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -165,8 +167,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "3fccfcd6ff7d8e8278bcb4701edfca20c9d20bb1fd0051b862d4751aabfe3779"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "18d79a2908849d028ce9e62d49dc31623b544fe11cb4de03aff411639c432084"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -191,8 +193,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "575e19e6280a974462e3876e0bc8a4c76b6bffa41e6a24b31d6542e26d937a1c"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "c7fffc69aebe7c34c88b75254c357efce3ddf293baac959533b2cd001ac639eb"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -216,8 +218,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "2e55ea7f05864ecc0c802799a157e35860b8ea910f9e91429cb5370ce5f2cb8c"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "07c790979f97839c1b8bed6bf46598202c32bdb3bf0dc3e3e3354fd9e4a4fce7"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -240,8 +242,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "d3d475a33fbd66239a717a37d4239f0e6e3ea7366a360a164be80495a811ec9a"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "6656b48822aba7d6cae0809c0da4f5fe4ad1d74c8bb6924ce76f50752ea1f41a"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -265,8 +267,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "cada4ec981e8e49de12ed073b569e43ea603053aa782ad09f183bc15a9ea224d"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "d863a9f7dd909ffb761f80c921b73fa36807d074a7e4b46a0105e4179f158299"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -278,7 +280,7 @@
       "source_allowed_by_policy": true,
       "source_available": true,
       "parse_status": "parsed",
-      "source_content_hash": "sha256:af09e033a0b56001ceef2ee2e1223c12b419554e1869c24ce6a3ac594e76493c",
+      "source_content_hash": "sha256:baa6260c65693dff9cccf2255b87b6f518e13c852cce12f3646ba9b1c831e83b",
       "data_summary": {
         "schema_version": "project-operating-contract.v1",
         "project_operating_contract_status": "ready_for_project_operating_contract",
@@ -368,7 +370,7 @@
             "remaining_units": 6,
             "next_action_count": 6,
             "source_generated_at": "2026-06-06T05:31:34.454Z",
-            "source_age_days": 9.41,
+            "source_age_days": 9.87,
             "source_artifact_path": "artifacts/multi-project-saas-control-plane/latest/multi-project-saas-control-plane.json",
             "source_artifact_sha256": "sha256:0026de2ba88c48e2cd507a33c25cb3059d5a7fda4b7079f56382391c5d122054",
             "source_parse_status": "parsed",
@@ -390,7 +392,7 @@
             "remaining_units": 6,
             "next_action_count": 6,
             "source_generated_at": "2026-06-06T05:31:34.454Z",
-            "source_age_days": 9.41,
+            "source_age_days": 9.87,
             "source_artifact_path": "artifacts/multi-project-saas-control-plane/latest/multi-project-saas-control-plane.json",
             "source_artifact_sha256": "sha256:0026de2ba88c48e2cd507a33c25cb3059d5a7fda4b7079f56382391c5d122054",
             "source_parse_status": "parsed",
@@ -412,7 +414,7 @@
             "remaining_units": 6,
             "next_action_count": 6,
             "source_generated_at": "2026-06-06T05:31:34.454Z",
-            "source_age_days": 9.41,
+            "source_age_days": 9.87,
             "source_artifact_path": "artifacts/multi-project-saas-control-plane/latest/multi-project-saas-control-plane.json",
             "source_artifact_sha256": "sha256:0026de2ba88c48e2cd507a33c25cb3059d5a7fda4b7079f56382391c5d122054",
             "source_parse_status": "parsed",
@@ -434,7 +436,7 @@
             "remaining_units": 6,
             "next_action_count": 6,
             "source_generated_at": "2026-06-06T05:31:34.454Z",
-            "source_age_days": 9.41,
+            "source_age_days": 9.87,
             "source_artifact_path": "artifacts/multi-project-saas-control-plane/latest/multi-project-saas-control-plane.json",
             "source_artifact_sha256": "sha256:0026de2ba88c48e2cd507a33c25cb3059d5a7fda4b7079f56382391c5d122054",
             "source_parse_status": "parsed",
@@ -456,7 +458,7 @@
             "remaining_units": 6,
             "next_action_count": 6,
             "source_generated_at": "2026-06-06T05:31:34.454Z",
-            "source_age_days": 9.41,
+            "source_age_days": 9.87,
             "source_artifact_path": "artifacts/multi-project-saas-control-plane/latest/multi-project-saas-control-plane.json",
             "source_artifact_sha256": "sha256:0026de2ba88c48e2cd507a33c25cb3059d5a7fda4b7079f56382391c5d122054",
             "source_parse_status": "parsed",
@@ -471,7 +473,7 @@
           {
             "project_id": "project.hermes",
             "source_generated_at": "2026-06-06T05:31:34.454Z",
-            "source_age_days": 9.41,
+            "source_age_days": 9.87,
             "freshness_status": "aging",
             "refresh_required": false,
             "source_hash": "sha256:0026de2ba88c48e2cd507a33c25cb3059d5a7fda4b7079f56382391c5d122054",
@@ -480,7 +482,7 @@
           {
             "project_id": "project.law_firm_os",
             "source_generated_at": "2026-06-06T05:31:34.454Z",
-            "source_age_days": 9.41,
+            "source_age_days": 9.87,
             "freshness_status": "aging",
             "refresh_required": false,
             "source_hash": "sha256:0026de2ba88c48e2cd507a33c25cb3059d5a7fda4b7079f56382391c5d122054",
@@ -489,7 +491,7 @@
           {
             "project_id": "project.hr_solution",
             "source_generated_at": "2026-06-06T05:31:34.454Z",
-            "source_age_days": 9.41,
+            "source_age_days": 9.87,
             "freshness_status": "aging",
             "refresh_required": false,
             "source_hash": "sha256:0026de2ba88c48e2cd507a33c25cb3059d5a7fda4b7079f56382391c5d122054",
@@ -498,7 +500,7 @@
           {
             "project_id": "project.zendd_bridge",
             "source_generated_at": "2026-06-06T05:31:34.454Z",
-            "source_age_days": 9.41,
+            "source_age_days": 9.87,
             "freshness_status": "aging",
             "refresh_required": false,
             "source_hash": "sha256:0026de2ba88c48e2cd507a33c25cb3059d5a7fda4b7079f56382391c5d122054",
@@ -507,7 +509,7 @@
           {
             "project_id": "project.trading_read_only",
             "source_generated_at": "2026-06-06T05:31:34.454Z",
-            "source_age_days": 9.41,
+            "source_age_days": 9.87,
             "freshness_status": "aging",
             "refresh_required": false,
             "source_hash": "sha256:0026de2ba88c48e2cd507a33c25cb3059d5a7fda4b7079f56382391c5d122054",
@@ -682,8 +684,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "13dbfa3c7187fc4a48d04b0c3e7191c7d627308b3960a02b4612559feaeaad50"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "9ba1b0ead7e5fe8549a9f562cab47a79a19a12af775e9d8edfeb3e3b70daf3b4"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -706,8 +708,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "ff1c2c953f1a4b5d8b3702ab667df3a9b726ff79c8efbbe94590931b97eccc72"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "76a2db3ef6161abf71ac30ac142537311926b3ff2252744a7b8271d735630369"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -719,13 +721,13 @@
       "source_allowed_by_policy": true,
       "source_available": true,
       "parse_status": "parsed",
-      "source_content_hash": "sha256:6f979da90f30847e7f52a9d3a9571403ac504dda7318a30d57f7f624549a6ccf",
+      "source_content_hash": "sha256:ab68e415e08dc951c3f9b32b7b112219ebad0fe40fcc082d30220afa32f18fc6",
       "data_summary": {
         "schema_version": "agent-bridge-manifest.v1",
         "agent_bridge_manifest_status": "ready_for_agent_bridge_manifest",
         "runtime_count": 4,
-        "capability_count": 28,
-        "permission_row_count": 28,
+        "capability_count": 30,
+        "permission_row_count": 30,
         "validation_error_count": 0,
         "unsafe_flag_count": 0,
         "production_pass_enabled": false,
@@ -863,6 +865,17 @@
             "capability_id": "capability.local_script.platform.agent.bridge.execution.candidate",
             "capability_kind": "package_script",
             "capability_name": "platform:agent-bridge-execution-candidate",
+            "runtime_id": "runtime.local.hermes_scripts",
+            "state": "observed",
+            "passive_collection_only": false,
+            "requestable": false,
+            "executable": false,
+            "trust_class": "deterministic_local_file"
+          },
+          {
+            "capability_id": "capability.local_script.platform.agent.bridge.limited.runtime.plan",
+            "capability_kind": "package_script",
+            "capability_name": "platform:agent-bridge-limited-runtime-plan",
             "runtime_id": "runtime.local.hermes_scripts",
             "state": "observed",
             "passive_collection_only": false,
@@ -1089,6 +1102,17 @@
             "requestable": false,
             "executable": false,
             "trust_class": "deterministic_local_file"
+          },
+          {
+            "capability_id": "capability.local_script.platform.agent.zendd.candidate.bridge",
+            "capability_kind": "package_script",
+            "capability_name": "platform:agent-zendd-candidate-bridge",
+            "runtime_id": "runtime.local.hermes_scripts",
+            "state": "observed",
+            "passive_collection_only": false,
+            "requestable": false,
+            "executable": false,
+            "trust_class": "deterministic_local_file"
           }
         ],
         "permission_rows": [
@@ -1164,6 +1188,16 @@
           },
           {
             "capability_id": "capability.local_script.platform.agent.bridge.execution.candidate",
+            "runtime_id": "runtime.local.hermes_scripts",
+            "authority_namespace": "developer_preflight",
+            "capability_state": "observed",
+            "desktop_display_allowed": true,
+            "requestable": false,
+            "executable": false,
+            "opens_authority": false
+          },
+          {
+            "capability_id": "capability.local_script.platform.agent.bridge.limited.runtime.plan",
             "runtime_id": "runtime.local.hermes_scripts",
             "authority_namespace": "developer_preflight",
             "capability_state": "observed",
@@ -1371,13 +1405,23 @@
             "requestable": false,
             "executable": false,
             "opens_authority": false
+          },
+          {
+            "capability_id": "capability.local_script.platform.agent.zendd.candidate.bridge",
+            "runtime_id": "runtime.local.hermes_scripts",
+            "authority_namespace": "developer_preflight",
+            "capability_state": "observed",
+            "desktop_display_allowed": true,
+            "requestable": false,
+            "executable": false,
+            "opens_authority": false
           }
         ]
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "753a3d6ec2c5eb5d3b35dcc1d8a516bf30b15ac746a1891ba7af825aa80b55d9"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "3bb019d64775561ce9fa73e8e75116ec28a7cd6002f37e1fa2a6113f383a6e83"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -1389,7 +1433,7 @@
       "source_allowed_by_policy": true,
       "source_available": true,
       "parse_status": "parsed",
-      "source_content_hash": "sha256:4cd186a6593c45584a34d7ae09a89ab0e33b03fa182dcbbffee13bb9f7ad7739",
+      "source_content_hash": "sha256:ba4fd9f9c993007f7f0ea32a5726aa68b273bdc888b297517772b947fd08d4a6",
       "data_summary": {
         "schema_version": "agent-bridge-request-receipt.v1",
         "agent_bridge_request_receipt_status": "ready_for_agent_bridge_request_receipt",
@@ -1554,8 +1598,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "a7bb05ced12c87dd9f7111866cce286d35fc11939ad74a3756c1275bf54d3d1b"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "be6b4f448d651db8acdbc72aff61aeed792f8c9a76122037add235fc33860a1a"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -1578,8 +1622,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "ae3b0675a24155ae54634c1e1cdb8d3fabafe086f98be6a7d81f8735b84234a1"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "9bd378391f02b398154aca8acdcd9c6ac96341b1c5a5d366b506a78c1bde7a0d"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -1591,7 +1635,7 @@
       "source_allowed_by_policy": true,
       "source_available": true,
       "parse_status": "parsed",
-      "source_content_hash": "sha256:7a10b121a7581c74ee53c1890d6a6e878827ed6f4d320a8364fe02434655cbbf",
+      "source_content_hash": "sha256:f5d1bd2bb081e26855837ba895770dfbd9f1e1c5840dd549705cce662254247a",
       "data_summary": {
         "schema_version": "agent-bridge-request-packet-export.v1",
         "agent_bridge_request_packet_export_status": "ready_for_agent_bridge_request_packet_export",
@@ -1619,7 +1663,7 @@
             "target_capability_id": "capability.chatgpt.agbrowse.web_ai",
             "packet_status": "ready_to_copy",
             "packet_file_name": "plan_review-db2e3fea.md",
-            "packet_markdown_hash": "sha256:2de93338987de8e3530654672f98a874302c31a594ab0cb548f6597db5c1a176",
+            "packet_markdown_hash": "sha256:f773ed9910c878daf93747b5faec41fd14723ba243f6948e14918bcf725c417a",
             "copy_allowed_now": true,
             "file_export_allowed_now": true,
             "request_transport_submission_allowed_now": false,
@@ -1637,7 +1681,7 @@
             "target_capability_id": "capability.claude.review_lane",
             "packet_status": "ready_to_copy",
             "packet_file_name": "code_review-1ce5af2e.md",
-            "packet_markdown_hash": "sha256:064a6f501ef04c3a03f114c142eb1824fcb0fec56e8b86f8b3695445d127595f",
+            "packet_markdown_hash": "sha256:05b56d30177e62c2e3d6c87bedddb7c441841e54dc7959a318c1f273e5f98077",
             "copy_allowed_now": true,
             "file_export_allowed_now": true,
             "request_transport_submission_allowed_now": false,
@@ -1655,7 +1699,7 @@
             "target_capability_id": "capability.codex.skills.visible_catalog",
             "packet_status": "ready_to_copy",
             "packet_file_name": "implementation_proposal-7e701d60.md",
-            "packet_markdown_hash": "sha256:4df2b904de8ed266790e81feb69d14d90eba61ddfe1e2d65b5cb92da9b03035c",
+            "packet_markdown_hash": "sha256:afd6686f59e6983a06dd2a3fa11b77bc93706ed3e15e0afd8a62853fb1a18eda",
             "copy_allowed_now": true,
             "file_export_allowed_now": true,
             "request_transport_submission_allowed_now": false,
@@ -1673,7 +1717,7 @@
             "target_capability_id": "capability.local.hermes.agent_bridge_manifest",
             "packet_status": "ready_to_copy",
             "packet_file_name": "command_suggestion-8c453e5b.md",
-            "packet_markdown_hash": "sha256:abe06caf1a8ed23b4d3ac20cb47e72b771987845e6bcfd6d3102089c592732a0",
+            "packet_markdown_hash": "sha256:98cfdef61123deeb56bac287668ff9c0104d97954557aa5da091e0e113bf2d7e",
             "copy_allowed_now": true,
             "file_export_allowed_now": true,
             "request_transport_submission_allowed_now": false,
@@ -1778,8 +1822,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "e618a9ef0204cfc40b6c215cca91728fcef29c58ecb78e18d081fc41503ffb51"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "fa403d4d8539975bbc6ea29844299b0eda69231e2b2c5f918b8b73259f877cac"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -1791,7 +1835,7 @@
       "source_allowed_by_policy": true,
       "source_available": true,
       "parse_status": "parsed",
-      "source_content_hash": "sha256:30abb8269a3c23845f14eaccfb54b8f3bf3cf1a1f2bcfa1d20900ecaf391fc11",
+      "source_content_hash": "sha256:0f58c332be1d480c478a9d56347f71de9f18f84c244391b57583b7e8db1c329b",
       "data_summary": {
         "schema_version": "agent-bridge-receipt-import-workspace.v1",
         "agent_bridge_receipt_import_workspace_status": "ready_for_agent_bridge_receipt_import_workspace",
@@ -2038,8 +2082,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "ad45c0a811b0f7a3ddbbc38c66b03877aa780b29924e1546504d484dda70f8e7"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "a4c39b4cb15d2e541ff4d0b01072e225d8024dab52ea8396595d95f0b79c11c4"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2051,7 +2095,7 @@
       "source_allowed_by_policy": true,
       "source_available": true,
       "parse_status": "parsed",
-      "source_content_hash": "sha256:9f7d01c009ea3eb00852bfa265ff768222ffa9d80683ab43b42db5952fa2c4cb",
+      "source_content_hash": "sha256:ad6393012dbee18264205d1b78fe41f582d0b03861e353fa637a6326d07ebb3d",
       "data_summary": {
         "schema_version": "agent-bridge-review-finding-workbench.v1",
         "agent_bridge_review_finding_workbench_status": "ready_for_agent_bridge_review_finding_workbench",
@@ -2192,8 +2236,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "8a3539014161bef5e86c00e5e5d6b5fe05f014d6770f847713452dede8452098"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "8b0cd28a18c990d6d2d98049d9267912a78d4f6289629214484977e5c84de7a3"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2205,7 +2249,7 @@
       "source_allowed_by_policy": true,
       "source_available": true,
       "parse_status": "parsed",
-      "source_content_hash": "sha256:503ea6f8469a79d293ce2d6f01568df36605d48d1f98b8049c965d19f2f9f7ba",
+      "source_content_hash": "sha256:4e19509a094785befc69b85de18fee088d6a853389b670dfeaa1886a68031a75",
       "data_summary": {
         "schema_version": "agent-bridge-execution-candidate.v1",
         "agent_bridge_execution_candidate_status": "ready_for_agent_bridge_execution_candidate",
@@ -2702,8 +2746,594 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "9ebc095799181a6d18aaab48f953ff575c2ad06e81d1bbe35b6c6f620720cc43"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "c1845c26cb8d082ea1727c1b79c3250748cbd018eda3f2f1af28cc6324be87dd"
+    },
+    {
+      "schema_version": "desktop-read-model-source-row.v1",
+      "source_id": "agent_bridge_limited_runtime_plan",
+      "section_id": "agents",
+      "label": "Agent Bridge limited runtime plan",
+      "required": true,
+      "source_path": "artifacts/agent-bridge-limited-runtime-plan/latest/agent-bridge-limited-runtime-plan.json",
+      "source_allowed_by_policy": true,
+      "source_available": true,
+      "parse_status": "parsed",
+      "source_content_hash": "sha256:0534b0fb77faf107e9960d1e7c4290fac8db90a6bda99a32f54e924225000618",
+      "data_summary": {
+        "schema_version": "agent-bridge-limited-runtime-plan.v1",
+        "agent_bridge_limited_runtime_plan_status": "ready_for_agent_bridge_limited_runtime_plan",
+        "source_agent_bridge_execution_candidate_status": "ready_for_agent_bridge_execution_candidate",
+        "source_agent_bridge_request_packet_export_status": "ready_for_agent_bridge_request_packet_export",
+        "dry_run_executor_count": 13,
+        "owner_gate_count": 13,
+        "provider_adapter_request_count": 3,
+        "blocked_runtime_command_fixture_count": 14,
+        "l10_preflight_candidate_count": 8,
+        "gate_count": 8,
+        "gate_pass_count": 8,
+        "dry_run_executor_enabled_now": true,
+        "owner_limited_execution_gate_enabled_now": true,
+        "provider_adapter_request_projection_enabled_now": true,
+        "l10_preflight_candidate_enabled_now": true,
+        "request_transport_submission_allowed_now": false,
+        "provider_automation_allowed_now": false,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "dry_run_only": true,
+        "human_receipt_required_before_execution": true,
+        "limited_execution_receipt_required": true,
+        "receipt_application_allowed_now": false,
+        "approval_application_allowed_now": false,
+        "unsafe_flag_count": 0,
+        "validation_error_count": 0,
+        "dry_run_executor_rows": [
+          {
+            "candidate_id": "agent.bridge.execution.candidate.8fcdee95f9d65d93",
+            "candidate_type": "platform_check",
+            "command_text": "npm run platform:agent-bridge-manifest -- --check",
+            "printed_intended_command": "DRY RUN ONLY: npm run platform:agent-bridge-manifest -- --check",
+            "executor_adapter_status": "printed_intended_command_only",
+            "dry_run_trace_created": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.962f5e4c0d586857",
+            "candidate_type": "platform_check",
+            "command_text": "npm run platform:agent-bridge-request-receipt -- --check",
+            "printed_intended_command": "DRY RUN ONLY: npm run platform:agent-bridge-request-receipt -- --check",
+            "executor_adapter_status": "printed_intended_command_only",
+            "dry_run_trace_created": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.99439397f9da1cee",
+            "candidate_type": "platform_check",
+            "command_text": "npm run platform:agent-bridge-request-packet-export -- --check",
+            "printed_intended_command": "DRY RUN ONLY: npm run platform:agent-bridge-request-packet-export -- --check",
+            "executor_adapter_status": "printed_intended_command_only",
+            "dry_run_trace_created": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.80c0530454291989",
+            "candidate_type": "platform_check",
+            "command_text": "npm run platform:agent-bridge-receipt-import-workspace -- --check",
+            "printed_intended_command": "DRY RUN ONLY: npm run platform:agent-bridge-receipt-import-workspace -- --check",
+            "executor_adapter_status": "printed_intended_command_only",
+            "dry_run_trace_created": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.7cf78904ef1d7c5d",
+            "candidate_type": "platform_check",
+            "command_text": "npm run platform:agent-bridge-review-finding-workbench -- --check",
+            "printed_intended_command": "DRY RUN ONLY: npm run platform:agent-bridge-review-finding-workbench -- --check",
+            "executor_adapter_status": "printed_intended_command_only",
+            "dry_run_trace_created": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.cbb829cf58f80d20",
+            "candidate_type": "platform_check",
+            "command_text": "npm run platform:agent-bridge-execution-candidate -- --check",
+            "printed_intended_command": "DRY RUN ONLY: npm run platform:agent-bridge-execution-candidate -- --check",
+            "executor_adapter_status": "printed_intended_command_only",
+            "dry_run_trace_created": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.6b35e6bf1ec2fc2f",
+            "candidate_type": "platform_check",
+            "command_text": "npm run desktop:read-model -- --check",
+            "printed_intended_command": "DRY RUN ONLY: npm run desktop:read-model -- --check",
+            "executor_adapter_status": "printed_intended_command_only",
+            "dry_run_trace_created": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.35a34334df62c451",
+            "candidate_type": "platform_check",
+            "command_text": "npm run platform:agent-bridge-closeout-readiness -- --check",
+            "printed_intended_command": "DRY RUN ONLY: npm run platform:agent-bridge-closeout-readiness -- --check",
+            "executor_adapter_status": "printed_intended_command_only",
+            "dry_run_trace_created": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.28e8c268250f706a",
+            "candidate_type": "targeted_test",
+            "command_text": "node --test test/agent-bridge-manifest.test.mjs test/agent-bridge-request-receipt.test.mjs test/agent-bridge-request-packet-export.test.mjs test/agent-bridge-receipt-import-workspace.test.mjs test/agent-bridge-review-finding-workbench.test.mjs test/agent-bridge-execution-candidate.test.mjs test/agent-bridge-closeout-readiness.test.mjs test/desktop-read-model.test.mjs apps/desktop/test/read-model.test.mjs",
+            "printed_intended_command": "DRY RUN ONLY: node --test test/agent-bridge-manifest.test.mjs test/agent-bridge-request-receipt.test.mjs test/agent-bridge-request-packet-export.test.mjs test/agent-bridge-receipt-import-workspace.test.mjs test/agent-bridge-review-finding-workbench.test.mjs test/agent-bridge-execution-candidate.test.mjs test/agent-bridge-closeout-readiness.test.mjs test/desktop-read-model.test.mjs apps/desktop/test/read-model.test.mjs",
+            "executor_adapter_status": "printed_intended_command_only",
+            "dry_run_trace_created": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.6a23252203f034b6",
+            "candidate_type": "desktop_build",
+            "command_text": "npm run desktop:build",
+            "printed_intended_command": "DRY RUN ONLY: npm run desktop:build",
+            "executor_adapter_status": "printed_intended_command_only",
+            "dry_run_trace_created": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.e4472036200d192d",
+            "candidate_type": "desktop_smoke",
+            "command_text": "npm run desktop:smoke:render -- --screen=agents",
+            "printed_intended_command": "DRY RUN ONLY: npm run desktop:smoke:render -- --screen=agents",
+            "executor_adapter_status": "printed_intended_command_only",
+            "dry_run_trace_created": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.0cecca77236ddb59",
+            "candidate_type": "core_validation",
+            "command_text": "npm run validate:core",
+            "printed_intended_command": "DRY RUN ONLY: npm run validate:core",
+            "executor_adapter_status": "printed_intended_command_only",
+            "dry_run_trace_created": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.466c2f308b48c766",
+            "candidate_type": "diff_check",
+            "command_text": "git diff --check",
+            "printed_intended_command": "DRY RUN ONLY: git diff --check",
+            "executor_adapter_status": "printed_intended_command_only",
+            "dry_run_trace_created": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          }
+        ],
+        "provider_adapter_request_rows": [
+          {
+            "adapter_id": "adapter.agbrowse.chatgpt_review_request",
+            "adapter_kind": "web_ai_review_request",
+            "adapter_title": "Agbrowse ChatGPT review request adapter",
+            "target_runtime_id": "runtime.chatgpt.web_agbrowse",
+            "request_type": "plan_review",
+            "packet_id": "agent.request.packet.export.e3850939db2e3fea",
+            "adapter_request_status": "request_packet_ready_transport_disabled",
+            "request_transport_submission_allowed_now": false,
+            "provider_automation_allowed_now": false,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "opens_authority": false
+          },
+          {
+            "adapter_id": "adapter.claude_code.read_only_review_request",
+            "adapter_kind": "cli_read_only_review_request",
+            "adapter_title": "Claude Code read-only review request adapter",
+            "target_runtime_id": "runtime.claude_code.opus_max",
+            "request_type": "code_review",
+            "packet_id": "agent.request.packet.export.39cfccfc1ce5af2e",
+            "adapter_request_status": "request_packet_ready_transport_disabled",
+            "request_transport_submission_allowed_now": false,
+            "provider_automation_allowed_now": false,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "opens_authority": false
+          },
+          {
+            "adapter_id": "adapter.codex.task_request_packet",
+            "adapter_kind": "codex_task_request_packet",
+            "adapter_title": "Codex task request adapter",
+            "target_runtime_id": "runtime.codex.desktop",
+            "request_type": "implementation_proposal",
+            "packet_id": "agent.request.packet.export.556d086d7e701d60",
+            "adapter_request_status": "request_packet_ready_transport_disabled",
+            "request_transport_submission_allowed_now": false,
+            "provider_automation_allowed_now": false,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "opens_authority": false
+          }
+        ],
+        "owner_limited_execution_gate_rows": [
+          {
+            "candidate_id": "agent.bridge.execution.candidate.8fcdee95f9d65d93",
+            "owner_gate_status": "owner_receipt_required_before_execution",
+            "owner_approval_observed": false,
+            "limited_execution_receipt_required": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.962f5e4c0d586857",
+            "owner_gate_status": "owner_receipt_required_before_execution",
+            "owner_approval_observed": false,
+            "limited_execution_receipt_required": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.99439397f9da1cee",
+            "owner_gate_status": "owner_receipt_required_before_execution",
+            "owner_approval_observed": false,
+            "limited_execution_receipt_required": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.80c0530454291989",
+            "owner_gate_status": "owner_receipt_required_before_execution",
+            "owner_approval_observed": false,
+            "limited_execution_receipt_required": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.7cf78904ef1d7c5d",
+            "owner_gate_status": "owner_receipt_required_before_execution",
+            "owner_approval_observed": false,
+            "limited_execution_receipt_required": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.cbb829cf58f80d20",
+            "owner_gate_status": "owner_receipt_required_before_execution",
+            "owner_approval_observed": false,
+            "limited_execution_receipt_required": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.6b35e6bf1ec2fc2f",
+            "owner_gate_status": "owner_receipt_required_before_execution",
+            "owner_approval_observed": false,
+            "limited_execution_receipt_required": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.35a34334df62c451",
+            "owner_gate_status": "owner_receipt_required_before_execution",
+            "owner_approval_observed": false,
+            "limited_execution_receipt_required": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.28e8c268250f706a",
+            "owner_gate_status": "owner_receipt_required_before_execution",
+            "owner_approval_observed": false,
+            "limited_execution_receipt_required": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.6a23252203f034b6",
+            "owner_gate_status": "owner_receipt_required_before_execution",
+            "owner_approval_observed": false,
+            "limited_execution_receipt_required": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.e4472036200d192d",
+            "owner_gate_status": "owner_receipt_required_before_execution",
+            "owner_approval_observed": false,
+            "limited_execution_receipt_required": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.0cecca77236ddb59",
+            "owner_gate_status": "owner_receipt_required_before_execution",
+            "owner_approval_observed": false,
+            "limited_execution_receipt_required": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "candidate_id": "agent.bridge.execution.candidate.466c2f308b48c766",
+            "owner_gate_status": "owner_receipt_required_before_execution",
+            "owner_approval_observed": false,
+            "limited_execution_receipt_required": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          }
+        ],
+        "l10_preflight_candidate_rows": [
+          {
+            "preflight_id": "l9_limited_runtime_plan_check",
+            "preflight_type": "platform_check",
+            "command_text": "npm run platform:agent-bridge-limited-runtime-plan -- --check",
+            "preflight_status": "candidate_for_manual_preflight",
+            "package_script_registered": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "preflight_id": "agent_bridge_closeout_check",
+            "preflight_type": "platform_check",
+            "command_text": "npm run platform:agent-bridge-closeout-readiness -- --check",
+            "preflight_status": "candidate_for_manual_preflight",
+            "package_script_registered": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "preflight_id": "desktop_read_model_check",
+            "preflight_type": "desktop_check",
+            "command_text": "npm run desktop:read-model -- --check",
+            "preflight_status": "candidate_for_manual_preflight",
+            "package_script_registered": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "preflight_id": "desktop_agents_smoke",
+            "preflight_type": "desktop_smoke",
+            "command_text": "npm run desktop:smoke:render -- --screen=agents",
+            "preflight_status": "candidate_for_manual_preflight",
+            "package_script_registered": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "preflight_id": "desktop_local_preflight",
+            "preflight_type": "desktop_preflight",
+            "command_text": "npm run desktop:local-preflight",
+            "preflight_status": "candidate_for_manual_preflight",
+            "package_script_registered": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "preflight_id": "agent_bridge_targeted_tests",
+            "preflight_type": "targeted_test",
+            "command_text": "node --test test/agent-bridge-manifest.test.mjs test/agent-bridge-request-receipt.test.mjs test/agent-bridge-request-packet-export.test.mjs test/agent-bridge-receipt-import-workspace.test.mjs test/agent-bridge-review-finding-workbench.test.mjs test/agent-bridge-execution-candidate.test.mjs test/agent-bridge-limited-runtime-plan.test.mjs test/agent-bridge-closeout-readiness.test.mjs test/desktop-read-model.test.mjs apps/desktop/test/read-model.test.mjs",
+            "preflight_status": "candidate_for_manual_preflight",
+            "package_script_registered": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "preflight_id": "core_validation",
+            "preflight_type": "core_validation",
+            "command_text": "npm run validate:core",
+            "preflight_status": "candidate_for_manual_preflight",
+            "package_script_registered": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "preflight_id": "diff_check",
+            "preflight_type": "diff_check",
+            "command_text": "git diff --check",
+            "preflight_status": "candidate_for_manual_preflight",
+            "package_script_registered": true,
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "command_output_captured_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          }
+        ],
+        "limited_runtime_gate_rows": [
+          {
+            "gate_id": "package.script.registered",
+            "gate_status": "pass",
+            "description": "platform:agent-bridge-limited-runtime-plan is registered",
+            "current_verdict": "pass",
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "gate_id": "sources.ready",
+            "gate_status": "pass",
+            "description": "Execution candidate, request packet export, and runbook sources are ready",
+            "current_verdict": "pass",
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "gate_id": "dry_run.rows",
+            "gate_status": "pass",
+            "description": "Every execution candidate has a dry-run no-spawn trace",
+            "current_verdict": "pass",
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "gate_id": "owner.gates.closed",
+            "gate_status": "pass",
+            "description": "Owner limited-execution gates are present and not approved",
+            "current_verdict": "pass",
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "gate_id": "provider.adapters.projected",
+            "gate_status": "pass",
+            "description": "Agbrowse, Claude, and Codex adapter requests are projected with transport closed",
+            "current_verdict": "pass",
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "gate_id": "blocked.fixtures",
+            "gate_status": "pass",
+            "description": "Protected L9 runtime command fixtures are blocked",
+            "current_verdict": "pass",
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "gate_id": "l10.preflight.candidates",
+            "gate_status": "pass",
+            "description": "L10 preflight candidates are enumerated but not executed",
+            "current_verdict": "pass",
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          },
+          {
+            "gate_id": "authority.closed",
+            "gate_status": "pass",
+            "description": "Limited runtime plan does not open execution, transport, receipt, approval, production, enterprise, or protected closeout authority",
+            "current_verdict": "pass",
+            "execution_allowed_now": false,
+            "command_executed_now": false,
+            "mutation_performed": false,
+            "opens_authority": false
+          }
+        ]
+      },
+      "status": "ready",
+      "blocker": null,
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "03b217fcc7c390b9dc5812d4d62b9f2e905d38eb8f17ff4574e5b57e74fcfc33"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2732,8 +3362,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "5885144eb179f177f099db14aa6132285e8c312d86988a1b27ca36e114a1f972"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "ebe77b54eac17a535097bafbcb90183fab20d85800feb7c6ce890405ce0f9b3a"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2762,8 +3392,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "04a9b39ab573034b2466802b6ad0bb4560edfef0637a3dc8f54b1319640fa007"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "4227bd4663f6cf7172443f81e3821ef2e9ed76dfe56dd1c94094e3dc10c47947"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2787,8 +3417,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "1d394759c21ae84239095489e9dbcbb1cbc8b298161c19b1499e014e43015dab"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "a1df584570e6fb43b6916ac4f5f173151d28365f944769504674d1553cbccce4"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2813,8 +3443,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "a56d4eadb0165b26f3ccf28ffc54dfcae3590123849843538ff97a63421bbb75"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "8bb129879ee4a10c3b8fa41ecaeaf6a02edca2101d0e2ba94c0a87ab764a7a38"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2838,8 +3468,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "fbcc46f84b6ca22ae8286cf184b90ca47a0d84918a11b1c3cde9d96d82e62801"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "447ec1cf1571b46521fbe3c6a1daf6f836b171aab294ebab8c318c269bd6927c"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2862,8 +3492,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "2b636c0bd1c4ccd37b5fcc7eca7308153c763f08fe04fd048799f299791bf682"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "1f82be97d980f6b4c92a3229fdec277a6a3005b1e2003c54a40fa80037d871a6"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2887,8 +3517,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "6bedff955a838eda9ba56530b87290b8a3454047d33f969523d129ebf88834a9"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "0b6fa4d590eb02781e2b28dfeabd047b626750462382c79e9a38d14120c2d6e7"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2906,8 +3536,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "f64e1f45f5a70140c19126e4cb054e1ef2bb052ee536f8840e8cd36c34a07c81"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "bca6c719cb23647a35e1e955f2cae90946077ab82ccc03ab5c0c47fd6e588f1e"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2925,8 +3555,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "fabfe1605ed85f020d7b06b034312e8e70d28458d725b8ed6377f89a20671178"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "8fad1a481ac436757d597e3ca070035ff6baabb8f4f901952ae3289cb34c66de"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2944,8 +3574,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "a394994988810761c118a43a6f51fad3b338120075f835518b86836c22041dae"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "9b6a5d3260fc2f938a155b357601dea08a0cb5a22ab35128c5c9c04fe33580a1"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2963,8 +3593,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "241e6e0d409f3886c5b9fa711a0cd210d1e51e02e99a0446306ab5ba52fe143d"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "44f4b0afdfd1a8ce48b55a4e2b6d4ed63266800ae3226dc1d229b5d0ce223cfb"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -2985,8 +3615,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "8554ba594ecdebeb53f7056fd74e577f9160c09e3b0b148e4d79507a3b76e1e0"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "f3d3eeb4ab2d61bfc81ae0c89de54d8e2fc369f9503861625ac24e08a454292a"
     },
     {
       "schema_version": "desktop-read-model-source-row.v1",
@@ -3012,8 +3642,8 @@
       },
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "source_row_hash": "dc950fe05f77eb41e167aefe4df9b9ed8933af37fce0bbb39f263060943f774f"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "source_row_hash": "99f45489a961ed5b6776a1d1ae57df862bc20702a8ba501f21ed87768e5f2cf3"
     }
   ],
   "sections": [
@@ -3022,7 +3652,7 @@
       "section_id": "projects",
       "label": "Projects",
       "source_path": "artifacts/project-operating-contract/latest/project-operating-contract.json",
-      "generated_at": "2026-06-16T01:54:09.708Z",
+      "generated_at": "2026-06-16T02:28:21.181Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -3031,7 +3661,7 @@
           "source_path": "artifacts/project-operating-contract/latest/project-operating-contract.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:af09e033a0b56001ceef2ee2e1223c12b419554e1869c24ce6a3ac594e76493c"
+          "source_content_hash": "sha256:baa6260c65693dff9cccf2255b87b6f518e13c852cce12f3646ba9b1c831e83b"
         },
         {
           "source_id": "project_operating_contract_summary",
@@ -3045,14 +3675,14 @@
       "ready_row_count": 2,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "17a616c6c1e77bb934a642513291304d8ad2780895bee275ed425842e5658bf3"
+      "section_hash": "4fb62e225a7a19ebac7409af507a68f22fd9d117f353ef9c11239639f3115bd6"
     },
     {
       "schema_version": "desktop-read-model-section.v1",
       "section_id": "agents",
       "label": "Agents",
       "source_path": "artifacts/agent-bridge-manifest/latest/agent-bridge-manifest.json",
-      "generated_at": "2026-06-16T01:54:09.708Z",
+      "generated_at": "2026-06-16T02:28:21.181Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -3061,14 +3691,14 @@
           "source_path": "artifacts/agent-bridge-manifest/latest/agent-bridge-manifest.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:6f979da90f30847e7f52a9d3a9571403ac504dda7318a30d57f7f624549a6ccf"
+          "source_content_hash": "sha256:ab68e415e08dc951c3f9b32b7b112219ebad0fe40fcc082d30220afa32f18fc6"
         },
         {
           "source_id": "agent_bridge_request_receipt",
           "source_path": "artifacts/agent-bridge-request-receipt/latest/agent-bridge-request-receipt.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:4cd186a6593c45584a34d7ae09a89ab0e33b03fa182dcbbffee13bb9f7ad7739"
+          "source_content_hash": "sha256:ba4fd9f9c993007f7f0ea32a5726aa68b273bdc888b297517772b947fd08d4a6"
         },
         {
           "source_id": "agent_bridge_request_receipt_summary",
@@ -3082,42 +3712,49 @@
           "source_path": "artifacts/agent-bridge-request-packet-export/latest/agent-bridge-request-packet-export.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:7a10b121a7581c74ee53c1890d6a6e878827ed6f4d320a8364fe02434655cbbf"
+          "source_content_hash": "sha256:f5d1bd2bb081e26855837ba895770dfbd9f1e1c5840dd549705cce662254247a"
         },
         {
           "source_id": "agent_bridge_receipt_import_workspace",
           "source_path": "artifacts/agent-bridge-receipt-import-workspace/latest/agent-bridge-receipt-import-workspace.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:30abb8269a3c23845f14eaccfb54b8f3bf3cf1a1f2bcfa1d20900ecaf391fc11"
+          "source_content_hash": "sha256:0f58c332be1d480c478a9d56347f71de9f18f84c244391b57583b7e8db1c329b"
         },
         {
           "source_id": "agent_bridge_review_finding_workbench",
           "source_path": "artifacts/agent-bridge-review-finding-workbench/latest/agent-bridge-review-finding-workbench.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:9f7d01c009ea3eb00852bfa265ff768222ffa9d80683ab43b42db5952fa2c4cb"
+          "source_content_hash": "sha256:ad6393012dbee18264205d1b78fe41f582d0b03861e353fa637a6326d07ebb3d"
         },
         {
           "source_id": "agent_bridge_execution_candidate",
           "source_path": "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:503ea6f8469a79d293ce2d6f01568df36605d48d1f98b8049c965d19f2f9f7ba"
+          "source_content_hash": "sha256:4e19509a094785befc69b85de18fee088d6a853389b670dfeaa1886a68031a75"
+        },
+        {
+          "source_id": "agent_bridge_limited_runtime_plan",
+          "source_path": "artifacts/agent-bridge-limited-runtime-plan/latest/agent-bridge-limited-runtime-plan.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:0534b0fb77faf107e9960d1e7c4290fac8db90a6bda99a32f54e924225000618"
         }
       ],
-      "primary_row_count": 7,
-      "ready_row_count": 7,
+      "primary_row_count": 8,
+      "ready_row_count": 8,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "6d773effbe1583d6518e941097819d5e764b9e5e9e5e5f11b327443aca788e96"
+      "section_hash": "4e402b66776004335c98e62131b467b42dc99bf7aad6afcd524bca5ac17803cf"
     },
     {
       "schema_version": "desktop-read-model-section.v1",
       "section_id": "release",
       "label": "Release",
       "source_path": "docs/release-owner-decision-2026-06-14.md",
-      "generated_at": "2026-06-16T01:54:09.708Z",
+      "generated_at": "2026-06-16T02:28:21.181Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -3175,14 +3812,14 @@
       "ready_row_count": 7,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "c78f93f7bf2160a227aff71d4992fdb0f4c00b7a1de37aa7ed97b6ea6327542c"
+      "section_hash": "b203518ec12f8762bc8eebb72a6564b2ae65d98c13a233de543771ed0370e819"
     },
     {
       "schema_version": "desktop-read-model-section.v1",
       "section_id": "factory",
       "label": "Factory",
       "source_path": "artifacts/factory-gate-opening-readiness/latest/summary.md",
-      "generated_at": "2026-06-16T01:54:09.708Z",
+      "generated_at": "2026-06-16T02:28:21.181Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -3226,14 +3863,14 @@
       "ready_row_count": 5,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "0a52d7f3cbe12fd357445601b34994ac311dacaf43afb49316de0d5e2bf6ad7c"
+      "section_hash": "9fb7ae68ae0ba3b23caa73b274879d3b7d0806a0b0ddb936b5214bf410ddeb2c"
     },
     {
       "schema_version": "desktop-read-model-section.v1",
       "section_id": "reviews",
       "label": "Reviews",
       "source_path": "docs/claude-final-review-packet-2026-06-15.md",
-      "generated_at": "2026-06-16T01:54:09.708Z",
+      "generated_at": "2026-06-16T02:28:21.181Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -3249,14 +3886,14 @@
       "ready_row_count": 1,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "bb109c06f2fbd9956bd4d73da29bd8bda120a7a287b7a92ea317b0af3d2e7cae"
+      "section_hash": "8c6e74b0b6d324cc390b3bd07eae9dd10bd641a8e620929623294471f27f5a7b"
     },
     {
       "schema_version": "desktop-read-model-section.v1",
       "section_id": "operator_handbook",
       "label": "Operator Handbook",
       "source_path": "artifacts/operator-handbook/latest/operator-handbook.json",
-      "generated_at": "2026-06-16T01:54:09.708Z",
+      "generated_at": "2026-06-16T02:28:21.181Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -3307,14 +3944,14 @@
       "ready_row_count": 6,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "69363fb7658fa902942de2e17494f97a11f714e89a1491fa1161b0400d51902c"
+      "section_hash": "460bb5a7acf5bc5983acfec0ff19603800fbc3f6155600f2f7a4d522e9921bdf"
     },
     {
       "schema_version": "desktop-read-model-section.v1",
       "section_id": "artifacts",
       "label": "Artifacts",
       "source_path": "docs/release-owner-decision-2026-06-14.md",
-      "generated_at": "2026-06-16T01:54:09.708Z",
+      "generated_at": "2026-06-16T02:28:21.181Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -3372,7 +4009,7 @@
           "source_path": "artifacts/project-operating-contract/latest/project-operating-contract.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:af09e033a0b56001ceef2ee2e1223c12b419554e1869c24ce6a3ac594e76493c"
+          "source_content_hash": "sha256:baa6260c65693dff9cccf2255b87b6f518e13c852cce12f3646ba9b1c831e83b"
         },
         {
           "source_id": "project_operating_contract_summary",
@@ -3386,14 +4023,14 @@
           "source_path": "artifacts/agent-bridge-manifest/latest/agent-bridge-manifest.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:6f979da90f30847e7f52a9d3a9571403ac504dda7318a30d57f7f624549a6ccf"
+          "source_content_hash": "sha256:ab68e415e08dc951c3f9b32b7b112219ebad0fe40fcc082d30220afa32f18fc6"
         },
         {
           "source_id": "agent_bridge_request_receipt",
           "source_path": "artifacts/agent-bridge-request-receipt/latest/agent-bridge-request-receipt.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:4cd186a6593c45584a34d7ae09a89ab0e33b03fa182dcbbffee13bb9f7ad7739"
+          "source_content_hash": "sha256:ba4fd9f9c993007f7f0ea32a5726aa68b273bdc888b297517772b947fd08d4a6"
         },
         {
           "source_id": "agent_bridge_request_receipt_summary",
@@ -3407,28 +4044,35 @@
           "source_path": "artifacts/agent-bridge-request-packet-export/latest/agent-bridge-request-packet-export.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:7a10b121a7581c74ee53c1890d6a6e878827ed6f4d320a8364fe02434655cbbf"
+          "source_content_hash": "sha256:f5d1bd2bb081e26855837ba895770dfbd9f1e1c5840dd549705cce662254247a"
         },
         {
           "source_id": "agent_bridge_receipt_import_workspace",
           "source_path": "artifacts/agent-bridge-receipt-import-workspace/latest/agent-bridge-receipt-import-workspace.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:30abb8269a3c23845f14eaccfb54b8f3bf3cf1a1f2bcfa1d20900ecaf391fc11"
+          "source_content_hash": "sha256:0f58c332be1d480c478a9d56347f71de9f18f84c244391b57583b7e8db1c329b"
         },
         {
           "source_id": "agent_bridge_review_finding_workbench",
           "source_path": "artifacts/agent-bridge-review-finding-workbench/latest/agent-bridge-review-finding-workbench.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:9f7d01c009ea3eb00852bfa265ff768222ffa9d80683ab43b42db5952fa2c4cb"
+          "source_content_hash": "sha256:ad6393012dbee18264205d1b78fe41f582d0b03861e353fa637a6326d07ebb3d"
         },
         {
           "source_id": "agent_bridge_execution_candidate",
           "source_path": "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json",
           "status": "ready",
           "blocker": null,
-          "source_content_hash": "sha256:503ea6f8469a79d293ce2d6f01568df36605d48d1f98b8049c965d19f2f9f7ba"
+          "source_content_hash": "sha256:4e19509a094785befc69b85de18fee088d6a853389b670dfeaa1886a68031a75"
+        },
+        {
+          "source_id": "agent_bridge_limited_runtime_plan",
+          "source_path": "artifacts/agent-bridge-limited-runtime-plan/latest/agent-bridge-limited-runtime-plan.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:0534b0fb77faf107e9960d1e7c4290fac8db90a6bda99a32f54e924225000618"
         },
         {
           "source_id": "factory_gate_opening",
@@ -3522,18 +4166,18 @@
           "source_content_hash": "sha256:07613809de2f457913c86ffacdefba3340354180fe44c40cf45a928e00b33185"
         }
       ],
-      "primary_row_count": 29,
-      "ready_row_count": 29,
+      "primary_row_count": 30,
+      "ready_row_count": 30,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "09564210159bc4bf457bfb48b623c7fe45ac64b39bd29d306d596e230cc32f6f"
+      "section_hash": "65b7715d7ab1efd5418172cfb69ed7f04bc91eaa1310137eb43c3bd7bb97efd8"
     },
     {
       "schema_version": "desktop-read-model-section.v1",
       "section_id": "authority_boundary",
       "label": "Authority Boundary",
       "source_path": "artifacts/desktop-authority-boundary/latest/desktop-authority-boundary.json",
-      "generated_at": "2026-06-16T01:54:09.708Z",
+      "generated_at": "2026-06-16T02:28:21.181Z",
       "status": "ready",
       "blocker": null,
       "section_refs": [
@@ -3549,7 +4193,7 @@
       "ready_row_count": 1,
       "blocked_row_count": 0,
       "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
-      "section_hash": "3f2b311dc86897f518d75258baa53166cbfcc19a612d44409f63512d3acf7868"
+      "section_hash": "f28900e408d9393c33542f65e62d6d9e733c38758e0ec162ffe57adf6ec773d1"
     }
   ],
   "screen_map": [
@@ -3567,8 +4211,8 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "9523dfc158e4fcee75b61b0fcdf53cdb38c892d3ae9161cf251c3a07dd90f7d1"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "3772d5007d29b25e3d960ca2ce6b2493bf47a9ebf1b9e34cdbc5a8e5494b966a"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -3587,8 +4231,8 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "737fdd95423dbb4187c99eb5414c481a65b9de52b184a0eef35f6b9dcc2deb64"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "f9a50ced825a9141d3794b4847675cb7203f90cda35dd48eca23db388faca3ec"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -3606,14 +4250,15 @@
         "artifacts/agent-bridge-request-packet-export/latest/agent-bridge-request-packet-export.json",
         "artifacts/agent-bridge-receipt-import-workspace/latest/agent-bridge-receipt-import-workspace.json",
         "artifacts/agent-bridge-review-finding-workbench/latest/agent-bridge-review-finding-workbench.json",
-        "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json"
+        "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json",
+        "artifacts/agent-bridge-limited-runtime-plan/latest/agent-bridge-limited-runtime-plan.json"
       ],
       "empty_state": "No safe evidence is available for this screen.",
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "b1a7aff4be95adfd7db1d5f632e4860f37eda31db0722136587b05de5292c1d6"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "9c67b16850e32bd98779d476e502160d5312c058923ff68e94a0493dd70a07dd"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -3629,8 +4274,8 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "7210269238be7796a521295878fc85e7ceb93c5e33b5451edf382494c9ce5995"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "8f1338cbf02dd6e318cb423303e6b4761314b7c471322f3b1b4fa31f48ac2996"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -3646,8 +4291,8 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "e5b95e7772e71a05542bfd2d348be625c29aaeb49b8cb86ddb4b81a63135f3c5"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "9d741960f457870631a13c6ceedfc1a39d5e7d768b5375e643ea8b6707de8e60"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -3665,8 +4310,8 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "01dc3c5ebd23d9e8b0e9602a6feba68cbca97d42b6fd1e59a71bba100b9dec7f"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "50699c5a1daa774eed06584e2723b0b0d1867efa769b16dbb80661f36fed80b2"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -3682,8 +4327,8 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "0a5a0aa7898087686ed617c6e0a72e872a7a852e055266a636493996d9528f80"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "dbc6963ac154535756188d9aec0be4dfec3068bebc50bf396dcb9c280c05d75b"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -3699,8 +4344,8 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "e289d633c7239571841b7cff882f985fa8d8782dfa00f4f8cab808bb727775ef"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "8e815ca98e10f4a2f59392847aae372bf337754b8f255d9a99b8843ee098c96a"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -3716,8 +4361,8 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "803810bdfe04bce8990826037ffb799e1fc20ea9d52253562475555d27926ad2"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "35b314f3c4b51ff539e355544ec51527eea4cb2585253bd52c5ff0bedf6aab5c"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -3733,8 +4378,8 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "4d466553ac5af394896366bb0642f2777156a002e462a2dd1da5e0604c38baa1"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "8e89955bb4227e712de221d7fd3b97f7b78abbd58152ebc6f636668e1ff668c5"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -3758,8 +4403,8 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "4682e246302e076fab4165d216fc1e8a7d6b25f51cf80abc71a6e65ba36a84bf"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "121f748349c04adbd29aa466b9b8d7a1ffa1fe4b7b1b0a82e1a2a27820df924d"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -3781,8 +4426,8 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "98a867af4b88af1afc74793bd53e1e9f62465a2458190a5cae4bfbfa617a6bcc"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "7567c576468cd1afd8f833ab26fa962c016991d902fe730f5af9e3bb8a6f9a04"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -3800,13 +4445,13 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "76010a98d8a39fc6206421a1768e69f20e6fcaf15fd80d181e08f073e1d6de66"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "d114cf9ae99c541a535b3470681f51634ba1ddba7853e0a27e23e6bba7cb48ba"
     }
   ],
   "release_projection": {
     "schema_version": "desktop-release-projection.v1",
-    "generated_at": "2026-06-16T01:54:09.708Z",
+    "generated_at": "2026-06-16T02:28:21.181Z",
     "candidate_commit": "8200ed3b754b74900a95fe5a48875a1daf707335",
     "local_rc_tag": "v0.1.0-rc.20260615.8200ed3",
     "trust_mode": "single-owner lower-trust RC",
@@ -3827,8 +4472,8 @@
         "value": "8200ed3b754b74900a95fe5a48875a1daf707335",
         "status": "observed",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "49601ed282ac772298f8bbf647901ad735c5f6f94513aa7082f23d3fd436cddc"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "575061ee349e7a14388585412253b61488c28caf8dc10379ef07d8dbe4dbd1a1"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -3837,8 +4482,8 @@
         "value": "v0.1.0-rc.20260615.8200ed3",
         "status": "local_only_not_pushed",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "1fa7272e99875f05be7b188736ff5d3e75a88592b3f08c46cbaab50811dbe6f1"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "48351bf03c3e8540549da6b1202e0c0266d8e37f2ff0c308f5343e7e3069be1a"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -3847,8 +4492,8 @@
         "value": "not pursued",
         "status": "closed",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "391926c40dda0f9291ef1e32e9fd9ed1f9d4ddf710da46335e32dca4d3f0b36a"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "32c135c376de61bea780918969cf5f3d69c0d94baafeea4cae6d8f41f69e3573"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -3857,8 +4502,8 @@
         "value": "missing",
         "status": "closed",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "8e30c1878ba83349d867ab9b335d2b34bd89485029c2d5cf4f822ce688bb9afb"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "cb87875dd9a059fc5646e05ade9bf86a0ea2c1a67e9371b8129338d8e8f96ba4"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -3867,15 +4512,15 @@
         "value": "not authorized",
         "status": "closed",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "8855a9d556a648d63a2eeb4aba0470b0987be671a8da015862b9118d15c4aea5"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "510a88f419f4c57b743ec126d198231a8f273e04ea5b59be602935d559bd5375"
       }
     ],
-    "projection_hash": "60c3c6c64a870b575c2376bce03d2afdddcbc3d018b12b763f5f6e21907536e0"
+    "projection_hash": "cc7a5b74e93fa1bb10fecc7f908ee470f065bc24a390089c1d6ca7d7454a0eea"
   },
   "factory_projection": {
     "schema_version": "desktop-factory-projection.v1",
-    "generated_at": "2026-06-16T01:54:09.708Z",
+    "generated_at": "2026-06-16T02:28:21.181Z",
     "factory_gate_readiness_status": "ready_factory_gate_opening_readiness",
     "stage6_stage7_status": "ready_stage6_stage7_contract_development",
     "observed_gate_open_now_input": 0,
@@ -3896,8 +4541,8 @@
         "value": "ready_factory_gate_opening_readiness",
         "status": "evidence_ready",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "4f4222a0c74a27a776ae1d67479c2df045e5368e17028c3a267a3b7c25b54b7d"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "9052e437335261105f3125be129474d56e6ec180ae5736b9c97194768935ef02"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -3906,8 +4551,8 @@
         "value": "0",
         "status": "closed",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "a9e4d0c956921b53ef50ec4916e962873f8c7d06a60bf19c5b91dbf799dbd975"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "36fce5d410c51b2e70a59847716d807aacc3de9ee143b5e12c4cc5448a26bd4f"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -3916,8 +4561,8 @@
         "value": "source_evidence_complete_runtime_authority_closed",
         "status": "evidence_ready_runtime_closed",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "c95cd45ec86a3540978a7b353702186294cccf1afa71d0e6ad07ee2179b7e332"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "b9dc98b853e61e4ee738d9cb4b4e796dea4d135f7e52756b01a2f7d5d896eba9"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -3926,8 +4571,8 @@
         "value": "closed",
         "status": "closed",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "2fd34887eb760cdc314336d8cb4a909517e9492272b644c8e9548d5dd2947b29"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "91ba3aef64ad1660225a39026543c82df7fe97d01ddf165805bb4c0b4327d65c"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -3936,8 +4581,8 @@
         "value": "closed",
         "status": "closed",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "c8929ec3625b6d6f9b2358d86c304e0eebc426e4854f3b66c38ff5c57bd553ef"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "6bbefe52d74aef7f260becf852cc96315b918627aef2e4fa62b4f0f25cb49b98"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -3946,15 +4591,15 @@
         "value": "closed",
         "status": "closed",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "b836e930ff2dd00541601632b1c62bfcf38dd4bf037e99650848c36ec88afedf"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "22116d8530ebfd2de3011066be1c7cce5a3ad927c4d56ae2ba14447b2ae6a93d"
       }
     ],
-    "projection_hash": "5a406a2ac22bca76c71b5cb5d9ee7d062b44c3ed21259a7e91cf20cebf007dc5"
+    "projection_hash": "4b223d8ba344c7e1b18f89a3ed2a1303fb8c3eb7dd2cf626a02bec8309327121"
   },
   "project_projection": {
     "schema_version": "desktop-project-projection.v1",
-    "generated_at": "2026-06-16T01:54:09.708Z",
+    "generated_at": "2026-06-16T02:28:21.181Z",
     "project_operating_contract_status": "ready_for_project_operating_contract",
     "source_status": "ready",
     "project_count": 5,
@@ -4052,7 +4697,7 @@
         "remaining_units": 6,
         "next_action_count": 6,
         "source_generated_at": "2026-06-06T05:31:34.454Z",
-        "source_age_days": 9.41,
+        "source_age_days": 9.87,
         "source_artifact_path": "artifacts/multi-project-saas-control-plane/latest/multi-project-saas-control-plane.json",
         "source_artifact_sha256": "sha256:0026de2ba88c48e2cd507a33c25cb3059d5a7fda4b7079f56382391c5d122054",
         "source_parse_status": "parsed",
@@ -4074,7 +4719,7 @@
         "remaining_units": 6,
         "next_action_count": 6,
         "source_generated_at": "2026-06-06T05:31:34.454Z",
-        "source_age_days": 9.41,
+        "source_age_days": 9.87,
         "source_artifact_path": "artifacts/multi-project-saas-control-plane/latest/multi-project-saas-control-plane.json",
         "source_artifact_sha256": "sha256:0026de2ba88c48e2cd507a33c25cb3059d5a7fda4b7079f56382391c5d122054",
         "source_parse_status": "parsed",
@@ -4096,7 +4741,7 @@
         "remaining_units": 6,
         "next_action_count": 6,
         "source_generated_at": "2026-06-06T05:31:34.454Z",
-        "source_age_days": 9.41,
+        "source_age_days": 9.87,
         "source_artifact_path": "artifacts/multi-project-saas-control-plane/latest/multi-project-saas-control-plane.json",
         "source_artifact_sha256": "sha256:0026de2ba88c48e2cd507a33c25cb3059d5a7fda4b7079f56382391c5d122054",
         "source_parse_status": "parsed",
@@ -4118,7 +4763,7 @@
         "remaining_units": 6,
         "next_action_count": 6,
         "source_generated_at": "2026-06-06T05:31:34.454Z",
-        "source_age_days": 9.41,
+        "source_age_days": 9.87,
         "source_artifact_path": "artifacts/multi-project-saas-control-plane/latest/multi-project-saas-control-plane.json",
         "source_artifact_sha256": "sha256:0026de2ba88c48e2cd507a33c25cb3059d5a7fda4b7079f56382391c5d122054",
         "source_parse_status": "parsed",
@@ -4140,7 +4785,7 @@
         "remaining_units": 6,
         "next_action_count": 6,
         "source_generated_at": "2026-06-06T05:31:34.454Z",
-        "source_age_days": 9.41,
+        "source_age_days": 9.87,
         "source_artifact_path": "artifacts/multi-project-saas-control-plane/latest/multi-project-saas-control-plane.json",
         "source_artifact_sha256": "sha256:0026de2ba88c48e2cd507a33c25cb3059d5a7fda4b7079f56382391c5d122054",
         "source_parse_status": "parsed",
@@ -4155,7 +4800,7 @@
       {
         "project_id": "project.hermes",
         "source_generated_at": "2026-06-06T05:31:34.454Z",
-        "source_age_days": 9.41,
+        "source_age_days": 9.87,
         "freshness_status": "aging",
         "refresh_required": false,
         "source_hash": "sha256:0026de2ba88c48e2cd507a33c25cb3059d5a7fda4b7079f56382391c5d122054",
@@ -4164,7 +4809,7 @@
       {
         "project_id": "project.law_firm_os",
         "source_generated_at": "2026-06-06T05:31:34.454Z",
-        "source_age_days": 9.41,
+        "source_age_days": 9.87,
         "freshness_status": "aging",
         "refresh_required": false,
         "source_hash": "sha256:0026de2ba88c48e2cd507a33c25cb3059d5a7fda4b7079f56382391c5d122054",
@@ -4173,7 +4818,7 @@
       {
         "project_id": "project.hr_solution",
         "source_generated_at": "2026-06-06T05:31:34.454Z",
-        "source_age_days": 9.41,
+        "source_age_days": 9.87,
         "freshness_status": "aging",
         "refresh_required": false,
         "source_hash": "sha256:0026de2ba88c48e2cd507a33c25cb3059d5a7fda4b7079f56382391c5d122054",
@@ -4182,7 +4827,7 @@
       {
         "project_id": "project.zendd_bridge",
         "source_generated_at": "2026-06-06T05:31:34.454Z",
-        "source_age_days": 9.41,
+        "source_age_days": 9.87,
         "freshness_status": "aging",
         "refresh_required": false,
         "source_hash": "sha256:0026de2ba88c48e2cd507a33c25cb3059d5a7fda4b7079f56382391c5d122054",
@@ -4191,7 +4836,7 @@
       {
         "project_id": "project.trading_read_only",
         "source_generated_at": "2026-06-06T05:31:34.454Z",
-        "source_age_days": 9.41,
+        "source_age_days": 9.87,
         "freshness_status": "aging",
         "refresh_required": false,
         "source_hash": "sha256:0026de2ba88c48e2cd507a33c25cb3059d5a7fda4b7079f56382391c5d122054",
@@ -4371,8 +5016,8 @@
         "value": "5",
         "status": "observed",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "4578159cde0d9f30c6c6da6be930f5072c98d46686b4384882f9f87da11928c3"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "2fd774488e3b432634db92e41eac91b4c9229d586722320875cb0077e283c1f3"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -4381,8 +5026,8 @@
         "value": "5",
         "status": "read_only",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "fd2b07ce8e9567caf6b956aad616689a698acdd35d74149c6eb5e046c4028c58"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "73e7ea84e9e27c99f058fb024c94510f19aeb5b66a2b38c79a9048d6e2b5bd5f"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -4391,8 +5036,8 @@
         "value": "0",
         "status": "clear",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "cee419b9fb293611e701971b9ace7649613083602830887e287a3ec3e6e3dff9"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "70ec95f02c12c78d73aec73eb3dc680736ec2350f3004bec542e2d39a0b8a0eb"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -4401,8 +5046,8 @@
         "value": "0",
         "status": "clear",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "f5a99b4127053ef3b05d55e4197be52942e125b94578745cb5a5294f3bd25983"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "139159ca397a1afda8d98a2f3b1382ecfb23c0db10990085b8a970bbeb22d9cf"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -4411,8 +5056,8 @@
         "value": "0",
         "status": "clear",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "69c4cce3fd6d5ad62d99e888ab5dfb5831ab370f49aca993eb74bb09b749c5d8"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "48bb0d3560d1457d9dead91ede29112957c6893a9c04f5ffae88a9dcc17cb204"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -4421,8 +5066,8 @@
         "value": "0",
         "status": "clear",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "b7f2b5ac2da79d76f465180ca76b53e68d2d810c879416d63410c43129ea328d"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "d9d3287faf8bb4d9b19558ef827c65aaca3dfaced279b5e2d5ec9039078eed96"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -4431,25 +5076,26 @@
         "value": "closed",
         "status": "closed",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "f282b9dce43922f44c544a2528a71c67444eab0229026574905220fef416700f"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "d4586aa2f87a4a9b6044ff58bd9d399b870a7689f80be175478582b52a6017af"
       }
     ],
-    "projection_hash": "22b231ff1a4545477f01c82ae21c55d4eb8501609a2c79b9332a072a2c076cd5"
+    "projection_hash": "92fc59b8af921c3f0e761c2fcdddff303d12637635d89b67f0f5cdffb9f234ab"
   },
   "agent_projection": {
     "schema_version": "desktop-agent-projection.v1",
-    "generated_at": "2026-06-16T01:54:09.708Z",
+    "generated_at": "2026-06-16T02:28:21.181Z",
     "agent_bridge_manifest_status": "ready_for_agent_bridge_manifest",
     "agent_bridge_request_receipt_status": "ready_for_agent_bridge_request_receipt",
     "agent_bridge_request_packet_export_status": "ready_for_agent_bridge_request_packet_export",
     "agent_bridge_receipt_import_workspace_status": "ready_for_agent_bridge_receipt_import_workspace",
     "agent_bridge_review_finding_workbench_status": "ready_for_agent_bridge_review_finding_workbench",
     "agent_bridge_execution_candidate_status": "ready_for_agent_bridge_execution_candidate",
+    "agent_bridge_limited_runtime_plan_status": "ready_for_agent_bridge_limited_runtime_plan",
     "source_status": "ready",
     "runtime_count": 4,
-    "capability_count": 28,
-    "permission_row_count": 28,
+    "capability_count": 30,
+    "permission_row_count": 30,
     "request_count": 4,
     "receipt_count": 4,
     "evidence_binding_count": 4,
@@ -4463,6 +5109,12 @@
     "blocked_command_fixture_count": 9,
     "execution_gate_count": 10,
     "execution_gate_pass_count": 10,
+    "dry_run_executor_count": 13,
+    "provider_adapter_request_count": 3,
+    "owner_limited_execution_gate_count": 13,
+    "l10_preflight_candidate_count": 8,
+    "limited_runtime_gate_count": 8,
+    "limited_runtime_gate_pass_count": 8,
     "ready_for_desktop_agents_projection": true,
     "local_only": true,
     "read_only": true,
@@ -4485,6 +5137,10 @@
     "candidate_queue_enabled_now": true,
     "candidate_export_allowed_now": true,
     "candidate_validation_allowed_now": true,
+    "dry_run_executor_enabled_now": true,
+    "owner_limited_execution_gate_enabled_now": true,
+    "provider_adapter_request_projection_enabled_now": true,
+    "l10_preflight_candidate_enabled_now": true,
     "request_transport_submission_allowed_now": false,
     "execution_allowed_now": false,
     "command_executed_now": false,
@@ -4635,6 +5291,17 @@
         "capability_id": "capability.local_script.platform.agent.bridge.execution.candidate",
         "capability_kind": "package_script",
         "capability_name": "platform:agent-bridge-execution-candidate",
+        "runtime_id": "runtime.local.hermes_scripts",
+        "state": "observed",
+        "passive_collection_only": false,
+        "requestable": false,
+        "executable": false,
+        "trust_class": "deterministic_local_file"
+      },
+      {
+        "capability_id": "capability.local_script.platform.agent.bridge.limited.runtime.plan",
+        "capability_kind": "package_script",
+        "capability_name": "platform:agent-bridge-limited-runtime-plan",
         "runtime_id": "runtime.local.hermes_scripts",
         "state": "observed",
         "passive_collection_only": false,
@@ -4861,6 +5528,17 @@
         "requestable": false,
         "executable": false,
         "trust_class": "deterministic_local_file"
+      },
+      {
+        "capability_id": "capability.local_script.platform.agent.zendd.candidate.bridge",
+        "capability_kind": "package_script",
+        "capability_name": "platform:agent-zendd-candidate-bridge",
+        "runtime_id": "runtime.local.hermes_scripts",
+        "state": "observed",
+        "passive_collection_only": false,
+        "requestable": false,
+        "executable": false,
+        "trust_class": "deterministic_local_file"
       }
     ],
     "permission_rows": [
@@ -4936,6 +5614,16 @@
       },
       {
         "capability_id": "capability.local_script.platform.agent.bridge.execution.candidate",
+        "runtime_id": "runtime.local.hermes_scripts",
+        "authority_namespace": "developer_preflight",
+        "capability_state": "observed",
+        "desktop_display_allowed": true,
+        "requestable": false,
+        "executable": false,
+        "opens_authority": false
+      },
+      {
+        "capability_id": "capability.local_script.platform.agent.bridge.limited.runtime.plan",
         "runtime_id": "runtime.local.hermes_scripts",
         "authority_namespace": "developer_preflight",
         "capability_state": "observed",
@@ -5143,6 +5831,16 @@
         "requestable": false,
         "executable": false,
         "opens_authority": false
+      },
+      {
+        "capability_id": "capability.local_script.platform.agent.zendd.candidate.bridge",
+        "runtime_id": "runtime.local.hermes_scripts",
+        "authority_namespace": "developer_preflight",
+        "capability_state": "observed",
+        "desktop_display_allowed": true,
+        "requestable": false,
+        "executable": false,
+        "opens_authority": false
       }
     ],
     "request_rows": [
@@ -5301,7 +5999,7 @@
         "target_capability_id": "capability.chatgpt.agbrowse.web_ai",
         "packet_status": "ready_to_copy",
         "packet_file_name": "plan_review-db2e3fea.md",
-        "packet_markdown_hash": "sha256:2de93338987de8e3530654672f98a874302c31a594ab0cb548f6597db5c1a176",
+        "packet_markdown_hash": "sha256:f773ed9910c878daf93747b5faec41fd14723ba243f6948e14918bcf725c417a",
         "copy_allowed_now": true,
         "file_export_allowed_now": true,
         "request_transport_submission_allowed_now": false,
@@ -5319,7 +6017,7 @@
         "target_capability_id": "capability.claude.review_lane",
         "packet_status": "ready_to_copy",
         "packet_file_name": "code_review-1ce5af2e.md",
-        "packet_markdown_hash": "sha256:064a6f501ef04c3a03f114c142eb1824fcb0fec56e8b86f8b3695445d127595f",
+        "packet_markdown_hash": "sha256:05b56d30177e62c2e3d6c87bedddb7c441841e54dc7959a318c1f273e5f98077",
         "copy_allowed_now": true,
         "file_export_allowed_now": true,
         "request_transport_submission_allowed_now": false,
@@ -5337,7 +6035,7 @@
         "target_capability_id": "capability.codex.skills.visible_catalog",
         "packet_status": "ready_to_copy",
         "packet_file_name": "implementation_proposal-7e701d60.md",
-        "packet_markdown_hash": "sha256:4df2b904de8ed266790e81feb69d14d90eba61ddfe1e2d65b5cb92da9b03035c",
+        "packet_markdown_hash": "sha256:afd6686f59e6983a06dd2a3fa11b77bc93706ed3e15e0afd8a62853fb1a18eda",
         "copy_allowed_now": true,
         "file_export_allowed_now": true,
         "request_transport_submission_allowed_now": false,
@@ -5355,7 +6053,7 @@
         "target_capability_id": "capability.local.hermes.agent_bridge_manifest",
         "packet_status": "ready_to_copy",
         "packet_file_name": "command_suggestion-8c453e5b.md",
-        "packet_markdown_hash": "sha256:abe06caf1a8ed23b4d3ac20cb47e72b771987845e6bcfd6d3102089c592732a0",
+        "packet_markdown_hash": "sha256:98cfdef61123deeb56bac287668ff9c0104d97954557aa5da091e0e113bf2d7e",
         "copy_allowed_now": true,
         "file_export_allowed_now": true,
         "request_transport_submission_allowed_now": false,
@@ -6080,6 +6778,546 @@
         "opens_authority": false
       }
     ],
+    "dry_run_executor_rows": [
+      {
+        "candidate_id": "agent.bridge.execution.candidate.8fcdee95f9d65d93",
+        "candidate_type": "platform_check",
+        "command_text": "npm run platform:agent-bridge-manifest -- --check",
+        "printed_intended_command": "DRY RUN ONLY: npm run platform:agent-bridge-manifest -- --check",
+        "executor_adapter_status": "printed_intended_command_only",
+        "dry_run_trace_created": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.962f5e4c0d586857",
+        "candidate_type": "platform_check",
+        "command_text": "npm run platform:agent-bridge-request-receipt -- --check",
+        "printed_intended_command": "DRY RUN ONLY: npm run platform:agent-bridge-request-receipt -- --check",
+        "executor_adapter_status": "printed_intended_command_only",
+        "dry_run_trace_created": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.99439397f9da1cee",
+        "candidate_type": "platform_check",
+        "command_text": "npm run platform:agent-bridge-request-packet-export -- --check",
+        "printed_intended_command": "DRY RUN ONLY: npm run platform:agent-bridge-request-packet-export -- --check",
+        "executor_adapter_status": "printed_intended_command_only",
+        "dry_run_trace_created": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.80c0530454291989",
+        "candidate_type": "platform_check",
+        "command_text": "npm run platform:agent-bridge-receipt-import-workspace -- --check",
+        "printed_intended_command": "DRY RUN ONLY: npm run platform:agent-bridge-receipt-import-workspace -- --check",
+        "executor_adapter_status": "printed_intended_command_only",
+        "dry_run_trace_created": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.7cf78904ef1d7c5d",
+        "candidate_type": "platform_check",
+        "command_text": "npm run platform:agent-bridge-review-finding-workbench -- --check",
+        "printed_intended_command": "DRY RUN ONLY: npm run platform:agent-bridge-review-finding-workbench -- --check",
+        "executor_adapter_status": "printed_intended_command_only",
+        "dry_run_trace_created": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.cbb829cf58f80d20",
+        "candidate_type": "platform_check",
+        "command_text": "npm run platform:agent-bridge-execution-candidate -- --check",
+        "printed_intended_command": "DRY RUN ONLY: npm run platform:agent-bridge-execution-candidate -- --check",
+        "executor_adapter_status": "printed_intended_command_only",
+        "dry_run_trace_created": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.6b35e6bf1ec2fc2f",
+        "candidate_type": "platform_check",
+        "command_text": "npm run desktop:read-model -- --check",
+        "printed_intended_command": "DRY RUN ONLY: npm run desktop:read-model -- --check",
+        "executor_adapter_status": "printed_intended_command_only",
+        "dry_run_trace_created": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.35a34334df62c451",
+        "candidate_type": "platform_check",
+        "command_text": "npm run platform:agent-bridge-closeout-readiness -- --check",
+        "printed_intended_command": "DRY RUN ONLY: npm run platform:agent-bridge-closeout-readiness -- --check",
+        "executor_adapter_status": "printed_intended_command_only",
+        "dry_run_trace_created": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.28e8c268250f706a",
+        "candidate_type": "targeted_test",
+        "command_text": "node --test test/agent-bridge-manifest.test.mjs test/agent-bridge-request-receipt.test.mjs test/agent-bridge-request-packet-export.test.mjs test/agent-bridge-receipt-import-workspace.test.mjs test/agent-bridge-review-finding-workbench.test.mjs test/agent-bridge-execution-candidate.test.mjs test/agent-bridge-closeout-readiness.test.mjs test/desktop-read-model.test.mjs apps/desktop/test/read-model.test.mjs",
+        "printed_intended_command": "DRY RUN ONLY: node --test test/agent-bridge-manifest.test.mjs test/agent-bridge-request-receipt.test.mjs test/agent-bridge-request-packet-export.test.mjs test/agent-bridge-receipt-import-workspace.test.mjs test/agent-bridge-review-finding-workbench.test.mjs test/agent-bridge-execution-candidate.test.mjs test/agent-bridge-closeout-readiness.test.mjs test/desktop-read-model.test.mjs apps/desktop/test/read-model.test.mjs",
+        "executor_adapter_status": "printed_intended_command_only",
+        "dry_run_trace_created": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.6a23252203f034b6",
+        "candidate_type": "desktop_build",
+        "command_text": "npm run desktop:build",
+        "printed_intended_command": "DRY RUN ONLY: npm run desktop:build",
+        "executor_adapter_status": "printed_intended_command_only",
+        "dry_run_trace_created": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.e4472036200d192d",
+        "candidate_type": "desktop_smoke",
+        "command_text": "npm run desktop:smoke:render -- --screen=agents",
+        "printed_intended_command": "DRY RUN ONLY: npm run desktop:smoke:render -- --screen=agents",
+        "executor_adapter_status": "printed_intended_command_only",
+        "dry_run_trace_created": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.0cecca77236ddb59",
+        "candidate_type": "core_validation",
+        "command_text": "npm run validate:core",
+        "printed_intended_command": "DRY RUN ONLY: npm run validate:core",
+        "executor_adapter_status": "printed_intended_command_only",
+        "dry_run_trace_created": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.466c2f308b48c766",
+        "candidate_type": "diff_check",
+        "command_text": "git diff --check",
+        "printed_intended_command": "DRY RUN ONLY: git diff --check",
+        "executor_adapter_status": "printed_intended_command_only",
+        "dry_run_trace_created": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      }
+    ],
+    "provider_adapter_request_rows": [
+      {
+        "adapter_id": "adapter.agbrowse.chatgpt_review_request",
+        "adapter_kind": "web_ai_review_request",
+        "adapter_title": "Agbrowse ChatGPT review request adapter",
+        "target_runtime_id": "runtime.chatgpt.web_agbrowse",
+        "request_type": "plan_review",
+        "packet_id": "agent.request.packet.export.e3850939db2e3fea",
+        "adapter_request_status": "request_packet_ready_transport_disabled",
+        "request_transport_submission_allowed_now": false,
+        "provider_automation_allowed_now": false,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "opens_authority": false
+      },
+      {
+        "adapter_id": "adapter.claude_code.read_only_review_request",
+        "adapter_kind": "cli_read_only_review_request",
+        "adapter_title": "Claude Code read-only review request adapter",
+        "target_runtime_id": "runtime.claude_code.opus_max",
+        "request_type": "code_review",
+        "packet_id": "agent.request.packet.export.39cfccfc1ce5af2e",
+        "adapter_request_status": "request_packet_ready_transport_disabled",
+        "request_transport_submission_allowed_now": false,
+        "provider_automation_allowed_now": false,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "opens_authority": false
+      },
+      {
+        "adapter_id": "adapter.codex.task_request_packet",
+        "adapter_kind": "codex_task_request_packet",
+        "adapter_title": "Codex task request adapter",
+        "target_runtime_id": "runtime.codex.desktop",
+        "request_type": "implementation_proposal",
+        "packet_id": "agent.request.packet.export.556d086d7e701d60",
+        "adapter_request_status": "request_packet_ready_transport_disabled",
+        "request_transport_submission_allowed_now": false,
+        "provider_automation_allowed_now": false,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "opens_authority": false
+      }
+    ],
+    "owner_limited_execution_gate_rows": [
+      {
+        "candidate_id": "agent.bridge.execution.candidate.8fcdee95f9d65d93",
+        "owner_gate_status": "owner_receipt_required_before_execution",
+        "owner_approval_observed": false,
+        "limited_execution_receipt_required": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.962f5e4c0d586857",
+        "owner_gate_status": "owner_receipt_required_before_execution",
+        "owner_approval_observed": false,
+        "limited_execution_receipt_required": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.99439397f9da1cee",
+        "owner_gate_status": "owner_receipt_required_before_execution",
+        "owner_approval_observed": false,
+        "limited_execution_receipt_required": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.80c0530454291989",
+        "owner_gate_status": "owner_receipt_required_before_execution",
+        "owner_approval_observed": false,
+        "limited_execution_receipt_required": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.7cf78904ef1d7c5d",
+        "owner_gate_status": "owner_receipt_required_before_execution",
+        "owner_approval_observed": false,
+        "limited_execution_receipt_required": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.cbb829cf58f80d20",
+        "owner_gate_status": "owner_receipt_required_before_execution",
+        "owner_approval_observed": false,
+        "limited_execution_receipt_required": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.6b35e6bf1ec2fc2f",
+        "owner_gate_status": "owner_receipt_required_before_execution",
+        "owner_approval_observed": false,
+        "limited_execution_receipt_required": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.35a34334df62c451",
+        "owner_gate_status": "owner_receipt_required_before_execution",
+        "owner_approval_observed": false,
+        "limited_execution_receipt_required": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.28e8c268250f706a",
+        "owner_gate_status": "owner_receipt_required_before_execution",
+        "owner_approval_observed": false,
+        "limited_execution_receipt_required": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.6a23252203f034b6",
+        "owner_gate_status": "owner_receipt_required_before_execution",
+        "owner_approval_observed": false,
+        "limited_execution_receipt_required": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.e4472036200d192d",
+        "owner_gate_status": "owner_receipt_required_before_execution",
+        "owner_approval_observed": false,
+        "limited_execution_receipt_required": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.0cecca77236ddb59",
+        "owner_gate_status": "owner_receipt_required_before_execution",
+        "owner_approval_observed": false,
+        "limited_execution_receipt_required": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "candidate_id": "agent.bridge.execution.candidate.466c2f308b48c766",
+        "owner_gate_status": "owner_receipt_required_before_execution",
+        "owner_approval_observed": false,
+        "limited_execution_receipt_required": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      }
+    ],
+    "l10_preflight_candidate_rows": [
+      {
+        "preflight_id": "l9_limited_runtime_plan_check",
+        "preflight_type": "platform_check",
+        "command_text": "npm run platform:agent-bridge-limited-runtime-plan -- --check",
+        "preflight_status": "candidate_for_manual_preflight",
+        "package_script_registered": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "preflight_id": "agent_bridge_closeout_check",
+        "preflight_type": "platform_check",
+        "command_text": "npm run platform:agent-bridge-closeout-readiness -- --check",
+        "preflight_status": "candidate_for_manual_preflight",
+        "package_script_registered": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "preflight_id": "desktop_read_model_check",
+        "preflight_type": "desktop_check",
+        "command_text": "npm run desktop:read-model -- --check",
+        "preflight_status": "candidate_for_manual_preflight",
+        "package_script_registered": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "preflight_id": "desktop_agents_smoke",
+        "preflight_type": "desktop_smoke",
+        "command_text": "npm run desktop:smoke:render -- --screen=agents",
+        "preflight_status": "candidate_for_manual_preflight",
+        "package_script_registered": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "preflight_id": "desktop_local_preflight",
+        "preflight_type": "desktop_preflight",
+        "command_text": "npm run desktop:local-preflight",
+        "preflight_status": "candidate_for_manual_preflight",
+        "package_script_registered": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "preflight_id": "agent_bridge_targeted_tests",
+        "preflight_type": "targeted_test",
+        "command_text": "node --test test/agent-bridge-manifest.test.mjs test/agent-bridge-request-receipt.test.mjs test/agent-bridge-request-packet-export.test.mjs test/agent-bridge-receipt-import-workspace.test.mjs test/agent-bridge-review-finding-workbench.test.mjs test/agent-bridge-execution-candidate.test.mjs test/agent-bridge-limited-runtime-plan.test.mjs test/agent-bridge-closeout-readiness.test.mjs test/desktop-read-model.test.mjs apps/desktop/test/read-model.test.mjs",
+        "preflight_status": "candidate_for_manual_preflight",
+        "package_script_registered": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "preflight_id": "core_validation",
+        "preflight_type": "core_validation",
+        "command_text": "npm run validate:core",
+        "preflight_status": "candidate_for_manual_preflight",
+        "package_script_registered": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "preflight_id": "diff_check",
+        "preflight_type": "diff_check",
+        "command_text": "git diff --check",
+        "preflight_status": "candidate_for_manual_preflight",
+        "package_script_registered": true,
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "command_output_captured_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      }
+    ],
+    "limited_runtime_gate_rows": [
+      {
+        "gate_id": "package.script.registered",
+        "gate_status": "pass",
+        "description": "platform:agent-bridge-limited-runtime-plan is registered",
+        "current_verdict": "pass",
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "gate_id": "sources.ready",
+        "gate_status": "pass",
+        "description": "Execution candidate, request packet export, and runbook sources are ready",
+        "current_verdict": "pass",
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "gate_id": "dry_run.rows",
+        "gate_status": "pass",
+        "description": "Every execution candidate has a dry-run no-spawn trace",
+        "current_verdict": "pass",
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "gate_id": "owner.gates.closed",
+        "gate_status": "pass",
+        "description": "Owner limited-execution gates are present and not approved",
+        "current_verdict": "pass",
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "gate_id": "provider.adapters.projected",
+        "gate_status": "pass",
+        "description": "Agbrowse, Claude, and Codex adapter requests are projected with transport closed",
+        "current_verdict": "pass",
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "gate_id": "blocked.fixtures",
+        "gate_status": "pass",
+        "description": "Protected L9 runtime command fixtures are blocked",
+        "current_verdict": "pass",
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "gate_id": "l10.preflight.candidates",
+        "gate_status": "pass",
+        "description": "L10 preflight candidates are enumerated but not executed",
+        "current_verdict": "pass",
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      },
+      {
+        "gate_id": "authority.closed",
+        "gate_status": "pass",
+        "description": "Limited runtime plan does not open execution, transport, receipt, approval, production, enterprise, or protected closeout authority",
+        "current_verdict": "pass",
+        "execution_allowed_now": false,
+        "command_executed_now": false,
+        "mutation_performed": false,
+        "opens_authority": false
+      }
+    ],
     "agent_control_rows": [
       {
         "schema_version": "desktop-agent-control-row.v1",
@@ -6089,7 +7327,7 @@
         "control_enabled": false,
         "disabled_reason": "disabled_request_packet_only",
         "opens_authority": false,
-        "generated_at": "2026-06-16T01:54:09.708Z"
+        "generated_at": "2026-06-16T02:28:21.181Z"
       },
       {
         "schema_version": "desktop-agent-control-row.v1",
@@ -6099,7 +7337,7 @@
         "control_enabled": false,
         "disabled_reason": "disabled_no_execution_policy",
         "opens_authority": false,
-        "generated_at": "2026-06-16T01:54:09.708Z"
+        "generated_at": "2026-06-16T02:28:21.181Z"
       },
       {
         "schema_version": "desktop-agent-control-row.v1",
@@ -6109,7 +7347,7 @@
         "control_enabled": false,
         "disabled_reason": "disabled_agent_cannot_approve",
         "opens_authority": false,
-        "generated_at": "2026-06-16T01:54:09.708Z"
+        "generated_at": "2026-06-16T02:28:21.181Z"
       },
       {
         "schema_version": "desktop-agent-control-row.v1",
@@ -6119,7 +7357,7 @@
         "control_enabled": false,
         "disabled_reason": "disabled_receipt_import_only",
         "opens_authority": false,
-        "generated_at": "2026-06-16T01:54:09.708Z"
+        "generated_at": "2026-06-16T02:28:21.181Z"
       },
       {
         "schema_version": "desktop-agent-control-row.v1",
@@ -6129,7 +7367,7 @@
         "control_enabled": false,
         "disabled_reason": "disabled_protected_action",
         "opens_authority": false,
-        "generated_at": "2026-06-16T01:54:09.708Z"
+        "generated_at": "2026-06-16T02:28:21.181Z"
       },
       {
         "schema_version": "desktop-agent-control-row.v1",
@@ -6139,7 +7377,7 @@
         "control_enabled": false,
         "disabled_reason": "disabled_protected_action",
         "opens_authority": false,
-        "generated_at": "2026-06-16T01:54:09.708Z"
+        "generated_at": "2026-06-16T02:28:21.181Z"
       }
     ],
     "projection_rows": [
@@ -6150,18 +7388,18 @@
         "value": "4",
         "status": "observed",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "cbe22961396fa511698620c3c8ccd8c0f352203463f334996f3a3683cea2899a"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "9a612a98d1e8ee568b6095babeb4687d63ff2c4b954a19a64bf10cff9d081119"
       },
       {
         "schema_version": "desktop-projection-row.v1",
         "row_id": "agent_capabilities",
         "label": "Agent capabilities",
-        "value": "28",
+        "value": "30",
         "status": "observed",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "fca3b5b975ee45be2b3aec1fa25047e1cbd79cd951ae8e6df22da788f3f21107"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "eab790a8429626565660dbe1521414288da2a7203e0c3b479f905e99b62f79dc"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -6170,8 +7408,8 @@
         "value": "4",
         "status": "request_only",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "5c4193e2dfbfa064985642f16b0c07b9ba0ee3e2374e9f28d745c7250ef5a7a0"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "39912d1b6e2c69801e4b36cc8bdaba9e994b1c66f2c8630a5206c503a3889c8b"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -6180,8 +7418,8 @@
         "value": "4",
         "status": "copy_only",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "61b4a8020837447caa944454c2fc9b6b8c01b9c1cdbf560c4467143a9c8a058c"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "c10c7beec0d6640f55f88a47d27ff5b8f33108f3dab4da9a4efa54f434187864"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -6190,8 +7428,8 @@
         "value": "4",
         "status": "normalized_only",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "3ec06f651a27dace7ea163aa285229c86c36c1b32b20e5c72330fb69dfcdfe23"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "8b397f2a7bc9474ca8082abfec15cbbb59495046ea2a39bab7c258b6c8f50fdf"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -6200,8 +7438,8 @@
         "value": "4",
         "status": "normalized_preview_only",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "17d0afdf9cb048d7f59d840a635bb8f0a0f3d9f200952fa03b8823d233d08eb8"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "610e8d40f0181c427f4cf63284941b89281bc73bfde4941e84f9a1e0a67612ad"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -6210,8 +7448,8 @@
         "value": "4",
         "status": "visible_unresolved_only",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "aec4aaaf40eadae07422230c355f4e494fc76a3b05c04e815f65306dbb7c91dd"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "b1c8be3cfcac8bb5cf7cd2114166f468ae1d9599f5c17abd09e878c54b581ef8"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -6220,8 +7458,8 @@
         "value": "13",
         "status": "candidate_only",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "0a3d2d8d6080f3eb7a7a3ea1a6ff72d6e1f7c39155b3c54aacc0d4fd73bb9d4a"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "04a98a7a32146b51fd991b2570de06d7ce11ebf002c2d1eee938e0f3a55b7e54"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -6230,8 +7468,38 @@
         "value": "10/10",
         "status": "pass",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "c0c5143623ed48e2903922c413618a3f1bc8a2eaef20b64dee23314ce1846de2"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "2a88d4dfeb070566f44462907dade56f2f41406d8b1fc042823182b765b063e6"
+      },
+      {
+        "schema_version": "desktop-projection-row.v1",
+        "row_id": "agent_dry_run_executor",
+        "label": "Dry-run executor",
+        "value": "13",
+        "status": "dry_run_only",
+        "authority_open": false,
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "d2e4f97a0aec600723a5c3fb04011defca8c49d003472b655d6e1446a29fb8d5"
+      },
+      {
+        "schema_version": "desktop-projection-row.v1",
+        "row_id": "agent_provider_adapters",
+        "label": "Provider adapters",
+        "value": "3",
+        "status": "transport_closed",
+        "authority_open": false,
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "5b9f316d4c7de0cc04dab5bf44312c7dd2206547c63322e0f0cc2829019ab22a"
+      },
+      {
+        "schema_version": "desktop-projection-row.v1",
+        "row_id": "agent_l10_preflight",
+        "label": "L10 preflight",
+        "value": "8/8",
+        "status": "candidate_only",
+        "authority_open": false,
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "2adc720ca921110a064733aeb2d62c20e20529303287b168dd32c5f323cccf06"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -6240,8 +7508,8 @@
         "value": "closed",
         "status": "closed",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "fb1737147213817eef71b688a921685e94f6e0fd0ed41a7e7a056ab9540b1368"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "39fd53b39beccc94af2c3a221b2503470893cda54a4dd39be96090a7a2fa3fd8"
       },
       {
         "schema_version": "desktop-projection-row.v1",
@@ -6250,11 +7518,11 @@
         "value": "closed",
         "status": "closed",
         "authority_open": false,
-        "generated_at": "2026-06-16T01:54:09.708Z",
-        "row_hash": "ec8bf957d499b41f0ed383294c89a8dc8d8f35f1d81f0ea0ea62b28f7d65d968"
+        "generated_at": "2026-06-16T02:28:21.181Z",
+        "row_hash": "3c91a53f6224e6e8b7af8290f207391357a24188f4cad34e9aabcc055cd89e8f"
       }
     ],
-    "projection_hash": "90b7e0cd83a0f7c7272f07e9b8b715302d20750bc69d347a06a4469e5bc5e670"
+    "projection_hash": "99f5ff81ae242e6f31d6bfc501b783c25b51a8004c41ad975ae6d71194cc7fd2"
   },
   "trust_claim_guard_rows": [
     {
@@ -6265,8 +7533,8 @@
       "claim_allowed": false,
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "row_hash": "defef0bc88688564d3d08381abd2c9d32304f20d3dfb54a916dfbf58cadc036a"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "row_hash": "f810f7e960d4ccabed39b5e6d9a60f8412ee9dc61488df05edbd452961dc5806"
     },
     {
       "schema_version": "desktop-trust-claim-guard-row.v1",
@@ -6276,8 +7544,8 @@
       "claim_allowed": false,
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "row_hash": "44403d91f419d8df70896555d18b468d8701933ecdc1e996488a5b4c24d0943b"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "row_hash": "5fb03f256a825465cf76bd8246fff18b0b88f80468b01ef0df7eb5615c4eed99"
     },
     {
       "schema_version": "desktop-trust-claim-guard-row.v1",
@@ -6287,8 +7555,8 @@
       "claim_allowed": false,
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "row_hash": "e5e6744a2a54b0e20cf4c1c70552a1797d5f10008616875c98457f798474c04e"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "row_hash": "e6dfa6b0e713695d064e1890c15e2cd2c6a7a66dd3db90d3d09cf5232e91f039"
     },
     {
       "schema_version": "desktop-trust-claim-guard-row.v1",
@@ -6298,8 +7566,8 @@
       "claim_allowed": false,
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "row_hash": "a8dda98570da4f2d57ea4dba22a6b097689b04c6843e6c014001f017f2611828"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "row_hash": "519135aca479eb51248c3c5b70a5b08f50c37494a2d874b74db0f7f346846293"
     },
     {
       "schema_version": "desktop-trust-claim-guard-row.v1",
@@ -6309,8 +7577,8 @@
       "claim_allowed": false,
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "row_hash": "f6c2f41021f923fe4d332499b9ae24dd799f8d9f45388472126b611e51a5a34e"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "row_hash": "44738acd1659d42b6d9209b708fd623efa688869983d8a1be529bb90c52fc74e"
     },
     {
       "schema_version": "desktop-trust-claim-guard-row.v1",
@@ -6320,8 +7588,8 @@
       "claim_allowed": false,
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "row_hash": "7e7e4f0d24154b06dd9b92034720a8dee132f485027ec4d45122cabdad751960"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "row_hash": "05ac42a923298c80f78625352e62dee90fd3fe8a3f15a6121d83e49275bfed89"
     }
   ],
   "denylist_fixture_rows": [
@@ -6332,8 +7600,8 @@
       "denied_by_policy": true,
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "row_hash": "63d9d970499e60fd6a18dfe4791d15eff6a072505871e035106a611161f59a8a"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "row_hash": "014baacb8ce1d90510c4bcdc9701e10ac744d012d9c15ab0d6823c07ec62cc5a"
     },
     {
       "schema_version": "desktop-denylist-fixture-row.v1",
@@ -6342,8 +7610,8 @@
       "denied_by_policy": true,
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "row_hash": "1cc5386148c9907d879ebfd571e9804e88746cc70830e7de87de8c4057c198a1"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "row_hash": "ed93668969c65399eb1be032a848d1c136c97bd7cf5593440136f2095c0b0f9f"
     },
     {
       "schema_version": "desktop-denylist-fixture-row.v1",
@@ -6352,8 +7620,8 @@
       "denied_by_policy": true,
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "row_hash": "9b9358a07c13706f1e74975d024277103a89a4f230c41537817042b88955287c"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "row_hash": "44124a06dac83620c9e4fd5e8fad4829c725a94d867fe8bfd7730fd8552df10d"
     },
     {
       "schema_version": "desktop-denylist-fixture-row.v1",
@@ -6362,8 +7630,8 @@
       "denied_by_policy": true,
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "row_hash": "04a53b805f014b86924ed32f2ab3b84a82575a1db24312da62147d5e70d79f10"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "row_hash": "9b5eaa7ff594f71064da505d32259eb20efbe9403ca0f75f2af365784124523a"
     },
     {
       "schema_version": "desktop-denylist-fixture-row.v1",
@@ -6372,8 +7640,8 @@
       "denied_by_policy": true,
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "row_hash": "edcfdbe9557a7fc5b21d450333ef3ecdafe859f7f2f00a0f1b9649361e3d75bb"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "row_hash": "6a37064bd0a8a2ad6efd216ea5ca8e32d90be8510f71fd60bf118fe49986ed3e"
     },
     {
       "schema_version": "desktop-denylist-fixture-row.v1",
@@ -6382,13 +7650,13 @@
       "denied_by_policy": true,
       "status": "ready",
       "blocker": null,
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "row_hash": "1d40e5eaae3daa5c99670394f374fa7f097cfc389047269f170f63459fda75a8"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "row_hash": "350874e3962af1408c2e50bc239402e8d9631e8732fd6c6c2cf3593d79f0eebc"
     }
   ],
   "desktop_read_authority": {
     "schema_version": "desktop-read-authority.v1",
-    "generated_at": "2026-06-16T01:54:09.708Z",
+    "generated_at": "2026-06-16T02:28:21.181Z",
     "read_only": true,
     "operator_handbook_bound": true,
     "authority_boundary_ready": true,
@@ -6570,6 +7838,13 @@
       "evidence_ref": "agent_projection.execution_gate_rows"
     },
     {
+      "path": "agent_projection.limited_runtime_closed",
+      "check_id": "agent_projection.limited_runtime_closed",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_projection.dry_run_executor_rows"
+    },
+    {
       "path": "agent_projection.no_latent_execution_ui",
       "check_id": "agent_projection.no_latent_execution_ui",
       "status": "passed",
@@ -6579,15 +7854,15 @@
   ],
   "validation": {
     "valid": true,
-    "item_count": 23,
+    "item_count": 24,
     "error_count": 0,
     "errors": []
   },
   "summary": {
     "schema_version": "desktop-read-model-summary.v1",
     "desktop_read_model_status": "ready_for_desktop_shell",
-    "source_count": 29,
-    "ready_source_count": 29,
+    "source_count": 30,
+    "ready_source_count": 30,
     "blocked_source_count": 0,
     "section_count": 8,
     "ready_section_count": 8,

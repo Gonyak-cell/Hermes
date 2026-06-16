@@ -1,12 +1,12 @@
 {
   "schema_version": "provenance-source-rows.v1",
-  "generated_at": "2026-06-16T01:50:47.496Z",
+  "generated_at": "2026-06-16T02:27:29.853Z",
   "provenance_source_rows_count": 6,
   "provenance_source_rows": [
     {
       "schema_version": "agent-provenance-source-row.v1",
       "row_id": "agent.bridge.provenance.source.schema",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "source_id": "source.schema",
       "source_type": "filesystem_json",
       "source_ref": "schemas/agent-bridge-manifest.schema.json",
@@ -26,12 +26,12 @@
     {
       "schema_version": "agent-provenance-source-row.v1",
       "row_id": "agent.bridge.provenance.source.package.json",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "source_id": "source.package_json",
       "source_type": "filesystem_json",
       "source_ref": "package.json",
       "source_available": true,
-      "source_hash": "sha256:c7bf7bf77b1b60631ade96b3923e6254ef8819a04bc293b068360660ae36b8ca",
+      "source_hash": "sha256:89d8a9bd70d75859e6682603c16b9da91b869f779e3c66b0a2043bdfab38434b",
       "trust_class": "deterministic_local_file",
       "collector": "agent_bridge_manifest_generator",
       "collection_method": "read_only_file_hash",
@@ -46,7 +46,7 @@
     {
       "schema_version": "agent-provenance-source-row.v1",
       "row_id": "agent.bridge.provenance.source.plan.doc",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "source_id": "source.plan_doc",
       "source_type": "filesystem_markdown",
       "source_ref": "docs/hermes-agent-bridge-tuw-plan-2026-06-16.md",
@@ -66,7 +66,7 @@
     {
       "schema_version": "agent-provenance-source-row.v1",
       "row_id": "agent.bridge.provenance.source.agbrowse.review.receipt",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "source_id": "source.agbrowse_review_receipt",
       "source_type": "filesystem_markdown",
       "source_ref": "docs/hermes-agent-bridge-agbrowse-chatgpt-pro-review-receipt-2026-06-16.md",
@@ -86,7 +86,7 @@
     {
       "schema_version": "agent-provenance-source-row.v1",
       "row_id": "agent.bridge.provenance.source.runtime_self_report",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "source_id": "runtime.self_report",
       "source_type": "runtime_self_report",
       "source_ref": "model or plugin self-report text",
@@ -105,7 +105,7 @@
     {
       "schema_version": "agent-provenance-source-row.v1",
       "row_id": "agent.bridge.provenance.source.provider_output",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "source_id": "external.provider_output",
       "source_type": "provider_output",
       "source_ref": "ChatGPT, Claude, Codex, web UI, plugin metadata, MCP manifests",

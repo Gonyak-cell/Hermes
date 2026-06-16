@@ -1,12 +1,12 @@
 {
   "schema_version": "agent-bridge-execution-candidate-rows.v1",
-  "generated_at": "2026-06-16T01:54:09.529Z",
+  "generated_at": "2026-06-16T02:27:30.750Z",
   "agent_bridge_execution_candidate_rows_count": 13,
   "agent_bridge_execution_candidate_rows": [
     {
       "schema_version": "agent-bridge-execution-candidate-row.v1",
       "row_id": "agent.bridge.execution.candidate.row.01",
-      "generated_at": "2026-06-16T01:54:09.529Z",
+      "generated_at": "2026-06-16T02:27:30.750Z",
       "candidate_id": "agent.bridge.execution.candidate.8fcdee95f9d65d93",
       "candidate_type": "platform_check",
       "candidate_title": "Validate Agent Bridge manifest",
@@ -65,7 +65,7 @@
     {
       "schema_version": "agent-bridge-execution-candidate-row.v1",
       "row_id": "agent.bridge.execution.candidate.row.02",
-      "generated_at": "2026-06-16T01:54:09.529Z",
+      "generated_at": "2026-06-16T02:27:30.750Z",
       "candidate_id": "agent.bridge.execution.candidate.962f5e4c0d586857",
       "candidate_type": "platform_check",
       "candidate_title": "Validate Agent Bridge request/receipt",
@@ -124,7 +124,7 @@
     {
       "schema_version": "agent-bridge-execution-candidate-row.v1",
       "row_id": "agent.bridge.execution.candidate.row.03",
-      "generated_at": "2026-06-16T01:54:09.529Z",
+      "generated_at": "2026-06-16T02:27:30.750Z",
       "candidate_id": "agent.bridge.execution.candidate.99439397f9da1cee",
       "candidate_type": "platform_check",
       "candidate_title": "Validate Agent Bridge request packet export",
@@ -183,7 +183,7 @@
     {
       "schema_version": "agent-bridge-execution-candidate-row.v1",
       "row_id": "agent.bridge.execution.candidate.row.04",
-      "generated_at": "2026-06-16T01:54:09.529Z",
+      "generated_at": "2026-06-16T02:27:30.750Z",
       "candidate_id": "agent.bridge.execution.candidate.80c0530454291989",
       "candidate_type": "platform_check",
       "candidate_title": "Validate Agent Bridge receipt import workspace",
@@ -242,7 +242,7 @@
     {
       "schema_version": "agent-bridge-execution-candidate-row.v1",
       "row_id": "agent.bridge.execution.candidate.row.05",
-      "generated_at": "2026-06-16T01:54:09.529Z",
+      "generated_at": "2026-06-16T02:27:30.750Z",
       "candidate_id": "agent.bridge.execution.candidate.7cf78904ef1d7c5d",
       "candidate_type": "platform_check",
       "candidate_title": "Validate Agent Bridge review finding workbench",
@@ -301,7 +301,7 @@
     {
       "schema_version": "agent-bridge-execution-candidate-row.v1",
       "row_id": "agent.bridge.execution.candidate.row.06",
-      "generated_at": "2026-06-16T01:54:09.529Z",
+      "generated_at": "2026-06-16T02:27:30.750Z",
       "candidate_id": "agent.bridge.execution.candidate.cbb829cf58f80d20",
       "candidate_type": "platform_check",
       "candidate_title": "Validate Agent Bridge execution candidates",
@@ -360,7 +360,7 @@
     {
       "schema_version": "agent-bridge-execution-candidate-row.v1",
       "row_id": "agent.bridge.execution.candidate.row.07",
-      "generated_at": "2026-06-16T01:54:09.529Z",
+      "generated_at": "2026-06-16T02:27:30.750Z",
       "candidate_id": "agent.bridge.execution.candidate.6b35e6bf1ec2fc2f",
       "candidate_type": "platform_check",
       "candidate_title": "Validate Desktop read model",
@@ -419,7 +419,7 @@
     {
       "schema_version": "agent-bridge-execution-candidate-row.v1",
       "row_id": "agent.bridge.execution.candidate.row.08",
-      "generated_at": "2026-06-16T01:54:09.529Z",
+      "generated_at": "2026-06-16T02:27:30.750Z",
       "candidate_id": "agent.bridge.execution.candidate.35a34334df62c451",
       "candidate_type": "platform_check",
       "candidate_title": "Validate Agent Bridge closeout readiness",
@@ -478,7 +478,7 @@
     {
       "schema_version": "agent-bridge-execution-candidate-row.v1",
       "row_id": "agent.bridge.execution.candidate.row.09",
-      "generated_at": "2026-06-16T01:54:09.529Z",
+      "generated_at": "2026-06-16T02:27:30.750Z",
       "candidate_id": "agent.bridge.execution.candidate.28e8c268250f706a",
       "candidate_type": "targeted_test",
       "candidate_title": "Run Agent Bridge full targeted tests",
@@ -537,7 +537,7 @@
     {
       "schema_version": "agent-bridge-execution-candidate-row.v1",
       "row_id": "agent.bridge.execution.candidate.row.10",
-      "generated_at": "2026-06-16T01:54:09.529Z",
+      "generated_at": "2026-06-16T02:27:30.750Z",
       "candidate_id": "agent.bridge.execution.candidate.6a23252203f034b6",
       "candidate_type": "desktop_build",
       "candidate_title": "Build Hermes Desktop renderer",
@@ -596,7 +596,7 @@
     {
       "schema_version": "agent-bridge-execution-candidate-row.v1",
       "row_id": "agent.bridge.execution.candidate.row.11",
-      "generated_at": "2026-06-16T01:54:09.529Z",
+      "generated_at": "2026-06-16T02:27:30.750Z",
       "candidate_id": "agent.bridge.execution.candidate.e4472036200d192d",
       "candidate_type": "desktop_smoke",
       "candidate_title": "Smoke render Desktop Agents screen",
@@ -655,7 +655,7 @@
     {
       "schema_version": "agent-bridge-execution-candidate-row.v1",
       "row_id": "agent.bridge.execution.candidate.row.12",
-      "generated_at": "2026-06-16T01:54:09.529Z",
+      "generated_at": "2026-06-16T02:27:30.750Z",
       "candidate_id": "agent.bridge.execution.candidate.0cecca77236ddb59",
       "candidate_type": "core_validation",
       "candidate_title": "Validate core contracts",
@@ -714,7 +714,7 @@
     {
       "schema_version": "agent-bridge-execution-candidate-row.v1",
       "row_id": "agent.bridge.execution.candidate.row.13",
-      "generated_at": "2026-06-16T01:54:09.529Z",
+      "generated_at": "2026-06-16T02:27:30.750Z",
       "candidate_id": "agent.bridge.execution.candidate.466c2f308b48c766",
       "candidate_type": "diff_check",
       "candidate_title": "Check whitespace-safe diff",

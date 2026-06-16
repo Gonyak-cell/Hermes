@@ -452,7 +452,7 @@ function buildCapabilityInventoryRows(context) {
   const localScriptRows = Object.keys(context.packageScripts)
     .filter((scriptName) => scriptName === COMMAND_NAME || /^platform:agent/.test(scriptName))
     .sort()
-    .slice(0, 24)
+    .slice(0, 32)
     .map((scriptName) => ({
       capability_id: `capability.local_script.${slug(scriptName)}`,
       capability_kind: "package_script",

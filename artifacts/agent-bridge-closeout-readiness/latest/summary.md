@@ -2,9 +2,9 @@
 
 - Status: ready_for_agent_bridge_local_operator_handoff
 - Program: AGENT-BRIDGE-L9-L10-SLICE-F
-- Sources: 7/7
+- Sources: 8/8
 - Runbook rows: 6/6
-- Handoff rows: 8/8
+- Handoff rows: 9/9
 - Gates: 5/5
 - Local operator handoff ready: true
 - Execution allowed now: false

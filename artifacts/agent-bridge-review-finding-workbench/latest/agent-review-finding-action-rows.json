@@ -1,12 +1,12 @@
 {
   "schema_version": "agent-review-finding-action-rows.v1",
-  "generated_at": "2026-06-16T01:50:48.232Z",
+  "generated_at": "2026-06-16T02:27:30.576Z",
   "agent_review_finding_action_rows_count": 4,
   "agent_review_finding_action_rows": [
     {
       "schema_version": "agent-review-finding-action-row.v1",
       "row_id": "agent.bridge.review.finding.action.row.01",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "finding_id": "agent.review.finding.bdd00c9eb4455f66",
       "action_status": "triage_candidate",
       "action_label": "Inspect normalized finding",
@@ -47,7 +47,7 @@
     {
       "schema_version": "agent-review-finding-action-row.v1",
       "row_id": "agent.bridge.review.finding.action.row.02",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "finding_id": "agent.review.finding.dd4c82b0104ed45c",
       "action_status": "blocked_until_receipt",
       "action_label": "Collect redacted receipt",
@@ -88,7 +88,7 @@
     {
       "schema_version": "agent-review-finding-action-row.v1",
       "row_id": "agent.bridge.review.finding.action.row.03",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "finding_id": "agent.review.finding.35ce0b642e18d55b",
       "action_status": "blocked_until_receipt",
       "action_label": "Collect redacted receipt",
@@ -129,7 +129,7 @@
     {
       "schema_version": "agent-review-finding-action-row.v1",
       "row_id": "agent.bridge.review.finding.action.row.04",
-      "generated_at": "2026-06-16T01:50:48.232Z",
+      "generated_at": "2026-06-16T02:27:30.576Z",
       "finding_id": "agent.review.finding.5279faa2881d29ea",
       "action_status": "triage_candidate",
       "action_label": "Inspect normalized finding",

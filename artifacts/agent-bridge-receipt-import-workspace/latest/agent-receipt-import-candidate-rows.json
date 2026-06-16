@@ -1,12 +1,12 @@
 {
   "schema_version": "agent-receipt-import-candidate-rows.v1",
-  "generated_at": "2026-06-16T01:50:48.043Z",
+  "generated_at": "2026-06-16T02:27:30.400Z",
   "agent_receipt_import_candidate_rows_count": 4,
   "agent_receipt_import_candidate_rows": [
     {
       "schema_version": "agent-receipt-import-candidate-row.v1",
       "row_id": "agent.bridge.receipt.import.candidate.row.01",
-      "generated_at": "2026-06-16T01:50:48.043Z",
+      "generated_at": "2026-06-16T02:27:30.400Z",
       "import_candidate_id": "agent.receipt.import.candidate.aed5c7cbe768eff0",
       "receipt_id": "receipt.chatgpt.agbrowse.plan_review",
       "request_id": "agent.task.request.915d39b8905ff8ac",
@@ -57,7 +57,7 @@
     {
       "schema_version": "agent-receipt-import-candidate-row.v1",
       "row_id": "agent.bridge.receipt.import.candidate.row.02",
-      "generated_at": "2026-06-16T01:50:48.043Z",
+      "generated_at": "2026-06-16T02:27:30.400Z",
       "import_candidate_id": "agent.receipt.import.candidate.cbd8635d17327fec",
       "receipt_id": "receipt.claude.code_review.placeholder",
       "request_id": "agent.task.request.5422f546b93b019e",
@@ -108,7 +108,7 @@
     {
       "schema_version": "agent-receipt-import-candidate-row.v1",
       "row_id": "agent.bridge.receipt.import.candidate.row.03",
-      "generated_at": "2026-06-16T01:50:48.043Z",
+      "generated_at": "2026-06-16T02:27:30.400Z",
       "import_candidate_id": "agent.receipt.import.candidate.917e03e42f9b9e2d",
       "receipt_id": "receipt.codex.implementation_proposal.placeholder",
       "request_id": "agent.task.request.6c6d548363024a64",
@@ -159,7 +159,7 @@
     {
       "schema_version": "agent-receipt-import-candidate-row.v1",
       "row_id": "agent.bridge.receipt.import.candidate.row.04",
-      "generated_at": "2026-06-16T01:50:48.043Z",
+      "generated_at": "2026-06-16T02:27:30.400Z",
       "import_candidate_id": "agent.receipt.import.candidate.8ca61ee78606c664",
       "receipt_id": "receipt.local.command_suggestion.summary",
       "request_id": "agent.task.request.2ed53d1e2cb81580",

@@ -27,8 +27,8 @@ test("Desktop read model projects release, factory, review, operator, artifact, 
     assert.equal(result.validation.valid, true);
     assert.equal(result.schema_version, "desktop-read-model.v1");
     assert.equal(result.summary.desktop_read_model_status, "ready_for_desktop_shell");
-    assert.equal(result.summary.source_count, 29);
-    assert.equal(result.summary.ready_source_count, 29);
+    assert.equal(result.summary.source_count, 30);
+    assert.equal(result.summary.ready_source_count, 30);
     assert.equal(result.summary.section_count, 8);
     assert.equal(result.summary.ready_section_count, 8);
     assert.equal(result.summary.project_count, 2);
@@ -74,6 +74,10 @@ test("Desktop read model projects release, factory, review, operator, artifact, 
     assert.equal(result.agent_projection.blocking_finding_count, 2);
     assert.equal(result.agent_projection.execution_candidate_count, 5);
     assert.equal(result.agent_projection.execution_gate_count, 10);
+    assert.equal(result.agent_projection.agent_bridge_limited_runtime_plan_status, "ready_for_agent_bridge_limited_runtime_plan");
+    assert.equal(result.agent_projection.dry_run_executor_count, 13);
+    assert.equal(result.agent_projection.provider_adapter_request_count, 3);
+    assert.equal(result.agent_projection.l10_preflight_candidate_count, 8);
     assert.equal(result.agent_projection.ready_for_desktop_agents_projection, true);
     assert.equal(result.agent_projection.execution_allowed_now, false);
     assert.equal(result.agent_projection.command_output_captured_now, false);
@@ -87,6 +91,9 @@ test("Desktop read model projects release, factory, review, operator, artifact, 
     assert.equal(result.agent_projection.review_finding_seed_rows.every((row) => row.finding_resolution_allowed_now === false && row.clean_checkpoint_allowed_now === false && row.patch_apply_allowed_now === false && row.opens_authority === false), true);
     assert.equal(result.agent_projection.review_finding_action_rows.every((row) => row.action_mutates_state === false && row.action_executes_command === false && row.action_applies_patch === false && row.opens_authority === false), true);
     assert.equal(result.agent_projection.execution_candidate_rows.every((row) => row.execution_allowed_now === false && row.command_executed_now === false && row.command_output_captured_now === false), true);
+    assert.equal(result.agent_projection.dry_run_executor_rows.every((row) => row.execution_allowed_now === false && row.command_executed_now === false && row.command_output_captured_now === false), true);
+    assert.equal(result.agent_projection.provider_adapter_request_rows.every((row) => row.request_transport_submission_allowed_now === false && row.provider_automation_allowed_now === false && row.opens_authority === false), true);
+    assert.equal(result.agent_projection.l10_preflight_candidate_rows.every((row) => row.execution_allowed_now === false && row.command_executed_now === false && row.opens_authority === false), true);
     assert.equal(result.agent_projection.agent_control_rows.every((row) => row.control_enabled === false && row.opens_authority === false), true);
     assert.equal(result.sections.every((section) => section.source_path && section.generated_at && section.status && Object.hasOwn(section, "blocker") && Array.isArray(section.section_refs)), true);
   } finally {
@@ -273,6 +280,7 @@ async function createReadModelFixture() {
     agentBridgeReceiptImportWorkspacePath: file("agent-bridge-receipt-import-workspace.json"),
     agentBridgeReviewFindingWorkbenchPath: file("agent-bridge-review-finding-workbench.json"),
     agentBridgeExecutionCandidatePath: file("agent-bridge-execution-candidate.json"),
+    agentBridgeLimitedRuntimePlanPath: file("agent-bridge-limited-runtime-plan.json"),
     operatorHandbookPath: file("operator-handbook.json"),
     operatorSurfacesPath: file("operator-surfaces.json"),
     operatorScreensPath: file("operator-screens.json"),
@@ -414,6 +422,7 @@ async function createReadModelFixture() {
   await writeFile(options.agentBridgeReceiptImportWorkspacePath, JSON.stringify(agentBridgeReceiptImportWorkspaceFixture(), null, 2), "utf8");
   await writeFile(options.agentBridgeReviewFindingWorkbenchPath, JSON.stringify(agentBridgeReviewFindingWorkbenchFixture(), null, 2), "utf8");
   await writeFile(options.agentBridgeExecutionCandidatePath, JSON.stringify(agentBridgeExecutionCandidateFixture(), null, 2), "utf8");
+  await writeFile(options.agentBridgeLimitedRuntimePlanPath, JSON.stringify(agentBridgeLimitedRuntimePlanFixture(), null, 2), "utf8");
   await writeFile(options.operatorHandbookPath, JSON.stringify({ schema_version: "operator-handbook.v1", summary: { operator_handbook_status: "complete", operator_handbook_id: "operator-handbook.test" } }, null, 2), "utf8");
   await writeFile(options.operatorSurfacesPath, JSON.stringify({ schema_version: "operator-surfaces.v1", operator_surface_rows: [] }, null, 2), "utf8");
   await writeFile(options.operatorScreensPath, JSON.stringify({ schema_version: "operator-screens.v1", operator_screen_rows: [] }, null, 2), "utf8");
@@ -751,6 +760,109 @@ function agentBridgeExecutionCandidateFixture() {
       description: "fixture gate",
       current_verdict: "pass",
       blocks_execution_when_failed: true,
+    })),
+  };
+}
+
+function agentBridgeLimitedRuntimePlanFixture() {
+  const dryRunRows = Array.from({ length: 13 }, (_item, index) => ({
+    candidate_id: `candidate.${index + 1}`,
+    candidate_type: "platform_check",
+    command_text: "npm run platform:agent-bridge-manifest -- --check",
+    printed_intended_command: "DRY RUN ONLY: npm run platform:agent-bridge-manifest -- --check",
+    executor_adapter_status: "printed_intended_command_only",
+    dry_run_trace_created: true,
+    execution_allowed_now: false,
+    command_executed_now: false,
+    command_output_captured_now: false,
+    mutation_performed: false,
+    opens_authority: false,
+  }));
+  return {
+    schema_version: "agent-bridge-limited-runtime-plan.v1",
+    summary: {
+      agent_bridge_limited_runtime_plan_status: "ready_for_agent_bridge_limited_runtime_plan",
+      source_agent_bridge_execution_candidate_status: "ready_for_agent_bridge_execution_candidate",
+      source_agent_bridge_request_packet_export_status: "ready_for_agent_bridge_request_packet_export",
+      dry_run_executor_count: 13,
+      owner_gate_count: 13,
+      provider_adapter_request_count: 3,
+      blocked_runtime_command_fixture_count: 14,
+      l10_preflight_candidate_count: 8,
+      gate_count: 8,
+      gate_pass_count: 8,
+      dry_run_executor_enabled_now: true,
+      owner_limited_execution_gate_enabled_now: true,
+      provider_adapter_request_projection_enabled_now: true,
+      l10_preflight_candidate_enabled_now: true,
+      request_transport_submission_allowed_now: false,
+      provider_automation_allowed_now: false,
+      execution_allowed_now: false,
+      command_executed_now: false,
+      command_output_captured_now: false,
+      mutation_performed: false,
+      validation_error_count: 0,
+    },
+    limited_runtime_boundary: {
+      unsafe_flag_count: 0,
+      ready_for_l9_dry_run_operator_handoff: true,
+      ready_for_l10_preflight_candidate_handoff: true,
+      execution_allowed_now: false,
+      command_executed_now: false,
+      command_output_captured_now: false,
+      mutation_performed: false,
+    },
+    dry_run_executor_rows: dryRunRows,
+    owner_limited_execution_gate_rows: dryRunRows.map((row) => ({
+      candidate_id: row.candidate_id,
+      owner_gate_status: "owner_receipt_required_before_execution",
+      owner_approval_observed: false,
+      limited_execution_receipt_required: true,
+      execution_allowed_now: false,
+      command_executed_now: false,
+      command_output_captured_now: false,
+      mutation_performed: false,
+      opens_authority: false,
+    })),
+    provider_adapter_request_rows: [
+      ["adapter.agbrowse.chatgpt_review_request", "Agbrowse ChatGPT review request adapter", "runtime.chatgpt.web_agbrowse", "plan_review", "packet.plan"],
+      ["adapter.claude_code.read_only_review_request", "Claude Code read-only review request adapter", "runtime.claude_code.opus_max", "code_review", "packet.code"],
+      ["adapter.codex.task_request_packet", "Codex task request adapter", "runtime.codex.desktop", "implementation_proposal", "packet.proposal"],
+    ].map(([adapterId, title, runtimeId, requestType, packetId]) => ({
+      adapter_id: adapterId,
+      adapter_kind: "review_request",
+      adapter_title: title,
+      target_runtime_id: runtimeId,
+      request_type: requestType,
+      packet_id: packetId,
+      adapter_request_status: "request_packet_ready_transport_disabled",
+      request_transport_submission_allowed_now: false,
+      provider_automation_allowed_now: false,
+      execution_allowed_now: false,
+      command_executed_now: false,
+      opens_authority: false,
+    })),
+    l10_preflight_candidate_rows: Array.from({ length: 8 }, (_item, index) => ({
+      preflight_id: `preflight.${index + 1}`,
+      preflight_type: "platform_check",
+      command_text: "npm run platform:agent-bridge-limited-runtime-plan -- --check",
+      preflight_status: "candidate_for_manual_preflight",
+      package_script_registered: true,
+      execution_allowed_now: false,
+      command_executed_now: false,
+      command_output_captured_now: false,
+      mutation_performed: false,
+      opens_authority: false,
+    })),
+    limited_runtime_gate_rows: Array.from({ length: 8 }, (_item, index) => ({
+      gate_id: `limited.gate.${index + 1}`,
+      gate_status: "pass",
+      description: "fixture limited runtime gate",
+      current_verdict: "pass",
+      execution_allowed_now: false,
+      command_executed_now: false,
+      mutation_performed: false,
+      opens_authority: false,
     })),
   };
 }

@@ -43,6 +43,9 @@ const copy = {
     agentFindingTable: "Review findings",
     agentCandidateTable: "Candidate commands",
     agentGateTable: "Execution gates",
+    agentDryRunTable: "Dry-run traces",
+    agentProviderTable: "Provider adapters",
+    agentPreflightTable: "L10 preflight",
     agentControls: "Disabled controls",
     displayOnly: "display only",
     navSub: {
@@ -143,6 +146,9 @@ const copy = {
     agentFindingTable: "Review findings",
     agentCandidateTable: "Candidate commands",
     agentGateTable: "Execution gates",
+    agentDryRunTable: "Dry-run traces",
+    agentProviderTable: "Provider adapters",
+    agentPreflightTable: "L10 preflight",
     agentControls: "Disabled controls",
     displayOnly: "display only",
     navSub: {

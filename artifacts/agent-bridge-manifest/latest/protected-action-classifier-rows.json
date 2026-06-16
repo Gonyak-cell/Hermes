@@ -1,12 +1,12 @@
 {
   "schema_version": "protected-action-classifier-rows.v1",
-  "generated_at": "2026-06-16T01:50:47.496Z",
+  "generated_at": "2026-06-16T02:27:29.853Z",
   "protected_action_classifier_rows_count": 14,
   "protected_action_classifier_rows": [
     {
       "schema_version": "agent-protected-action-classifier-row.v1",
       "row_id": "agent.bridge.protected.action.row.01",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "protected_action_type": "git_commit",
       "blocked": true,
       "authority_namespace": "protected_action_authority",
@@ -37,7 +37,7 @@
     {
       "schema_version": "agent-protected-action-classifier-row.v1",
       "row_id": "agent.bridge.protected.action.row.02",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "protected_action_type": "git_push",
       "blocked": true,
       "authority_namespace": "protected_action_authority",
@@ -68,7 +68,7 @@
     {
       "schema_version": "agent-protected-action-classifier-row.v1",
       "row_id": "agent.bridge.protected.action.row.03",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "protected_action_type": "git_merge",
       "blocked": true,
       "authority_namespace": "protected_action_authority",
@@ -99,7 +99,7 @@
     {
       "schema_version": "agent-protected-action-classifier-row.v1",
       "row_id": "agent.bridge.protected.action.row.04",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "protected_action_type": "deploy",
       "blocked": true,
       "authority_namespace": "protected_action_authority",
@@ -130,7 +130,7 @@
     {
       "schema_version": "agent-protected-action-classifier-row.v1",
       "row_id": "agent.bridge.protected.action.row.05",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "protected_action_type": "approve",
       "blocked": true,
       "authority_namespace": "protected_action_authority",
@@ -161,7 +161,7 @@
     {
       "schema_version": "agent-protected-action-classifier-row.v1",
       "row_id": "agent.bridge.protected.action.row.06",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "protected_action_type": "apply_patch_or_receipt",
       "blocked": true,
       "authority_namespace": "protected_action_authority",
@@ -192,7 +192,7 @@
     {
       "schema_version": "agent-protected-action-classifier-row.v1",
       "row_id": "agent.bridge.protected.action.row.07",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "protected_action_type": "production_pass",
       "blocked": true,
       "authority_namespace": "protected_action_authority",
@@ -223,7 +223,7 @@
     {
       "schema_version": "agent-protected-action-classifier-row.v1",
       "row_id": "agent.bridge.protected.action.row.08",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "protected_action_type": "enterprise_pass",
       "blocked": true,
       "authority_namespace": "protected_action_authority",
@@ -254,7 +254,7 @@
     {
       "schema_version": "agent-protected-action-classifier-row.v1",
       "row_id": "agent.bridge.protected.action.row.09",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "protected_action_type": "protected_closeout",
       "blocked": true,
       "authority_namespace": "protected_action_authority",
@@ -285,7 +285,7 @@
     {
       "schema_version": "agent-protected-action-classifier-row.v1",
       "row_id": "agent.bridge.protected.action.row.10",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "protected_action_type": "connector_write",
       "blocked": true,
       "authority_namespace": "protected_action_authority",
@@ -316,7 +316,7 @@
     {
       "schema_version": "agent-protected-action-classifier-row.v1",
       "row_id": "agent.bridge.protected.action.row.11",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "protected_action_type": "secret_read",
       "blocked": true,
       "authority_namespace": "protected_action_authority",
@@ -347,7 +347,7 @@
     {
       "schema_version": "agent-protected-action-classifier-row.v1",
       "row_id": "agent.bridge.protected.action.row.12",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "protected_action_type": "raw_source_exposure",
       "blocked": true,
       "authority_namespace": "protected_action_authority",
@@ -378,7 +378,7 @@
     {
       "schema_version": "agent-protected-action-classifier-row.v1",
       "row_id": "agent.bridge.protected.action.row.13",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "protected_action_type": "shell_indirection",
       "blocked": true,
       "authority_namespace": "protected_action_authority",
@@ -409,7 +409,7 @@
     {
       "schema_version": "agent-protected-action-classifier-row.v1",
       "row_id": "agent.bridge.protected.action.row.14",
-      "generated_at": "2026-06-16T01:50:47.496Z",
+      "generated_at": "2026-06-16T02:27:29.853Z",
       "protected_action_type": "path_traversal_or_symlink",
       "blocked": true,
       "authority_namespace": "protected_action_authority",

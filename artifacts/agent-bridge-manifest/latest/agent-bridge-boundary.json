@@ -1,6 +1,6 @@
 {
   "schema_version": "agent-bridge-boundary.v1",
-  "generated_at": "2026-06-16T01:50:47.496Z",
+  "generated_at": "2026-06-16T02:27:29.853Z",
   "program_range": "AGENT-BRIDGE-L0-L4-SLICE-A",
   "all_rows_pass": true,
   "ready_for_agent_bridge_manifest_projection": true,

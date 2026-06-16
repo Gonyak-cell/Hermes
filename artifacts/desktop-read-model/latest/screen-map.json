@@ -1,6 +1,6 @@
 {
   "schema_version": "desktop-screen-map.v1",
-  "generated_at": "2026-06-16T01:54:09.708Z",
+  "generated_at": "2026-06-16T02:28:21.181Z",
   "screen_map_count": 13,
   "screen_map": [
     {
@@ -17,8 +17,8 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "9523dfc158e4fcee75b61b0fcdf53cdb38c892d3ae9161cf251c3a07dd90f7d1"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "3772d5007d29b25e3d960ca2ce6b2493bf47a9ebf1b9e34cdbc5a8e5494b966a"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -37,8 +37,8 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "737fdd95423dbb4187c99eb5414c481a65b9de52b184a0eef35f6b9dcc2deb64"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "f9a50ced825a9141d3794b4847675cb7203f90cda35dd48eca23db388faca3ec"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -56,14 +56,15 @@
         "artifacts/agent-bridge-request-packet-export/latest/agent-bridge-request-packet-export.json",
         "artifacts/agent-bridge-receipt-import-workspace/latest/agent-bridge-receipt-import-workspace.json",
         "artifacts/agent-bridge-review-finding-workbench/latest/agent-bridge-review-finding-workbench.json",
-        "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json"
+        "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json",
+        "artifacts/agent-bridge-limited-runtime-plan/latest/agent-bridge-limited-runtime-plan.json"
       ],
       "empty_state": "No safe evidence is available for this screen.",
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "b1a7aff4be95adfd7db1d5f632e4860f37eda31db0722136587b05de5292c1d6"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "9c67b16850e32bd98779d476e502160d5312c058923ff68e94a0493dd70a07dd"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -79,8 +80,8 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "7210269238be7796a521295878fc85e7ceb93c5e33b5451edf382494c9ce5995"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "8f1338cbf02dd6e318cb423303e6b4761314b7c471322f3b1b4fa31f48ac2996"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -96,8 +97,8 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "e5b95e7772e71a05542bfd2d348be625c29aaeb49b8cb86ddb4b81a63135f3c5"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "9d741960f457870631a13c6ceedfc1a39d5e7d768b5375e643ea8b6707de8e60"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -115,8 +116,8 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "01dc3c5ebd23d9e8b0e9602a6feba68cbca97d42b6fd1e59a71bba100b9dec7f"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "50699c5a1daa774eed06584e2723b0b0d1867efa769b16dbb80661f36fed80b2"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -132,8 +133,8 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "0a5a0aa7898087686ed617c6e0a72e872a7a852e055266a636493996d9528f80"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "dbc6963ac154535756188d9aec0be4dfec3068bebc50bf396dcb9c280c05d75b"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -149,8 +150,8 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "e289d633c7239571841b7cff882f985fa8d8782dfa00f4f8cab808bb727775ef"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "8e815ca98e10f4a2f59392847aae372bf337754b8f255d9a99b8843ee098c96a"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -166,8 +167,8 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "803810bdfe04bce8990826037ffb799e1fc20ea9d52253562475555d27926ad2"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "35b314f3c4b51ff539e355544ec51527eea4cb2585253bd52c5ff0bedf6aab5c"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -183,8 +184,8 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "4d466553ac5af394896366bb0642f2777156a002e462a2dd1da5e0604c38baa1"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "8e89955bb4227e712de221d7fd3b97f7b78abbd58152ebc6f636668e1ff668c5"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -208,8 +209,8 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "4682e246302e076fab4165d216fc1e8a7d6b25f51cf80abc71a6e65ba36a84bf"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "121f748349c04adbd29aa466b9b8d7a1ffa1fe4b7b1b0a82e1a2a27820df924d"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -231,8 +232,8 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "98a867af4b88af1afc74793bd53e1e9f62465a2458190a5cae4bfbfa617a6bcc"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "7567c576468cd1afd8f833ab26fa962c016991d902fe730f5af9e3bb8a6f9a04"
     },
     {
       "schema_version": "desktop-screen-map-row.v1",
@@ -250,8 +251,8 @@
       "blocker_state": null,
       "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
       "status": "ready",
-      "generated_at": "2026-06-16T01:54:09.708Z",
-      "screen_hash": "76010a98d8a39fc6206421a1768e69f20e6fcaf15fd80d181e08f073e1d6de66"
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "d114cf9ae99c541a535b3470681f51634ba1ddba7853e0a27e23e6bba7cb48ba"
     }
   ]
 }

@@ -18,12 +18,25 @@ test("Agent Bridge closeout readiness binds sources and keeps protected closeout
   assert.equal(result.validation.valid, true);
   assert.equal(result.schema_version, "agent-bridge-closeout-readiness.v1");
   assert.equal(result.summary.agent_bridge_closeout_readiness_status, "ready_for_agent_bridge_local_operator_handoff");
-  assert.equal(result.summary.source_ready_count, 4);
+  assert.equal(result.summary.source_ready_count, 7);
+  assert.equal(result.summary.source_count, 7);
+  assert.deepEqual(result.agent_bridge_closeout_source_rows.map((row) => row.source_id), [
+    "agent_bridge_manifest",
+    "agent_bridge_request_receipt",
+    "agent_bridge_request_packet_export",
+    "agent_bridge_receipt_import_workspace",
+    "agent_bridge_review_finding_workbench",
+    "agent_bridge_execution_candidate",
+    "desktop_read_model",
+  ]);
   assert.equal(result.summary.runbook_pass_count, result.summary.runbook_count);
   assert.equal(result.summary.local_operator_handoff_ready, true);
   assert.equal(result.summary.execution_allowed_now, false);
   assert.equal(result.summary.command_executed_now, false);
   assert.equal(result.summary.command_output_captured_now, false);
+  assert.equal(result.summary.request_packet_export_enabled_now, true);
+  assert.equal(result.summary.receipt_import_workspace_enabled_now, true);
+  assert.equal(result.summary.review_finding_workbench_enabled_now, true);
   assert.equal(result.summary.production_pass_enabled, false);
   assert.equal(result.summary.enterprise_pass_enabled, false);
   assert.equal(result.summary.protected_closeout_enabled, false);
@@ -33,7 +46,10 @@ test("Agent Bridge closeout readiness binds sources and keeps protected closeout
 test("Agent Bridge closeout readiness exposes local handoff rows without authority", async () => {
   const result = await buildAgentBridgeCloseoutReadiness({ runAt: RUN_AT, write: false });
 
-  assert.equal(result.agent_bridge_operator_handoff_rows.length >= 5, true);
+  assert.equal(result.agent_bridge_operator_handoff_rows.length >= 8, true);
+  assert.equal(result.agent_bridge_operator_handoff_rows.some((row) => row.handoff_id === "request_packet_export_visible"), true);
+  assert.equal(result.agent_bridge_operator_handoff_rows.some((row) => row.handoff_id === "receipt_import_workspace_visible"), true);
+  assert.equal(result.agent_bridge_operator_handoff_rows.some((row) => row.handoff_id === "review_findings_visible"), true);
   assert.equal(result.agent_bridge_operator_handoff_rows.every((row) => row.current_verdict === "pass"), true);
   assert.equal(result.agent_bridge_operator_handoff_rows.every((row) => row.opens_authority === false), true);
   assert.equal(result.agent_bridge_closeout_gate_rows.every((row) => row.current_verdict === "pass"), true);
@@ -82,4 +98,5 @@ test("Agent Bridge closeout readiness CLI parser accepts only known flags", () =
   });
   assert.throws(() => parseAgentBridgeCloseoutReadinessArgs(["--execute"]), /Unknown argument: --execute/);
   assert.throws(() => parseAgentBridgeCloseoutReadinessArgs(["--source-desktop-read-model-path"]), /Missing value for --source-desktop-read-model-path/);
+  assert.throws(() => parseAgentBridgeCloseoutReadinessArgs(["--source-agent-bridge-review-finding-workbench-path"]), /Missing value for --source-agent-bridge-review-finding-workbench-path/);
 });

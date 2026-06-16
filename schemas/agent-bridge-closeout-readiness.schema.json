@@ -23,7 +23,7 @@
     "capability_id": { "const": "platform.agent_bridge_closeout_readiness" },
     "program_range": { "const": "AGENT-BRIDGE-L9-L10-SLICE-F" },
     "agent_bridge_closeout_contract": { "$ref": "#/$defs/closedBoundary" },
-    "agent_bridge_closeout_source_rows": { "type": "array", "minItems": 4, "items": { "$ref": "#/$defs/verdictRow" } },
+    "agent_bridge_closeout_source_rows": { "type": "array", "minItems": 7, "items": { "$ref": "#/$defs/verdictRow" } },
     "agent_bridge_closeout_runbook_rows": { "type": "array", "minItems": 6, "items": { "$ref": "#/$defs/verdictRow" } },
     "agent_bridge_operator_handoff_rows": { "type": "array", "minItems": 5, "items": { "$ref": "#/$defs/verdictRow" } },
     "agent_bridge_closeout_gate_rows": { "type": "array", "minItems": 5, "items": { "$ref": "#/$defs/verdictRow" } },
@@ -73,7 +73,7 @@
               "enum": ["ready_for_agent_bridge_local_operator_handoff", "blocked_agent_bridge_local_operator_handoff"]
             },
             "source_ready_count": { "type": "integer", "minimum": 0 },
-            "source_count": { "type": "integer", "minimum": 4 },
+            "source_count": { "type": "integer", "minimum": 7 },
             "runbook_pass_count": { "type": "integer", "minimum": 0 },
             "runbook_count": { "type": "integer", "minimum": 6 },
             "handoff_pass_count": { "type": "integer", "minimum": 0 },

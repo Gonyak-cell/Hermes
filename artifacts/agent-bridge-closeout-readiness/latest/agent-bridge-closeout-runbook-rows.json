@@ -1,12 +1,12 @@
 {
   "schema_version": "agent-bridge-closeout-runbook-rows.v1",
-  "generated_at": "2026-06-16T01:42:32.810Z",
+  "generated_at": "2026-06-16T01:49:18.932Z",
   "agent_bridge_closeout_runbook_rows_count": 6,
   "agent_bridge_closeout_runbook_rows": [
     {
       "schema_version": "agent-bridge-closeout-runbook-row.v1",
       "row_id": "agent.bridge.closeout.runbook.row.01",
-      "generated_at": "2026-06-16T01:42:32.810Z",
+      "generated_at": "2026-06-16T01:49:18.932Z",
       "term": "Desktop cannot execute commands",
       "term_present": true,
       "runbook_path": "docs/hermes-agent-bridge-local-operator-runbook-2026-06-16.md",
@@ -34,7 +34,7 @@
     {
       "schema_version": "agent-bridge-closeout-runbook-row.v1",
       "row_id": "agent.bridge.closeout.runbook.row.02",
-      "generated_at": "2026-06-16T01:42:32.810Z",
+      "generated_at": "2026-06-16T01:49:18.932Z",
       "term": "Desktop cannot apply receipts",
       "term_present": true,
       "runbook_path": "docs/hermes-agent-bridge-local-operator-runbook-2026-06-16.md",
@@ -62,7 +62,7 @@
     {
       "schema_version": "agent-bridge-closeout-runbook-row.v1",
       "row_id": "agent.bridge.closeout.runbook.row.03",
-      "generated_at": "2026-06-16T01:42:32.810Z",
+      "generated_at": "2026-06-16T01:49:18.932Z",
       "term": "Desktop cannot create production PASS",
       "term_present": true,
       "runbook_path": "docs/hermes-agent-bridge-local-operator-runbook-2026-06-16.md",
@@ -90,7 +90,7 @@
     {
       "schema_version": "agent-bridge-closeout-runbook-row.v1",
       "row_id": "agent.bridge.closeout.runbook.row.04",
-      "generated_at": "2026-06-16T01:42:32.810Z",
+      "generated_at": "2026-06-16T01:49:18.932Z",
       "term": "Desktop cannot create enterprise PASS",
       "term_present": true,
       "runbook_path": "docs/hermes-agent-bridge-local-operator-runbook-2026-06-16.md",
@@ -118,7 +118,7 @@
     {
       "schema_version": "agent-bridge-closeout-runbook-row.v1",
       "row_id": "agent.bridge.closeout.runbook.row.05",
-      "generated_at": "2026-06-16T01:42:32.810Z",
+      "generated_at": "2026-06-16T01:49:18.932Z",
       "term": "Desktop cannot complete protected closeout",
       "term_present": true,
       "runbook_path": "docs/hermes-agent-bridge-local-operator-runbook-2026-06-16.md",
@@ -146,7 +146,7 @@
     {
       "schema_version": "agent-bridge-closeout-runbook-row.v1",
       "row_id": "agent.bridge.closeout.runbook.row.06",
-      "generated_at": "2026-06-16T01:42:32.810Z",
+      "generated_at": "2026-06-16T01:49:18.932Z",
       "term": "not production launch approval",
       "term_present": true,
       "runbook_path": "docs/hermes-agent-bridge-local-operator-runbook-2026-06-16.md",

@@ -11,6 +11,9 @@ export const DEFAULT_AGENT_BRIDGE_CLOSEOUT_READINESS_INPUTS = {
   runbookPath: "docs/hermes-agent-bridge-local-operator-runbook-2026-06-16.md",
   sourceAgentBridgeManifestPath: "artifacts/agent-bridge-manifest/latest/agent-bridge-manifest.json",
   sourceAgentBridgeRequestReceiptPath: "artifacts/agent-bridge-request-receipt/latest/agent-bridge-request-receipt.json",
+  sourceAgentBridgeRequestPacketExportPath: "artifacts/agent-bridge-request-packet-export/latest/agent-bridge-request-packet-export.json",
+  sourceAgentBridgeReceiptImportWorkspacePath: "artifacts/agent-bridge-receipt-import-workspace/latest/agent-bridge-receipt-import-workspace.json",
+  sourceAgentBridgeReviewFindingWorkbenchPath: "artifacts/agent-bridge-review-finding-workbench/latest/agent-bridge-review-finding-workbench.json",
   sourceAgentBridgeExecutionCandidatePath: "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json",
   sourceDesktopReadModelPath: "artifacts/desktop-read-model/latest/desktop-read-model.json",
 };
@@ -55,6 +58,15 @@ export async function buildAgentBridgeCloseoutReadiness(options = {}) {
   const sourceRequestReceipt = options.sourceAgentBridgeRequestReceipt
     ? normalizeInlineJsonSource("inline.agent_bridge_request_receipt", options.sourceAgentBridgeRequestReceipt)
     : await readJsonSource(inputs.source_agent_bridge_request_receipt_path);
+  const sourceRequestPacketExport = options.sourceAgentBridgeRequestPacketExport
+    ? normalizeInlineJsonSource("inline.agent_bridge_request_packet_export", options.sourceAgentBridgeRequestPacketExport)
+    : await readJsonSource(inputs.source_agent_bridge_request_packet_export_path);
+  const sourceReceiptImportWorkspace = options.sourceAgentBridgeReceiptImportWorkspace
+    ? normalizeInlineJsonSource("inline.agent_bridge_receipt_import_workspace", options.sourceAgentBridgeReceiptImportWorkspace)
+    : await readJsonSource(inputs.source_agent_bridge_receipt_import_workspace_path);
+  const sourceReviewFindingWorkbench = options.sourceAgentBridgeReviewFindingWorkbench
+    ? normalizeInlineJsonSource("inline.agent_bridge_review_finding_workbench", options.sourceAgentBridgeReviewFindingWorkbench)
+    : await readJsonSource(inputs.source_agent_bridge_review_finding_workbench_path);
   const sourceExecutionCandidate = options.sourceAgentBridgeExecutionCandidate
     ? normalizeInlineJsonSource("inline.agent_bridge_execution_candidate", options.sourceAgentBridgeExecutionCandidate)
     : await readJsonSource(inputs.source_agent_bridge_execution_candidate_path);
@@ -69,6 +81,9 @@ export async function buildAgentBridgeCloseoutReadiness(options = {}) {
     runbook,
     sourceManifest,
     sourceRequestReceipt,
+    sourceRequestPacketExport,
+    sourceReceiptImportWorkspace,
+    sourceReviewFindingWorkbench,
     sourceExecutionCandidate,
     sourceDesktopReadModel,
   };
@@ -87,6 +102,9 @@ export async function buildAgentBridgeCloseoutReadiness(options = {}) {
     inputs,
     source_agent_bridge_manifest_summary: sourceManifest.data?.summary ?? null,
     source_agent_bridge_request_receipt_summary: sourceRequestReceipt.data?.summary ?? null,
+    source_agent_bridge_request_packet_export_summary: sourceRequestPacketExport.data?.summary ?? null,
+    source_agent_bridge_receipt_import_workspace_summary: sourceReceiptImportWorkspace.data?.summary ?? null,
+    source_agent_bridge_review_finding_workbench_summary: sourceReviewFindingWorkbench.data?.summary ?? null,
     source_agent_bridge_execution_candidate_summary: sourceExecutionCandidate.data?.summary ?? null,
     source_desktop_read_model_summary: sourceDesktopReadModel.data?.summary ?? null,
     agent_bridge_closeout_contract: contract,
@@ -172,6 +190,9 @@ function buildContract(context) {
     local_operator_handoff_ready: true,
     request_queue_enabled_now: true,
     receipt_intake_enabled_now: true,
+    request_packet_export_enabled_now: true,
+    receipt_import_workspace_enabled_now: true,
+    review_finding_workbench_enabled_now: true,
     controlled_execution_candidate_enabled_now: true,
     desktop_projection_enabled_now: true,
     execution_allowed_now: false,
@@ -195,6 +216,9 @@ function buildSourceRows(context) {
   const rows = [
     ["agent_bridge_manifest", context.inputs.source_agent_bridge_manifest_path, context.sourceManifest, "agent_bridge_manifest_status", "ready_for_agent_bridge_manifest"],
     ["agent_bridge_request_receipt", context.inputs.source_agent_bridge_request_receipt_path, context.sourceRequestReceipt, "agent_bridge_request_receipt_status", "ready_for_agent_bridge_request_receipt"],
+    ["agent_bridge_request_packet_export", context.inputs.source_agent_bridge_request_packet_export_path, context.sourceRequestPacketExport, "agent_bridge_request_packet_export_status", "ready_for_agent_bridge_request_packet_export"],
+    ["agent_bridge_receipt_import_workspace", context.inputs.source_agent_bridge_receipt_import_workspace_path, context.sourceReceiptImportWorkspace, "agent_bridge_receipt_import_workspace_status", "ready_for_agent_bridge_receipt_import_workspace"],
+    ["agent_bridge_review_finding_workbench", context.inputs.source_agent_bridge_review_finding_workbench_path, context.sourceReviewFindingWorkbench, "agent_bridge_review_finding_workbench_status", "ready_for_agent_bridge_review_finding_workbench"],
     ["agent_bridge_execution_candidate", context.inputs.source_agent_bridge_execution_candidate_path, context.sourceExecutionCandidate, "agent_bridge_execution_candidate_status", "ready_for_agent_bridge_execution_candidate"],
     ["desktop_read_model", context.inputs.source_desktop_read_model_path, context.sourceDesktopReadModel, "desktop_read_model_status", "ready_for_desktop_shell"],
   ];
@@ -241,14 +265,21 @@ function buildRunbookRows(context) {
 function buildHandoffRows(context) {
   const manifest = context.sourceManifest.data?.summary ?? {};
   const requestReceipt = context.sourceRequestReceipt.data?.summary ?? {};
+  const packetExport = context.sourceRequestPacketExport.data?.summary ?? {};
+  const receiptImport = context.sourceReceiptImportWorkspace.data?.summary ?? {};
+  const reviewFinding = context.sourceReviewFindingWorkbench.data?.summary ?? {};
   const execution = context.sourceExecutionCandidate.data?.summary ?? {};
   const desktop = context.sourceDesktopReadModel.data?.summary ?? {};
+  const desktopAgentProjection = context.sourceDesktopReadModel.data?.agent_projection ?? {};
   const specs = [
     ["identity_inventory_visible", "Agent runtime/capability identity is visible", manifest.runtime_count >= 4 && manifest.capability_count >= 25],
     ["request_receipt_visible", "Request and receipt chain is visible", requestReceipt.request_count >= 4 && requestReceipt.receipt_count >= 4],
+    ["request_packet_export_visible", "Request packet export chain is visible and transport remains closed", packetExport.packet_count >= 4 && packetExport.request_transport_submission_allowed_now === false],
+    ["receipt_import_workspace_visible", "Receipt import workspace is visible and raw receipt storage remains closed", receiptImport.import_candidate_count >= 4 && receiptImport.raw_receipt_storage_allowed === false && receiptImport.receipt_application_allowed_now === false],
+    ["review_findings_visible", "Review finding workbench is visible and cannot resolve findings", reviewFinding.finding_seed_count >= 4 && reviewFinding.blocking_finding_count >= 1 && reviewFinding.finding_resolution_allowed_now === false],
     ["execution_candidates_visible", "Execution candidates and gates are visible", execution.execution_candidate_count >= 5 && execution.gate_pass_count === execution.gate_count],
-    ["desktop_agents_projection_visible", "Desktop Agents projection includes execution candidates", desktop.desktop_read_model_status === "ready_for_desktop_shell" && desktop.agent_execution_candidate_count >= 5],
-    ["authority_boundary_closed", "No closeout source opens authority", summariesClosed([manifest, requestReceipt, execution, desktop])],
+    ["desktop_agents_projection_visible", "Desktop Agents projection includes packet, import, finding, and execution rows", desktop.desktop_read_model_status === "ready_for_desktop_shell" && desktopAgentProjection.request_packet_export_count >= 4 && desktopAgentProjection.receipt_import_candidate_count >= 4 && desktopAgentProjection.review_finding_count >= 4 && desktopAgentProjection.execution_candidate_count >= 5],
+    ["authority_boundary_closed", "No closeout source opens authority", summariesClosed([manifest, requestReceipt, packetExport, receiptImport, reviewFinding, execution, desktop, desktopAgentProjection])],
   ];
   return specs.map(([handoffId, description, passed], index) => verdictRow({
     schema_version: "agent-bridge-operator-handoff-row.v1",
@@ -345,6 +376,9 @@ function buildSummary(result) {
     local_operator_handoff_ready: result.agent_bridge_closeout_boundary?.ready_for_agent_bridge_local_operator_handoff === true,
     request_queue_enabled_now: true,
     receipt_intake_enabled_now: true,
+    request_packet_export_enabled_now: true,
+    receipt_import_workspace_enabled_now: true,
+    review_finding_workbench_enabled_now: true,
     controlled_execution_candidate_enabled_now: true,
     desktop_projection_enabled_now: true,
     execution_allowed_now: false,
@@ -374,10 +408,17 @@ function summariesClosed(summaries) {
     summary.production_pass_enabled !== true
     && summary.enterprise_pass_enabled !== true
     && summary.protected_closeout_enabled !== true
+    && summary.request_transport_submission_allowed_now !== true
     && summary.execution_allowed_now !== true
     && summary.command_executed_now !== true
+    && summary.command_output_captured_now !== true
     && summary.mutation_performed !== true
     && summary.receipt_application_allowed_now !== true
+    && summary.approval_application_allowed_now !== true
+    && summary.finding_resolution_allowed_now !== true
+    && summary.clean_checkpoint_allowed_now !== true
+    && summary.patch_apply_allowed_now !== true
+    && summary.provider_output_authoritative !== true
   ));
 }
 
@@ -408,6 +449,15 @@ export function parseAgentBridgeCloseoutReadinessArgs(argv) {
     } else if (arg === "--source-agent-bridge-request-receipt-path") {
       args.sourceAgentBridgeRequestReceiptPath = readArgValue(argv, index, arg);
       index += 1;
+    } else if (arg === "--source-agent-bridge-request-packet-export-path") {
+      args.sourceAgentBridgeRequestPacketExportPath = readArgValue(argv, index, arg);
+      index += 1;
+    } else if (arg === "--source-agent-bridge-receipt-import-workspace-path") {
+      args.sourceAgentBridgeReceiptImportWorkspacePath = readArgValue(argv, index, arg);
+      index += 1;
+    } else if (arg === "--source-agent-bridge-review-finding-workbench-path") {
+      args.sourceAgentBridgeReviewFindingWorkbenchPath = readArgValue(argv, index, arg);
+      index += 1;
     } else if (arg === "--source-agent-bridge-execution-candidate-path") {
       args.sourceAgentBridgeExecutionCandidatePath = readArgValue(argv, index, arg);
       index += 1;
@@ -428,7 +478,7 @@ function readArgValue(argv, index, arg) {
 }
 
 function printHelp() {
-  console.log(`Usage: npm run ${COMMAND_NAME} -- [--check] [--out-dir DIR] [--runbook-path PATH] [--source-agent-bridge-execution-candidate-path PATH]`);
+  console.log(`Usage: npm run ${COMMAND_NAME} -- [--check] [--out-dir DIR] [--runbook-path PATH] [--source-agent-bridge-request-packet-export-path PATH] [--source-agent-bridge-receipt-import-workspace-path PATH] [--source-agent-bridge-review-finding-workbench-path PATH] [--source-agent-bridge-execution-candidate-path PATH]`);
 }
 
 async function readJsonSource(filePath) {
@@ -468,6 +518,9 @@ function normalizeInputs(options) {
     runbook_path: options.runbookPath ?? defaults.runbookPath,
     source_agent_bridge_manifest_path: options.sourceAgentBridgeManifestPath ?? defaults.sourceAgentBridgeManifestPath,
     source_agent_bridge_request_receipt_path: options.sourceAgentBridgeRequestReceiptPath ?? defaults.sourceAgentBridgeRequestReceiptPath,
+    source_agent_bridge_request_packet_export_path: options.sourceAgentBridgeRequestPacketExportPath ?? defaults.sourceAgentBridgeRequestPacketExportPath,
+    source_agent_bridge_receipt_import_workspace_path: options.sourceAgentBridgeReceiptImportWorkspacePath ?? defaults.sourceAgentBridgeReceiptImportWorkspacePath,
+    source_agent_bridge_review_finding_workbench_path: options.sourceAgentBridgeReviewFindingWorkbenchPath ?? defaults.sourceAgentBridgeReviewFindingWorkbenchPath,
     source_agent_bridge_execution_candidate_path: options.sourceAgentBridgeExecutionCandidatePath ?? defaults.sourceAgentBridgeExecutionCandidatePath,
     source_desktop_read_model_path: options.sourceDesktopReadModelPath ?? defaults.sourceDesktopReadModelPath,
   };

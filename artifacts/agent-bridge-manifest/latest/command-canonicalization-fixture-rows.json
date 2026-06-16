@@ -1,12 +1,12 @@
 {
   "schema_version": "command-canonicalization-fixture-rows.v1",
-  "generated_at": "2026-06-15T23:43:58.694Z",
+  "generated_at": "2026-06-16T00:05:41.481Z",
   "command_canonicalization_fixture_rows_count": 16,
   "command_canonicalization_fixture_rows": [
     {
       "schema_version": "agent-command-canonicalization-fixture-row.v1",
       "row_id": "agent.bridge.command.fixture.row.01",
-      "generated_at": "2026-06-15T23:43:58.694Z",
+      "generated_at": "2026-06-16T00:05:41.481Z",
       "input_command": "git commit -m release",
       "normalized_command": "git commit -m release",
       "expected_protected_action_type": "git_commit",
@@ -37,7 +37,7 @@
     {
       "schema_version": "agent-command-canonicalization-fixture-row.v1",
       "row_id": "agent.bridge.command.fixture.row.02",
-      "generated_at": "2026-06-15T23:43:58.694Z",
+      "generated_at": "2026-06-16T00:05:41.481Z",
       "input_command": "git push origin main",
       "normalized_command": "git push origin main",
       "expected_protected_action_type": "git_push",
@@ -68,7 +68,7 @@
     {
       "schema_version": "agent-command-canonicalization-fixture-row.v1",
       "row_id": "agent.bridge.command.fixture.row.03",
-      "generated_at": "2026-06-15T23:43:58.694Z",
+      "generated_at": "2026-06-16T00:05:41.481Z",
       "input_command": "git merge feature",
       "normalized_command": "git merge feature",
       "expected_protected_action_type": "git_merge",
@@ -99,7 +99,7 @@
     {
       "schema_version": "agent-command-canonicalization-fixture-row.v1",
       "row_id": "agent.bridge.command.fixture.row.04",
-      "generated_at": "2026-06-15T23:43:58.694Z",
+      "generated_at": "2026-06-16T00:05:41.481Z",
       "input_command": "gh pr review --approve 1",
       "normalized_command": "gh pr review --approve 1",
       "expected_protected_action_type": "approve",
@@ -130,7 +130,7 @@
     {
       "schema_version": "agent-command-canonicalization-fixture-row.v1",
       "row_id": "agent.bridge.command.fixture.row.05",
-      "generated_at": "2026-06-15T23:43:58.694Z",
+      "generated_at": "2026-06-16T00:05:41.481Z",
       "input_command": "npm run deploy",
       "normalized_command": "npm run deploy",
       "expected_protected_action_type": "deploy",
@@ -161,7 +161,7 @@
     {
       "schema_version": "agent-command-canonicalization-fixture-row.v1",
       "row_id": "agent.bridge.command.fixture.row.06",
-      "generated_at": "2026-06-15T23:43:58.694Z",
+      "generated_at": "2026-06-16T00:05:41.481Z",
       "input_command": "npm run release:production",
       "normalized_command": "npm run release:production",
       "expected_protected_action_type": "deploy",
@@ -192,7 +192,7 @@
     {
       "schema_version": "agent-command-canonicalization-fixture-row.v1",
       "row_id": "agent.bridge.command.fixture.row.07",
-      "generated_at": "2026-06-15T23:43:58.694Z",
+      "generated_at": "2026-06-16T00:05:41.481Z",
       "input_command": "node scripts/apply-receipt.mjs --receipt owner.json",
       "normalized_command": "node scripts/apply-receipt.mjs --receipt owner.json",
       "expected_protected_action_type": "apply_patch_or_receipt",
@@ -223,7 +223,7 @@
     {
       "schema_version": "agent-command-canonicalization-fixture-row.v1",
       "row_id": "agent.bridge.command.fixture.row.08",
-      "generated_at": "2026-06-15T23:43:58.694Z",
+      "generated_at": "2026-06-16T00:05:41.481Z",
       "input_command": "APPROVE=true npm run release",
       "normalized_command": "approve=true npm run release",
       "expected_protected_action_type": "approve",
@@ -254,7 +254,7 @@
     {
       "schema_version": "agent-command-canonicalization-fixture-row.v1",
       "row_id": "agent.bridge.command.fixture.row.09",
-      "generated_at": "2026-06-15T23:43:58.694Z",
+      "generated_at": "2026-06-16T00:05:41.481Z",
       "input_command": "sh -c \"git push origin main\"",
       "normalized_command": "sh -c \"git push origin main\"",
       "expected_protected_action_type": "shell_indirection",
@@ -285,7 +285,7 @@
     {
       "schema_version": "agent-command-canonicalization-fixture-row.v1",
       "row_id": "agent.bridge.command.fixture.row.10",
-      "generated_at": "2026-06-15T23:43:58.694Z",
+      "generated_at": "2026-06-16T00:05:41.481Z",
       "input_command": "bash -lc \"npm run deploy\"",
       "normalized_command": "bash -lc \"npm run deploy\"",
       "expected_protected_action_type": "shell_indirection",
@@ -316,7 +316,7 @@
     {
       "schema_version": "agent-command-canonicalization-fixture-row.v1",
       "row_id": "agent.bridge.command.fixture.row.11",
-      "generated_at": "2026-06-15T23:43:58.694Z",
+      "generated_at": "2026-06-16T00:05:41.481Z",
       "input_command": "open ../../secrets/.env",
       "normalized_command": "open ../../secrets/.env",
       "expected_protected_action_type": "secret_read",
@@ -347,7 +347,7 @@
     {
       "schema_version": "agent-command-canonicalization-fixture-row.v1",
       "row_id": "agent.bridge.command.fixture.row.12",
-      "generated_at": "2026-06-15T23:43:58.694Z",
+      "generated_at": "2026-06-16T00:05:41.481Z",
       "input_command": "cat raw-transcript.json",
       "normalized_command": "cat raw-transcript.json",
       "expected_protected_action_type": "raw_source_exposure",
@@ -378,7 +378,7 @@
     {
       "schema_version": "agent-command-canonicalization-fixture-row.v1",
       "row_id": "agent.bridge.command.fixture.row.13",
-      "generated_at": "2026-06-15T23:43:58.694Z",
+      "generated_at": "2026-06-16T00:05:41.481Z",
       "input_command": "ln -s ../../private target",
       "normalized_command": "ln -s ../../private target",
       "expected_protected_action_type": "path_traversal_or_symlink",
@@ -409,7 +409,7 @@
     {
       "schema_version": "agent-command-canonicalization-fixture-row.v1",
       "row_id": "agent.bridge.command.fixture.row.14",
-      "generated_at": "2026-06-15T23:43:58.694Z",
+      "generated_at": "2026-06-16T00:05:41.481Z",
       "input_command": "echo production PASS",
       "normalized_command": "echo production pass",
       "expected_protected_action_type": "production_pass",
@@ -440,7 +440,7 @@
     {
       "schema_version": "agent-command-canonicalization-fixture-row.v1",
       "row_id": "agent.bridge.command.fixture.row.15",
-      "generated_at": "2026-06-15T23:43:58.694Z",
+      "generated_at": "2026-06-16T00:05:41.481Z",
       "input_command": "echo enterprise PASS",
       "normalized_command": "echo enterprise pass",
       "expected_protected_action_type": "enterprise_pass",
@@ -471,7 +471,7 @@
     {
       "schema_version": "agent-command-canonicalization-fixture-row.v1",
       "row_id": "agent.bridge.command.fixture.row.16",
-      "generated_at": "2026-06-15T23:43:58.694Z",
+      "generated_at": "2026-06-16T00:05:41.481Z",
       "input_command": "echo protected closeout complete",
       "normalized_command": "echo protected closeout complete",
       "expected_protected_action_type": "protected_closeout",

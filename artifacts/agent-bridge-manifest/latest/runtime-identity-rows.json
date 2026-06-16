@@ -1,12 +1,12 @@
 {
   "schema_version": "runtime-identity-rows.v1",
-  "generated_at": "2026-06-15T23:43:58.694Z",
+  "generated_at": "2026-06-16T00:05:41.481Z",
   "runtime_identity_rows_count": 4,
   "runtime_identity_rows": [
     {
       "schema_version": "agent-runtime-identity-row.v1",
       "row_id": "agent.bridge.runtime.identity.row.01",
-      "generated_at": "2026-06-15T23:43:58.694Z",
+      "generated_at": "2026-06-16T00:05:41.481Z",
       "runtime_id": "runtime.codex.desktop",
       "runtime_kind": "codex",
       "display_name": "Codex Desktop development lane",
@@ -45,7 +45,7 @@
     {
       "schema_version": "agent-runtime-identity-row.v1",
       "row_id": "agent.bridge.runtime.identity.row.02",
-      "generated_at": "2026-06-15T23:43:58.694Z",
+      "generated_at": "2026-06-16T00:05:41.481Z",
       "runtime_id": "runtime.claude_code.opus_max",
       "runtime_kind": "claude_code",
       "display_name": "Claude Code Opus max review lane",
@@ -84,7 +84,7 @@
     {
       "schema_version": "agent-runtime-identity-row.v1",
       "row_id": "agent.bridge.runtime.identity.row.03",
-      "generated_at": "2026-06-15T23:43:58.694Z",
+      "generated_at": "2026-06-16T00:05:41.481Z",
       "runtime_id": "runtime.chatgpt.web_agbrowse",
       "runtime_kind": "chatgpt_web_agbrowse",
       "display_name": "ChatGPT web via Agbrowse",
@@ -123,7 +123,7 @@
     {
       "schema_version": "agent-runtime-identity-row.v1",
       "row_id": "agent.bridge.runtime.identity.row.04",
-      "generated_at": "2026-06-15T23:43:58.694Z",
+      "generated_at": "2026-06-16T00:05:41.481Z",
       "runtime_id": "runtime.local.hermes_scripts",
       "runtime_kind": "local_script",
       "display_name": "Local Hermes deterministic scripts",
@@ -133,7 +133,7 @@
       "observation_source_id": "source.package_json",
       "trust_class": "deterministic_local_file",
       "workspace_ref": "repo_package_json",
-      "workspace_hash": "sha256:0d0037b3af15b62fa003f1352b8b93678a1159140d961d67c94e8208a83ebc79",
+      "workspace_hash": "sha256:3816b23b964b422dc3be61e58a9aac8cb6dbe0d7a53036dcdcf7cc4d70925c4e",
       "can_prepare_request_packet_now": false,
       "can_execute_from_desktop_now": false,
       "desktop_display_allowed": true,

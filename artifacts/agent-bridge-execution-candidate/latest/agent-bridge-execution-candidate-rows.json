@@ -1,12 +1,12 @@
 {
   "schema_version": "agent-bridge-execution-candidate-rows.v1",
-  "generated_at": "2026-06-16T00:05:41.843Z",
+  "generated_at": "2026-06-16T00:17:39.210Z",
   "agent_bridge_execution_candidate_rows_count": 5,
   "agent_bridge_execution_candidate_rows": [
     {
       "schema_version": "agent-bridge-execution-candidate-row.v1",
       "row_id": "agent.bridge.execution.candidate.row.01",
-      "generated_at": "2026-06-16T00:05:41.843Z",
+      "generated_at": "2026-06-16T00:17:39.210Z",
       "candidate_id": "agent.bridge.execution.candidate.8fcdee95f9d65d93",
       "candidate_type": "platform_check",
       "candidate_title": "Validate Agent Bridge manifest",
@@ -65,7 +65,7 @@
     {
       "schema_version": "agent-bridge-execution-candidate-row.v1",
       "row_id": "agent.bridge.execution.candidate.row.02",
-      "generated_at": "2026-06-16T00:05:41.843Z",
+      "generated_at": "2026-06-16T00:17:39.210Z",
       "candidate_id": "agent.bridge.execution.candidate.962f5e4c0d586857",
       "candidate_type": "platform_check",
       "candidate_title": "Validate Agent Bridge request/receipt",
@@ -124,7 +124,7 @@
     {
       "schema_version": "agent-bridge-execution-candidate-row.v1",
       "row_id": "agent.bridge.execution.candidate.row.03",
-      "generated_at": "2026-06-16T00:05:41.843Z",
+      "generated_at": "2026-06-16T00:17:39.210Z",
       "candidate_id": "agent.bridge.execution.candidate.cbb829cf58f80d20",
       "candidate_type": "platform_check",
       "candidate_title": "Validate Agent Bridge execution candidates",
@@ -183,7 +183,7 @@
     {
       "schema_version": "agent-bridge-execution-candidate-row.v1",
       "row_id": "agent.bridge.execution.candidate.row.04",
-      "generated_at": "2026-06-16T00:05:41.843Z",
+      "generated_at": "2026-06-16T00:17:39.210Z",
       "candidate_id": "agent.bridge.execution.candidate.8a5143423efda9cd",
       "candidate_type": "targeted_test",
       "candidate_title": "Run Agent Bridge targeted tests",
@@ -242,7 +242,7 @@
     {
       "schema_version": "agent-bridge-execution-candidate-row.v1",
       "row_id": "agent.bridge.execution.candidate.row.05",
-      "generated_at": "2026-06-16T00:05:41.843Z",
+      "generated_at": "2026-06-16T00:17:39.210Z",
       "candidate_id": "agent.bridge.execution.candidate.466c2f308b48c766",
       "candidate_type": "diff_check",
       "candidate_title": "Check whitespace-safe diff",

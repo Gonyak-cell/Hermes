@@ -1,12 +1,12 @@
 {
   "schema_version": "agent-request-lifecycle-rows.v1",
-  "generated_at": "2026-06-16T00:05:41.663Z",
+  "generated_at": "2026-06-16T00:17:39.029Z",
   "agent_request_lifecycle_rows_count": 6,
   "agent_request_lifecycle_rows": [
     {
       "schema_version": "agent-request-lifecycle-row.v1",
       "row_id": "agent.bridge.request.lifecycle.row.01",
-      "generated_at": "2026-06-16T00:05:41.663Z",
+      "generated_at": "2026-06-16T00:17:39.029Z",
       "from_state": "draft",
       "to_state": "requested",
       "transition_allowed_now": true,
@@ -37,7 +37,7 @@
     {
       "schema_version": "agent-request-lifecycle-row.v1",
       "row_id": "agent.bridge.request.lifecycle.row.02",
-      "generated_at": "2026-06-16T00:05:41.663Z",
+      "generated_at": "2026-06-16T00:17:39.029Z",
       "from_state": "requested",
       "to_state": "observed",
       "transition_allowed_now": true,
@@ -68,7 +68,7 @@
     {
       "schema_version": "agent-request-lifecycle-row.v1",
       "row_id": "agent.bridge.request.lifecycle.row.03",
-      "generated_at": "2026-06-16T00:05:41.663Z",
+      "generated_at": "2026-06-16T00:17:39.029Z",
       "from_state": "observed",
       "to_state": "imported",
       "transition_allowed_now": true,
@@ -99,7 +99,7 @@
     {
       "schema_version": "agent-request-lifecycle-row.v1",
       "row_id": "agent.bridge.request.lifecycle.row.04",
-      "generated_at": "2026-06-16T00:05:41.663Z",
+      "generated_at": "2026-06-16T00:17:39.029Z",
       "from_state": "imported",
       "to_state": "applied",
       "transition_allowed_now": false,
@@ -130,7 +130,7 @@
     {
       "schema_version": "agent-request-lifecycle-row.v1",
       "row_id": "agent.bridge.request.lifecycle.row.05",
-      "generated_at": "2026-06-16T00:05:41.663Z",
+      "generated_at": "2026-06-16T00:17:39.029Z",
       "from_state": "requested",
       "to_state": "executable",
       "transition_allowed_now": false,
@@ -161,7 +161,7 @@
     {
       "schema_version": "agent-request-lifecycle-row.v1",
       "row_id": "agent.bridge.request.lifecycle.row.06",
-      "generated_at": "2026-06-16T00:05:41.663Z",
+      "generated_at": "2026-06-16T00:17:39.029Z",
       "from_state": "observed",
       "to_state": "approved",
       "transition_allowed_now": false,

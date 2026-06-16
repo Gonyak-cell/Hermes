@@ -3,8 +3,8 @@
 - Status: ready_for_agent_bridge_manifest
 - Program: AGENT-BRIDGE-L0-L4-SLICE-A
 - Runtimes: 4
-- Capabilities: 25
-- Permission rows: 25
+- Capabilities: 26
+- Permission rows: 26
 - Protected command fixtures: 16
 - Validation errors: 0
 

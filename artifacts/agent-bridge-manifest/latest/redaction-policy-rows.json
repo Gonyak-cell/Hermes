@@ -1,12 +1,12 @@
 {
   "schema_version": "redaction-policy-rows.v1",
-  "generated_at": "2026-06-16T00:05:41.481Z",
+  "generated_at": "2026-06-16T00:17:38.849Z",
   "redaction_policy_rows_count": 4,
   "redaction_policy_rows": [
     {
       "schema_version": "agent-redaction-policy-row.v1",
       "row_id": "agent.bridge.redaction.policy.row.01",
-      "generated_at": "2026-06-16T00:05:41.481Z",
+      "generated_at": "2026-06-16T00:17:38.849Z",
       "policy_id": "secret_env",
       "description": "Secret-like environment variables and .env files",
       "protected_action_type": "secret_read",
@@ -24,7 +24,7 @@
     {
       "schema_version": "agent-redaction-policy-row.v1",
       "row_id": "agent.bridge.redaction.policy.row.02",
-      "generated_at": "2026-06-16T00:05:41.481Z",
+      "generated_at": "2026-06-16T00:17:38.849Z",
       "policy_id": "raw_transcript",
       "description": "Raw agent transcripts and full provider logs",
       "protected_action_type": "raw_source_exposure",
@@ -42,7 +42,7 @@
     {
       "schema_version": "agent-redaction-policy-row.v1",
       "row_id": "agent.bridge.redaction.policy.row.03",
-      "generated_at": "2026-06-16T00:05:41.481Z",
+      "generated_at": "2026-06-16T00:17:38.849Z",
       "policy_id": "private_path",
       "description": "Private home, cloud sync, or outside-workspace paths",
       "protected_action_type": "path_traversal_or_symlink",
@@ -60,7 +60,7 @@
     {
       "schema_version": "agent-redaction-policy-row.v1",
       "row_id": "agent.bridge.redaction.policy.row.04",
-      "generated_at": "2026-06-16T00:05:41.481Z",
+      "generated_at": "2026-06-16T00:17:38.849Z",
       "policy_id": "privileged_domain",
       "description": "Privileged, confidential, or domain-scoped matter data",
       "protected_action_type": "raw_source_exposure",

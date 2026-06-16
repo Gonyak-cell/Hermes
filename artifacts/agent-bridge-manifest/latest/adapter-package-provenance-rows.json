@@ -1,12 +1,12 @@
 {
   "schema_version": "adapter-package-provenance-rows.v1",
-  "generated_at": "2026-06-16T00:05:41.481Z",
+  "generated_at": "2026-06-16T00:17:38.849Z",
   "adapter_package_provenance_rows_count": 2,
   "adapter_package_provenance_rows": [
     {
       "schema_version": "agent-adapter-package-provenance-row.v1",
       "row_id": "agent.bridge.adapter.package.row.01",
-      "generated_at": "2026-06-16T00:05:41.481Z",
+      "generated_at": "2026-06-16T00:17:38.849Z",
       "adapter_id": "adapter.agbrowse.chatgpt_web",
       "adapter_kind": "browser_automation_cli",
       "package_name": "agbrowse",
@@ -45,7 +45,7 @@
     {
       "schema_version": "agent-adapter-package-provenance-row.v1",
       "row_id": "agent.bridge.adapter.package.row.02",
-      "generated_at": "2026-06-16T00:05:41.481Z",
+      "generated_at": "2026-06-16T00:17:38.849Z",
       "adapter_id": "adapter.hermes.local_scripts",
       "adapter_kind": "local_node_scripts",
       "package_name": "hermes",

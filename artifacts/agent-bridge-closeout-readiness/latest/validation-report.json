@@ -1,0 +1,68 @@
+{
+  "schema_version": "agent-bridge-closeout-readiness-validation-report.v1",
+  "generated_at": "2026-06-16T00:17:39.727Z",
+  "validation": {
+    "valid": true,
+    "item_count": 7,
+    "error_count": 0,
+    "errors": []
+  },
+  "validation_items": [
+    {
+      "schema_version": "agent-bridge-closeout-readiness-validation-item.v1",
+      "path": "package.script.registered",
+      "check_id": "package.script.registered",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "package.json"
+    },
+    {
+      "schema_version": "agent-bridge-closeout-readiness-validation-item.v1",
+      "path": "sources.ready",
+      "check_id": "sources.ready",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_bridge_closeout_source_rows"
+    },
+    {
+      "schema_version": "agent-bridge-closeout-readiness-validation-item.v1",
+      "path": "runbook.ready",
+      "check_id": "runbook.ready",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "docs/hermes-agent-bridge-local-operator-runbook-2026-06-16.md"
+    },
+    {
+      "schema_version": "agent-bridge-closeout-readiness-validation-item.v1",
+      "path": "handoff.ready",
+      "check_id": "handoff.ready",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_bridge_operator_handoff_rows"
+    },
+    {
+      "schema_version": "agent-bridge-closeout-readiness-validation-item.v1",
+      "path": "authority.closed",
+      "check_id": "authority.closed",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_bridge_closeout_contract"
+    },
+    {
+      "schema_version": "agent-bridge-closeout-readiness-validation-item.v1",
+      "path": "boundary.ready",
+      "check_id": "boundary.ready",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_bridge_closeout_boundary"
+    },
+    {
+      "schema_version": "agent-bridge-closeout-readiness-validation-item.v1",
+      "path": "gates.pass",
+      "check_id": "gates.pass",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_bridge_closeout_gate_rows"
+    }
+  ]
+}

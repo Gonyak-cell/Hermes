@@ -151,16 +151,26 @@ test("desktop read model loader sanitizes authority flags from artifact input", 
       agent_projection: {
         agent_bridge_manifest_status: "ready_for_agent_bridge_manifest",
         agent_bridge_request_receipt_status: "ready_for_agent_bridge_request_receipt",
+        agent_bridge_execution_candidate_status: "ready_for_agent_bridge_execution_candidate",
         source_status: "ready",
         runtime_count: 1,
         capability_count: 1,
         request_count: 1,
         receipt_count: 1,
         evidence_binding_count: 1,
+        execution_candidate_count: 1,
+        blocked_command_fixture_count: 1,
+        execution_gate_count: 1,
+        execution_gate_pass_count: 1,
         ready_for_desktop_agents_projection: true,
         request_queue_enabled_now: true,
         receipt_intake_enabled_now: true,
+        controlled_execution_candidate_enabled_now: true,
+        candidate_queue_enabled_now: true,
+        candidate_export_allowed_now: true,
+        candidate_validation_allowed_now: true,
         execution_allowed_now: true,
+        command_output_captured_now: true,
         receipt_application_allowed_now: true,
         approval_application_allowed_now: true,
         production_pass_enabled: true,
@@ -176,6 +186,15 @@ test("desktop read model loader sanitizes authority flags from artifact input", 
         ],
         receipt_rows: [
           { receipt_id: "receipt.bad", request_id: "request.bad", request_type: "code_review", receipt_kind: "review", normalized_verdict: "approved", receipt_applied: true, opens_authority: true },
+        ],
+        execution_candidate_rows: [
+          { candidate_id: "candidate.bad", candidate_title: "Bad candidate", command_text: "git push origin main", execution_allowed_now: true, command_executed_now: true, command_output_captured_now: true, mutation_performed: true, opens_authority: true },
+        ],
+        blocked_command_fixture_rows: [
+          { fixture_id: "fixture.bad", command_text: "git push origin main", blocked: false, allowlist_match: true, execution_allowed_now: true, command_executed_now: true, mutation_performed: true, opens_authority: true },
+        ],
+        execution_gate_rows: [
+          { gate_id: "gate.bad", gate_status: "pass", description: "bad gate", execution_allowed_now: true, command_executed_now: true, mutation_performed: true, opens_authority: true },
         ],
         agent_control_rows: [
           { control_id: "execute", label: "Execute", control_enabled: true, opens_authority: true },
@@ -218,6 +237,7 @@ test("desktop read model loader sanitizes authority flags from artifact input", 
   assert.equal(result.project_projection.safe_affordance_rows[0].allowed, false);
   assert.equal(result.project_projection.projection_rows[0].authority_open, false);
   assert.equal(result.agent_projection.execution_allowed_now, false);
+  assert.equal(result.agent_projection.command_output_captured_now, false);
   assert.equal(result.agent_projection.receipt_application_allowed_now, false);
   assert.equal(result.agent_projection.approval_application_allowed_now, false);
   assert.equal(result.agent_projection.production_pass_enabled, false);
@@ -225,6 +245,11 @@ test("desktop read model loader sanitizes authority flags from artifact input", 
   assert.equal(result.agent_projection.runtime_rows[0].executable, false);
   assert.equal(result.agent_projection.request_rows[0].execution_allowed_now, false);
   assert.equal(result.agent_projection.receipt_rows[0].receipt_applied, false);
+  assert.equal(result.agent_projection.execution_candidate_rows[0].execution_allowed_now, false);
+  assert.equal(result.agent_projection.execution_candidate_rows[0].command_executed_now, false);
+  assert.equal(result.agent_projection.execution_candidate_rows[0].command_output_captured_now, false);
+  assert.equal(result.agent_projection.execution_candidate_rows[0].mutation_performed, false);
+  assert.equal(result.agent_projection.execution_gate_rows[0].opens_authority, false);
   assert.equal(result.agent_projection.agent_control_rows[0].control_enabled, false);
   assert.equal(result.agent_projection.projection_rows[0].authority_open, false);
   assert.equal(result.source_rows[0].status, "ready");

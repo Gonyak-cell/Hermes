@@ -421,6 +421,10 @@ p {
   background: #ffffff;
 }
 
+.agent-table-card.wide {
+  grid-column: span 2;
+}
+
 .agent-table-card h4 {
   margin: 0;
   padding: 9px 10px;
@@ -447,6 +451,15 @@ p {
   display: block;
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.mini-table code {
+  display: block;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .agent-control-strip {
@@ -840,6 +853,10 @@ td strong {
     grid-template-columns: 1fr;
     padding-left: 12px;
     padding-right: 12px;
+  }
+
+  .agent-table-card.wide {
+    grid-column: auto;
   }
 
   .table-wrap {

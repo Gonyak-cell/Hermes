@@ -44,6 +44,9 @@ const fallbackReadModel = {
     capability_rows: [],
     request_rows: [],
     receipt_rows: [],
+    execution_candidate_rows: [],
+    blocked_command_fixture_rows: [],
+    execution_gate_rows: [],
     agent_control_rows: [],
   },
   desktop_read_authority: SHELL_SEED_STATE.authority_flags,
@@ -220,6 +223,8 @@ function AgentBridgePanel({ copy, projection }) {
   const capabilityRows = projection?.capability_rows ?? [];
   const requestRows = projection?.request_rows ?? [];
   const receiptRows = projection?.receipt_rows ?? [];
+  const candidateRows = projection?.execution_candidate_rows ?? [];
+  const gateRows = projection?.execution_gate_rows ?? [];
   const controlRows = projection?.agent_control_rows ?? [];
   return (
     <section className="agent-bridge-panel" aria-label={copy.agentPanel}>
@@ -232,12 +237,16 @@ function AgentBridgePanel({ copy, projection }) {
         <Metric label={copy.agentCapabilityTable} value={projection?.capability_count ?? capabilityRows.length} />
         <Metric label={copy.agentRequestTable} value={projection?.request_count ?? requestRows.length} />
         <Metric label={copy.agentReceiptTable} value={projection?.receipt_count ?? receiptRows.length} />
+        <Metric label={copy.agentCandidateTable} value={projection?.execution_candidate_count ?? candidateRows.length} />
+        <Metric label={copy.agentGateTable} value={`${projection?.execution_gate_pass_count ?? 0}/${projection?.execution_gate_count ?? gateRows.length}`} />
       </div>
       <div className="agent-grid">
         <AgentRuntimeTable copy={copy} rows={runtimeRows} />
         <AgentCapabilityTable copy={copy} rows={capabilityRows.slice(0, 8)} />
         <AgentRequestTable copy={copy} rows={requestRows} />
         <AgentReceiptTable copy={copy} rows={receiptRows} />
+        <AgentCandidateTable copy={copy} rows={candidateRows} />
+        <AgentGateTable copy={copy} rows={gateRows} />
       </div>
       <div className="agent-control-strip" aria-label={copy.agentControls}>
         {controlRows.map((row) => (
@@ -346,6 +355,58 @@ function AgentReceiptTable({ copy, rows }) {
               <td><strong>{row.receipt_id}</strong><small>{formatProjectionText(row.receipt_kind)}</small></td>
               <td>{formatProjectionText(row.normalized_verdict)}</td>
               <td><StatusPill tone={row.receipt_applied ? "red" : "green"} label={row.receipt_applied ? "open" : "closed"} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function AgentCandidateTable({ copy, rows }) {
+  return (
+    <div className="agent-table-card wide">
+      <h4>{copy.agentCandidateTable}</h4>
+      <table className="mini-table">
+        <thead>
+          <tr>
+            <th>Candidate</th>
+            <th>Command</th>
+            <th>Execute</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.candidate_id}>
+              <td><strong>{row.candidate_title}</strong><small>{formatProjectionText(row.candidate_status)}</small></td>
+              <td><code>{row.command_text}</code><small>{row.timeout_ms}ms · {formatProjectionText(row.sandbox_profile)}</small></td>
+              <td><StatusPill tone={row.execution_allowed_now ? "red" : "green"} label={row.execution_allowed_now ? "open" : "closed"} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function AgentGateTable({ copy, rows }) {
+  return (
+    <div className="agent-table-card wide">
+      <h4>{copy.agentGateTable}</h4>
+      <table className="mini-table">
+        <thead>
+          <tr>
+            <th>Gate</th>
+            <th>Status</th>
+            <th>Authority</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.gate_id}>
+              <td><strong>{formatProjectionText(row.gate_id)}</strong><small>{row.description}</small></td>
+              <td>{formatProjectionText(row.gate_status)}</td>
+              <td><StatusPill tone={row.opens_authority ? "red" : "green"} label={row.opens_authority ? "open" : "closed"} /></td>
             </tr>
           ))}
         </tbody>

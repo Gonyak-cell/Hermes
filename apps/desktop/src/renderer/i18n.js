@@ -38,6 +38,8 @@ const copy = {
     agentCapabilityTable: "Capabilities",
     agentRequestTable: "Request queue",
     agentReceiptTable: "Receipts",
+    agentCandidateTable: "Candidate commands",
+    agentGateTable: "Execution gates",
     agentControls: "Disabled controls",
     displayOnly: "display only",
     navSub: {
@@ -133,6 +135,8 @@ const copy = {
     agentCapabilityTable: "Capabilities",
     agentRequestTable: "Request queue",
     agentReceiptTable: "Receipts",
+    agentCandidateTable: "Candidate commands",
+    agentGateTable: "Execution gates",
     agentControls: "Disabled controls",
     displayOnly: "display only",
     navSub: {

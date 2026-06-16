@@ -27,8 +27,8 @@ test("Desktop read model projects release, factory, review, operator, artifact, 
     assert.equal(result.validation.valid, true);
     assert.equal(result.schema_version, "desktop-read-model.v1");
     assert.equal(result.summary.desktop_read_model_status, "ready_for_desktop_shell");
-    assert.equal(result.summary.source_count, 25);
-    assert.equal(result.summary.ready_source_count, 25);
+    assert.equal(result.summary.source_count, 26);
+    assert.equal(result.summary.ready_source_count, 26);
     assert.equal(result.summary.section_count, 8);
     assert.equal(result.summary.ready_section_count, 8);
     assert.equal(result.summary.project_count, 2);
@@ -67,9 +67,13 @@ test("Desktop read model projects release, factory, review, operator, artifact, 
     assert.equal(result.agent_projection.runtime_count, 4);
     assert.equal(result.agent_projection.request_count, 4);
     assert.equal(result.agent_projection.receipt_count, 4);
+    assert.equal(result.agent_projection.execution_candidate_count, 5);
+    assert.equal(result.agent_projection.execution_gate_count, 10);
     assert.equal(result.agent_projection.ready_for_desktop_agents_projection, true);
     assert.equal(result.agent_projection.execution_allowed_now, false);
+    assert.equal(result.agent_projection.command_output_captured_now, false);
     assert.equal(result.agent_projection.receipt_application_allowed_now, false);
+    assert.equal(result.agent_projection.execution_candidate_rows.every((row) => row.execution_allowed_now === false && row.command_executed_now === false && row.command_output_captured_now === false), true);
     assert.equal(result.agent_projection.agent_control_rows.every((row) => row.control_enabled === false && row.opens_authority === false), true);
     assert.equal(result.sections.every((section) => section.source_path && section.generated_at && section.status && Object.hasOwn(section, "blocker") && Array.isArray(section.section_refs)), true);
   } finally {
@@ -252,6 +256,7 @@ async function createReadModelFixture() {
     agentBridgeManifestPath: file("agent-bridge-manifest.json"),
     agentBridgeRequestReceiptPath: file("agent-bridge-request-receipt.json"),
     agentBridgeRequestReceiptSummaryPath: file("agent-bridge-request-receipt-summary.md"),
+    agentBridgeExecutionCandidatePath: file("agent-bridge-execution-candidate.json"),
     operatorHandbookPath: file("operator-handbook.json"),
     operatorSurfacesPath: file("operator-surfaces.json"),
     operatorScreensPath: file("operator-screens.json"),
@@ -389,6 +394,7 @@ async function createReadModelFixture() {
   }, null, 2), "utf8");
   await writeFile(options.agentBridgeManifestPath, JSON.stringify(agentBridgeManifestFixture(), null, 2), "utf8");
   await writeFile(options.agentBridgeRequestReceiptPath, JSON.stringify(agentBridgeRequestReceiptFixture(), null, 2), "utf8");
+  await writeFile(options.agentBridgeExecutionCandidatePath, JSON.stringify(agentBridgeExecutionCandidateFixture(), null, 2), "utf8");
   await writeFile(options.operatorHandbookPath, JSON.stringify({ schema_version: "operator-handbook.v1", summary: { operator_handbook_status: "complete", operator_handbook_id: "operator-handbook.test" } }, null, 2), "utf8");
   await writeFile(options.operatorSurfacesPath, JSON.stringify({ schema_version: "operator-surfaces.v1", operator_surface_rows: [] }, null, 2), "utf8");
   await writeFile(options.operatorScreensPath, JSON.stringify({ schema_version: "operator-screens.v1", operator_screen_rows: [] }, null, 2), "utf8");
@@ -494,6 +500,60 @@ function agentBridgeRequestReceiptFixture() {
       { binding_id: "binding.proposal", request_id: "request.proposal", receipt_id: "receipt.proposal", binding_status: "pending_or_quarantined_receipt", target_runtime_id: "runtime.codex.desktop", target_capability_id: "capability.codex.skills.visible_catalog" },
       { binding_id: "binding.command", request_id: "request.command", receipt_id: "receipt.command", binding_status: "bound_to_normalized_receipt", target_runtime_id: "runtime.local.hermes_scripts", target_capability_id: "capability.local.hermes.agent_bridge_manifest" },
     ],
+  };
+}
+
+function agentBridgeExecutionCandidateFixture() {
+  return {
+    schema_version: "agent-bridge-execution-candidate.v1",
+    summary: {
+      agent_bridge_execution_candidate_status: "ready_for_agent_bridge_execution_candidate",
+      source_agent_bridge_manifest_status: "ready_for_agent_bridge_manifest",
+      source_agent_bridge_request_receipt_status: "ready_for_agent_bridge_request_receipt",
+      source_controlled_execution_sandbox_status: "ready_for_controlled_execution_sandbox",
+      source_human_approved_limited_execution_status: "ready_for_platform_human_approved_limited_execution",
+      execution_candidate_count: 5,
+      blocked_command_fixture_count: 9,
+      gate_count: 10,
+      gate_pass_count: 10,
+      controlled_execution_candidate_enabled_now: true,
+      candidate_queue_enabled_now: true,
+      candidate_export_allowed_now: true,
+      candidate_validation_allowed_now: true,
+      execution_allowed_now: false,
+      command_executed_now: false,
+      command_output_captured_now: false,
+      mutation_performed: false,
+      dry_run_only: true,
+      human_receipt_required_before_execution: true,
+      limited_execution_receipt_required: true,
+      validation_error_count: 0,
+    },
+    agent_bridge_execution_boundary: {
+      unsafe_flag_count: 0,
+      ready_for_limited_execution_gate_projection: true,
+      execution_allowed_now: false,
+      command_executed_now: false,
+      command_output_captured_now: false,
+      mutation_performed: false,
+    },
+    agent_bridge_execution_candidate_rows: [
+      { candidate_id: "candidate.manifest", candidate_type: "platform_check", candidate_title: "Manifest check", candidate_status: "candidate_requires_human_execution_receipt", command_text: "npm run platform:agent-bridge-manifest -- --check", command_family: "npm_platform_check", allowlist_match: true, timeout_ms: 120000, sandbox_profile: "repo_local_read_only" },
+      { candidate_id: "candidate.request", candidate_type: "platform_check", candidate_title: "Request check", candidate_status: "candidate_requires_human_execution_receipt", command_text: "npm run platform:agent-bridge-request-receipt -- --check", command_family: "npm_platform_check", allowlist_match: true, timeout_ms: 120000, sandbox_profile: "repo_local_read_only" },
+      { candidate_id: "candidate.execution", candidate_type: "platform_check", candidate_title: "Execution candidate check", candidate_status: "candidate_requires_human_execution_receipt", command_text: "npm run platform:agent-bridge-execution-candidate -- --check", command_family: "npm_platform_check", allowlist_match: true, timeout_ms: 120000, sandbox_profile: "repo_local_read_only" },
+      { candidate_id: "candidate.tests", candidate_type: "targeted_test", candidate_title: "Agent tests", candidate_status: "candidate_requires_human_execution_receipt", command_text: "node --test test/agent-bridge-manifest.test.mjs test/agent-bridge-request-receipt.test.mjs test/agent-bridge-execution-candidate.test.mjs", command_family: "node_test", allowlist_match: true, timeout_ms: 180000, sandbox_profile: "repo_local_read_only" },
+      { candidate_id: "candidate.diff", candidate_type: "diff_check", candidate_title: "Diff check", candidate_status: "candidate_requires_human_execution_receipt", command_text: "git diff --check", command_family: "git_diff_check", allowlist_match: true, timeout_ms: 30000, sandbox_profile: "repo_local_read_only" },
+    ],
+    blocked_command_fixture_rows: [
+      { fixture_id: "blocked.git_push", command_text: "git push origin main", expected_protected_action_type: "git_push", observed_protected_action_type: "git_push", blocked: true, blocked_reason: "blocked" },
+    ],
+    agent_bridge_execution_gate_rows: Array.from({ length: 10 }, (_item, index) => ({
+      gate_id: `gate.${index + 1}`,
+      gate_status: "pass",
+      description: "fixture gate",
+      current_verdict: "pass",
+      blocks_execution_when_failed: true,
+    })),
   };
 }
 

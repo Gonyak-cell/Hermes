@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/execution_policy.schema.json",
+  "title": "execution_policy",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "created_at",
+    "product_id",
+    "project_id",
+    "domain_pack_id",
+    "execution_policy_id",
+    "policy_version",
+    "policy_sha256",
+    "allow_command_execution",
+    "allow_file_write"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "execution_policy.v1"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "product_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "domain_pack_id": {
+      "type": "string"
+    },
+    "execution_policy_id": {
+      "type": "string",
+      "pattern": "^ep_[A-Za-z0-9_-]+$"
+    },
+    "policy_version": {
+      "type": "string"
+    },
+    "policy_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "allowlist_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "denylist_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "effective_from": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "allow_command_execution": {
+      "type": "boolean"
+    },
+    "allow_file_write": {
+      "type": "boolean"
+    },
+    "allow_network": {
+      "type": "boolean"
+    },
+    "allow_package_install": {
+      "type": "boolean"
+    },
+    "allow_secret_handle": {
+      "type": "boolean"
+    },
+    "allow_connector_write": {
+      "type": "boolean"
+    },
+    "allow_deploy": {
+      "type": "boolean"
+    },
+    "required_reviewer_roles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "x-forbidden-fields": [
+    "raw_secret",
+    "blanket_allow_star",
+    "shell_passthrough"
+  ],
+  "x-validation-invariants": [
+    "denylist overrides allowlist",
+    "L2 file write must be false",
+    "deployment false until L6",
+    "law-firm protected output false unless attorney gate"
+  ]
+}

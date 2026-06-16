@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/sandbox_session.schema.json",
+  "title": "sandbox_session",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "created_at",
+    "product_id",
+    "project_id",
+    "domain_pack_id",
+    "sandbox_session_id",
+    "execution_request_id",
+    "worktree_id",
+    "base_repo_id",
+    "base_commit_hash",
+    "write_allowed",
+    "network_allowed",
+    "secret_allowed",
+    "install_allowed"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "sandbox_session.v1"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "product_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "domain_pack_id": {
+      "type": "string"
+    },
+    "sandbox_session_id": {
+      "type": "string",
+      "pattern": "^ss_[A-Za-z0-9_-]+$"
+    },
+    "execution_request_id": {
+      "type": "string"
+    },
+    "worktree_id": {
+      "type": "string"
+    },
+    "base_repo_id": {
+      "type": "string"
+    },
+    "base_commit_hash": {
+      "type": "string"
+    },
+    "worktree_root_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "session_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "closed_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "write_allowed": {
+      "type": "boolean"
+    },
+    "network_allowed": {
+      "type": "boolean"
+    },
+    "secret_allowed": {
+      "type": "boolean"
+    },
+    "install_allowed": {
+      "type": "boolean"
+    }
+  },
+  "x-forbidden-fields": [
+    "repo_root_cwd",
+    "raw_env_dump",
+    "external_secret_material"
+  ],
+  "x-validation-invariants": [
+    "realpath under allowed worktree root",
+    "no symlink escape",
+    "no session without policy",
+    "closure records final tree state"
+  ]
+}

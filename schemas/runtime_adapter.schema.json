@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/runtime_adapter.schema.json",
+  "title": "runtime_adapter",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "runtime_adapter_id",
+    "runtime_type",
+    "adapter_version",
+    "adapter_manifest_sha256",
+    "supports_dry_run",
+    "supports_worktree",
+    "source_of_truth",
+    "runtime_source_of_truth"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "runtime_adapter.v1"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "runtime_adapter_id": {
+      "type": "string",
+      "pattern": "^ra_[A-Za-z0-9_-]+$"
+    },
+    "runtime_type": {
+      "type": "string",
+      "enum": [
+        "local_command_limited",
+        "claude_code",
+        "codex",
+        "factory_droid_exec",
+        "ci_runner"
+      ]
+    },
+    "adapter_version": {
+      "type": "string"
+    },
+    "adapter_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "capability_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "registered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_validated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "supports_dry_run": {
+      "type": "boolean"
+    },
+    "supports_worktree": {
+      "type": "boolean"
+    },
+    "supports_mutation": {
+      "type": "boolean"
+    },
+    "supports_network": {
+      "type": "boolean"
+    },
+    "supports_secret_handles": {
+      "type": "boolean"
+    },
+    "supports_desktop_surface": {
+      "type": "boolean"
+    },
+    "source_of_truth": {
+      "type": "string",
+      "enum": [
+        "harness"
+      ]
+    },
+    "runtime_source_of_truth": {
+      "type": "boolean",
+      "const": false
+    }
+  },
+  "x-forbidden-fields": [
+    "unbounded_autonomy",
+    "skip_permissions",
+    "runtime_source_of_truth_true"
+  ],
+  "x-validation-invariants": [
+    "runtime cannot grant authority beyond Hermes policy",
+    "source_of_truth must be harness"
+  ]
+}

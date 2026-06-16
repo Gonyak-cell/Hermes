@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/execution-readiness-model.schema.json",
+  "title": "execution-readiness-model",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "execution_readiness_source_rows",
+    "execution_readiness_rows",
+    "execution_readiness_route_rows",
+    "execution_readiness_boundary",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "execution-readiness-model.v1"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "execution_readiness_source_rows": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "execution_readiness_rows": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "execution_readiness_route_rows": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "execution_readiness_boundary": {
+      "type": "object"
+    },
+    "validation_items": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "validation": {
+      "type": "object"
+    },
+    "summary": {
+      "type": "object"
+    }
+  },
+  "x-forbidden-fields": [
+    "raw_secret",
+    "raw_client_material",
+    "raw_stdout",
+    "raw_stderr",
+    "shell_execution_action"
+  ],
+  "x-validation-invariants": [
+    "missing source creates blocker row",
+    "GET and HEAD only",
+    "route handler does not invoke runtime",
+    "route handler does not write ledgers",
+    "execution authority remains closed"
+  ]
+}

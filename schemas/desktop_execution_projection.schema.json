@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/desktop_execution_projection.schema.json",
+  "title": "desktop_execution_projection",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "projection_id",
+    "execution_request_id",
+    "source_snapshot_id",
+    "projection_payload_sha256",
+    "source_bindings_hash",
+    "generated_at",
+    "desktop_can_execute",
+    "desktop_can_write",
+    "desktop_can_approve",
+    "ready",
+    "blockers"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "desktop_execution_projection.v1"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "projection_id": {
+      "type": "string",
+      "pattern": "^dep_[A-Za-z0-9_-]+$"
+    },
+    "execution_request_id": {
+      "type": "string"
+    },
+    "source_snapshot_id": {
+      "type": "string"
+    },
+    "projection_payload_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "source_bindings_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "desktop_can_execute": {
+      "type": "boolean",
+      "const": false
+    },
+    "desktop_can_write": {
+      "type": "boolean",
+      "const": false
+    },
+    "desktop_can_approve": {
+      "type": "boolean",
+      "const": false
+    },
+    "ready": {
+      "type": "boolean"
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "source_bindings": {
+      "type": "object"
+    }
+  },
+  "x-forbidden-fields": [
+    "raw_secret",
+    "raw_source_beyond_preview_policy",
+    "shell_execution_action"
+  ],
+  "x-validation-invariants": [
+    "missing source creates blocker row",
+    "ready only if all required sources bound",
+    "desktop is not source of truth"
+  ]
+}

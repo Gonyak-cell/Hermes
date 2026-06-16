@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/execution_request.schema.json",
+  "title": "execution_request",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "created_at",
+    "product_id",
+    "project_id",
+    "domain_pack_id",
+    "execution_request_id",
+    "requested_by",
+    "candidate_id",
+    "request_payload_sha256",
+    "max_maturity_level",
+    "mutation_requested"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "execution_request.v1"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "product_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "domain_pack_id": {
+      "type": "string"
+    },
+    "execution_request_id": {
+      "type": "string",
+      "pattern": "^erq_[A-Za-z0-9_-]+$"
+    },
+    "requested_by": {
+      "type": "string"
+    },
+    "candidate_id": {
+      "type": "string"
+    },
+    "request_payload_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "candidate_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "policy_hint_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "requested_authority": {
+      "type": "object"
+    },
+    "max_maturity_level": {
+      "type": "string",
+      "enum": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5",
+        "L6",
+        "L7"
+      ]
+    },
+    "mutation_requested": {
+      "type": "boolean"
+    },
+    "requires_human_review": {
+      "type": "boolean"
+    },
+    "requires_independent_review": {
+      "type": "boolean"
+    },
+    "review_gate_id": {
+      "type": "string"
+    }
+  },
+  "x-forbidden-fields": [
+    "raw_secret",
+    "raw_client_material",
+    "unrestricted_shell_command",
+    "production_target"
+  ],
+  "x-validation-invariants": [
+    "domain pack must exist",
+    "requested level cannot exceed domain capability",
+    "request hash must match canonical payload",
+    "protected legal output cannot be requested in personal-dev lane"
+  ]
+}

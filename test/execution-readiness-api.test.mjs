@@ -14,14 +14,15 @@ import { buildReviewApiResponse } from "../src/review-api.mjs";
 
 const RUN_AT = "2026-06-16T09:00:00.000Z";
 
-test("execution readiness model projects L0 ready and keeps later levels blocked", async () => {
+test("execution readiness model projects L0 and L1 ready while keeping execution levels blocked", async () => {
   const result = await buildExecutionReadinessModel({ runAt: RUN_AT, write: false });
 
   assert.equal(result.validation.valid, true);
   assert.equal(result.summary.execution_readiness_status, "ready_for_execution_readiness_api");
   assert.equal(result.summary.ready_source_count, result.summary.source_count);
   assert.equal(result.execution_readiness_rows.find((row) => row.level === "L0").readiness_status, "ready");
-  assert.equal(result.execution_readiness_rows.find((row) => row.level === "L1").readiness_status, "blocked");
+  assert.equal(result.execution_readiness_rows.find((row) => row.level === "L1").readiness_status, "ready");
+  assert.equal(result.execution_readiness_rows.find((row) => row.level === "L2").readiness_status, "blocked");
   assert.equal(result.execution_readiness_boundary.execution_allowed_now, false);
   assert.equal(result.execution_readiness_boundary.route_handler_invokes_runtime, false);
   assert.equal(result.execution_readiness_boundary.route_handler_writes_ledger, false);
@@ -37,6 +38,7 @@ test("execution readiness model turns missing sources into blocker rows", async 
       agent_bridge_limited_runtime_plan: { available: false, validation_valid: false, error: "fixture_missing_agent_bridge", data: null },
       factory_stage_read_model: { available: false, validation_valid: false, error: "fixture_missing_factory_stage", data: null },
       factory_g_series_runtime_guards: { available: false, validation_valid: false, error: "fixture_missing_runtime_guards", data: null },
+      personal_dev_execution_candidate_lane: { available: false, validation_valid: false, error: "fixture_missing_personal_dev_candidates", data: null },
     },
   });
 

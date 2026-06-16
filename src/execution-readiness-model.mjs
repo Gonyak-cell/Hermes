@@ -7,6 +7,7 @@ import { buildDesktopReadModel } from "./desktop-read-model.mjs";
 import { buildExecutionSchemaRegistry } from "./execution-schema-registry.mjs";
 import { buildFactoryGSeriesRuntimeGuards } from "./factory-g-series-runtime-guards.mjs";
 import { buildFactoryStageReadModel } from "./factory-stage-read-model.mjs";
+import { buildPersonalDevExecutionCandidateLane } from "./personal-dev-execution-candidate-lane.mjs";
 
 export const DEFAULT_EXECUTION_READINESS_MODEL_OUT_DIR = "artifacts/execution-readiness-model/latest";
 export const DEFAULT_EXECUTION_READINESS_MODEL_INPUTS = {
@@ -54,6 +55,13 @@ const SOURCE_SPECS = [
     ready_status: "ready_runtime_guards_block_protected_actions",
     required: true,
   },
+  {
+    source_id: "personal_dev_execution_candidate_lane",
+    label: "Personal-dev execution candidate lane",
+    ready_status_path: "summary.personal_dev_execution_candidate_lane_status",
+    ready_status: "ready_for_personal_dev_execution_candidate_lane",
+    required: true,
+  },
 ];
 
 const READINESS_LEVEL_SPECS = [
@@ -68,10 +76,10 @@ const READINESS_LEVEL_SPECS = [
   {
     level: "L1",
     title: "Candidate generation",
-    source_ids: ["execution_schema_registry"],
+    source_ids: ["execution_schema_registry", "personal_dev_execution_candidate_lane"],
     opens_authority: false,
-    blocker_when_sources_ready: "execution_candidate_lane_not_implemented",
-    next_allowed_action: "implement_pr04_personal_dev_candidate_lane",
+    blocker_when_sources_ready: null,
+    next_allowed_action: "serve_personal_dev_execution_candidate_projection",
   },
   {
     level: "L2",
@@ -281,6 +289,7 @@ async function resolveSources(options) {
     agent_bridge_limited_runtime_plan: await captureSource(() => buildAgentBridgeLimitedRuntimePlan({ ...options, write: false })),
     factory_stage_read_model: await captureSource(() => buildFactoryStageReadModel({ ...options, write: false })),
     factory_g_series_runtime_guards: await captureSource(() => buildFactoryGSeriesRuntimeGuards({ ...options, write: false })),
+    personal_dev_execution_candidate_lane: await captureSource(() => buildPersonalDevExecutionCandidateLane({ ...options, write: false })),
   };
 }
 
@@ -347,6 +356,22 @@ function buildRouteRows(readinessRows, generatedAt) {
       method_policy: "GET_HEAD_ONLY",
       collection: "execution_readiness_rows",
       ready: readinessRows.some((row) => row.level === "L0" && row.readiness_status === "ready"),
+      missing_source_creates_blocker: true,
+      route_invokes_runtime: false,
+      route_writes_ledger: false,
+      raw_secret_fields_serialized: false,
+      raw_client_material_serialized: false,
+      raw_command_output_serialized: false,
+      source_binding_hash: hashValue(readinessRows.map((row) => [row.level, row.readiness_status, row.required_source_ids, row.missing_or_blocked_source_ids])),
+    },
+    {
+      schema_version: "execution-readiness-route-row.v1",
+      generated_at: generatedAt,
+      route_id: "route.execution.personal_dev_candidates",
+      path: "/api/execution/personal-dev-candidates",
+      method_policy: "GET_HEAD_ONLY",
+      collection: "personal_dev_execution_candidate_rows",
+      ready: readinessRows.some((row) => row.level === "L1" && row.readiness_status === "ready"),
       missing_source_creates_blocker: true,
       route_invokes_runtime: false,
       route_writes_ledger: false,

@@ -1,0 +1,527 @@
+{
+  "schema_version": "desktop-read-model-sections.v1",
+  "generated_at": "2026-06-16T01:02:57.994Z",
+  "sections_count": 8,
+  "sections": [
+    {
+      "schema_version": "desktop-read-model-section.v1",
+      "section_id": "projects",
+      "label": "Projects",
+      "source_path": "artifacts/project-operating-contract/latest/project-operating-contract.json",
+      "generated_at": "2026-06-16T01:02:57.994Z",
+      "status": "ready",
+      "blocker": null,
+      "section_refs": [
+        {
+          "source_id": "project_operating_contract",
+          "source_path": "artifacts/project-operating-contract/latest/project-operating-contract.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:af09e033a0b56001ceef2ee2e1223c12b419554e1869c24ce6a3ac594e76493c"
+        },
+        {
+          "source_id": "project_operating_contract_summary",
+          "source_path": "artifacts/project-operating-contract/latest/summary.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:bf1947a833a0bbe0245a6e059338ecb3f99e8f31144cb5d490561856cb7ae3b7"
+        }
+      ],
+      "primary_row_count": 2,
+      "ready_row_count": 2,
+      "blocked_row_count": 0,
+      "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
+      "section_hash": "f364d3c8cacfc78e4b52e70780f599505a8d6d4ea35c6d83bbb32792701798ba"
+    },
+    {
+      "schema_version": "desktop-read-model-section.v1",
+      "section_id": "agents",
+      "label": "Agents",
+      "source_path": "artifacts/agent-bridge-manifest/latest/agent-bridge-manifest.json",
+      "generated_at": "2026-06-16T01:02:57.994Z",
+      "status": "ready",
+      "blocker": null,
+      "section_refs": [
+        {
+          "source_id": "agent_bridge_manifest",
+          "source_path": "artifacts/agent-bridge-manifest/latest/agent-bridge-manifest.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:ad846d28d74df0fd69cf1208d078138f0a87d90b6fdac51508c08beb1636ef45"
+        },
+        {
+          "source_id": "agent_bridge_request_receipt",
+          "source_path": "artifacts/agent-bridge-request-receipt/latest/agent-bridge-request-receipt.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:412c652af493760e572e07896d34bd6d2237566ffaca10fcc241a1c7fdccd098"
+        },
+        {
+          "source_id": "agent_bridge_request_receipt_summary",
+          "source_path": "artifacts/agent-bridge-request-receipt/latest/summary.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:68e12ef48f33a464dc3a6248b1a219dd0166e4f821b63fb6b17317a05ab1ef41"
+        },
+        {
+          "source_id": "agent_bridge_request_packet_export",
+          "source_path": "artifacts/agent-bridge-request-packet-export/latest/agent-bridge-request-packet-export.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:7b96fa44a2c3f6c87147a2c62447851513e8a6eefceccf770f0b1d831519100b"
+        },
+        {
+          "source_id": "agent_bridge_receipt_import_workspace",
+          "source_path": "artifacts/agent-bridge-receipt-import-workspace/latest/agent-bridge-receipt-import-workspace.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:d27264b0ff03670bef4e24a5a287f9eeed78f786bee6ee8ca4af9da76f56b59f"
+        },
+        {
+          "source_id": "agent_bridge_execution_candidate",
+          "source_path": "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:d0e1a045db67413d218e5c67b8b5d1c6b213410d3a44c85fa93121899b37bf83"
+        }
+      ],
+      "primary_row_count": 6,
+      "ready_row_count": 6,
+      "blocked_row_count": 0,
+      "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
+      "section_hash": "bdb828e7be5748ad9890e5b8ebedc89203c79d79549d5e42456acc292f65ba25"
+    },
+    {
+      "schema_version": "desktop-read-model-section.v1",
+      "section_id": "release",
+      "label": "Release",
+      "source_path": "docs/release-owner-decision-2026-06-14.md",
+      "generated_at": "2026-06-16T01:02:57.994Z",
+      "status": "ready",
+      "blocker": null,
+      "section_refs": [
+        {
+          "source_id": "release_owner_decision",
+          "source_path": "docs/release-owner-decision-2026-06-14.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:70a5fec356af99e5df0b5c183bb66f5beadcc44e2d6fdab4e553cf9b1b01b011"
+        },
+        {
+          "source_id": "release_decision_packet",
+          "source_path": "docs/release-decision-packet-2026-06-15.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:64ec2fc216ebd1bfaad024a6af64df4ec173bdcfa2c1a225a97c1941d98b0a51"
+        },
+        {
+          "source_id": "production_launch_checklist",
+          "source_path": "docs/production-launch-checklist-2026-06-15.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:14a7a0d6ab1e4e71a43dc9f70a792bfc89036dcbdf935d86f58051e6fb76a39f"
+        },
+        {
+          "source_id": "release_note_tag_draft",
+          "source_path": "docs/release-note-tag-draft-2026-06-15.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:cc77e2c703a6e1aac7095bdd7daed5727ef8e42c295161230275ff2c584c6a97"
+        },
+        {
+          "source_id": "desktop_plan",
+          "source_path": "docs/hermes-desktop-app-plan-2026-06-14.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:424362ff8557af2b599e45f61017b080c0067799cae23e1a61753d61b1080e23"
+        },
+        {
+          "source_id": "desktop_local_launch_runbook",
+          "source_path": "docs/hermes-desktop-local-launch-runbook-2026-06-14.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:5d2aa1c09f2a540a5c8e0b2a46134116c360a177772f01089de9b2a3917230dd"
+        },
+        {
+          "source_id": "desktop_packaging_manifest",
+          "source_path": "artifacts/desktop-packaging-manifest/latest/summary.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:33bd71465103aa846bc33d157985b224710c9fb1c1f506f221bbdc5baa5965ce"
+        }
+      ],
+      "primary_row_count": 7,
+      "ready_row_count": 7,
+      "blocked_row_count": 0,
+      "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
+      "section_hash": "d28ca1005a1139cd29c6fbaa00990ada0371befd72f7798ac9b5b2f3571a31a8"
+    },
+    {
+      "schema_version": "desktop-read-model-section.v1",
+      "section_id": "factory",
+      "label": "Factory",
+      "source_path": "artifacts/factory-gate-opening-readiness/latest/summary.md",
+      "generated_at": "2026-06-16T01:02:57.994Z",
+      "status": "ready",
+      "blocker": null,
+      "section_refs": [
+        {
+          "source_id": "factory_gate_opening",
+          "source_path": "artifacts/factory-gate-opening-readiness/latest/summary.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:dc41eba88e85a81232880d13cb6833ee522ad386d652eacc263f46bed9a77fb9"
+        },
+        {
+          "source_id": "factory_stage_6_7",
+          "source_path": "artifacts/factory-stage6-7-execution-readiness/latest/summary.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:53f9b10f4185c047b4151fd6ee3132ee2e46a99b16706e983eda049081a2bcd7"
+        },
+        {
+          "source_id": "release_readiness",
+          "source_path": "artifacts/release-readiness-control-plane/latest/summary.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:14813134d5f0c7ee958e3ecf7fd0e496c8f68379c5a0d9405720ae1f4a94f015"
+        },
+        {
+          "source_id": "production_governance",
+          "source_path": "artifacts/production-governance-hardening/latest/summary.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:eec0cda1b50fd765863f0a704f3bd30d4ccf1326e2807181ac7c9aba119e24fa"
+        },
+        {
+          "source_id": "p16800_freeze",
+          "source_path": "artifacts/p16800-platform-freeze/latest/summary.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:d05e4787f1d27a8afebf3d444084f8602277574df94e4ab19ba0523f6027183e"
+        }
+      ],
+      "primary_row_count": 5,
+      "ready_row_count": 5,
+      "blocked_row_count": 0,
+      "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
+      "section_hash": "c9b1f297f027d52510ff457a96c855560e3558c0255ceaa55733ddfe941b5d5a"
+    },
+    {
+      "schema_version": "desktop-read-model-section.v1",
+      "section_id": "reviews",
+      "label": "Reviews",
+      "source_path": "docs/claude-final-review-packet-2026-06-15.md",
+      "generated_at": "2026-06-16T01:02:57.994Z",
+      "status": "ready",
+      "blocker": null,
+      "section_refs": [
+        {
+          "source_id": "claude_final_review_packet",
+          "source_path": "docs/claude-final-review-packet-2026-06-15.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:1f05ba280767de5ee1c51bf773ca9f96f7a3732e26cc965b50578af683e87abc"
+        }
+      ],
+      "primary_row_count": 1,
+      "ready_row_count": 1,
+      "blocked_row_count": 0,
+      "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
+      "section_hash": "ad9e97f66cd2014d42271a4db7927cb4173401a5c72a974a2affedb8983f9e26"
+    },
+    {
+      "schema_version": "desktop-read-model-section.v1",
+      "section_id": "operator_handbook",
+      "label": "Operator Handbook",
+      "source_path": "artifacts/operator-handbook/latest/operator-handbook.json",
+      "generated_at": "2026-06-16T01:02:57.994Z",
+      "status": "ready",
+      "blocker": null,
+      "section_refs": [
+        {
+          "source_id": "operator_handbook",
+          "source_path": "artifacts/operator-handbook/latest/operator-handbook.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:6e855ba5df118f7e430086fe55dec51fa9edf9f8afcce445fd32ac0be599cb29"
+        },
+        {
+          "source_id": "operator_surfaces",
+          "source_path": "artifacts/operator-handbook/latest/operator-surfaces.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:81fa26db5f6840bdc8fc3ca2ca5216eec2b80ac2f6120876589063f171ed337c"
+        },
+        {
+          "source_id": "operator_screens",
+          "source_path": "artifacts/operator-handbook/latest/operator-screens.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:874d1b61b784f4b61bb8e739fd0428cc5b0df6ee90d1c2abe42366e089e00818"
+        },
+        {
+          "source_id": "operator_workflows",
+          "source_path": "artifacts/operator-handbook/latest/operator-workflows.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:5675174f4b8558743afe016612fb9b023f2972a1ff0ad840f77b3aec0b1ff895"
+        },
+        {
+          "source_id": "operator_gates",
+          "source_path": "artifacts/operator-handbook/latest/operator-gates.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:d0567bc098e34340904ce8f3b45e2e29e444e016a6c03b4a53543a04fe154fc0"
+        },
+        {
+          "source_id": "operator_handbook_boundary",
+          "source_path": "artifacts/operator-handbook/latest/operator-handbook-boundary.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:e5c3a1f774941335954c6915f909c2b012d5177e8cb8009aa3e3a3a87f271086"
+        }
+      ],
+      "primary_row_count": 6,
+      "ready_row_count": 6,
+      "blocked_row_count": 0,
+      "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
+      "section_hash": "a55b1e3f3a3257877fc362b0d20969106916e21c2a5fac5dcd2df61dc143e2fc"
+    },
+    {
+      "schema_version": "desktop-read-model-section.v1",
+      "section_id": "artifacts",
+      "label": "Artifacts",
+      "source_path": "docs/release-owner-decision-2026-06-14.md",
+      "generated_at": "2026-06-16T01:02:57.994Z",
+      "status": "ready",
+      "blocker": null,
+      "section_refs": [
+        {
+          "source_id": "release_owner_decision",
+          "source_path": "docs/release-owner-decision-2026-06-14.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:70a5fec356af99e5df0b5c183bb66f5beadcc44e2d6fdab4e553cf9b1b01b011"
+        },
+        {
+          "source_id": "release_decision_packet",
+          "source_path": "docs/release-decision-packet-2026-06-15.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:64ec2fc216ebd1bfaad024a6af64df4ec173bdcfa2c1a225a97c1941d98b0a51"
+        },
+        {
+          "source_id": "production_launch_checklist",
+          "source_path": "docs/production-launch-checklist-2026-06-15.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:14a7a0d6ab1e4e71a43dc9f70a792bfc89036dcbdf935d86f58051e6fb76a39f"
+        },
+        {
+          "source_id": "release_note_tag_draft",
+          "source_path": "docs/release-note-tag-draft-2026-06-15.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:cc77e2c703a6e1aac7095bdd7daed5727ef8e42c295161230275ff2c584c6a97"
+        },
+        {
+          "source_id": "desktop_plan",
+          "source_path": "docs/hermes-desktop-app-plan-2026-06-14.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:424362ff8557af2b599e45f61017b080c0067799cae23e1a61753d61b1080e23"
+        },
+        {
+          "source_id": "desktop_local_launch_runbook",
+          "source_path": "docs/hermes-desktop-local-launch-runbook-2026-06-14.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:5d2aa1c09f2a540a5c8e0b2a46134116c360a177772f01089de9b2a3917230dd"
+        },
+        {
+          "source_id": "desktop_packaging_manifest",
+          "source_path": "artifacts/desktop-packaging-manifest/latest/summary.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:33bd71465103aa846bc33d157985b224710c9fb1c1f506f221bbdc5baa5965ce"
+        },
+        {
+          "source_id": "project_operating_contract",
+          "source_path": "artifacts/project-operating-contract/latest/project-operating-contract.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:af09e033a0b56001ceef2ee2e1223c12b419554e1869c24ce6a3ac594e76493c"
+        },
+        {
+          "source_id": "project_operating_contract_summary",
+          "source_path": "artifacts/project-operating-contract/latest/summary.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:bf1947a833a0bbe0245a6e059338ecb3f99e8f31144cb5d490561856cb7ae3b7"
+        },
+        {
+          "source_id": "agent_bridge_manifest",
+          "source_path": "artifacts/agent-bridge-manifest/latest/agent-bridge-manifest.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:ad846d28d74df0fd69cf1208d078138f0a87d90b6fdac51508c08beb1636ef45"
+        },
+        {
+          "source_id": "agent_bridge_request_receipt",
+          "source_path": "artifacts/agent-bridge-request-receipt/latest/agent-bridge-request-receipt.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:412c652af493760e572e07896d34bd6d2237566ffaca10fcc241a1c7fdccd098"
+        },
+        {
+          "source_id": "agent_bridge_request_receipt_summary",
+          "source_path": "artifacts/agent-bridge-request-receipt/latest/summary.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:68e12ef48f33a464dc3a6248b1a219dd0166e4f821b63fb6b17317a05ab1ef41"
+        },
+        {
+          "source_id": "agent_bridge_request_packet_export",
+          "source_path": "artifacts/agent-bridge-request-packet-export/latest/agent-bridge-request-packet-export.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:7b96fa44a2c3f6c87147a2c62447851513e8a6eefceccf770f0b1d831519100b"
+        },
+        {
+          "source_id": "agent_bridge_receipt_import_workspace",
+          "source_path": "artifacts/agent-bridge-receipt-import-workspace/latest/agent-bridge-receipt-import-workspace.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:d27264b0ff03670bef4e24a5a287f9eeed78f786bee6ee8ca4af9da76f56b59f"
+        },
+        {
+          "source_id": "agent_bridge_execution_candidate",
+          "source_path": "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:d0e1a045db67413d218e5c67b8b5d1c6b213410d3a44c85fa93121899b37bf83"
+        },
+        {
+          "source_id": "factory_gate_opening",
+          "source_path": "artifacts/factory-gate-opening-readiness/latest/summary.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:dc41eba88e85a81232880d13cb6833ee522ad386d652eacc263f46bed9a77fb9"
+        },
+        {
+          "source_id": "factory_stage_6_7",
+          "source_path": "artifacts/factory-stage6-7-execution-readiness/latest/summary.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:53f9b10f4185c047b4151fd6ee3132ee2e46a99b16706e983eda049081a2bcd7"
+        },
+        {
+          "source_id": "release_readiness",
+          "source_path": "artifacts/release-readiness-control-plane/latest/summary.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:14813134d5f0c7ee958e3ecf7fd0e496c8f68379c5a0d9405720ae1f4a94f015"
+        },
+        {
+          "source_id": "production_governance",
+          "source_path": "artifacts/production-governance-hardening/latest/summary.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:eec0cda1b50fd765863f0a704f3bd30d4ccf1326e2807181ac7c9aba119e24fa"
+        },
+        {
+          "source_id": "p16800_freeze",
+          "source_path": "artifacts/p16800-platform-freeze/latest/summary.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:d05e4787f1d27a8afebf3d444084f8602277574df94e4ab19ba0523f6027183e"
+        },
+        {
+          "source_id": "claude_final_review_packet",
+          "source_path": "docs/claude-final-review-packet-2026-06-15.md",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:1f05ba280767de5ee1c51bf773ca9f96f7a3732e26cc965b50578af683e87abc"
+        },
+        {
+          "source_id": "operator_handbook",
+          "source_path": "artifacts/operator-handbook/latest/operator-handbook.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:6e855ba5df118f7e430086fe55dec51fa9edf9f8afcce445fd32ac0be599cb29"
+        },
+        {
+          "source_id": "operator_surfaces",
+          "source_path": "artifacts/operator-handbook/latest/operator-surfaces.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:81fa26db5f6840bdc8fc3ca2ca5216eec2b80ac2f6120876589063f171ed337c"
+        },
+        {
+          "source_id": "operator_screens",
+          "source_path": "artifacts/operator-handbook/latest/operator-screens.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:874d1b61b784f4b61bb8e739fd0428cc5b0df6ee90d1c2abe42366e089e00818"
+        },
+        {
+          "source_id": "operator_workflows",
+          "source_path": "artifacts/operator-handbook/latest/operator-workflows.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:5675174f4b8558743afe016612fb9b023f2972a1ff0ad840f77b3aec0b1ff895"
+        },
+        {
+          "source_id": "operator_gates",
+          "source_path": "artifacts/operator-handbook/latest/operator-gates.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:d0567bc098e34340904ce8f3b45e2e29e444e016a6c03b4a53543a04fe154fc0"
+        },
+        {
+          "source_id": "operator_handbook_boundary",
+          "source_path": "artifacts/operator-handbook/latest/operator-handbook-boundary.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:e5c3a1f774941335954c6915f909c2b012d5177e8cb8009aa3e3a3a87f271086"
+        },
+        {
+          "source_id": "desktop_authority_boundary",
+          "source_path": "artifacts/desktop-authority-boundary/latest/desktop-authority-boundary.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:07613809de2f457913c86ffacdefba3340354180fe44c40cf45a928e00b33185"
+        }
+      ],
+      "primary_row_count": 28,
+      "ready_row_count": 28,
+      "blocked_row_count": 0,
+      "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
+      "section_hash": "3fd12cdca10cce176b840fdf9b3a2d31bfec2ebdd93be4ad734e45a6d46d67f7"
+    },
+    {
+      "schema_version": "desktop-read-model-section.v1",
+      "section_id": "authority_boundary",
+      "label": "Authority Boundary",
+      "source_path": "artifacts/desktop-authority-boundary/latest/desktop-authority-boundary.json",
+      "generated_at": "2026-06-16T01:02:57.994Z",
+      "status": "ready",
+      "blocker": null,
+      "section_refs": [
+        {
+          "source_id": "desktop_authority_boundary",
+          "source_path": "artifacts/desktop-authority-boundary/latest/desktop-authority-boundary.json",
+          "status": "ready",
+          "blocker": null,
+          "source_content_hash": "sha256:07613809de2f457913c86ffacdefba3340354180fe44c40cf45a928e00b33185"
+        }
+      ],
+      "primary_row_count": 1,
+      "ready_row_count": 1,
+      "blocked_row_count": 0,
+      "no_action_authority_notice": "Desktop displays evidence only. It cannot approve, deploy, write, execute commands, read secrets, or claim production/enterprise pass.",
+      "section_hash": "0c7f3e11a438cea16d472c8e5cbbe87ffaa9b200f2ee33a323d6c35bfb59f6a1"
+    }
+  ]
+}

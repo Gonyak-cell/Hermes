@@ -1,6 +1,6 @@
 {
   "schema_version": "agent-bridge-closeout-contract.v1",
-  "generated_at": "2026-06-16T00:17:39.727Z",
+  "generated_at": "2026-06-16T01:02:58.184Z",
   "ready_for_agent_bridge_local_operator_handoff": true,
   "contract_id": "contract.hermes.agent_bridge_closeout_readiness.local_operator_handoff",
   "local_only": true,

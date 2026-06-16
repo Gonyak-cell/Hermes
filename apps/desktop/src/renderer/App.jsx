@@ -44,6 +44,9 @@ const fallbackReadModel = {
     capability_rows: [],
     request_rows: [],
     receipt_rows: [],
+    packet_export_rows: [],
+    receipt_import_candidate_rows: [],
+    receipt_normalized_summary_rows: [],
     execution_candidate_rows: [],
     blocked_command_fixture_rows: [],
     execution_gate_rows: [],
@@ -223,6 +226,8 @@ function AgentBridgePanel({ copy, projection }) {
   const capabilityRows = projection?.capability_rows ?? [];
   const requestRows = projection?.request_rows ?? [];
   const receiptRows = projection?.receipt_rows ?? [];
+  const packetRows = projection?.packet_export_rows ?? [];
+  const importRows = projection?.receipt_import_candidate_rows ?? [];
   const candidateRows = projection?.execution_candidate_rows ?? [];
   const gateRows = projection?.execution_gate_rows ?? [];
   const controlRows = projection?.agent_control_rows ?? [];
@@ -236,7 +241,9 @@ function AgentBridgePanel({ copy, projection }) {
         <Metric label={copy.agentRuntimeTable} value={projection?.runtime_count ?? runtimeRows.length} />
         <Metric label={copy.agentCapabilityTable} value={projection?.capability_count ?? capabilityRows.length} />
         <Metric label={copy.agentRequestTable} value={projection?.request_count ?? requestRows.length} />
+        <Metric label={copy.agentPacketTable} value={projection?.request_packet_export_count ?? packetRows.length} />
         <Metric label={copy.agentReceiptTable} value={projection?.receipt_count ?? receiptRows.length} />
+        <Metric label={copy.agentImportTable} value={projection?.receipt_import_candidate_count ?? importRows.length} />
         <Metric label={copy.agentCandidateTable} value={projection?.execution_candidate_count ?? candidateRows.length} />
         <Metric label={copy.agentGateTable} value={`${projection?.execution_gate_pass_count ?? 0}/${projection?.execution_gate_count ?? gateRows.length}`} />
       </div>
@@ -244,7 +251,9 @@ function AgentBridgePanel({ copy, projection }) {
         <AgentRuntimeTable copy={copy} rows={runtimeRows} />
         <AgentCapabilityTable copy={copy} rows={capabilityRows.slice(0, 8)} />
         <AgentRequestTable copy={copy} rows={requestRows} />
+        <AgentPacketExportTable copy={copy} rows={packetRows} />
         <AgentReceiptTable copy={copy} rows={receiptRows} />
+        <AgentReceiptImportTable copy={copy} rows={importRows} />
         <AgentCandidateTable copy={copy} rows={candidateRows} />
         <AgentGateTable copy={copy} rows={gateRows} />
       </div>
@@ -337,6 +346,32 @@ function AgentRequestTable({ copy, rows }) {
   );
 }
 
+function AgentPacketExportTable({ copy, rows }) {
+  return (
+    <div className="agent-table-card">
+      <h4>{copy.agentPacketTable}</h4>
+      <table className="mini-table">
+        <thead>
+          <tr>
+            <th>Packet</th>
+            <th>Runtime</th>
+            <th>Submit</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.packet_id}>
+              <td><strong>{row.request_title}</strong><small>{row.packet_file_name}</small></td>
+              <td>{formatProjectionText(row.target_runtime_id)}</td>
+              <td><StatusPill tone={row.request_transport_submission_allowed_now ? "red" : "green"} label={row.request_transport_submission_allowed_now ? "open" : "closed"} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function AgentReceiptTable({ copy, rows }) {
   return (
     <div className="agent-table-card">
@@ -355,6 +390,32 @@ function AgentReceiptTable({ copy, rows }) {
               <td><strong>{row.receipt_id}</strong><small>{formatProjectionText(row.receipt_kind)}</small></td>
               <td>{formatProjectionText(row.normalized_verdict)}</td>
               <td><StatusPill tone={row.receipt_applied ? "red" : "green"} label={row.receipt_applied ? "open" : "closed"} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function AgentReceiptImportTable({ copy, rows }) {
+  return (
+    <div className="agent-table-card">
+      <h4>{copy.agentImportTable}</h4>
+      <table className="mini-table">
+        <thead>
+          <tr>
+            <th>Receipt</th>
+            <th>Workspace</th>
+            <th>Raw</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.import_candidate_id}>
+              <td><strong>{row.receipt_id}</strong><small>{formatProjectionText(row.request_type)}</small></td>
+              <td>{formatProjectionText(row.workspace_status)}</td>
+              <td><StatusPill tone={row.raw_output_included ? "red" : "green"} label={row.raw_output_included ? "open" : "closed"} /></td>
             </tr>
           ))}
         </tbody>

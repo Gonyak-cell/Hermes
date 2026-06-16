@@ -21,6 +21,8 @@ export const DEFAULT_DESKTOP_READ_MODEL_INPUTS = {
   agentBridgeManifestPath: "artifacts/agent-bridge-manifest/latest/agent-bridge-manifest.json",
   agentBridgeRequestReceiptPath: "artifacts/agent-bridge-request-receipt/latest/agent-bridge-request-receipt.json",
   agentBridgeRequestReceiptSummaryPath: "artifacts/agent-bridge-request-receipt/latest/summary.md",
+  agentBridgeRequestPacketExportPath: "artifacts/agent-bridge-request-packet-export/latest/agent-bridge-request-packet-export.json",
+  agentBridgeReceiptImportWorkspacePath: "artifacts/agent-bridge-receipt-import-workspace/latest/agent-bridge-receipt-import-workspace.json",
   agentBridgeExecutionCandidatePath: "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json",
   operatorHandbookPath: "artifacts/operator-handbook/latest/operator-handbook.json",
   operatorSurfacesPath: "artifacts/operator-handbook/latest/operator-surfaces.json",
@@ -49,6 +51,8 @@ export const DESKTOP_READ_ALLOWLIST = Object.freeze([
   "artifacts/agent-bridge-manifest/latest/agent-bridge-manifest.json",
   "artifacts/agent-bridge-request-receipt/latest/agent-bridge-request-receipt.json",
   "artifacts/agent-bridge-request-receipt/latest/summary.md",
+  "artifacts/agent-bridge-request-packet-export/latest/agent-bridge-request-packet-export.json",
+  "artifacts/agent-bridge-receipt-import-workspace/latest/agent-bridge-receipt-import-workspace.json",
   "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json",
   "docs/operator-handbook.md",
   "docs/dashboard-api-freeze.md",
@@ -125,6 +129,8 @@ const SOURCE_DEFINITIONS = [
   sourceDefinition("agent_bridge_manifest", "agents", "Agent Bridge manifest", "agentBridgeManifestPath", true),
   sourceDefinition("agent_bridge_request_receipt", "agents", "Agent Bridge request/receipt", "agentBridgeRequestReceiptPath", true),
   sourceDefinition("agent_bridge_request_receipt_summary", "agents", "Agent Bridge request/receipt summary", "agentBridgeRequestReceiptSummaryPath", true),
+  sourceDefinition("agent_bridge_request_packet_export", "agents", "Agent Bridge request packet export", "agentBridgeRequestPacketExportPath", true),
+  sourceDefinition("agent_bridge_receipt_import_workspace", "agents", "Agent Bridge receipt import workspace", "agentBridgeReceiptImportWorkspacePath", true),
   sourceDefinition("agent_bridge_execution_candidate", "agents", "Agent Bridge execution candidate", "agentBridgeExecutionCandidatePath", true),
   sourceDefinition("factory_gate_opening", "factory", "Factory gate opening readiness", "factoryGateOpeningSummaryPath", true),
   sourceDefinition("factory_stage_6_7", "factory", "Factory Stage6/Stage7 readiness", "factoryStage67SummaryPath", true),
@@ -673,9 +679,13 @@ function buildProjectProjection(sourceRows, generatedAt) {
 function buildAgentProjection(sourceRows, generatedAt) {
   const manifestSource = sourceRows.find((row) => row.source_id === "agent_bridge_manifest");
   const requestReceiptSource = sourceRows.find((row) => row.source_id === "agent_bridge_request_receipt");
+  const requestPacketExportSource = sourceRows.find((row) => row.source_id === "agent_bridge_request_packet_export");
+  const receiptImportWorkspaceSource = sourceRows.find((row) => row.source_id === "agent_bridge_receipt_import_workspace");
   const executionCandidateSource = sourceRows.find((row) => row.source_id === "agent_bridge_execution_candidate");
   const manifestSummary = manifestSource?.data_summary ?? {};
   const requestReceiptSummary = requestReceiptSource?.data_summary ?? {};
+  const requestPacketExportSummary = requestPacketExportSource?.data_summary ?? {};
+  const receiptImportWorkspaceSummary = receiptImportWorkspaceSource?.data_summary ?? {};
   const executionCandidateSummary = executionCandidateSource?.data_summary ?? {};
   const runtimeRows = Array.isArray(manifestSummary.runtime_rows) ? manifestSummary.runtime_rows : [];
   const capabilityRows = Array.isArray(manifestSummary.capability_rows) ? manifestSummary.capability_rows : [];
@@ -683,21 +693,30 @@ function buildAgentProjection(sourceRows, generatedAt) {
   const requestRows = Array.isArray(requestReceiptSummary.request_rows) ? requestReceiptSummary.request_rows : [];
   const receiptRows = Array.isArray(requestReceiptSummary.receipt_rows) ? requestReceiptSummary.receipt_rows : [];
   const evidenceBindingRows = Array.isArray(requestReceiptSummary.evidence_binding_rows) ? requestReceiptSummary.evidence_binding_rows : [];
+  const packetExportRows = Array.isArray(requestPacketExportSummary.packet_export_rows) ? requestPacketExportSummary.packet_export_rows : [];
+  const receiptImportCandidateRows = Array.isArray(receiptImportWorkspaceSummary.receipt_import_candidate_rows) ? receiptImportWorkspaceSummary.receipt_import_candidate_rows : [];
+  const receiptNormalizedSummaryRows = Array.isArray(receiptImportWorkspaceSummary.receipt_normalized_summary_rows) ? receiptImportWorkspaceSummary.receipt_normalized_summary_rows : [];
   const executionCandidateRows = Array.isArray(executionCandidateSummary.execution_candidate_rows) ? executionCandidateSummary.execution_candidate_rows : [];
   const blockedCommandFixtureRows = Array.isArray(executionCandidateSummary.blocked_command_fixture_rows) ? executionCandidateSummary.blocked_command_fixture_rows : [];
   const executionGateRows = Array.isArray(executionCandidateSummary.execution_gate_rows) ? executionCandidateSummary.execution_gate_rows : [];
   const agentControlRows = buildAgentControlRows(generatedAt);
   const ready = manifestSource?.status === "ready"
     && requestReceiptSource?.status === "ready"
+    && requestPacketExportSource?.status === "ready"
+    && receiptImportWorkspaceSource?.status === "ready"
     && executionCandidateSource?.status === "ready"
     && manifestSummary.agent_bridge_manifest_status === "ready_for_agent_bridge_manifest"
     && requestReceiptSummary.agent_bridge_request_receipt_status === "ready_for_agent_bridge_request_receipt"
+    && requestPacketExportSummary.agent_bridge_request_packet_export_status === "ready_for_agent_bridge_request_packet_export"
+    && receiptImportWorkspaceSummary.agent_bridge_receipt_import_workspace_status === "ready_for_agent_bridge_receipt_import_workspace"
     && executionCandidateSummary.agent_bridge_execution_candidate_status === "ready_for_agent_bridge_execution_candidate";
   const projection = {
     schema_version: "desktop-agent-projection.v1",
     generated_at: generatedAt,
     agent_bridge_manifest_status: manifestSummary.agent_bridge_manifest_status ?? "not recorded",
     agent_bridge_request_receipt_status: requestReceiptSummary.agent_bridge_request_receipt_status ?? "not recorded",
+    agent_bridge_request_packet_export_status: requestPacketExportSummary.agent_bridge_request_packet_export_status ?? "not recorded",
+    agent_bridge_receipt_import_workspace_status: receiptImportWorkspaceSummary.agent_bridge_receipt_import_workspace_status ?? "not recorded",
     agent_bridge_execution_candidate_status: executionCandidateSummary.agent_bridge_execution_candidate_status ?? "not recorded",
     source_status: ready ? "ready" : "blocked",
     runtime_count: Number(manifestSummary.runtime_count ?? runtimeRows.length),
@@ -706,6 +725,10 @@ function buildAgentProjection(sourceRows, generatedAt) {
     request_count: Number(requestReceiptSummary.request_count ?? requestRows.length),
     receipt_count: Number(requestReceiptSummary.receipt_count ?? receiptRows.length),
     evidence_binding_count: Number(requestReceiptSummary.evidence_binding_count ?? evidenceBindingRows.length),
+    request_packet_export_count: Number(requestPacketExportSummary.packet_count ?? packetExportRows.length),
+    request_packet_markdown_count: Number(requestPacketExportSummary.markdown_packet_count ?? packetExportRows.length),
+    receipt_import_candidate_count: Number(receiptImportWorkspaceSummary.import_candidate_count ?? receiptImportCandidateRows.length),
+    receipt_normalized_summary_count: Number(receiptImportWorkspaceSummary.normalized_summary_count ?? receiptNormalizedSummaryRows.length),
     execution_candidate_count: Number(executionCandidateSummary.execution_candidate_count ?? executionCandidateRows.length),
     blocked_command_fixture_count: Number(executionCandidateSummary.blocked_command_fixture_count ?? blockedCommandFixtureRows.length),
     execution_gate_count: Number(executionCandidateSummary.gate_count ?? executionGateRows.length),
@@ -716,6 +739,12 @@ function buildAgentProjection(sourceRows, generatedAt) {
     source_of_truth: false,
     request_queue_enabled_now: requestReceiptSummary.request_queue_enabled_now === true,
     receipt_intake_enabled_now: requestReceiptSummary.receipt_intake_enabled_now === true,
+    request_packet_export_enabled_now: requestPacketExportSummary.request_packet_export_enabled_now === true,
+    copy_markdown_allowed_now: requestPacketExportSummary.copy_markdown_allowed_now === true,
+    file_export_allowed_now: requestPacketExportSummary.file_export_allowed_now === true,
+    receipt_import_workspace_enabled_now: receiptImportWorkspaceSummary.receipt_import_workspace_enabled_now === true,
+    normalized_summary_import_allowed_now: receiptImportWorkspaceSummary.normalized_summary_import_allowed_now === true,
+    import_preview_allowed_now: receiptImportWorkspaceSummary.import_preview_allowed_now === true,
     controlled_execution_candidate_enabled_now: executionCandidateSummary.controlled_execution_candidate_enabled_now === true,
     candidate_queue_enabled_now: executionCandidateSummary.candidate_queue_enabled_now === true,
     candidate_export_allowed_now: executionCandidateSummary.candidate_export_allowed_now === true,
@@ -806,6 +835,56 @@ function buildAgentProjection(sourceRows, generatedAt) {
       opens_authority: false,
       receipt_applied: false,
     })),
+    packet_export_rows: packetExportRows.map((row) => ({
+      packet_id: String(row.packet_id ?? "unknown"),
+      request_id: String(row.request_id ?? "unknown"),
+      request_type: String(row.request_type ?? "unknown"),
+      request_title: String(row.request_title ?? "Untitled packet"),
+      target_runtime_id: String(row.target_runtime_id ?? "unknown"),
+      target_capability_id: String(row.target_capability_id ?? "unknown"),
+      packet_status: String(row.packet_status ?? "blocked"),
+      packet_file_name: String(row.packet_file_name ?? "packet.md"),
+      packet_markdown_hash: String(row.packet_markdown_hash ?? ""),
+      copy_allowed_now: row.copy_allowed_now === true,
+      file_export_allowed_now: row.file_export_allowed_now === true,
+      request_transport_submission_allowed_now: false,
+      provider_automation_allowed_now: false,
+      raw_prompt_included: false,
+      execution_allowed_now: false,
+      opens_authority: false,
+    })),
+    receipt_import_candidate_rows: receiptImportCandidateRows.map((row) => ({
+      import_candidate_id: String(row.import_candidate_id ?? "unknown"),
+      receipt_id: String(row.receipt_id ?? "unknown"),
+      request_id: String(row.request_id ?? "unknown"),
+      packet_id: row.packet_id ? String(row.packet_id) : null,
+      request_type: String(row.request_type ?? "unknown"),
+      receipt_kind: String(row.receipt_kind ?? "unknown"),
+      workspace_status: String(row.workspace_status ?? "blocked"),
+      normalized_verdict: String(row.normalized_verdict ?? "missing"),
+      normalized_summary_only: true,
+      raw_output_included: false,
+      raw_receipt_stored: false,
+      receipt_validated: row.receipt_validated === true,
+      receipt_quarantined: row.receipt_quarantined === true,
+      receipt_applied: false,
+      receipt_application_allowed_now: false,
+      approval_application_allowed_now: false,
+      opens_authority: false,
+    })),
+    receipt_normalized_summary_rows: receiptNormalizedSummaryRows.map((row) => ({
+      import_candidate_id: String(row.import_candidate_id ?? "unknown"),
+      receipt_id: String(row.receipt_id ?? "unknown"),
+      request_id: String(row.request_id ?? "unknown"),
+      request_type: String(row.request_type ?? "unknown"),
+      normalized_verdict: String(row.normalized_verdict ?? "missing"),
+      summary_label: String(row.summary_label ?? "Receipt summary"),
+      displayable_in_desktop: row.displayable_in_desktop === true,
+      normalized_summary_only: true,
+      raw_output_included: false,
+      receipt_applied: false,
+      opens_authority: false,
+    })),
     execution_candidate_rows: executionCandidateRows.map((row) => ({
       candidate_id: String(row.candidate_id ?? "unknown"),
       candidate_type: String(row.candidate_type ?? "unknown"),
@@ -853,7 +932,9 @@ function buildAgentProjection(sourceRows, generatedAt) {
       projectionRow("agent_runtimes", "Agent runtimes", String(manifestSummary.runtime_count ?? runtimeRows.length), ready ? "observed" : "blocked", false, generatedAt),
       projectionRow("agent_capabilities", "Agent capabilities", String(manifestSummary.capability_count ?? capabilityRows.length), ready ? "observed" : "blocked", false, generatedAt),
       projectionRow("agent_requests", "Request packets", String(requestReceiptSummary.request_count ?? requestRows.length), "request_only", false, generatedAt),
+      projectionRow("agent_packet_export", "Packet export", String(requestPacketExportSummary.packet_count ?? packetExportRows.length), "copy_only", false, generatedAt),
       projectionRow("agent_receipts", "Receipts", String(requestReceiptSummary.receipt_count ?? receiptRows.length), "normalized_only", false, generatedAt),
+      projectionRow("agent_receipt_import", "Receipt import workspace", String(receiptImportWorkspaceSummary.import_candidate_count ?? receiptImportCandidateRows.length), "normalized_preview_only", false, generatedAt),
       projectionRow("agent_execution_candidates", "Execution candidates", String(executionCandidateSummary.execution_candidate_count ?? executionCandidateRows.length), "candidate_only", false, generatedAt),
       projectionRow("agent_execution_gates", "Execution gates", `${executionCandidateSummary.gate_pass_count ?? 0}/${executionCandidateSummary.gate_count ?? executionGateRows.length}`, ready ? "pass" : "blocked", false, generatedAt),
       projectionRow("agent_execution", "Execution", "closed", "closed", false, generatedAt),
@@ -1174,6 +1255,120 @@ function compactJsonSummary(data) {
         target_capability_id: row.target_capability_id,
         opens_authority: false,
         receipt_applied: false,
+      })),
+    };
+  }
+  if (data?.schema_version === "agent-bridge-request-packet-export.v1") {
+    const summary = data.summary ?? {};
+    const boundary = data.agent_request_packet_export_boundary ?? {};
+    return {
+      schema_version: data.schema_version,
+      agent_bridge_request_packet_export_status: summary.agent_bridge_request_packet_export_status,
+      source_agent_bridge_request_receipt_status: summary.source_agent_bridge_request_receipt_status,
+      packet_count: Number(summary.packet_count ?? 0),
+      markdown_packet_count: Number(summary.markdown_packet_count ?? 0),
+      blocked_export_fixture_count: Number(summary.blocked_export_fixture_count ?? 0),
+      request_packet_export_enabled_now: summary.request_packet_export_enabled_now === true,
+      copy_markdown_allowed_now: summary.copy_markdown_allowed_now === true,
+      file_export_allowed_now: summary.file_export_allowed_now === true,
+      request_transport_submission_allowed_now: false,
+      provider_automation_allowed_now: false,
+      execution_allowed_now: false,
+      receipt_application_allowed_now: false,
+      approval_application_allowed_now: false,
+      unsafe_flag_count: Number(boundary.unsafe_flag_count ?? 0),
+      validation_error_count: Number(summary.validation_error_count ?? 0),
+      packet_export_rows: (data.agent_request_packet_export_rows ?? []).map((row) => ({
+        packet_id: row.packet_id,
+        request_id: row.request_id,
+        request_type: row.request_type,
+        request_title: row.request_title,
+        target_runtime_id: row.target_runtime_id,
+        target_capability_id: row.target_capability_id,
+        packet_status: row.packet_status,
+        packet_file_name: row.packet_file_name,
+        packet_markdown_hash: row.packet_markdown_hash,
+        copy_allowed_now: row.copy_allowed_now === true,
+        file_export_allowed_now: row.file_export_allowed_now === true,
+        request_transport_submission_allowed_now: false,
+        provider_automation_allowed_now: false,
+        raw_prompt_included: false,
+        execution_allowed_now: false,
+        opens_authority: false,
+      })),
+      blocked_export_fixture_rows: (data.blocked_export_fixture_rows ?? []).map((row) => ({
+        fixture_id: row.fixture_id,
+        expected_blocker: row.expected_blocker,
+        observed_blocker: row.observed_blocker,
+        blocked: row.blocked === true,
+        copy_allowed_now: false,
+        file_export_allowed_now: false,
+        opens_authority: false,
+      })),
+    };
+  }
+  if (data?.schema_version === "agent-bridge-receipt-import-workspace.v1") {
+    const summary = data.summary ?? {};
+    const boundary = data.agent_receipt_import_boundary ?? {};
+    return {
+      schema_version: data.schema_version,
+      agent_bridge_receipt_import_workspace_status: summary.agent_bridge_receipt_import_workspace_status,
+      source_agent_bridge_request_receipt_status: summary.source_agent_bridge_request_receipt_status,
+      source_agent_bridge_request_packet_export_status: summary.source_agent_bridge_request_packet_export_status,
+      import_candidate_count: Number(summary.import_candidate_count ?? 0),
+      normalized_summary_count: Number(summary.normalized_summary_count ?? 0),
+      blocked_import_fixture_count: Number(summary.blocked_import_fixture_count ?? 0),
+      receipt_import_workspace_enabled_now: summary.receipt_import_workspace_enabled_now === true,
+      normalized_summary_import_allowed_now: summary.normalized_summary_import_allowed_now === true,
+      import_preview_allowed_now: summary.import_preview_allowed_now === true,
+      raw_receipt_storage_allowed: false,
+      raw_prompt_storage_allowed: false,
+      receipt_application_allowed_now: false,
+      approval_application_allowed_now: false,
+      execution_allowed_now: false,
+      provider_output_authoritative: false,
+      unsafe_flag_count: Number(boundary.unsafe_flag_count ?? 0),
+      validation_error_count: Number(summary.validation_error_count ?? 0),
+      receipt_import_candidate_rows: (data.agent_receipt_import_candidate_rows ?? []).map((row) => ({
+        import_candidate_id: row.import_candidate_id,
+        receipt_id: row.receipt_id,
+        request_id: row.request_id,
+        packet_id: row.packet_id ?? null,
+        request_type: row.request_type,
+        receipt_kind: row.receipt_kind,
+        workspace_status: row.workspace_status,
+        normalized_verdict: row.normalized_verdict,
+        normalized_summary_only: true,
+        raw_output_included: false,
+        raw_receipt_stored: false,
+        receipt_validated: row.receipt_validated === true,
+        receipt_quarantined: row.receipt_quarantined === true,
+        receipt_applied: false,
+        receipt_application_allowed_now: false,
+        approval_application_allowed_now: false,
+        opens_authority: false,
+      })),
+      receipt_normalized_summary_rows: (data.agent_receipt_normalized_summary_rows ?? []).map((row) => ({
+        import_candidate_id: row.import_candidate_id,
+        receipt_id: row.receipt_id,
+        request_id: row.request_id,
+        request_type: row.request_type,
+        normalized_verdict: row.normalized_verdict,
+        summary_label: row.summary_label,
+        displayable_in_desktop: row.displayable_in_desktop === true,
+        normalized_summary_only: true,
+        raw_output_included: false,
+        receipt_applied: false,
+        opens_authority: false,
+      })),
+      blocked_import_fixture_rows: (data.blocked_import_fixture_rows ?? []).map((row) => ({
+        fixture_id: row.fixture_id,
+        expected_blocker: row.expected_blocker,
+        observed_blocker: row.observed_blocker,
+        blocked: row.blocked === true,
+        receipt_quarantined: row.receipt_quarantined === true,
+        receipt_applied: false,
+        opens_authority: false,
       })),
     };
   }

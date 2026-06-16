@@ -622,6 +622,8 @@
     "platform:project-operating-contract": "node scripts/project-operating-contract.mjs",
     "platform:agent-bridge-manifest": "node scripts/agent-bridge-manifest.mjs",
     "platform:agent-bridge-request-receipt": "node scripts/agent-bridge-request-receipt.mjs",
+    "platform:agent-bridge-request-packet-export": "node scripts/agent-bridge-request-packet-export.mjs",
+    "platform:agent-bridge-receipt-import-workspace": "node scripts/agent-bridge-receipt-import-workspace.mjs",
     "platform:agent-bridge-execution-candidate": "node scripts/agent-bridge-execution-candidate.mjs",
     "platform:agent-bridge-closeout-readiness": "node scripts/agent-bridge-closeout-readiness.mjs",
     "platform:requirement-traceability-kernel": "node scripts/requirement-traceability-kernel.mjs",

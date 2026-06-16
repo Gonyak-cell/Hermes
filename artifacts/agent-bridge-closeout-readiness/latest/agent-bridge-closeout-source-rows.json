@@ -1,12 +1,12 @@
 {
   "schema_version": "agent-bridge-closeout-source-rows.v1",
-  "generated_at": "2026-06-16T00:17:39.727Z",
+  "generated_at": "2026-06-16T01:02:58.184Z",
   "agent_bridge_closeout_source_rows_count": 4,
   "agent_bridge_closeout_source_rows": [
     {
       "schema_version": "agent-bridge-closeout-source-row.v1",
       "row_id": "agent.bridge.closeout.source.row.01",
-      "generated_at": "2026-06-16T00:17:39.727Z",
+      "generated_at": "2026-06-16T01:02:58.184Z",
       "source_id": "agent_bridge_manifest",
       "source_path": "artifacts/agent-bridge-manifest/latest/agent-bridge-manifest.json",
       "source_available": true,
@@ -40,7 +40,7 @@
     {
       "schema_version": "agent-bridge-closeout-source-row.v1",
       "row_id": "agent.bridge.closeout.source.row.02",
-      "generated_at": "2026-06-16T00:17:39.727Z",
+      "generated_at": "2026-06-16T01:02:58.184Z",
       "source_id": "agent_bridge_request_receipt",
       "source_path": "artifacts/agent-bridge-request-receipt/latest/agent-bridge-request-receipt.json",
       "source_available": true,
@@ -74,7 +74,7 @@
     {
       "schema_version": "agent-bridge-closeout-source-row.v1",
       "row_id": "agent.bridge.closeout.source.row.03",
-      "generated_at": "2026-06-16T00:17:39.727Z",
+      "generated_at": "2026-06-16T01:02:58.184Z",
       "source_id": "agent_bridge_execution_candidate",
       "source_path": "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json",
       "source_available": true,
@@ -108,12 +108,12 @@
     {
       "schema_version": "agent-bridge-closeout-source-row.v1",
       "row_id": "agent.bridge.closeout.source.row.04",
-      "generated_at": "2026-06-16T00:17:39.727Z",
+      "generated_at": "2026-06-16T01:02:58.184Z",
       "source_id": "desktop_read_model",
       "source_path": "artifacts/desktop-read-model/latest/desktop-read-model.json",
       "source_available": true,
       "source_parse_status": "parsed",
-      "source_hash": "sha256:b7b3b69612e952de45f2db32da2d79e78f06459bbf7cb768d6dba0f52b723273",
+      "source_hash": "sha256:84a642b26bf08ab52f60fc79ac4753aefeebca9c11320b8af4bd8097006d6585",
       "observed_status": "ready_for_desktop_shell",
       "ready_status": "ready_for_desktop_shell",
       "source_ready": true,

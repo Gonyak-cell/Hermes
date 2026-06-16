@@ -27,8 +27,8 @@ test("Desktop read model projects release, factory, review, operator, artifact, 
     assert.equal(result.validation.valid, true);
     assert.equal(result.schema_version, "desktop-read-model.v1");
     assert.equal(result.summary.desktop_read_model_status, "ready_for_desktop_shell");
-    assert.equal(result.summary.source_count, 26);
-    assert.equal(result.summary.ready_source_count, 26);
+    assert.equal(result.summary.source_count, 28);
+    assert.equal(result.summary.ready_source_count, 28);
     assert.equal(result.summary.section_count, 8);
     assert.equal(result.summary.ready_section_count, 8);
     assert.equal(result.summary.project_count, 2);
@@ -66,13 +66,19 @@ test("Desktop read model projects release, factory, review, operator, artifact, 
     assert.equal(result.project_projection.safe_affordance_rows.some((row) => row.action_type === "copy_command" && row.mutates_state === false && row.opens_authority === false), true);
     assert.equal(result.agent_projection.runtime_count, 4);
     assert.equal(result.agent_projection.request_count, 4);
+    assert.equal(result.agent_projection.request_packet_export_count, 4);
     assert.equal(result.agent_projection.receipt_count, 4);
+    assert.equal(result.agent_projection.receipt_import_candidate_count, 4);
+    assert.equal(result.agent_projection.receipt_normalized_summary_count, 4);
     assert.equal(result.agent_projection.execution_candidate_count, 5);
     assert.equal(result.agent_projection.execution_gate_count, 10);
     assert.equal(result.agent_projection.ready_for_desktop_agents_projection, true);
     assert.equal(result.agent_projection.execution_allowed_now, false);
     assert.equal(result.agent_projection.command_output_captured_now, false);
     assert.equal(result.agent_projection.receipt_application_allowed_now, false);
+    assert.equal(result.agent_projection.request_transport_submission_allowed_now, false);
+    assert.equal(result.agent_projection.packet_export_rows.every((row) => row.copy_allowed_now === true && row.request_transport_submission_allowed_now === false), true);
+    assert.equal(result.agent_projection.receipt_import_candidate_rows.every((row) => row.raw_output_included === false && row.receipt_applied === false && row.opens_authority === false), true);
     assert.equal(result.agent_projection.execution_candidate_rows.every((row) => row.execution_allowed_now === false && row.command_executed_now === false && row.command_output_captured_now === false), true);
     assert.equal(result.agent_projection.agent_control_rows.every((row) => row.control_enabled === false && row.opens_authority === false), true);
     assert.equal(result.sections.every((section) => section.source_path && section.generated_at && section.status && Object.hasOwn(section, "blocker") && Array.isArray(section.section_refs)), true);
@@ -256,6 +262,8 @@ async function createReadModelFixture() {
     agentBridgeManifestPath: file("agent-bridge-manifest.json"),
     agentBridgeRequestReceiptPath: file("agent-bridge-request-receipt.json"),
     agentBridgeRequestReceiptSummaryPath: file("agent-bridge-request-receipt-summary.md"),
+    agentBridgeRequestPacketExportPath: file("agent-bridge-request-packet-export.json"),
+    agentBridgeReceiptImportWorkspacePath: file("agent-bridge-receipt-import-workspace.json"),
     agentBridgeExecutionCandidatePath: file("agent-bridge-execution-candidate.json"),
     operatorHandbookPath: file("operator-handbook.json"),
     operatorSurfacesPath: file("operator-surfaces.json"),
@@ -394,6 +402,8 @@ async function createReadModelFixture() {
   }, null, 2), "utf8");
   await writeFile(options.agentBridgeManifestPath, JSON.stringify(agentBridgeManifestFixture(), null, 2), "utf8");
   await writeFile(options.agentBridgeRequestReceiptPath, JSON.stringify(agentBridgeRequestReceiptFixture(), null, 2), "utf8");
+  await writeFile(options.agentBridgeRequestPacketExportPath, JSON.stringify(agentBridgeRequestPacketExportFixture(), null, 2), "utf8");
+  await writeFile(options.agentBridgeReceiptImportWorkspacePath, JSON.stringify(agentBridgeReceiptImportWorkspaceFixture(), null, 2), "utf8");
   await writeFile(options.agentBridgeExecutionCandidatePath, JSON.stringify(agentBridgeExecutionCandidateFixture(), null, 2), "utf8");
   await writeFile(options.operatorHandbookPath, JSON.stringify({ schema_version: "operator-handbook.v1", summary: { operator_handbook_status: "complete", operator_handbook_id: "operator-handbook.test" } }, null, 2), "utf8");
   await writeFile(options.operatorSurfacesPath, JSON.stringify({ schema_version: "operator-surfaces.v1", operator_surface_rows: [] }, null, 2), "utf8");
@@ -499,6 +509,94 @@ function agentBridgeRequestReceiptFixture() {
       { binding_id: "binding.code", request_id: "request.code", receipt_id: "receipt.code", binding_status: "pending_or_quarantined_receipt", target_runtime_id: "runtime.claude_code.opus_max", target_capability_id: "capability.claude.review_lane" },
       { binding_id: "binding.proposal", request_id: "request.proposal", receipt_id: "receipt.proposal", binding_status: "pending_or_quarantined_receipt", target_runtime_id: "runtime.codex.desktop", target_capability_id: "capability.codex.skills.visible_catalog" },
       { binding_id: "binding.command", request_id: "request.command", receipt_id: "receipt.command", binding_status: "bound_to_normalized_receipt", target_runtime_id: "runtime.local.hermes_scripts", target_capability_id: "capability.local.hermes.agent_bridge_manifest" },
+    ],
+  };
+}
+
+function agentBridgeRequestPacketExportFixture() {
+  return {
+    schema_version: "agent-bridge-request-packet-export.v1",
+    summary: {
+      agent_bridge_request_packet_export_status: "ready_for_agent_bridge_request_packet_export",
+      source_agent_bridge_request_receipt_status: "ready_for_agent_bridge_request_receipt",
+      packet_count: 4,
+      markdown_packet_count: 4,
+      blocked_export_fixture_count: 10,
+      request_packet_export_enabled_now: true,
+      copy_markdown_allowed_now: true,
+      file_export_allowed_now: true,
+      request_transport_submission_allowed_now: false,
+      provider_automation_allowed_now: false,
+      execution_allowed_now: false,
+      receipt_application_allowed_now: false,
+      approval_application_allowed_now: false,
+      validation_error_count: 0,
+    },
+    agent_request_packet_export_boundary: {
+      unsafe_flag_count: 0,
+      ready_for_agent_request_packet_copy: true,
+      ready_for_desktop_agents_projection: true,
+      request_transport_submission_allowed_now: false,
+      execution_allowed_now: false,
+      receipt_application_allowed_now: false,
+      approval_application_allowed_now: false,
+    },
+    agent_request_packet_export_rows: [
+      { packet_id: "packet.plan", request_id: "request.plan", request_type: "plan_review", request_title: "Plan review", target_runtime_id: "runtime.chatgpt.web_agbrowse", target_capability_id: "capability.chatgpt.agbrowse.web_ai", packet_status: "ready_to_copy", packet_file_name: "plan.md", packet_markdown_hash: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", copy_allowed_now: true, file_export_allowed_now: true },
+      { packet_id: "packet.code", request_id: "request.code", request_type: "code_review", request_title: "Code review", target_runtime_id: "runtime.claude_code.opus_max", target_capability_id: "capability.claude.review_lane", packet_status: "ready_to_copy", packet_file_name: "code.md", packet_markdown_hash: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", copy_allowed_now: true, file_export_allowed_now: true },
+      { packet_id: "packet.proposal", request_id: "request.proposal", request_type: "implementation_proposal", request_title: "Proposal", target_runtime_id: "runtime.codex.desktop", target_capability_id: "capability.codex.skills.visible_catalog", packet_status: "ready_to_copy", packet_file_name: "proposal.md", packet_markdown_hash: "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", copy_allowed_now: true, file_export_allowed_now: true },
+      { packet_id: "packet.command", request_id: "request.command", request_type: "command_suggestion", request_title: "Command suggestion", target_runtime_id: "runtime.local.hermes_scripts", target_capability_id: "capability.local.hermes.agent_bridge_manifest", packet_status: "ready_to_copy", packet_file_name: "command.md", packet_markdown_hash: "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", copy_allowed_now: true, file_export_allowed_now: true },
+    ],
+    blocked_export_fixture_rows: [
+      { fixture_id: "export.submit_provider", expected_blocker: "transport_submission", observed_blocker: "transport_submission", blocked: true },
+    ],
+  };
+}
+
+function agentBridgeReceiptImportWorkspaceFixture() {
+  return {
+    schema_version: "agent-bridge-receipt-import-workspace.v1",
+    summary: {
+      agent_bridge_receipt_import_workspace_status: "ready_for_agent_bridge_receipt_import_workspace",
+      source_agent_bridge_request_receipt_status: "ready_for_agent_bridge_request_receipt",
+      source_agent_bridge_request_packet_export_status: "ready_for_agent_bridge_request_packet_export",
+      import_candidate_count: 4,
+      normalized_summary_count: 4,
+      blocked_import_fixture_count: 10,
+      receipt_import_workspace_enabled_now: true,
+      normalized_summary_import_allowed_now: true,
+      import_preview_allowed_now: true,
+      raw_receipt_storage_allowed: false,
+      raw_prompt_storage_allowed: false,
+      receipt_application_allowed_now: false,
+      approval_application_allowed_now: false,
+      execution_allowed_now: false,
+      provider_output_authoritative: false,
+      validation_error_count: 0,
+    },
+    agent_receipt_import_boundary: {
+      unsafe_flag_count: 0,
+      ready_for_agent_receipt_import_workspace: true,
+      ready_for_desktop_agents_projection: true,
+      raw_receipt_storage_allowed: false,
+      receipt_application_allowed_now: false,
+      approval_application_allowed_now: false,
+      execution_allowed_now: false,
+    },
+    agent_receipt_import_candidate_rows: [
+      { import_candidate_id: "import.plan", receipt_id: "receipt.plan", request_id: "request.plan", packet_id: "packet.plan", request_type: "plan_review", receipt_kind: "external_review_summary", workspace_status: "normalized_preview_ready", normalized_verdict: "approve_with_findings", normalized_summary_only: true, raw_output_included: false, raw_receipt_stored: false, receipt_validated: true, receipt_quarantined: false },
+      { import_candidate_id: "import.code", receipt_id: "receipt.code", request_id: "request.code", packet_id: "packet.code", request_type: "code_review", receipt_kind: "external_review_summary", workspace_status: "awaiting_redacted_receipt", normalized_verdict: "missing", normalized_summary_only: true, raw_output_included: false, raw_receipt_stored: false, receipt_validated: false, receipt_quarantined: true },
+      { import_candidate_id: "import.proposal", receipt_id: "receipt.proposal", request_id: "request.proposal", packet_id: "packet.proposal", request_type: "implementation_proposal", receipt_kind: "local_work_summary", workspace_status: "awaiting_redacted_receipt", normalized_verdict: "missing", normalized_summary_only: true, raw_output_included: false, raw_receipt_stored: false, receipt_validated: false, receipt_quarantined: true },
+      { import_candidate_id: "import.command", receipt_id: "receipt.command", request_id: "request.command", packet_id: "packet.command", request_type: "command_suggestion", receipt_kind: "command_suggestion_summary", workspace_status: "normalized_preview_ready", normalized_verdict: "text_only_command_suggestion", normalized_summary_only: true, raw_output_included: false, raw_receipt_stored: false, receipt_validated: true, receipt_quarantined: false },
+    ],
+    agent_receipt_normalized_summary_rows: [
+      { import_candidate_id: "import.plan", receipt_id: "receipt.plan", request_id: "request.plan", request_type: "plan_review", normalized_verdict: "approve_with_findings", summary_label: "Validated normalized receipt summary", displayable_in_desktop: true },
+      { import_candidate_id: "import.code", receipt_id: "receipt.code", request_id: "request.code", request_type: "code_review", normalized_verdict: "missing", summary_label: "Quarantined receipt summary", displayable_in_desktop: true },
+      { import_candidate_id: "import.proposal", receipt_id: "receipt.proposal", request_id: "request.proposal", request_type: "implementation_proposal", normalized_verdict: "missing", summary_label: "Quarantined receipt summary", displayable_in_desktop: true },
+      { import_candidate_id: "import.command", receipt_id: "receipt.command", request_id: "request.command", request_type: "command_suggestion", normalized_verdict: "text_only_command_suggestion", summary_label: "Validated normalized receipt summary", displayable_in_desktop: true },
+    ],
+    blocked_import_fixture_rows: [
+      { fixture_id: "import.fake_approval", expected_blocker: "approve", observed_blocker: "approve", blocked: true, receipt_quarantined: true },
     ],
   };
 }

@@ -1,0 +1,166 @@
+{
+  "schema_version": "desktop-read-model-validation-report.v1",
+  "generated_at": "2026-06-16T01:02:57.994Z",
+  "validation": {
+    "valid": true,
+    "item_count": 22,
+    "error_count": 0,
+    "errors": []
+  },
+  "validation_items": [
+    {
+      "path": "package.script.desktop_read_model",
+      "check_id": "package.script.desktop_read_model",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "package.json"
+    },
+    {
+      "path": "policy.allowlist.explicit",
+      "check_id": "policy.allowlist.explicit",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "artifact_access_policy"
+    },
+    {
+      "path": "sources.blocker_visible",
+      "check_id": "sources.blocker_visible",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "source_rows"
+    },
+    {
+      "path": "sources.no_denied_reads",
+      "check_id": "sources.no_denied_reads",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "source_rows"
+    },
+    {
+      "path": "sections.required",
+      "check_id": "sections.required",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "sections"
+    },
+    {
+      "path": "sections.ready",
+      "check_id": "sections.ready",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "sections"
+    },
+    {
+      "path": "operator_handbook.bound",
+      "check_id": "operator_handbook.bound",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "operator_handbook"
+    },
+    {
+      "path": "authority_boundary.ready",
+      "check_id": "authority_boundary.ready",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "desktop_authority_boundary"
+    },
+    {
+      "path": "authority.no_write_or_trust",
+      "check_id": "authority.no_write_or_trust",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "desktop_read_authority"
+    },
+    {
+      "path": "trust_claims.closed",
+      "check_id": "trust_claims.closed",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "trust_claim_guard_rows"
+    },
+    {
+      "path": "denylist.fixtures",
+      "check_id": "denylist.fixtures",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "denylist_fixture_rows"
+    },
+    {
+      "path": "release_projection.authority_closed",
+      "check_id": "release_projection.authority_closed",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "release_projection"
+    },
+    {
+      "path": "factory_projection.gate_closed",
+      "check_id": "factory_projection.gate_closed",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "factory_projection"
+    },
+    {
+      "path": "project_projection.ready",
+      "check_id": "project_projection.ready",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "project_projection"
+    },
+    {
+      "path": "project_projection.authority_closed",
+      "check_id": "project_projection.authority_closed",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "project_projection"
+    },
+    {
+      "path": "project_projection.safe_affordances_closed",
+      "check_id": "project_projection.safe_affordances_closed",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "project_projection.safe_affordance_rows"
+    },
+    {
+      "path": "project_projection.detail_rows",
+      "check_id": "project_projection.detail_rows",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "project_projection.project_detail_rows"
+    },
+    {
+      "path": "agent_projection.ready",
+      "check_id": "agent_projection.ready",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_projection"
+    },
+    {
+      "path": "agent_projection.authority_closed",
+      "check_id": "agent_projection.authority_closed",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_projection"
+    },
+    {
+      "path": "agent_projection.execution_candidates_closed",
+      "check_id": "agent_projection.execution_candidates_closed",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_projection.execution_candidate_rows"
+    },
+    {
+      "path": "agent_projection.execution_gates_closed",
+      "check_id": "agent_projection.execution_gates_closed",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_projection.execution_gate_rows"
+    },
+    {
+      "path": "agent_projection.no_latent_execution_ui",
+      "check_id": "agent_projection.no_latent_execution_ui",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_projection.agent_control_rows"
+    }
+  ]
+}

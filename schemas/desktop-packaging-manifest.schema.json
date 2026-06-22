@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/desktop-packaging-manifest.schema.json",
+  "title": "Hermes Desktop Packaging Manifest",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "capability_id",
+    "script_rows",
+    "auto_update_rows",
+    "packaging_rows",
+    "desktop_packaging_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "desktop-packaging-manifest.v1" },
+    "capability_id": { "const": "desktop.packaging_manifest" },
+    "script_rows": {
+      "type": "array",
+      "minItems": 7,
+      "items": { "$ref": "#/$defs/statusRow" }
+    },
+    "auto_update_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/statusRow" }
+    },
+    "packaging_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/$defs/statusRow" }
+    },
+    "desktop_packaging_boundary": {
+      "type": "object",
+      "required": [
+        "local_build_supported",
+        "local_preflight_supported",
+        "macos_app_packaged",
+        "signing_configured",
+        "notarization_configured",
+        "auto_update_enabled",
+        "auto_update_dependency_present",
+        "auto_update_import_present",
+        "external_update_url_present",
+        "update_write_authority_enabled",
+        "packaging_authority_open",
+        "production_release_packaged",
+        "ready_for_local_desktop_start"
+      ],
+      "properties": {
+        "local_build_supported": { "type": "boolean" },
+        "local_preflight_supported": { "type": "boolean" },
+        "macos_app_packaged": { "const": false },
+        "signing_configured": { "const": false },
+        "notarization_configured": { "const": false },
+        "auto_update_enabled": { "const": false },
+        "auto_update_dependency_present": { "type": "boolean" },
+        "auto_update_import_present": { "type": "boolean" },
+        "external_update_url_present": { "const": false },
+        "update_write_authority_enabled": { "const": false },
+        "packaging_authority_open": { "const": false },
+        "production_release_packaged": { "const": false },
+        "ready_for_local_desktop_start": { "type": "boolean" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "desktop_packaging_status",
+        "script_count",
+        "ready_script_count",
+        "auto_update_probe_count",
+        "auto_update_blocker_count",
+        "packaging_row_count",
+        "packaging_blocker_count",
+        "local_build_supported",
+        "local_preflight_supported",
+        "ready_for_local_desktop_start",
+        "macos_app_packaged",
+        "signing_configured",
+        "notarization_configured",
+        "auto_update_enabled",
+        "auto_update_dependency_present",
+        "auto_update_import_present",
+        "external_update_url_present",
+        "update_write_authority_enabled",
+        "packaging_authority_open",
+        "production_release_packaged",
+        "validation_error_count"
+      ],
+      "properties": {
+        "desktop_packaging_status": {
+          "enum": ["local_build_ready_packaging_closed", "blocked_desktop_packaging_manifest"]
+        },
+        "script_count": { "type": "integer", "minimum": 7 },
+        "ready_script_count": { "type": "integer", "minimum": 0 },
+        "auto_update_probe_count": { "type": "integer", "minimum": 6 },
+        "auto_update_blocker_count": { "type": "integer", "minimum": 0 },
+        "packaging_row_count": { "type": "integer", "minimum": 4 },
+        "packaging_blocker_count": { "type": "integer", "minimum": 0 },
+        "local_build_supported": { "type": "boolean" },
+        "local_preflight_supported": { "type": "boolean" },
+        "ready_for_local_desktop_start": { "type": "boolean" },
+        "macos_app_packaged": { "const": false },
+        "signing_configured": { "const": false },
+        "notarization_configured": { "const": false },
+        "auto_update_enabled": { "const": false },
+        "auto_update_dependency_present": { "type": "boolean" },
+        "auto_update_import_present": { "type": "boolean" },
+        "external_update_url_present": { "const": false },
+        "update_write_authority_enabled": { "const": false },
+        "packaging_authority_open": { "const": false },
+        "production_release_packaged": { "const": false },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "statusRow": {
+      "type": "object",
+      "required": ["row_id", "status", "generated_at"],
+      "properties": {
+        "row_id": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["ready", "blocked"] },
+        "generated_at": { "type": "string", "minLength": 1 },
+        "blocker": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

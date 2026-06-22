@@ -1,0 +1,258 @@
+{
+  "schema_version": "desktop-screen-map.v1",
+  "generated_at": "2026-06-16T02:28:21.181Z",
+  "screen_map_count": 13,
+  "screen_map": [
+    {
+      "schema_version": "desktop-screen-map-row.v1",
+      "screen_id": "queue",
+      "ordinal": 1,
+      "label": "Queue",
+      "purpose": "Global operator queue across local-only RC, review, gate, and evidence blockers.",
+      "section_ids": [
+        "queue"
+      ],
+      "source_refs": [],
+      "empty_state": "No safe evidence is available for this screen.",
+      "blocker_state": null,
+      "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
+      "status": "ready",
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "3772d5007d29b25e3d960ca2ce6b2493bf47a9ebf1b9e34cdbc5a8e5494b966a"
+    },
+    {
+      "schema_version": "desktop-screen-map-row.v1",
+      "screen_id": "projects",
+      "ordinal": 2,
+      "label": "Projects",
+      "purpose": "Project and operator-handbook surfaces for the local Hermes workspace.",
+      "section_ids": [
+        "projects"
+      ],
+      "source_refs": [
+        "artifacts/project-operating-contract/latest/project-operating-contract.json",
+        "artifacts/project-operating-contract/latest/summary.md"
+      ],
+      "empty_state": "No safe evidence is available for this screen.",
+      "blocker_state": null,
+      "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
+      "status": "ready",
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "f9a50ced825a9141d3794b4847675cb7203f90cda35dd48eca23db388faca3ec"
+    },
+    {
+      "schema_version": "desktop-screen-map-row.v1",
+      "screen_id": "agents",
+      "ordinal": 3,
+      "label": "Agents",
+      "purpose": "Agent identities, capabilities, request queue, receipts, and permission boundaries without execution.",
+      "section_ids": [
+        "agents"
+      ],
+      "source_refs": [
+        "artifacts/agent-bridge-manifest/latest/agent-bridge-manifest.json",
+        "artifacts/agent-bridge-request-receipt/latest/agent-bridge-request-receipt.json",
+        "artifacts/agent-bridge-request-receipt/latest/summary.md",
+        "artifacts/agent-bridge-request-packet-export/latest/agent-bridge-request-packet-export.json",
+        "artifacts/agent-bridge-receipt-import-workspace/latest/agent-bridge-receipt-import-workspace.json",
+        "artifacts/agent-bridge-review-finding-workbench/latest/agent-bridge-review-finding-workbench.json",
+        "artifacts/agent-bridge-execution-candidate/latest/agent-bridge-execution-candidate.json",
+        "artifacts/agent-bridge-limited-runtime-plan/latest/agent-bridge-limited-runtime-plan.json"
+      ],
+      "empty_state": "No safe evidence is available for this screen.",
+      "blocker_state": null,
+      "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
+      "status": "ready",
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "9c67b16850e32bd98779d476e502160d5312c058923ff68e94a0493dd70a07dd"
+    },
+    {
+      "schema_version": "desktop-screen-map-row.v1",
+      "screen_id": "requirements",
+      "ordinal": 4,
+      "label": "Requirements",
+      "purpose": "Release requirements and launch-class boundaries without production authority.",
+      "section_ids": [
+        "requirements"
+      ],
+      "source_refs": [],
+      "empty_state": "No safe evidence is available for this screen.",
+      "blocker_state": null,
+      "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
+      "status": "ready",
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "8f1338cbf02dd6e318cb423303e6b4761314b7c471322f3b1b4fa31f48ac2996"
+    },
+    {
+      "schema_version": "desktop-screen-map-row.v1",
+      "screen_id": "evidence",
+      "ordinal": 5,
+      "label": "Evidence",
+      "purpose": "Safe evidence rows from release, factory, review, operator, and authority sources.",
+      "section_ids": [
+        "evidence"
+      ],
+      "source_refs": [],
+      "empty_state": "No safe evidence is available for this screen.",
+      "blocker_state": null,
+      "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
+      "status": "ready",
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "9d741960f457870631a13c6ceedfc1a39d5e7d768b5375e643ea8b6707de8e60"
+    },
+    {
+      "schema_version": "desktop-screen-map-row.v1",
+      "screen_id": "reviews",
+      "ordinal": 6,
+      "label": "Reviews",
+      "purpose": "Review packet status and independent-review caveats without treating review as approval.",
+      "section_ids": [
+        "reviews"
+      ],
+      "source_refs": [
+        "docs/claude-final-review-packet-2026-06-15.md"
+      ],
+      "empty_state": "No safe evidence is available for this screen.",
+      "blocker_state": null,
+      "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
+      "status": "ready",
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "50699c5a1daa774eed06584e2723b0b0d1867efa769b16dbb80661f36fed80b2"
+    },
+    {
+      "schema_version": "desktop-screen-map-row.v1",
+      "screen_id": "gates",
+      "ordinal": 7,
+      "label": "Gates",
+      "purpose": "Factory readiness, Stage6/Stage7 evidence, and production governance blockers.",
+      "section_ids": [
+        "gates"
+      ],
+      "source_refs": [],
+      "empty_state": "No safe evidence is available for this screen.",
+      "blocker_state": null,
+      "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
+      "status": "ready",
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "dbc6963ac154535756188d9aec0be4dfec3068bebc50bf396dcb9c280c05d75b"
+    },
+    {
+      "schema_version": "desktop-screen-map-row.v1",
+      "screen_id": "conversations",
+      "ordinal": 8,
+      "label": "Conversations",
+      "purpose": "Conversation and operator context placeholders backed only by safe source refs.",
+      "section_ids": [
+        "conversations"
+      ],
+      "source_refs": [],
+      "empty_state": "No safe evidence is available for this screen.",
+      "blocker_state": null,
+      "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
+      "status": "ready",
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "8e815ca98e10f4a2f59392847aae372bf337754b8f255d9a99b8843ee098c96a"
+    },
+    {
+      "schema_version": "desktop-screen-map-row.v1",
+      "screen_id": "governance",
+      "ordinal": 9,
+      "label": "Governance",
+      "purpose": "Authority boundary and policy surfaces that keep protected actions closed.",
+      "section_ids": [
+        "governance"
+      ],
+      "source_refs": [],
+      "empty_state": "No safe evidence is available for this screen.",
+      "blocker_state": null,
+      "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
+      "status": "ready",
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "35b314f3c4b51ff539e355544ec51527eea4cb2585253bd52c5ff0bedf6aab5c"
+    },
+    {
+      "schema_version": "desktop-screen-map-row.v1",
+      "screen_id": "sources",
+      "ordinal": 10,
+      "label": "Sources",
+      "purpose": "Complete safe source index with ready and blocked evidence rows.",
+      "section_ids": [
+        "sources"
+      ],
+      "source_refs": [],
+      "empty_state": "No safe evidence is available for this screen.",
+      "blocker_state": null,
+      "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
+      "status": "ready",
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "8e89955bb4227e712de221d7fd3b97f7b78abbd58152ebc6f636668e1ff668c5"
+    },
+    {
+      "schema_version": "desktop-screen-map-row.v1",
+      "screen_id": "release",
+      "ordinal": 11,
+      "label": "Release",
+      "purpose": "Release baseline, local tag, launch checklist, and single-owner lower-trust RC status.",
+      "section_ids": [
+        "release"
+      ],
+      "source_refs": [
+        "docs/release-owner-decision-2026-06-14.md",
+        "docs/release-decision-packet-2026-06-15.md",
+        "docs/production-launch-checklist-2026-06-15.md",
+        "docs/release-note-tag-draft-2026-06-15.md",
+        "docs/hermes-desktop-app-plan-2026-06-14.md",
+        "docs/hermes-desktop-local-launch-runbook-2026-06-14.md",
+        "artifacts/desktop-packaging-manifest/latest/summary.md"
+      ],
+      "empty_state": "No safe evidence is available for this screen.",
+      "blocker_state": null,
+      "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
+      "status": "ready",
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "121f748349c04adbd29aa466b9b8d7a1ffa1fe4b7b1b0a82e1a2a27820df924d"
+    },
+    {
+      "schema_version": "desktop-screen-map-row.v1",
+      "screen_id": "factory",
+      "ordinal": 12,
+      "label": "Factory",
+      "purpose": "Factory readiness, Stage6/Stage7 evidence, and production governance blockers.",
+      "section_ids": [
+        "factory"
+      ],
+      "source_refs": [
+        "artifacts/factory-gate-opening-readiness/latest/summary.md",
+        "artifacts/factory-stage6-7-execution-readiness/latest/summary.md",
+        "artifacts/release-readiness-control-plane/latest/summary.md",
+        "artifacts/production-governance-hardening/latest/summary.md",
+        "artifacts/p16800-platform-freeze/latest/summary.md"
+      ],
+      "empty_state": "No safe evidence is available for this screen.",
+      "blocker_state": null,
+      "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
+      "status": "ready",
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "7567c576468cd1afd8f833ab26fa962c016991d902fe730f5af9e3bb8a6f9a04"
+    },
+    {
+      "schema_version": "desktop-screen-map-row.v1",
+      "screen_id": "settings",
+      "ordinal": 13,
+      "label": "Settings",
+      "purpose": "Language, local paths, and read-only authority notices.",
+      "section_ids": [
+        "authority_boundary"
+      ],
+      "source_refs": [
+        "artifacts/desktop-authority-boundary/latest/desktop-authority-boundary.json"
+      ],
+      "empty_state": "No safe evidence is available for this screen.",
+      "blocker_state": null,
+      "no_action_authority_notice": "Read-only screen. Protected actions stay outside Desktop.",
+      "status": "ready",
+      "generated_at": "2026-06-16T02:28:21.181Z",
+      "screen_hash": "d114cf9ae99c541a535b3470681f51634ba1ddba7853e0a27e23e6bba7cb48ba"
+    }
+  ]
+}

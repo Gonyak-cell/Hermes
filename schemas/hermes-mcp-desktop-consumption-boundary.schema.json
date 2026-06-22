@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/hermes-mcp-desktop-consumption-boundary.schema.json",
+  "title": "Hermes MCP Desktop Consumption Boundary",
+  "type": "object",
+  "required": ["schema_version", "tranche_id", "command_name", "source_guard_status", "desktop_consumption_rows", "authority_boundary", "validation", "summary"],
+  "properties": {
+    "schema_version": { "const": "hermes-mcp-desktop-consumption-boundary.v1" },
+    "tranche_id": { "const": "H-MCP-05" },
+    "command_name": { "const": "platform:hermes-mcp-desktop-consumption-boundary" },
+    "source_guard_status": { "const": "ready_for_hermes_mcp_authority_guard" },
+    "desktop_consumption_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["mcp_resource_uri", "resource_registered", "consumption_mode", "desktop_source_of_truth", "desktop_mutation_allowed_now", "desktop_receipt_application_allowed_now", "desktop_final_approval_allowed_now"],
+        "properties": {
+          "resource_registered": { "const": true },
+          "consumption_mode": { "const": "mcp_or_equivalent_read_model" },
+          "desktop_source_of_truth": { "const": false },
+          "desktop_mutation_allowed_now": { "const": false },
+          "desktop_receipt_application_allowed_now": { "const": false },
+          "desktop_final_approval_allowed_now": { "const": false }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["status", "desktop_consumption_count", "repo_write_allowed_now", "receipt_application_allowed_now", "production_pass_allowed_now", "enterprise_trust_claim_allowed_now", "raw_restricted_payload_allowed", "validation_error_count"],
+      "properties": {
+        "status": { "const": "ready_for_hermes_mcp_desktop_consumption_boundary" },
+        "desktop_consumption_count": { "const": 8 },
+        "repo_write_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "production_pass_allowed_now": { "const": false },
+        "enterprise_trust_claim_allowed_now": { "const": false },
+        "raw_restricted_payload_allowed": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

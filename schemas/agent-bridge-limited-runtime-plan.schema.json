@@ -1,0 +1,248 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/agent-bridge-limited-runtime-plan.schema.json",
+  "title": "Hermes Agent Bridge Limited Runtime Plan",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "capability_id",
+    "program_range",
+    "agent_bridge_limited_runtime_contract",
+    "agent_bridge_limited_runtime_source_rows",
+    "dry_run_executor_rows",
+    "owner_limited_execution_gate_rows",
+    "provider_adapter_request_rows",
+    "blocked_runtime_command_fixture_rows",
+    "l10_preflight_candidate_rows",
+    "limited_runtime_gate_rows",
+    "limited_runtime_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "agent-bridge-limited-runtime-plan.v1" },
+    "capability_id": { "const": "platform.agent_bridge_limited_runtime_plan" },
+    "program_range": { "const": "AGENT-BRIDGE-L9-L10-SLICE-G" },
+    "agent_bridge_limited_runtime_contract": { "$ref": "#/$defs/closedBoundary" },
+    "agent_bridge_limited_runtime_source_rows": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "dry_run_executor_rows": {
+      "type": "array",
+      "minItems": 13,
+      "items": { "$ref": "#/$defs/executionClosedRow" }
+    },
+    "owner_limited_execution_gate_rows": {
+      "type": "array",
+      "minItems": 13,
+      "items": { "$ref": "#/$defs/executionClosedRow" }
+    },
+    "provider_adapter_request_rows": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/$defs/providerAdapterRow" }
+    },
+    "blocked_runtime_command_fixture_rows": {
+      "type": "array",
+      "minItems": 14,
+      "items": { "$ref": "#/$defs/executionClosedRow" }
+    },
+    "l10_preflight_candidate_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": { "$ref": "#/$defs/executionClosedRow" }
+    },
+    "limited_runtime_gate_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "limited_runtime_boundary": {
+      "allOf": [
+        { "$ref": "#/$defs/closedBoundary" },
+        {
+          "type": "object",
+          "required": [
+            "ready_for_l9_dry_run_operator_handoff",
+            "ready_for_l10_preflight_candidate_handoff",
+            "unsafe_flag_count"
+          ],
+          "properties": {
+            "ready_for_l9_dry_run_operator_handoff": { "type": "boolean" },
+            "ready_for_l10_preflight_candidate_handoff": { "type": "boolean" },
+            "unsafe_flag_count": { "const": 0 }
+          }
+        }
+      ]
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "item_count", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "item_count": { "type": "integer", "minimum": 0 },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "allOf": [
+        { "$ref": "#/$defs/closedBoundary" },
+        {
+          "type": "object",
+          "required": [
+            "agent_bridge_limited_runtime_plan_status",
+            "source_ready_count",
+            "source_count",
+            "dry_run_executor_count",
+            "owner_gate_count",
+            "provider_adapter_request_count",
+            "blocked_runtime_command_fixture_count",
+            "l10_preflight_candidate_count",
+            "gate_pass_count",
+            "gate_count",
+            "validation_error_count"
+          ],
+          "properties": {
+            "agent_bridge_limited_runtime_plan_status": {
+              "enum": ["ready_for_agent_bridge_limited_runtime_plan", "blocked_agent_bridge_limited_runtime_plan"]
+            },
+            "source_ready_count": { "type": "integer", "minimum": 0 },
+            "source_count": { "type": "integer", "minimum": 3 },
+            "dry_run_executor_count": { "type": "integer", "minimum": 13 },
+            "owner_gate_count": { "type": "integer", "minimum": 13 },
+            "provider_adapter_request_count": { "type": "integer", "minimum": 3 },
+            "blocked_runtime_command_fixture_count": { "type": "integer", "minimum": 14 },
+            "l10_preflight_candidate_count": { "type": "integer", "minimum": 8 },
+            "gate_pass_count": { "type": "integer", "minimum": 0 },
+            "gate_count": { "type": "integer", "minimum": 8 },
+            "validation_error_count": { "type": "integer", "minimum": 0 }
+          }
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "verdictRow": {
+      "type": "object",
+      "required": ["schema_version", "row_id", "current_verdict", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "current_verdict": { "enum": ["pass", "blocked"] },
+        "unsafe_flags_false": { "type": "boolean" },
+        "verdict_authority": { "const": "harness_deterministic_validator" },
+        "opens_authority": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "executionClosedRow": {
+      "allOf": [
+        { "$ref": "#/$defs/verdictRow" },
+        {
+          "type": "object",
+          "required": [
+            "execution_allowed_now",
+            "command_executed_now",
+            "command_output_captured_now",
+            "mutation_performed",
+            "opens_authority"
+          ],
+          "properties": {
+            "execution_allowed_now": { "const": false },
+            "command_executed_now": { "const": false },
+            "command_output_captured_now": { "const": false },
+            "mutation_performed": { "const": false },
+            "opens_authority": { "const": false }
+          }
+        }
+      ]
+    },
+    "providerAdapterRow": {
+      "allOf": [
+        { "$ref": "#/$defs/executionClosedRow" },
+        {
+          "type": "object",
+          "required": [
+            "request_transport_submission_allowed_now",
+            "provider_automation_allowed_now",
+            "provider_output_authoritative"
+          ],
+          "properties": {
+            "request_transport_submission_allowed_now": { "const": false },
+            "provider_automation_allowed_now": { "const": false },
+            "provider_output_authoritative": { "const": false }
+          }
+        }
+      ]
+    },
+    "closedBoundary": {
+      "type": "object",
+      "required": [
+        "local_only",
+        "read_only",
+        "source_of_truth",
+        "execution_allowed_now",
+        "command_executed_now",
+        "command_output_captured_now",
+        "mutation_performed",
+        "dry_run_only",
+        "owner_approval_observed",
+        "human_receipt_required_before_execution",
+        "limited_execution_receipt_required",
+        "request_transport_submission_allowed_now",
+        "provider_automation_allowed_now",
+        "receipt_application_allowed_now",
+        "approval_application_allowed_now",
+        "provider_output_authoritative",
+        "desktop_mutation_allowed",
+        "agent_runtime_execution_allowed_now",
+        "command_execution_allowed_now",
+        "shell_execution_allowed_now",
+        "git_write_allowed_now",
+        "deploy_allowed_now",
+        "connector_write_allowed_now",
+        "secret_read_allowed_now",
+        "raw_source_exposure_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "protected_closeout_enabled",
+        "agent_final_pass_allowed_now"
+      ],
+      "properties": {
+        "local_only": { "const": true },
+        "read_only": { "const": true },
+        "source_of_truth": { "const": false },
+        "execution_allowed_now": { "const": false },
+        "command_executed_now": { "const": false },
+        "command_output_captured_now": { "const": false },
+        "mutation_performed": { "const": false },
+        "dry_run_only": { "const": true },
+        "owner_approval_observed": { "const": false },
+        "human_receipt_required_before_execution": { "const": true },
+        "limited_execution_receipt_required": { "const": true },
+        "request_transport_submission_allowed_now": { "const": false },
+        "provider_automation_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "approval_application_allowed_now": { "const": false },
+        "provider_output_authoritative": { "const": false },
+        "desktop_mutation_allowed": { "const": false },
+        "agent_runtime_execution_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "shell_execution_allowed_now": { "const": false },
+        "git_write_allowed_now": { "const": false },
+        "deploy_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "raw_source_exposure_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "agent_final_pass_allowed_now": { "const": false }
+      },
+      "additionalProperties": true
+    }
+  }
+}

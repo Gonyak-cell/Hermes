@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/command_invocation.schema.json",
+  "title": "command_invocation",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "command_invocation_id",
+    "sandbox_session_id",
+    "execution_request_id",
+    "command_id",
+    "argv",
+    "argv_sha256",
+    "cwd",
+    "started_at",
+    "timeout_ms",
+    "status",
+    "files_written_count",
+    "network_attempts_count",
+    "allowed_by_policy"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "command_invocation.v1"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "command_invocation_id": {
+      "type": "string",
+      "pattern": "^ci_[A-Za-z0-9_-]+$"
+    },
+    "sandbox_session_id": {
+      "type": "string"
+    },
+    "execution_request_id": {
+      "type": "string"
+    },
+    "command_id": {
+      "type": "string"
+    },
+    "argv": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "argv_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "cwd": {
+      "type": "string"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ended_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "timeout_ms": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "exit_code": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "passed",
+        "failed",
+        "blocked",
+        "timed_out"
+      ]
+    },
+    "stdout_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "stderr_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "files_written_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "network_attempts_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "allowed_by_policy": {
+      "type": "boolean"
+    },
+    "blocked_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "x-forbidden-fields": [
+    "raw_shell_string",
+    "raw_env",
+    "raw_secret_output"
+  ],
+  "x-validation-invariants": [
+    "command_id must exist in allowlist",
+    "argv must be array",
+    "cwd under worktree",
+    "timeout cap enforced",
+    "stdout/stderr cap enforced"
+  ]
+}

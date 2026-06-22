@@ -26,6 +26,7 @@ import { buildFactoryGSeriesAdvancementReadiness } from "./factory-g-series-adva
 import { buildFactoryGSeriesRuntimeGuards } from "./factory-g-series-runtime-guards.mjs";
 import { buildFactoryStage67ExecutionReadiness } from "./factory-stage6-7-execution-readiness.mjs";
 import { buildFactoryPromotionCloseoutReadiness } from "./factory-promotion-closeout-readiness.mjs";
+import { buildExecutionApiRouteResponse } from "./execution-api-router.mjs";
 
 export const DEFAULT_REVIEW_API_HOST = "127.0.0.1";
 export const DEFAULT_REVIEW_API_PORT = 4177;
@@ -287,6 +288,11 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
   const generatedAt = new Date(options.runAt ?? new Date()).toISOString();
   const url = new URL(requestUrl, "http://127.0.0.1");
   const pathname = normalizePath(url.pathname);
+
+  if (pathname.startsWith("/api/execution")) {
+    const executionResponse = await buildExecutionApiRouteResponse({ pathname, url, method, options, generatedAt });
+    if (executionResponse.handled) return jsonResponse(executionResponse.status, executionResponse.body, method);
+  }
 
   if (pathname === "/api/factory/products" && !isReviewApiReadOnlyMethod(method)) {
     return methodNotAllowedResponse(method);
@@ -13846,6 +13852,9 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/", "Static dashboard HTML"),
       route("GET", "/health", "Readiness and artifact availability"),
       route("GET", "/api", "Route index"),
+      route("GET", "/api/execution/readiness", "Read-only execution maturity readiness rows and blockers"),
+      route("GET", "/api/execution/personal-dev-candidates", "Read-only personal-dev execution candidate rows"),
+      route("GET", "/api/execution/personal-dev-dry-runs", "Read-only personal-dev dry-run sandbox rows"),
       route("GET", "/api/factory/products", "Factory product registry rows"),
       route("GET", "/api/factory/stage", "Factory product PS stage rows"),
       route("GET", "/api/factory/candidate-manifests", "Factory candidate manifest JSON-only resolver rows"),

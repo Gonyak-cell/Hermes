@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/hermes-mcp-client-setup.schema.json",
+  "title": "Hermes MCP Client Setup",
+  "type": "object",
+  "required": ["schema_version", "tranche_id", "command_name", "source_desktop_boundary_status", "runbook_path", "client_setup_rows", "smoke_runbook_rows", "authority_boundary", "validation", "summary"],
+  "properties": {
+    "schema_version": { "const": "hermes-mcp-client-setup.v1" },
+    "tranche_id": { "const": "H-MCP-06" },
+    "command_name": { "const": "platform:hermes-mcp-client-setup" },
+    "source_desktop_boundary_status": { "const": "ready_for_hermes_mcp_desktop_consumption_boundary" },
+    "client_setup_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["client_id", "command", "args", "uses_silent_stdio", "writes_enabled_now", "raw_restricted_payload_allowed"],
+        "properties": {
+          "uses_silent_stdio": { "const": true },
+          "writes_enabled_now": { "const": false },
+          "raw_restricted_payload_allowed": { "const": false }
+        }
+      }
+    },
+    "smoke_runbook_rows": { "type": "array", "minItems": 5 },
+    "summary": {
+      "type": "object",
+      "required": ["status", "client_setup_count", "smoke_runbook_count", "repo_write_allowed_now", "receipt_application_allowed_now", "production_pass_allowed_now", "enterprise_trust_claim_allowed_now", "raw_restricted_payload_allowed", "validation_error_count"],
+      "properties": {
+        "status": { "const": "ready_for_hermes_mcp_client_setup" },
+        "client_setup_count": { "const": 4 },
+        "smoke_runbook_count": { "const": 5 },
+        "repo_write_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "production_pass_allowed_now": { "const": false },
+        "enterprise_trust_claim_allowed_now": { "const": false },
+        "raw_restricted_payload_allowed": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

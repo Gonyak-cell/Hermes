@@ -1,0 +1,416 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/agent-bridge-manifest.schema.json",
+  "title": "Hermes Agent Bridge Manifest",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "capability_id",
+    "program_range",
+    "source_status",
+    "agent_bridge_contract",
+    "capability_state_lattice_rows",
+    "authority_namespace_rows",
+    "provenance_source_rows",
+    "runtime_identity_rows",
+    "capability_inventory_rows",
+    "permission_matrix_rows",
+    "protected_action_classifier_rows",
+    "command_canonicalization_fixture_rows",
+    "redaction_policy_rows",
+    "malicious_manifest_fixture_rows",
+    "adapter_package_provenance_rows",
+    "agent_bridge_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "agent-bridge-manifest.v1" },
+    "capability_id": { "const": "platform.agent_bridge_manifest" },
+    "program_range": { "const": "AGENT-BRIDGE-L0-L4-SLICE-A" },
+    "source_status": {
+      "type": "object",
+      "required": [
+        "schema_source",
+        "package_json_source",
+        "plan_doc_source",
+        "review_receipt_source",
+        "package_script_registered"
+      ],
+      "properties": {
+        "package_script_registered": { "type": "boolean" }
+      }
+    },
+    "agent_bridge_contract": {
+      "type": "object",
+      "required": [
+        "contract_id",
+        "local_only",
+        "read_only",
+        "source_of_truth",
+        "request_queue_enabled_now",
+        "receipt_intake_enabled_now",
+        "controlled_execution_candidate_enabled_now",
+        "desktop_mutation_allowed",
+        "agent_runtime_execution_allowed_now",
+        "command_execution_allowed_now",
+        "shell_execution_allowed_now",
+        "git_write_allowed_now",
+        "deploy_allowed_now",
+        "approval_application_allowed_now",
+        "receipt_application_allowed_now",
+        "connector_write_allowed_now",
+        "secret_read_allowed_now",
+        "raw_source_exposure_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "protected_closeout_enabled",
+        "agent_final_pass_allowed_now",
+        "model_label_is_proof",
+        "installed_implies_observed",
+        "installed_implies_requestable",
+        "installed_implies_executable",
+        "observed_implies_requestable",
+        "observed_implies_executable",
+        "reviewed_implies_approved",
+        "receipt_imported_implies_applied"
+      ],
+      "properties": {
+        "contract_id": { "const": "contract.hermes.agent_bridge_manifest.local_only" },
+        "local_only": { "const": true },
+        "read_only": { "const": true },
+        "source_of_truth": { "const": false },
+        "request_queue_enabled_now": { "const": false },
+        "receipt_intake_enabled_now": { "const": false },
+        "controlled_execution_candidate_enabled_now": { "const": false },
+        "desktop_mutation_allowed": { "const": false },
+        "agent_runtime_execution_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "shell_execution_allowed_now": { "const": false },
+        "git_write_allowed_now": { "const": false },
+        "deploy_allowed_now": { "const": false },
+        "approval_application_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "raw_source_exposure_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "agent_final_pass_allowed_now": { "const": false },
+        "model_label_is_proof": { "const": false },
+        "installed_implies_observed": { "const": false },
+        "installed_implies_requestable": { "const": false },
+        "installed_implies_executable": { "const": false },
+        "observed_implies_requestable": { "const": false },
+        "observed_implies_executable": { "const": false },
+        "reviewed_implies_approved": { "const": false },
+        "receipt_imported_implies_applied": { "const": false }
+      }
+    },
+    "capability_state_lattice_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "authority_namespace_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "provenance_source_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "runtime_identity_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/$defs/runtimeIdentityRow" }
+    },
+    "capability_inventory_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/$defs/capabilityInventoryRow" }
+    },
+    "permission_matrix_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/$defs/permissionRow" }
+    },
+    "protected_action_classifier_rows": {
+      "type": "array",
+      "minItems": 13,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "command_canonicalization_fixture_rows": {
+      "type": "array",
+      "minItems": 15,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "redaction_policy_rows": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "malicious_manifest_fixture_rows": {
+      "type": "array",
+      "minItems": 9,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "adapter_package_provenance_rows": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "agent_bridge_boundary": {
+      "type": "object",
+      "required": [
+        "ready_for_agent_bridge_manifest_projection",
+        "local_only",
+        "read_only",
+        "source_of_truth",
+        "request_queue_enabled_now",
+        "receipt_intake_enabled_now",
+        "controlled_execution_candidate_enabled_now",
+        "desktop_mutation_allowed",
+        "agent_runtime_execution_allowed_now",
+        "command_execution_allowed_now",
+        "shell_execution_allowed_now",
+        "git_write_allowed_now",
+        "deploy_allowed_now",
+        "approval_application_allowed_now",
+        "receipt_application_allowed_now",
+        "connector_write_allowed_now",
+        "secret_read_allowed_now",
+        "raw_source_exposure_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "protected_closeout_enabled",
+        "agent_final_pass_allowed_now",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "ready_for_agent_bridge_manifest_projection": { "type": "boolean" },
+        "local_only": { "const": true },
+        "read_only": { "const": true },
+        "source_of_truth": { "const": false },
+        "request_queue_enabled_now": { "const": false },
+        "receipt_intake_enabled_now": { "const": false },
+        "controlled_execution_candidate_enabled_now": { "const": false },
+        "desktop_mutation_allowed": { "const": false },
+        "agent_runtime_execution_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "shell_execution_allowed_now": { "const": false },
+        "git_write_allowed_now": { "const": false },
+        "deploy_allowed_now": { "const": false },
+        "approval_application_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "raw_source_exposure_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "agent_final_pass_allowed_now": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "item_count", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "item_count": { "type": "integer", "minimum": 0 },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "agent_bridge_manifest_status",
+        "runtime_count",
+        "capability_count",
+        "permission_row_count",
+        "local_only",
+        "read_only",
+        "source_of_truth",
+        "request_queue_enabled_now",
+        "receipt_intake_enabled_now",
+        "controlled_execution_candidate_enabled_now",
+        "desktop_mutation_allowed",
+        "agent_runtime_execution_allowed_now",
+        "command_execution_allowed_now",
+        "shell_execution_allowed_now",
+        "git_write_allowed_now",
+        "deploy_allowed_now",
+        "approval_application_allowed_now",
+        "receipt_application_allowed_now",
+        "connector_write_allowed_now",
+        "secret_read_allowed_now",
+        "raw_source_exposure_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "protected_closeout_enabled",
+        "agent_final_pass_allowed_now",
+        "unsafe_flag_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "agent_bridge_manifest_status": {
+          "enum": ["ready_for_agent_bridge_manifest", "blocked_agent_bridge_manifest"]
+        },
+        "runtime_count": { "type": "integer", "minimum": 4 },
+        "capability_count": { "type": "integer", "minimum": 4 },
+        "permission_row_count": { "type": "integer", "minimum": 4 },
+        "local_only": { "const": true },
+        "read_only": { "const": true },
+        "source_of_truth": { "const": false },
+        "request_queue_enabled_now": { "const": false },
+        "receipt_intake_enabled_now": { "const": false },
+        "controlled_execution_candidate_enabled_now": { "const": false },
+        "desktop_mutation_allowed": { "const": false },
+        "agent_runtime_execution_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "shell_execution_allowed_now": { "const": false },
+        "git_write_allowed_now": { "const": false },
+        "deploy_allowed_now": { "const": false },
+        "approval_application_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "raw_source_exposure_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "agent_final_pass_allowed_now": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "verdictRow": {
+      "type": "object",
+      "required": ["current_verdict", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "current_verdict": { "enum": ["pass", "blocked"] },
+        "unsafe_flags_false": { "type": "boolean" },
+        "verdict_authority": { "const": "harness_deterministic_validator" }
+      }
+    },
+    "runtimeIdentityRow": {
+      "type": "object",
+      "required": [
+        "runtime_id",
+        "runtime_kind",
+        "model_proof_trusted",
+        "state",
+        "requestable",
+        "executable",
+        "can_execute_from_desktop_now",
+        "current_verdict",
+        "verdict_authority"
+      ],
+      "properties": {
+        "runtime_id": { "type": "string", "minLength": 1 },
+        "runtime_kind": { "type": "string", "minLength": 1 },
+        "model_proof_trusted": { "const": false },
+        "state": { "enum": ["installed", "observed", "requestable", "executable", "blocked"] },
+        "requestable": { "const": false },
+        "executable": { "const": false },
+        "can_execute_from_desktop_now": { "const": false },
+        "current_verdict": { "const": "pass" },
+        "verdict_authority": { "const": "harness_deterministic_validator" }
+      }
+    },
+    "capabilityInventoryRow": {
+      "type": "object",
+      "required": [
+        "capability_id",
+        "capability_kind",
+        "runtime_id",
+        "state",
+        "requestable",
+        "executable",
+        "current_verdict",
+        "verdict_authority"
+      ],
+      "properties": {
+        "capability_id": { "type": "string", "minLength": 1 },
+        "capability_kind": { "type": "string", "minLength": 1 },
+        "runtime_id": { "type": "string", "minLength": 1 },
+        "state": { "enum": ["installed", "observed", "requestable", "executable", "blocked"] },
+        "requestable": { "const": false },
+        "executable": { "const": false },
+        "current_verdict": { "const": "pass" },
+        "verdict_authority": { "const": "harness_deterministic_validator" }
+      }
+    },
+    "permissionRow": {
+      "type": "object",
+      "required": [
+        "capability_id",
+        "runtime_id",
+        "authority_namespace",
+        "requestable",
+        "executable",
+        "opens_authority",
+        "desktop_mutation_allowed",
+        "agent_runtime_execution_allowed_now",
+        "command_execution_allowed_now",
+        "shell_execution_allowed_now",
+        "git_write_allowed_now",
+        "deploy_allowed_now",
+        "approval_application_allowed_now",
+        "receipt_application_allowed_now",
+        "connector_write_allowed_now",
+        "secret_read_allowed_now",
+        "raw_source_exposure_allowed",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "protected_closeout_enabled",
+        "agent_final_pass_allowed_now",
+        "current_verdict",
+        "verdict_authority"
+      ],
+      "properties": {
+        "capability_id": { "type": "string", "minLength": 1 },
+        "runtime_id": { "type": "string", "minLength": 1 },
+        "authority_namespace": {
+          "enum": [
+            "desktop_authority",
+            "developer_preflight",
+            "manifest_generator_discovery",
+            "agent_runtime_authority",
+            "external_provider_authority",
+            "protected_action_authority"
+          ]
+        },
+        "requestable": { "const": false },
+        "executable": { "const": false },
+        "opens_authority": { "const": false },
+        "desktop_mutation_allowed": { "const": false },
+        "agent_runtime_execution_allowed_now": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "shell_execution_allowed_now": { "const": false },
+        "git_write_allowed_now": { "const": false },
+        "deploy_allowed_now": { "const": false },
+        "approval_application_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "raw_source_exposure_allowed": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "agent_final_pass_allowed_now": { "const": false },
+        "current_verdict": { "const": "pass" },
+        "verdict_authority": { "const": "harness_deterministic_validator" }
+      }
+    }
+  }
+}

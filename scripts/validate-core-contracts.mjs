@@ -9,7 +9,7 @@ import {
   validateVerticalSliceFile,
 } from "../src/core-contract-validator.mjs";
 
-const targets = process.argv.slice(2);
+const targets = process.argv.slice(2).filter((arg) => arg !== "--check");
 const validationTargets = targets.length ? targets : await defaultValidationTargets();
 
 for (const target of validationTargets) {

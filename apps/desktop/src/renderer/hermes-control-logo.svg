@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Hermes control mark">
+  <rect x="4" y="4" width="88" height="88" rx="20" fill="#111827"/>
+  <path d="M30 24v48M66 24v48M30 48h36" fill="none" stroke="#f8fafc" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M23 72h50" fill="none" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="23" cy="72" r="4" fill="#f59e0b"/>
+  <circle cx="48" cy="72" r="4" fill="#f59e0b"/>
+  <circle cx="73" cy="72" r="4" fill="#f59e0b"/>
+  <path d="M24 24h48" fill="none" stroke="#334155" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
+</svg>

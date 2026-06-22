@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/rollback_plan.schema.json",
+  "title": "rollback_plan",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "rollback_plan_id",
+    "execution_request_id",
+    "rollback_type",
+    "pre_state_hash",
+    "post_state_hash",
+    "created_at",
+    "rollback_executor_invoked",
+    "rollback_executable_now",
+    "verified"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "rollback_plan.v1"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "rollback_plan_id": {
+      "type": "string",
+      "pattern": "^rb_[A-Za-z0-9_-]+$"
+    },
+    "execution_request_id": {
+      "type": "string"
+    },
+    "diff_artifact_id": {
+      "type": "string"
+    },
+    "rollback_type": {
+      "type": "string",
+      "enum": [
+        "no_op",
+        "reverse_patch",
+        "worktree_reset",
+        "manual"
+      ]
+    },
+    "pre_state_hash": {
+      "type": "string"
+    },
+    "post_state_hash": {
+      "type": "string"
+    },
+    "reverse_patch_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "verified_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "rollback_executor_invoked": {
+      "type": "boolean"
+    },
+    "rollback_executable_now": {
+      "type": "boolean"
+    },
+    "verified": {
+      "type": "boolean"
+    },
+    "manual_steps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "x-forbidden-fields": [
+    "production_rollback_claim_in_L3",
+    "generic_revert_manually_without_steps"
+  ],
+  "x-validation-invariants": [
+    "mutation requires rollback",
+    "rollback targets exact pre-state",
+    "manual steps required for manual rollback"
+  ]
+}

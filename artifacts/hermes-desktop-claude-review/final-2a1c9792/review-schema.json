@@ -1,0 +1,93 @@
+{
+  "type": "object",
+  "required": [
+    "review_status",
+    "requested_engine",
+    "observed_model",
+    "base_commit",
+    "prior_review_head",
+    "head_commit",
+    "summary",
+    "findings",
+    "prior_findings_verification",
+    "validation_observed",
+    "residual_risks",
+    "authority_boundary"
+  ],
+  "properties": {
+    "review_status": {
+      "type": "string",
+      "enum": ["PASS", "PASS_WITH_FINDINGS", "BLOCKED"]
+    },
+    "requested_engine": { "type": "string" },
+    "observed_model": { "type": "string" },
+    "base_commit": { "type": "string" },
+    "prior_review_head": { "type": "string" },
+    "head_commit": { "type": "string" },
+    "summary": { "type": "string" },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "file", "line", "title", "details", "recommendation", "evidence"],
+        "properties": {
+          "severity": { "type": "string", "enum": ["P0", "P1", "P2", "P3", "P4"] },
+          "file": { "type": "string" },
+          "line": { "type": "integer" },
+          "title": { "type": "string" },
+          "details": { "type": "string" },
+          "recommendation": { "type": "string" },
+          "evidence": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "prior_findings_verification": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["finding_id", "status", "evidence"],
+        "properties": {
+          "finding_id": { "type": "string" },
+          "status": { "type": "string", "enum": ["fixed", "not_fixed", "partially_fixed", "superseded"] },
+          "evidence": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "validation_observed": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "residual_risks": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "authority_boundary": {
+      "type": "object",
+      "required": [
+        "production_pass",
+        "enterprise_pass",
+        "protected_closeout",
+        "deployment_authorization",
+        "github_independent_approval",
+        "desktop_write_authority",
+        "tag_push_authorization",
+        "release_publication_authorization"
+      ],
+      "properties": {
+        "production_pass": { "type": "boolean", "const": false },
+        "enterprise_pass": { "type": "boolean", "const": false },
+        "protected_closeout": { "type": "boolean", "const": false },
+        "deployment_authorization": { "type": "boolean", "const": false },
+        "github_independent_approval": { "type": "boolean", "const": false },
+        "desktop_write_authority": { "type": "boolean", "const": false },
+        "tag_push_authorization": { "type": "boolean", "const": false },
+        "release_publication_authorization": { "type": "boolean", "const": false }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,124 @@
+{
+  "schema_version": "agent-bridge-execution-candidate-validation-report.v1",
+  "generated_at": "2026-06-16T02:27:30.750Z",
+  "validation": {
+    "valid": true,
+    "item_count": 14,
+    "error_count": 0,
+    "errors": []
+  },
+  "validation_items": [
+    {
+      "schema_version": "agent-bridge-execution-candidate-validation-item.v1",
+      "path": "package.script.registered",
+      "check_id": "package.script.registered",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "package.json"
+    },
+    {
+      "schema_version": "agent-bridge-execution-candidate-validation-item.v1",
+      "path": "source.manifest.ready",
+      "check_id": "source.manifest.ready",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "artifacts/agent-bridge-manifest/latest/agent-bridge-manifest.json"
+    },
+    {
+      "schema_version": "agent-bridge-execution-candidate-validation-item.v1",
+      "path": "source.request_receipt.ready",
+      "check_id": "source.request_receipt.ready",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "artifacts/agent-bridge-request-receipt/latest/agent-bridge-request-receipt.json"
+    },
+    {
+      "schema_version": "agent-bridge-execution-candidate-validation-item.v1",
+      "path": "source.execution_contracts.ready",
+      "check_id": "source.execution_contracts.ready",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_bridge_execution_source_rows"
+    },
+    {
+      "schema_version": "agent-bridge-execution-candidate-validation-item.v1",
+      "path": "contract.no_execution",
+      "check_id": "contract.no_execution",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_bridge_execution_candidate_contract"
+    },
+    {
+      "schema_version": "agent-bridge-execution-candidate-validation-item.v1",
+      "path": "candidate.count",
+      "check_id": "candidate.count",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_bridge_execution_candidate_rows"
+    },
+    {
+      "schema_version": "agent-bridge-execution-candidate-validation-item.v1",
+      "path": "candidate.allowlist",
+      "check_id": "candidate.allowlist",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_bridge_execution_candidate_rows"
+    },
+    {
+      "schema_version": "agent-bridge-execution-candidate-validation-item.v1",
+      "path": "candidate.no_execution",
+      "check_id": "candidate.no_execution",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_bridge_execution_candidate_rows"
+    },
+    {
+      "schema_version": "agent-bridge-execution-candidate-validation-item.v1",
+      "path": "candidate.receipt_required",
+      "check_id": "candidate.receipt_required",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_bridge_execution_candidate_rows"
+    },
+    {
+      "schema_version": "agent-bridge-execution-candidate-validation-item.v1",
+      "path": "blocked.fixtures",
+      "check_id": "blocked.fixtures",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "blocked_command_fixture_rows"
+    },
+    {
+      "schema_version": "agent-bridge-execution-candidate-validation-item.v1",
+      "path": "blocked.no_execution",
+      "check_id": "blocked.no_execution",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "blocked_command_fixture_rows"
+    },
+    {
+      "schema_version": "agent-bridge-execution-candidate-validation-item.v1",
+      "path": "authority.closed",
+      "check_id": "authority.closed",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_bridge_execution_boundary"
+    },
+    {
+      "schema_version": "agent-bridge-execution-candidate-validation-item.v1",
+      "path": "boundary.ready",
+      "check_id": "boundary.ready",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_bridge_execution_boundary"
+    },
+    {
+      "schema_version": "agent-bridge-execution-candidate-validation-item.v1",
+      "path": "gates.pass",
+      "check_id": "gates.pass",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_bridge_execution_gate_rows"
+    }
+  ]
+}

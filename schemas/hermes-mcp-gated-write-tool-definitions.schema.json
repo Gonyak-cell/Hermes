@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/hermes-mcp-gated-write-tool-definitions.schema.json",
+  "title": "Hermes MCP Gated Write Tool Definitions",
+  "type": "object",
+  "required": ["schema_version", "tranche_id", "command_name", "source_client_setup_status", "gated_write_tool_rows", "authority_boundary", "validation", "summary"],
+  "properties": {
+    "schema_version": { "const": "hermes-mcp-gated-write-tool-definitions.v1" },
+    "tranche_id": { "const": "H-MCP-07" },
+    "command_name": { "const": "platform:hermes-mcp-gated-write-tool-definitions" },
+    "source_client_setup_status": { "const": "ready_for_hermes_mcp_client_setup" },
+    "gated_write_tool_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["tool_name", "authority_id", "defined_for_future_tranche", "available_in_mcp_tools_list_now", "execution_registered_now", "execution_allowed_now", "human_receipt_required", "independent_review_required", "protected_gate_required"],
+        "properties": {
+          "defined_for_future_tranche": { "const": true },
+          "available_in_mcp_tools_list_now": { "const": false },
+          "execution_registered_now": { "const": false },
+          "execution_allowed_now": { "const": false },
+          "human_receipt_required": { "const": true },
+          "independent_review_required": { "const": true },
+          "protected_gate_required": { "const": true }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["status", "gated_write_tool_count", "repo_write_allowed_now", "filesystem_write_allowed_now", "connector_write_allowed_now", "deployment_allowed_now", "receipt_application_allowed_now", "protected_action_allowed_now", "production_pass_allowed_now", "enterprise_trust_claim_allowed_now", "raw_restricted_payload_allowed", "validation_error_count"],
+      "properties": {
+        "status": { "const": "ready_for_hermes_mcp_gated_write_tool_definitions" },
+        "gated_write_tool_count": { "const": 9 },
+        "repo_write_allowed_now": { "const": false },
+        "filesystem_write_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "production_pass_allowed_now": { "const": false },
+        "enterprise_trust_claim_allowed_now": { "const": false },
+        "raw_restricted_payload_allowed": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

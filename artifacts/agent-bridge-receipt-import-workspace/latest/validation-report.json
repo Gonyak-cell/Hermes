@@ -1,0 +1,100 @@
+{
+  "schema_version": "agent-bridge-receipt-import-workspace-validation-report.v1",
+  "generated_at": "2026-06-16T02:27:30.400Z",
+  "validation": {
+    "valid": true,
+    "item_count": 11,
+    "error_count": 0,
+    "errors": []
+  },
+  "validation_items": [
+    {
+      "schema_version": "agent-bridge-receipt-import-workspace-validation-item.v1",
+      "path": "source.request_receipt.ready",
+      "check_id": "source.request_receipt.ready",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "artifacts/agent-bridge-request-receipt/latest/agent-bridge-request-receipt.json"
+    },
+    {
+      "schema_version": "agent-bridge-receipt-import-workspace-validation-item.v1",
+      "path": "source.request_packet_export.ready",
+      "check_id": "source.request_packet_export.ready",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "artifacts/agent-bridge-request-packet-export/latest/agent-bridge-request-packet-export.json"
+    },
+    {
+      "schema_version": "agent-bridge-receipt-import-workspace-validation-item.v1",
+      "path": "contract.no_application",
+      "check_id": "contract.no_application",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_bridge_receipt_import_workspace_contract"
+    },
+    {
+      "schema_version": "agent-bridge-receipt-import-workspace-validation-item.v1",
+      "path": "imports.cover.receipts",
+      "check_id": "imports.cover.receipts",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_receipt_import_candidate_rows"
+    },
+    {
+      "schema_version": "agent-bridge-receipt-import-workspace-validation-item.v1",
+      "path": "imports.normalized_only",
+      "check_id": "imports.normalized_only",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_receipt_import_candidate_rows"
+    },
+    {
+      "schema_version": "agent-bridge-receipt-import-workspace-validation-item.v1",
+      "path": "imports.no_application",
+      "check_id": "imports.no_application",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_receipt_import_candidate_rows"
+    },
+    {
+      "schema_version": "agent-bridge-receipt-import-workspace-validation-item.v1",
+      "path": "summaries.display_only",
+      "check_id": "summaries.display_only",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_receipt_normalized_summary_rows"
+    },
+    {
+      "schema_version": "agent-bridge-receipt-import-workspace-validation-item.v1",
+      "path": "fixtures.blocked",
+      "check_id": "fixtures.blocked",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "blocked_import_fixture_rows"
+    },
+    {
+      "schema_version": "agent-bridge-receipt-import-workspace-validation-item.v1",
+      "path": "gates.ready",
+      "check_id": "gates.ready",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_receipt_import_gate_rows"
+    },
+    {
+      "schema_version": "agent-bridge-receipt-import-workspace-validation-item.v1",
+      "path": "boundary.ready",
+      "check_id": "boundary.ready",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_receipt_import_boundary"
+    },
+    {
+      "schema_version": "agent-bridge-receipt-import-workspace-validation-item.v1",
+      "path": "boundary.no_authority",
+      "check_id": "boundary.no_authority",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_receipt_import_boundary"
+    }
+  ]
+}

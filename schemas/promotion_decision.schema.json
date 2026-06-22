@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/promotion_decision.schema.json",
+  "title": "promotion_decision",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "created_at",
+    "product_id",
+    "project_id",
+    "domain_pack_id",
+    "promotion_decision_id",
+    "execution_request_id",
+    "target_level",
+    "decided_by",
+    "promotion_allowed",
+    "deployment_allowed",
+    "production_allowed",
+    "protected_output_allowed"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "promotion_decision.v1"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "product_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "domain_pack_id": {
+      "type": "string"
+    },
+    "promotion_decision_id": {
+      "type": "string",
+      "pattern": "^pd_[A-Za-z0-9_-]+$"
+    },
+    "execution_request_id": {
+      "type": "string"
+    },
+    "target_level": {
+      "type": "string",
+      "enum": [
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5",
+        "L6",
+        "L7"
+      ]
+    },
+    "decided_by": {
+      "type": "string"
+    },
+    "promotion_payload_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "required_receipts_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "promotion_allowed": {
+      "type": "boolean"
+    },
+    "deployment_allowed": {
+      "type": "boolean"
+    },
+    "production_allowed": {
+      "type": "boolean"
+    },
+    "protected_output_allowed": {
+      "type": "boolean"
+    },
+    "review_gate_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "x-forbidden-fields": [
+    "direct_production_target_before_L6",
+    "legal_final_output_before_attorney_approval"
+  ],
+  "x-validation-invariants": [
+    "target level cannot skip required receipts",
+    "failure blockers must be empty",
+    "no single-owner independent review"
+  ]
+}

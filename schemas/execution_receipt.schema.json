@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/execution_receipt.schema.json",
+  "title": "execution_receipt",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "created_at",
+    "product_id",
+    "project_id",
+    "domain_pack_id",
+    "receipt_id",
+    "receipt_type",
+    "execution_request_id",
+    "issuer",
+    "actor_type",
+    "payload_sha256",
+    "entry_hash",
+    "nonce",
+    "authority_snapshot",
+    "forbidden_authority_assertions"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "execution_receipt.v1"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "product_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "domain_pack_id": {
+      "type": "string"
+    },
+    "receipt_id": {
+      "type": "string",
+      "pattern": "^erc_[A-Za-z0-9_-]+$"
+    },
+    "receipt_type": {
+      "type": "string"
+    },
+    "execution_request_id": {
+      "type": "string"
+    },
+    "sandbox_session_id": {
+      "type": "string"
+    },
+    "issuer": {
+      "type": "string"
+    },
+    "actor_type": {
+      "type": "string",
+      "enum": [
+        "human",
+        "agent",
+        "runtime",
+        "system"
+      ]
+    },
+    "runtime_adapter_id": {
+      "type": "string"
+    },
+    "policy_id": {
+      "type": "string"
+    },
+    "prev_entry_hash": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "entry_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "nonce": {
+      "type": "string"
+    },
+    "authority_snapshot": {
+      "type": "object"
+    },
+    "authority_opened": {
+      "type": "boolean"
+    },
+    "forbidden_authority_assertions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_bindings": {
+      "type": "object"
+    }
+  },
+  "x-forbidden-fields": [
+    "unbound_output",
+    "reused_nonce",
+    "self_approved_final_pass"
+  ],
+  "x-validation-invariants": [
+    "nonce unique",
+    "hash chain valid",
+    "payload hash matches",
+    "no authority escalation",
+    "all artifacts referenced by hash"
+  ]
+}

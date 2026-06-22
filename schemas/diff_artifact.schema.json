@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/diff_artifact.schema.json",
+  "title": "diff_artifact",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "created_at",
+    "diff_artifact_id",
+    "execution_request_id",
+    "sandbox_session_id",
+    "base_commit_hash",
+    "diff_sha256",
+    "changed_files",
+    "protected_path_hits",
+    "outside_scope_hits",
+    "captured_by"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "diff_artifact.v1"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "diff_artifact_id": {
+      "type": "string",
+      "pattern": "^da_[A-Za-z0-9_-]+$"
+    },
+    "execution_request_id": {
+      "type": "string"
+    },
+    "sandbox_session_id": {
+      "type": "string"
+    },
+    "base_commit_hash": {
+      "type": "string"
+    },
+    "worktree_state_hash": {
+      "type": "string"
+    },
+    "diff_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "changed_files": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "changed_files_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "protected_path_hits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "outside_scope_hits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "binary_file_hits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "captured_by": {
+      "type": "string",
+      "const": "hermes_diff_capture"
+    }
+  },
+  "x-forbidden-fields": [
+    "agent_only_diff",
+    "uncaptured_patch"
+  ],
+  "x-validation-invariants": [
+    "captured by Hermes",
+    "changed files within allowed scope",
+    "protected hits empty",
+    "binary hits blocked unless explicit"
+  ]
+}

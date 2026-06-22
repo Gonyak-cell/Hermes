@@ -1,0 +1,164 @@
+{
+  "schema_version": "agent-bridge-manifest-validation-report.v1",
+  "generated_at": "2026-06-16T02:27:29.853Z",
+  "validation": {
+    "valid": true,
+    "item_count": 19,
+    "error_count": 0,
+    "errors": []
+  },
+  "validation_items": [
+    {
+      "schema_version": "agent-bridge-validation-item.v1",
+      "path": "package.script.agent_bridge_manifest",
+      "check_id": "package.script.agent_bridge_manifest",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "package.json"
+    },
+    {
+      "schema_version": "agent-bridge-validation-item.v1",
+      "path": "source.schema.available",
+      "check_id": "source.schema.available",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "schemas/agent-bridge-manifest.schema.json"
+    },
+    {
+      "schema_version": "agent-bridge-validation-item.v1",
+      "path": "source.plan.available",
+      "check_id": "source.plan.available",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "docs/hermes-agent-bridge-tuw-plan-2026-06-16.md"
+    },
+    {
+      "schema_version": "agent-bridge-validation-item.v1",
+      "path": "source.review_receipt.available",
+      "check_id": "source.review_receipt.available",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "docs/hermes-agent-bridge-agbrowse-chatgpt-pro-review-receipt-2026-06-16.md"
+    },
+    {
+      "schema_version": "agent-bridge-validation-item.v1",
+      "path": "contract.no_authority",
+      "check_id": "contract.no_authority",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_bridge_contract"
+    },
+    {
+      "schema_version": "agent-bridge-validation-item.v1",
+      "path": "contract.state_lattice",
+      "check_id": "contract.state_lattice",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_bridge_contract"
+    },
+    {
+      "schema_version": "agent-bridge-validation-item.v1",
+      "path": "runtime.identity.minimum",
+      "check_id": "runtime.identity.minimum",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "runtime_identity_rows"
+    },
+    {
+      "schema_version": "agent-bridge-validation-item.v1",
+      "path": "capability.inventory.minimum",
+      "check_id": "capability.inventory.minimum",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "capability_inventory_rows"
+    },
+    {
+      "schema_version": "agent-bridge-validation-item.v1",
+      "path": "permission.matrix.covers_capabilities",
+      "check_id": "permission.matrix.covers_capabilities",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "permission_matrix_rows"
+    },
+    {
+      "schema_version": "agent-bridge-validation-item.v1",
+      "path": "permission.matrix.closed",
+      "check_id": "permission.matrix.closed",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "permission_matrix_rows"
+    },
+    {
+      "schema_version": "agent-bridge-validation-item.v1",
+      "path": "authority.namespaces.closed",
+      "check_id": "authority.namespaces.closed",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "authority_namespace_rows"
+    },
+    {
+      "schema_version": "agent-bridge-validation-item.v1",
+      "path": "provider.output.no_authority",
+      "check_id": "provider.output.no_authority",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "provenance_source_rows"
+    },
+    {
+      "schema_version": "agent-bridge-validation-item.v1",
+      "path": "protected.actions.blocked",
+      "check_id": "protected.actions.blocked",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "protected_action_classifier_rows"
+    },
+    {
+      "schema_version": "agent-bridge-validation-item.v1",
+      "path": "command.canonicalization.blocked",
+      "check_id": "command.canonicalization.blocked",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "command_canonicalization_fixture_rows"
+    },
+    {
+      "schema_version": "agent-bridge-validation-item.v1",
+      "path": "redaction.boundary.closed",
+      "check_id": "redaction.boundary.closed",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "redaction_policy_rows"
+    },
+    {
+      "schema_version": "agent-bridge-validation-item.v1",
+      "path": "malicious.fixtures.blocked",
+      "check_id": "malicious.fixtures.blocked",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "malicious_manifest_fixture_rows"
+    },
+    {
+      "schema_version": "agent-bridge-validation-item.v1",
+      "path": "adapter.provenance.passive",
+      "check_id": "adapter.provenance.passive",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "adapter_package_provenance_rows"
+    },
+    {
+      "schema_version": "agent-bridge-validation-item.v1",
+      "path": "boundary.ready",
+      "check_id": "boundary.ready",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_bridge_boundary"
+    },
+    {
+      "schema_version": "agent-bridge-validation-item.v1",
+      "path": "boundary.no_authority",
+      "check_id": "boundary.no_authority",
+      "status": "passed",
+      "message": "ok",
+      "evidence_ref": "agent_bridge_boundary"
+    }
+  ]
+}

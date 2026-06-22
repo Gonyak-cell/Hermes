@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/human_review_gate.schema.json",
+  "title": "human_review_gate",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "human_review_gate_id",
+    "reviewer_id",
+    "execution_request_id",
+    "assigned_at",
+    "can_approve_candidate",
+    "can_approve_mutation",
+    "can_approve_promotion",
+    "is_independent_reviewer",
+    "reviewer_independence_level",
+    "decision"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "human_review_gate.v1"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "human_review_gate_id": {
+      "type": "string",
+      "pattern": "^hrg_[A-Za-z0-9_-]+$"
+    },
+    "reviewer_id": {
+      "type": "string"
+    },
+    "execution_request_id": {
+      "type": "string"
+    },
+    "review_payload_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "reviewed_artifacts_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "assigned_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reviewed_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "can_approve_candidate": {
+      "type": "boolean"
+    },
+    "can_approve_mutation": {
+      "type": "boolean"
+    },
+    "can_approve_promotion": {
+      "type": "boolean"
+    },
+    "is_independent_reviewer": {
+      "type": "boolean"
+    },
+    "reviewer_independence_level": {
+      "type": "string",
+      "enum": [
+        "owner",
+        "single_owner_lower_trust",
+        "independent",
+        "attorney_of_record",
+        "release_manager"
+      ]
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "changes_requested",
+        "waived_with_reason"
+      ]
+    }
+  },
+  "x-forbidden-fields": [
+    "agent_reviewer_as_human",
+    "owner_as_independent_without_policy",
+    "approval_of_unbound_artifacts"
+  ],
+  "x-validation-invariants": [
+    "owner approval and independent review are distinct",
+    "review cannot approve artifacts not hash-bound"
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "schema_version": "capability-state-lattice-rows.v1",
+  "generated_at": "2026-06-16T02:27:29.853Z",
+  "capability_state_lattice_rows_count": 8,
+  "capability_state_lattice_rows": [
+    {
+      "schema_version": "agent-capability-state-lattice-row.v1",
+      "row_id": "agent.bridge.state.lattice.row.01",
+      "generated_at": "2026-06-16T02:27:29.853Z",
+      "from_state": "installed",
+      "to_state": "observed",
+      "automatic_transition_allowed": false,
+      "authority_effect": "none",
+      "rule": "Installed only records possible availability; it does not prove runtime observation.",
+      "current_verdict": "pass",
+      "unsafe_flags_false": true,
+      "verdict_authority": "harness_deterministic_validator"
+    },
+    {
+      "schema_version": "agent-capability-state-lattice-row.v1",
+      "row_id": "agent.bridge.state.lattice.row.02",
+      "generated_at": "2026-06-16T02:27:29.853Z",
+      "from_state": "installed",
+      "to_state": "requestable",
+      "automatic_transition_allowed": false,
+      "authority_effect": "none",
+      "rule": "Installed does not allow request packet creation.",
+      "current_verdict": "pass",
+      "unsafe_flags_false": true,
+      "verdict_authority": "harness_deterministic_validator"
+    },
+    {
+      "schema_version": "agent-capability-state-lattice-row.v1",
+      "row_id": "agent.bridge.state.lattice.row.03",
+      "generated_at": "2026-06-16T02:27:29.853Z",
+      "from_state": "installed",
+      "to_state": "executable",
+      "automatic_transition_allowed": false,
+      "authority_effect": "none",
+      "rule": "Installed does not allow Hermes Desktop execution.",
+      "current_verdict": "pass",
+      "unsafe_flags_false": true,
+      "verdict_authority": "harness_deterministic_validator"
+    },
+    {
+      "schema_version": "agent-capability-state-lattice-row.v1",
+      "row_id": "agent.bridge.state.lattice.row.04",
+      "generated_at": "2026-06-16T02:27:29.853Z",
+      "from_state": "observed",
+      "to_state": "requestable",
+      "automatic_transition_allowed": false,
+      "authority_effect": "none",
+      "rule": "Observed evidence remains display-only until L5 request queue gates exist.",
+      "current_verdict": "pass",
+      "unsafe_flags_false": true,
+      "verdict_authority": "harness_deterministic_validator"
+    },
+    {
+      "schema_version": "agent-capability-state-lattice-row.v1",
+      "row_id": "agent.bridge.state.lattice.row.05",
+      "generated_at": "2026-06-16T02:27:29.853Z",
+      "from_state": "observed",
+      "to_state": "executable",
+      "automatic_transition_allowed": false,
+      "authority_effect": "none",
+      "rule": "Observed evidence never opens runtime execution.",
+      "current_verdict": "pass",
+      "unsafe_flags_false": true,
+      "verdict_authority": "harness_deterministic_validator"
+    },
+    {
+      "schema_version": "agent-capability-state-lattice-row.v1",
+      "row_id": "agent.bridge.state.lattice.row.06",
+      "generated_at": "2026-06-16T02:27:29.853Z",
+      "from_state": "requestable",
+      "to_state": "executable",
+      "automatic_transition_allowed": false,
+      "authority_effect": "none",
+      "rule": "Requestable packet creation does not imply execution authority.",
+      "current_verdict": "pass",
+      "unsafe_flags_false": true,
+      "verdict_authority": "harness_deterministic_validator"
+    },
+    {
+      "schema_version": "agent-capability-state-lattice-row.v1",
+      "row_id": "agent.bridge.state.lattice.row.07",
+      "generated_at": "2026-06-16T02:27:29.853Z",
+      "from_state": "reviewed",
+      "to_state": "approved",
+      "automatic_transition_allowed": false,
+      "authority_effect": "none",
+      "rule": "Review evidence cannot approve Codex-created work.",
+      "current_verdict": "pass",
+      "unsafe_flags_false": true,
+      "verdict_authority": "harness_deterministic_validator"
+    },
+    {
+      "schema_version": "agent-capability-state-lattice-row.v1",
+      "row_id": "agent.bridge.state.lattice.row.08",
+      "generated_at": "2026-06-16T02:27:29.853Z",
+      "from_state": "receipt_imported",
+      "to_state": "receipt_applied",
+      "automatic_transition_allowed": false,
+      "authority_effect": "none",
+      "rule": "Receipt import cannot apply receipts or close protected gates.",
+      "current_verdict": "pass",
+      "unsafe_flags_false": true,
+      "verdict_authority": "harness_deterministic_validator"
+    }
+  ]
+}

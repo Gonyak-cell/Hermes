@@ -1,0 +1,507 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/personal-dev-execution-candidate-lane.schema.json",
+  "title": "personal-dev-execution-candidate-lane",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "product_id",
+    "project_id",
+    "domain_pack_id",
+    "capability_id",
+    "personal_dev_execution_candidate_contract",
+    "personal_dev_execution_candidate_rows",
+    "personal_dev_execution_artifact_binding_rows",
+    "personal_dev_execution_candidate_route_rows",
+    "personal_dev_execution_candidate_boundary",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "personal-dev-execution-candidate-lane.v1"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "product_id": {
+      "const": "product.hermes_harness"
+    },
+    "project_id": {
+      "const": "project.personal_dev_fixture"
+    },
+    "domain_pack_id": {
+      "const": "personal-dev"
+    },
+    "capability_id": {
+      "const": "personal_dev.execution_candidate_lane"
+    },
+    "personal_dev_execution_candidate_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "$ref": "#/$defs/candidateRow"
+      }
+    },
+    "personal_dev_execution_artifact_binding_rows": {
+      "type": "array",
+      "minItems": 12,
+      "items": {
+        "$ref": "#/$defs/artifactBindingRow"
+      }
+    },
+    "personal_dev_execution_candidate_route_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/routeRow"
+      }
+    },
+    "personal_dev_execution_candidate_boundary": {
+      "type": "object",
+      "required": [
+        "source_execution_schema_registry_ready",
+        "source_personal_dev_dashboard_api_ready",
+        "candidate_rows_ready",
+        "artifact_schema_bindings_ready",
+        "route_rows_ready",
+        "ready_for_l1_handoff",
+        "l1_blocker_resolved_now",
+        "read_only",
+        "get_head_only",
+        "candidate_projection_generated_now",
+        "execution_request_created_now",
+        "command_invocation_created_now",
+        "execution_receipt_created_now",
+        "patch_generated_now",
+        "patch_applied_now",
+        "execution_allowed_now",
+        "runtime_execution_allowed_now",
+        "command_execution_allowed_now",
+        "file_write_allowed_now",
+        "task_state_write_allowed_now",
+        "issue_mutation_allowed_now",
+        "git_command_allowed_now",
+        "github_api_allowed_now",
+        "branch_push_allowed_now",
+        "pull_request_creation_allowed_now",
+        "merge_allowed_now",
+        "release_allowed_now",
+        "deployment_allowed_now",
+        "production_allowed_now",
+        "protected_output_allowed_now",
+        "connector_write_allowed_now",
+        "desktop_shell_execution_allowed_now",
+        "raw_secret_access_allowed_now",
+        "final_approval_allowed_now",
+        "owner_approval_counts_as_independent_review",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "source_execution_schema_registry_ready": {
+          "type": "boolean"
+        },
+        "source_personal_dev_dashboard_api_ready": {
+          "type": "boolean"
+        },
+        "candidate_rows_ready": {
+          "type": "boolean"
+        },
+        "artifact_schema_bindings_ready": {
+          "type": "boolean"
+        },
+        "route_rows_ready": {
+          "type": "boolean"
+        },
+        "ready_for_l1_handoff": {
+          "type": "boolean"
+        },
+        "l1_blocker_resolved_now": {
+          "type": "boolean"
+        },
+        "read_only": {
+          "const": true
+        },
+        "get_head_only": {
+          "const": true
+        },
+        "candidate_projection_generated_now": {
+          "const": true
+        },
+        "execution_request_created_now": {
+          "const": false
+        },
+        "command_invocation_created_now": {
+          "const": false
+        },
+        "execution_receipt_created_now": {
+          "const": false
+        },
+        "patch_generated_now": {
+          "const": false
+        },
+        "patch_applied_now": {
+          "const": false
+        },
+        "execution_allowed_now": {
+          "const": false
+        },
+        "runtime_execution_allowed_now": {
+          "const": false
+        },
+        "command_execution_allowed_now": {
+          "const": false
+        },
+        "file_write_allowed_now": {
+          "const": false
+        },
+        "task_state_write_allowed_now": {
+          "const": false
+        },
+        "issue_mutation_allowed_now": {
+          "const": false
+        },
+        "git_command_allowed_now": {
+          "const": false
+        },
+        "github_api_allowed_now": {
+          "const": false
+        },
+        "branch_push_allowed_now": {
+          "const": false
+        },
+        "pull_request_creation_allowed_now": {
+          "const": false
+        },
+        "merge_allowed_now": {
+          "const": false
+        },
+        "release_allowed_now": {
+          "const": false
+        },
+        "deployment_allowed_now": {
+          "const": false
+        },
+        "production_allowed_now": {
+          "const": false
+        },
+        "protected_output_allowed_now": {
+          "const": false
+        },
+        "connector_write_allowed_now": {
+          "const": false
+        },
+        "desktop_shell_execution_allowed_now": {
+          "const": false
+        },
+        "raw_secret_access_allowed_now": {
+          "const": false
+        },
+        "final_approval_allowed_now": {
+          "const": false
+        },
+        "owner_approval_counts_as_independent_review": {
+          "const": false
+        },
+        "production_pass_enabled": {
+          "const": false
+        },
+        "enterprise_pass_enabled": {
+          "const": false
+        },
+        "unsafe_flag_count": {
+          "const": 0
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": [
+        "valid",
+        "errors"
+      ],
+      "properties": {
+        "valid": {
+          "type": "boolean"
+        },
+        "errors": {
+          "type": "array"
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "personal_dev_execution_candidate_lane_status",
+        "candidate_row_count",
+        "ready_candidate_row_count",
+        "artifact_binding_row_count",
+        "ready_for_l1_handoff",
+        "l1_blocker_resolved_now",
+        "execution_request_created_now",
+        "execution_allowed_now",
+        "command_execution_allowed_now",
+        "file_write_allowed_now",
+        "pull_request_creation_allowed_now",
+        "deployment_allowed_now",
+        "production_allowed_now",
+        "protected_output_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "validation_error_count"
+      ],
+      "properties": {
+        "personal_dev_execution_candidate_lane_status": {
+          "enum": [
+            "ready_for_personal_dev_execution_candidate_lane",
+            "blocked_personal_dev_execution_candidate_lane"
+          ]
+        },
+        "candidate_row_count": {
+          "type": "integer",
+          "minimum": 6
+        },
+        "ready_candidate_row_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "artifact_binding_row_count": {
+          "type": "integer",
+          "minimum": 12
+        },
+        "ready_for_l1_handoff": {
+          "type": "boolean"
+        },
+        "l1_blocker_resolved_now": {
+          "type": "boolean"
+        },
+        "execution_request_created_now": {
+          "const": false
+        },
+        "execution_allowed_now": {
+          "const": false
+        },
+        "command_execution_allowed_now": {
+          "const": false
+        },
+        "file_write_allowed_now": {
+          "const": false
+        },
+        "pull_request_creation_allowed_now": {
+          "const": false
+        },
+        "deployment_allowed_now": {
+          "const": false
+        },
+        "production_allowed_now": {
+          "const": false
+        },
+        "protected_output_allowed_now": {
+          "const": false
+        },
+        "production_pass_enabled": {
+          "const": false
+        },
+        "enterprise_pass_enabled": {
+          "const": false
+        },
+        "validation_error_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  },
+  "$defs": {
+    "candidateRow": {
+      "type": "object",
+      "required": [
+        "candidate_id",
+        "candidate_kind",
+        "source_panel_section",
+        "required_schema_ids",
+        "candidate_status",
+        "read_only",
+        "candidate_projection_generated_now",
+        "execution_request_created_now",
+        "command_execution_allowed_now",
+        "file_write_allowed_now",
+        "pull_request_creation_allowed_now",
+        "deployment_allowed_now",
+        "protected_output_allowed_now",
+        "raw_secret_access_allowed_now"
+      ],
+      "properties": {
+        "candidate_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "candidate_kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_panel_section": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required_schema_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "candidate_status": {
+          "enum": [
+            "ready",
+            "blocked"
+          ]
+        },
+        "read_only": {
+          "const": true
+        },
+        "candidate_projection_generated_now": {
+          "const": true
+        },
+        "execution_request_created_now": {
+          "const": false
+        },
+        "command_execution_allowed_now": {
+          "const": false
+        },
+        "file_write_allowed_now": {
+          "const": false
+        },
+        "pull_request_creation_allowed_now": {
+          "const": false
+        },
+        "deployment_allowed_now": {
+          "const": false
+        },
+        "protected_output_allowed_now": {
+          "const": false
+        },
+        "raw_secret_access_allowed_now": {
+          "const": false
+        }
+      }
+    },
+    "artifactBindingRow": {
+      "type": "object",
+      "required": [
+        "binding_id",
+        "schema_id",
+        "binding_status",
+        "bound_candidate_ids",
+        "read_only",
+        "artifact_materialized_now",
+        "execution_request_created_now",
+        "command_execution_allowed_now",
+        "file_write_allowed_now"
+      ],
+      "properties": {
+        "binding_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schema_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "binding_status": {
+          "enum": [
+            "ready",
+            "blocked"
+          ]
+        },
+        "bound_candidate_ids": {
+          "type": "array"
+        },
+        "read_only": {
+          "const": true
+        },
+        "artifact_materialized_now": {
+          "const": false
+        },
+        "execution_request_created_now": {
+          "const": false
+        },
+        "command_execution_allowed_now": {
+          "const": false
+        },
+        "file_write_allowed_now": {
+          "const": false
+        }
+      }
+    },
+    "routeRow": {
+      "type": "object",
+      "required": [
+        "route_id",
+        "path",
+        "method_policy",
+        "collection",
+        "route_invokes_runtime",
+        "route_writes_ledger",
+        "route_executes_command",
+        "route_applies_patch",
+        "route_creates_pull_request",
+        "route_deploys"
+      ],
+      "properties": {
+        "route_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "const": "/api/execution/personal-dev-candidates"
+        },
+        "method_policy": {
+          "const": "GET_HEAD_ONLY"
+        },
+        "collection": {
+          "const": "personal_dev_execution_candidate_rows"
+        },
+        "route_invokes_runtime": {
+          "const": false
+        },
+        "route_writes_ledger": {
+          "const": false
+        },
+        "route_executes_command": {
+          "const": false
+        },
+        "route_applies_patch": {
+          "const": false
+        },
+        "route_creates_pull_request": {
+          "const": false
+        },
+        "route_deploys": {
+          "const": false
+        }
+      }
+    }
+  },
+  "x-forbidden-fields": [
+    "raw_secret",
+    "raw_stdout",
+    "raw_stderr",
+    "shell_execution_action",
+    "patch_body",
+    "provider_key"
+  ],
+  "x-validation-invariants": [
+    "candidate lane is read-only",
+    "candidate projection does not create execution requests",
+    "candidate projection does not run commands",
+    "candidate projection does not write files or ledgers",
+    "candidate projection does not create pull requests or deploy",
+    "owner approval is not independent review"
+  ]
+}

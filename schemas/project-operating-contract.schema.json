@@ -1,0 +1,412 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/project-operating-contract.schema.json",
+  "title": "Hermes Project Operating Contract",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "capability_id",
+    "program_range",
+    "source_program_range",
+    "source_status",
+    "project_operating_contract",
+    "project_identity_rows",
+    "project_source_inventory_rows",
+    "project_state_rows",
+    "project_progress_rows",
+    "project_blocker_taxonomy_rows",
+    "project_next_action_taxonomy_rows",
+    "project_authority_boundary_rows",
+    "project_freshness_rows",
+    "control_room_acceptance_rows",
+    "project_operating_gate_rows",
+    "project_operating_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "project-operating-contract.v1" },
+    "capability_id": { "const": "platform.project_operating_contract" },
+    "program_range": { "const": "TUW-001-TUW-009" },
+    "source_program_range": { "const": "P9401-P9600" },
+    "source_status": {
+      "type": "object",
+      "required": ["source_path", "source_available", "source_parse_status", "source_content_hash"],
+      "properties": {
+        "source_path": { "type": "string", "minLength": 1 },
+        "source_available": { "type": "boolean" },
+        "source_parse_status": { "enum": ["parsed", "missing", "malformed"] },
+        "source_content_hash": { "type": ["string", "null"] }
+      }
+    },
+    "project_operating_contract": {
+      "type": "object",
+      "required": [
+        "contract_id",
+        "local_only",
+        "read_only",
+        "source_of_truth",
+        "ui_write_authority_enabled",
+        "command_execution_allowed_now",
+        "git_write_allowed_now",
+        "deploy_allowed_now",
+        "approval_application_allowed_now",
+        "receipt_application_allowed_now",
+        "connector_write_allowed_now",
+        "raw_source_exposure_allowed",
+        "secret_read_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "protected_closeout_enabled",
+        "cross_project_data_mixing_allowed",
+        "domain_pack_as_whole_product_allowed"
+      ],
+      "properties": {
+        "contract_id": { "const": "contract.hermes.project_operating_contract.local_only" },
+        "local_only": { "const": true },
+        "read_only": { "const": true },
+        "source_of_truth": { "const": false },
+        "ui_write_authority_enabled": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "git_write_allowed_now": { "const": false },
+        "deploy_allowed_now": { "const": false },
+        "approval_application_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "raw_source_exposure_allowed": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "cross_project_data_mixing_allowed": { "const": false },
+        "domain_pack_as_whole_product_allowed": { "const": false }
+      }
+    },
+    "project_identity_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/projectIdentityRow" }
+    },
+    "project_source_inventory_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/projectSourceInventoryRow" }
+    },
+    "project_state_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/projectStateRow" }
+    },
+    "project_progress_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/projectProgressRow" }
+    },
+    "project_blocker_taxonomy_rows": {
+      "type": "array",
+      "minItems": 7,
+      "items": { "$ref": "#/$defs/verdictRow" }
+    },
+    "project_next_action_taxonomy_rows": {
+      "type": "array",
+      "minItems": 18,
+      "items": { "$ref": "#/$defs/nextActionTaxonomyRow" }
+    },
+    "project_authority_boundary_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/authorityBoundaryRow" }
+    },
+    "project_freshness_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/freshnessRow" }
+    },
+    "control_room_acceptance_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": { "$ref": "#/$defs/acceptanceRow" }
+    },
+    "project_operating_gate_rows": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/gateRow" }
+    },
+    "project_operating_boundary": {
+      "type": "object",
+      "required": [
+        "ready_for_desktop_multi_project_projection",
+        "local_only",
+        "read_only",
+        "source_of_truth",
+        "command_execution_allowed_now",
+        "git_write_allowed_now",
+        "deploy_allowed_now",
+        "approval_application_allowed_now",
+        "receipt_application_allowed_now",
+        "connector_write_allowed_now",
+        "raw_source_exposure_allowed",
+        "secret_read_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "protected_closeout_enabled",
+        "cross_project_data_mixing_allowed",
+        "domain_pack_as_whole_product_allowed",
+        "unsafe_flag_count"
+      ],
+      "properties": {
+        "ready_for_desktop_multi_project_projection": { "type": "boolean" },
+        "local_only": { "const": true },
+        "read_only": { "const": true },
+        "source_of_truth": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "git_write_allowed_now": { "const": false },
+        "deploy_allowed_now": { "const": false },
+        "approval_application_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "raw_source_exposure_allowed": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "cross_project_data_mixing_allowed": { "const": false },
+        "domain_pack_as_whole_product_allowed": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "item_count", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "item_count": { "type": "integer", "minimum": 0 },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "project_operating_contract_status",
+        "project_count",
+        "ready_project_count",
+        "blocked_project_count",
+        "stale_project_count",
+        "read_only",
+        "local_only",
+        "source_of_truth",
+        "command_execution_allowed_now",
+        "git_write_allowed_now",
+        "deploy_allowed_now",
+        "approval_application_allowed_now",
+        "receipt_application_allowed_now",
+        "connector_write_allowed_now",
+        "raw_source_exposure_allowed",
+        "secret_read_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "protected_closeout_enabled",
+        "cross_project_data_mixing_allowed",
+        "domain_pack_as_whole_product_allowed",
+        "unsafe_flag_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "project_operating_contract_status": {
+          "enum": ["ready_for_project_operating_contract", "blocked_project_operating_contract"]
+        },
+        "project_count": { "type": "integer", "minimum": 1 },
+        "ready_project_count": { "type": "integer", "minimum": 0 },
+        "blocked_project_count": { "type": "integer", "minimum": 0 },
+        "stale_project_count": { "type": "integer", "minimum": 0 },
+        "read_only": { "const": true },
+        "local_only": { "const": true },
+        "source_of_truth": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "git_write_allowed_now": { "const": false },
+        "deploy_allowed_now": { "const": false },
+        "approval_application_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "raw_source_exposure_allowed": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "cross_project_data_mixing_allowed": { "const": false },
+        "domain_pack_as_whole_product_allowed": { "const": false },
+        "unsafe_flag_count": { "const": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "verdictRow": {
+      "type": "object",
+      "required": ["current_verdict", "unsafe_flags_false", "verdict_authority"],
+      "properties": {
+        "current_verdict": { "enum": ["pass", "blocked"] },
+        "unsafe_flags_false": { "type": "boolean" },
+        "verdict_authority": { "const": "harness_deterministic_validator" }
+      }
+    },
+    "projectIdentityRow": {
+      "type": "object",
+      "required": [
+        "project_id",
+        "project_name",
+        "domain_pack",
+        "data_boundary_id",
+        "domain_pack_scope",
+        "domain_pack_is_whole_product",
+        "hermes_product_identity",
+        "cross_project_data_mixed",
+        "read_only",
+        "current_verdict"
+      ],
+      "properties": {
+        "project_id": { "type": "string", "minLength": 1 },
+        "project_name": { "type": "string", "minLength": 1 },
+        "domain_pack": { "type": "string", "minLength": 1 },
+        "data_boundary_id": { "type": "string", "minLength": 1 },
+        "domain_pack_scope": { "const": "project_workflow_context" },
+        "domain_pack_is_whole_product": { "const": false },
+        "hermes_product_identity": { "const": "general_project_workflow_control_plane" },
+        "cross_project_data_mixed": { "const": false },
+        "read_only": { "const": true }
+      }
+    },
+    "projectSourceInventoryRow": {
+      "type": "object",
+      "required": ["project_id", "source_kind", "source_artifact_path", "source_artifact_sha256", "source_available", "read_only", "current_verdict"],
+      "properties": {
+        "project_id": { "type": "string", "minLength": 1 },
+        "source_kind": { "const": "multi_project_saas_control_plane" },
+        "source_artifact_path": { "type": "string", "minLength": 1 },
+        "source_artifact_sha256": { "type": "string", "minLength": 1 },
+        "source_available": { "const": true },
+        "read_only": { "const": true }
+      }
+    },
+    "projectStateRow": {
+      "type": "object",
+      "required": ["project_id", "project_state", "ready_read_only", "execution_allowed_now", "mutates_state", "current_verdict"],
+      "properties": {
+        "project_id": { "type": "string", "minLength": 1 },
+        "project_state": {
+          "enum": ["active", "blocked", "review_needed", "owner_action_needed", "stale", "paused", "ready_read_only"]
+        },
+        "ready_read_only": { "type": "boolean" },
+        "execution_allowed_now": { "const": false },
+        "mutates_state": { "const": false }
+      }
+    },
+    "projectProgressRow": {
+      "type": "object",
+      "required": ["project_id", "current_goal_id", "current_phase_range", "validation_ready", "review_boundary_ready", "blocker_count", "next_action_count", "progress_confidence", "read_only", "current_verdict"],
+      "properties": {
+        "project_id": { "type": "string", "minLength": 1 },
+        "current_goal_id": { "type": ["string", "null"] },
+        "current_phase_range": { "type": ["string", "null"] },
+        "validation_ready": { "type": "boolean" },
+        "review_boundary_ready": { "type": "boolean" },
+        "blocker_count": { "type": "integer", "minimum": 0 },
+        "next_action_count": { "type": "integer", "minimum": 0 },
+        "progress_confidence": { "enum": ["high", "medium", "low", "unknown"] },
+        "read_only": { "const": true }
+      }
+    },
+    "nextActionTaxonomyRow": {
+      "type": "object",
+      "required": ["action_type", "action_class", "allowed", "mutates_state", "opens_authority", "current_verdict"],
+      "properties": {
+        "action_type": { "type": "string", "minLength": 1 },
+        "action_class": { "enum": ["safe_read_only", "forbidden_protected_action"] },
+        "allowed": { "type": "boolean" },
+        "mutates_state": { "type": "boolean" },
+        "opens_authority": { "type": "boolean" }
+      }
+    },
+    "authorityBoundaryRow": {
+      "type": "object",
+      "required": [
+        "project_id",
+        "local_only",
+        "read_only",
+        "source_of_truth",
+        "command_execution_allowed_now",
+        "git_stage_enabled",
+        "git_commit_enabled",
+        "git_push_enabled",
+        "merge_enabled",
+        "deploy_allowed_now",
+        "approval_application_allowed_now",
+        "receipt_application_allowed_now",
+        "connector_write_allowed_now",
+        "raw_source_exposure_allowed",
+        "secret_read_allowed_now",
+        "production_pass_enabled",
+        "enterprise_pass_enabled",
+        "protected_closeout_enabled",
+        "cross_project_data_mixing_allowed",
+        "domain_pack_as_whole_product_allowed",
+        "unsafe_flag_count",
+        "current_verdict"
+      ],
+      "properties": {
+        "project_id": { "type": "string", "minLength": 1 },
+        "local_only": { "const": true },
+        "read_only": { "const": true },
+        "source_of_truth": { "const": false },
+        "command_execution_allowed_now": { "const": false },
+        "git_stage_enabled": { "const": false },
+        "git_commit_enabled": { "const": false },
+        "git_push_enabled": { "const": false },
+        "merge_enabled": { "const": false },
+        "deploy_allowed_now": { "const": false },
+        "approval_application_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "raw_source_exposure_allowed": { "const": false },
+        "secret_read_allowed_now": { "const": false },
+        "production_pass_enabled": { "const": false },
+        "enterprise_pass_enabled": { "const": false },
+        "protected_closeout_enabled": { "const": false },
+        "cross_project_data_mixing_allowed": { "const": false },
+        "domain_pack_as_whole_product_allowed": { "const": false },
+        "unsafe_flag_count": { "const": 0 }
+      }
+    },
+    "freshnessRow": {
+      "type": "object",
+      "required": ["project_id", "source_generated_at", "freshness_status", "refresh_required", "source_hash", "current_verdict"],
+      "properties": {
+        "project_id": { "type": "string", "minLength": 1 },
+        "source_generated_at": { "type": ["string", "null"] },
+        "freshness_status": { "enum": ["fresh", "aging", "stale", "missing"] },
+        "refresh_required": { "type": "boolean" },
+        "source_hash": { "type": ["string", "null"] }
+      }
+    },
+    "acceptanceRow": {
+      "type": "object",
+      "required": ["acceptance_id", "required", "covered", "current_verdict"],
+      "properties": {
+        "acceptance_id": { "type": "string", "minLength": 1 },
+        "required": { "const": true },
+        "covered": { "type": "boolean" }
+      }
+    },
+    "gateRow": {
+      "type": "object",
+      "required": ["gate_id", "gate_status", "current_verdict"],
+      "properties": {
+        "gate_id": { "type": "string", "minLength": 1 },
+        "gate_status": { "enum": ["ready", "blocked"] }
+      }
+    }
+  }
+}

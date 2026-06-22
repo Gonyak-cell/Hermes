@@ -1,0 +1,798 @@
+import { readFile, realpath } from "node:fs/promises";
+import path from "node:path";
+import { SHELL_SEED_STATE } from "../shared/shell-state.mjs";
+
+export const DESKTOP_READ_MODEL_RELATIVE_PATH = "artifacts/desktop-read-model/latest/desktop-read-model.json";
+const SAFE_PROJECT_AFFORDANCE_TYPES = Object.freeze([
+  "inspect",
+  "copy_command",
+  "open_artifact",
+  "prepare_review_packet",
+  "draft_owner_decision",
+  "refresh_artifact",
+]);
+
+export async function loadDesktopReadModel({ repoRoot }) {
+  const sourcePath = path.join(repoRoot, DESKTOP_READ_MODEL_RELATIVE_PATH);
+  try {
+    const raw = await readFile(sourcePath, "utf8");
+    return sanitizeReadModel(JSON.parse(raw), sourcePath);
+  } catch (error) {
+    return {
+      schema_version: "desktop-read-model-missing.v1",
+      generated_at: new Date().toISOString(),
+      summary: {
+        desktop_read_model_status: "blocked_desktop_shell",
+        validation_error_count: 1,
+        source_count: 0,
+        ready_source_count: 0,
+        blocked_source_count: 1,
+        operator_handbook_bound: false,
+        authority_boundary_ready: false,
+        ...SHELL_SEED_STATE.authority_flags,
+      },
+      sections: [
+        {
+          section_id: "artifacts",
+          label: "Artifacts",
+          source_path: DESKTOP_READ_MODEL_RELATIVE_PATH,
+          generated_at: new Date().toISOString(),
+          status: "blocked",
+          blocker: `Missing desktop read model: ${error.message}`,
+          section_refs: [],
+        },
+      ],
+      source_rows: [],
+      screen_map: [],
+      release_projection: defaultReleaseProjection(),
+      factory_projection: defaultFactoryProjection(),
+      project_projection: defaultProjectProjection(),
+      agent_projection: defaultAgentProjection(),
+      desktop_read_authority: {
+        read_only: true,
+        source_of_truth: false,
+        ...SHELL_SEED_STATE.authority_flags,
+      },
+    };
+  }
+}
+
+export async function loadDesktopSourcePreview({ repoRoot, sourcePath }) {
+  const readModel = await loadDesktopReadModel({ repoRoot });
+  const normalized = normalizePolicyPath(sourcePath);
+  const row = (readModel.source_rows ?? []).find((item) => normalizePolicyPath(item.source_path) === normalized);
+  if (!row) return blockedPreview(normalized, "Source path is not part of the desktop read model.");
+  if (row.status !== "ready") return blockedPreview(normalized, row.blocker ?? "Source row is blocked.");
+  if (isDeniedPreviewPath(normalized)) return blockedPreview(normalized, "Source path is blocked by the desktop preview denylist.");
+  if (!normalized.endsWith(".md")) return blockedPreview(normalized, "Preview is limited to allowlisted markdown summaries.");
+
+  try {
+    const repoRootRealPath = await realpath(repoRoot);
+    const absolutePath = path.resolve(repoRootRealPath, normalized);
+    const sourceRealPath = await realpath(absolutePath);
+    const rootWithSep = repoRootRealPath.endsWith(path.sep) ? repoRootRealPath : `${repoRootRealPath}${path.sep}`;
+    if (sourceRealPath !== repoRootRealPath && !sourceRealPath.startsWith(rootWithSep)) {
+      return blockedPreview(normalized, "Source path escapes the repository root.");
+    }
+
+    const text = await readFile(sourceRealPath, "utf8");
+    const redacted = redactPreviewText(text);
+    return {
+      schema_version: "desktop-source-preview.v1",
+      source_path: normalized,
+      status: "ready",
+      blocker: null,
+      preview_text: redacted.slice(0, 12000),
+      truncated: redacted.length > 12000,
+      redacted: redacted !== text,
+      byte_length: Buffer.byteLength(text),
+    };
+  } catch (error) {
+    return blockedPreview(normalized, error.message);
+  }
+}
+
+export function sanitizeReadModel(readModel, sourcePath = DESKTOP_READ_MODEL_RELATIVE_PATH) {
+  const summary = readModel?.summary ?? {};
+  const authority = readModel?.desktop_read_authority ?? {};
+  return {
+    schema_version: readModel?.schema_version ?? "desktop-read-model.unknown",
+    generated_at: readModel?.generated_at ?? null,
+    source_path: sourcePath,
+    summary: pickSummary(summary),
+    sections: safeArray(readModel?.sections).map(pickSection),
+    source_rows: safeArray(readModel?.source_rows).map(pickSourceRow),
+    screen_map: safeArray(readModel?.screen_map).map(pickScreen),
+    release_projection: pickReleaseProjection(readModel?.release_projection),
+    factory_projection: pickFactoryProjection(readModel?.factory_projection),
+    project_projection: pickProjectProjection(readModel?.project_projection),
+    agent_projection: pickAgentProjection(readModel?.agent_projection),
+    desktop_read_authority: pickAuthority(authority),
+  };
+}
+
+function pickSummary(summary) {
+  return {
+    desktop_read_model_status: summary.desktop_read_model_status ?? "blocked_desktop_shell",
+    source_count: Number(summary.source_count ?? 0),
+    ready_source_count: Number(summary.ready_source_count ?? 0),
+    blocked_source_count: Number(summary.blocked_source_count ?? 0),
+    section_count: Number(summary.section_count ?? 0),
+    ready_section_count: Number(summary.ready_section_count ?? 0),
+    blocked_section_count: Number(summary.blocked_section_count ?? 0),
+    screen_count: Number(summary.screen_count ?? 0),
+    ready_screen_count: Number(summary.ready_screen_count ?? 0),
+    project_count: Number(summary.project_count ?? 0),
+    ready_project_count: Number(summary.ready_project_count ?? 0),
+    blocked_project_count: Number(summary.blocked_project_count ?? 0),
+    stale_project_count: Number(summary.stale_project_count ?? 0),
+    agent_runtime_count: Number(summary.agent_runtime_count ?? 0),
+    agent_request_count: Number(summary.agent_request_count ?? 0),
+    agent_receipt_count: Number(summary.agent_receipt_count ?? 0),
+    agent_execution_candidate_count: Number(summary.agent_execution_candidate_count ?? 0),
+    operator_handbook_bound: summary.operator_handbook_bound === true,
+    authority_boundary_ready: summary.authority_boundary_ready === true,
+    validation_error_count: Number(summary.validation_error_count ?? 0),
+    read_only: summary.read_only !== false,
+    source_of_truth: false,
+    raw_payload_read_allowed: false,
+    secret_like_path_read_allowed: false,
+    command_execution_allowed_now: false,
+    shell_execution_allowed_now: false,
+    deployment_allowed_now: false,
+    git_push_allowed_now: false,
+    approval_application_allowed_now: false,
+    receipt_application_allowed_now: false,
+    connector_write_allowed_now: false,
+    secret_read_allowed_now: false,
+    raw_source_exposure_allowed: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    protected_closeout_enabled: false,
+    desktop_write_authority_enabled: false,
+  };
+}
+
+function pickAgentProjection(projection = {}) {
+  return {
+    schema_version: "desktop-agent-projection.v1",
+    generated_at: projection?.generated_at ?? null,
+    agent_bridge_manifest_status: String(projection?.agent_bridge_manifest_status ?? "not recorded"),
+    agent_bridge_request_receipt_status: String(projection?.agent_bridge_request_receipt_status ?? "not recorded"),
+    agent_bridge_request_packet_export_status: String(projection?.agent_bridge_request_packet_export_status ?? "not recorded"),
+    agent_bridge_receipt_import_workspace_status: String(projection?.agent_bridge_receipt_import_workspace_status ?? "not recorded"),
+    agent_bridge_review_finding_workbench_status: String(projection?.agent_bridge_review_finding_workbench_status ?? "not recorded"),
+    agent_bridge_execution_candidate_status: String(projection?.agent_bridge_execution_candidate_status ?? "not recorded"),
+    agent_bridge_limited_runtime_plan_status: String(projection?.agent_bridge_limited_runtime_plan_status ?? "not recorded"),
+    source_status: projection?.source_status === "ready" ? "ready" : "blocked",
+    runtime_count: Number(projection?.runtime_count ?? 0),
+    capability_count: Number(projection?.capability_count ?? 0),
+    permission_row_count: Number(projection?.permission_row_count ?? 0),
+    request_count: Number(projection?.request_count ?? 0),
+    receipt_count: Number(projection?.receipt_count ?? 0),
+    evidence_binding_count: Number(projection?.evidence_binding_count ?? 0),
+    request_packet_export_count: Number(projection?.request_packet_export_count ?? 0),
+    request_packet_markdown_count: Number(projection?.request_packet_markdown_count ?? 0),
+    receipt_import_candidate_count: Number(projection?.receipt_import_candidate_count ?? 0),
+    receipt_normalized_summary_count: Number(projection?.receipt_normalized_summary_count ?? 0),
+    review_finding_count: Number(projection?.review_finding_count ?? 0),
+    blocking_finding_count: Number(projection?.blocking_finding_count ?? 0),
+    execution_candidate_count: Number(projection?.execution_candidate_count ?? 0),
+    blocked_command_fixture_count: Number(projection?.blocked_command_fixture_count ?? 0),
+    execution_gate_count: Number(projection?.execution_gate_count ?? 0),
+    execution_gate_pass_count: Number(projection?.execution_gate_pass_count ?? 0),
+    dry_run_executor_count: Number(projection?.dry_run_executor_count ?? 0),
+    provider_adapter_request_count: Number(projection?.provider_adapter_request_count ?? 0),
+    owner_limited_execution_gate_count: Number(projection?.owner_limited_execution_gate_count ?? 0),
+    l10_preflight_candidate_count: Number(projection?.l10_preflight_candidate_count ?? 0),
+    limited_runtime_gate_count: Number(projection?.limited_runtime_gate_count ?? 0),
+    limited_runtime_gate_pass_count: Number(projection?.limited_runtime_gate_pass_count ?? 0),
+    ready_for_desktop_agents_projection: projection?.ready_for_desktop_agents_projection === true,
+    local_only: true,
+    read_only: true,
+    source_of_truth: false,
+    request_queue_enabled_now: projection?.request_queue_enabled_now === true,
+    receipt_intake_enabled_now: projection?.receipt_intake_enabled_now === true,
+    request_packet_export_enabled_now: projection?.request_packet_export_enabled_now === true,
+    copy_markdown_allowed_now: projection?.copy_markdown_allowed_now === true,
+    file_export_allowed_now: projection?.file_export_allowed_now === true,
+    receipt_import_workspace_enabled_now: projection?.receipt_import_workspace_enabled_now === true,
+    normalized_summary_import_allowed_now: projection?.normalized_summary_import_allowed_now === true,
+    import_preview_allowed_now: projection?.import_preview_allowed_now === true,
+    review_finding_workbench_enabled_now: projection?.review_finding_workbench_enabled_now === true,
+    finding_seed_visible_now: projection?.finding_seed_visible_now === true,
+    finding_action_visible_now: projection?.finding_action_visible_now === true,
+    finding_resolution_allowed_now: false,
+    clean_checkpoint_allowed_now: false,
+    patch_apply_allowed_now: false,
+    controlled_execution_candidate_enabled_now: projection?.controlled_execution_candidate_enabled_now === true,
+    candidate_queue_enabled_now: projection?.candidate_queue_enabled_now === true,
+    candidate_export_allowed_now: projection?.candidate_export_allowed_now === true,
+    candidate_validation_allowed_now: projection?.candidate_validation_allowed_now === true,
+    dry_run_executor_enabled_now: projection?.dry_run_executor_enabled_now === true,
+    owner_limited_execution_gate_enabled_now: projection?.owner_limited_execution_gate_enabled_now === true,
+    provider_adapter_request_projection_enabled_now: projection?.provider_adapter_request_projection_enabled_now === true,
+    l10_preflight_candidate_enabled_now: projection?.l10_preflight_candidate_enabled_now === true,
+    request_transport_submission_allowed_now: false,
+    execution_allowed_now: false,
+    command_executed_now: false,
+    command_output_captured_now: false,
+    mutation_performed: false,
+    dry_run_only: true,
+    human_receipt_required_before_execution: true,
+    limited_execution_receipt_required: true,
+    receipt_application_allowed_now: false,
+    approval_application_allowed_now: false,
+    connector_write_allowed_now: false,
+    secret_read_allowed_now: false,
+    raw_source_exposure_allowed: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    protected_closeout_enabled: false,
+    desktop_write_authority_enabled: false,
+    no_latent_execution_ui: true,
+    runtime_rows: safeArray(projection?.runtime_rows).map((row) => ({
+      runtime_id: String(row?.runtime_id ?? "unknown"),
+      runtime_kind: String(row?.runtime_kind ?? "unknown"),
+      display_name: String(row?.display_name ?? row?.runtime_id ?? "Unknown runtime"),
+      model_label_observed: String(row?.model_label_observed ?? "not recorded"),
+      model_proof_trusted: false,
+      state: String(row?.state ?? "blocked"),
+      trust_class: String(row?.trust_class ?? "unknown"),
+      requestable: false,
+      executable: false,
+      can_execute_from_desktop_now: false,
+    })),
+    capability_rows: safeArray(projection?.capability_rows).map((row) => ({
+      capability_id: String(row?.capability_id ?? "unknown"),
+      capability_kind: String(row?.capability_kind ?? "unknown"),
+      capability_name: String(row?.capability_name ?? row?.capability_id ?? "Unknown capability"),
+      runtime_id: String(row?.runtime_id ?? "unknown"),
+      state: String(row?.state ?? "blocked"),
+      passive_collection_only: row?.passive_collection_only === true,
+      requestable: false,
+      executable: false,
+      trust_class: String(row?.trust_class ?? "unknown"),
+    })),
+    permission_rows: safeArray(projection?.permission_rows).map((row) => ({
+      capability_id: String(row?.capability_id ?? "unknown"),
+      runtime_id: String(row?.runtime_id ?? "unknown"),
+      authority_namespace: String(row?.authority_namespace ?? "unknown"),
+      capability_state: String(row?.capability_state ?? "blocked"),
+      desktop_display_allowed: row?.desktop_display_allowed === true,
+      requestable: false,
+      executable: false,
+      opens_authority: false,
+    })),
+    request_rows: safeArray(projection?.request_rows).map((row) => ({
+      request_id: String(row?.request_id ?? "unknown"),
+      request_type: String(row?.request_type ?? "unknown"),
+      request_status: String(row?.request_status ?? "blocked"),
+      target_runtime_id: String(row?.target_runtime_id ?? "unknown"),
+      request_title: String(row?.request_title ?? "Untitled request"),
+      risk_level: String(row?.risk_level ?? "unknown"),
+      request_packet_generated: row?.request_packet_generated === true,
+      transport_submitted_now: false,
+      execution_allowed_now: false,
+      command_executed_now: false,
+      receipt_applied: false,
+    })),
+    receipt_rows: safeArray(projection?.receipt_rows).map((row) => ({
+      receipt_id: String(row?.receipt_id ?? "unknown"),
+      request_id: String(row?.request_id ?? "unknown"),
+      request_type: String(row?.request_type ?? "unknown"),
+      receipt_kind: String(row?.receipt_kind ?? "unknown"),
+      normalized_verdict: String(row?.normalized_verdict ?? "missing"),
+      receipt_validated: row?.receipt_validated === true,
+      receipt_quarantined: row?.receipt_quarantined === true,
+      raw_output_included: false,
+      receipt_applied: false,
+      opens_authority: false,
+    })),
+    evidence_binding_rows: safeArray(projection?.evidence_binding_rows).map((row) => ({
+      binding_id: String(row?.binding_id ?? "unknown"),
+      request_id: String(row?.request_id ?? "unknown"),
+      receipt_id: row?.receipt_id ? String(row.receipt_id) : null,
+      binding_status: String(row?.binding_status ?? "unknown"),
+      target_runtime_id: String(row?.target_runtime_id ?? "unknown"),
+      target_capability_id: String(row?.target_capability_id ?? "unknown"),
+      opens_authority: false,
+      receipt_applied: false,
+    })),
+    packet_export_rows: safeArray(projection?.packet_export_rows).map((row) => ({
+      packet_id: String(row?.packet_id ?? "unknown"),
+      request_id: String(row?.request_id ?? "unknown"),
+      request_type: String(row?.request_type ?? "unknown"),
+      request_title: String(row?.request_title ?? "Untitled packet"),
+      target_runtime_id: String(row?.target_runtime_id ?? "unknown"),
+      target_capability_id: String(row?.target_capability_id ?? "unknown"),
+      packet_status: String(row?.packet_status ?? "blocked"),
+      packet_file_name: String(row?.packet_file_name ?? "packet.md"),
+      packet_markdown_hash: String(row?.packet_markdown_hash ?? ""),
+      copy_allowed_now: row?.copy_allowed_now === true,
+      file_export_allowed_now: row?.file_export_allowed_now === true,
+      request_transport_submission_allowed_now: false,
+      provider_automation_allowed_now: false,
+      raw_prompt_included: false,
+      execution_allowed_now: false,
+      opens_authority: false,
+    })),
+    receipt_import_candidate_rows: safeArray(projection?.receipt_import_candidate_rows).map((row) => ({
+      import_candidate_id: String(row?.import_candidate_id ?? "unknown"),
+      receipt_id: String(row?.receipt_id ?? "unknown"),
+      request_id: String(row?.request_id ?? "unknown"),
+      packet_id: row?.packet_id ? String(row.packet_id) : null,
+      request_type: String(row?.request_type ?? "unknown"),
+      receipt_kind: String(row?.receipt_kind ?? "unknown"),
+      workspace_status: String(row?.workspace_status ?? "blocked"),
+      normalized_verdict: String(row?.normalized_verdict ?? "missing"),
+      normalized_summary_only: true,
+      raw_output_included: false,
+      raw_receipt_stored: false,
+      receipt_validated: row?.receipt_validated === true,
+      receipt_quarantined: row?.receipt_quarantined === true,
+      receipt_applied: false,
+      receipt_application_allowed_now: false,
+      approval_application_allowed_now: false,
+      opens_authority: false,
+    })),
+    receipt_normalized_summary_rows: safeArray(projection?.receipt_normalized_summary_rows).map((row) => ({
+      import_candidate_id: String(row?.import_candidate_id ?? "unknown"),
+      receipt_id: String(row?.receipt_id ?? "unknown"),
+      request_id: String(row?.request_id ?? "unknown"),
+      request_type: String(row?.request_type ?? "unknown"),
+      normalized_verdict: String(row?.normalized_verdict ?? "missing"),
+      summary_label: String(row?.summary_label ?? "Receipt summary"),
+      displayable_in_desktop: row?.displayable_in_desktop === true,
+      normalized_summary_only: true,
+      raw_output_included: false,
+      receipt_applied: false,
+      opens_authority: false,
+    })),
+    review_finding_seed_rows: safeArray(projection?.review_finding_seed_rows).map((row) => ({
+      finding_id: String(row?.finding_id ?? "unknown"),
+      receipt_id: String(row?.receipt_id ?? "unknown"),
+      request_id: String(row?.request_id ?? "unknown"),
+      request_type: String(row?.request_type ?? "unknown"),
+      finding_category: String(row?.finding_category ?? "unknown"),
+      severity: String(row?.severity ?? "unknown"),
+      blocking: row?.blocking === true,
+      finding_status: String(row?.finding_status ?? "blocked"),
+      finding_summary: String(row?.finding_summary ?? "not recorded"),
+      finding_resolution_allowed_now: false,
+      clean_checkpoint_allowed_now: false,
+      patch_apply_allowed_now: false,
+      approval_application_allowed_now: false,
+      execution_allowed_now: false,
+      opens_authority: false,
+    })),
+    review_finding_action_rows: safeArray(projection?.review_finding_action_rows).map((row) => ({
+      finding_id: String(row?.finding_id ?? "unknown"),
+      action_status: String(row?.action_status ?? "blocked"),
+      action_label: String(row?.action_label ?? "Inspect finding"),
+      next_allowed_action: String(row?.next_allowed_action ?? "inspect finding"),
+      action_mutates_state: false,
+      action_executes_command: false,
+      action_applies_patch: false,
+      finding_resolution_allowed_now: false,
+      opens_authority: false,
+    })),
+    execution_candidate_rows: safeArray(projection?.execution_candidate_rows).map((row) => ({
+      candidate_id: String(row?.candidate_id ?? "unknown"),
+      candidate_type: String(row?.candidate_type ?? "unknown"),
+      candidate_title: String(row?.candidate_title ?? "Untitled candidate"),
+      candidate_status: String(row?.candidate_status ?? "blocked"),
+      command_text: String(row?.command_text ?? ""),
+      command_family: String(row?.command_family ?? "unknown"),
+      allowlist_match: row?.allowlist_match === true,
+      timeout_ms: Number(row?.timeout_ms ?? 0),
+      sandbox_profile: String(row?.sandbox_profile ?? "repo_local_read_only"),
+      human_receipt_required_before_execution: true,
+      limited_execution_receipt_required: true,
+      execution_allowed_now: false,
+      command_executed_now: false,
+      command_output_captured_now: false,
+      mutation_performed: false,
+      opens_authority: false,
+    })),
+    blocked_command_fixture_rows: safeArray(projection?.blocked_command_fixture_rows).map((row) => ({
+      fixture_id: String(row?.fixture_id ?? "unknown"),
+      command_text: String(row?.command_text ?? ""),
+      expected_protected_action_type: String(row?.expected_protected_action_type ?? "unknown"),
+      observed_protected_action_type: String(row?.observed_protected_action_type ?? "unknown"),
+      blocked: row?.blocked === true,
+      blocked_reason: String(row?.blocked_reason ?? "blocked"),
+      allowlist_match: false,
+      execution_allowed_now: false,
+      command_executed_now: false,
+      mutation_performed: false,
+      opens_authority: false,
+    })),
+    execution_gate_rows: safeArray(projection?.execution_gate_rows).map((row) => ({
+      gate_id: String(row?.gate_id ?? "unknown"),
+      gate_status: String(row?.gate_status ?? "blocked"),
+      description: String(row?.description ?? "not recorded"),
+      current_verdict: String(row?.current_verdict ?? "blocked"),
+      blocks_execution_when_failed: row?.blocks_execution_when_failed === true,
+      execution_allowed_now: false,
+      command_executed_now: false,
+      mutation_performed: false,
+      opens_authority: false,
+    })),
+    dry_run_executor_rows: safeArray(projection?.dry_run_executor_rows).map((row) => ({
+      candidate_id: String(row?.candidate_id ?? "unknown"),
+      candidate_type: String(row?.candidate_type ?? "unknown"),
+      command_text: String(row?.command_text ?? ""),
+      printed_intended_command: String(row?.printed_intended_command ?? ""),
+      executor_adapter_status: String(row?.executor_adapter_status ?? "blocked"),
+      dry_run_trace_created: row?.dry_run_trace_created === true,
+      execution_allowed_now: false,
+      command_executed_now: false,
+      command_output_captured_now: false,
+      mutation_performed: false,
+      opens_authority: false,
+    })),
+    provider_adapter_request_rows: safeArray(projection?.provider_adapter_request_rows).map((row) => ({
+      adapter_id: String(row?.adapter_id ?? "unknown"),
+      adapter_kind: String(row?.adapter_kind ?? "unknown"),
+      adapter_title: String(row?.adapter_title ?? "Unknown adapter"),
+      target_runtime_id: String(row?.target_runtime_id ?? "unknown"),
+      request_type: String(row?.request_type ?? "unknown"),
+      packet_id: row?.packet_id ? String(row.packet_id) : null,
+      adapter_request_status: String(row?.adapter_request_status ?? "blocked"),
+      request_transport_submission_allowed_now: false,
+      provider_automation_allowed_now: false,
+      execution_allowed_now: false,
+      command_executed_now: false,
+      opens_authority: false,
+    })),
+    owner_limited_execution_gate_rows: safeArray(projection?.owner_limited_execution_gate_rows).map((row) => ({
+      candidate_id: String(row?.candidate_id ?? "unknown"),
+      owner_gate_status: String(row?.owner_gate_status ?? "blocked"),
+      owner_approval_observed: false,
+      limited_execution_receipt_required: true,
+      execution_allowed_now: false,
+      command_executed_now: false,
+      command_output_captured_now: false,
+      mutation_performed: false,
+      opens_authority: false,
+    })),
+    l10_preflight_candidate_rows: safeArray(projection?.l10_preflight_candidate_rows).map((row) => ({
+      preflight_id: String(row?.preflight_id ?? "unknown"),
+      preflight_type: String(row?.preflight_type ?? "unknown"),
+      command_text: String(row?.command_text ?? ""),
+      preflight_status: String(row?.preflight_status ?? "blocked"),
+      package_script_registered: row?.package_script_registered === true,
+      execution_allowed_now: false,
+      command_executed_now: false,
+      command_output_captured_now: false,
+      mutation_performed: false,
+      opens_authority: false,
+    })),
+    limited_runtime_gate_rows: safeArray(projection?.limited_runtime_gate_rows).map((row) => ({
+      gate_id: String(row?.gate_id ?? "unknown"),
+      gate_status: String(row?.gate_status ?? "blocked"),
+      description: String(row?.description ?? "not recorded"),
+      current_verdict: String(row?.current_verdict ?? "blocked"),
+      execution_allowed_now: false,
+      command_executed_now: false,
+      mutation_performed: false,
+      opens_authority: false,
+    })),
+    agent_control_rows: safeArray(projection?.agent_control_rows).map((row) => ({
+      control_id: String(row?.control_id ?? "unknown"),
+      label: String(row?.label ?? row?.control_id ?? "Unknown control"),
+      control_enabled: false,
+      disabled_reason: String(row?.disabled_reason ?? "disabled"),
+      opens_authority: false,
+    })),
+    projection_rows: safeArray(projection?.projection_rows).map(pickProjectionRow),
+  };
+}
+
+function pickAuthority(authority) {
+  return {
+    read_only: authority.read_only !== false,
+    operator_handbook_bound: authority.operator_handbook_bound === true,
+    authority_boundary_ready: authority.authority_boundary_ready === true,
+    all_sections_ready: authority.all_sections_ready === true,
+    source_of_truth: false,
+    raw_payload_read_allowed: false,
+    secret_like_path_read_allowed: false,
+    command_execution_allowed_now: false,
+    shell_execution_allowed_now: false,
+    deployment_allowed_now: false,
+    git_push_allowed_now: false,
+    approval_application_allowed_now: false,
+    receipt_application_allowed_now: false,
+    connector_write_allowed_now: false,
+    secret_read_allowed_now: false,
+    raw_source_exposure_allowed: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    protected_closeout_enabled: false,
+    desktop_write_authority_enabled: false,
+    unsafe_flag_count: 0,
+    ready_for_desktop_shell: authority.ready_for_desktop_shell === true,
+  };
+}
+
+function pickSourceRow(row) {
+  return {
+    source_id: String(row?.source_id ?? "unknown"),
+    section_id: String(row?.section_id ?? "artifacts"),
+    label: String(row?.label ?? row?.source_id ?? "Unknown source"),
+    source_path: String(row?.source_path ?? ""),
+    source_available: row?.source_available === true,
+    status: row?.status === "ready" ? "ready" : "blocked",
+    blocker: row?.blocker ?? null,
+    generated_at: row?.generated_at ?? null,
+    source_content_hash: row?.source_content_hash ?? null,
+  };
+}
+
+function pickSection(section) {
+  return {
+    section_id: String(section?.section_id ?? "unknown"),
+    label: String(section?.label ?? section?.section_id ?? "Unknown"),
+    source_path: section?.source_path ?? null,
+    generated_at: section?.generated_at ?? null,
+    status: section?.status === "ready" ? "ready" : "blocked",
+    blocker: section?.blocker ?? null,
+    section_refs: safeArray(section?.section_refs).map((ref) => ({
+      source_id: String(ref?.source_id ?? "unknown"),
+      source_path: String(ref?.source_path ?? ""),
+      status: ref?.status === "ready" ? "ready" : "blocked",
+      blocker: ref?.blocker ?? null,
+    })),
+  };
+}
+
+function pickScreen(screen) {
+  return {
+    screen_id: String(screen?.screen_id ?? "unknown"),
+    label: String(screen?.label ?? screen?.screen_id ?? "Unknown"),
+    status: screen?.status === "ready" ? "ready" : "blocked",
+    blocker_state: screen?.blocker_state ?? null,
+    no_action_authority_notice: screen?.no_action_authority_notice ?? "Read-only screen.",
+  };
+}
+
+function pickReleaseProjection(projection = {}) {
+  return {
+    schema_version: "desktop-release-projection.v1",
+    generated_at: projection?.generated_at ?? null,
+    candidate_commit: String(projection?.candidate_commit ?? "unknown"),
+    local_rc_tag: String(projection?.local_rc_tag ?? "not recorded"),
+    trust_mode: "single-owner lower-trust RC",
+    release_candidate_freeze_observed: projection?.release_candidate_freeze_observed === true,
+    github_independent_approval_status: projection?.github_independent_approval_status === "not_pursued_single_owner_local_rc"
+      ? "not_pursued_single_owner_local_rc"
+      : "missing",
+    production_launch_approval_status: projection?.production_launch_approval_status === "missing" ? "missing" : "not_approved",
+    deployment_authorized: false,
+    tag_pushed: false,
+    github_release_published: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    protected_closeout_enabled: false,
+    projection_rows: safeArray(projection?.projection_rows).map(pickProjectionRow),
+  };
+}
+
+function pickFactoryProjection(projection = {}) {
+  return {
+    schema_version: "desktop-factory-projection.v1",
+    generated_at: projection?.generated_at ?? null,
+    factory_gate_readiness_status: String(projection?.factory_gate_readiness_status ?? "not recorded"),
+    stage6_stage7_status: String(projection?.stage6_stage7_status ?? "not recorded"),
+    observed_gate_open_now_input: Number(projection?.observed_gate_open_now_input ?? 0),
+    gate_open_now: 0,
+    g1a_status: String(projection?.g1a_status ?? "not recorded"),
+    runtime_authority_open: false,
+    stage6_limited_execution_allowed: false,
+    stage7_release_candidate_allowed: false,
+    contract_development_allowed: projection?.contract_development_allowed === true,
+    factory_goal_complete_allowed: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    projection_rows: safeArray(projection?.projection_rows).map(pickProjectionRow).map((row) => (
+      row.row_id === "gate_open_now" ? { ...row, value: "0", authority_open: false } : row
+    )),
+  };
+}
+
+function pickProjectProjection(projection = {}) {
+  return {
+    schema_version: "desktop-project-projection.v1",
+    generated_at: projection?.generated_at ?? null,
+    project_operating_contract_status: String(projection?.project_operating_contract_status ?? "not recorded"),
+    source_status: projection?.source_status === "ready" ? "ready" : "blocked",
+    project_count: Number(projection?.project_count ?? 0),
+    ready_project_count: Number(projection?.ready_project_count ?? 0),
+    blocked_project_count: Number(projection?.blocked_project_count ?? 0),
+    review_needed_project_count: Number(projection?.review_needed_project_count ?? 0),
+    stale_project_count: Number(projection?.stale_project_count ?? 0),
+    ready_for_desktop_multi_project_projection: projection?.ready_for_desktop_multi_project_projection === true,
+    read_only: true,
+    local_only: true,
+    source_of_truth: false,
+    command_execution_allowed_now: false,
+    git_write_allowed_now: false,
+    deploy_allowed_now: false,
+    approval_application_allowed_now: false,
+    receipt_application_allowed_now: false,
+    connector_write_allowed_now: false,
+    raw_source_exposure_allowed: false,
+    secret_read_allowed_now: false,
+    production_pass_enabled: false,
+    enterprise_pass_enabled: false,
+    protected_closeout_enabled: false,
+    project_rows: safeArray(projection?.project_rows).map((row) => ({
+      project_id: String(row?.project_id ?? "unknown"),
+      project_name: String(row?.project_name ?? row?.project_id ?? "Unknown project"),
+      domain_pack: String(row?.domain_pack ?? "unknown"),
+      project_state: String(row?.project_state ?? "blocked"),
+      current_goal_id: row?.current_goal_id ?? null,
+      current_phase_range: row?.current_phase_range ?? null,
+      blocker_count: Number(row?.blocker_count ?? 0),
+      freshness_status: String(row?.freshness_status ?? "missing"),
+      progress_confidence: String(row?.progress_confidence ?? "unknown"),
+      next_allowed_action: String(row?.next_allowed_action ?? "inspect project state"),
+    })),
+    project_detail_rows: safeArray(projection?.project_detail_rows).map((row) => ({
+      project_id: String(row?.project_id ?? "unknown"),
+      state_reason: String(row?.state_reason ?? "not recorded"),
+      blocker_type: row?.blocker_type ? String(row.blocker_type) : null,
+      blocker_hint: String(row?.blocker_hint ?? "No blocker remediation hint recorded."),
+      risk_level: String(row?.risk_level ?? "unknown"),
+      validation_ready: row?.validation_ready === true,
+      review_boundary_ready: row?.review_boundary_ready === true,
+      completed_units: Number(row?.completed_units ?? 0),
+      remaining_units: Number(row?.remaining_units ?? 0),
+      next_action_count: Number(row?.next_action_count ?? 0),
+      source_generated_at: row?.source_generated_at ?? null,
+      source_age_days: Number(row?.source_age_days ?? 0),
+      source_artifact_path: String(row?.source_artifact_path ?? ""),
+      source_artifact_sha256: String(row?.source_artifact_sha256 ?? ""),
+      source_parse_status: String(row?.source_parse_status ?? "unknown"),
+      refresh_required: row?.refresh_required === true,
+      unsafe_flag_count: Number(row?.unsafe_flag_count ?? 0),
+      authority_boundary_closed: row?.authority_boundary_closed === true,
+      data_boundary_closed: row?.data_boundary_closed === true,
+      next_allowed_action: String(row?.next_allowed_action ?? "inspect project detail"),
+    })),
+    project_drift_rows: safeArray(projection?.project_drift_rows).map((row) => ({
+      project_id: String(row?.project_id ?? "unknown"),
+      source_generated_at: row?.source_generated_at ?? null,
+      source_age_days: Number(row?.source_age_days ?? 0),
+      freshness_status: String(row?.freshness_status ?? "missing"),
+      refresh_required: row?.refresh_required === true,
+      source_hash: String(row?.source_hash ?? ""),
+      next_allowed_action: String(row?.next_allowed_action ?? "inspect freshness"),
+    })),
+    project_attention_rows: safeArray(projection?.project_attention_rows).map((row) => ({
+      project_id: String(row?.project_id ?? "unknown"),
+      attention_type: String(row?.attention_type ?? "status"),
+      severity: String(row?.severity ?? "info"),
+      label: String(row?.label ?? row?.attention_type ?? "Project attention"),
+      detail: String(row?.detail ?? ""),
+      next_safe_action: String(row?.next_safe_action ?? "inspect project state"),
+      mutates_state: false,
+      opens_authority: false,
+    })),
+    safe_affordance_rows: safeArray(projection?.safe_affordance_rows).map((row) => ({
+      action_type: String(row?.action_type ?? "inspect"),
+      action_class: String(row?.action_class ?? "safe_read_only"),
+      allowed: row?.allowed === true
+        && row?.action_class === "safe_read_only"
+        && SAFE_PROJECT_AFFORDANCE_TYPES.includes(row?.action_type),
+      mutates_state: false,
+      opens_authority: false,
+      display_label: String(row?.display_label ?? row?.action_type ?? "inspect"),
+      hint: String(row?.hint ?? "Display only."),
+    })),
+    projection_rows: safeArray(projection?.projection_rows).map(pickProjectionRow),
+  };
+}
+
+function pickProjectionRow(row) {
+  const rowId = String(row?.row_id ?? "unknown");
+  return {
+    row_id: rowId,
+    label: safeProjectionLabel(rowId, row?.label),
+    value: String(row?.value ?? ""),
+    status: String(row?.status ?? "closed"),
+    authority_open: false,
+    generated_at: row?.generated_at ?? null,
+  };
+}
+
+function defaultReleaseProjection() {
+  return pickReleaseProjection({
+    projection_rows: [
+      { row_id: "deployment_authorization", label: "Deploy authority", value: "not authorized", status: "closed" },
+    ],
+  });
+}
+
+function defaultFactoryProjection() {
+  return pickFactoryProjection({
+    projection_rows: [
+      { row_id: "gate_open_now", label: "Gate open now", value: "0", status: "closed" },
+    ],
+  });
+}
+
+function defaultProjectProjection() {
+  return pickProjectProjection({
+    source_status: "blocked",
+    projection_rows: [
+      { row_id: "project_count", label: "Projects", value: "0", status: "blocked" },
+    ],
+  });
+}
+
+function defaultAgentProjection() {
+  return pickAgentProjection({
+    source_status: "blocked",
+    projection_rows: [
+      { row_id: "agent_execution", label: "Execution", value: "closed", status: "blocked" },
+    ],
+  });
+}
+
+function blockedPreview(sourcePath, blocker) {
+  return {
+    schema_version: "desktop-source-preview.v1",
+    source_path: sourcePath,
+    status: "blocked",
+    blocker,
+    preview_text: "",
+    truncated: false,
+    redacted: false,
+    byte_length: 0,
+  };
+}
+
+function isDeniedPreviewPath(sourcePath) {
+  const normalized = normalizePolicyPath(sourcePath);
+  const base = path.posix.basename(normalized);
+  return base.startsWith(".env")
+    || /(^|\/)[^/]*(secret|credential|token|private-key)[^/]*($|\/)/i.test(normalized)
+    || (normalized.startsWith("artifacts/") && /^raw.*\.json$/i.test(base))
+    || (normalized.startsWith("artifacts/") && /^raw-output.*\.json$/i.test(base))
+    || normalized.endsWith("/provenance/signed-provenance-receipt.json")
+    || normalized.endsWith("/review/raw-output.json");
+}
+
+function safeProjectionLabel(rowId, fallback) {
+  const labels = {
+    github_independent_approval: "Independent review",
+    production_launch_approval: "Launch approval",
+    deployment_authorization: "Deploy authority",
+  };
+  return labels[rowId] ?? String(fallback ?? rowId ?? "Unknown");
+}
+
+function redactPreviewText(text) {
+  return String(text ?? "")
+    .replace(/production PASS/gi, "[redacted production trust claim]")
+    .replace(/enterprise PASS/gi, "[redacted enterprise trust claim]")
+    .replace(/enterprise trust/gi, "[redacted enterprise trust claim]")
+    .replace(/GitHub independent approval/gi, "[redacted independent approval claim]")
+    .replace(/independently approved/gi, "[redacted independent approval claim]")
+    .replace(/production launch approval/gi, "[redacted production launch claim]")
+    .replace(/production launch approved/gi, "[redacted production launch claim]")
+    .replace(/deployment authorization/gi, "[redacted deployment claim]")
+    .replace(/protected closeout/gi, "[redacted protected closeout claim]")
+    .replace(/desktop write authority enabled/gi, "[redacted desktop write authority claim]");
+}
+
+function normalizePolicyPath(filePath) {
+  return String(filePath ?? "").replaceAll("\\", "/").replace(/^\.\//, "");
+}
+
+function safeArray(value) {
+  return Array.isArray(value) ? value : [];
+}

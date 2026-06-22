@@ -1,0 +1,252 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/hermes-mcp-capability-registry.schema.json",
+  "title": "Hermes MCP Capability Registry",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "hermes_mcp_capability_registry_id",
+    "capability_id",
+    "command_name",
+    "inputs",
+    "mcp_policy",
+    "mcp_resource_rows",
+    "mcp_tool_rows",
+    "blocked_authority_rows",
+    "desktop_console_boundary",
+    "source_binding_rows",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "hermes-mcp-capability-registry.v1" },
+    "capability_id": { "const": "platform.hermes_mcp.capability_registry" },
+    "command_name": { "const": "platform:hermes-mcp-capability-registry" },
+    "mcp_policy": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "policy_id",
+        "source_of_truth",
+        "desktop_role",
+        "mcp_tranche",
+        "mcp_mode",
+        "mcp_resources_allowed_now",
+        "check_only_tools_allowed_now",
+        "mcp_server_started_now",
+        "live_mcp_connection_opened_now",
+        "repo_write_allowed_now",
+        "filesystem_write_allowed_now",
+        "connector_write_allowed_now",
+        "deployment_allowed_now",
+        "protected_action_allowed_now",
+        "receipt_application_allowed_now",
+        "final_approval_allowed_now",
+        "production_pass_allowed_now",
+        "enterprise_trust_claim_allowed_now",
+        "raw_secret_context_allowed",
+        "raw_restricted_payload_allowed",
+        "next_allowed_action"
+      ],
+      "properties": {
+        "schema_version": { "const": "hermes-mcp-policy.v1" },
+        "source_of_truth": { "const": "repo_artifacts_schemas" },
+        "desktop_role": { "const": "non_authoritative_operator_console" },
+        "mcp_tranche": { "const": "H-MCP-01" },
+        "mcp_mode": { "const": "capability_registry_only" },
+        "mcp_resources_allowed_now": { "const": true },
+        "check_only_tools_allowed_now": { "const": true },
+        "mcp_server_started_now": { "const": false },
+        "live_mcp_connection_opened_now": { "const": false },
+        "repo_write_allowed_now": { "const": false },
+        "filesystem_write_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "final_approval_allowed_now": { "const": false },
+        "production_pass_allowed_now": { "const": false },
+        "enterprise_trust_claim_allowed_now": { "const": false },
+        "raw_secret_context_allowed": { "const": false },
+        "raw_restricted_payload_allowed": { "const": false }
+      }
+    },
+    "mcp_resource_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "row_id",
+          "resource_id",
+          "uri",
+          "kind",
+          "source_ref",
+          "exposure_mode",
+          "source_of_truth",
+          "mutation_allowed_now",
+          "raw_secret_context_allowed",
+          "raw_restricted_payload_allowed",
+          "protected_action_allowed_now",
+          "desktop_consumable"
+        ],
+        "properties": {
+          "schema_version": { "const": "hermes-mcp-resource-row.v1" },
+          "exposure_mode": { "const": "read_only_planned" },
+          "source_of_truth": { "const": false },
+          "mutation_allowed_now": { "const": false },
+          "raw_secret_context_allowed": { "const": false },
+          "raw_restricted_payload_allowed": { "const": false },
+          "protected_action_allowed_now": { "const": false },
+          "desktop_consumable": { "const": true }
+        }
+      }
+    },
+    "mcp_tool_rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "row_id",
+          "tool_name",
+          "package_script",
+          "package_script_registered",
+          "tool_kind",
+          "check_invocation",
+          "invocation_mode",
+          "mutation_allowed_now",
+          "connector_write_allowed_now",
+          "deployment_allowed_now",
+          "protected_action_allowed_now",
+          "final_approval_allowed_now"
+        ],
+        "properties": {
+          "schema_version": { "const": "hermes-mcp-tool-row.v1" },
+          "package_script_registered": { "const": true },
+          "invocation_mode": { "const": "read_only_or_check_only" },
+          "mutation_allowed_now": { "const": false },
+          "connector_write_allowed_now": { "const": false },
+          "deployment_allowed_now": { "const": false },
+          "protected_action_allowed_now": { "const": false },
+          "final_approval_allowed_now": { "const": false }
+        }
+      }
+    },
+    "blocked_authority_rows": {
+      "type": "array",
+      "minItems": 12,
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "row_id",
+          "authority_id",
+          "current_verdict",
+          "blocked_reason",
+          "allowed_now",
+          "negative_fixture_required",
+          "human_gate_required_to_open",
+          "independent_review_required_to_open",
+          "next_allowed_action"
+        ],
+        "properties": {
+          "schema_version": { "const": "hermes-mcp-blocked-authority-row.v1" },
+          "current_verdict": { "const": "blocked" },
+          "allowed_now": { "const": false },
+          "negative_fixture_required": { "const": true },
+          "human_gate_required_to_open": { "const": true },
+          "independent_review_required_to_open": { "const": true }
+        }
+      }
+    },
+    "desktop_console_boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "desktop_role",
+        "desktop_may_consume_mcp_resources",
+        "desktop_source_of_truth",
+        "desktop_mutation_allowed_now",
+        "desktop_receipt_application_allowed_now",
+        "desktop_protected_action_allowed_now",
+        "desktop_final_approval_allowed_now",
+        "desktop_enterprise_trust_claim_allowed_now"
+      ],
+      "properties": {
+        "schema_version": { "const": "hermes-mcp-desktop-console-boundary.v1" },
+        "desktop_role": { "const": "non_authoritative_operator_console" },
+        "desktop_may_consume_mcp_resources": { "const": true },
+        "desktop_source_of_truth": { "const": false },
+        "desktop_mutation_allowed_now": { "const": false },
+        "desktop_receipt_application_allowed_now": { "const": false },
+        "desktop_protected_action_allowed_now": { "const": false },
+        "desktop_final_approval_allowed_now": { "const": false },
+        "desktop_enterprise_trust_claim_allowed_now": { "const": false }
+      }
+    },
+    "source_binding_rows": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "row_id",
+          "source_id",
+          "source_path",
+          "source_available",
+          "required_tokens",
+          "source_binding_status",
+          "mutation_allowed_now"
+        ],
+        "properties": {
+          "schema_version": { "const": "hermes-mcp-source-binding-row.v1" },
+          "source_available": { "const": true },
+          "source_binding_status": { "const": "bound" },
+          "mutation_allowed_now": { "const": false }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "hermes_mcp_capability_registry_status",
+        "mcp_tranche",
+        "mcp_mode",
+        "mcp_resource_count",
+        "mcp_tool_count",
+        "blocked_authority_count",
+        "mcp_server_started_now",
+        "live_mcp_connection_opened_now",
+        "repo_write_allowed_now",
+        "connector_write_allowed_now",
+        "deployment_allowed_now",
+        "protected_action_allowed_now",
+        "final_approval_allowed_now",
+        "enterprise_trust_claim_allowed_now",
+        "desktop_source_of_truth",
+        "validation_error_count"
+      ],
+      "properties": {
+        "hermes_mcp_capability_registry_status": { "const": "ready_for_hermes_mcp_capability_registry" },
+        "mcp_tranche": { "const": "H-MCP-01" },
+        "mcp_mode": { "const": "capability_registry_only" },
+        "mcp_server_started_now": { "const": false },
+        "live_mcp_connection_opened_now": { "const": false },
+        "repo_write_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "final_approval_allowed_now": { "const": false },
+        "enterprise_trust_claim_allowed_now": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

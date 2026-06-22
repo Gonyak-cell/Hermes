@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/hermes-mcp-authority-guard.schema.json",
+  "title": "Hermes MCP Authority Guard",
+  "type": "object",
+  "required": ["schema_version", "tranche_id", "command_name", "negative_fixture_rows", "authority_boundary", "validation", "summary"],
+  "properties": {
+    "schema_version": { "const": "hermes-mcp-authority-guard.v1" },
+    "tranche_id": { "const": "H-MCP-04" },
+    "command_name": { "const": "platform:hermes-mcp-authority-guard" },
+    "negative_fixture_rows": {
+      "type": "array",
+      "minItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["fixture_id", "expected_error_code", "observed_error_code", "passed", "mutation_allowed_now"],
+        "properties": {
+          "passed": { "const": true },
+          "mutation_allowed_now": { "const": false }
+        }
+      }
+    },
+    "authority_boundary": { "$ref": "#/$defs/closedAuthority" },
+    "summary": {
+      "type": "object",
+      "required": ["status", "negative_fixture_count", "negative_fixture_pass_count", "repo_write_allowed_now", "deployment_allowed_now", "receipt_application_allowed_now", "protected_action_allowed_now", "production_pass_allowed_now", "enterprise_trust_claim_allowed_now", "raw_restricted_payload_allowed", "validation_error_count"],
+      "properties": {
+        "status": { "const": "ready_for_hermes_mcp_authority_guard" },
+        "negative_fixture_count": { "const": 12 },
+        "negative_fixture_pass_count": { "const": 12 },
+        "repo_write_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "production_pass_allowed_now": { "const": false },
+        "enterprise_trust_claim_allowed_now": { "const": false },
+        "raw_restricted_payload_allowed": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "closedAuthority": {
+      "type": "object",
+      "required": ["source_of_truth", "repo_write_allowed_now", "filesystem_write_allowed_now", "connector_write_allowed_now", "deployment_allowed_now", "protected_action_allowed_now", "receipt_application_allowed_now", "final_approval_allowed_now", "production_pass_allowed_now", "enterprise_trust_claim_allowed_now", "raw_secret_context_allowed", "raw_restricted_payload_allowed"],
+      "properties": {
+        "source_of_truth": { "const": "repo_artifacts_schemas" },
+        "repo_write_allowed_now": { "const": false },
+        "filesystem_write_allowed_now": { "const": false },
+        "connector_write_allowed_now": { "const": false },
+        "deployment_allowed_now": { "const": false },
+        "protected_action_allowed_now": { "const": false },
+        "receipt_application_allowed_now": { "const": false },
+        "final_approval_allowed_now": { "const": false },
+        "production_pass_allowed_now": { "const": false },
+        "enterprise_trust_claim_allowed_now": { "const": false },
+        "raw_secret_context_allowed": { "const": false },
+        "raw_restricted_payload_allowed": { "const": false }
+      }
+    }
+  }
+}
